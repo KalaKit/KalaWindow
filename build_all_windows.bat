@@ -21,7 +21,8 @@ set "ORIGIN_RELEASE_DLL=%INSTALL_RELEASE%\bin\KalaWindow.dll"
 set "ORIGIN_RELEASE_LIB=%INSTALL_RELEASE%\lib\KalaWindow.lib"
 set "ORIGIN_DEBUG_DLL=%INSTALL_DEBUG%\bin\KalaWindowD.dll"
 set "ORIGIN_DEBUG_LIB=%INSTALL_DEBUG%\lib\KalaWindowD.lib"
-set "ORIGIN_HEADER=%WINDOW_ROOT%\install-release\include\window.hpp"
+set "ORIGIN_HEADER1=%WINDOW_ROOT%\install-release\include\window.hpp"
+set "ORIGIN_HEADER2=%WINDOW_ROOT%\install-release\include\magic_enum.hpp"
 
 if not exist "%ORIGIN_RELEASE_DLL%" (
 	echo Failed to find origin release dll from '%ORIGIN_RELEASE_DLL%'!
@@ -43,8 +44,13 @@ if not exist "%ORIGIN_DEBUG_LIB%" (
 	pause
 	exit /b 1
 )
-if not exist "%ORIGIN_HEADER%" (
-	echo Failed to find origin header from '%ORIGIN_HEADER%'!
+if not exist "%ORIGIN_HEADER1%" (
+	echo Failed to find origin header 1 from '%ORIGIN_HEADER1%'!
+	pause
+	exit /b 1
+)
+if not exist "%ORIGIN_HEADER2%" (
+	echo Failed to find origin header 2 from '%ORIGIN_HEADER2%'!
 	pause
 	exit /b 1
 )
@@ -61,7 +67,8 @@ set "TARGET_RELEASE_DLL=%TARGET_ROOT%\release\KalaWindow.dll"
 set "TARGET_RELEASE_LIB=%TARGET_ROOT%\release\KalaWindow.lib"
 set "TARGET_DEBUG_DLL=%TARGET_ROOT%\debug\KalaWindowD.dll"
 set "TARGET_DEBUG_LIB=%TARGET_ROOT%\debug\KalaWindowD.lib"
-set "TARGET_HEADER=%TARGET_ROOT%\window.hpp"
+set "TARGET_HEADER1=%TARGET_ROOT%\window.hpp"
+set "TARGET_HEADER2=%TARGET_ROOT%\magic_enum.hpp"
 
 :: Create release and debug folders in case they dont exist yet
 if not exist "%TARGET_ROOT%\release" mkdir "%TARGET_ROOT%\release"
@@ -72,7 +79,8 @@ copy /Y "%ORIGIN_RELEASE_DLL%" "%TARGET_RELEASE_DLL%"
 copy /Y "%ORIGIN_RELEASE_LIB%" "%TARGET_RELEASE_LIB%"
 copy /Y "%ORIGIN_DEBUG_DLL%" "%TARGET_DEBUG_DLL%"
 copy /Y "%ORIGIN_DEBUG_LIB%" "%TARGET_DEBUG_LIB%"
-copy /Y "%ORIGIN_HEADER%" "%TARGET_HEADER%"
+copy /Y "%ORIGIN_HEADER1%" "%TARGET_HEADER1%"
+copy /Y "%ORIGIN_HEADER2%" "%TARGET_HEADER2%"
 
 echo Successfully installed KalaWindow!
 
