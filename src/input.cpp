@@ -17,7 +17,6 @@
 
 #include <vector>
 #include <type_traits>
-#ifdef _WIN32
 #include <Windows.h>
 #include <TlHelp32.h>
 #ifndef GET_X_LPARAM
@@ -25,7 +24,6 @@
 #endif
 #ifndef GET_Y_LPARAM
 	#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
-#endif
 #endif
 
 #include "input.hpp"
@@ -64,6 +62,11 @@ namespace KalaKit
 		//
 		// FINAL INITIALIZATION STEPS FOR RAW INPUT
 		//
+
+		proc = (WNDPROC)SetWindowLongPtr(
+			window,
+			GWLP_WNDPROC,
+			(LONG_PTR)WindowProcCallback);
 
 		RAWINPUTDEVICE rid{};
 		rid.usUsagePage = 0x01;
@@ -468,7 +471,6 @@ namespace KalaKit
 		isWindowFocusRequired = newWindowFocusRequiredState;
 	}
 
-#ifdef _WIN32
 	void KalaInput::Update()
 	{
 		if (!isInitialized)
@@ -487,7 +489,6 @@ namespace KalaKit
 		MSG msg;
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
-			ProcessMessage(msg);    //our own input processing
 			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
 			DispatchMessage(&msg);  //send the message to the window procedure
 		}
@@ -514,13 +515,17 @@ namespace KalaKit
 		}
 	}
 
+	HWND KalaInput::GetWindow()
+	{
+		return window;
+	}
 	void KalaInput::SetWindow(HWND newWindow)
 	{
 		window = newWindow;
 
 		char title[256];
 		GetWindowTextA(window, title, sizeof(title));
-		LOG_SUCCESS("Added window manually: \"" << title);
+		LOG_SUCCESS("Added window manually: " << title);
 	}
 
 	BOOL CALLBACK KalaInput::EnumWindowsCallback(HWND hwnd, LPARAM lParam)
@@ -545,6 +550,26 @@ namespace KalaKit
 		HWND hwnd = nullptr;
 		EnumWindows(EnumWindowsCallback, reinterpret_cast<LPARAM>(&hwnd));
 		return hwnd;
+	}
+
+	LRESULT CALLBACK KalaInput::WindowProcCallback(
+		HWND hwnd,
+		UINT msg,
+		WPARAM wParam,
+		LPARAM lParam)
+	{
+		MSG msgObj{};
+		msgObj.hwnd = hwnd;
+		msgObj.message = msg;
+		msgObj.wParam = wParam;
+		msgObj.lParam = lParam;
+
+		bool handled = ProcessMessage(msgObj);
+
+		//tell windows this message is fully handled
+		if (handled) return 0;
+
+		return CallWindowProc(proc, hwnd, msg, wParam, lParam);
 	}
 
 	void KalaInput::LockCursorToCenter()
@@ -572,7 +597,7 @@ namespace KalaKit
 		return result == IDYES;
 	}
 
-	void KalaInput::ProcessMessage(const MSG& msg)
+	bool KalaInput::ProcessMessage(const MSG& msg)
 	{
 		if (debugType == InputDebugType::DEBUG_ALL
 			|| debugType == InputDebugType::DEBUG_PROCESS_MESSAGE_TEST)
@@ -599,14 +624,14 @@ namespace KalaKit
 			Key key = static_cast<Key>(msg.wParam);
 			if (!keyHeld[key]) keyPressed[key] = true;
 			keyHeld[key] = true;
-			break;
+			return false;
 		}
 		case WM_KEYUP:
 		{
 			Key key = static_cast<Key>(msg.wParam);
 			keyPressed[key] = false;
 			keyHeld[key] = false;
-			break;
+			return false;
 		}
 
 		//
@@ -623,7 +648,7 @@ namespace KalaKit
 			mouseDelta.x = newPos.x - mousePosition.x;
 			mouseDelta.y = newPos.y - mousePosition.y;
 			mousePosition = newPos;
-			break;
+			return false;
 		}
 
 		//
@@ -635,7 +660,7 @@ namespace KalaKit
 			int delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 			if (delta > 0) mouseWheelDelta += 1;
 			else if (delta < 0) mouseWheelDelta -= 1;
-			break;
+			return false;
 		}
 
 		//
@@ -646,41 +671,41 @@ namespace KalaKit
 		{
 			SetMouseKeyState(Key::MouseLeft, true);
 			keyPressed[Key::MouseLeft] = true;
-			break;
+			return false;
 		}
 		case WM_RBUTTONDBLCLK:
 		{
 			SetMouseKeyState(Key::MouseRight, true);
 			keyPressed[Key::MouseRight] = true;
-			break;
+			return false;
 		}
 
 		//
 		// MOUSE BUTTONS
 		//
 
-		case WM_LBUTTONDOWN: SetMouseKeyState(Key::MouseLeft, true); break;
-		case WM_LBUTTONUP: SetMouseKeyState(Key::MouseLeft, false); break;
+		case WM_LBUTTONDOWN: SetMouseKeyState(Key::MouseLeft, true); return false;
+		case WM_LBUTTONUP: SetMouseKeyState(Key::MouseLeft, false); return false;
 
-		case WM_RBUTTONDOWN: SetMouseKeyState(Key::MouseRight, true); break;
-		case WM_RBUTTONUP: SetMouseKeyState(Key::MouseRight, false); break;
+		case WM_RBUTTONDOWN: SetMouseKeyState(Key::MouseRight, true); return false;
+		case WM_RBUTTONUP: SetMouseKeyState(Key::MouseRight, false); return false;
 
-		case WM_MBUTTONDOWN: SetMouseKeyState(Key::MouseMiddle, true); break;
-		case WM_MBUTTONUP: SetMouseKeyState(Key::MouseMiddle, false); break;
+		case WM_MBUTTONDOWN: SetMouseKeyState(Key::MouseMiddle, true); return false;
+		case WM_MBUTTONUP: SetMouseKeyState(Key::MouseMiddle, false); return false;
 
 		case WM_XBUTTONDOWN:
 		{
 			WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 			if (button == XBUTTON1) SetMouseKeyState(Key::MouseX1, true);
 			if (button == XBUTTON2) SetMouseKeyState(Key::MouseX2, true);
-			break;
+			return false;
 		}
 		case WM_XBUTTONUP:
 		{
 			WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 			if (button == XBUTTON1) SetMouseKeyState(Key::MouseX1, false);
 			if (button == XBUTTON2) SetMouseKeyState(Key::MouseX2, false);
-			break;
+			return false;
 		}
 
 		//
@@ -705,7 +730,7 @@ namespace KalaKit
 				&size,
 				sizeof(RAWINPUTHEADER)) != size)
 			{
-				break;
+				return false;
 			}
 
 			RAWINPUT* raw = reinterpret_cast<RAWINPUT*>(buffer.data());
@@ -738,7 +763,7 @@ namespace KalaKit
 				}
 			}
 
-			break;
+			return false;
 		}
 
 		//
@@ -747,24 +772,30 @@ namespace KalaKit
 
 		//user clicked X button or pressed Alt + F4
 		case WM_CLOSE:
-			//returns true if uses chooses to exit, otherwise cancels exit
-			if (!AllowExit()) return;
+			LOG_DEBUG("Called close message.");
+			if (!canExit)
+			{
+				//returns true if uses chooses to exit, otherwise cancels exit
+				if (!AllowExit()) return true;
+			}
 
 			//signals the while loop to exit
 			shouldClose = true;
 
 			//if user agrees to exit, then the window is destroyed
 			DestroyWindow(window);
-			break;
+			return true;
 
-		//window was destroyed - tell the system to exit
+			//window was destroyed - tell the system to exit
 		case WM_DESTROY:
+			LOG_DEBUG("Called destroy message.");
 			PostQuitMessage(0);
-			break;
+			return true;
 
 		default:
-			break;
+			return false;
 		}
+
+		return false;
 	}
-#endif
 }

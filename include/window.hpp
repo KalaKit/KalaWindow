@@ -151,6 +151,7 @@ namespace KalaKit
 		static inline WINDOWPLACEMENT originalPlacement = { sizeof(WINDOWPLACEMENT) };
 
 		static inline HWND window;
+		static inline WNDPROC proc;
 
 		/// <summary>
 		/// Currently assigned debug type

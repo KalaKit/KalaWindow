@@ -46,7 +46,7 @@ namespace KalaKit
 			return false;
 		}
 
-		window = CreateWindowExA(
+		HWND window = CreateWindowExA(
 			0,
 			"KalaWindowClass",
 			title.c_str(),
@@ -63,6 +63,8 @@ namespace KalaKit
 			LOG_ERROR("Failed to create window!");
 			return false;
 		}
+
+		KalaInput::SetWindow(window);
 
 		ShowWindow(window, SW_SHOW);
 		isInitialized = true;

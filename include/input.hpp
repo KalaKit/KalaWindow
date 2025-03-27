@@ -19,9 +19,7 @@
 #include <unordered_map>
 #include <initializer_list>
 #include <string>
-#ifdef _WIN32
 #include <Windows.h>
-#endif
 
 namespace KalaKit
 {
@@ -306,13 +304,16 @@ namespace KalaKit
 		/// <param name="newShouldCloseState"></param>
 		static void SetShouldCloseState(bool newShouldCloseState);
 
-#ifdef _WIN32
+		/// <summary>
+		/// Returns the window reference that was assigned.
+		/// </summary>
+		/// <returns></returns>
+		static HWND GetWindow();
 		/// <summary>
 		/// Used for manually passing a window 
 		/// reference to this Input System library.
 		/// </summary>
 		static void SetWindow(HWND newWindow);
-#endif
 	private:
 		static inline bool isInitialized;
 
@@ -326,25 +327,22 @@ namespace KalaKit
 		/// then the user needs to choose yes on the warning popup 
 		/// before they can close the program.
 		/// </summary>
-		static inline bool canExit;
+		static inline bool canExit = true;
 
 		/// <summary>
 		/// Title of the warning popup when user wants to exit
 		/// </summary>
-		static inline string exitTitle = "NO TITLE";
+		static inline string exitTitle = "Closing program";
 		/// <summary>
 		/// Description of the warning popup when user wants to exit
 		/// </summary>
-		static inline string exitInfo = "NO INFO";
+		static inline string exitInfo = "Do you want to exit?";
 
 		/// <summary>
 		/// Used for checking whether window should be focused or not 
 		/// to enable any input to be registered.
 		/// </summary>
 		static inline bool isWindowFocusRequired;
-
-#ifdef _WIN32
-		static inline HWND window;
 
 		/// <summary>
 		/// Whether to show the mouse or not.
@@ -373,6 +371,9 @@ namespace KalaKit
 		static inline unordered_map<Key, bool> keyHeld;
 		static inline unordered_map<Key, bool> keyPressed;
 
+		static inline HWND window;
+		static inline WNDPROC proc;
+
 		/// <summary>
 		/// Resets all frame-specific variables to defaults.
 		/// </summary>
@@ -381,6 +382,12 @@ namespace KalaKit
 		static BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam);
 
 		static HWND GetMainWindowHandle();
+
+		static LRESULT CALLBACK WindowProcCallback(
+			HWND hwnd,
+			UINT msg,
+			WPARAM wParam,
+			LPARAM lParam);
 
 		/// <summary>
 		/// Locks cursor to the center of the window
@@ -402,12 +409,11 @@ namespace KalaKit
 		/// <summary>
 		/// Handle all inputs.
 		/// </summary>
-		static void ProcessMessage(const MSG& msg);
+		static bool ProcessMessage(const MSG& msg);
 
 		/// <summary>
 		/// Convert key enum to string with magic enum.
 		/// </summary>
 		static string ToString(Key key);
-#endif
 	};
 }
