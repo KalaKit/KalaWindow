@@ -1,0 +1,6 @@
+0.1:
+- can create window on Windows
+- a bunch of cool window interaction functions
+- a bunch of cool input interaction functions
+- full control over windows message loop for the created window
+- full integration with KalaCrashHandler
