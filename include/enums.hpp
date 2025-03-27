@@ -174,6 +174,7 @@ namespace KalaKit
 		DEBUG_WINDOW_SET_MINMAX_SIZE,  //Print new min and max window size whenever it is updated (requires SetMinMaxSize)
 		DEBUG_WINDOW_RESIZE,           //Print new resolution whenever window rescales
 		DEBUG_WINDOW_REPAINT,          //Print new color whenever window repaints
+		DEBUG_WINDOW_CORNER_EDGE,      //Print ID code and name of each corner and edge when cursor goes over it
 
 		DEBUG_ALL                      //Print ALL debug updates
 	};

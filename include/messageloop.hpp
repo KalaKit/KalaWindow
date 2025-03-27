@@ -35,5 +35,11 @@ namespace KalaKit
 		/// Handle all update loop messages.
 		/// </summary>
 		static bool ProcessMessage(const MSG& msg);
+
+		static LRESULT CursorTest(
+			HWND hwnd,
+			UINT msg,
+			WPARAM wParam,
+			LPARAM lParam);
 	};
 }

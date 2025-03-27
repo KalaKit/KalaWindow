@@ -35,12 +35,84 @@ using std::vector;
 
 namespace KalaKit
 {
+	LRESULT MessageLoop::CursorTest(
+		HWND hwnd,
+		UINT msg,
+		WPARAM wParam,
+		LPARAM lParam)
+	{
+		POINT cursor{};
+		cursor.x = GET_X_LPARAM(lParam);
+		cursor.y = GET_Y_LPARAM(lParam);
+
+		RECT rect{};
+		GetWindowRect(hwnd, &rect);
+
+		//if cursor isnt inside the window
+		if (!PtInRect(&rect, cursor)) return HTNOWHERE;
+
+		constexpr int border = 10;
+
+		bool onLeft = cursor.x >= rect.left && cursor.x < rect.left + border;
+		bool onRight = cursor.x < rect.right && cursor.x >= rect.right - border;
+		bool onTop = cursor.y >= rect.top && cursor.y < rect.top + border;
+		bool onBottom = cursor.y < rect.bottom && cursor.y >= rect.bottom - border;
+
+		//corners
+		if (onLeft && onTop) return HTTOPLEFT;
+		if (onRight && onTop) return HTTOPRIGHT;
+		if (onLeft && onBottom) return HTBOTTOMLEFT;
+		if (onRight && onBottom) return HTBOTTOMRIGHT;
+
+		//edges
+		if (onLeft) return HTLEFT;
+		if (onRight) return HTRIGHT;
+		if (onTop) return HTTOP;
+		if (onBottom) return HTBOTTOM;
+
+		//not near border
+		return HTCLIENT;
+	}
+
 	LRESULT CALLBACK MessageLoop::WindowProcCallback(
 		HWND hwnd,
 		UINT msg,
 		WPARAM wParam,
 		LPARAM lParam)
 	{
+		//
+		// ENSURE CURSOR ICON IS CORRECT WHEN INSIDE WINDOW
+		//
+
+		if (msg == WM_NCHITTEST)
+		{
+			auto result = CursorTest(hwnd, msg, wParam, lParam);
+
+			if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+				|| KalaWindow::GetDebugType() == DebugType::DEBUG_WINDOW_CORNER_EDGE)
+			{
+				string resultValue{};
+
+				if (result == 1) resultValue = "center";
+				if (result == 10) resultValue = "left edge";
+				if (result == 11) resultValue = "right edge";
+				if (result == 12) resultValue = "top bar";
+				if (result == 13) resultValue = "top left corner";
+				if (result == 14) resultValue = "top right corner";
+				if (result == 15) resultValue = "bottom edge";
+				if (result == 16) resultValue = "bottom left corner";
+				if (result == 17) resultValue = "bottom right corner";
+
+				LOG_DEBUG("WM_NCHITTEST result: " << resultValue << " [" << result << "]");
+			}
+
+			return result;
+		}
+
+		//
+		// OTHER MESSAGES
+		//
+
 		MSG msgObj{};
 		msgObj.hwnd = hwnd;
 		msgObj.message = msg;
@@ -73,7 +145,6 @@ namespace KalaKit
 
 		switch (msg.message)
 		{
-
 			//
 			// KEYBOARD INPUT
 			//
@@ -231,6 +302,23 @@ namespace KalaKit
 				}
 			}
 
+			return false;
+		}
+
+		//
+		// CURSOR ICON
+		//
+
+		case WM_SETCURSOR:
+		{
+			//use default cursor if cursor is over client area
+			if (LOWORD(msg.lParam) == HTCLIENT)
+			{
+				SetCursor(LoadCursor(nullptr, IDC_ARROW));
+				return true;
+			}
+
+			//let windows handle non-client areas
 			return false;
 		}
 
