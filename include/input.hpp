@@ -163,7 +163,7 @@ namespace KalaKit
 	/// requires that one of its function type is assigned somewhere
 	/// in your program code for them to actually return something.
 	/// </summary>
-	enum class DebugType
+	enum class InputDebugType
 	{
 		DEBUG_NONE,                    //Default option, assigning this does nothing
 		DEBUG_KEY_HELD,                //Print key held updates (requires IsKeyDown)
@@ -203,7 +203,7 @@ namespace KalaKit
 		/// You MUST be in Debug mode or else these messages will not be printed.
 		/// </summary>
 		/// <param name="newDebugType">Sets what debug message types will be printed to console.</param>
-		static void SetDebugState(DebugType newDebugType);
+		static void SetDebugState(InputDebugType newDebugType);
 
 		/// <summary>
 		/// Used for setting window focus required state.
@@ -297,6 +297,10 @@ namespace KalaKit
 			const string& info = "NO INFO");
 
 		/// <summary>
+		/// Detects if the window should close or not.
+		/// </summary>
+		static bool ShouldClose();
+		/// <summary>
 		/// Allows to set the close state of the window. If true, then the program will close.
 		/// </summary>
 		/// <param name="newShouldCloseState"></param>
@@ -354,7 +358,7 @@ namespace KalaKit
 		/// <summary>
 		/// Currently assigned debug type
 		/// </summary>
-		static inline DebugType debugType = DebugType::DEBUG_NONE;
+		static inline InputDebugType debugType = InputDebugType::DEBUG_NONE;
 
 		//Where the cursor is on screen or in window.
 		static inline POINT mousePosition = { 0, 0 };

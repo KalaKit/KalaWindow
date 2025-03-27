@@ -18,6 +18,7 @@
 #include <iostream>
 
 #include "window.hpp"
+#include "input.hpp"
 #include "magic_enum.hpp"
 
 using std::to_string;
@@ -72,14 +73,8 @@ namespace KalaKit
 
 	bool KalaWindow::ShouldClose()
 	{
-		return shouldClose;
+		return KalaInput::ShouldClose();
 	}
-
-	bool KalaWindow::AllowExit()
-	{
-		return canExit;
-	}
-
 	void KalaWindow::SetShouldCloseState(bool newShouldCloseState)
 	{
 		if (!isInitialized)
@@ -88,18 +83,7 @@ namespace KalaKit
 			return;
 		}
 
-		shouldClose = newShouldCloseState;
-	}
-
-	void KalaWindow::SetAllowExitState(bool newAllowExitState)
-	{
-		if (!isInitialized)
-		{
-			LOG_ERROR("Cannot set allow exit state because KalaWindow is not initialized!");
-			return;
-		}
-
-		canExit = newAllowExitState;
+		KalaInput::SetShouldCloseState(newShouldCloseState);
 	}
 
 	void KalaWindow::SetWindowTitle(const string& title)
@@ -110,8 +94,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WINDOW_TITLE)
+		if (debugType == WindowDebugType::DEBUG_ALL
+			|| debugType == WindowDebugType::DEBUG_WINDOW_TITLE)
 		{
 			LOG_DEBUG("New window title: " << title << "");
 		}
@@ -119,7 +103,7 @@ namespace KalaKit
 		SetWindowTextA(window, title.c_str());
 	}
 
-	void KalaWindow::SetDebugState(DebugType newDebugType)
+	void KalaWindow::SetDebugState(WindowDebugType newDebugType)
 	{
 		if (!isInitialized)
 		{
@@ -138,8 +122,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WINDOW_TITLE)
+		if (debugType == WindowDebugType::DEBUG_ALL
+			|| debugType == WindowDebugType::DEBUG_WINDOW_TITLE)
 		{
 			string type = ToString(state);
 			LOG_DEBUG("New window type: " << type << "");
@@ -178,8 +162,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WINDOW_BORDERLESS_STATE)
+		if (debugType == WindowDebugType::DEBUG_ALL
+			|| debugType == WindowDebugType::DEBUG_WINDOW_BORDERLESS_STATE)
 		{
 			string type = newWindowBorderlessState ? "true" : "false";
 			LOG_DEBUG("New window borderless state: " << type << "");
@@ -252,8 +236,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WINDOW_HIDDEN_STATE)
+		if (debugType == WindowDebugType::DEBUG_ALL
+			|| debugType == WindowDebugType::DEBUG_WINDOW_HIDDEN_STATE)
 		{
 			string type = newWindowHiddenState ? "true" : "false";
 			LOG_DEBUG("New window hidden state: " << type << "");
@@ -286,8 +270,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WINDOW_SET_POSITION)
+		if (debugType == WindowDebugType::DEBUG_ALL
+			|| debugType == WindowDebugType::DEBUG_WINDOW_SET_POSITION)
 		{
 			string sizeX = to_string(width);
 			string sizeY = to_string(height);
@@ -331,8 +315,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WINDOW_SET_FULL_SIZE)
+		if (debugType == WindowDebugType::DEBUG_ALL
+			|| debugType == WindowDebugType::DEBUG_WINDOW_SET_FULL_SIZE)
 		{
 			string sizeX = to_string(width);
 			string sizeY = to_string(height);
@@ -376,8 +360,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WIŃDOW_SET_CONTENT_SIZE)
+		if (debugType == WindowDebugType::DEBUG_ALL
+			|| debugType == WindowDebugType::DEBUG_WIŃDOW_SET_CONTENT_SIZE)
 		{
 			string sizeX = to_string(width);
 			string sizeY = to_string(height);

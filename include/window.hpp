@@ -27,7 +27,7 @@ namespace KalaKit
 	/// requires that one of its function type is assigned somewhere
 	/// in your program code for them to actually return something.
 	/// </summary>
-	enum class DebugType
+	enum class WindowDebugType
 	{
 		DEBUG_NONE,                    //Default option, assigning this does nothing
 		DEBUG_WINDOW_TITLE,            //Print window title change updates
@@ -66,7 +66,7 @@ namespace KalaKit
 		/// You MUST be in Debug mode or else these messages will not be printed.
 		/// </summary>
 		/// <param name="newDebugType">Sets what debug message types will be printed to console.</param>
-		static void SetDebugState(DebugType newDebugType);
+		static void SetDebugState(WindowDebugType newDebugType);
 
 		/// <summary>
 		/// Must be used in a while loop - as long as this is false
@@ -74,18 +74,11 @@ namespace KalaKit
 		/// be shut down once this is set to false.
 		/// </summary>
 		static bool ShouldClose();
-
 		/// <summary>
 		/// Set this state manually to control whether the window should close or not.
 		/// </summary>
 		/// <param name="newShouldCloseState"></param>
 		static void SetShouldCloseState(bool newShouldCloseState);
-
-		/// <summary>
-		/// Set this state manually to control whether the window is allowed to exit or not.
-		/// </summary>
-		/// <param name="newAllowExitState"></param>
-		static void SetAllowExitState(bool newAllowExitState);
 
 		/// <summary>
 		/// Assign a title to the window.
@@ -147,16 +140,6 @@ namespace KalaKit
 		static inline bool isInitialized;
 
 		/// <summary>
-		/// Window will stay open as long as this is true.
-		/// </summary>
-		static inline bool shouldClose = false;
-
-		/// <summary>
-		/// Controls whether the user is allowed to exit or not, if this is
-		/// </summary>
-		static inline bool canExit = true;
-
-		/// <summary>
 		/// Used for checking if this window is visible to the user or not.
 		/// If true, then this window is visible.
 		/// </summary>
@@ -184,14 +167,7 @@ namespace KalaKit
 		/// <summary>
 		/// Currently assigned debug type
 		/// </summary>
-		static inline DebugType debugType = DebugType::DEBUG_NONE;
-
-		/// <summary>
-		/// Warning popup that shows up if user wants to exit
-		/// but canExit is set to false. This is a user-filled
-		/// popup that asks the user Yes or No if they wish to exit.
-		/// </summary>
-		static bool AllowExit();
+		static inline WindowDebugType debugType = WindowDebugType::DEBUG_NONE;
 
 		/// <summary>
 		/// Convert window state enum to string with magic enum.

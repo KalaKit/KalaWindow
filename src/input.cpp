@@ -86,8 +86,8 @@ namespace KalaKit
 
 		bool isKeyDown = keyHeld[key];
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_KEY_HELD)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_KEY_HELD)
 		{
 			//only print if key is down
 			if (isKeyDown)
@@ -110,8 +110,8 @@ namespace KalaKit
 
 		bool wasKeyPressed = keyPressed[key];
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_KEY_PRESSED)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_KEY_PRESSED)
 		{
 			//only print if key was pressed
 			if (wasKeyPressed)
@@ -143,8 +143,8 @@ namespace KalaKit
 
 		bool wasComboPressed = IsKeyPressed(*it);
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_COMBO_PRESSED)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_COMBO_PRESSED)
 		{
 			//only print if combo was pressed
 			if (wasComboPressed)
@@ -180,8 +180,8 @@ namespace KalaKit
 			keyPressed[Key::MouseLeft]
 			|| keyPressed[Key::MouseRight];
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_DOUBLE_CLICKED)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_DOUBLE_CLICKED)
 		{
 			//only print if double clicked
 			if (wasDoubleClicked)
@@ -210,8 +210,8 @@ namespace KalaKit
 			&& (mouseDelta.x != 0
 			|| mouseDelta.y != 0);
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_IS_MOUSE_DRAGGING)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_IS_MOUSE_DRAGGING)
 		{
 			//only print if dragging
 			if (isDragging)
@@ -231,8 +231,8 @@ namespace KalaKit
 			return { 0, 0 };
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_MOUSE_POSITION)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_MOUSE_POSITION)
 		{
 			static POINT lastPos = { -9999, -9999 };
 
@@ -260,8 +260,8 @@ namespace KalaKit
 			return { 0, 0 };
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_MOUSE_DELTA)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_MOUSE_DELTA)
 		{
 			//only print if mouse moved
 			if (mouseDelta.x != 0
@@ -284,8 +284,8 @@ namespace KalaKit
 			return { 0, 0 };
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_RAW_MOUSE_DELTA)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_RAW_MOUSE_DELTA)
 		{
 			//only print if mouse moved
 			if (rawMouseDelta.x != 0
@@ -308,8 +308,8 @@ namespace KalaKit
 			return 0;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_MOUSE_WHEEL_DELTA)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_MOUSE_WHEEL_DELTA)
 		{
 			LOG_DEBUG("Mouse wheel delta: " << to_string(mouseWheelDelta) << "");
 		}
@@ -338,8 +338,8 @@ namespace KalaKit
 		//ignores same state
 		if (isMouseVisible == newMouseVisibleState) return;
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_MOUSE_VISIBILITY)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_MOUSE_VISIBILITY)
 		{
 			string type = newMouseVisibleState ? "true" : "false";
 			LOG_DEBUG("Mouse wheel visibility: " << type << "");
@@ -372,8 +372,8 @@ namespace KalaKit
 		//ignores same state
 		if (isMouseLocked == newMouseLockState) return;
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_MOUSE_LOCK_STATE)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_MOUSE_LOCK_STATE)
 		{
 			string type = newMouseLockState ? "true" : "false";
 			LOG_DEBUG("Mouse wheel lock state: " << type << "");
@@ -410,6 +410,16 @@ namespace KalaKit
 		exitInfo = info;
 	}
 
+	bool KalaInput::ShouldClose()
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot get should close state because InputSystem is not initialized!");
+			return false;
+		}
+
+		return shouldClose;
+	}
 	void KalaInput::SetShouldCloseState(bool newShouldCloseState)
 	{
 		if (!isInitialized)
@@ -418,8 +428,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_WINDOW_SHOULD_CLOSE)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_WINDOW_SHOULD_CLOSE)
 		{
 			string type = newShouldCloseState ? "true" : "false";
 			LOG_DEBUG("Window should close state: " << type << "");
@@ -436,7 +446,7 @@ namespace KalaKit
 		return string(magic_enum::enum_name(key));
 	}
 
-	void KalaInput::SetDebugState(DebugType newDebugType)
+	void KalaInput::SetDebugState(InputDebugType newDebugType)
 	{
 		if (!isInitialized)
 		{
@@ -564,8 +574,8 @@ namespace KalaKit
 
 	void KalaInput::ProcessMessage(const MSG& msg)
 	{
-		if (debugType == DebugType::DEBUG_ALL
-			|| debugType == DebugType::DEBUG_PROCESS_MESSAGE_TEST)
+		if (debugType == InputDebugType::DEBUG_ALL
+			|| debugType == InputDebugType::DEBUG_PROCESS_MESSAGE_TEST)
 		{
 			if (msg.message == 0)
 			{
