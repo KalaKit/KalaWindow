@@ -81,8 +81,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == WindowDebugType::DEBUG_ALL
-			|| debugType == WindowDebugType::DEBUG_WINDOW_TITLE)
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WINDOW_TITLE)
 		{
 			LOG_DEBUG("New window title: " << title << "");
 		}
@@ -90,7 +90,17 @@ namespace KalaKit
 		SetWindowTextA(window, title.c_str());
 	}
 
-	void KalaWindow::SetDebugState(WindowDebugType newDebugType)
+	DebugType KalaWindow::GetDebugType()
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot get debug state because KalaWindow is not initialized!");
+			return DebugType::DEBUG_NONE;
+		}
+
+		return debugType;
+	}
+	void KalaWindow::SetDebugType(DebugType newDebugType)
 	{
 		if (!isInitialized)
 		{
@@ -109,8 +119,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == WindowDebugType::DEBUG_ALL
-			|| debugType == WindowDebugType::DEBUG_WINDOW_TITLE)
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WINDOW_TITLE)
 		{
 			string type = ToString(state);
 			LOG_DEBUG("New window type: " << type << "");
@@ -149,8 +159,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == WindowDebugType::DEBUG_ALL
-			|| debugType == WindowDebugType::DEBUG_WINDOW_BORDERLESS_STATE)
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WINDOW_BORDERLESS_STATE)
 		{
 			string type = newWindowBorderlessState ? "true" : "false";
 			LOG_DEBUG("New window borderless state: " << type << "");
@@ -223,8 +233,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == WindowDebugType::DEBUG_ALL
-			|| debugType == WindowDebugType::DEBUG_WINDOW_HIDDEN_STATE)
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WINDOW_HIDDEN_STATE)
 		{
 			string type = newWindowHiddenState ? "true" : "false";
 			LOG_DEBUG("New window hidden state: " << type << "");
@@ -257,8 +267,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == WindowDebugType::DEBUG_ALL
-			|| debugType == WindowDebugType::DEBUG_WINDOW_SET_POSITION)
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WINDOW_SET_POSITION)
 		{
 			string sizeX = to_string(width);
 			string sizeY = to_string(height);
@@ -302,8 +312,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == WindowDebugType::DEBUG_ALL
-			|| debugType == WindowDebugType::DEBUG_WINDOW_SET_FULL_SIZE)
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WINDOW_SET_FULL_SIZE)
 		{
 			string sizeX = to_string(width);
 			string sizeY = to_string(height);
@@ -347,8 +357,8 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == WindowDebugType::DEBUG_ALL
-			|| debugType == WindowDebugType::DEBUG_WIŃDOW_SET_CONTENT_SIZE)
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WIŃDOW_SET_CONTENT_SIZE)
 		{
 			string sizeX = to_string(width);
 			string sizeY = to_string(height);

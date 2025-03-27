@@ -27,6 +27,7 @@
 #endif
 
 #include "input.hpp"
+#include "window.hpp"
 #include "magic_enum.hpp"
 
 using std::vector;
@@ -89,8 +90,9 @@ namespace KalaKit
 
 		bool isKeyDown = keyHeld[key];
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_KEY_HELD)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_KEY_HELD)
 		{
 			//only print if key is down
 			if (isKeyDown)
@@ -113,8 +115,9 @@ namespace KalaKit
 
 		bool wasKeyPressed = keyPressed[key];
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_KEY_PRESSED)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_KEY_PRESSED)
 		{
 			//only print if key was pressed
 			if (wasKeyPressed)
@@ -146,8 +149,9 @@ namespace KalaKit
 
 		bool wasComboPressed = IsKeyPressed(*it);
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_COMBO_PRESSED)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_COMBO_PRESSED)
 		{
 			//only print if combo was pressed
 			if (wasComboPressed)
@@ -183,8 +187,9 @@ namespace KalaKit
 			keyPressed[Key::MouseLeft]
 			|| keyPressed[Key::MouseRight];
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_DOUBLE_CLICKED)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_DOUBLE_CLICKED)
 		{
 			//only print if double clicked
 			if (wasDoubleClicked)
@@ -213,8 +218,9 @@ namespace KalaKit
 			&& (mouseDelta.x != 0
 			|| mouseDelta.y != 0);
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_IS_MOUSE_DRAGGING)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_IS_MOUSE_DRAGGING)
 		{
 			//only print if dragging
 			if (isDragging)
@@ -234,8 +240,9 @@ namespace KalaKit
 			return { 0, 0 };
 		}
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_MOUSE_POSITION)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_MOUSE_POSITION)
 		{
 			static POINT lastPos = { -9999, -9999 };
 
@@ -263,8 +270,9 @@ namespace KalaKit
 			return { 0, 0 };
 		}
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_MOUSE_DELTA)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_MOUSE_DELTA)
 		{
 			//only print if mouse moved
 			if (mouseDelta.x != 0
@@ -287,8 +295,9 @@ namespace KalaKit
 			return { 0, 0 };
 		}
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_RAW_MOUSE_DELTA)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_RAW_MOUSE_DELTA)
 		{
 			//only print if mouse moved
 			if (rawMouseDelta.x != 0
@@ -311,8 +320,9 @@ namespace KalaKit
 			return 0;
 		}
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_MOUSE_WHEEL_DELTA)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_MOUSE_WHEEL_DELTA)
 		{
 			LOG_DEBUG("Mouse wheel delta: " << to_string(mouseWheelDelta) << "");
 		}
@@ -341,8 +351,9 @@ namespace KalaKit
 		//ignores same state
 		if (isMouseVisible == newMouseVisibleState) return;
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_MOUSE_VISIBILITY)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_MOUSE_VISIBILITY)
 		{
 			string type = newMouseVisibleState ? "true" : "false";
 			LOG_DEBUG("Mouse wheel visibility: " << type << "");
@@ -375,8 +386,9 @@ namespace KalaKit
 		//ignores same state
 		if (isMouseLocked == newMouseLockState) return;
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_MOUSE_LOCK_STATE)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_MOUSE_LOCK_STATE)
 		{
 			string type = newMouseLockState ? "true" : "false";
 			LOG_DEBUG("Mouse wheel lock state: " << type << "");
@@ -431,8 +443,9 @@ namespace KalaKit
 			return;
 		}
 
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_WINDOW_SHOULD_CLOSE)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_WINDOW_SHOULD_CLOSE)
 		{
 			string type = newShouldCloseState ? "true" : "false";
 			LOG_DEBUG("Window should close state: " << type << "");
@@ -447,17 +460,6 @@ namespace KalaKit
 	string KalaInput::ToString(Key key)
 	{
 		return string(magic_enum::enum_name(key));
-	}
-
-	void KalaInput::SetDebugState(InputDebugType newDebugType)
-	{
-		if (!isInitialized)
-		{
-			LOG_ERROR("Cannot set debug state because InputSystem is not initialized!");
-			return;
-		}
-
-		debugType = newDebugType;
 	}
 
 	void KalaInput::SetWindowFocusRequiredState(bool newWindowFocusRequiredState)
@@ -599,8 +601,9 @@ namespace KalaKit
 
 	bool KalaInput::ProcessMessage(const MSG& msg)
 	{
-		if (debugType == InputDebugType::DEBUG_ALL
-			|| debugType == InputDebugType::DEBUG_PROCESS_MESSAGE_TEST)
+		DebugType type = KalaWindow::GetDebugType();
+		if (type == DebugType::DEBUG_ALL
+			|| type == DebugType::DEBUG_PROCESS_MESSAGE_TEST)
 		{
 			if (msg.message == 0)
 			{
@@ -761,6 +764,58 @@ namespace KalaKit
 					rawMouseDelta.x += mouse.lLastX;
 					rawMouseDelta.y += mouse.lLastY;
 				}
+			}
+
+			return false;
+		}
+
+		//
+		// WINDOW REDRAW
+		//
+
+		case WM_PAINT:
+		{
+			PAINTSTRUCT ps{};
+			HDC hdc = BeginPaint(window, &ps);
+
+			int R = 255;
+			int G = 0;
+			int B = 0;
+			HBRUSH redBrush = CreateSolidBrush(RGB(R, G, B));
+			FillRect(hdc, &ps.rcPaint, redBrush);
+			DeleteObject(redBrush);
+
+			EndPaint(window, &ps);
+
+			if (type == DebugType::DEBUG_ALL
+				|| type == DebugType::DEBUG_WINDOW_REPAINT)
+			{
+				LOG_DEBUG("New color: " << R << ", " << G << ", " << B);
+			}
+
+			return true;
+		}
+
+		//
+		// WINDOW RESIZE
+		//
+
+		case WM_SIZE:
+		{
+			//trigger a redraw
+			InvalidateRect(window, nullptr, TRUE);
+
+			if (type == DebugType::DEBUG_ALL
+				|| type == DebugType::DEBUG_WINDOW_RESIZE)
+			{
+				RECT rect{};
+				GetClientRect(window, &rect);
+
+				POINT size{};
+				size.x = rect.right - rect.left;
+				size.y = rect.bottom - rect.top;
+
+				LOG_DEBUG("New resolution: " << size.x << ", " << size.y);
 			}
 
 			return false;

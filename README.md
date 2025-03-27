@@ -6,9 +6,9 @@
 
 ![Logo](logo.png)
 
-KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of. KalaWindow natively supports and uses KalaInput for all its input-related mechanics.
+KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of and handling all of its input.
 
-Note: This README file primarily focuses on KalaWindow functions and how to initialize KalaInput with it. Go to README-INPUT.md to read about all the runtime loop input functions.
+Note: This README file primarily focuses on KalaWindow functions and how to initialize KalaWindow with it. Go to README-INPUT.md to read about all the runtime loop input functions.
 
 # Prerequisites (when compiling from source code)
 
@@ -28,12 +28,10 @@ To compile from source code simply run 'build_windows_release.bat' or 'build_win
 
 using std::string;
 
-using KalaKit::KalaWindow;      //core window system functions
-using KalaKit::KalaInput;       //core input system functions
-using KalaKit::Key;             //enum for all keyboard and mouse keys
-using KalaKit::WindowDebugType; //enum for all window debug types
-using KalaKit::InputDebugType;  //enum for all input debug types
-using KalaKit::WindowState;     //enum for all window states
+using KalaKit::KalaWindow;  //core window and input system functions
+using KalaKit::Key;         //enum for all keyboard and mouse keys
+using KalaKit::DebugType;   //enum for all debug types
+using KalaKit::WindowState; //enum for all window states
 
 static void YourInitializeFunction()
 {
@@ -48,24 +46,24 @@ static void YourInitializeFunction()
 	//this is the core initialization function 
 	//that is required to be called so that
 	//the input system can initialize all its content
-	KalaInput::Initialize();
+	KalaWindow::Initialize();
 
 	//you can pass one of the many debug types to this function
 	//to be able to see messages of that debug type printed to your console,
 	//the default DEBUG_NONE does nothing and if you dont want 
 	//debug messages then you dont need to call this function
-	KalaWindow::SetDebugState(WindowDebugType::DEBUG_NONE);
+	KalaWindow::SetDebugState(DebugType::DEBUG_NONE);
 
 	//same as the above debug function, but for input debugging
-	KalaInput::SetDebugState(InputDebugType::DEBUG_NONE);
+	KalaWindow::SetDebugState(DebugType::DEBUG_NONE);
 	
 	//you can pass bool true or false to this function,
 	//it sets the window focus required state, which controls
 	//whether the attached window needs to be in focus for
-	//any input to be registred at all for KalaInput.
+	//any input to be registred at all for KalaWindow.
 	//it defaults to true, so this function does not
 	//need to be called if you want focus to always be required
-	KalaInput::SetWindowFocusRequiredState(true);
+	KalaWindow::SetWindowFocusRequiredState(true);
 	
 	//set this function to false and assign a title and info
 	//if you want to prevent the user from exiting your program.
@@ -75,12 +73,12 @@ static void YourInitializeFunction()
 	bool myExitState = false;
 	string myTitle = "this shows up as the title!";
 	string myInfo = "this shows up as info!";
-	KalaInput::SetExitState(myHiddenState, myTitle, myInfo);
+	KalaWindow::SetExitState(myHiddenState, myTitle, myInfo);
 	
 	//One of the most important functions - this directly controls if the
 	//window should close or not, once this is true the window will close.
 	bool myCloseState = false;
-	KalaInput::SetShouldCloseState(myCloseState);
+	KalaWindow::SetShouldCloseState(myCloseState);
 	...
 }
 
@@ -91,7 +89,7 @@ static void YourUpdateLoop()
 	while(!KalaWindow::ShouldClose())
 	{
 		//capture all input
-		KalaInput::Update();
+		KalaWindow::Update();
 	}
 	
 	...
@@ -159,4 +157,72 @@ POINT windowContentSize = KalaWindow::GetWindowContentSize;
 int myContentWidth = 3333;
 int myContentHeight = 4444;
 KalaWindow::SetWindowContentSize(myContentWidth, myContentHeight);
+```
+
+# Runtime loop input functions
+
+Call these functions AFTER you call KalaWindow::Update().
+
+Pass one of any of the keys in KalaWindow Key enum as a parameter for most of these functions where Key is requested.
+
+```cpp
+//the variable of Key that can be declared anywhere
+KalaKit::Key yourKey;
+
+//detect which key is currently held
+bool isKeyDown = KalaWindow::IsKeyHeld(yourKey);
+
+//detect which key is currently held
+bool isKeyPressed = KalaWindow::IsKeyPressed(yourKey);
+
+//detect if a combination of keys is pressed
+//you must hold each key in order of the initializer list
+//and once you press the last key the combo returns as true
+static const std::initializer_list<Key> saveCombo
+{
+    KalaKit::Key::LeftControl,
+    KalaKit::Key::S
+};
+bool isComboPressed = KalaWindow::IsComboPressed(saveCombo);
+
+//detect if either left or right mouse key was double-clicked.
+//this does not need a reference to any Key
+bool isDoubleClicked = KalaWindow::IsMouseKeyDoubleClicked();
+
+//detect if either left or right mouse key is held 
+//and mouse is dragged in any direction.
+//this does not need a reference to any Key
+bool isMouseDragging = KalaWindow::IsMouseDragging();
+
+//get current mouse position relative to the client area (top-left = 0,0).
+//coordinates are in pixels
+POINT mousePos = KalaWindow::GetMousePosition();
+
+//get how much the cursor moved on screen (in client space) since the last frame.
+//this uses absolute screen-based movement, affected by OS acceleration and DPI
+POINT mouseDelta = KalaWindow::GetMouseDelta();
+
+//get raw, unfiltered mouse movement from the hardware since the last frame.
+//not affected by DPI, sensitivity, or OS mouse settings, ideal for game camera control
+POINT rawMouseDelta = KalaWindow::GetRawMouseDelta();
+
+//get how many scroll steps the mouse wheel moved since the last frame.
+//positive = scroll up, negative = scroll down
+int mouseWheelDelta = KalaWindow::GetMouseWheelDelta();
+
+//returns true if cursor is not hidden
+bool isMouseVisible = KalaWindow::IsMouseVisible();
+
+//allows to set the visibility state of the cursor,
+//if true, then the cursor is visible
+bool visibilityState = true;
+KalaWindow::SetMouseVisibility(visibilityState);
+
+//returns true if cursor is locked
+bool isMouseLocked = KalaWindow::IsMouseLocked();
+
+//allows to set the lock state of the cursor,
+//if true, then the cursor is locked
+bool lockState = true;
+KalaWindow::SetMouseLockState(lockState);
 ```

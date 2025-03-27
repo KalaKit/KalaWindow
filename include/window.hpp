@@ -18,37 +18,10 @@
 #include <Windows.h>
 #include <string>
 
+#include "enums.hpp"
+
 namespace KalaKit
 {
-	/// <summary>
-	/// Debug message type printed to console. These are usable only if 
-	/// your program is in Debug mode and most of these, except
-	/// DEBUG_NONE, DEBUG_PROCESS_MESSAGE_TEST and DEBUG_ALL
-	/// requires that one of its function type is assigned somewhere
-	/// in your program code for them to actually return something.
-	/// </summary>
-	enum class WindowDebugType
-	{
-		DEBUG_NONE,                    //Default option, assigning this does nothing
-		DEBUG_WINDOW_TITLE,            //Print window title change updates
-		DEBUG_WINDOW_BORDERLESS_STATE, //Print window borderless state updates (requires SetWindowBorderlessState)
-		DEBUG_WINDOW_HIDDEN_STATE,     //Print window hidden state updates (requires SetWindowHiddenState)
-		DEBUG_WINDOW_SET_POSITION,     //Print window position updates (requires SetWindowPosition)
-		DEBUG_WINDOW_SET_FULL_SIZE,    //Print window full size updates (requires SetWindowFullSize)
-		DEBUG_WIŃDOW_SET_CONTENT_SIZE, //Print window content size updates (requires GetWindowContentSize)
-		DEBUG_ALL                      //Print ALL debug updates
-	};
-
-	/// <summary>
-	/// A state the window can be switched to from its current state.
-	/// </summary>
-	enum class WindowState
-	{
-		WINDOW_RESET,      //Reset window to default state
-		WINDOW_MINIMIZED,  //Minimize window to taskbar
-		WINDOW_MAXIMIZED   //Maximize window to full screen size
-	};
-
 	using std::string;
 
 	class KALAWINDOW_API KalaWindow
@@ -61,12 +34,17 @@ namespace KalaKit
 		static bool Initialize(const string& title, int width, int height);
 
 		/// <summary>
+		/// Get the currently assigned debug type.
+		/// </summary>
+		/// <returns></returns>
+		static DebugType GetDebugType();
+		/// <summary>
 		/// Used for printing all input actions or specific ones 
 		/// to console with cout if a console is attached to the window.
 		/// You MUST be in Debug mode or else these messages will not be printed.
 		/// </summary>
 		/// <param name="newDebugType">Sets what debug message types will be printed to console.</param>
-		static void SetDebugState(WindowDebugType newDebugType);
+		static void SetDebugType(DebugType newDebugType);
 
 		/// <summary>
 		/// Assign a title to the window.
@@ -156,7 +134,7 @@ namespace KalaKit
 		/// <summary>
 		/// Currently assigned debug type
 		/// </summary>
-		static inline WindowDebugType debugType = WindowDebugType::DEBUG_NONE;
+		static inline DebugType debugType = DebugType::DEBUG_NONE;
 
 		/// <summary>
 		/// Convert window state enum to string with magic enum.
