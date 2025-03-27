@@ -750,6 +750,9 @@ namespace KalaKit
 			//returns true if uses chooses to exit, otherwise cancels exit
 			if (!AllowExit()) return;
 
+			//signals the while loop to exit
+			shouldClose = true;
+
 			//if user agrees to exit, then the window is destroyed
 			DestroyWindow(window);
 			break;
