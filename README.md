@@ -6,7 +6,7 @@
 
 ![Logo](logo.png)
 
-KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of.
+KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of. KalaWindow natively supports and uses KalaInput for all its input-related mechanics.
 
 # Prerequisites (when compiling from source code)
 
