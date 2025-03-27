@@ -57,7 +57,7 @@ namespace KalaKit
 			{
 				char title[256];
 				GetWindowTextA(window, title, sizeof(title));
-				LOG_SUCCESS("Hooked onto window : \"" << title);
+				LOG_SUCCESS("Hooked onto window : " << title);
 			}
 		}
 
