@@ -71,21 +71,6 @@ namespace KalaKit
 		return true;
 	}
 
-	bool KalaWindow::ShouldClose()
-	{
-		return KalaInput::ShouldClose();
-	}
-	void KalaWindow::SetShouldCloseState(bool newShouldCloseState)
-	{
-		if (!isInitialized)
-		{
-			LOG_ERROR("Cannot set should close state because KalaWindow is not initialized!");
-			return;
-		}
-
-		KalaInput::SetShouldCloseState(newShouldCloseState);
-	}
-
 	void KalaWindow::SetWindowTitle(const string& title)
 	{
 		if (!isInitialized)

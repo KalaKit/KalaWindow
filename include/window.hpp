@@ -69,18 +69,6 @@ namespace KalaKit
 		static void SetDebugState(WindowDebugType newDebugType);
 
 		/// <summary>
-		/// Must be used in a while loop - as long as this is false
-		/// the window will stay active. The program will
-		/// be shut down once this is set to false.
-		/// </summary>
-		static bool ShouldClose();
-		/// <summary>
-		/// Set this state manually to control whether the window should close or not.
-		/// </summary>
-		/// <param name="newShouldCloseState"></param>
-		static void SetShouldCloseState(bool newShouldCloseState);
-
-		/// <summary>
 		/// Assign a title to the window.
 		/// </summary>
 		static void SetWindowTitle(const string& title);
