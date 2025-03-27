@@ -43,7 +43,7 @@ endif()
 get_filename_component(PARENT_DIR "${CMAKE_SOURCE_DIR}" DIRECTORY)
 set(PARENT_DIR_PATH "${PARENT_DIR}")
 
-# Physics files
+# Window files
 set(KALAWINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(KALAWINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
@@ -64,17 +64,22 @@ set_target_properties(KalaWindow PROPERTIES
 
 # Apply all directories to target
 target_include_directories(KalaWindow PRIVATE
-	# Library files
+	# Window files
     ${KALAWINDOW_INCLUDE_DIR}
 )
 
 if (WIN32)
     target_link_libraries(KalaWindow PRIVATE)
 else()
-    find_package(X11 QUIET)
-    if (X11_FOUND)
-        target_link_libraries(KalaWindow PRIVATE ${X11_LIBRARIES})
-    endif()
+	find_package(Wayland QUIET)
+	find_package(X11 QUIET)
+	if (Wayland_FOUND)
+		target_link_libraries(KalaWindow PRIVATE
+			Wayland::Client)
+	elseif (X11_FOUND)
+		target_link_libraries(KalaWindow PRIVATE
+			${X11_LIBRARIES})
+	endif()
 endif()
 
 # Define preprocessor directives

@@ -54,6 +54,11 @@ namespace KalaKit
 	class KALAWINDOW_API KalaWindow
 	{
 	public:
+		/// <summary>
+		/// Initializes the window system and creates a window with the given parameters.
+		/// Returns true if the window was successfully created.
+		/// </summary>
+		static bool Initialize(const string& title, int width, int height);
 
 		/// <summary>
 		/// Used for printing all input actions or specific ones 
@@ -62,6 +67,25 @@ namespace KalaKit
 		/// </summary>
 		/// <param name="newDebugType">Sets what debug message types will be printed to console.</param>
 		static void SetDebugState(DebugType newDebugType);
+
+		/// <summary>
+		/// Must be used in a while loop - as long as this is false
+		/// the window will stay active. The program will
+		/// be shut down once this is set to false.
+		/// </summary>
+		static bool ShouldClose();
+
+		/// <summary>
+		/// Set this state manually to control whether the window should close or not.
+		/// </summary>
+		/// <param name="newShouldCloseState"></param>
+		static void SetShouldCloseState(bool newShouldCloseState);
+
+		/// <summary>
+		/// Set this state manually to control whether the window is allowed to exit or not.
+		/// </summary>
+		/// <param name="newAllowExitState"></param>
+		static void SetAllowExitState(bool newAllowExitState);
 
 		/// <summary>
 		/// Assign a title to the window.
@@ -119,15 +143,13 @@ namespace KalaKit
 		/// Sets the drawable/client area (without borders and top bar)
 		/// </summary>
 		static void SetWindowContentSize(int width, int height);
-
-		/// <summary>
-		/// Must be used in a while loop - as long as this is false
-		/// the window will stay active. The program will
-		/// be shut down once this is set to false.
-		/// </summary>
-		static bool ShouldClose();
 	private:
 		static inline bool isInitialized;
+
+		/// <summary>
+		/// Window will stay open as long as this is true.
+		/// </summary>
+		static inline bool shouldClose = false;
 
 		/// <summary>
 		/// Controls whether the user is allowed to exit or not, if this is

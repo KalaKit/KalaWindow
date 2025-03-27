@@ -24,11 +24,89 @@ using std::to_string;
 
 namespace KalaKit
 {
+	bool KalaWindow::Initialize(const string& title, int width, int height)
+	{
+		if (isInitialized)
+		{
+			LOG_ERROR("Window is already initialized!");
+			return false;
+		}
+
+		HINSTANCE hInstance = GetModuleHandle(nullptr);
+
+		WNDCLASSA wc = {};
+		wc.lpfnWndProc = DefWindowProcA;
+		wc.hInstance = hInstance;
+		wc.lpszClassName = "KalaWindowClass";
+
+		if (!RegisterClassA(&wc))
+		{
+			LOG_ERROR("Failed to register window class.");
+			return false;
+		}
+
+		window = CreateWindowExA(
+			0,
+			"KalaWindowClass",
+			title.c_str(),
+			WS_OVERLAPPEDWINDOW,
+			CW_USEDEFAULT, CW_USEDEFAULT,
+			width, height,
+			nullptr,
+			nullptr,
+			hInstance,
+			nullptr);
+
+		if (!window)
+		{
+			LOG_ERROR("Failed to create window!");
+			return false;
+		}
+
+		ShowWindow(window, SW_SHOW);
+		isInitialized = true;
+
+		LOG_SUCCESS("Window successfully initialized!");
+		return true;
+	}
+
+	bool KalaWindow::ShouldClose()
+	{
+		return shouldClose;
+	}
+
+	bool KalaWindow::AllowExit()
+	{
+		return canExit;
+	}
+
+	void KalaWindow::SetShouldCloseState(bool newShouldCloseState)
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot set should close state because KalaWindow is not initialized!");
+			return;
+		}
+
+		shouldClose = newShouldCloseState;
+	}
+
+	void KalaWindow::SetAllowExitState(bool newAllowExitState)
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot set allow exit state because KalaWindow is not initialized!");
+			return;
+		}
+
+		canExit = newAllowExitState;
+	}
+
 	void KalaWindow::SetWindowTitle(const string& title)
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window title because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window title because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -41,11 +119,22 @@ namespace KalaKit
 		SetWindowTextA(window, title.c_str());
 	}
 
+	void KalaWindow::SetDebugState(DebugType newDebugType)
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot set debug state because KalaWindow is not initialized!");
+			return;
+		}
+
+		debugType = newDebugType;
+	}
+
 	void KalaWindow::SetWindowState(WindowState state)
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window state because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window state because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -74,7 +163,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot get window borderless state because InputSystem is not initialized!");
+			LOG_ERROR("Cannot get window borderless state because KalaWindow is not initialized!");
 			return false;
 		}
 
@@ -85,7 +174,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window borderless state because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window borderless state because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -149,7 +238,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot get window hidden state because InputSystem is not initialized!");
+			LOG_ERROR("Cannot get window hidden state because KalaWindow is not initialized!");
 			return false;
 		}
 
@@ -159,7 +248,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window hidden state because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window hidden state because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -177,7 +266,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot get window position because InputSystem is not initialized!");
+			LOG_ERROR("Cannot get window position because KalaWindow is not initialized!");
 			return { 0, 0 };
 		}
 
@@ -193,7 +282,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window position because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window position because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -222,7 +311,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot get window full size because InputSystem is not initialized!");
+			LOG_ERROR("Cannot get window full size because KalaWindow is not initialized!");
 			return { 0, 0 };
 		}
 
@@ -238,7 +327,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window full size because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window full size because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -267,7 +356,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot get window content size because InputSystem is not initialized!");
+			LOG_ERROR("Cannot get window content size because KalaWindow is not initialized!");
 			return { 0, 0 };
 		}
 
@@ -283,7 +372,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window content size because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window content size because KalaWindow is not initialized!");
 			return;
 		}
 
