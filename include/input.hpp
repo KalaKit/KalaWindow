@@ -18,15 +18,14 @@
 #include <iostream>
 #include <unordered_map>
 #include <initializer_list>
-#include <string>
 #include <Windows.h>
+#include <string>
 
 #include "enums.hpp"
 
 namespace KalaKit
 {
 	using std::unordered_map;
-	using std::cout;
 	using std::initializer_list;
 	using std::string;
 
@@ -39,19 +38,6 @@ namespace KalaKit
 		/// Call this after your window has been created.
 		/// </summary>
 		static void Initialize();
-
-		/// <summary>
-		/// Handles all input at runtime. 
-		/// </summary>
-		static void Update();
-
-		/// <summary>
-		/// Used for setting window focus required state.
-		/// If true, then the assigned window needs to be focused
-		/// for any input to be able to be passed to it.
-		/// </summary>
-		/// <param name="newWindowFocusedState"></param>
-		static void SetWindowFocusRequiredState(bool newWindowFocusRequiredState);
 			
 		/// <summary>
 		/// Return true if assigned key is currently held down.
@@ -84,24 +70,41 @@ namespace KalaKit
 		/// Coordinates are in pixels.
 		/// </summary>
 		static POINT GetMousePosition();
+		/// <summary>
+		/// Assign a new mouse position.
+		/// </summary>
+		static void SetMousePosition(POINT newMousePosition);
 
 		/// <summary>
 		/// Get how much the cursor moved on screen (in client space) since the last frame.
 		/// This uses absolute screen-based movement, affected by OS acceleration and DPI.
 		/// </summary>
 		static POINT GetMouseDelta();
+		/// <summary>
+		/// Assign a new mouse delta.
+		/// </summary>
+		static void SetMouseDelta(POINT newMouseDelta);
 
 		/// <summary>
 		/// Get raw, unfiltered mouse movement from the hardware since the last frame.
 		/// Not affected by DPI, sensitivity, or OS mouse settings. Ideal for FPS camera control.
 		/// </summary>
 		static POINT GetRawMouseDelta();
+		/// <summary>
+		/// Assign a new mouse raw mouse delta.
+		/// </summary>
+		static void SetRawMouseDelta(POINT newMouseRawDelta);
 
 		/// <summary>
 		/// Get how many scroll steps the mouse wheel moved since the last frame.
 		/// Positive = scroll up, Negative = scroll down
 		/// </summary>
 		static int GetMouseWheelDelta();
+		/// <summary>
+		/// Assign a new mouse wheel delta.
+		/// </summary>
+		/// <param name="newMouseWheelDelta"></param>
+		static void SetMouseWheelDelta(int newMouseWheelDelta);
 
 		/// <summary>
 		/// Return true if cursor is not hidden.
@@ -123,68 +126,30 @@ namespace KalaKit
 		static void SetMouseLockState(bool newLockedState);
 
 		/// <summary>
-		/// Sets the exit state, if false then window will 
-		/// ask user if they want to close or not, otherwise
-		/// the window will continue with normal shutdown.
-		/// Defaults to true, you should also assign the 
-		/// title and info parameters so the popup 
-		/// will show them when this is set to false 
-		/// and the application is shut down.
+		/// Locks cursor to the center of the window.
+		/// Should not be called manually.
 		/// </summary>
-		static void SetExitState(
-			bool setExitAllowedState,
-			const string& title,
-			const string& info);
+		static void LockCursorToCenter();
 
 		/// <summary>
-		/// Detects if the window should close or not.
+		/// Resets all frame-specific variables to defaults.
+		/// Should not be called manually.
 		/// </summary>
-		static bool ShouldClose();
-		/// <summary>
-		/// Allows to set the close state of the window. If true, then the program will close.
-		/// </summary>
-		/// <param name="newShouldCloseState"></param>
-		static void SetShouldCloseState(bool newShouldCloseState);
+		static void ResetFrameInput();
 
 		/// <summary>
-		/// Returns the window reference that was assigned.
+		/// Used for setting a key state for any of the keys.
+		/// Should not be called manually.
 		/// </summary>
-		/// <returns></returns>
-		static HWND GetWindow();
-		/// <summary>
-		/// Used for manually passing a window 
-		/// reference to this Input System library.
-		/// </summary>
-		static void SetWindow(HWND newWindow);
+		/// <param name="key"></param>
+		/// <param name="isDown"></param>
+		static void SetKeyState(Key key, bool isDown)
+		{
+			keyHeld[key] = isDown;
+			if (isDown) keyPressed[key] = true;
+		}
 	private:
 		static inline bool isInitialized;
-
-		/// <summary>
-		/// Very important - turning this to true closes the window.
-		/// </summary>
-		static inline bool shouldClose;
-
-		/// <summary>
-		/// If true, then the user can exit the program, if false 
-		/// then the user needs to choose yes on the warning popup 
-		/// before they can close the program.
-		/// </summary>
-		static inline bool canExit = true;
-
-		/// <summary>
-		/// Title of the warning popup when user wants to exit
-		/// </summary>
-		static inline string exitTitle = "Closing program";
-		/// <summary>
-		/// Description of the warning popup when user wants to exit
-		/// </summary>
-		static inline string exitInfo = "Do you want to exit?";
-
-		/// <summary>
-		/// Used for checking whether window should be focused or not 
-		/// to enable any input to be registered.
-		/// </summary>
-		static inline bool isWindowFocusRequired;
 
 		/// <summary>
 		/// Whether to show the mouse or not.
@@ -207,46 +172,6 @@ namespace KalaKit
 
 		static inline unordered_map<Key, bool> keyHeld;
 		static inline unordered_map<Key, bool> keyPressed;
-
-		static inline HWND window;
-		static inline WNDPROC proc;
-
-		/// <summary>
-		/// Resets all frame-specific variables to defaults.
-		/// </summary>
-		static void ResetFrameInput();
-
-		static BOOL CALLBACK EnumWindowsCallback(HWND hwnd, LPARAM lParam);
-
-		static HWND GetMainWindowHandle();
-
-		static LRESULT CALLBACK WindowProcCallback(
-			HWND hwnd,
-			UINT msg,
-			WPARAM wParam,
-			LPARAM lParam);
-
-		/// <summary>
-		/// Locks cursor to the center of the window
-		/// </summary>
-		static void LockCursorToCenter();
-
-		static void SetMouseKeyState(Key key, bool isDown)
-		{
-			keyHeld[key] = isDown;
-			if (isDown) keyPressed[key] = true;
-		}
-
-		/// <summary>
-		/// Warning popup that asks if user wants to close or not.
-		/// </summary>
-		/// <returns></returns>
-		static bool AllowExit();
-
-		/// <summary>
-		/// Handle all inputs.
-		/// </summary>
-		static bool ProcessMessage(const MSG& msg);
 
 		/// <summary>
 		/// Convert key enum to string with magic enum.

@@ -27,11 +27,35 @@ namespace KalaKit
 	class KALAWINDOW_API KalaWindow
 	{
 	public:
+		static inline HWND window;
+		static inline WNDPROC proc;
+
 		/// <summary>
 		/// Initializes the window system and creates a window with the given parameters.
 		/// Returns true if the window was successfully created.
 		/// </summary>
 		static bool Initialize(const string& title, int width, int height);
+
+		/// <summary>
+		/// Handles all input at runtime. 
+		/// </summary>
+		static void Update();
+
+		/// <summary>
+		/// Should be used in the update loop. When this returns false
+		/// then the main window will be shut off if there is nothing
+		/// called after it. Place the shutdown function after this
+		/// if you want to control shutdown mechanics afterwards.
+		/// </summary>
+		static bool ShouldClose();
+
+		/// <summary>
+		/// Used for setting window focus required state.
+		/// If true, then the assigned window needs to be focused
+		/// for any input to be able to be passed to it.
+		/// </summary>
+		/// <param name="newWindowFocusedState"></param>
+		static void SetWindowFocusRequiredState(bool newWindowFocusRequiredState);
 
 		/// <summary>
 		/// Get the currently assigned debug type.
@@ -102,8 +126,60 @@ namespace KalaKit
 		/// Sets the drawable/client area (without borders and top bar)
 		/// </summary>
 		static void SetWindowContentSize(int width, int height);
+	
+		/// <summary>
+		/// Get window maximum allowed size.
+		/// </summary>
+		static POINT GetWindowMaxSize();
+		/// <summary>
+		/// Get window minimum allowed size.
+		/// </summary>
+		static POINT GetWindowMinSize();
+		/// <summary>
+		/// Set window minimum and maximum allowed size.
+		/// </summary>
+		static void SetMinMaxSize(
+			int maxWidth, 
+			int maxHeight, 
+			int minWidth, 
+			int minHeight);
+
+		/// <summary>
+		/// Controls whether the developer wants to show the warning
+		/// popup when user wants to close the program window.
+		/// </summary>
+		static bool CanExit();
+
+		/// <summary>
+		/// Controls whether the while loop should end or not.
+		/// If true, then the while loop will end.
+		/// </summary>
+		static void SetShouldCloseState(bool newShouldCloseState);
+
+		/// <summary>
+		/// Warning popup that asks if user wants to close or not. Should not be called manually.
+		/// </summary>
+		static bool AllowExit();
 	private:
 		static inline bool isInitialized;
+
+		/// <summary>
+		/// Very important - turning this to true closes the window.
+		/// </summary>
+		static inline bool shouldClose;
+
+		/// <summary>
+		/// If true, then the user can exit the program, if false 
+		/// then the user needs to choose yes on the warning popup 
+		/// before they can close the program.
+		/// </summary>
+		static inline bool canExit = true;
+
+		/// <summary>
+		/// Used for checking whether window should be focused or not 
+		/// to enable any input to be registered.
+		/// </summary>
+		static inline bool isWindowFocusRequired;
 
 		/// <summary>
 		/// Used for checking if this window is visible to the user or not.
@@ -128,8 +204,19 @@ namespace KalaKit
 		/// </summary>
 		static inline WINDOWPLACEMENT originalPlacement = { sizeof(WINDOWPLACEMENT) };
 
-		static inline HWND window;
-		static inline WNDPROC proc;
+		static inline int maxWidth = 7680;
+		static inline int maxHeight = 4320;
+		static inline int minWidth = 800;
+		static inline int minHeight = 600;
+
+		/// <summary>
+		/// Title of the warning popup when user wants to exit
+		/// </summary>
+		static inline string exitTitle = "Closing program";
+		/// <summary>
+		/// Description of the warning popup when user wants to exit
+		/// </summary>
+		static inline string exitInfo = "Do you want to exit?";
 
 		/// <summary>
 		/// Currently assigned debug type
@@ -140,5 +227,19 @@ namespace KalaKit
 		/// Convert window state enum to string with magic enum.
 		/// </summary>
 		static string ToString(WindowState state);
+
+		/// <summary>
+		/// Sets the exit state, if false then window will 
+		/// ask user if they want to close or not, otherwise
+		/// the window will continue with normal shutdown.
+		/// Defaults to true, you should also assign the 
+		/// title and info parameters so the popup 
+		/// will show them when this is set to false 
+		/// and the application is shut down.
+		/// </summary>
+		static void SetExitState(
+			bool setExitAllowedState,
+			const string& title,
+			const string& info);
 	};
 }

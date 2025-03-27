@@ -159,19 +159,19 @@ namespace KalaKit
 		DEBUG_MOUSE_WHEEL_DELTA,       //Print scroll wheel updates (requires GetMouseWheelDelta)
 		DEBUG_MOUSE_VISIBILITY,        //Print scroll mouse visibility updates (requires SetMouseVisibility)
 		DEBUG_MOUSE_LOCK_STATE,        //Print scroll lock state updates (requires SetMouseLockState)
-		DEBUG_WINDOW_SHOULD_CLOSE,     //Print should close state updates
 		DEBUG_PROCESS_MESSAGE_TEST,    //Print all processing messages user input sends
 
 		//
 		// WINDOW ENUMS
 		//
 
-		DEBUG_WINDOW_TITLE,            //Print window title change updates
+		DEBUG_WINDOW_TITLE,            //Print window title change updates (requires SetWindowTitle)
 		DEBUG_WINDOW_BORDERLESS_STATE, //Print window borderless state updates (requires SetWindowBorderlessState)
 		DEBUG_WINDOW_HIDDEN_STATE,     //Print window hidden state updates (requires SetWindowHiddenState)
 		DEBUG_WINDOW_SET_POSITION,     //Print window position updates (requires SetWindowPosition)
 		DEBUG_WINDOW_SET_FULL_SIZE,    //Print window full size updates (requires SetWindowFullSize)
 		DEBUG_WIŃDOW_SET_CONTENT_SIZE, //Print window content size updates (requires GetWindowContentSize)
+		DEBUG_WINDOW_SET_MINMAX_SIZE,  //Print new min and max window size whenever it is updated (requires SetMinMaxSize)
 		DEBUG_WINDOW_RESIZE,           //Print new resolution whenever window rescales
 		DEBUG_WINDOW_REPAINT,          //Print new color whenever window repaints
 

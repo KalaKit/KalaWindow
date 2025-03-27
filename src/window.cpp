@@ -19,6 +19,7 @@
 
 #include "window.hpp"
 #include "input.hpp"
+#include "messageloop.hpp"
 #include "magic_enum.hpp"
 
 using std::to_string;
@@ -46,7 +47,7 @@ namespace KalaKit
 			return false;
 		}
 
-		HWND window = CreateWindowExA(
+		window = CreateWindowExA(
 			0,
 			"KalaWindowClass",
 			title.c_str(),
@@ -64,13 +65,64 @@ namespace KalaKit
 			return false;
 		}
 
-		KalaInput::SetWindow(window);
+		proc = (WNDPROC)SetWindowLongPtr(
+			window,
+			GWLP_WNDPROC,
+			(LONG_PTR)MessageLoop::WindowProcCallback);
 
 		ShowWindow(window, SW_SHOW);
 		isInitialized = true;
 
 		LOG_SUCCESS("Window successfully initialized!");
 		return true;
+	}
+
+	void KalaWindow::Update()
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot run loop because InputSystem is not initialized!");
+			return;
+		}
+
+		//prevent updates when not focused
+		if (isWindowFocusRequired
+			&& GetForegroundWindow() != window)
+		{
+			return;
+		}
+
+		MSG msg;
+		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
+			DispatchMessage(&msg);  //send the message to the window procedure
+		}
+
+		//ensures cursor stays locked every frame
+		if (KalaInput::IsMouseLocked()) KalaInput::LockCursorToCenter();
+
+		KalaInput::ResetFrameInput();
+	}
+
+	void KalaWindow::SetWindowFocusRequiredState(bool newWindowFocusRequiredState)
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot set window focus required state because InputSystem is not initialized!");
+			return;
+		}
+
+		isWindowFocusRequired = newWindowFocusRequiredState;
+	}
+
+	DebugType KalaWindow::GetDebugType()
+	{
+		return debugType;
+	}
+	void KalaWindow::SetDebugType(DebugType newDebugType)
+	{
+		debugType = newDebugType;
 	}
 
 	void KalaWindow::SetWindowTitle(const string& title)
@@ -88,27 +140,6 @@ namespace KalaKit
 		}
 
 		SetWindowTextA(window, title.c_str());
-	}
-
-	DebugType KalaWindow::GetDebugType()
-	{
-		if (!isInitialized)
-		{
-			LOG_ERROR("Cannot get debug state because KalaWindow is not initialized!");
-			return DebugType::DEBUG_NONE;
-		}
-
-		return debugType;
-	}
-	void KalaWindow::SetDebugType(DebugType newDebugType)
-	{
-		if (!isInitialized)
-		{
-			LOG_ERROR("Cannot set debug state because KalaWindow is not initialized!");
-			return;
-		}
-
-		debugType = newDebugType;
 	}
 
 	void KalaWindow::SetWindowState(WindowState state)
@@ -386,8 +417,101 @@ namespace KalaKit
 			| SWP_NOOWNERZORDER);
 	}
 
+	POINT KalaWindow::GetWindowMaxSize()
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot get window max size because KalaWindow is not initialized!");
+			return { 0, 0 };
+		}
+
+		POINT point{};
+		point.x = maxWidth;
+		point.y = maxHeight;
+		return point;
+	}
+	POINT KalaWindow::GetWindowMinSize()
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot get window min size because KalaWindow is not initialized!");
+			return { 0, 0 };
+		}
+
+		POINT point{};
+		point.x = minWidth;
+		point.y = minHeight;
+		return point;
+	}
+	void KalaWindow::SetMinMaxSize(
+		int newMaxWidth,
+		int newMaxHeight,
+		int newMinWidth,
+		int newMinHeight)
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot set window max and min size because KalaWindow is not initialized!");
+			return;
+		}
+
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WINDOW_SET_MINMAX_SIZE)
+		{
+			LOG_DEBUG("Set new max size: " << maxWidth << ", " << maxHeight 
+				<< ", min size:" << minWidth << ", " << minHeight);
+		}
+
+		maxWidth = newMaxWidth;
+		maxHeight = newMaxHeight;
+		minWidth = newMinWidth;
+		minHeight = newMinHeight;
+	}
+
+	bool KalaWindow::CanExit()
+	{
+		return canExit;
+	}
+
 	string KalaWindow::ToString(WindowState state)
 	{
 		return string(magic_enum::enum_name(state));
+	}
+
+	bool KalaWindow::ShouldClose()
+	{
+		return shouldClose;
+	}
+	void KalaWindow::SetShouldCloseState(bool newShouldCloseState)
+	{
+		shouldClose = newShouldCloseState;
+	}
+
+	bool KalaWindow::AllowExit()
+	{
+		int result = MessageBox(
+			nullptr,
+			exitInfo.c_str(),
+			exitTitle.c_str(),
+			MB_YESNO
+			| MB_ICONWARNING);
+
+		return result == IDYES;
+	}
+
+	void KalaWindow::SetExitState(
+		bool setExitAllowedState,
+		const string& title,
+		const string& info)
+	{
+		if (!isInitialized)
+		{
+			LOG_ERROR("Cannot set exit state because InputSystem is not initialized!");
+			return;
+		}
+
+		canExit = setExitAllowedState;
+		exitTitle = title;
+		exitInfo = info;
 	}
 }
