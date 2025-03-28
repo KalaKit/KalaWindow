@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <Windows.h>
+
 namespace KalaKit
 {
 	enum class Key
@@ -195,6 +197,7 @@ namespace KalaKit
 	enum class OpenGLFunction
 	{
 		//Geometry: VAO, VBO and drawing
+
 		OPENGL_GENVERTEXARRAYS,         //Create one or more VAO (Vertex array object)
 		OPENGL_BINDVERTEXARRAY,         //Bind a VAO
 		OPENGL_GENBUFFERS,              //Create one or more VBO (Vertex buffer object)
@@ -203,8 +206,10 @@ namespace KalaKit
 		OPENGL_ENABLEVERTEXATTRIBARRAY, //Enable a vertex attribute slot (position, color etc)
 		OPENGL_VERTEXATTRIBPOINTER,     //Defines how to read vertex data from VBO
 		OPENGL_DRAWARRAYS,              //Draws vertices with bound VAO and shader (non-indexed)
+		OPENGL_DRAWELEMENTS,            //Draws vertices using index data (EBO)
 
 		//Shader creation and program linking
+
 		OPENGL_CREATESHADER,            //Create shader object (vertex/fragment)
 		OPENGL_SHADERSOURCE,            //Set the shader source code
 		OPENGL_COMPILESHADER,           //Compile the shader
@@ -213,13 +218,25 @@ namespace KalaKit
 		OPENGL_ATTACHSHADER,            //Attach a shader to the program
 		OPENGL_LINKPROGRAM,             //Link the shader program
 		OPENGL_DELETESHADER,            //Delete a shader object
+		OPENGL_GETSHADERIV,             //Get shader compile status
+		OPENGL_GETSHADERINFOLOG,        //Get shader compilation log
+		OPENGL_GETPROGRAMIV,            //Get program link status
+		OPENGL_GETPROGRAMINFOLOG,       //Get program linking log
 
 		//Uniform handling
+
 		OPENGL_GETUNIFORMLOCATION,      //Get a uniform variable's location
+		OPENGL_UNIFORM1I,               //Set int uniform
+		OPENGL_UNIFORM1F,               //Set float uniform
+		OPENGL_UNIFORM3F,               //Set vec3 uniform
+		OPENGL_UNIFORMMATRIX4FV,        //Set mat4 uniform
 
 		//Texture management
+
 		OPENGL_GENTEXTURES,             //Create texture objects
 		OPENGL_BINDTEXTURE,             //Bind a texture
-		OPENGL_TEXIMAGE2D               //Upload texture data
+		OPENGL_TEXIMAGE2D,              //Upload texture data
+		OPENGL_TEXPARAMETERI,           //Set texture parameter (filtering/wrapping)
+		OPENGL_GENERATEMIPMAP          //Generate mipmaps for the current texture
 	};
 }

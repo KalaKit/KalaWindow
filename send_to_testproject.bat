@@ -23,10 +23,12 @@ set "ORIGIN_DEBUG_DLL=%INSTALL_DEBUG%\bin\KalaWindowD.dll"
 set "ORIGIN_DEBUG_LIB=%INSTALL_DEBUG%\lib\KalaWindowD.lib"
 set "ORIGIN_HEADER1=%INPUT_ROOT%\install-release\include\window.hpp"
 set "ORIGIN_HEADER2=%INPUT_ROOT%\install-release\include\input.hpp"
-set "ORIGIN_HEADER3=%INPUT_ROOT%\install-release\include\graphics.hpp"
-set "ORIGIN_HEADER4=%INPUT_ROOT%\install-release\include\messageloop.hpp"
-set "ORIGIN_HEADER5=%INPUT_ROOT%\install-release\include\enums.hpp"
-set "ORIGIN_HEADER6=%INPUT_ROOT%\install-release\include\magic_enum.hpp"
+set "ORIGIN_HEADER3=%INPUT_ROOT%\install-release\include\messageloop.hpp"
+set "ORIGIN_HEADER4=%INPUT_ROOT%\install-release\include\opengl.hpp"
+set "ORIGIN_HEADER5=%INPUT_ROOT%\install-release\include\opengl_loader.hpp"
+set "ORIGIN_HEADER6=%INPUT_ROOT%\install-release\include\opengl_typedefs.hpp"
+set "ORIGIN_HEADER7=%INPUT_ROOT%\install-release\include\enums.hpp"
+set "ORIGIN_HEADER8=%INPUT_ROOT%\install-release\include\magic_enum.hpp"
 
 if not exist "%ORIGIN_RELEASE_DLL%" (
 	echo Failed to find origin release dll from '%ORIGIN_RELEASE_DLL%'!
@@ -74,7 +76,17 @@ if not exist "%ORIGIN_HEADER5%" (
 	exit /b 1
 )
 if not exist "%ORIGIN_HEADER6%" (
-	echo Failed to find origin header 5 from '%ORIGIN_HEADER6%'!
+	echo Failed to find origin header 6 from '%ORIGIN_HEADER6%'!
+	pause
+	exit /b 1
+)
+if not exist "%ORIGIN_HEADER7%" (
+	echo Failed to find origin header 7 from '%ORIGIN_HEADER7%'!
+	pause
+	exit /b 1
+)
+if not exist "%ORIGIN_HEADER8%" (
+	echo Failed to find origin header 8 from '%ORIGIN_HEADER8%'!
 	pause
 	exit /b 1
 )
@@ -93,10 +105,12 @@ set "TARGET_DEBUG_DLL=%TARGET_ROOT%\debug\KalaWindowD.dll"
 set "TARGET_DEBUG_LIB=%TARGET_ROOT%\debug\KalaWindowD.lib"
 set "TARGET_HEADER1=%TARGET_ROOT%\window.hpp"
 set "TARGET_HEADER2=%TARGET_ROOT%\input.hpp"
-set "TARGET_HEADER3=%TARGET_ROOT%\graphics.hpp"
-set "TARGET_HEADER4=%TARGET_ROOT%\messageloop.hpp"
-set "TARGET_HEADER5=%TARGET_ROOT%\enums.hpp"
-set "TARGET_HEADER6=%TARGET_ROOT%\magic_enum.hpp"
+set "TARGET_HEADER3=%TARGET_ROOT%\messageloop.hpp"
+set "TARGET_HEADER4=%TARGET_ROOT%\opengl.hpp"
+set "TARGET_HEADER5=%TARGET_ROOT%\opengl_loader.hpp"
+set "TARGET_HEADER6=%TARGET_ROOT%\opengl_typedefs.hpp"
+set "TARGET_HEADER7=%TARGET_ROOT%\enums.hpp"
+set "TARGET_HEADER8=%TARGET_ROOT%\magic_enum.hpp"
 
 :: Create release and debug folders in case they dont exist yet
 if not exist "%TARGET_ROOT%\release" mkdir "%TARGET_ROOT%\release"
@@ -113,6 +127,8 @@ copy /Y "%ORIGIN_HEADER3%" "%TARGET_HEADER3%"
 copy /Y "%ORIGIN_HEADER4%" "%TARGET_HEADER4%"
 copy /Y "%ORIGIN_HEADER5%" "%TARGET_HEADER5%"
 copy /Y "%ORIGIN_HEADER6%" "%TARGET_HEADER6%"
+copy /Y "%ORIGIN_HEADER7%" "%TARGET_HEADER7%"
+copy /Y "%ORIGIN_HEADER8%" "%TARGET_HEADER8%"
 
 echo Successfully installed KalaWindow!
 

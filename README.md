@@ -21,37 +21,54 @@ To compile from source code simply run 'build_windows_release.bat' or 'build_win
 #include <Windows.h> //used for all Windows input and window operations
 #include <string>
 
-#include "window.hpp"
-#include "input.hpp"
+#include "window.hpp"          //window system
+#include "input.hpp"           //input system
+#include "opengl.hpp"          //core opengl
+#include "opengl_loader.hpp"   //opengl functions
+#include "enums.hpp"           //all enums in one header
 
 using std::string;
 
-using KalaKit::KalaWindow;  //core window functions
-using KalaKit::Graphics;    //core opengl functions
-using KalaKit::KalaInput;   //core input system functions
-using KalaKit::Key;         //enum for all keyboard and mouse keys
-using KalaKit::DebugType;   //enum for all debug types
-using KalaKit::WindowState; //enum for all window states
+using KalaKit::KalaWindow;    //window system
+using KalaKit::OpenGL;        //core opengl
+using KalaKit::OpenGLLoader;  //opengl functions
+using KalaKit::KalaInput;     //input system
+using KalaKit::Key;           //enum for all keyboard and mouse keys
+using KalaKit::DebugType;     //enum for all debug types
+using KalaKit::WindowState;   //enum for all window states
 
 static void YourInitializeFunction()
 {
 	...
-	//this function creates a window and displays it
+	//first initialize the window
 	int yourWindowHeight = 800;
 	int yourWindowWidth = 600;
 	string yourWindowTitle = "Your window";
 	KalaWindow::Initialize(yourWindowTitle, yourWindowWidth, yourWindowHeight);
-
-	//this is the core initialization function 
-	//that is required to be called so that
-	//the window system can initialize all its content
-	KalaWindow::Initialize();
 	
-	//this function is resposible for initializing
-	//and attaching the OpenGL context to the window
-	Graphics::Initialize();
+	//then initialize opengl
+	OpenGL::Initialize();
 	
-	//make sure to also initialize the input system after it
+	//if you want to check which opengl functions are available
+	bool drawArraysExists = OpenGLFunctions::IsFunctionAvailable
+	(
+		OpenGLFunction::OPENGL_DRAWARRAYS
+	);
+	
+	//load individual opengl functions
+	OpenGLFunctions::LoadChosenFunctions
+	({
+		OpenGLFunction::OPENGL_DRAWARRAYS,
+		OpenGLFunction::OPENGL_USEPROGRAM
+		//or add more here...
+	});
+	
+	//or if you dont care about loading specific
+	//opengl functions then you can just load 
+	//all of them with this function
+	OpenGLLoader::LoadAllFunctions();
+	
+	//then after all of those you can initialize the input system
 	KalaInput::Initialize();
 
 	//you can pass one of the many debug types to this function

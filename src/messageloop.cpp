@@ -4,7 +4,7 @@
 //Read LICENSE.md for more information.
 
 //main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_WINDOW | " << type << "] " << msg << "\n"
+#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_MESSAGELOOP | " << type << "] " << msg << "\n"
 
 //log types
 #if KALAWINDOW_DEBUG
@@ -397,7 +397,6 @@ namespace KalaKit
 
 		//user clicked X button or pressed Alt + F4
 		case WM_CLOSE:
-			LOG_DEBUG("Called close message.");
 			if (!KalaWindow::CanExit())
 			{
 				//returns true if uses chooses to exit, otherwise cancels exit
@@ -413,7 +412,7 @@ namespace KalaKit
 
 			//window was destroyed - tell the system to exit
 		case WM_DESTROY:
-			LOG_DEBUG("Called destroy message.");
+			LOG_DEBUG("Window is destroyed.");
 			PostQuitMessage(0);
 			return true;
 

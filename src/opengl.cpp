@@ -4,7 +4,7 @@
 //Read LICENSE.md for more information.
 
 //main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_WINDOW | " << type << "] " << msg << "\n"
+#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_OPENGL | " << type << "] " << msg << "\n"
 
 //log types
 #if KALAWINDOW_DEBUG
@@ -36,24 +36,13 @@
 #include <gl/GLU.h>
 #include <iostream>
 
-#include "graphics.hpp"
+#include "opengl.hpp"
 #include "window.hpp"
-
-using std::find;
+#include "opengl_loader.hpp"
 
 namespace KalaKit
 {
-	//wgl extension typedefs
-	typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(HDC, HGLRC, const int*);
-	typedef BOOL(WINAPI* PFNWGLCHOOSEPIXELFORMATARBPROC)(
-		HDC,
-		const int*,
-		const FLOAT*,
-		UINT,
-		int*,
-		UINT*);
-
-	bool Graphics::CreateOpenGLContext()
+	bool OpenGL::Initialize()
 	{
 		HDC hdc = GetDC(KalaWindow::window);
 
@@ -86,7 +75,7 @@ namespace KalaKit
 
 		if (!wglCreateContextAttribsARB)
 		{
-			string title = "OpenGL error";
+			string title = "OpenGL initialization error";
 			string message = "wglCreateContextAttribsARB not supported!";
 
 			MessageBox(
@@ -113,7 +102,7 @@ namespace KalaKit
 		HGLRC realRC = wglCreateContextAttribsARB(hdc, 0, attribs);
 		if (!realRC)
 		{
-			string title = "OpenGL error";
+			string title = "OpenGL initialization error";
 			string message = "Failed to create OpenGL 3.3 context!";
 
 			MessageBox(
@@ -134,35 +123,40 @@ namespace KalaKit
 
 		wglMakeCurrent(hdc, realRC);
 
+		if (!IsCorrectVersion())
+		{
+			string title = "OpenGL initialization error";
+			string message = "OpenGL 3.3 or higher is required!";
+
+			MessageBox(
+				nullptr,
+				message.c_str(),
+				title.c_str(),
+				MB_ICONERROR);
+
+			return false;
+		}
+
 		LOG_SUCCESS("OpenGL version: " << glGetString(GL_VERSION));
 
 		return true;
 	}
 
-	void Graphics::LoadCoreOpenGLFunctions(const vector<OpenGLFunction>& functions)
+	bool OpenGL::IsCorrectVersion()
 	{
-		for (const auto& entry : openGLFunctionTable)
-		{
-			if (find(functions.begin(), functions.end(), entry.id) != functions.end())
-			{
-				*entry.target = LoadOpenGLFunction<void*>(entry.name);
-			}
-		}
-	}
+		const char* versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+		if (!versionStr) return false;
 
-	template <typename T>
-	T Graphics::LoadOpenGLFunction(const char* name)
-	{
-		T func = reinterpret_cast<T>(wglGetProcAddress(name));
-		if (!func)
+		int major = 0;
+		int minor = 0;
+		if (sscanf_s(versionStr, "%d.%d", &major, &minor) != 2)
 		{
-			LOG_ERROR("Failed to load OpenGL function: " << name);
+			return false;
 		}
-		return func;
-	}
 
-	const vector<Graphics::OpenGLFunctionEntry> Graphics::openGLFunctionTable = 
-	{
-		
-	};
+		return
+			(major > 3)
+			|| (major == 3
+			&& minor >= 3);
+	}
 }
