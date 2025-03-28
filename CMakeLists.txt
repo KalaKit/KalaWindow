@@ -46,6 +46,8 @@ set(PARENT_DIR_PATH "${PARENT_DIR}")
 # Window files
 set(KALAWINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(KALAWINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(KALAWINDOW_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
+set(KALAWINDOW_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
 
 # Add source files
 file(GLOB_RECURSE KALAWINDOW_SRC_FILES CONFIGURE_DEPENDS
@@ -64,8 +66,12 @@ set_target_properties(KalaWindow PROPERTIES
 
 # Apply all directories to target
 target_include_directories(KalaWindow PRIVATE
-	# Window files
+	# KalaWindow headers
     ${KALAWINDOW_INCLUDE_DIR}
+	
+	# External headers
+	${KALAWINDOW_GLM_DIR}
+	${KALAWINDOW_MAGIC_ENUM_DIR}
 )
 
 if (WIN32)

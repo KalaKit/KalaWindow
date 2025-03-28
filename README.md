@@ -8,6 +8,10 @@
 
 KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of and handling all of its input. It also comes with KalaCrashHandler natively built in for handy crash reports.
 
+External libraries included in this library:
+	- magic_enum - enum-string operations (include\magic_enum)
+	- GLM - OpenGL math functions (include\GLM)
+
 # Prerequisites (when compiling from source code)
 
 - Visual Studio 2022 (with C++ CMake tools and Windows 10 or 11 SDK)
