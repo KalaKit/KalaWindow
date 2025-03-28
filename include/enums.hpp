@@ -188,4 +188,38 @@ namespace KalaKit
 		WINDOW_MINIMIZED,  //Minimize window to taskbar
 		WINDOW_MAXIMIZED   //Maximize window to full screen size
 	};
+
+	/// <summary>
+	/// All the currently supported OpenGL functions that can be loaded by the user.
+	/// </summary>
+	enum class OpenGLFunction
+	{
+		//Geometry: VAO, VBO and drawing
+		OPENGL_GENVERTEXARRAYS,         //Create one or more VAO (Vertex array object)
+		OPENGL_BINDVERTEXARRAY,         //Bind a VAO
+		OPENGL_GENBUFFERS,              //Create one or more VBO (Vertex buffer object)
+		OPENGL_BINDBUFFER,              //Bind a VBO
+		OPENGL_BUFFERDATA,              //Upload data to currently bound VBO
+		OPENGL_ENABLEVERTEXATTRIBARRAY, //Enable a vertex attribute slot (position, color etc)
+		OPENGL_VERTEXATTRIBPOINTER,     //Defines how to read vertex data from VBO
+		OPENGL_DRAWARRAYS,              //Draws vertices with bound VAO and shader (non-indexed)
+
+		//Shader creation and program linking
+		OPENGL_CREATESHADER,            //Create shader object (vertex/fragment)
+		OPENGL_SHADERSOURCE,            //Set the shader source code
+		OPENGL_COMPILESHADER,           //Compile the shader
+		OPENGL_CREATEPROGRAM,           //Create a shader program
+		OPENGL_USEPROGRAM,              //Use a shader program for drawing
+		OPENGL_ATTACHSHADER,            //Attach a shader to the program
+		OPENGL_LINKPROGRAM,             //Link the shader program
+		OPENGL_DELETESHADER,            //Delete a shader object
+
+		//Uniform handling
+		OPENGL_GETUNIFORMLOCATION,      //Get a uniform variable's location
+
+		//Texture management
+		OPENGL_GENTEXTURES,             //Create texture objects
+		OPENGL_BINDTEXTURE,             //Bind a texture
+		OPENGL_TEXIMAGE2D               //Upload texture data
+	};
 }

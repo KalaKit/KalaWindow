@@ -71,6 +71,7 @@ namespace KalaKit
 			(LONG_PTR)MessageLoop::WindowProcCallback);
 
 		ShowWindow(window, SW_SHOW);
+
 		isInitialized = true;
 
 		LOG_SUCCESS("Window successfully initialized!");

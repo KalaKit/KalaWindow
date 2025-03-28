@@ -26,7 +26,9 @@ To compile from source code simply run 'build_windows_release.bat' or 'build_win
 
 using std::string;
 
-using KalaKit::KalaWindow;  //core window and input system functions
+using KalaKit::KalaWindow;  //core window functions
+using KalaKit::Graphics;    //core opengl functions
+using KalaKit::KalaInput;   //core input system functions
 using KalaKit::Key;         //enum for all keyboard and mouse keys
 using KalaKit::DebugType;   //enum for all debug types
 using KalaKit::WindowState; //enum for all window states
@@ -44,6 +46,10 @@ static void YourInitializeFunction()
 	//that is required to be called so that
 	//the window system can initialize all its content
 	KalaWindow::Initialize();
+	
+	//this function is resposible for initializing
+	//and attaching the OpenGL context to the window
+	Graphics::Initialize();
 	
 	//make sure to also initialize the input system after it
 	KalaInput::Initialize();

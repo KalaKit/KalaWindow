@@ -69,7 +69,8 @@ target_include_directories(KalaWindow PRIVATE
 )
 
 if (WIN32)
-    target_link_libraries(KalaWindow PRIVATE)
+    target_link_libraries(KalaWindow PRIVATE
+		opengl32)
 else()
 	find_package(Wayland QUIET)
 	find_package(X11 QUIET)
