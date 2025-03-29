@@ -34,6 +34,7 @@ namespace KalaKit
 
 		/// <summary>
 		/// Skips user-chosen functions vector and loads everything available.
+		/// Should not be called manually, already called inside of OpenGL::Initialize.
 		/// </summary>
 		static void LoadAllFunctions();
 

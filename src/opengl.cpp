@@ -139,6 +139,8 @@ namespace KalaKit
 
 		LOG_SUCCESS("OpenGL version: " << glGetString(GL_VERSION));
 
+		OpenGLLoader::LoadAllFunctions();
+
 		return true;
 	}
 

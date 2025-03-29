@@ -59,10 +59,7 @@ static void YourInitializeFunction()
 		OpenGLFunction::OPENGL_DRAWARRAYS
 	);
 	
-	//load all the available OpenGL functions
-	OpenGLLoader::LoadAllFunctions();
-	
-	//then after all of those you can initialize the input system
+	//initialize the input system
 	KalaInput::Initialize();
 
 	//you can pass one of the many debug types to this function
