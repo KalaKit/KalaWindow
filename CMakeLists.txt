@@ -112,5 +112,8 @@ install(TARGETS KalaWindow
 # Install header files
 install(DIRECTORY ${KALAWINDOW_INCLUDE_DIR}/
     DESTINATION include
-    FILES_MATCHING PATTERN "*.hpp"
+    FILES_MATCHING 
+		PATTERN "*.hpp" 
+		PATTERN "*.h" 
+		PATTERN "*.inl"
 )

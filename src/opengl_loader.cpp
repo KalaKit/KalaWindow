@@ -50,13 +50,21 @@ namespace KalaKit
 	inline PFNGLGETSHADERINFOLOGPROC       OpenGLLoader::glGetShaderInfoLogPtr = nullptr;
 	inline PFNGLGETPROGRAMIVPROC           OpenGLLoader::glGetProgramivPtr = nullptr;
 	inline PFNGLGETPROGRAMINFOLOGPROC      OpenGLLoader::glGetProgramInfoLogPtr = nullptr;
+	inline PFNGLDELETEPROGRAMPROC          OpenGLLoader::glDeleteProgramPtr = nullptr;
 
 	//uniforms
 
 	inline PFNGLGETUNIFORMLOCATIONPROC     OpenGLLoader::glGetUniformLocationPtr = nullptr;
 	inline PFNGLUNIFORM1IPROC              OpenGLLoader::glUniform1iPtr = nullptr;
 	inline PFNGLUNIFORM1FPROC              OpenGLLoader::glUniform1fPtr = nullptr;
+	inline PFNGLUNIFORM2FPROC              OpenGLLoader::glUniform2fPtr = nullptr;
+	inline PFNGLUNIFORM2FVPROC             OpenGLLoader::glUniform2fvPtr = nullptr;
 	inline PFNGLUNIFORM3FPROC              OpenGLLoader::glUniform3fPtr = nullptr;
+	inline PFNGLUNIFORM3FVPROC             OpenGLLoader::glUniform3fvPtr = nullptr;
+	inline PFNGLUNIFORM4FPROC              OpenGLLoader::glUniform4fPtr = nullptr;
+	inline PFNGLUNIFORM4FVPROC             OpenGLLoader::glUniform4fvPtr = nullptr;
+	inline PFNGLUNIFORMMATRIX2FVPROC       OpenGLLoader::glUniformMatrix2fvPtr = nullptr;
+	inline PFNGLUNIFORMMATRIX3FVPROC       OpenGLLoader::glUniformMatrix3fvPtr = nullptr;
 	inline PFNGLUNIFORMMATRIX4FVPROC       OpenGLLoader::glUniformMatrix4fvPtr = nullptr;
 
 	//textures
@@ -66,6 +74,11 @@ namespace KalaKit
 	inline PFNGLTEXIMAGE2DPROC             OpenGLLoader::glTexImage2DPtr = nullptr;
 	inline PFNGLTEXPARAMETERIPROC          OpenGLLoader::glTexParameteriPtr = nullptr;
 	inline PFNGLGENERATEMIPMAPPROC         OpenGLLoader::glGenerateMipmapPtr = nullptr;
+
+	//frame and render state
+
+	inline PFNGLVIEWPORTPROC               OpenGLLoader::glViewportPtr = nullptr;
+	inline PFNGLDISABLEPROC                OpenGLLoader::glDisablePtr = nullptr;
 
 	bool OpenGLLoader::IsFunctionAvailable(OpenGLFunction id)
 	{
@@ -88,19 +101,6 @@ namespace KalaKit
 		}
 
 		LOG_SUCCESS("Loaded all OpenGL functions!");
-	}
-
-	void OpenGLLoader::LoadChosenFunctions(const vector<OpenGLFunction>& functions)
-	{
-		for (const auto& entry : openGLFunctionTable)
-		{
-			if (find(functions.begin(), functions.end(), entry.id) != functions.end())
-			{
-				*entry.target = LoadOpenGLFunction<void*>(entry.name);
-			}
-		}
-
-		LOG_SUCCESS("Loaded all chosen OpenGL functions!");
 	}
 
 	template <typename T>
@@ -153,13 +153,21 @@ namespace KalaKit
 		{ OpenGLFunction::OPENGL_GETSHADERINFOLOG, "glGetShaderInfoLog", reinterpret_cast<void**>(&glGetShaderInfoLogPtr) },
 		{ OpenGLFunction::OPENGL_GETPROGRAMIV, "glGetProgramiv", reinterpret_cast<void**>(&glGetProgramivPtr) },
 		{ OpenGLFunction::OPENGL_GETPROGRAMINFOLOG, "glGetProgramInfoLog", reinterpret_cast<void**>(&glGetProgramInfoLogPtr) },
+		{ OpenGLFunction::OPENGL_DELETEPROGRAM, "glDeleteProgram", reinterpret_cast<void**>(&glDeleteProgramPtr) },
 
 		//uniforms
 
 		{ OpenGLFunction::OPENGL_GETUNIFORMLOCATION, "glGetUniformLocation", reinterpret_cast<void**>(&glGetUniformLocationPtr) },
 		{ OpenGLFunction::OPENGL_UNIFORM1I, "glUniform1i", reinterpret_cast<void**>(&glUniform1iPtr) },
 		{ OpenGLFunction::OPENGL_UNIFORM1F, "glUniform1f", reinterpret_cast<void**>(&glUniform1fPtr) },
+		{ OpenGLFunction::OPENGL_UNIFORM2F, "glUniform2f", reinterpret_cast<void**>(&glUniform2fPtr) },
+		{ OpenGLFunction::OPENGL_UNIFORM2FV, "glUniform2fv", reinterpret_cast<void**>(&glUniform2fvPtr) },
 		{ OpenGLFunction::OPENGL_UNIFORM3F, "glUniform3f", reinterpret_cast<void**>(&glUniform3fPtr) },
+		{ OpenGLFunction::OPENGL_UNIFORM3FV, "glUniform3fv", reinterpret_cast<void**>(&glUniform3fvPtr) },
+		{ OpenGLFunction::OPENGL_UNIFORM4F, "glUniform4f", reinterpret_cast<void**>(&glUniform4fPtr) },
+		{ OpenGLFunction::OPENGL_UNIFORM4FV, "glUniform4fv", reinterpret_cast<void**>(&glUniform4fvPtr) },
+		{ OpenGLFunction::OPENGL_UNIFORMMATRIX2FV, "glUniformMatrix2fv", reinterpret_cast<void**>(&glUniformMatrix2fvPtr) },
+		{ OpenGLFunction::OPENGL_UNIFORMMATRIX3FV, "glUniformMatrix3fv", reinterpret_cast<void**>(&glUniformMatrix3fvPtr) },
 		{ OpenGLFunction::OPENGL_UNIFORMMATRIX4FV, "glUniformMatrix4fv", reinterpret_cast<void**>(&glUniformMatrix4fvPtr) },
 
 		//textures
@@ -168,6 +176,11 @@ namespace KalaKit
 		{ OpenGLFunction::OPENGL_BINDTEXTURE, "glBindTexture", reinterpret_cast<void**>(&glBindTexturePtr) },
 		{ OpenGLFunction::OPENGL_TEXIMAGE2D, "glTexImage2D", reinterpret_cast<void**>(&glTexImage2DPtr) },
 		{ OpenGLFunction::OPENGL_TEXPARAMETERI, "glTexParameteri", reinterpret_cast<void**>(&glTexParameteriPtr) },
-		{ OpenGLFunction::OPENGL_GENERATEMIPMAP, "glGenerateMipmap", reinterpret_cast<void**>(&glGenerateMipmapPtr) }
+		{ OpenGLFunction::OPENGL_GENERATEMIPMAP, "glGenerateMipmap", reinterpret_cast<void**>(&glGenerateMipmapPtr) },
+	
+		//frame and render state
+		
+		{ OpenGLFunction::OPENGL_VIEWPORT, "glViewport", reinterpret_cast<void**>(&glViewportPtr) },
+		{ OpenGLFunction::OPENGL_DISABLE, "glDisable", reinterpret_cast<void**>(&glDisablePtr) }
 	};
 }

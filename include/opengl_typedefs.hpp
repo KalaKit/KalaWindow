@@ -26,6 +26,32 @@
     #define WGLENTRYP WGLENTRY *
 #endif
 
+//shader types
+
+#define GL_VERTEX_SHADER   0x8B31
+#define GL_FRAGMENT_SHADER 0x8B30
+
+//shader parameter enums
+
+#define GL_COMPILE_STATUS  0x8B81
+#define GL_LINK_STATUS     0x8B82
+
+//uniform usage
+
+#define GL_FALSE 0
+
+//buffer targets
+
+#define GL_ARRAY_BUFFER 0x8892
+
+//buffer usage
+
+#define GL_STATIC_DRAW 0x88E4
+
+//vertex attribute types
+
+#define GL_FLOAT 0x1406
+
 #ifndef GL_TYPES_DEFINED
 #define GL_TYPES_DEFINED
 
@@ -141,27 +167,61 @@ typedef void (APIENTRYP PFNGLGETPROGRAMINFOLOGPROC)(
     GLsizei bufSize, 
     GLsizei* length, 
     GLchar* infoLog);
+typedef void (APIENTRYP PFNGLDELETEPROGRAMPROC)(
+    GLuint program);
 
 //uniforms
 
 typedef GLint(APIENTRYP PFNGLGETUNIFORMLOCATIONPROC)(
-    GLuint program, 
+    GLuint program,
     const GLchar* name);
 typedef void (APIENTRYP PFNGLUNIFORM1IPROC)(
-    GLint location, 
+    GLint location,
     GLint v0);
 typedef void (APIENTRYP PFNGLUNIFORM1FPROC)(
-    GLint location, 
+    GLint location,
     GLfloat v0);
+typedef void (APIENTRYP PFNGLUNIFORM2FPROC)(
+    GLint location,
+    GLfloat v0,
+    GLfloat v1);
+typedef void (APIENTRYP PFNGLUNIFORM2FVPROC)(
+    GLint location,
+    GLsizei count,
+    const GLfloat* value);
 typedef void (APIENTRYP PFNGLUNIFORM3FPROC)(
-    GLint location, 
-    GLfloat v0, 
-    GLfloat v1, 
+    GLint location,
+    GLfloat v0,
+    GLfloat v1,
     GLfloat v2);
+typedef void (APIENTRYP PFNGLUNIFORM3FVPROC)(
+    GLint location,
+    GLsizei count,
+    const GLfloat* value);
+typedef void (APIENTRYP PFNGLUNIFORM4FPROC)(
+    GLint location,
+    GLfloat v0,
+    GLfloat v1,
+    GLfloat v2,
+    GLfloat v3);
+typedef void (APIENTRYP PFNGLUNIFORM4FVPROC)(
+    GLint location,
+    GLsizei count,
+    const GLfloat* value);
+typedef void (APIENTRYP PFNGLUNIFORMMATRIX2FVPROC)(
+    GLint location,
+    GLsizei count,
+    GLboolean transpose,
+    const GLfloat* value);
+typedef void (APIENTRYP PFNGLUNIFORMMATRIX3FVPROC)(
+    GLint location,
+    GLsizei count,
+    GLboolean transpose,
+    const GLfloat* value);
 typedef void (APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(
-    GLint location, 
-    GLsizei count, 
-    GLboolean transpose, 
+    GLint location,
+    GLsizei count,
+    GLboolean transpose,
     const GLfloat* value);
 
 //textures
@@ -188,3 +248,13 @@ typedef void (APIENTRYP PFNGLTEXPARAMETERIPROC)(
     GLint param);
 typedef void (APIENTRYP PFNGLGENERATEMIPMAPPROC)(
     GLenum target);
+
+//frame and render state
+
+typedef void (APIENTRYP PFNGLVIEWPORTPROC)(
+    GLint x,
+    GLint y,
+    GLsizei width,
+    GLsizei height);
+typedef void (APIENTRYP PFNGLDISABLEPROC)(
+    GLenum cap);

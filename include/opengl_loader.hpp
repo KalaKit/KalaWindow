@@ -37,11 +37,6 @@ namespace KalaKit
 		/// </summary>
 		static void LoadAllFunctions();
 
-		/// <summary>
-		/// Loads user-chosen OpenGL functions.
-		/// </summary>
-		static void LoadChosenFunctions(const vector<OpenGLFunction>& functions);
-
 		struct OpenGLFunctionEntry
 		{
 			OpenGLFunction id; //Function enum value
@@ -57,52 +52,66 @@ namespace KalaKit
 				target(t) {
 			}
 		};
-	private:
-		template <typename T>
-		static T LoadOpenGLFunction(const char* name);
 
 		//geometry
 
-		static PFNGLGENVERTEXARRAYSPROC        glGenVertexArraysPtr;
-		static PFNGLBINDVERTEXARRAYPROC        glBindVertexArrayPtr;
-		static PFNGLGENBUFFERSPROC             glGenBuffersPtr;
-		static PFNGLBINDBUFFERPROC             glBindBufferPtr;
-		static PFNGLBUFFERDATAPROC             glBufferDataPtr;
-		static PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArrayPtr;
-		static PFNGLVERTEXATTRIBPOINTERPROC    glVertexAttribPointerPtr;
-		static PFNGLDRAWARRAYSPROC             glDrawArraysPtr;
-		static PFNGLDRAWELEMENTSPROC           glDrawElementsPtr;
+		static PFNGLGENVERTEXARRAYSPROC        glGenVertexArraysPtr;         //Create one or more VAO (Vertex array object)
+		static PFNGLBINDVERTEXARRAYPROC        glBindVertexArrayPtr;         //Bind a VAO
+		static PFNGLGENBUFFERSPROC             glGenBuffersPtr;              //Create one or more VBO (Vertex buffer object)
+		static PFNGLBINDBUFFERPROC             glBindBufferPtr;              //Bind a VBO
+		static PFNGLBUFFERDATAPROC             glBufferDataPtr;              //Upload data to currently bound VBO
+		static PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArrayPtr;//Enable a vertex attribute slot (position, color etc)
+		static PFNGLVERTEXATTRIBPOINTERPROC    glVertexAttribPointerPtr;     //Defines how to read vertex data from VBO
+		static PFNGLDRAWARRAYSPROC             glDrawArraysPtr;              //Draws vertices with bound VAO and shader (non-indexed)
+		static PFNGLDRAWELEMENTSPROC           glDrawElementsPtr;            //Draws vertices using index data (EBO)
 
 		//shaders
 
-		static PFNGLCREATESHADERPROC           glCreateShaderPtr;
-		static PFNGLSHADERSOURCEPROC           glShaderSourcePtr;
-		static PFNGLCOMPILESHADERPROC          glCompileShaderPtr;
-		static PFNGLCREATEPROGRAMPROC          glCreateProgramPtr;
-		static PFNGLUSEPROGRAMPROC             glUseProgramPtr;
-		static PFNGLATTACHSHADERPROC           glAttachShaderPtr;
-		static PFNGLLINKPROGRAMPROC            glLinkProgramPtr;
-		static PFNGLDELETESHADERPROC           glDeleteShaderPtr;
-		static PFNGLGETSHADERIVPROC            glGetShaderivPtr;
-		static PFNGLGETSHADERINFOLOGPROC       glGetShaderInfoLogPtr;
-		static PFNGLGETPROGRAMIVPROC           glGetProgramivPtr;
-		static PFNGLGETPROGRAMINFOLOGPROC      glGetProgramInfoLogPtr;
+		static PFNGLCREATESHADERPROC           glCreateShaderPtr;            //Create shader object (vertex/fragment)
+		static PFNGLSHADERSOURCEPROC           glShaderSourcePtr;            //Set the shader source code
+		static PFNGLCOMPILESHADERPROC          glCompileShaderPtr;           //Compile the shader
+		static PFNGLCREATEPROGRAMPROC          glCreateProgramPtr;           //Create a shader program
+		static PFNGLUSEPROGRAMPROC             glUseProgramPtr;              //Use a shader program for drawing
+		static PFNGLATTACHSHADERPROC           glAttachShaderPtr;            //Attach a shader to the program
+		static PFNGLLINKPROGRAMPROC            glLinkProgramPtr;             //Link the shader program
+		static PFNGLDELETESHADERPROC           glDeleteShaderPtr;            //Delete a shader object
+		static PFNGLGETSHADERIVPROC            glGetShaderivPtr;             //Get shader compile status
+		static PFNGLGETSHADERINFOLOGPROC       glGetShaderInfoLogPtr;        //Get shader compilation log
+		static PFNGLGETPROGRAMIVPROC           glGetProgramivPtr;            //Get program link status
+		static PFNGLGETPROGRAMINFOLOGPROC      glGetProgramInfoLogPtr;       //Get program linking log
+		static PFNGLDELETEPROGRAMPROC          glDeleteProgramPtr;           //Delete a shader program
 
 		//uniforms
 
-		static PFNGLGETUNIFORMLOCATIONPROC     glGetUniformLocationPtr;
-		static PFNGLUNIFORM1IPROC              glUniform1iPtr;
-		static PFNGLUNIFORM1FPROC              glUniform1fPtr;
-		static PFNGLUNIFORM3FPROC              glUniform3fPtr;
-		static PFNGLUNIFORMMATRIX4FVPROC       glUniformMatrix4fvPtr;
+		static PFNGLGETUNIFORMLOCATIONPROC     glGetUniformLocationPtr;      //Get a uniform variable's location
+		static PFNGLUNIFORM1IPROC              glUniform1iPtr;               //Set int uniform
+		static PFNGLUNIFORM1FPROC              glUniform1fPtr;               //Set float uniform
+		static PFNGLUNIFORM2FPROC              glUniform2fPtr;               //Set vec2 uniform (x, y)
+		static PFNGLUNIFORM2FVPROC             glUniform2fvPtr;              //Set vec2 uniform from pointer
+		static PFNGLUNIFORM3FPROC              glUniform3fPtr;               //Set vec3 uniform (x, y, z)
+		static PFNGLUNIFORM3FVPROC             glUniform3fvPtr;              //Set vec3 uniform from pointer
+		static PFNGLUNIFORM4FPROC              glUniform4fPtr;               //Set vec4 uniform (x, y, z, w)
+		static PFNGLUNIFORM4FVPROC             glUniform4fvPtr;              //Set vec4 uniform from pointer
+		static PFNGLUNIFORMMATRIX2FVPROC       glUniformMatrix2fvPtr;        //Set mat2 uniform
+		static PFNGLUNIFORMMATRIX3FVPROC       glUniformMatrix3fvPtr;        //Set mat3 uniform
+		static PFNGLUNIFORMMATRIX4FVPROC       glUniformMatrix4fvPtr;        //Set mat4 uniform
 
 		//textures
 
-		static PFNGLGENTEXTURESPROC            glGenTexturesPtr;
-		static PFNGLBINDTEXTUREPROC            glBindTexturePtr;
-		static PFNGLTEXIMAGE2DPROC             glTexImage2DPtr;
-		static PFNGLTEXPARAMETERIPROC          glTexParameteriPtr;
-		static PFNGLGENERATEMIPMAPPROC         glGenerateMipmapPtr;
+		static PFNGLGENTEXTURESPROC            glGenTexturesPtr;             //Create texture objects
+		static PFNGLBINDTEXTUREPROC            glBindTexturePtr;             //Bind a texture
+		static PFNGLTEXIMAGE2DPROC             glTexImage2DPtr;              //Upload texture data
+		static PFNGLTEXPARAMETERIPROC          glTexParameteriPtr;           //Set texture parameter (filtering/wrapping)
+		static PFNGLGENERATEMIPMAPPROC         glGenerateMipmapPtr;          //Generate mipmaps for the current texture
+
+		//frame and render state
+
+		static PFNGLVIEWPORTPROC               glViewportPtr;                //Set the viewport area
+		static PFNGLDISABLEPROC                glDisablePtr;                 //Disable OpenGL capabilities like depth test
+
+	private:
+		template <typename T>
+		static T LoadOpenGLFunction(const char* name);
 
 		static const vector<OpenGLFunctionEntry> openGLFunctionTable;
 	};

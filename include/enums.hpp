@@ -196,7 +196,7 @@ namespace KalaKit
 	/// </summary>
 	enum class OpenGLFunction
 	{
-		//Geometry: VAO, VBO and drawing
+		//geometry
 
 		OPENGL_GENVERTEXARRAYS,         //Create one or more VAO (Vertex array object)
 		OPENGL_BINDVERTEXARRAY,         //Bind a VAO
@@ -208,7 +208,7 @@ namespace KalaKit
 		OPENGL_DRAWARRAYS,              //Draws vertices with bound VAO and shader (non-indexed)
 		OPENGL_DRAWELEMENTS,            //Draws vertices using index data (EBO)
 
-		//Shader creation and program linking
+		//shaders
 
 		OPENGL_CREATESHADER,            //Create shader object (vertex/fragment)
 		OPENGL_SHADERSOURCE,            //Set the shader source code
@@ -222,21 +222,34 @@ namespace KalaKit
 		OPENGL_GETSHADERINFOLOG,        //Get shader compilation log
 		OPENGL_GETPROGRAMIV,            //Get program link status
 		OPENGL_GETPROGRAMINFOLOG,       //Get program linking log
+		OPENGL_DELETEPROGRAM,           //Delete a shader program
 
-		//Uniform handling
+		//uniforms
 
 		OPENGL_GETUNIFORMLOCATION,      //Get a uniform variable's location
 		OPENGL_UNIFORM1I,               //Set int uniform
 		OPENGL_UNIFORM1F,               //Set float uniform
-		OPENGL_UNIFORM3F,               //Set vec3 uniform
+		OPENGL_UNIFORM2F,               //Set vec2 uniform (x, y)
+		OPENGL_UNIFORM2FV,              //Set vec2 uniform from pointer
+		OPENGL_UNIFORM3F,               //Set vec3 uniform (x, y, z)
+		OPENGL_UNIFORM3FV,              //Set vec3 uniform from pointer
+		OPENGL_UNIFORM4F,               //Set vec4 uniform (x, y, z, w)
+		OPENGL_UNIFORM4FV,              //Set vec4 uniform from pointer
+		OPENGL_UNIFORMMATRIX2FV,        //Set mat2 uniform
+		OPENGL_UNIFORMMATRIX3FV,        //Set mat3 uniform
 		OPENGL_UNIFORMMATRIX4FV,        //Set mat4 uniform
 
-		//Texture management
+		//textures
 
 		OPENGL_GENTEXTURES,             //Create texture objects
 		OPENGL_BINDTEXTURE,             //Bind a texture
 		OPENGL_TEXIMAGE2D,              //Upload texture data
 		OPENGL_TEXPARAMETERI,           //Set texture parameter (filtering/wrapping)
-		OPENGL_GENERATEMIPMAP          //Generate mipmaps for the current texture
+		OPENGL_GENERATEMIPMAP,          //Generate mipmaps for the current texture
+	
+		//frame and render state
+
+		OPENGL_VIEWPORT,                //Set the viewport area
+		OPENGL_DISABLE                  //Disable OpenGL capabilities like depth test
 	};
 }

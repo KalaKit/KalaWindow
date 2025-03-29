@@ -59,17 +59,7 @@ static void YourInitializeFunction()
 		OpenGLFunction::OPENGL_DRAWARRAYS
 	);
 	
-	//load individual opengl functions
-	OpenGLFunctions::LoadChosenFunctions
-	({
-		OpenGLFunction::OPENGL_DRAWARRAYS,
-		OpenGLFunction::OPENGL_USEPROGRAM
-		//or add more here...
-	});
-	
-	//or if you dont care about loading specific
-	//opengl functions then you can just load 
-	//all of them with this function
+	//load all the available OpenGL functions
 	OpenGLLoader::LoadAllFunctions();
 	
 	//then after all of those you can initialize the input system
@@ -126,6 +116,13 @@ int main()
 	
 	return 0;
 }
+```
+---
+
+# Shader initialize functions
+
+```cpp
+
 ```
 ---
 

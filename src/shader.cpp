@@ -16,10 +16,197 @@
 #define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
 
 #include <iostream>
+#include <fstream>
+#include <sstream>
+
+#include "glm/gtc/type_ptr.hpp"
 
 #include "shader.hpp"
+#include "opengl_loader.hpp"
+
+using std::ifstream;
+using std::stringstream;
 
 namespace KalaKit
 {
-	
+    Shader::Shader(
+        const string& vertexPath, 
+        const string& fragmentPath)
+    {
+        //
+        // READ SHADER SOURCE FILES
+        //
+
+        ifstream vertexFile(vertexPath), fragmentFile(fragmentPath);
+        stringstream vertexStream, fragmentStream;
+
+        vertexStream << vertexFile.rdbuf();
+        fragmentStream << fragmentFile.rdbuf();
+
+        const string vertexCode = vertexStream.str();
+        const string fragmentCode = fragmentStream.str();
+        const char* vShaderCode = vertexCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
+
+        //
+        // CREATE AND COMPILE VERTEX SHADER
+        //
+
+        LOG_DEBUG("Loading vertex shader: " << vertexPath);
+
+        GLuint vertex = OpenGLLoader::glCreateShaderPtr(GL_VERTEX_SHADER);
+        OpenGLLoader::glShaderSourcePtr(vertex, 1, &vShaderCode, nullptr);
+        OpenGLLoader::glCompileShaderPtr(vertex);
+
+        if (!CheckCompileErrors(vertex, "VERTEX"))
+        {
+            LOG_ERROR("Vertex shader compilation failed!");
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        //
+        // CREATE AND COMPILE FRAGMENT SHADER
+        //
+
+        LOG_DEBUG("Loading fragment shader: " << fragmentPath);
+
+        GLuint fragment = OpenGLLoader::glCreateShaderPtr(GL_FRAGMENT_SHADER);
+        OpenGLLoader::glShaderSourcePtr(fragment, 1, &fShaderCode, nullptr);
+        OpenGLLoader::glCompileShaderPtr(fragment);
+
+        if (!CheckCompileErrors(fragment, "FRAGMENT"))
+        {
+            LOG_ERROR("Fragment shader compilation failed!");
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        //
+        // CREATE SHADER PROGRAM
+        //
+
+        ID = OpenGLLoader::glCreateProgramPtr();
+        OpenGLLoader::glAttachShaderPtr(ID, vertex);
+        OpenGLLoader::glAttachShaderPtr(ID, fragment);
+        OpenGLLoader::glLinkProgramPtr(ID);
+
+        if (!CheckCompileErrors(ID, "PROGRAM"))
+        {
+            LOG_ERROR("Shader program linking failed!");
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        //
+        // CLEANUP
+        //
+
+        OpenGLLoader::glDeleteShaderPtr(vertex);
+        OpenGLLoader::glDeleteShaderPtr(fragment);
+
+        LOG_SUCCESS("Shader program created successfully! ID: " << ID);
+    }
+
+    Shader::~Shader()
+    {
+        if (ID != 0) OpenGLLoader::glDeleteProgramPtr(ID);
+    }
+
+    void Shader::Use() const
+    {
+        OpenGLLoader::glUseProgramPtr(ID);
+    }
+
+    void Shader::SetBool(const string& name, bool value) const 
+    {
+        OpenGLLoader::glUniform1iPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), (int)value);
+    }
+
+    void Shader::SetInt(const string& name, int value) const 
+    {
+        OpenGLLoader::glUniform1iPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), value);
+    }
+
+    void Shader::SetFloat(const string& name, float value) const 
+    {
+        OpenGLLoader::glUniform1fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), value);
+    }
+
+    void Shader::SetVec2(const string& name, const glm::vec2& value) const 
+    {
+        OpenGLLoader::glUniform2fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, glm::value_ptr(value));
+    }
+
+    void Shader::SetVec2(const string& name, float x, float y) const 
+    {
+        OpenGLLoader::glUniform2fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), x, y);
+    }
+
+    void Shader::SetVec3(const string& name, const glm::vec3& value) const 
+    {
+        OpenGLLoader::glUniform3fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, glm::value_ptr(value));
+    }
+
+    void Shader::SetVec3(const string& name, float x, float y, float z) const 
+    {
+        OpenGLLoader::glUniform3fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), x, y, z);
+    }
+
+    void Shader::SetVec4(const string& name, const glm::vec4& value) const 
+    {
+        OpenGLLoader::glUniform4fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, glm::value_ptr(value));
+    }
+
+    void Shader::SetVec4(const string& name, float x, float y, float z, float w) const 
+    {
+        OpenGLLoader::glUniform4fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), x, y, z, w);
+    }
+
+    void Shader::SetMat2(const string& name, const glm::mat2& mat) const 
+    {
+        OpenGLLoader::glUniformMatrix2fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+    }
+
+    void Shader::SetMat3(const string& name, const glm::mat3& mat) const 
+    {
+        OpenGLLoader::glUniformMatrix3fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+    }
+
+    void Shader::SetMat4(const string& name, const glm::mat4& mat) const 
+    {
+        OpenGLLoader::glUniformMatrix4fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+    }
+
+    bool Shader::CheckCompileErrors(GLuint shader, const string& type)
+    {
+        GLint success = 0;
+        GLchar infoLog[1024];
+
+        if (type != "PROGRAM")
+        {
+            OpenGLLoader::glGetShaderivPtr(shader, GL_COMPILE_STATUS, &success);
+            if (!success)
+            {
+                OpenGLLoader::glGetShaderInfoLogPtr(shader, 1024, nullptr, infoLog);
+                LOG_ERROR("Shader compilation failed (" << type << "):\n" << infoLog);
+                return false;
+            }
+        }
+        else
+        {
+            OpenGLLoader::glGetProgramivPtr(shader, GL_LINK_STATUS, &success);
+            if (!success)
+            {
+                OpenGLLoader::glGetProgramInfoLogPtr(shader, 1024, nullptr, infoLog);
+                LOG_ERROR("Program linking failed:\n" << infoLog);
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
