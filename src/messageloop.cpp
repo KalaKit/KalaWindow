@@ -32,6 +32,7 @@ using std::vector;
 #include "enums.hpp"
 #include "window.hpp"
 #include "input.hpp"
+#include "opengl_loader.hpp"
 
 namespace KalaKit
 {
@@ -328,24 +329,9 @@ namespace KalaKit
 
 		case WM_PAINT:
 		{
-			PAINTSTRUCT ps{};
-			HDC hdc = BeginPaint(KalaWindow::window, &ps);
-
-			int R = 255;
-			int G = 0;
-			int B = 0;
-			HBRUSH redBrush = CreateSolidBrush(RGB(R, G, B));
-			FillRect(hdc, &ps.rcPaint, redBrush);
-			DeleteObject(redBrush);
-
+			PAINTSTRUCT ps;
+			BeginPaint(KalaWindow::window, &ps);
 			EndPaint(KalaWindow::window, &ps);
-
-			if (type == DebugType::DEBUG_ALL
-				|| type == DebugType::DEBUG_WINDOW_REPAINT)
-			{
-				LOG_DEBUG("New color: " << R << ", " << G << ", " << B);
-			}
-
 			return true;
 		}
 
@@ -355,24 +341,38 @@ namespace KalaKit
 
 		case WM_SIZE:
 		{
-			//trigger a redraw
-			InvalidateRect(KalaWindow::window, nullptr, TRUE);
+			int width = LOWORD(msg.lParam);
+			int height = HIWORD(msg.lParam);
+
+			if (OpenGLLoader::glViewportPtr)
+			{
+				OpenGLLoader::glViewportPtr(0, 0, width, height);
+			}
 
 			if (type == DebugType::DEBUG_ALL
 				|| type == DebugType::DEBUG_WINDOW_RESIZE)
 			{
-				RECT rect{};
-				GetClientRect(KalaWindow::window, &rect);
-
-				POINT size{};
-				size.x = rect.right - rect.left;
-				size.y = rect.bottom - rect.top;
-
-				LOG_DEBUG("New resolution: " << size.x << ", " << size.y);
+				LOG_DEBUG("New resolution: " << width << ", " << height);
 			}
 
-			return false;
+			return true;
 		}
+
+		//
+		// HANDLE RENDERING WHILE RESIZING
+		//
+
+		case WM_ERASEBKGND:
+			return true;
+		case WM_ENTERSIZEMOVE:
+			SetTimer(KalaWindow::window, 1, 16, nullptr); //start count when entering resize, 60 fps
+			return true;
+		case WM_EXITSIZEMOVE:
+			KillTimer(KalaWindow::window, 1); //stop count after exiting resize
+			return true;
+		case WM_TIMER:
+			if (KalaWindow::OnRedraw) KalaWindow::OnRedraw(); //force redraw
+			return true;
 
 		//
 		// CAP MIN AND MAX WINDOW SIZE

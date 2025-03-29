@@ -258,3 +258,10 @@ typedef void (APIENTRYP PFNGLVIEWPORTPROC)(
     GLsizei height);
 typedef void (APIENTRYP PFNGLDISABLEPROC)(
     GLenum cap);
+typedef void (APIENTRYP PFNGLCLEARCOLORPROC)(
+    GLfloat red, 
+    GLfloat green, 
+    GLfloat blue, 
+    GLfloat alpha);
+typedef void (APIENTRYP PFNGLCLEARPROC)(
+    GLbitfield mask);

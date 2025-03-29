@@ -108,6 +108,8 @@ namespace KalaKit
 
 		static PFNGLVIEWPORTPROC               glViewportPtr;                //Set the viewport area
 		static PFNGLDISABLEPROC                glDisablePtr;                 //Disable OpenGL capabilities like depth test
+		static PFNGLCLEARCOLORPROC             glClearColorPtr;              //Set background color for clearing
+		static PFNGLCLEARPROC                  glClearPtr;                   //Clear framebuffer (color, depth, etc)
 
 	private:
 		template <typename T>

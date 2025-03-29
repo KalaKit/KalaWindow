@@ -41,6 +41,17 @@ namespace KalaKit
 		/// </summary>
 		static void Update();
 
+		using RedrawCallback = void(*)();
+		static inline RedrawCallback OnRedraw = nullptr;
+		/// <summary>
+		/// Sets a custom function to be called during WM_TIMER events.
+		/// Use this to re-render the window to prevent artifacts and black boxes while resizing.
+		/// </summary>
+		static inline void SetRedrawCallback(RedrawCallback callback)
+		{
+			OnRedraw = callback;
+		}
+
 		/// <summary>
 		/// Should be used in the update loop. When this returns false
 		/// then the main window will be shut off if there is nothing

@@ -250,6 +250,8 @@ namespace KalaKit
 		//frame and render state
 
 		OPENGL_VIEWPORT,                //Set the viewport area
-		OPENGL_DISABLE                  //Disable OpenGL capabilities like depth test
+		OPENGL_DISABLE,                 //Disable OpenGL capabilities like depth test
+		OPENGL_CLEARCOLOR,              //Set background color for clearing
+		OPENGL_CLEAR                    //Clear framebuffer (color, depth, etc)
 	};
 }

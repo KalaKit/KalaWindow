@@ -79,6 +79,8 @@ namespace KalaKit
 
 	inline PFNGLVIEWPORTPROC               OpenGLLoader::glViewportPtr = nullptr;
 	inline PFNGLDISABLEPROC                OpenGLLoader::glDisablePtr = nullptr;
+	inline PFNGLCLEARCOLORPROC             OpenGLLoader::glClearColorPtr = nullptr;
+	inline PFNGLCLEARPROC                  OpenGLLoader::glClearPtr = nullptr;
 
 	bool OpenGLLoader::IsFunctionAvailable(OpenGLFunction id)
 	{
@@ -181,6 +183,8 @@ namespace KalaKit
 		//frame and render state
 		
 		{ OpenGLFunction::OPENGL_VIEWPORT, "glViewport", reinterpret_cast<void**>(&glViewportPtr) },
-		{ OpenGLFunction::OPENGL_DISABLE, "glDisable", reinterpret_cast<void**>(&glDisablePtr) }
+		{ OpenGLFunction::OPENGL_DISABLE, "glDisable", reinterpret_cast<void**>(&glDisablePtr) },
+		{ OpenGLFunction::OPENGL_CLEARCOLOR, "glClearColor", reinterpret_cast<void**>(&glClearColorPtr) },
+		{ OpenGLFunction::OPENGL_CLEAR, "glClear", reinterpret_cast<void**>(&glClearPtr) },
 	};
 }
