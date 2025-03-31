@@ -46,8 +46,42 @@ set(PARENT_DIR_PATH "${PARENT_DIR}")
 # Window files
 set(KALAWINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(KALAWINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
-set(KALAWINDOW_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
-set(KALAWINDOW_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
+
+# External files
+set(EXT_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
+set(EXT_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
+set(EXT_UTILS_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaUtils")
+set(EXT_CRASH_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaCrashHandler")
+
+# Add KalaUtils
+if (WIN32)
+	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+		set(UTILS_LIBRARY_PATH "${EXT_UTILS_DIR}/release/KalaUtils.lib")
+	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(UTILS_LIBRARY_PATH "${EXT_UTILS_DIR}/debug/KalaUtilsD.lib")
+	endif()
+else()
+	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+		set(UTILS_LIBRARY_PATH "${EXT_CRASH_DIR}/release/libKalaUtils.so")
+	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(UTILS_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/libKalaUtilsD.so")
+	endif()
+endif()
+
+# Add KalaCrashHandler
+if (WIN32)
+	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/release/KalaCrashHandler.lib")
+	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/KalaCrashHandlerD.lib")
+	endif()
+else()
+	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/release/libKalaCrashHandler.so")
+	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/libKalaCrashHandlerD.so")
+	endif()
+endif()
 
 # Add source files
 file(GLOB_RECURSE KALAWINDOW_SRC_FILES CONFIGURE_DEPENDS
@@ -70,21 +104,30 @@ target_include_directories(KalaWindow PRIVATE
     ${KALAWINDOW_INCLUDE_DIR}
 	
 	# External headers
-	${KALAWINDOW_GLM_DIR}
-	${KALAWINDOW_MAGIC_ENUM_DIR}
+	${EXT_GLM_DIR}
+	${EXT_MAGIC_ENUM_DIR}
+	${EXT_WINDOW_DIR}
+	${EXT_UTILS_DIR}
+	${EXT_CRASH_DIR}
 )
 
 if (WIN32)
     target_link_libraries(KalaWindow PRIVATE
+		${UTILS_LIBRARY_PATH}
+		${CRASH_LIBRARY_PATH}
 		opengl32)
 else()
 	find_package(Wayland QUIET)
 	find_package(X11 QUIET)
 	if (Wayland_FOUND)
 		target_link_libraries(KalaWindow PRIVATE
+			${UTILS_LIBRARY_PATH}
+			${CRASH_LIBRARY_PATH}
 			Wayland::Client)
 	elseif (X11_FOUND)
 		target_link_libraries(KalaWindow PRIVATE
+			${UTILS_LIBRARY_PATH}
+			${CRASH_LIBRARY_PATH}
 			${X11_LIBRARIES})
 	endif()
 endif()
@@ -101,6 +144,25 @@ else()
 		KALAWINDOW_DEBUG=0
 	)
 endif()
+
+# Copy all DLLs to the install directory after build
+if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+	set(DLL_ORIGIN_DIR "${CMAKE_SOURCE_DIR}/files/external dlls/release")
+elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(DLL_ORIGIN_DIR "${CMAKE_SOURCE_DIR}/files/external dlls/debug")
+endif()
+set(DLL_TARGET_DIR "$<TARGET_FILE_DIR:KalaWindow>")
+
+file(GLOB DLL_FILES "${DLL_ORIGIN_DIR}/*")
+	
+foreach(DLL_FILE ${DLL_FILES})
+    get_filename_component(DLL_NAME ${DLL_FILE} NAME)
+    add_custom_command(TARGET KalaWindow POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy 
+            ${DLL_FILE} 
+            ${DLL_TARGET_DIR}/${DLL_NAME}
+    )
+endforeach()
 
 # Install the DLL and its import library (KalaWindow.dll + KalaWindow.lib)
 install(TARGETS KalaWindow

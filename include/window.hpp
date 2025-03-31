@@ -19,6 +19,7 @@
 #include <string>
 
 #include "enums.hpp"
+#include "osutils.hpp"
 
 namespace KalaKit
 {
@@ -27,7 +28,7 @@ namespace KalaKit
 	class KALAWINDOW_API KalaWindow
 	{
 	public:
-		static inline HWND window;
+		static inline WINDOW window;
 		static inline WNDPROC proc;
 
 		/// <summary>
@@ -114,7 +115,7 @@ namespace KalaKit
 		/// <summary>
 		/// Gets the position of the window.
 		/// </summary>
-		static POINT GetWindowPosition();
+		static POS GetWindowPosition();
 		/// <summary>
 		/// Sets the position of the window.
 		/// </summary>
@@ -123,7 +124,7 @@ namespace KalaKit
 		/// <summary>
 		/// Gets the total outer size (includes borders and top bar)
 		/// </summary>
-		static POINT GetWindowFullSize();
+		static POS GetWindowFullSize();
 		/// <summary>
 		/// Sets the total outer size of the window (includes borders and top bar)
 		/// </summary>
@@ -132,7 +133,7 @@ namespace KalaKit
 		/// <summary>
 		/// Gets the drawable/client area (without borders and top bar)
 		/// </summary>
-		static POINT GetWindowContentSize();
+		static POS GetWindowContentSize();
 		/// <summary>
 		/// Sets the drawable/client area (without borders and top bar)
 		/// </summary>
@@ -141,11 +142,11 @@ namespace KalaKit
 		/// <summary>
 		/// Get window maximum allowed size.
 		/// </summary>
-		static POINT GetWindowMaxSize();
+		static POS GetWindowMaxSize();
 		/// <summary>
 		/// Get window minimum allowed size.
 		/// </summary>
-		static POINT GetWindowMinSize();
+		static POS GetWindowMinSize();
 		/// <summary>
 		/// Set window minimum and maximum allowed size.
 		/// </summary>

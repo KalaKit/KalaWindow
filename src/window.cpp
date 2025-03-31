@@ -21,6 +21,8 @@
 #include "input.hpp"
 #include "messageloop.hpp"
 #include "magic_enum.hpp"
+#include "osutils.hpp"
+#include "crashHandler.hpp"
 
 using std::to_string;
 
@@ -71,6 +73,9 @@ namespace KalaKit
 			(LONG_PTR)MessageLoop::WindowProcCallback);
 
 		ShowWindow(window, SW_SHOW);
+
+		//also initialize crash handler
+		KalaCrashHandler::Initialize();
 
 		isInitialized = true;
 
