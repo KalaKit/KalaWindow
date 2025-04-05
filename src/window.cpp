@@ -21,7 +21,6 @@
 #include "input.hpp"
 #include "messageloop.hpp"
 #include "magic_enum.hpp"
-#include "osutils.hpp"
 #include "crashHandler.hpp"
 
 using std::to_string;

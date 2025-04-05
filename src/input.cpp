@@ -19,7 +19,6 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-
 #include "input.hpp"
 #include "window.hpp"
 #include "messageloop.hpp"

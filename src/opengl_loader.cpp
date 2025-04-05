@@ -8,9 +8,9 @@
 
 //log types
 #if KALAWINDOW_DEBUG
-#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
+	#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
 #else
-#define LOG_DEBUG(msg)
+	#define LOG_DEBUG(msg)
 #endif
 #define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
 #define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)

@@ -44,29 +44,13 @@ get_filename_component(PARENT_DIR "${CMAKE_SOURCE_DIR}" DIRECTORY)
 set(PARENT_DIR_PATH "${PARENT_DIR}")
 
 # Window files
-set(KALAWINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-set(KALAWINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(WINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
+set(WINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
 # External files
 set(EXT_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
 set(EXT_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
-set(EXT_UTILS_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaUtils")
 set(EXT_CRASH_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaCrashHandler")
-
-# Add KalaUtils
-if (WIN32)
-	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-		set(UTILS_LIBRARY_PATH "${EXT_UTILS_DIR}/release/KalaUtils.lib")
-	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		set(UTILS_LIBRARY_PATH "${EXT_UTILS_DIR}/debug/KalaUtilsD.lib")
-	endif()
-else()
-	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
-		set(UTILS_LIBRARY_PATH "${EXT_CRASH_DIR}/release/libKalaUtils.so")
-	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
-		set(UTILS_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/libKalaUtilsD.so")
-	endif()
-endif()
 
 # Add KalaCrashHandler
 if (WIN32)
@@ -84,12 +68,12 @@ else()
 endif()
 
 # Add source files
-file(GLOB_RECURSE KALAWINDOW_SRC_FILES CONFIGURE_DEPENDS
-    ${KALAWINDOW_SRC_DIR}/*.cpp
+file(GLOB_RECURSE WINDOW_SRC_FILES CONFIGURE_DEPENDS
+    ${WINDOW_SRC_DIR}/*.cpp
 )
 
 # Build as a shared library (DLL)
-add_library(KalaWindow SHARED ${KALAWINDOW_SRC_FILES})
+add_library(KalaWindow SHARED ${WINDOW_SRC_FILES})
 set_target_properties(KalaWindow PROPERTIES OUTPUT_NAME "KalaWindow")
 target_compile_features(KalaWindow PRIVATE cxx_std_20)
 
@@ -101,19 +85,16 @@ set_target_properties(KalaWindow PROPERTIES
 # Apply all directories to target
 target_include_directories(KalaWindow PRIVATE
 	# KalaWindow headers
-    ${KALAWINDOW_INCLUDE_DIR}
+    ${WINDOW_INCLUDE_DIR}
 	
 	# External headers
 	${EXT_GLM_DIR}
 	${EXT_MAGIC_ENUM_DIR}
-	${EXT_WINDOW_DIR}
-	${EXT_UTILS_DIR}
 	${EXT_CRASH_DIR}
 )
 
 if (WIN32)
     target_link_libraries(KalaWindow PRIVATE
-		${UTILS_LIBRARY_PATH}
 		${CRASH_LIBRARY_PATH}
 		opengl32)
 else()
@@ -121,12 +102,10 @@ else()
 	find_package(X11 QUIET)
 	if (Wayland_FOUND)
 		target_link_libraries(KalaWindow PRIVATE
-			${UTILS_LIBRARY_PATH}
 			${CRASH_LIBRARY_PATH}
 			Wayland::Client)
 	elseif (X11_FOUND)
 		target_link_libraries(KalaWindow PRIVATE
-			${UTILS_LIBRARY_PATH}
 			${CRASH_LIBRARY_PATH}
 			${X11_LIBRARIES})
 	endif()
@@ -172,7 +151,7 @@ install(TARGETS KalaWindow
 )
 
 # Install header files
-install(DIRECTORY ${KALAWINDOW_INCLUDE_DIR}/
+install(DIRECTORY ${WINDOW_INCLUDE_DIR}/
     DESTINATION include
     FILES_MATCHING 
 		PATTERN "*.hpp" 
