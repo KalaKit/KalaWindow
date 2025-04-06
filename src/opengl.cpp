@@ -75,14 +75,20 @@ namespace KalaKit
 
 		if (!wglCreateContextAttribsARB)
 		{
-			string title = "OpenGL initialization error";
-			string message = "wglCreateContextAttribsARB not supported!";
+			LOG_ERROR("wglCreateContextAttribsARB is not supported!");
 
-			MessageBox(
-				nullptr,
-				message.c_str(),
-				title.c_str(),
-				MB_ICONERROR);
+			string title = "OpenGL error!";
+			string message = "wglCreateContextAttribsARB is not supported!";
+
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
 
 			return false;
 		}
@@ -102,14 +108,20 @@ namespace KalaKit
 		HGLRC realRC = wglCreateContextAttribsARB(hdc, 0, attribs);
 		if (!realRC)
 		{
-			string title = "OpenGL initialization error";
+			LOG_ERROR("Failed to create OpenGL 3.3 context!");
+
+			string title = "OpenGL error!";
 			string message = "Failed to create OpenGL 3.3 context!";
 
-			MessageBox(
-				nullptr,
-				message.c_str(),
-				title.c_str(),
-				MB_ICONERROR);
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
 
 			return false;
 		}
@@ -125,14 +137,20 @@ namespace KalaKit
 
 		if (!IsCorrectVersion())
 		{
-			string title = "OpenGL initialization error";
+			LOG_ERROR("OpenGL 3.3 or higher is required!");
+
+			string title = "OpenGL error!";
 			string message = "OpenGL 3.3 or higher is required!";
 
-			MessageBox(
-				nullptr,
-				message.c_str(),
-				title.c_str(),
-				MB_ICONERROR);
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
 
 			return false;
 		}

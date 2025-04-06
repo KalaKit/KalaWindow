@@ -23,6 +23,7 @@
 
 #include "shader.hpp"
 #include "opengl_loader.hpp"
+#include "window.hpp"
 
 using std::ifstream;
 using std::stringstream;
@@ -37,7 +38,50 @@ namespace KalaKit
         // READ SHADER SOURCE FILES
         //
 
-        ifstream vertexFile(vertexPath), fragmentFile(fragmentPath);
+        ifstream vertexFile(vertexPath);
+        if (!vertexFile.is_open())
+        {
+            string title = "Shader error detected!";
+            string message = "Vertex shader '" + vertexPath + "' file is invalid! Close program?";
+
+            if (KalaWindow::CreatePopup(
+                    title,
+                    message,
+                    PopupAction::POPUP_ACTION_YES_NO,
+                    PopupType::POPUP_TYPE_ERROR)
+                    == PopupResult::POPUP_RESULT_YES)
+            {
+                KalaWindow::SetShouldCloseState(true);
+            }
+
+            LOG_ERROR("Failed to open vertex shader file: " << vertexPath);
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        ifstream fragmentFile(fragmentPath);
+        if (!fragmentFile.is_open())
+        {
+            string title = "Shader error detected!";
+            string message = "Fragment shader '" + fragmentPath + "' file is invalid! Close program?";
+
+            if (KalaWindow::CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                KalaWindow::SetShouldCloseState(true);
+            }
+
+            LOG_ERROR("Failed to open fragment shader file: " << fragmentPath);
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
         stringstream vertexStream, fragmentStream;
 
         vertexStream << vertexFile.rdbuf();
@@ -60,6 +104,19 @@ namespace KalaKit
 
         if (!CheckCompileErrors(vertex, "VERTEX"))
         {
+            string title = "Shader error detected!";
+            string message = "Vertex shader '" + vertexPath + "' failed to compile! Close program?";
+
+            if (KalaWindow::CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                KalaWindow::SetShouldCloseState(true);
+            }
+
             LOG_ERROR("Vertex shader compilation failed!");
             isValid = false;
             ID = 0;
@@ -78,6 +135,19 @@ namespace KalaKit
 
         if (!CheckCompileErrors(fragment, "FRAGMENT"))
         {
+            string title = "Shader error detected!";
+            string message = "Fragment shader '" + fragmentPath + "' failed to compile! Close program?";
+
+            if (KalaWindow::CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                KalaWindow::SetShouldCloseState(true);
+            }
+
             LOG_ERROR("Fragment shader compilation failed!");
             isValid = false;
             ID = 0;
@@ -95,6 +165,19 @@ namespace KalaKit
 
         if (!CheckCompileErrors(ID, "PROGRAM"))
         {
+            string title = "Shader error detected!";
+            string message = "Failed to link vertex shader '" + vertexPath + "' and fragment shader '" + fragmentPath + "' to program! Close program?";
+
+            if (KalaWindow::CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                KalaWindow::SetShouldCloseState(true);
+            }
+
             LOG_ERROR("Shader program linking failed!");
             isValid = false;
             ID = 0;

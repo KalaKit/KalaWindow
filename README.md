@@ -33,6 +33,9 @@ using std::cout;
 
 using KalaKit::KalaWindow;
 using KalaKit::DebugType;
+using KalaKit::PopupType;
+using KalaKit::PopupAction;
+using KalaKit::PopupResult;
 
 static void YourInitializeFunction()
 {
@@ -50,35 +53,6 @@ static void YourInitializeFunction()
 	
 	//use this if you want the window to properly keep drawing while it is being resized
 	KalaWindow::SetRedrawCallback(YourRedrawCallback);
-
-	//you can pass one of the many debug types to this function
-	//to be able to see messages of that debug type printed to your console,
-	//the default DEBUG_NONE does nothing and if you dont want 
-	//debug messages then you dont need to call this function
-	KalaWindow::SetDebugState(DebugType::DEBUG_NONE);
-	
-	//you can pass bool true or false to this function,
-	//it sets the window focus required state, which controls
-	//whether the attached window needs to be in focus for
-	//any input to be registred at all for KalaWindow.
-	//it defaults to true, so this function does not
-	//need to be called if you want focus to always be required
-	KalaWindow::SetWindowFocusRequiredState(true);
-	
-	//set this function to false and assign a title and info
-	//if you want to prevent the user from exiting your program.
-	//setting this to false shows a warning popup with yes or no
-	//and your title and info. if user presses yes the program can close,
-	//if user presses no then the program stays open and the popup closes
-	bool yourExitState = false;
-	string yourTitle = "this shows up as the title!";
-	string yourInfo = "this shows up as info!";
-	KalaWindow::SetExitState(yourExitState, yourTitle, yourInfo);
-	
-	//call this if you want to manually control 
-	//where your update loop should end
-	bool yourCloseState = false;
-	KalaWindow::SetShouldCloseState(yourCloseState);
 }
 
 static void YourUpdateLoop()
@@ -87,8 +61,55 @@ static void YourUpdateLoop()
 	//as long as ShouldClose returns false the window will keep rendering
 	while(!KalaWindow::ShouldClose())
 	{
-		//capture all input
+		//capture all input and handle the message loop
 		KalaWindow::Update();
+		
+		//you can pass one of the many debug types to this function
+		//to be able to see messages of that debug type printed to your console,
+		//the default DEBUG_NONE does nothing and if you dont want 
+		//debug messages then you dont need to call this function
+		KalaWindow::SetDebugState(DebugType::DEBUG_NONE);
+	
+		//you can pass bool true or false to this function,
+		//it sets the window focus required state, which controls
+		//whether the attached window needs to be in focus for
+		//any input to be registred at all for KalaWindow.
+		//it defaults to true, so this function does not
+		//need to be called if you want focus to always be required
+		KalaWindow::SetWindowFocusRequiredState(true);
+	
+		//set this function to false and assign a title and info
+		//if you want to prevent the user from exiting your program.
+		//setting this to false shows a warning popup with yes or no
+		//and your title and info. if user presses yes the program can close,
+		//if user presses no then the program stays open and the popup closes
+		bool yourExitState = false;
+		string yourTitle = "this shows up as the title!";
+		string yourInfo = "this shows up as info!";
+		KalaWindow::SetExitState(yourExitState, yourTitle, yourInfo);
+	
+		//call this if you want to manually control 
+		//where your update loop should end
+		bool yourCloseState = false;
+		KalaWindow::SetShouldCloseState(yourCloseState);
+	
+		//create a popup with one of the PopupAction actions
+		//and one of the PopupType types shown in enums.hpp
+		//that returns one of the PopupResult results based off of user input
+		string popupTitle = "Your popup title";
+		string popupMessage = "Your popup message";
+		PopupAction popupAction = POPUP_ACTION_YES_NO;
+		PopupType popupType = POPUP_TYPE_WARNING;
+		PopupResult popupResult = POPUP_RESULT_YES;
+		if (KalaWindow::CreatePopup(
+			popupTitle,
+			popupMessage,
+			popupAction,
+			popupType)
+			== popupResult)
+		{
+			cout << "Pressed yes!\n";
+		}
 	}
 }
 
@@ -112,9 +133,155 @@ int main()
 
 # Shader initialize functions
 
-```cpp
+This shows an example of what you need to do to initialize a black triangle.
+
+First create a triangle.vert shader.
 
 ```
+#version 330 core
+layout(location = 0) in vec2 aPos;
+
+void main()
+{
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+```
+
+Then create a triangle.frag shader.
+
+```
+#version 330 core
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(1.0, 0.4, 0.2, 1.0);
+}
+```
+
+Then create a triangle.hpp header file
+
+```cpp
+#pragma once
+
+#include "shader.hpp"
+
+namespace Graphics
+{
+	using KalaKit::Shader;
+
+	class Triangle
+	{
+	public:
+		static void Initialize();
+		static void Render();
+	private:
+		static inline GLuint vao;
+		static inline GLuint vbo;
+		static inline Shader shader;
+	};
+}
+```
+
+Then create a triangle.cpp source file
+
+```cpp
+#include <filesystem>
+#include <string>
+#include <iostream>
+
+//external
+#include "opengl_loader.hpp"
+
+//project
+#include "triangle.hpp"
+
+using std::filesystem::path;
+using std::filesystem::current_path;
+using std::string;
+using std::cout;
+
+using KalaKit::OpenGLLoader;
+
+namespace Graphics
+{
+	void Triangle::Initialize()
+	{
+		float vertices[] =
+		{
+			 0.0f,  0.5f, //top
+			-0.5f, -0.5f, //bottom left
+			 0.5f, -0.5f  //bottom right
+		};
+
+		OpenGLLoader::glGenVertexArraysPtr(1, &vao);
+		OpenGLLoader::glGenBuffersPtr(1, &vbo);
+
+		OpenGLLoader::glBindVertexArrayPtr(vao);
+
+		OpenGLLoader::glBindBufferPtr(GL_ARRAY_BUFFER, vbo);
+		OpenGLLoader::glBufferDataPtr(
+			GL_ARRAY_BUFFER, 
+			sizeof(vertices), 
+			vertices,
+			GL_STATIC_DRAW);
+
+		OpenGLLoader::glEnableVertexAttribArrayPtr(0);
+		OpenGLLoader::glVertexAttribPointerPtr(
+			0,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			2 * sizeof(float),
+			(void*)0);
+
+		OpenGLLoader::glBindVertexArrayPtr(0);
+
+		//create shader
+		string vert = (current_path() / "files" / "shaders" / "triangle.vert").string();
+		string frag = (current_path() / "files" / "shaders" / "triangle.frag").string();
+		
+		shader = Shader(vert, frag);
+
+		if (!shader.IsValid())
+		{
+			cout << "Error: Triangle shader failed to compile/link!\n";
+			return;
+		}
+	}
+
+	void Triangle::Render()
+	{
+		//use the compiled shader program
+		shader.Use();
+
+		//bind the VAO
+		OpenGLLoader::glBindVertexArrayPtr(vao);
+
+		//draw the triangle
+		OpenGLLoader::glDrawArraysPtr(GL_TRIANGLES, 0, 3);
+	}
+}
+```
+
+And then finally call the Initialize and Render functions in your initialize and runtime loop functions.
+
+ALWAYS initialize KalaWindow first! Then load the hdc. And finally initialize the triangle.
+
+ALWAYS call the triangle update function inside the kalawindow shouldclose while loop after kalawindows own update function.
+
+```cpp
+//clear the previous frames content first and set a background color
+OpenGLLoader::glClearColorPtr(0.1f, 0.1f, 0.1f, 1.0f); //dark gray
+OpenGLLoader::glClearPtr(GL_COLOR_BUFFER_BIT);
+
+//then render the triangle
+Triangle::Render();
+
+//and then swap the buffers at the end
+SwapBuffers(hdc);
+```
+
 ---
 
 # Runtime loop window functions

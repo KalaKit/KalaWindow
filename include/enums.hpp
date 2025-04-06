@@ -254,4 +254,34 @@ namespace KalaKit
 		OPENGL_CLEARCOLOR,              //Set background color for clearing
 		OPENGL_CLEAR                    //Clear framebuffer (color, depth, etc)
 	};
+
+	//Buttons shown on the popup
+	enum class PopupAction
+	{
+		POPUP_ACTION_OK,            // OK button only
+		POPUP_ACTION_OK_CANCEL,     // OK and Cancel buttons
+		POPUP_ACTION_YES_NO,        // Yes and No buttons
+		POPUP_ACTION_YES_NO_CANCEL, // Yes, No, and Cancel buttons
+		POPUP_ACTION_RETRY_CANCEL   // Retry and Cancel buttons
+	};
+
+	//Icon shown on the popup
+	enum class PopupType
+	{
+		POPUP_TYPE_INFO,    // Info icon (blue 'i')
+		POPUP_TYPE_WARNING, // Warning icon (yellow triangle)
+		POPUP_TYPE_ERROR,   // Error icon (red X)
+		POPUP_TYPE_QUESTION // Question icon (used for confirmations)
+	};
+
+	//User response from the popup
+	enum class PopupResult
+	{
+		POPUP_RESULT_NONE = 0,          // No response or unknown
+		POPUP_RESULT_OK = IDOK,         // User clicked OK
+		POPUP_RESULT_CANCEL = IDCANCEL, // User clicked Cancel
+		POPUP_RESULT_YES = IDYES,       // User clicked Yes
+		POPUP_RESULT_NO = IDNO,         // User clicked No
+		POPUP_RESULT_RETRY = IDRETRY    // User clicked Retry
+	};
 }

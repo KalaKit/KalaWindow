@@ -397,10 +397,17 @@ namespace KalaKit
 
 		//user clicked X button or pressed Alt + F4
 		case WM_CLOSE:
-			if (!KalaWindow::CanExit())
+			//first checks if developer has decided to enable the exit condition,
+			//then returns true if uses presses YES to exit, otherwise cancels exit
+			if (!KalaWindow::CanExit()
+				&& KalaWindow::CreatePopup(
+					KalaWindow::exitTitle,
+					KalaWindow::exitInfo,
+					PopupAction::POPUP_ACTION_YES_NO,
+					PopupType::POPUP_TYPE_WARNING)
+					== PopupResult::POPUP_RESULT_YES)
 			{
-				//returns true if uses chooses to exit, otherwise cancels exit
-				if (!KalaWindow::AllowExit()) return true;
+				return true;
 			}
 
 			//signals the while loop to exit

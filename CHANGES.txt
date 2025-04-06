@@ -10,5 +10,5 @@
 - opengl loader
 - overall improved structure
 - message loop in its own source and header script
-- moved input and window functions away from KalaWindow to KalaUtils so that this library only focuses on core window, input and opengl mechanics
 - added missing KalaCrashHandler
+- moved all initialization inside KalaWindow::Initialize
