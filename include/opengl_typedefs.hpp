@@ -26,15 +26,41 @@
     #define WGLENTRYP WGLENTRY *
 #endif
 
+//opengl error codes
+
+#define GL_NO_ERROR                      0
+#define GL_INVALID_ENUM                  0x0500
+#define GL_INVALID_VALUE                 0x0501
+#define GL_INVALID_OPERATION             0x0502
+#define GL_STACK_OVERFLOW                0x0503
+#define GL_STACK_UNDERFLOW               0x0504
+#define GL_OUT_OF_MEMORY                 0x0505
+#define GL_INVALID_FRAMEBUFFER_OPERATION 0x0506
+
 //shader types
 
-#define GL_VERTEX_SHADER   0x8B31
-#define GL_FRAGMENT_SHADER 0x8B30
+#define GL_VERTEX_SHADER     0x8B31
+#define GL_FRAGMENT_SHADER   0x8B30
 
 //shader parameter enums
 
-#define GL_COMPILE_STATUS  0x8B81
-#define GL_LINK_STATUS     0x8B82
+#define GL_COMPILE_STATUS    0x8B81
+#define GL_LINK_STATUS       0x8B82
+#define GL_INFO_LOG_LENGTH   0x8B84
+#define GL_ACTIVE_ATTRIBUTES 0x8B89
+#define GL_ACTIVE_UNIFORMS   0x8B86
+
+//shader interface queries
+
+#define GL_CURRENT_PROGRAM   0x8B8D
+#define GL_PROGRAM_INPUT     0x92E3
+#define GL_PROGRAM_OUTPUT    0x92E4
+#define GL_ACTIVE_RESOURCES  0x929F
+#define GL_NAME_LENGTH       0x92F9
+#define GL_TYPE              0x92FA
+#define GL_LOCATION          0x930E
+
+#define GL_VALIDATE_STATUS   0x8B83
 
 //uniform usage
 
@@ -43,6 +69,7 @@
 //buffer targets
 
 #define GL_ARRAY_BUFFER 0x8892
+#define GL_ARRAY_BUFFER_BINDING 0x8894
 
 //buffer usage
 
@@ -51,6 +78,16 @@
 //vertex attribute types
 
 #define GL_FLOAT 0x1406
+
+//vertex attribute state queries
+
+#define GL_VERTEX_ARRAY_BINDING 0x85B5
+
+#define GL_VERTEX_ATTRIB_ARRAY_ENABLED    0x8622
+#define GL_VERTEX_ATTRIB_ARRAY_SIZE       0x8623
+#define GL_VERTEX_ATTRIB_ARRAY_STRIDE     0x8624
+#define GL_VERTEX_ATTRIB_ARRAY_TYPE       0x8625
+#define GL_VERTEX_ATTRIB_ARRAY_POINTER    0x8645
 
 #ifndef GL_TYPES_DEFINED
 #define GL_TYPES_DEFINED
@@ -117,6 +154,14 @@ typedef void (APIENTRYP PFNGLVERTEXATTRIBPOINTERPROC)(
     GLboolean normalized,
     GLsizei stride,
     const void* pointer);
+typedef void (APIENTRYP PFNGLGETVERTEXATTRIBIVPROC)(
+    GLuint index,
+    GLenum pname,
+    GLint* params);
+typedef void (APIENTRYP PFNGLGETVERTEXATTRIBPOINTERVPROC)(
+    GLuint index,
+    GLenum pname,
+    void** pointer);
 typedef void (APIENTRYP PFNGLDRAWARRAYSPROC)(
     GLenum mode, 
     GLint first, 
@@ -167,7 +212,22 @@ typedef void (APIENTRYP PFNGLGETPROGRAMINFOLOGPROC)(
     GLsizei bufSize, 
     GLsizei* length, 
     GLchar* infoLog);
+typedef void (APIENTRYP PFNGLGETACTIVEATTRIBPROC)(
+    GLuint program,
+    GLuint index,
+    GLsizei bufSize,
+    GLsizei* length,
+    GLint* size,
+    GLenum* type,
+    GLchar* name);
+typedef GLint(APIENTRYP PFNGLGETATTRIBLOCATIONPROC)(
+    GLuint program,
+    const GLchar* name);
 typedef void (APIENTRYP PFNGLDELETEPROGRAMPROC)(
+    GLuint program);
+typedef void (APIENTRYP PFNGLVALIDATEPROGRAMPROC)(
+    GLuint program);
+typedef GLboolean(APIENTRYP PFNGLISPROGRAMPROC)(
     GLuint program);
 
 //uniforms
@@ -265,3 +325,10 @@ typedef void (APIENTRYP PFNGLCLEARCOLORPROC)(
     GLfloat alpha);
 typedef void (APIENTRYP PFNGLCLEARPROC)(
     GLbitfield mask);
+typedef void (APIENTRYP PFNGLGETINTEGERVPROC)(
+    GLenum pname,
+    GLint* data);
+typedef const GLubyte* (APIENTRYP PFNGLGETSTRINGPROC)(
+    GLenum name);
+typedef GLenum(APIENTRYP PFNGLGETERRORPROC)(
+    void);

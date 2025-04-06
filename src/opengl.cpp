@@ -45,6 +45,7 @@ namespace KalaKit
 	bool OpenGL::Initialize()
 	{
 		HDC hdc = GetDC(KalaWindow::window);
+		LOG_DEBUG("Window HDC: " << hdc);
 
 		//
 		// CREATE A DUMMY CONTEXT TO LOAD WGL EXTENSIONS
@@ -59,9 +60,86 @@ namespace KalaKit
 			| PFD_DOUBLEBUFFER;
 		pfd.iPixelType = PFD_TYPE_RGBA;
 		pfd.cColorBits = 32;
+		pfd.cDepthBits = 24;
+		pfd.cStencilBits = 8;
 
 		int pixelFormat = ChoosePixelFormat(hdc, &pfd);
-		SetPixelFormat(hdc, pixelFormat, &pfd);
+		if (pixelFormat == 0)
+		{
+			LOG_ERROR("ChoosePixelFormat failed!");
+
+			string title = "OpenGL error detected!";
+			string message = "ChoosePixelFormat failed!";
+
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
+
+			return false;
+		}
+		LOG_DEBUG("Pixel Format Index: " << pixelFormat);
+
+		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
+		{
+			LOG_ERROR("SetPixelFormat failed!");
+
+			string title = "OpenGL error detected!";
+			string message = "SetPixelFormat failed!";
+
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
+
+			return false;
+		}
+		LOG_DEBUG("SetPixelFormat worked!");
+
+		PIXELFORMATDESCRIPTOR actualPFD = {};
+		int describeResult = DescribePixelFormat(hdc, pixelFormat, sizeof(actualPFD), &actualPFD);
+		if (describeResult == 0)
+		{
+			LOG_ERROR("DescribePixelFormat failed!");
+
+			string title = "OpenGL error detected!";
+			string message = "DescribePixelFormat failed!";
+
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
+
+			return false;
+		}
+		else
+		{
+			LOG_DEBUG("DescribePixelFormat value: " << describeResult);
+		}
+
+		LOG_DEBUG("Pixel Format Details:");
+		LOG_DEBUG("  ColorBits   = " << static_cast<int>(actualPFD.cColorBits));
+		LOG_DEBUG("  DepthBits   = " << static_cast<int>(actualPFD.cDepthBits));
+		LOG_DEBUG("  StencilBits = " << static_cast<int>(actualPFD.cStencilBits));
+		LOG_DEBUG("  Flags:");
+		LOG_DEBUG("    DRAW_TO_WINDOW = " << ((actualPFD.dwFlags & PFD_DRAW_TO_WINDOW) ? "Yes" : "No"));
+		LOG_DEBUG("    SUPPORT_OPENGL = " << ((actualPFD.dwFlags & PFD_SUPPORT_OPENGL) ? "Yes" : "No"));
+		LOG_DEBUG("    DOUBLEBUFFER    = " << ((actualPFD.dwFlags & PFD_DOUBLEBUFFER) ? "Yes" : "No"));
 
 		HGLRC dummyRC = wglCreateContext(hdc);
 		wglMakeCurrent(hdc, dummyRC);
@@ -70,14 +148,15 @@ namespace KalaKit
 		// LOAD WGL EXTENSIONS
 		//
 
-		auto wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(
+		auto wglCreateContextAttribsARB = 
+			reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(
 			wglGetProcAddress("wglCreateContextAttribsARB"));
 
 		if (!wglCreateContextAttribsARB)
 		{
 			LOG_ERROR("wglCreateContextAttribsARB is not supported!");
 
-			string title = "OpenGL error!";
+			string title = "OpenGL error detected!";
 			string message = "wglCreateContextAttribsARB is not supported!";
 
 			if (KalaWindow::CreatePopup(
@@ -105,12 +184,12 @@ namespace KalaKit
 			0
 		};
 
-		HGLRC realRC = wglCreateContextAttribsARB(hdc, 0, attribs);
-		if (!realRC)
+		realContext = wglCreateContextAttribsARB(hdc, 0, attribs);
+		if (!realContext)
 		{
 			LOG_ERROR("Failed to create OpenGL 3.3 context!");
 
-			string title = "OpenGL error!";
+			string title = "OpenGL error detected!";
 			string message = "Failed to create OpenGL 3.3 context!";
 
 			if (KalaWindow::CreatePopup(
@@ -133,13 +212,13 @@ namespace KalaKit
 		wglMakeCurrent(nullptr, nullptr);
 		wglDeleteContext(dummyRC);
 
-		wglMakeCurrent(hdc, realRC);
+		wglMakeCurrent(hdc, realContext);
 
 		if (!IsCorrectVersion())
 		{
 			LOG_ERROR("OpenGL 3.3 or higher is required!");
 
-			string title = "OpenGL error!";
+			string title = "OpenGL error detected!";
 			string message = "OpenGL 3.3 or higher is required!";
 
 			if (KalaWindow::CreatePopup(
@@ -158,6 +237,24 @@ namespace KalaKit
 		LOG_SUCCESS("OpenGL version: " << glGetString(GL_VERSION));
 
 		OpenGLLoader::LoadAllFunctions();
+
+		return true;
+	}
+
+	bool OpenGL::IsContextValid()
+	{
+		HGLRC current = wglGetCurrentContext();
+		if (current == nullptr)
+		{
+			LOG_ERROR("Current OpenGL context is null!");
+			return false;
+		}
+
+		if (current != realContext)
+		{
+			LOG_ERROR("Current OpenGL context does not match stored context!");
+			return false;
+		}
 
 		return true;
 	}

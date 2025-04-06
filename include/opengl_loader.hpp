@@ -63,6 +63,8 @@ namespace KalaKit
 		static PFNGLBUFFERDATAPROC             glBufferDataPtr;              //Upload data to currently bound VBO
 		static PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArrayPtr;//Enable a vertex attribute slot (position, color etc)
 		static PFNGLVERTEXATTRIBPOINTERPROC    glVertexAttribPointerPtr;     //Defines how to read vertex data from VBO
+		static PFNGLGETVERTEXATTRIBIVPROC      glGetVertexAttribivPtr;       //Query an integer attribute parameter (size, type, stride, enabled, etc)
+		static PFNGLGETVERTEXATTRIBPOINTERVPROC glGetVertexAttribPointervPtr;//Query the memory pointer for a vertex attribute
 		static PFNGLDRAWARRAYSPROC             glDrawArraysPtr;              //Draws vertices with bound VAO and shader (non-indexed)
 		static PFNGLDRAWELEMENTSPROC           glDrawElementsPtr;            //Draws vertices using index data (EBO)
 
@@ -80,7 +82,11 @@ namespace KalaKit
 		static PFNGLGETSHADERINFOLOGPROC       glGetShaderInfoLogPtr;        //Get shader compilation log
 		static PFNGLGETPROGRAMIVPROC           glGetProgramivPtr;            //Get program link status
 		static PFNGLGETPROGRAMINFOLOGPROC      glGetProgramInfoLogPtr;       //Get program linking log
+		static PFNGLGETACTIVEATTRIBPROC        glGetActiveAttribPtr;         //Query active vertex attribute (name, type, size)
+		static PFNGLGETATTRIBLOCATIONPROC      glGetAttribLocationPtr;       //Get location of a vertex attribute by name
 		static PFNGLDELETEPROGRAMPROC          glDeleteProgramPtr;           //Delete a shader program
+		static PFNGLVALIDATEPROGRAMPROC        glValidateProgramPtr;         //Validate the shader program
+		static PFNGLISPROGRAMPROC              glIsProgramPtr;               //Check if a given ID is a valid shader program
 
 		//uniforms
 
@@ -111,6 +117,9 @@ namespace KalaKit
 		static PFNGLDISABLEPROC                glDisablePtr;                 //Disable OpenGL capabilities like depth test
 		static PFNGLCLEARCOLORPROC             glClearColorPtr;              //Set background color for clearing
 		static PFNGLCLEARPROC                  glClearPtr;                   //Clear framebuffer (color, depth, etc)
+		static PFNGLGETINTEGERVPROC            glGetIntegervPtr;             //Query integer values (like bound objects or limits)
+		static PFNGLGETSTRINGPROC              glGetStringPtr;               //Get OpenGL version/vendor info as strings
+		static PFNGLGETERRORPROC               glGetErrorPtr;                //Get last OpenGL error code
 
 	private:
 		template <typename T>

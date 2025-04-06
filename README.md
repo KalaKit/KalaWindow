@@ -139,6 +139,7 @@ First create a triangle.vert shader.
 
 ```
 #version 330 core
+
 layout(location = 0) in vec2 aPos;
 
 void main()
@@ -151,11 +152,12 @@ Then create a triangle.frag shader.
 
 ```
 #version 330 core
+
 out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(1.0, 0.4, 0.2, 1.0);
+    FragColor = vec4(1.0, 0.0, 0.0, 1.0); //red
 }
 ```
 
@@ -164,10 +166,14 @@ Then create a triangle.hpp header file
 ```cpp
 #pragma once
 
+#include <memory>
+
 #include "shader.hpp"
 
 namespace Graphics
 {
+	using std::unique_ptr;
+
 	using KalaKit::Shader;
 
 	class Triangle
@@ -178,7 +184,7 @@ namespace Graphics
 	private:
 		static inline GLuint vao;
 		static inline GLuint vbo;
-		static inline Shader shader;
+		static inline unique_ptr<Shader> shader;
 	};
 }
 ```
@@ -192,6 +198,7 @@ Then create a triangle.cpp source file
 
 //external
 #include "opengl_loader.hpp"
+#include "glm/glm.hpp"
 
 //project
 #include "triangle.hpp"
@@ -200,6 +207,9 @@ using std::filesystem::path;
 using std::filesystem::current_path;
 using std::string;
 using std::cout;
+using std::hex;
+using glm::vec4;
+using std::make_unique;
 
 using KalaKit::OpenGLLoader;
 
@@ -238,22 +248,23 @@ namespace Graphics
 		OpenGLLoader::glBindVertexArrayPtr(0);
 
 		//create shader
-		string vert = (current_path() / "files" / "shaders" / "triangle.vert").string();
-		string frag = (current_path() / "files" / "shaders" / "triangle.frag").string();
+		string vert = (current_path() / "files" / "shaders" / "tri.vert").string();
+		string frag = (current_path() / "files" / "shaders" / "tri.frag").string();
 		
-		shader = Shader(vert, frag);
+		shader = make_unique<Shader>(vert, frag);
 
-		if (!shader.IsValid())
+		if (!shader->IsValid())
 		{
 			cout << "Error: Triangle shader failed to compile/link!\n";
-			return;
 		}
 	}
 
 	void Triangle::Render()
 	{
 		//use the compiled shader program
-		shader.Use();
+		shader->Use();
+
+		shader->SetVec4("u_Color", vec4(1.0f, 0.0f, 0.0f, 1.0f));
 
 		//bind the VAO
 		OpenGLLoader::glBindVertexArrayPtr(vao);

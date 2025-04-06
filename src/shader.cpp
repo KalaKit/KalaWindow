@@ -1,4 +1,4 @@
-//Copyright(C) 2025 Lost Empire Entertainment
+﻿//Copyright(C) 2025 Lost Empire Entertainment
 //This program comes with ABSOLUTELY NO WARRANTY.
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
@@ -18,15 +18,19 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <string>
 
 #include "glm/gtc/type_ptr.hpp"
 
 #include "shader.hpp"
+#include "opengl.hpp"
 #include "opengl_loader.hpp"
 #include "window.hpp"
 
 using std::ifstream;
 using std::stringstream;
+using std::hex;
+using std::to_string;
 
 namespace KalaKit
 {
@@ -135,6 +139,8 @@ namespace KalaKit
 
         if (!CheckCompileErrors(fragment, "FRAGMENT"))
         {
+            LOG_ERROR("Fragment shader compilation failed!");
+
             string title = "Shader error detected!";
             string message = "Fragment shader '" + fragmentPath + "' failed to compile! Close program?";
 
@@ -147,8 +153,7 @@ namespace KalaKit
             {
                 KalaWindow::SetShouldCloseState(true);
             }
-
-            LOG_ERROR("Fragment shader compilation failed!");
+            
             isValid = false;
             ID = 0;
             return;
@@ -163,8 +168,21 @@ namespace KalaKit
         OpenGLLoader::glAttachShaderPtr(ID, fragment);
         OpenGLLoader::glLinkProgramPtr(ID);
 
-        if (!CheckCompileErrors(ID, "PROGRAM"))
+        GLint success = 0;
+        OpenGLLoader::glGetProgramivPtr(ID, GL_LINK_STATUS, &success);
+
+        if (success != GL_TRUE)
         {
+            GLint logLength = 0;
+            OpenGLLoader::glGetProgramivPtr(ID, GL_INFO_LOG_LENGTH, &logLength);
+
+            if (logLength > 0)
+            {
+                std::vector<GLchar> log(logLength);
+                OpenGLLoader::glGetProgramInfoLogPtr(ID, logLength, nullptr, log.data());
+                LOG_ERROR("Shader link failed:\n" << log.data());
+            }
+
             string title = "Shader error detected!";
             string message = "Failed to link vertex shader '" + vertexPath + "' and fragment shader '" + fragmentPath + "' to program! Close program?";
 
@@ -184,14 +202,51 @@ namespace KalaKit
             return;
         }
 
+        //validate the shader program before using it
+        OpenGLLoader::glValidateProgramPtr(ID);
+        GLint validated = 0;
+        OpenGLLoader::glGetProgramivPtr(ID, GL_VALIDATE_STATUS, &validated);
+        if (validated != GL_TRUE)
+        {
+            GLint logLength = 0;
+            OpenGLLoader::glGetProgramivPtr(ID, GL_INFO_LOG_LENGTH, &logLength);
+            if (logLength > 0)
+            {
+                std::vector<GLchar> log(logLength);
+                OpenGLLoader::glGetProgramInfoLogPtr(ID, logLength, nullptr, log.data());
+                LOG_ERROR("Shader::Use() failed! Shader program validation failed:\n" << log.data());
+                isValid = false;
+                ID = 0;
+                return;
+            }
+
+            LOG_ERROR("Shader::Use() failed! Shader program validation failed!");
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        GLint valid = OpenGLLoader::glIsProgramPtr(ID);
+        bool isProgramValid = valid == GL_TRUE;
+        if (!isProgramValid)
+        {
+            LOG_ERROR("Shader program ID " << ID << " is not valid!\n");
+
+            isValid = false;
+            ID = 0;
+            return;
+        }
+        else
+        {
+            LOG_DEBUG("Shader program ID " << ID << " is valid!\n");
+        }
+
         //
         // CLEANUP
         //
 
         OpenGLLoader::glDeleteShaderPtr(vertex);
         OpenGLLoader::glDeleteShaderPtr(fragment);
-
-        LOG_SUCCESS("Shader program created successfully! ID: " << ID);
     }
 
     Shader::~Shader()
@@ -201,7 +256,33 @@ namespace KalaKit
 
     void Shader::Use() const
     {
+        if (ID == 0)
+        {
+            LOG_ERROR("Shader::Use() failed! ID is 0.");
+            return;
+        }
+
+        if (!OpenGL::IsContextValid())
+        {
+            LOG_ERROR("Shader::Use() failed! OpenGL context is invalid.");
+            return;
+        }
+
         OpenGLLoader::glUseProgramPtr(ID);
+
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR)
+        {
+            LOG_ERROR("glUseProgramPtr error: " << OpenGL::GetGLErrorString(err));
+        }
+
+        GLint activeProgram = 0;
+        OpenGLLoader::glGetIntegervPtr(GL_CURRENT_PROGRAM, &activeProgram);
+
+        if (activeProgram != (GLint)ID)
+        {
+            LOG_ERROR("Shader::Use() failed! Program ID not bound after glUseProgram. Expected ID: '" << ID << "', but got: '" << activeProgram << "'.");
+        }
     }
 
     void Shader::SetBool(const string& name, bool value) const 

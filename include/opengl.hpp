@@ -15,6 +15,8 @@
 	#define KALAWINDOW_API
 #endif
 
+#include "opengl_typedefs.hpp"
+
 namespace KalaKit
 {
 	class KALAWINDOW_API OpenGL
@@ -24,7 +26,27 @@ namespace KalaKit
 		/// Creates a context of OpenGL 3.3 and attaches to the window.
 		/// </summary>
 		static bool Initialize();
+
+		static bool IsContextValid();
+
+		static const char* GetGLErrorString(GLenum err)
+		{
+			switch (err)
+			{
+			case GL_INVALID_ENUM: return "GL_INVALID_ENUM";
+			case GL_INVALID_VALUE: return "GL_INVALID_VALUE";
+			case GL_INVALID_OPERATION: return "GL_INVALID_OPERATION";
+			case GL_STACK_OVERFLOW: return "GL_STACK_OVERFLOW";
+			case GL_STACK_UNDERFLOW: return "GL_STACK_UNDERFLOW";
+			case GL_OUT_OF_MEMORY: return "GL_OUT_OF_MEMORY";
+			case GL_INVALID_FRAMEBUFFER_OPERATION: return "GL_INVALID_FRAMEBUFFER_OPERATION";
+			default: return "Unknown error";
+			}
+		}
+
 	private:
+		static inline HGLRC realContext;
+
 		/// <summary>
 		/// Checks whether user has OpenGL 3.3 or higher.
 		/// </summary>

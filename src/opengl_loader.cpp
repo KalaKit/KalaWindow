@@ -33,6 +33,8 @@ namespace KalaKit
 	inline PFNGLBUFFERDATAPROC             OpenGLLoader::glBufferDataPtr = nullptr;
 	inline PFNGLENABLEVERTEXATTRIBARRAYPROC OpenGLLoader::glEnableVertexAttribArrayPtr = nullptr;
 	inline PFNGLVERTEXATTRIBPOINTERPROC    OpenGLLoader::glVertexAttribPointerPtr = nullptr;
+	inline PFNGLGETVERTEXATTRIBIVPROC      OpenGLLoader::glGetVertexAttribivPtr = nullptr;
+	inline PFNGLGETVERTEXATTRIBPOINTERVPROC OpenGLLoader::glGetVertexAttribPointervPtr = nullptr;
 	inline PFNGLDRAWARRAYSPROC             OpenGLLoader::glDrawArraysPtr = nullptr;
 	inline PFNGLDRAWELEMENTSPROC           OpenGLLoader::glDrawElementsPtr = nullptr;
 
@@ -50,7 +52,11 @@ namespace KalaKit
 	inline PFNGLGETSHADERINFOLOGPROC       OpenGLLoader::glGetShaderInfoLogPtr = nullptr;
 	inline PFNGLGETPROGRAMIVPROC           OpenGLLoader::glGetProgramivPtr = nullptr;
 	inline PFNGLGETPROGRAMINFOLOGPROC      OpenGLLoader::glGetProgramInfoLogPtr = nullptr;
+	inline PFNGLGETACTIVEATTRIBPROC        OpenGLLoader::glGetActiveAttribPtr = nullptr;
+	inline PFNGLGETATTRIBLOCATIONPROC      OpenGLLoader::glGetAttribLocationPtr = nullptr;
 	inline PFNGLDELETEPROGRAMPROC          OpenGLLoader::glDeleteProgramPtr = nullptr;
+	inline PFNGLVALIDATEPROGRAMPROC        OpenGLLoader::glValidateProgramPtr = nullptr;
+	inline PFNGLISPROGRAMPROC              OpenGLLoader::glIsProgramPtr = nullptr;
 
 	//uniforms
 
@@ -81,6 +87,9 @@ namespace KalaKit
 	inline PFNGLDISABLEPROC                OpenGLLoader::glDisablePtr = nullptr;
 	inline PFNGLCLEARCOLORPROC             OpenGLLoader::glClearColorPtr = nullptr;
 	inline PFNGLCLEARPROC                  OpenGLLoader::glClearPtr = nullptr;
+	inline PFNGLGETINTEGERVPROC            OpenGLLoader::glGetIntegervPtr = nullptr;
+	inline PFNGLGETSTRINGPROC              OpenGLLoader::glGetStringPtr = nullptr;
+	inline PFNGLGETERRORPROC               OpenGLLoader::glGetErrorPtr = nullptr;
 
 	bool OpenGLLoader::IsFunctionAvailable(OpenGLFunction id)
 	{
@@ -138,6 +147,8 @@ namespace KalaKit
 		{ OpenGLFunction::OPENGL_BUFFERDATA, "glBufferData", reinterpret_cast<void**>(&glBufferDataPtr) },
 		{ OpenGLFunction::OPENGL_ENABLEVERTEXATTRIBARRAY, "glEnableVertexAttribArray", reinterpret_cast<void**>(&glEnableVertexAttribArrayPtr) },
 		{ OpenGLFunction::OPENGL_VERTEXATTRIBPOINTER, "glVertexAttribPointer", reinterpret_cast<void**>(&glVertexAttribPointerPtr) },
+		{ OpenGLFunction::OPENGL_GETVERTEXATTRIBIV, "glGetVertexAttribiv", reinterpret_cast<void**>(&glGetVertexAttribivPtr) },
+		{ OpenGLFunction::OPENGL_GETVERTEXATTRIBPOINTERV, "glGetVertexAttribPointerv", reinterpret_cast<void**>(&glGetVertexAttribPointervPtr) },
 		{ OpenGLFunction::OPENGL_DRAWARRAYS, "glDrawArrays", reinterpret_cast<void**>(&glDrawArraysPtr) },
 		{ OpenGLFunction::OPENGL_DRAWELEMENTS, "glDrawElements", reinterpret_cast<void**>(&glDrawElementsPtr) },
 
@@ -155,7 +166,11 @@ namespace KalaKit
 		{ OpenGLFunction::OPENGL_GETSHADERINFOLOG, "glGetShaderInfoLog", reinterpret_cast<void**>(&glGetShaderInfoLogPtr) },
 		{ OpenGLFunction::OPENGL_GETPROGRAMIV, "glGetProgramiv", reinterpret_cast<void**>(&glGetProgramivPtr) },
 		{ OpenGLFunction::OPENGL_GETPROGRAMINFOLOG, "glGetProgramInfoLog", reinterpret_cast<void**>(&glGetProgramInfoLogPtr) },
+		{ OpenGLFunction::OPENGL_GETACTIVEATTRIB, "glGetActiveAttrib", reinterpret_cast<void**>(&glGetActiveAttribPtr) },
+		{ OpenGLFunction::OPENGL_GETATTRIBLOCATION, "glGetAttribLocation", reinterpret_cast<void**>(&glGetAttribLocationPtr) },
 		{ OpenGLFunction::OPENGL_DELETEPROGRAM, "glDeleteProgram", reinterpret_cast<void**>(&glDeleteProgramPtr) },
+		{ OpenGLFunction::OPENGL_VALIDATEPROGRAM, "glValidateProgram", reinterpret_cast<void**>(&glValidateProgramPtr) },
+		{ OpenGLFunction::OPENGL_ISPROGRAM, "glIsProgram", reinterpret_cast<void**>(&glIsProgramPtr) },
 
 		//uniforms
 
@@ -186,5 +201,8 @@ namespace KalaKit
 		{ OpenGLFunction::OPENGL_DISABLE, "glDisable", reinterpret_cast<void**>(&glDisablePtr) },
 		{ OpenGLFunction::OPENGL_CLEARCOLOR, "glClearColor", reinterpret_cast<void**>(&glClearColorPtr) },
 		{ OpenGLFunction::OPENGL_CLEAR, "glClear", reinterpret_cast<void**>(&glClearPtr) },
+		{ OpenGLFunction::OPENGL_GETINTEGERV, "glGetIntegerv", reinterpret_cast<void**>(&glGetIntegervPtr) },
+		{ OpenGLFunction::OPENGL_GETSTRING, "glGetString", reinterpret_cast<void**>(&glGetStringPtr) },
+		{ OpenGLFunction::OPENGL_GETERROR, "glGetError", reinterpret_cast<void**>(&glGetErrorPtr) }
 	};
 }

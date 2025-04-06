@@ -205,6 +205,8 @@ namespace KalaKit
 		OPENGL_BUFFERDATA,              //Upload data to currently bound VBO
 		OPENGL_ENABLEVERTEXATTRIBARRAY, //Enable a vertex attribute slot (position, color etc)
 		OPENGL_VERTEXATTRIBPOINTER,     //Defines how to read vertex data from VBO
+		OPENGL_GETVERTEXATTRIBIV,       //Query an integer attribute parameter (size, type, stride, enabled, etc)
+		OPENGL_GETVERTEXATTRIBPOINTERV, //Query the memory pointer for a vertex attribute
 		OPENGL_DRAWARRAYS,              //Draws vertices with bound VAO and shader (non-indexed)
 		OPENGL_DRAWELEMENTS,            //Draws vertices using index data (EBO)
 
@@ -222,7 +224,11 @@ namespace KalaKit
 		OPENGL_GETSHADERINFOLOG,        //Get shader compilation log
 		OPENGL_GETPROGRAMIV,            //Get program link status
 		OPENGL_GETPROGRAMINFOLOG,       //Get program linking log
+		OPENGL_GETACTIVEATTRIB,         //Query active vertex attribute (name, type, size)
+		OPENGL_GETATTRIBLOCATION,       //Get location of a vertex attribute by name
 		OPENGL_DELETEPROGRAM,           //Delete a shader program
+		OPENGL_VALIDATEPROGRAM,         //Validate the shader program
+		OPENGL_ISPROGRAM,               //Check if a given ID is a valid shader program
 
 		//uniforms
 
@@ -252,7 +258,10 @@ namespace KalaKit
 		OPENGL_VIEWPORT,                //Set the viewport area
 		OPENGL_DISABLE,                 //Disable OpenGL capabilities like depth test
 		OPENGL_CLEARCOLOR,              //Set background color for clearing
-		OPENGL_CLEAR                    //Clear framebuffer (color, depth, etc)
+		OPENGL_CLEAR,                   //Clear framebuffer (color, depth, etc)
+		OPENGL_GETINTEGERV,             //Query integer values (like bound objects or limits)
+		OPENGL_GETSTRING,               //Get OpenGL version/vendor info as strings
+		OPENGL_GETERROR                 //Get last OpenGL error code
 	};
 
 	//Buttons shown on the popup
