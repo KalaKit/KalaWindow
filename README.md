@@ -6,7 +6,7 @@
 
 ![Logo](logo.png)
 
-KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of and handling all of its input. It also comes with KalaCrashHandler for handy crash reports and KalaUtils for wrappers to commonly used functions and variables.
+KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 context and uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes KalaCrashHandler for handy crash reports.
 
 External libraries included in this library:
 	- magic_enum - enum-string operations (include\magic_enum)
@@ -22,45 +22,34 @@ To compile from source code simply run 'build_windows_release.bat' or 'build_win
 # How to set up
 
 ```cpp
-#include <Windows.h> //used for all Windows input and window operations
 #include <string>
+#include <iostream>
 
-#include "window.hpp"          //window system
-#include "input.hpp"           //input system
-#include "opengl.hpp"          //core opengl
-#include "opengl_loader.hpp"   //opengl functions
-#include "enums.hpp"           //all enums in one header
+#include "window.hpp"
+#include "enums.hpp"
 
 using std::string;
+using std::cout;
 
-using KalaKit::KalaWindow;    //window system
-using KalaKit::OpenGL;        //core opengl
-using KalaKit::OpenGLLoader;  //opengl functions
-using KalaKit::KalaInput;     //input system
-using KalaKit::Key;           //enum for all keyboard and mouse keys
-using KalaKit::DebugType;     //enum for all debug types
-using KalaKit::WindowState;   //enum for all window states
+using KalaKit::KalaWindow;
+using KalaKit::DebugType;
 
 static void YourInitializeFunction()
 {
-	...
-	//first initialize the window
+	//initialize the window first. this creates a window, creates an opengl context,
+	//loads all the opengl functions, initializes the input system and initializes the crash handler
 	int yourWindowHeight = 800;
 	int yourWindowWidth = 600;
 	string yourWindowTitle = "Your window";
-	KalaWindow::Initialize(yourWindowTitle, yourWindowWidth, yourWindowHeight);
+	bool initialized = KalaWindow::Initialize(yourWindowTitle, yourWindowWidth, yourWindowHeight);
+	if (!initialized)
+	{
+		cout << "Failed to initialize KalaWindow!\n";
+		return;
+	}
 	
-	//then initialize opengl
-	OpenGL::Initialize();
-	
-	//if you want to check which opengl functions are available
-	bool drawArraysExists = OpenGLFunctions::IsFunctionAvailable
-	(
-		OpenGLFunction::OPENGL_DRAWARRAYS
-	);
-	
-	//initialize the input system
-	KalaInput::Initialize();
+	//use this if you want the window to properly keep drawing while it is being resized
+	KalaWindow::SetRedrawCallback(YourRedrawCallback);
 
 	//you can pass one of the many debug types to this function
 	//to be able to see messages of that debug type printed to your console,
@@ -90,7 +79,6 @@ static void YourInitializeFunction()
 	//where your update loop should end
 	bool yourCloseState = false;
 	KalaWindow::SetShouldCloseState(yourCloseState);
-	...
 }
 
 static void YourUpdateLoop()
@@ -102,7 +90,13 @@ static void YourUpdateLoop()
 		//capture all input
 		KalaWindow::Update();
 	}
-	
+}
+
+//this function controls what is rendered while the window is being resized.
+//do NOT put anything other than rendering related content inside here.
+//only place this function inside the SetRedrawCallback function
+static void YourRedrawCallback()
+{
 	...
 }
 
@@ -130,6 +124,14 @@ Call these functions INSIDE KalaWindow::ShouldClose and AFTER KalaWindow::Update
 These functions are used primarily for window interactions.
 
 ```cpp
+#include <windows.h>
+
+#include "window.hpp"
+#include "enums.hpp"
+
+using KalaKit::KalaWindow;
+using KalaKit::WindowState;
+
 //assign a title to the window
 string windowTitle = "yourWindowTitle";
 void KalaWindow::SetWindowTitle(windowTitle);
@@ -201,37 +203,48 @@ Call these functions INSIDE KalaWindow::ShouldClose and AFTER KalaWindow::Update
 Pass one of any of the keys in KalaWindow Key enum as a parameter for most of these functions where Key is requested.
 
 ```cpp
+#include <windows.h>
+#include <initializer_list>
+
+#include "input.hpp"
+#include "enums.hpp"
+
+using std::initializer_list;
+
+using KalaKit::KalaInput;
+using KalaKit::Key;
+
 //the variable of Key that can be declared anywhere
 Key yourKey;
 
 //detect which key is currently held
-bool isKeyDown = KalaWindow::IsKeyHeld(yourKey);
+bool isKeyDown = KalaInput::IsKeyHeld(yourKey);
 
 //detect which key is currently held
-bool isKeyPressed = KalaWindow::IsKeyPressed(yourKey);
+bool isKeyPressed = KalaInput::IsKeyPressed(yourKey);
 
 //detect if a combination of keys is pressed
 //you must hold each key in order of the initializer list
 //and once you press the last key the combo returns as true
-static const std::initializer_list<Key> saveCombo
+static const initializer_list<Key> saveCombo
 {
     Key::LeftControl,
     Key::S
 };
-bool isComboPressed = KalaWindow::IsComboPressed(saveCombo);
+bool isComboPressed = KalaInput::IsComboPressed(saveCombo);
 
 //detect if either left or right mouse key was double-clicked.
 //this does not need a reference to any Key
-bool isDoubleClicked = KalaWindow::IsMouseKeyDoubleClicked();
+bool isDoubleClicked = KalaInput::IsMouseKeyDoubleClicked();
 
 //detect if either left or right mouse key is held 
 //and mouse is dragged in any direction.
 //this does not need a reference to any Key
-bool isMouseDragging = KalaWindow::IsMouseDragging();
+bool isMouseDragging = KalaInput::IsMouseDragging();
 
 //get current mouse position relative to the client area (top-left = 0,0).
 //coordinates are in pixels
-POINT mousePos = KalaWindow::GetMousePosition();
+POINT mousePos = KalaInput::GetMousePosition();
 
 //set a new position for the mouse
 POINT newMousePosition = { 0, 0 };
@@ -239,41 +252,41 @@ KalaInput::SetMousePosition(newMousePosition);
 
 //get how much the cursor moved on screen (in client space) since the last frame.
 //this uses absolute screen-based movement, affected by OS acceleration and DPI
-POINT mouseDelta = KalaWindow::GetMouseDelta();
+POINT mouseDelta = KalaInput::GetMouseDelta();
 
 //set a new mouse delta for the mouse
 POINT newMouseDelta = { 100, 100 };
-KalaWindow::SetMouseDelta(newMouseDelta);
+KalaInput::SetMouseDelta(newMouseDelta);
 
 //get raw, unfiltered mouse movement from the hardware since the last frame.
 //not affected by DPI, sensitivity, or OS mouse settings, ideal for game camera control
-POINT rawMouseDelta = KalaWindow::GetRawMouseDelta();
+POINT rawMouseDelta = KalaInput::GetRawMouseDelta();
 
 //set a new raw mouse delta for the mouse
 POINT newRawMouseDelta = { 200, 200 };
-KalaWindow::SetRawMouseDelta(newRawMouseDelta);
+KalaInput::SetRawMouseDelta(newRawMouseDelta);
 
 //get how many scroll steps the mouse wheel moved since the last frame.
 //positive = scroll up, negative = scroll down
-int mouseWheelDelta = KalaWindow::GetMouseWheelDelta();
+int mouseWheelDelta = KalaInput::GetMouseWheelDelta();
 
 //set a new mouse wheel delta for the mouse
 int newMouseWheelDelta = 1234;
-KalaWindow::SetMouseWheelDelta(newMouseWheelDelta);
+KalaInput::SetMouseWheelDelta(newMouseWheelDelta);
 
 //returns true if cursor is not hidden
-bool isMouseVisible = KalaWindow::IsMouseVisible();
+bool isMouseVisible = KalaInput::IsMouseVisible();
 
 //allows to set the visibility state of the cursor,
 //if true, then the cursor is visible
 bool visibilityState = true;
-KalaWindow::SetMouseVisibility(visibilityState);
+KalaInput::SetMouseVisibility(visibilityState);
 
 //returns true if cursor is locked
-bool isMouseLocked = KalaWindow::IsMouseLocked();
+bool isMouseLocked = KalaInput::IsMouseLocked();
 
 //allows to set the lock state of the cursor,
 //if true, then the cursor is locked
 bool lockState = true;
-KalaWindow::SetMouseLockState(lockState);
+KalaInput::SetMouseLockState(lockState);
 ```

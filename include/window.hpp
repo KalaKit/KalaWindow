@@ -31,7 +31,8 @@ namespace KalaKit
 		static inline WNDPROC proc;
 
 		/// <summary>
-		/// Initializes the window system and creates a window with the given parameters.
+		/// Initializes the window system, input system, creates an opengl context
+		/// and loads all the opengl functions and creates a window with the given parameters.
 		/// Returns true if the window was successfully created.
 		/// </summary>
 		static bool Initialize(const string& title, int width, int height);

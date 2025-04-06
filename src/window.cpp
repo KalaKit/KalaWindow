@@ -17,11 +17,16 @@
 
 #include <iostream>
 
+//external
+#include "crashHandler.hpp"
+
+//window
 #include "window.hpp"
 #include "input.hpp"
 #include "messageloop.hpp"
 #include "magic_enum.hpp"
-#include "crashHandler.hpp"
+#include "opengl.hpp"
+#include "opengl_loader.hpp"
 
 using std::to_string;
 
@@ -34,6 +39,9 @@ namespace KalaKit
 			LOG_ERROR("Window is already initialized!");
 			return false;
 		}
+
+		//first initialize crash handler
+		KalaCrashHandler::Initialize();
 
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
@@ -73,8 +81,14 @@ namespace KalaKit
 
 		ShowWindow(window, SW_SHOW);
 
-		//also initialize crash handler
-		KalaCrashHandler::Initialize();
+		//also initialize input
+		KalaInput::Initialize();
+
+		//also initialize opengl
+		OpenGL::Initialize();
+
+		//and finally set opengl viewport size
+		OpenGLLoader::glViewportPtr(0, 0, width, height);
 
 		isInitialized = true;
 
