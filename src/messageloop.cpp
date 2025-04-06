@@ -4,7 +4,7 @@
 //Read LICENSE.md for more information.
 
 //main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_WINDOW | " << type << "] " << msg << "\n"
+#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_MESSAGELOOP | " << type << "] " << msg << "\n"
 
 //log types
 #if KALAWINDOW_DEBUG
@@ -32,6 +32,7 @@ using std::vector;
 #include "enums.hpp"
 #include "window.hpp"
 #include "input.hpp"
+#include "opengl_loader.hpp"
 
 namespace KalaKit
 {
@@ -328,24 +329,9 @@ namespace KalaKit
 
 		case WM_PAINT:
 		{
-			PAINTSTRUCT ps{};
-			HDC hdc = BeginPaint(KalaWindow::window, &ps);
-
-			int R = 255;
-			int G = 0;
-			int B = 0;
-			HBRUSH redBrush = CreateSolidBrush(RGB(R, G, B));
-			FillRect(hdc, &ps.rcPaint, redBrush);
-			DeleteObject(redBrush);
-
+			PAINTSTRUCT ps;
+			BeginPaint(KalaWindow::window, &ps);
 			EndPaint(KalaWindow::window, &ps);
-
-			if (type == DebugType::DEBUG_ALL
-				|| type == DebugType::DEBUG_WINDOW_REPAINT)
-			{
-				LOG_DEBUG("New color: " << R << ", " << G << ", " << B);
-			}
-
 			return true;
 		}
 
@@ -355,24 +341,38 @@ namespace KalaKit
 
 		case WM_SIZE:
 		{
-			//trigger a redraw
-			InvalidateRect(KalaWindow::window, nullptr, TRUE);
+			int width = LOWORD(msg.lParam);
+			int height = HIWORD(msg.lParam);
+
+			if (OpenGLLoader::glViewportPtr)
+			{
+				OpenGLLoader::glViewportPtr(0, 0, width, height);
+			}
 
 			if (type == DebugType::DEBUG_ALL
 				|| type == DebugType::DEBUG_WINDOW_RESIZE)
 			{
-				RECT rect{};
-				GetClientRect(KalaWindow::window, &rect);
-
-				POINT size{};
-				size.x = rect.right - rect.left;
-				size.y = rect.bottom - rect.top;
-
-				LOG_DEBUG("New resolution: " << size.x << ", " << size.y);
+				LOG_DEBUG("New resolution: " << width << ", " << height);
 			}
 
-			return false;
+			return true;
 		}
+
+		//
+		// HANDLE RENDERING WHILE RESIZING
+		//
+
+		case WM_ERASEBKGND:
+			return true;
+		case WM_ENTERSIZEMOVE:
+			SetTimer(KalaWindow::window, 1, 16, nullptr); //start count when entering resize, 60 fps
+			return true;
+		case WM_EXITSIZEMOVE:
+			KillTimer(KalaWindow::window, 1); //stop count after exiting resize
+			return true;
+		case WM_TIMER:
+			if (KalaWindow::OnRedraw) KalaWindow::OnRedraw(); //force redraw
+			return true;
 
 		//
 		// CAP MIN AND MAX WINDOW SIZE
@@ -397,11 +397,17 @@ namespace KalaKit
 
 		//user clicked X button or pressed Alt + F4
 		case WM_CLOSE:
-			LOG_DEBUG("Called close message.");
-			if (!KalaWindow::CanExit())
+			//first checks if developer has decided to enable the exit condition,
+			//then returns true if uses presses YES to exit, otherwise cancels exit
+			if (!KalaWindow::CanExit()
+				&& KalaWindow::CreatePopup(
+					KalaWindow::exitTitle,
+					KalaWindow::exitInfo,
+					PopupAction::POPUP_ACTION_YES_NO,
+					PopupType::POPUP_TYPE_WARNING)
+					== PopupResult::POPUP_RESULT_YES)
 			{
-				//returns true if uses chooses to exit, otherwise cancels exit
-				if (!KalaWindow::AllowExit()) return true;
+				return true;
 			}
 
 			//signals the while loop to exit
@@ -413,7 +419,7 @@ namespace KalaKit
 
 			//window was destroyed - tell the system to exit
 		case WM_DESTROY:
-			LOG_DEBUG("Called destroy message.");
+			LOG_DEBUG("Window is destroyed.");
 			PostQuitMessage(0);
 			return true;
 

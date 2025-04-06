@@ -29,11 +29,11 @@ cmake -G "Ninja" ^
   -DCMAKE_BUILD_TYPE=Debug ^
   -DCMAKE_C_COMPILER=cl ^
   -DBUILD_SHARED_LIBS=ON ^
-  -DCMAKE_C_FLAGS="/Od /Zi /EHsc /MDd" ^
-  -DCMAKE_CXX_FLAGS="/Od /ZI /EHsc /MTd" ^
+  -DCMAKE_C_FLAGS="/Od /Zi /EHsc /MTd" ^
+  -DCMAKE_CXX_FLAGS="/Od /Zi /EHsc /MTd" ^
   -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" ^
   -Wno-dev ^
-  "%PWINDOW_ROOT%" || (
+  %PWINDOW_ROOT% || (
     echo [ERROR] CMake configuration failed.
     exit /b 1
 )

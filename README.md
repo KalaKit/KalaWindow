@@ -6,7 +6,11 @@
 
 ![Logo](logo.png)
 
-KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of and handling all of its input. It also comes with KalaCrashHandler natively built in for handy crash reports.
+KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 context and uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes KalaCrashHandler for handy crash reports.
+
+External libraries included in this library:
+	- magic_enum - enum-string operations (include\magic_enum)
+	- GLM - OpenGL math functions (include\GLM)
 
 # Prerequisites (when compiling from source code)
 
@@ -18,65 +22,37 @@ To compile from source code simply run 'build_windows_release.bat' or 'build_win
 # How to set up
 
 ```cpp
-#include <Windows.h> //used for all Windows input and window operations
 #include <string>
+#include <iostream>
 
 #include "window.hpp"
-#include "input.hpp"
+#include "enums.hpp"
 
 using std::string;
+using std::cout;
 
-using KalaKit::KalaWindow;  //core window and input system functions
-using KalaKit::Key;         //enum for all keyboard and mouse keys
-using KalaKit::DebugType;   //enum for all debug types
-using KalaKit::WindowState; //enum for all window states
+using KalaKit::KalaWindow;
+using KalaKit::DebugType;
+using KalaKit::PopupType;
+using KalaKit::PopupAction;
+using KalaKit::PopupResult;
 
 static void YourInitializeFunction()
 {
-	...
-	//this function creates a window and displays it
+	//initialize the window first. this creates a window, creates an opengl context,
+	//loads all the opengl functions, initializes the input system and initializes the crash handler
 	int yourWindowHeight = 800;
 	int yourWindowWidth = 600;
 	string yourWindowTitle = "Your window";
-	KalaWindow::Initialize(yourWindowTitle, yourWindowWidth, yourWindowHeight);
-
-	//this is the core initialization function 
-	//that is required to be called so that
-	//the window system can initialize all its content
-	KalaWindow::Initialize();
+	bool initialized = KalaWindow::Initialize(yourWindowTitle, yourWindowWidth, yourWindowHeight);
+	if (!initialized)
+	{
+		cout << "Failed to initialize KalaWindow!\n";
+		return;
+	}
 	
-	//make sure to also initialize the input system after it
-	KalaInput::Initialize();
-
-	//you can pass one of the many debug types to this function
-	//to be able to see messages of that debug type printed to your console,
-	//the default DEBUG_NONE does nothing and if you dont want 
-	//debug messages then you dont need to call this function
-	KalaWindow::SetDebugState(DebugType::DEBUG_NONE);
-	
-	//you can pass bool true or false to this function,
-	//it sets the window focus required state, which controls
-	//whether the attached window needs to be in focus for
-	//any input to be registred at all for KalaWindow.
-	//it defaults to true, so this function does not
-	//need to be called if you want focus to always be required
-	KalaWindow::SetWindowFocusRequiredState(true);
-	
-	//set this function to false and assign a title and info
-	//if you want to prevent the user from exiting your program.
-	//setting this to false shows a warning popup with yes or no
-	//and your title and info. if user presses yes the program can close,
-	//if user presses no then the program stays open and the popup closes
-	bool yourExitState = false;
-	string yourTitle = "this shows up as the title!";
-	string yourInfo = "this shows up as info!";
-	KalaWindow::SetExitState(yourExitState, yourTitle, yourInfo);
-	
-	//call this if you want to manually control 
-	//where your update loop should end
-	bool yourCloseState = false;
-	KalaWindow::SetShouldCloseState(yourCloseState);
-	...
+	//use this if you want the window to properly keep drawing while it is being resized
+	KalaWindow::SetRedrawCallback(YourRedrawCallback);
 }
 
 static void YourUpdateLoop()
@@ -85,10 +61,63 @@ static void YourUpdateLoop()
 	//as long as ShouldClose returns false the window will keep rendering
 	while(!KalaWindow::ShouldClose())
 	{
-		//capture all input
+		//capture all input and handle the message loop
 		KalaWindow::Update();
-	}
+		
+		//you can pass one of the many debug types to this function
+		//to be able to see messages of that debug type printed to your console,
+		//the default DEBUG_NONE does nothing and if you dont want 
+		//debug messages then you dont need to call this function
+		KalaWindow::SetDebugState(DebugType::DEBUG_NONE);
 	
+		//you can pass bool true or false to this function,
+		//it sets the window focus required state, which controls
+		//whether the attached window needs to be in focus for
+		//any input to be registred at all for KalaWindow.
+		//it defaults to true, so this function does not
+		//need to be called if you want focus to always be required
+		KalaWindow::SetWindowFocusRequiredState(true);
+	
+		//set this function to false and assign a title and info
+		//if you want to prevent the user from exiting your program.
+		//setting this to false shows a warning popup with yes or no
+		//and your title and info. if user presses yes the program can close,
+		//if user presses no then the program stays open and the popup closes
+		bool yourExitState = false;
+		string yourTitle = "this shows up as the title!";
+		string yourInfo = "this shows up as info!";
+		KalaWindow::SetExitState(yourExitState, yourTitle, yourInfo);
+	
+		//call this if you want to manually control 
+		//where your update loop should end
+		bool yourCloseState = false;
+		KalaWindow::SetShouldCloseState(yourCloseState);
+	
+		//create a popup with one of the PopupAction actions
+		//and one of the PopupType types shown in enums.hpp
+		//that returns one of the PopupResult results based off of user input
+		string popupTitle = "Your popup title";
+		string popupMessage = "Your popup message";
+		PopupAction popupAction = POPUP_ACTION_YES_NO;
+		PopupType popupType = POPUP_TYPE_WARNING;
+		PopupResult popupResult = POPUP_RESULT_YES;
+		if (KalaWindow::CreatePopup(
+			popupTitle,
+			popupMessage,
+			popupAction,
+			popupType)
+			== popupResult)
+		{
+			cout << "Pressed yes!\n";
+		}
+	}
+}
+
+//this function controls what is rendered while the window is being resized.
+//do NOT put anything other than rendering related content inside here.
+//only place this function inside the SetRedrawCallback function
+static void YourRedrawCallback()
+{
 	...
 }
 
@@ -102,6 +131,170 @@ int main()
 ```
 ---
 
+# Shader initialize functions
+
+This shows an example of what you need to do to initialize a black triangle.
+
+First create a triangle.vert shader.
+
+```
+#version 330 core
+
+layout(location = 0) in vec2 aPos;
+
+void main()
+{
+    gl_Position = vec4(aPos, 0.0, 1.0);
+}
+```
+
+Then create a triangle.frag shader.
+
+```
+#version 330 core
+
+out vec4 FragColor;
+
+void main()
+{
+    FragColor = vec4(1.0, 0.0, 0.0, 1.0); //red
+}
+```
+
+Then create a triangle.hpp header file
+
+```cpp
+#pragma once
+
+#include <memory>
+
+#include "shader.hpp"
+
+namespace Graphics
+{
+	using std::unique_ptr;
+
+	using KalaKit::Shader;
+
+	class Triangle
+	{
+	public:
+		static void Initialize();
+		static void Render();
+	private:
+		static inline GLuint vao;
+		static inline GLuint vbo;
+		static inline unique_ptr<Shader> shader;
+	};
+}
+```
+
+Then create a triangle.cpp source file
+
+```cpp
+#include <filesystem>
+#include <string>
+#include <iostream>
+
+//external
+#include "opengl_loader.hpp"
+#include "glm/glm.hpp"
+
+//project
+#include "triangle.hpp"
+
+using std::filesystem::path;
+using std::filesystem::current_path;
+using std::string;
+using std::cout;
+using std::hex;
+using glm::vec4;
+using std::make_unique;
+
+using KalaKit::OpenGLLoader;
+
+namespace Graphics
+{
+	void Triangle::Initialize()
+	{
+		float vertices[] =
+		{
+			 0.0f,  0.5f, //top
+			-0.5f, -0.5f, //bottom left
+			 0.5f, -0.5f  //bottom right
+		};
+
+		OpenGLLoader::glGenVertexArraysPtr(1, &vao);
+		OpenGLLoader::glGenBuffersPtr(1, &vbo);
+
+		OpenGLLoader::glBindVertexArrayPtr(vao);
+
+		OpenGLLoader::glBindBufferPtr(GL_ARRAY_BUFFER, vbo);
+		OpenGLLoader::glBufferDataPtr(
+			GL_ARRAY_BUFFER, 
+			sizeof(vertices), 
+			vertices,
+			GL_STATIC_DRAW);
+
+		OpenGLLoader::glEnableVertexAttribArrayPtr(0);
+		OpenGLLoader::glVertexAttribPointerPtr(
+			0,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			2 * sizeof(float),
+			(void*)0);
+
+		OpenGLLoader::glBindVertexArrayPtr(0);
+
+		//create shader
+		string vert = (current_path() / "files" / "shaders" / "tri.vert").string();
+		string frag = (current_path() / "files" / "shaders" / "tri.frag").string();
+		
+		shader = make_unique<Shader>(vert, frag);
+
+		if (!shader->IsValid())
+		{
+			cout << "Error: Triangle shader failed to compile/link!\n";
+		}
+	}
+
+	void Triangle::Render()
+	{
+		//use the compiled shader program
+		shader->Use();
+
+		shader->SetVec4("u_Color", vec4(1.0f, 0.0f, 0.0f, 1.0f));
+
+		//bind the VAO
+		OpenGLLoader::glBindVertexArrayPtr(vao);
+
+		//draw the triangle
+		OpenGLLoader::glDrawArraysPtr(GL_TRIANGLES, 0, 3);
+	}
+}
+```
+
+And then finally call the Initialize and Render functions in your initialize and runtime loop functions.
+
+ALWAYS initialize KalaWindow first! Then load the hdc. And finally initialize the triangle.
+
+ALWAYS call the triangle update function inside the kalawindow shouldclose while loop after kalawindows own update function.
+
+```cpp
+//clear the previous frames content first and set a background color
+OpenGLLoader::glClearColorPtr(0.1f, 0.1f, 0.1f, 1.0f); //dark gray
+OpenGLLoader::glClearPtr(GL_COLOR_BUFFER_BIT);
+
+//then render the triangle
+Triangle::Render();
+
+//and then swap the buffers at the end
+SwapBuffers(hdc);
+```
+
+---
+
 # Runtime loop window functions
 
 Call these functions INSIDE KalaWindow::ShouldClose and AFTER KalaWindow::Update.
@@ -109,6 +302,14 @@ Call these functions INSIDE KalaWindow::ShouldClose and AFTER KalaWindow::Update
 These functions are used primarily for window interactions.
 
 ```cpp
+#include <windows.h>
+
+#include "window.hpp"
+#include "enums.hpp"
+
+using KalaKit::KalaWindow;
+using KalaKit::WindowState;
+
 //assign a title to the window
 string windowTitle = "yourWindowTitle";
 void KalaWindow::SetWindowTitle(windowTitle);
@@ -180,37 +381,48 @@ Call these functions INSIDE KalaWindow::ShouldClose and AFTER KalaWindow::Update
 Pass one of any of the keys in KalaWindow Key enum as a parameter for most of these functions where Key is requested.
 
 ```cpp
+#include <windows.h>
+#include <initializer_list>
+
+#include "input.hpp"
+#include "enums.hpp"
+
+using std::initializer_list;
+
+using KalaKit::KalaInput;
+using KalaKit::Key;
+
 //the variable of Key that can be declared anywhere
 Key yourKey;
 
 //detect which key is currently held
-bool isKeyDown = KalaWindow::IsKeyHeld(yourKey);
+bool isKeyDown = KalaInput::IsKeyHeld(yourKey);
 
 //detect which key is currently held
-bool isKeyPressed = KalaWindow::IsKeyPressed(yourKey);
+bool isKeyPressed = KalaInput::IsKeyPressed(yourKey);
 
 //detect if a combination of keys is pressed
 //you must hold each key in order of the initializer list
 //and once you press the last key the combo returns as true
-static const std::initializer_list<Key> saveCombo
+static const initializer_list<Key> saveCombo
 {
     Key::LeftControl,
     Key::S
 };
-bool isComboPressed = KalaWindow::IsComboPressed(saveCombo);
+bool isComboPressed = KalaInput::IsComboPressed(saveCombo);
 
 //detect if either left or right mouse key was double-clicked.
 //this does not need a reference to any Key
-bool isDoubleClicked = KalaWindow::IsMouseKeyDoubleClicked();
+bool isDoubleClicked = KalaInput::IsMouseKeyDoubleClicked();
 
 //detect if either left or right mouse key is held 
 //and mouse is dragged in any direction.
 //this does not need a reference to any Key
-bool isMouseDragging = KalaWindow::IsMouseDragging();
+bool isMouseDragging = KalaInput::IsMouseDragging();
 
 //get current mouse position relative to the client area (top-left = 0,0).
 //coordinates are in pixels
-POINT mousePos = KalaWindow::GetMousePosition();
+POINT mousePos = KalaInput::GetMousePosition();
 
 //set a new position for the mouse
 POINT newMousePosition = { 0, 0 };
@@ -218,41 +430,41 @@ KalaInput::SetMousePosition(newMousePosition);
 
 //get how much the cursor moved on screen (in client space) since the last frame.
 //this uses absolute screen-based movement, affected by OS acceleration and DPI
-POINT mouseDelta = KalaWindow::GetMouseDelta();
+POINT mouseDelta = KalaInput::GetMouseDelta();
 
 //set a new mouse delta for the mouse
 POINT newMouseDelta = { 100, 100 };
-KalaWindow::SetMouseDelta(newMouseDelta);
+KalaInput::SetMouseDelta(newMouseDelta);
 
 //get raw, unfiltered mouse movement from the hardware since the last frame.
 //not affected by DPI, sensitivity, or OS mouse settings, ideal for game camera control
-POINT rawMouseDelta = KalaWindow::GetRawMouseDelta();
+POINT rawMouseDelta = KalaInput::GetRawMouseDelta();
 
 //set a new raw mouse delta for the mouse
 POINT newRawMouseDelta = { 200, 200 };
-KalaWindow::SetRawMouseDelta(newRawMouseDelta);
+KalaInput::SetRawMouseDelta(newRawMouseDelta);
 
 //get how many scroll steps the mouse wheel moved since the last frame.
 //positive = scroll up, negative = scroll down
-int mouseWheelDelta = KalaWindow::GetMouseWheelDelta();
+int mouseWheelDelta = KalaInput::GetMouseWheelDelta();
 
 //set a new mouse wheel delta for the mouse
 int newMouseWheelDelta = 1234;
-KalaWindow::SetMouseWheelDelta(newMouseWheelDelta);
+KalaInput::SetMouseWheelDelta(newMouseWheelDelta);
 
 //returns true if cursor is not hidden
-bool isMouseVisible = KalaWindow::IsMouseVisible();
+bool isMouseVisible = KalaInput::IsMouseVisible();
 
 //allows to set the visibility state of the cursor,
 //if true, then the cursor is visible
 bool visibilityState = true;
-KalaWindow::SetMouseVisibility(visibilityState);
+KalaInput::SetMouseVisibility(visibilityState);
 
 //returns true if cursor is locked
-bool isMouseLocked = KalaWindow::IsMouseLocked();
+bool isMouseLocked = KalaInput::IsMouseLocked();
 
 //allows to set the lock state of the cursor,
 //if true, then the cursor is locked
 bool lockState = true;
-KalaWindow::SetMouseLockState(lockState);
+KalaInput::SetMouseLockState(lockState);
 ```

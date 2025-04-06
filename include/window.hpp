@@ -31,7 +31,17 @@ namespace KalaKit
 		static inline WNDPROC proc;
 
 		/// <summary>
-		/// Initializes the window system and creates a window with the given parameters.
+		/// Title of the warning popup when user wants to exit
+		/// </summary>
+		static inline string exitTitle = "Closing program";
+		/// <summary>
+		/// Description of the warning popup when user wants to exit
+		/// </summary>
+		static inline string exitInfo = "Do you want to exit? You might lose unsaved data.";
+
+		/// <summary>
+		/// Initializes the window system, input system, creates an opengl context
+		/// and loads all the opengl functions and creates a window with the given parameters.
 		/// Returns true if the window was successfully created.
 		/// </summary>
 		static bool Initialize(const string& title, int width, int height);
@@ -40,6 +50,17 @@ namespace KalaKit
 		/// Handles all input at runtime. 
 		/// </summary>
 		static void Update();
+
+		using RedrawCallback = void(*)();
+		static inline RedrawCallback OnRedraw = nullptr;
+		/// <summary>
+		/// Sets a custom function to be called during WM_TIMER events.
+		/// Use this to re-render the window to prevent artifacts and black boxes while resizing.
+		/// </summary>
+		static inline void SetRedrawCallback(RedrawCallback callback)
+		{
+			OnRedraw = callback;
+		}
 
 		/// <summary>
 		/// Should be used in the update loop. When this returns false
@@ -157,9 +178,27 @@ namespace KalaKit
 		static void SetShouldCloseState(bool newShouldCloseState);
 
 		/// <summary>
-		/// Warning popup that asks if user wants to close or not. Should not be called manually.
+		/// Create a popup with any supported action and type with custom title and message.
 		/// </summary>
-		static bool AllowExit();
+		static PopupResult CreatePopup(
+			const string& title,
+			const string& message,
+			PopupAction action,
+			PopupType type);
+
+		/// <summary>
+		/// Sets the exit state, if false then window will 
+		/// ask user if they want to close or not, otherwise
+		/// the window will continue with normal shutdown.
+		/// Defaults to true, you should also assign the 
+		/// title and info parameters so the popup 
+		/// will show them when this is set to false 
+		/// and the application is shut down.
+		/// </summary>
+		static void SetExitState(
+			bool setExitAllowedState,
+			const string& title,
+			const string& info);
 	private:
 		static inline bool isInitialized;
 
@@ -210,15 +249,6 @@ namespace KalaKit
 		static inline int minHeight = 600;
 
 		/// <summary>
-		/// Title of the warning popup when user wants to exit
-		/// </summary>
-		static inline string exitTitle = "Closing program";
-		/// <summary>
-		/// Description of the warning popup when user wants to exit
-		/// </summary>
-		static inline string exitInfo = "Do you want to exit?";
-
-		/// <summary>
 		/// Currently assigned debug type
 		/// </summary>
 		static inline DebugType debugType = DebugType::DEBUG_NONE;
@@ -227,19 +257,5 @@ namespace KalaKit
 		/// Convert window state enum to string with magic enum.
 		/// </summary>
 		static string ToString(WindowState state);
-
-		/// <summary>
-		/// Sets the exit state, if false then window will 
-		/// ask user if they want to close or not, otherwise
-		/// the window will continue with normal shutdown.
-		/// Defaults to true, you should also assign the 
-		/// title and info parameters so the popup 
-		/// will show them when this is set to false 
-		/// and the application is shut down.
-		/// </summary>
-		static void SetExitState(
-			bool setExitAllowedState,
-			const string& title,
-			const string& info);
 	};
 }

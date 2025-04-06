@@ -17,10 +17,16 @@
 
 #include <iostream>
 
+//external
+#include "crashHandler.hpp"
+
+//window
 #include "window.hpp"
 #include "input.hpp"
 #include "messageloop.hpp"
 #include "magic_enum.hpp"
+#include "opengl.hpp"
+#include "opengl_loader.hpp"
 
 using std::to_string;
 
@@ -34,6 +40,9 @@ namespace KalaKit
 			return false;
 		}
 
+		//first initialize crash handler
+		KalaCrashHandler::Initialize();
+
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
 		WNDCLASSA wc = {};
@@ -44,6 +53,20 @@ namespace KalaKit
 		if (!RegisterClassA(&wc))
 		{
 			LOG_ERROR("Failed to register window class.");
+
+			string title = "Window initialize error!";
+			string message = "Failed to register window class!";
+
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
+
 			return false;
 		}
 
@@ -62,6 +85,20 @@ namespace KalaKit
 		if (!window)
 		{
 			LOG_ERROR("Failed to create window!");
+
+			string title = "Window initialize error!";
+			string message = "Failed to create window!";
+
+			if (KalaWindow::CreatePopup(
+				title,
+				message,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR)
+				== PopupResult::POPUP_RESULT_OK)
+			{
+				KalaWindow::SetShouldCloseState(true);
+			}
+
 			return false;
 		}
 
@@ -71,6 +108,17 @@ namespace KalaKit
 			(LONG_PTR)MessageLoop::WindowProcCallback);
 
 		ShowWindow(window, SW_SHOW);
+
+		//also initialize input
+		KalaInput::Initialize();
+
+		//also initialize opengl
+		bool openglInitialized = OpenGL::Initialize();
+		if (!openglInitialized) return false;
+
+		//and finally set opengl viewport size
+		OpenGLLoader::glViewportPtr(0, 0, width, height);
+
 		isInitialized = true;
 
 		LOG_SUCCESS("Window successfully initialized!");
@@ -81,7 +129,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot run loop because InputSystem is not initialized!");
+			LOG_ERROR("Cannot run loop because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -109,7 +157,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set window focus required state because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set window focus required state because KalaWindow is not initialized!");
 			return;
 		}
 
@@ -487,16 +535,45 @@ namespace KalaKit
 		shouldClose = newShouldCloseState;
 	}
 
-	bool KalaWindow::AllowExit()
+	PopupResult KalaWindow::CreatePopup(
+		const string& title,
+		const string& message,
+		PopupAction action,
+		PopupType type)
 	{
+		int flags = 0;
+
+		switch (action)
+		{
+		case PopupAction::POPUP_ACTION_OK: flags |= MB_OK; break;
+		case PopupAction::POPUP_ACTION_OK_CANCEL: flags |= MB_OKCANCEL; break;
+		case PopupAction::POPUP_ACTION_YES_NO: flags |= MB_YESNO; break;
+		case PopupAction::POPUP_ACTION_YES_NO_CANCEL: flags |= MB_YESNOCANCEL; break;
+		case PopupAction::POPUP_ACTION_RETRY_CANCEL: flags |= MB_RETRYCANCEL; break;
+		default:
+			flags |= MB_OK;
+			break;
+		}
+
+		switch (type)
+		{
+		case PopupType::POPUP_TYPE_INFO: flags |= MB_ICONINFORMATION; break;
+		case PopupType::POPUP_TYPE_WARNING: flags |= MB_ICONWARNING; break;
+		case PopupType::POPUP_TYPE_ERROR: flags |= MB_ICONERROR; break;
+		case PopupType::POPUP_TYPE_QUESTION: flags |= MB_ICONQUESTION; break;
+		default:
+			flags |= MB_ICONINFORMATION;
+			break;
+		}
+
 		int result = MessageBox(
 			nullptr,
-			exitInfo.c_str(),
-			exitTitle.c_str(),
-			MB_YESNO
-			| MB_ICONWARNING);
+			message.c_str(),
+			title.c_str(),
+			flags);
 
-		return result == IDYES;
+		//cast the result directly to your strongly-typed enum
+		return static_cast<PopupResult>(result);
 	}
 
 	void KalaWindow::SetExitState(
@@ -506,7 +583,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot set exit state because InputSystem is not initialized!");
+			LOG_ERROR("Cannot set exit state because KalaWindow is not initialized!");
 			return;
 		}
 

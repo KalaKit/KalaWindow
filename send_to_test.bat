@@ -21,11 +21,6 @@ set "ORIGIN_RELEASE_DLL=%INSTALL_RELEASE%\bin\KalaWindow.dll"
 set "ORIGIN_RELEASE_LIB=%INSTALL_RELEASE%\lib\KalaWindow.lib"
 set "ORIGIN_DEBUG_DLL=%INSTALL_DEBUG%\bin\KalaWindowD.dll"
 set "ORIGIN_DEBUG_LIB=%INSTALL_DEBUG%\lib\KalaWindowD.lib"
-set "ORIGIN_HEADER1=%INPUT_ROOT%\install-release\include\window.hpp"
-set "ORIGIN_HEADER2=%INPUT_ROOT%\install-release\include\input.hpp"
-set "ORIGIN_HEADER3=%INPUT_ROOT%\install-release\include\messageloop.hpp"
-set "ORIGIN_HEADER4=%INPUT_ROOT%\install-release\include\enums.hpp"
-set "ORIGIN_HEADER5=%INPUT_ROOT%\install-release\include\magic_enum.hpp"
 
 if not exist "%ORIGIN_RELEASE_DLL%" (
 	echo Failed to find origin release dll from '%ORIGIN_RELEASE_DLL%'!
@@ -47,31 +42,6 @@ if not exist "%ORIGIN_DEBUG_LIB%" (
 	pause
 	exit /b 1
 )
-if not exist "%ORIGIN_HEADER1%" (
-	echo Failed to find origin header 1 from '%ORIGIN_HEADER1%'!
-	pause
-	exit /b 1
-)
-if not exist "%ORIGIN_HEADER2%" (
-	echo Failed to find origin header 2 from '%ORIGIN_HEADER2%'!
-	pause
-	exit /b 1
-)
-if not exist "%ORIGIN_HEADER3%" (
-	echo Failed to find origin header 3 from '%ORIGIN_HEADER3%'!
-	pause
-	exit /b 1
-)
-if not exist "%ORIGIN_HEADER4%" (
-	echo Failed to find origin header 4 from '%ORIGIN_HEADER4%'!
-	pause
-	exit /b 1
-)
-if not exist "%ORIGIN_HEADER5%" (
-	echo Failed to find origin header 5 from '%ORIGIN_HEADER5%'!
-	pause
-	exit /b 1
-)
 
 set "TARGET_ROOT=%INPUT_ROOT%..\KalaTestProject\_external_shared\KalaWindow"
 
@@ -85,26 +55,15 @@ set "TARGET_RELEASE_DLL=%TARGET_ROOT%\release\KalaWindow.dll"
 set "TARGET_RELEASE_LIB=%TARGET_ROOT%\release\KalaWindow.lib"
 set "TARGET_DEBUG_DLL=%TARGET_ROOT%\debug\KalaWindowD.dll"
 set "TARGET_DEBUG_LIB=%TARGET_ROOT%\debug\KalaWindowD.lib"
-set "TARGET_HEADER1=%TARGET_ROOT%\window.hpp"
-set "TARGET_HEADER2=%TARGET_ROOT%\input.hpp"
-set "TARGET_HEADER3=%TARGET_ROOT%\messageloop.hpp"
-set "TARGET_HEADER4=%TARGET_ROOT%\enums.hpp"
-set "TARGET_HEADER5=%TARGET_ROOT%\magic_enum.hpp"
 
-:: Create release and debug folders in case they dont exist yet
-if not exist "%TARGET_ROOT%\release" mkdir "%TARGET_ROOT%\release"
-if not exist "%TARGET_ROOT%\debug" mkdir "%TARGET_ROOT%\debug"
-
-:: Copy dll files, lib files and header file to target path
+:: Copy dll files to target path
 copy /Y "%ORIGIN_RELEASE_DLL%" "%TARGET_RELEASE_DLL%"
 copy /Y "%ORIGIN_RELEASE_LIB%" "%TARGET_RELEASE_LIB%"
 copy /Y "%ORIGIN_DEBUG_DLL%" "%TARGET_DEBUG_DLL%"
 copy /Y "%ORIGIN_DEBUG_LIB%" "%TARGET_DEBUG_LIB%"
-copy /Y "%ORIGIN_HEADER1%" "%TARGET_HEADER1%"
-copy /Y "%ORIGIN_HEADER2%" "%TARGET_HEADER2%"
-copy /Y "%ORIGIN_HEADER3%" "%TARGET_HEADER3%"
-copy /Y "%ORIGIN_HEADER4%" "%TARGET_HEADER4%"
-copy /Y "%ORIGIN_HEADER5%" "%TARGET_HEADER5%"
+
+:: Copy header files and inl files to target path
+xcopy /E /Y /I "%INSTALL_RELEASE%\include" "%TARGET_ROOT%\"
 
 echo Successfully installed KalaWindow!
 

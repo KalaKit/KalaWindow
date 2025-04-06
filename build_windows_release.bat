@@ -30,10 +30,10 @@ cmake -G "Ninja" ^
   -DCMAKE_BUILD_TYPE=Release ^
   -DCMAKE_C_COMPILER=cl ^
   -DBUILD_SHARED_LIBS=ON ^
-  -DCMAKE_C_FLAGS="/O2 /GL /DNDEBUG /EHsc /MD" ^
+  -DCMAKE_C_FLAGS="/O2 /GL /DNDEBUG /EHsc /MT" ^
   -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" ^
   -Wno-dev ^
-  "%WINDOW_ROOT%" || (
+  %WINDOW_ROOT% || (
     echo [ERROR] CMake configuration failed.
 	pause
     exit /b 1
