@@ -5,31 +5,14 @@
 
 #pragma once
 
-//
-// PLATFORM PREPROCESSORS
-//
-
-#ifdef _WIN32
-	#ifndef KALAKIT_WINDOWS
-		#define KALAKIT_WINDOWS
-	#endif
-#elif __linux__
-	#include <X11/Xlib.h>
-	#include <wayland-client.h>
-	#if defined(X11_FOUND)
-		#ifndef KALAKIT_X11
-			#define KALAKIT_X11
-		#endif
-
-	#elif defined(WAYLAND_FOUND)
-		#ifndef KALAKIT_WAYLAND
-			#define KALAKIT_WAYLAND
-		#endif
-	#else
-		#error "Unsupported UNIX version! Must be X11 or Wayland!"
-	#endif
+#if defined(KALAKIT_WINDOWS)
+    #pragma message(">>> KALAKIT_WINDOWS is defined")
+#elif defined(KALAKIT_X11)
+    #pragma message(">>> KALAKIT_X11 is defined")
+#elif defined(KALAKIT_WAYLAND)
+    #pragma message(">>> KALAKIT_WAYLAND is defined")
 #else
-	#error "Unsupported OS version! Must be WIN32 or UNIX!"
+    #error ">>> No KALAKIT platform macro defined!"
 #endif
 
 //
@@ -41,7 +24,7 @@
 #endif
 
 //log types
-#if KALAWINDOW_DEBUG
+#ifdef KALAWINDOW_DEBUG
 	#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
 #else
 	#define LOG_DEBUG(msg)
@@ -65,4 +48,42 @@
 	#define KALAWINDOW_API __attribute__((visibility("default")))
 #else
 	#define KALAWINDOW_API
+#endif
+
+//
+// DEFINE COMMON VARIABLES
+//
+
+#if KALAKIT_WINDOWS
+	#include <Windows.h>
+	#define POINT POS
+	typedef struct WINDOW
+	{
+		HINSTANCE hInstance;
+		HWND hWnd;
+	};
+#elif KALAKIT_X11
+	#include <X11/Xlib.h>
+	typedef struct POS
+	{
+		int x;
+		int y;
+	};
+	typedef struct WINDOW
+	{
+		Display* display;
+		::Window window;
+	};
+#elif KALAKIT_WAYLAND
+	#include <wayland-client.h>
+	typedef struct POS
+	{
+		int x;
+		int y;
+	};
+	typedef struct WINDOW
+	{
+		struct wl_display* display;
+		struct wl_surface* surface;
+	};
 #endif

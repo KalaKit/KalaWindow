@@ -22,17 +22,22 @@ set(PROJECT_VERSION "${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT
 
 project("KalaWindow" VERSION ${PROJECT_VERSION})
 
+add_library(KalaWindow SHARED)
+
 # Set OS global type
 if (WIN32)
     set(KALAKIT_WINDOWS TRUE)
+    target_compile_definitions(KalaWindow PRIVATE KALAKIT_WINDOWS)
 elseif(UNIX)
     find_package(Wayland QUIET)
     find_package(X11 QUIET)
 
     if (Wayland_FOUND)
         set(KALAKIT_WAYLAND TRUE)
+        target_compile_definitions(KalaWindow PRIVATE KALAKIT_WAYLAND)
     elseif (X11_FOUND)
         set(KALAKIT_X11 TRUE)
+        target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11)
 	else()
 		message(FATAL_ERROR "Unknown UNIX version! Must be X11 or Wayland!")
     endif()
@@ -93,7 +98,7 @@ file(GLOB_RECURSE WINDOW_SRC_FILES CONFIGURE_DEPENDS
 )
 
 # Build as a shared library (DLL)
-add_library(KalaWindow SHARED ${WINDOW_SRC_FILES})
+add_library(KalaWindow PRIVATE ${WINDOW_SRC_FILES})
 set_target_properties(KalaWindow PROPERTIES OUTPUT_NAME "KalaWindow")
 target_compile_features(KalaWindow PRIVATE cxx_std_20)
 
