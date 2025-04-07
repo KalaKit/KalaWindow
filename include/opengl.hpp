@@ -5,16 +5,8 @@
 
 #pragma once
 
-#ifdef KALAKIT_WINDOWS
-	#ifdef KALAWINDOW_DLL_EXPORT
-		#define KALAWINDOW_API __declspec(dllexport)
-	#else
-		#define KALAWINDOW_API __declspec(dllimport)
-	#endif
-#else
-	#define KALAWINDOW_API
-#endif
-
+//kalawindow
+#include "preprocessors.hpp"
 #include "opengl_typedefs.hpp"
 
 namespace KalaKit

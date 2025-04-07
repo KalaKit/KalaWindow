@@ -5,20 +5,13 @@
 
 #pragma once
 
-#ifdef KALAKIT_WINDOWS
-	#ifdef KALAWINDOW_DLL_EXPORT
-		#define KALAWINDOW_API __declspec(dllexport)
-	#else
-		#define KALAWINDOW_API __declspec(dllimport)
-	#endif
-#else
-	#define KALAWINDOW_API
-#endif
-
 #include <string>
 #ifdef KALAKIT_WINDOWS
 #include <Windows.h>
 #endif
+
+//kalawindow
+#include "preprocessors.hpp"
 
 namespace KalaKit
 {

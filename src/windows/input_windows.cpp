@@ -3,22 +3,15 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-//main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_INPUT | " << type << "] " << msg << "\n"
+#ifdef KALAKIT_WINDOWS
 
-//log types
-#if KALAWINDOW_DEBUG
-	#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
-#else
-	#define LOG_DEBUG(msg)
-#endif
-#define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
-#define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
+#define KALAKIT_MODULE "INPUT"
 
 #include <type_traits>
 #include <Windows.h>
 #include <TlHelp32.h>
 
+//kalawindow
 #include "input.hpp"
 #include "window.hpp"
 #include "messageloop.hpp"
@@ -458,3 +451,5 @@ namespace KalaKit
 		SetCursorPos(center.x, center.y);
 	}
 }
+
+#endif // KALAKIT_WINDOWS

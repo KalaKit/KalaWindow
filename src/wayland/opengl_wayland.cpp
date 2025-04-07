@@ -5,9 +5,9 @@
 
 #ifdef KALAKIT_WAYLAND
 
-#define KALAKIT_MODULE "INPUT"
+#define KALAKIT_MODULE "OPENGL"
 
 //kalawindow
-#include "input.hpp"
+#include "opengl.hpp"
 
 #endif // KALAKIT_WAYLAND

@@ -3,25 +3,17 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-//main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_SHADER | " << type << "] " << msg << "\n"
-
-//log types
-#if KALAWINDOW_DEBUG
-	#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
-#else
-	#define LOG_DEBUG(msg)
-#endif
-#define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
-#define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
+#define KALAKIT_MODULE "SHADER"
 
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 
+//external
 #include "glm/gtc/type_ptr.hpp"
 
+//kalawindow
 #include "shader.hpp"
 #include "opengl.hpp"
 #include "opengl_loader.hpp"

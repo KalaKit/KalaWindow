@@ -12,31 +12,90 @@
 #endif
 #include <GL/gl.h>
 
+//kalawindow
+#include "preprocessors.hpp"
+
 #ifdef KALAKIT_WINDOWS
     #ifndef APIENTRY
         #define APIENTRY __stdcall
     #endif
+
     #ifndef APIENTRYP
         #define APIENTRYP APIENTRY *
     #endif
+
     #ifndef WGLENTRY
         #define WGLENTRY __stdcall
     #endif
+
     #ifndef WGLENTRYP
         #define WGLENTRYP WGLENTRY *
+    #endif
+
+    #ifndef WGL_CONTEXT_MAJOR_VERSION_ARB
+        #define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
+    #endif
+
+    #ifndef WGL_CONTEXT_MINOR_VERSION_ARB
+        #define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
+    #endif
+
+    #ifndef WGL_CONTEXT_PROFILE_MASK_ARB
+        #define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126
+    #endif
+
+    #ifndef WGL_CONTEXT_CORE_PROFILE_BIT_ARB
+        #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
     #endif
 #else
     #ifndef APIENTRY
         #define APIENTRY
     #endif
+
     #ifndef APIENTRYP
         #define APIENTRYP *
     #endif
+
     #ifndef WGLENTRY
         #define WGLENTRY
     #endif
+
     #ifndef WGLENTRYP
         #define WGLENTRYP *
+    #endif
+
+    #ifdef KALAKIT_WAYLAND
+        #ifndef EGL_CONTEXT_MAJOR_VERSION
+            #define EGL_CONTEXT_MAJOR_VERSION 0x3098
+        #endif
+
+        #ifndef EGL_CONTEXT_MINOR_VERSION
+            #define EGL_CONTEXT_MINOR_VERSION 0x3099
+        #endif
+
+        #ifndef EGL_CONTEXT_OPENGL_PROFILE_MASK
+            #define EGL_CONTEXT_OPENGL_PROFILE_MASK 0x30FD
+        #endif
+
+        #ifndef EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT
+            #define EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT 0x00000001
+        #endif
+    #elif KALAKIT_X11
+        #ifndef GLX_CONTEXT_MAJOR_VERSION_ARB
+            #define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
+        #endif
+
+        #ifndef GLX_CONTEXT_MINOR_VERSION_ARB
+            #define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
+        #endif
+
+        #ifndef GLX_CONTEXT_PROFILE_MASK_ARB
+            #define GLX_CONTEXT_PROFILE_MASK_ARB 0x9126
+        #endif
+
+        #ifndef GLX_CONTEXT_CORE_PROFILE_BIT_ARB
+            #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+        #endif
     #endif
 #endif
 

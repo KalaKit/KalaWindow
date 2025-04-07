@@ -3,24 +3,14 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-//main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_WINDOW | " << type << "] " << msg << "\n"
+#ifdef KALAKIT_WINDOWS
 
-//log types
-#if KALAWINDOW_DEBUG
-	#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
-#else
-	#define LOG_DEBUG(msg)
-#endif
-#define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
-#define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
-
-#include <iostream>
+#define KALAKIT_MODULE "WINDOW"
 
 //external
 #include "crashHandler.hpp"
 
-//window
+//kalawindow
 #include "window.hpp"
 #include "input.hpp"
 #include "messageloop.hpp"
@@ -592,3 +582,5 @@ namespace KalaKit
 		exitInfo = info;
 	}
 }
+
+#endif // KALAKIT_WINDOWS

@@ -3,39 +3,16 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-//main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_OPENGL | " << type << "] " << msg << "\n"
+#ifdef KALAKIT_WINDOWS
 
-//log types
-#if KALAWINDOW_DEBUG
-#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
-#else
-#define LOG_DEBUG(msg)
-#endif
-#define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
-#define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
-
-#ifndef WGL_CONTEXT_MAJOR_VERSION_ARB
-	#define WGL_CONTEXT_MAJOR_VERSION_ARB 0x2091
-#endif
-
-#ifndef WGL_CONTEXT_MINOR_VERSION_ARB
-	#define WGL_CONTEXT_MINOR_VERSION_ARB 0x2092
-#endif
-
-#ifndef WGL_CONTEXT_PROFILE_MASK_ARB
-	#define WGL_CONTEXT_PROFILE_MASK_ARB 0x9126
-#endif
-
-#ifndef WGL_CONTEXT_CORE_PROFILE_BIT_ARB
-	#define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
-#endif
+#define KALAKIT_MODULE "OPENGL"
 
 #include <Windows.h>
 #include <gl/GL.h>
 #include <gl/GLU.h>
 #include <iostream>
 
+//kalawindow
 #include "opengl.hpp"
 #include "window.hpp"
 #include "opengl_loader.hpp"
@@ -277,3 +254,5 @@ namespace KalaKit
 			&& minor >= 3);
 	}
 }
+
+#endif // KALAKIT_WINDOWS

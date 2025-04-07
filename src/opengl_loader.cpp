@@ -3,20 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-//main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_OPENGL_LOADER | " << type << "] " << msg << "\n"
+#define KALAKIT_MODULE "OPENGL_LOADER"
 
-//log types
-#if KALAWINDOW_DEBUG
-	#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
-#else
-	#define LOG_DEBUG(msg)
-#endif
-#define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
-#define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
-
-#include <iostream>
-
+//kalawindow
 #include "opengl_loader.hpp"
 #include "opengl_typedefs.hpp"
 

@@ -4,21 +4,11 @@
 //Read LICENSE.md for more information.
 
 #ifdef KALAKIT_WINDOWS
-//main log macro
-#define WRITE_LOG(type, msg) std::cout << "[KALAKIT_MESSAGELOOP | " << type << "] " << msg << "\n"
 
-//log types
-#if KALAWINDOW_DEBUG
-#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
-#else
-#define LOG_DEBUG(msg)
-#endif
-#define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
-#define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
+#define KALAKIT_MODULE "MESSAGELOOP"
 
 #include <vector>
 #include <Windows.h>
-#include <iostream>
 
 #ifndef GET_X_LPARAM
 	#define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
@@ -29,6 +19,7 @@
 
 using std::vector;
 
+//kalawindow
 #include "messageloop.hpp"
 #include "enums.hpp"
 #include "window.hpp"
@@ -431,4 +422,5 @@ namespace KalaKit
 		return false;
 	}
 }
-#endif
+
+#endif // KALAKIT_WINDOWS

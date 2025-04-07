@@ -5,7 +5,12 @@
 
 #pragma once
 
+#ifdef KALAKIT_WINDOWS
 #include <Windows.h>
+#endif
+
+//kalawindow
+#include "preprocessors.hpp"
 
 namespace KalaKit
 {
