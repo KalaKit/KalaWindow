@@ -16,6 +16,7 @@ namespace KalaKit
 {
 	enum class Key
 	{
+#ifdef KALAKIT_WINDOWS
 		// Letters
 		A = 'A', B = 'B', C = 'C', D = 'D', E = 'E',
 		F = 'F', G = 'G', H = 'H', I = 'I', J = 'J',
@@ -138,6 +139,7 @@ namespace KalaKit
 		BrowserSearch = VK_BROWSER_SEARCH,
 		BrowserFavorites = VK_BROWSER_FAVORITES,
 		BrowserHome = VK_BROWSER_HOME
+#endif
 	};
 
 	/// <summary>
@@ -291,11 +293,13 @@ namespace KalaKit
 	//User response from the popup
 	enum class PopupResult
 	{
+#ifdef KALAKIT_WINDOWS
 		POPUP_RESULT_NONE = 0,          // No response or unknown
 		POPUP_RESULT_OK = IDOK,         // User clicked OK
 		POPUP_RESULT_CANCEL = IDCANCEL, // User clicked Cancel
 		POPUP_RESULT_YES = IDYES,       // User clicked Yes
 		POPUP_RESULT_NO = IDNO,         // User clicked No
 		POPUP_RESULT_RETRY = IDRETRY    // User clicked Retry
+#endif
 	};
 }

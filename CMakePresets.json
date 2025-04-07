@@ -17,31 +17,26 @@
         },
         {
             "name": "x64-debug",
-            "displayName": "X64 Debug",
             "inherits": "windows-base",
-			"binaryDir": "${sourceDir}/out/build/x64-debug",
-            "architecture": {
-                "value": "x64",
-                "strategy": "external"
-            },
+            "binaryDir": "${sourceDir}/build-debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-debug"
             }
         },
         {
             "name": "x64-release",
-            "displayName": "X64 Release",
             "inherits": "windows-base",
-			"binaryDir": "${sourceDir}/out/build/x64-release",
+            "binaryDir": "${sourceDir}/build-release",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-release"
             }
         },
         {
             "name": "linux-base",
             "hidden": true,
             "generator": "Unix Makefiles",
-            "binaryDir": "${sourceDir}/out/build/${presetName}",
             "cacheVariables": {
                 "CMAKE_C_COMPILER": "/usr/bin/gcc",
                 "CMAKE_CXX_COMPILER": "/usr/bin/g++"
@@ -54,19 +49,39 @@
         },
         {
             "name": "linux-debug",
-            "displayName": "Linux Debug",
             "inherits": "linux-base",
+            "binaryDir": "${sourceDir}/build-debug",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-debug"
             }
         },
         {
             "name": "linux-release",
-            "displayName": "Linux Release",
             "inherits": "linux-base",
+            "binaryDir": "${sourceDir}/build-release",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release"
+                "CMAKE_BUILD_TYPE": "Release",
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/install-release"
             }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "linux-debug",
+            "configurePreset": "linux-debug"
+        },
+        {
+            "name": "linux-release",
+            "configurePreset": "linux-release"
+        },
+        {
+            "name": "x64-debug",
+            "configurePreset": "x64-debug"
+        },
+        {
+            "name": "x64-release",
+            "configurePreset": "x64-release"
         }
     ]
 }
