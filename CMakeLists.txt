@@ -29,18 +29,23 @@ if (WIN32)
     set(KALAKIT_WINDOWS TRUE)
     target_compile_definitions(KalaWindow PRIVATE KALAKIT_WINDOWS)
 elseif(UNIX)
-    find_package(Wayland QUIET)
     find_package(X11 QUIET)
 
-    if (Wayland_FOUND)
-        set(KALAKIT_WAYLAND TRUE)
-        target_compile_definitions(KalaWindow PRIVATE KALAKIT_WAYLAND)
-    elseif (X11_FOUND)
-        set(KALAKIT_X11 TRUE)
-        target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11)
+    include(FindPkgConfig)
+	pkg_check_modules(WAYLAND_CLIENT QUIET wayland-client)
+
+	message(STATUS "X11_FOUND = ${X11_FOUND}")
+	message(STATUS "WAYLAND_CLIENT_FOUND = ${WAYLAND_CLIENT_FOUND}")
+
+    if (WAYLAND_CLIENT_FOUND)
+		set(KALAKIT_WAYLAND TRUE)
+		message(STATUS "[KALAKIT] Using Wayland backend")
+	elseif (X11_FOUND)
+		set(KALAKIT_X11 TRUE)
+		message(STATUS "[KALAKIT] Using X11 backend")
 	else()
-		message(FATAL_ERROR "Unknown UNIX version! Must be X11 or Wayland!")
-    endif()
+		message(FATAL_ERROR "[KALAKIT] No backend found! Must support Wayland or X11.")
+	endif()
 else()
 	message(FATAL_ERROR "Unsupported OS version! Must be WIN32 or UNIX!")
 endif()
@@ -116,6 +121,8 @@ target_include_directories(KalaWindow PRIVATE
 	${EXT_GLM_DIR}
 	${EXT_MAGIC_ENUM_DIR}
 	${EXT_CRASH_DIR}
+
+	${WAYLAND_CLIENT_INCLUDE_DIRS}
 )
 
 if (KALAKIT_WINDOWS)
@@ -132,7 +139,7 @@ else()
 		
 		target_link_libraries(KalaWindow PRIVATE
 			${CRASH_LIBRARY_PATH}
-			Wayland::Client)
+			${WAYLAND_CLIENT_LIBRARIES})
 	else()
 		# Define as X11
 		target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11=1)

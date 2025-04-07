@@ -128,7 +128,9 @@
 #define GL_CURRENT_PROGRAM   0x8B8D
 #define GL_PROGRAM_INPUT     0x92E3
 #define GL_PROGRAM_OUTPUT    0x92E4
+#ifndef GL_ACTIVE_RESOURCES
 #define GL_ACTIVE_RESOURCES  0x929F
+#endif
 #define GL_NAME_LENGTH       0x92F9
 #define GL_TYPE              0x92FA
 #define GL_LOCATION          0x930E

@@ -57,31 +57,31 @@
 #if KALAKIT_WINDOWS
 	#include <Windows.h>
 	#define POINT POS
-	typedef struct WINDOW
+	struct WINDOW
 	{
 		HINSTANCE hInstance;
 		HWND hWnd;
 	};
 #elif KALAKIT_X11
 	#include <X11/Xlib.h>
-	typedef struct POS
+	struct POS
 	{
 		int x;
 		int y;
 	};
-	typedef struct WINDOW
+	struct WINDOW
 	{
 		Display* display;
 		::Window window;
 	};
 #elif KALAKIT_WAYLAND
 	#include <wayland-client.h>
-	typedef struct POS
+	struct POS
 	{
 		int x;
 		int y;
 	};
-	typedef struct WINDOW
+	struct WINDOW
 	{
 		struct wl_display* display;
 		struct wl_surface* surface;
