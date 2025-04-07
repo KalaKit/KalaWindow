@@ -12,8 +12,8 @@ TIME_START=$(date +%T)
 rm -rf "$BUILD_DIR" "$INSTALL_DIR"
 mkdir -p "$BUILD_DIR" "$INSTALL_DIR"
 
-# Configure Project with CMake using Unix Makefiles in Debug mode
-echo "[INFO] Configuring Project with CMake in Debug mode..."
+# Configure Project with CMake using Unix Makefiles
+echo "[INFO] Configuring Project with CMake..."
 if ! cmake -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Debug \
   -DCMAKE_C_COMPILER=gcc \
@@ -55,7 +55,7 @@ fi
 TIME_END=$(date +%T)
 
 # Success message
-echo "[SUCCESS] Project built and installed successfully in Debug mode."
+echo "[SUCCESS] Project built and installed successfully."
 echo "---------------------------------------------"
 echo "Shared library: $INSTALL_DIR/lib/"
 echo "Include headers: $INSTALL_DIR/include"
