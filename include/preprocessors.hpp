@@ -13,7 +13,7 @@
 	#ifndef KALAKIT_WINDOWS
 		#define KALAKIT_WINDOWS
 	#endif
-#elif defined(__linux__)
+#elif __linux__
 	#include <X11/Xlib.h>
 	#include <wayland-client.h>
 	#if defined(X11_FOUND)
