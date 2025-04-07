@@ -5,7 +5,7 @@
 
 #pragma once
 
-#ifdef _WIN32
+#ifdef KALAKIT_WINDOWS
 	#ifdef KALAWINDOW_DLL_EXPORT
 		#define KALAWINDOW_API __declspec(dllexport)
 	#else

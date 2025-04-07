@@ -22,9 +22,36 @@ set(PROJECT_VERSION "${PROJECT_MAJOR_VERSION}.${PROJECT_MINOR_VERSION}.${PROJECT
 
 project("KalaWindow" VERSION ${PROJECT_VERSION})
 
+# Set OS global type
+if (WIN32)
+    set(KALAKIT_WINDOWS TRUE)
+elseif(UNIX)
+    find_package(Wayland QUIET)
+    find_package(X11 QUIET)
+
+    if (Wayland_FOUND)
+        set(KALAKIT_WAYLAND TRUE)
+    elseif (X11_FOUND)
+        set(KALAKIT_X11 TRUE)
+	else()
+		message(FATAL_ERROR "Unknown UNIX version! Must be X11 or Wayland!")
+    endif()
+else()
+	message(FATAL_ERROR "Unsupported OS version! Must be WIN32 or UNIX!")
+endif()
+
+# Set build global type
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(KALAKIT_DEBUG TRUE)
+elseif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+	set(KALAKIT_RELEASE TRUE)
+else()
+	message(FATAL_ERROR "Unknown CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'! Must be Debug, Release, or RelWithDebInfo.")
+endif()
+
 # Set runtime library type for MSVC
 if (MSVC)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(KALAKIT_DEBUG)
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreadedDebug")
     else()
         set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
@@ -45,16 +72,16 @@ set(EXT_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
 set(EXT_CRASH_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaCrashHandler")
 
 # Add KalaCrashHandler
-if (WIN32)
-	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+if (KALAKIT_WINDOWS)
+	if(KALAKIT_RELEASE)
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/release/KalaCrashHandler.lib")
-	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	else()
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/KalaCrashHandlerD.lib")
 	endif()
 else()
-	if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+	if(KALAKIT_RELEASE)
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/release/libKalaCrashHandler.so")
-	elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	else()
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/libKalaCrashHandlerD.so")
 	endif()
 endif()
@@ -62,6 +89,7 @@ endif()
 # Add source files
 file(GLOB_RECURSE WINDOW_SRC_FILES CONFIGURE_DEPENDS
     ${WINDOW_SRC_DIR}/*.cpp
+	${WINDOW_SRC_DIR}/*/*.cpp
 )
 
 # Build as a shared library (DLL)
@@ -85,7 +113,7 @@ target_include_directories(KalaWindow PRIVATE
 	${EXT_CRASH_DIR}
 )
 
-if (WIN32)
+if (KALAKIT_WINDOWS)
 	# Define as Windows
 	target_compile_definitions(KalaWindow PRIVATE KALAKIT_WINDOWS=1)
 	
@@ -93,29 +121,25 @@ if (WIN32)
 		${CRASH_LIBRARY_PATH}
 		opengl32)
 else()
-	find_package(Wayland QUIET)
-	find_package(X11 QUIET)
-	if (Wayland_FOUND)
+	if (KALAKIT_WAYLAND)
 		# Define as Wayland
 		target_compile_definitions(KalaWindow PRIVATE KALAKIT_WAYLAND=1)
 		
 		target_link_libraries(KalaWindow PRIVATE
 			${CRASH_LIBRARY_PATH}
 			Wayland::Client)
-	elseif (X11_FOUND)
+	else()
 		# Define as X11
 		target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11=1)
 		
 		target_link_libraries(KalaWindow PRIVATE
 			${CRASH_LIBRARY_PATH}
 			${X11_LIBRARIES})
-	else()
-		message(FATAL_ERROR "No supported display backend found: Wayland or X11 is required.")
 	endif()
 endif()
 
 # Define preprocessor directives
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+if(KALAKIT_DEBUG)
 	target_compile_definitions(KalaWindow PRIVATE 
 		KALAWINDOW_DLL_EXPORT
 		KALAWINDOW_DEBUG=1
@@ -128,9 +152,9 @@ else()
 endif()
 
 # Copy all DLLs to the install directory after build
-if(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
+if(KALAKIT_RELEASE)
 	set(DLL_ORIGIN_DIR "${CMAKE_SOURCE_DIR}/files/external dlls/release")
-elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
+else()
 	set(DLL_ORIGIN_DIR "${CMAKE_SOURCE_DIR}/files/external dlls/debug")
 endif()
 set(DLL_TARGET_DIR "$<TARGET_FILE_DIR:KalaWindow>")

@@ -7,12 +7,12 @@
 
 #include <cstdint>
 #include <cstddef>
-#ifdef _WIN32
+#ifdef KALAKIT_WINDOWS
     #include <Windows.h>
 #endif
 #include <GL/gl.h>
 
-#ifdef _WIN32
+#ifdef KALAKIT_WINDOWS
     #ifndef APIENTRY
         #define APIENTRY __stdcall
     #endif
@@ -127,7 +127,7 @@ typedef ptrdiff_t       GLsizeiptr;
 
 #endif // GL_TYPES_DEFINED
 
-#ifdef _WIN32
+#ifdef KALAKIT_WINDOWS
 //wgl extension typedefs
 
 typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(

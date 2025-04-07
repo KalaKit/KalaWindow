@@ -3,6 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+#ifdef KALAKIT_WINDOWS
 //main log macro
 #define WRITE_LOG(type, msg) std::cout << "[KALAKIT_MESSAGELOOP | " << type << "] " << msg << "\n"
 
@@ -430,3 +431,4 @@ namespace KalaKit
 		return false;
 	}
 }
+#endif
