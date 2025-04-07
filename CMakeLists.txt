@@ -98,7 +98,7 @@ file(GLOB_RECURSE WINDOW_SRC_FILES CONFIGURE_DEPENDS
 )
 
 # Build as a shared library (DLL)
-add_library(KalaWindow PRIVATE ${WINDOW_SRC_FILES})
+target_sources(KalaWindow PRIVATE ${WINDOW_SRC_FILES})
 set_target_properties(KalaWindow PROPERTIES OUTPUT_NAME "KalaWindow")
 target_compile_features(KalaWindow PRIVATE cxx_std_20)
 
