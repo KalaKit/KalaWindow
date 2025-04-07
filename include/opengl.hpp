@@ -37,7 +37,7 @@ namespace KalaKit
 		}
 
 	private:
-		static inline HGLRC realContext;
+		static inline OPENGLCONTEXT realContext;
 
 		/// <summary>
 		/// Checks whether user has OpenGL 3.3 or higher.

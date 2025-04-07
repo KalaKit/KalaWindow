@@ -56,7 +56,9 @@
 
 #if KALAKIT_WINDOWS
 	#include <Windows.h>
-	#define POINT POS
+	#include <GL/gl.h>
+	typedef POINT POS;
+	typedef HGLRC OPENGLCONTEXT;
 	struct WINDOW
 	{
 		HINSTANCE hInstance;
@@ -64,6 +66,8 @@
 	};
 #elif KALAKIT_X11
 	#include <X11/Xlib.h>
+	#include <GL/glx.h>
+	typedef GLXContext OPENGLCONTEXT;
 	struct POS
 	{
 		int x;
@@ -76,6 +80,8 @@
 	};
 #elif KALAKIT_WAYLAND
 	#include <wayland-client.h>
+	#include <EGL/egl.h>
+	typedef EGLContext OPENGLCONTEXT;
 	struct POS
 	{
 		int x;

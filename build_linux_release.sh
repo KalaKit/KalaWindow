@@ -15,7 +15,7 @@ cd "$BUILD_DIR" || { echo "[ERROR] Failed to access build directory: $BUILD_DIR"
 
 # Configure KalaWindow with CMake using Unix Makefiles
 echo "[INFO] Configuring KalaWindow with CMake..."
-cmake -G "Unix Makefiles" \
+if ! cmake -G "Unix Makefiles" \
   -DCMAKE_BUILD_TYPE=Release \
   -DCMAKE_C_COMPILER=gcc \
   -DCMAKE_CXX_COMPILER=g++ \
@@ -24,15 +24,33 @@ cmake -G "Unix Makefiles" \
   -DCMAKE_CXX_FLAGS="-O2 -DNDEBUG" \
   -DCMAKE_INSTALL_PREFIX="$INSTALL_DIR" \
   -Wno-dev \
-  "$WINDOW_ROOT" || { echo "[ERROR] CMake configuration failed."; exit 1; }
+  "$WINDOW_ROOT"; then
+    echo "[FATAL] CMake configuration failed!"
+    if [[ -t 1 ]]; then
+        read -r -p "Press enter to exit..."
+    fi
+    exit 1
+fi
 
 # Build KalaWindow with make
 echo "[INFO] Building KalaWindow..."
-make -j"$(nproc)" || { echo "[ERROR] Build process failed."; exit 1; }
+if ! make -j"$(nproc)"; then
+    echo "[FATAL] Build failed!"
+    if [[ -t 1 ]]; then  # Only pause if in an interactive terminal
+    read -r -p "Press enter to exit..."
+    fi
+    exit 1
+fi
 
 # Install KalaWindow
 echo "[INFO] Installing KalaWindow..."
-make install || { echo "[ERROR] Install process failed."; exit 1; }
+if ! make install; then
+    echo "[FATAL] Install failed!"
+    if [[ -t 1 ]]; then  # Only pause if in an interactive terminal
+    read -r -p "Press enter to exit..."
+    fi
+    exit 1
+fi
 
 # Record end time
 TIME_END=$(date +%T)

@@ -63,31 +63,31 @@ namespace KalaKit
 		/// Get current mouse position relative to the client area (top-left = 0,0).
 		/// Coordinates are in pixels.
 		/// </summary>
-		static POINT GetMousePosition();
+		static POS GetMousePosition();
 		/// <summary>
 		/// Assign a new mouse position.
 		/// </summary>
-		static void SetMousePosition(POINT newMousePosition);
+		static void SetMousePosition(POS newMousePosition);
 
 		/// <summary>
 		/// Get how much the cursor moved on screen (in client space) since the last frame.
 		/// This uses absolute screen-based movement, affected by OS acceleration and DPI.
 		/// </summary>
-		static POINT GetMouseDelta();
+		static POS GetMouseDelta();
 		/// <summary>
 		/// Assign a new mouse delta.
 		/// </summary>
-		static void SetMouseDelta(POINT newMouseDelta);
+		static void SetMouseDelta(POS newMouseDelta);
 
 		/// <summary>
 		/// Get raw, unfiltered mouse movement from the hardware since the last frame.
 		/// Not affected by DPI, sensitivity, or OS mouse settings. Ideal for FPS camera control.
 		/// </summary>
-		static POINT GetRawMouseDelta();
+		static POS GetRawMouseDelta();
 		/// <summary>
 		/// Assign a new mouse raw mouse delta.
 		/// </summary>
-		static void SetRawMouseDelta(POINT newMouseRawDelta);
+		static void SetRawMouseDelta(POS newMouseRawDelta);
 
 		/// <summary>
 		/// Get how many scroll steps the mouse wheel moved since the last frame.
@@ -155,11 +155,11 @@ namespace KalaKit
 		static inline bool isMouseLocked = false;
 
 		//Where the cursor is on screen or in window.
-		static inline POINT mousePosition = { 0, 0 };
+		static inline POS mousePosition = { 0, 0 };
 		//How much the cursor moved since the last frame.
-		static inline POINT mouseDelta = { 0, 0 };
+		static inline POS mouseDelta = { 0, 0 };
 		//Raw, unfiltered mouse move since last frame.
-		static inline POINT rawMouseDelta = { 0, 0 };
+		static inline POS rawMouseDelta = { 0, 0 };
 
 		//How many steps scrollwheel scrolled since last frame.
 		static inline int mouseWheelDelta = 0;
