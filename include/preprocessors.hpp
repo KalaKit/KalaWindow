@@ -5,16 +5,6 @@
 
 #pragma once
 
-#if defined(KALAKIT_WINDOWS)
-    #pragma message(">>> KALAKIT_WINDOWS is defined")
-#elif defined(KALAKIT_X11)
-    #pragma message(">>> KALAKIT_X11 is defined")
-#elif defined(KALAKIT_WAYLAND)
-    #pragma message(">>> KALAKIT_WAYLAND is defined")
-#else
-    #error ">>> No KALAKIT platform macro defined!"
-#endif
-
 //
 // LOG PREPROCESSORS
 //
