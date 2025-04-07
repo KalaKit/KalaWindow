@@ -74,12 +74,12 @@ echo "[INFO] Headers copied to target folder!"
 
 # Copy release DLL
 mkdir -p "$TARGET_DIR/release"
-cp "$RELEASE_DLL" "$TARGET_DIR/release"
+cp -f "$RELEASE_DLL" "$TARGET_DIR/release"
 echo "[INFO] Copied release DLL to target release folder!"
 
 # Copy debug DLL
 mkdir -p "$TARGET_DIR/debug"
-cp "$DEBUG_DLL" "$TARGET_DIR/debug"
+cp -f "$DEBUG_DLL" "$TARGET_DIR/debug"
 echo "[INFO] Copied debug DLL to target debug folder!"
 
 echo ""
