@@ -26,7 +26,7 @@
 			#define KALAKIT_WAYLAND
 		#endif
 	#else
-		#error "Unknown UNIX version! Must be X11 or Wayland!"
+		#error "Unsupported UNIX version! Must be X11 or Wayland!"
 	#endif
 #else
 	#error "Unsupported OS version! Must be WIN32 or UNIX!"
