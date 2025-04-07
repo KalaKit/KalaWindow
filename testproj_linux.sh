@@ -11,18 +11,27 @@ RELEASE_DLL="${HEADER_DIR}/../lib/libKalaWindow.so"
 DEBUG_DLL="${HEADER_DIR}/../../install-debug/lib/libKalaWindowD.so"
 
 # Compile in release and debug mode
-bash "${ROOT_DIR}/build_linux_release.sh"
-bash "${ROOT_DIR}/build_linux_debug.sh"
+if ! bash "${ROOT_DIR}/build_linux_release.sh"; then
+    echo "[FATAL] Release build failed!"
+    read -r -p "Press enter to exit..."
+    exit 1
+fi
+
+if ! bash "${ROOT_DIR}/build_linux_debug.sh"; then
+    echo "[FATAL] Debug build failed!"
+    read -r -p "Press enter to exit..."
+    exit 1
+fi
 
 # Set target folder
 TARGET_DIR="${ROOT_DIR}/../KalaTestProject/_external_shared/KalaWindow"
 
 # Copy all origin headers to target folder
 if [[ -d "$HEADER_DIR" ]]; then
-    find "$HEADER_DIR" -type f \
-        \( -name "*.h" -o -name "*.hpp" -o -name "*.inl" \) \
-        -exec cp --parents {} "$TARGET_DIR" \;
-    echo "[INFO] Copied headers to target folder!"
+    cd "$HEADER_DIR"
+    find . -type f \( -name "*.h" -o -name "*.hpp" -o -name "*.inl" \) \
+        -exec cp -f --parents {} "$TARGET_DIR" \;
+    echo "[INFO] Headers copied to target folder!"
 else
     echo "[ERROR] Header folder not found: $HEADER_DIR"
 fi
@@ -44,6 +53,6 @@ else
 fi
 
 echo ""
-read -n 1 -s -r -p "Press any key to exit..."
+read -r -p "Press enter to exit..."
 echo ""
 exit 0
