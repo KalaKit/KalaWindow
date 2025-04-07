@@ -117,7 +117,10 @@ namespace KalaKit
 	template <typename T>
 	T OpenGLLoader::LoadOpenGLFunction(const char* name)
 	{
-		T func = reinterpret_cast<T>(wglGetProcAddress(name));
+		T func = nullptr;
+
+#ifdef KALAKIT_WINDOWS
+		func = reinterpret_cast<T>(wglGetProcAddress(name));
 
 		//fall back to opengl32.dll for 1.1 core functions
 		if (!func)
@@ -128,6 +131,13 @@ namespace KalaKit
 				func = reinterpret_cast<T>(GetProcAddress(openglModule, name));
 			}
 		}
+
+#elif KALAKIT_WAYLAND
+		func = reinterpret_cast<T>(eglGetProcAddress(name));
+#elif KALAKIT_X11
+		func = reinterpret_cast<T>(glXGetProcAddressARB(
+			reinterpret_cast<const GLubyte*>(name)));
+#endif
 
 		if (!func)
 		{

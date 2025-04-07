@@ -86,6 +86,9 @@ target_include_directories(KalaWindow PRIVATE
 )
 
 if (WIN32)
+	# Define as Windows
+	target_compile_definitions(KalaWindow PRIVATE KALAKIT_WINDOWS=1)
+	
     target_link_libraries(KalaWindow PRIVATE
 		${CRASH_LIBRARY_PATH}
 		opengl32)
@@ -93,13 +96,21 @@ else()
 	find_package(Wayland QUIET)
 	find_package(X11 QUIET)
 	if (Wayland_FOUND)
+		# Define as Wayland
+		target_compile_definitions(KalaWindow PRIVATE KALAKIT_WAYLAND=1)
+		
 		target_link_libraries(KalaWindow PRIVATE
 			${CRASH_LIBRARY_PATH}
 			Wayland::Client)
 	elseif (X11_FOUND)
+		# Define as X11
+		target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11=1)
+		
 		target_link_libraries(KalaWindow PRIVATE
 			${CRASH_LIBRARY_PATH}
 			${X11_LIBRARIES})
+	else()
+		message(FATAL_ERROR "No supported display backend found: Wayland or X11 is required.")
 	endif()
 endif()
 

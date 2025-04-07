@@ -5,25 +5,39 @@
 
 #pragma once
 
-#include <Windows.h>
-#include <GL/gl.h>
 #include <cstdint>
 #include <cstddef>
-
-#ifndef APIENTRY
-    #define APIENTRY __stdcall
+#ifdef _WIN32
+    #include <Windows.h>
 #endif
+#include <GL/gl.h>
 
-#ifndef APIENTRYP
-    #define APIENTRYP APIENTRY *
-#endif
-
-#ifndef WGLENTRY
-    #define WGLENTRY __stdcall
-#endif
-
-#ifndef WGLENTRYP
-    #define WGLENTRYP WGLENTRY *
+#ifdef _WIN32
+    #ifndef APIENTRY
+        #define APIENTRY __stdcall
+    #endif
+    #ifndef APIENTRYP
+        #define APIENTRYP APIENTRY *
+    #endif
+    #ifndef WGLENTRY
+        #define WGLENTRY __stdcall
+    #endif
+    #ifndef WGLENTRYP
+        #define WGLENTRYP WGLENTRY *
+    #endif
+#else
+    #ifndef APIENTRY
+        #define APIENTRY
+    #endif
+    #ifndef APIENTRYP
+        #define APIENTRYP *
+    #endif
+    #ifndef WGLENTRY
+        #define WGLENTRY
+    #endif
+    #ifndef WGLENTRYP
+        #define WGLENTRYP *
+    #endif
 #endif
 
 //opengl error codes
@@ -113,6 +127,7 @@ typedef ptrdiff_t       GLsizeiptr;
 
 #endif // GL_TYPES_DEFINED
 
+#ifdef _WIN32
 //wgl extension typedefs
 
 typedef HGLRC(WINAPI* PFNWGLCREATECONTEXTATTRIBSARBPROC)(
@@ -126,6 +141,7 @@ typedef BOOL(WINAPI* PFNWGLCHOOSEPIXELFORMATARBPROC)(
 	UINT,
 	int*,
 	UINT*);
+#endif
 
 //geometry
 
