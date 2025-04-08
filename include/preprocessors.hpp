@@ -49,11 +49,7 @@
 	#include <GL/gl.h>
 	typedef POINT POS;
 	typedef HGLRC OPENGLCONTEXT;
-	struct WINDOW
-	{
-		HINSTANCE hInstance;
-		HWND hWnd;
-	};
+	typedef HWND WINDOW;
 #elif KALAKIT_X11
 	#include <X11/Xlib.h>
 	#include <GL/glx.h>

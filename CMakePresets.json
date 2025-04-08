@@ -16,7 +16,7 @@
             }
         },
         {
-            "name": "x64-debug",
+            "name": "windows-debug",
             "inherits": "windows-base",
             "binaryDir": "${sourceDir}/build-debug",
             "cacheVariables": {
@@ -25,7 +25,7 @@
             }
         },
         {
-            "name": "x64-release",
+            "name": "windows-release",
             "inherits": "windows-base",
             "binaryDir": "${sourceDir}/build-release",
             "cacheVariables": {
@@ -76,12 +76,12 @@
             "configurePreset": "linux-release"
         },
         {
-            "name": "x64-debug",
-            "configurePreset": "x64-debug"
+            "name": "windows-debug",
+            "configurePreset": "windows-debug"
         },
         {
-            "name": "x64-release",
-            "configurePreset": "x64-release"
+            "name": "windows-release",
+            "configurePreset": "windows-release"
         }
     ]
 }

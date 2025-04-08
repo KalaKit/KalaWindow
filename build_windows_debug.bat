@@ -1,11 +1,23 @@
 @echo off
 
-:: This batch file builds KalaWindow from source code using MSVC (cl.exe) for Debug.
+set "PROJECT_ROOT=%~dp0"
+cd "%PROJECT_ROOT%"
 
-:: Set the root folder as the location of this script
-set "PWINDOW_ROOT=%~dp0"
-set "BUILD_DIR=%PWINDOW_ROOT%build-debug"
-set "INSTALL_DIR=%PWINDOW_ROOT%install-debug"
+set "BUILD_DIR=%PROJECT_ROOT%build-debug"
+set "INSTALL_DIR=%PROJECT_ROOT%install-debug"
+
+set "PRESET=windows-debug"
+set "INSTALLER_BUILD_DIR=build-debug"
+
+if exist "%BUILD_DIR%" (
+    echo [INFO] Removing existing build directory
+    rmdir /s /q "%BUILD_DIR%"
+)
+
+if exist "%INSTALL_DIR%" (
+    echo [INFO] Removing existing install directory
+    rmdir /s /q "%INSTALL_DIR%"
+)
 
 :: Ensure Visual Studio environment is set up correctly
 call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build\vcvars64.bat" || (
@@ -16,39 +28,27 @@ call "C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Auxiliary\Build
 :: Record start time
 for /f "tokens=1-4 delims=:.," %%a in ("%TIME%") do set "TIME_START=%%a:%%b:%%c"
 
-:: Create the build directory
-if not exist "%BUILD_DIR%" mkdir "%BUILD_DIR%"
-cd /d "%BUILD_DIR%" || (
-    echo [ERROR] Failed to access build directory: %BUILD_DIR%
+echo [INFO] Configuring with preset: %PRESET%
+cmake --preset %PRESET%
+if errorlevel 1 (
+    echo [ERROR] Configuration failed
+	pause
     exit /b 1
 )
 
-:: Configure KalaWindow with CMake
-echo [INFO] Configuring KalaWindow with CMake...
-cmake -G "Ninja" ^
-  -DCMAKE_BUILD_TYPE=Debug ^
-  -DCMAKE_C_COMPILER=cl ^
-  -DBUILD_SHARED_LIBS=ON ^
-  -DCMAKE_C_FLAGS="/Od /Zi /EHsc /MTd" ^
-  -DCMAKE_CXX_FLAGS="/Od /Zi /EHsc /MTd" ^
-  -DCMAKE_INSTALL_PREFIX="%INSTALL_DIR%" ^
-  -Wno-dev ^
-  %PWINDOW_ROOT% || (
-    echo [ERROR] CMake configuration failed.
+echo [INFO] Building with preset: %PRESET%
+cmake --build --preset %PRESET%
+if errorlevel 1 (
+    echo [ERROR] Build failed
+	pause
     exit /b 1
 )
 
-:: Build KalaWindow with Ninja
-echo [INFO] Building KalaWindow...
-ninja -j%NUMBER_OF_PROCESSORS% || (
-    echo [ERROR] Build process failed.
-    exit /b 1
-)
-
-:: Install KalaWindow
-echo [INFO] Installing KalaWindow...
-ninja install || (
-    echo [ERROR] Install process failed.
+echo [INFO] Installing to "%INSTALLER_BUILD_DIR%"
+cmake --install "%INSTALLER_BUILD_DIR%"
+if errorlevel 1 (
+    echo [ERROR] Install failed
+	pause
     exit /b 1
 )
 
@@ -56,11 +56,11 @@ ninja install || (
 for /f "tokens=1-4 delims=:.," %%a in ("%TIME%") do set "TIME_END=%%a:%%b:%%c"
 
 :: Success message
-echo [SUCCESS] KalaWindow built and installed successfully (Debug).
+echo [SUCCESS] Project built and installed successfully.
 echo ---------------------------------------------
-echo Shared library: %INSTALL_DIR%\bin\KalaWindowD.dll
-echo Static library: %INSTALL_DIR%\lib\KalaWindow.lib
-echo Include headers: %INSTALL_DIR%\include
+echo Shared library: "%INSTALL_DIR%\bin"
+echo Static library: "%INSTALL_DIR%\lib"
+echo Include headers: "%INSTALL_DIR%\include"
 echo Build duration: %TIME_START% - %TIME_END%
 echo ---------------------------------------------
 
