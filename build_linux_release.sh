@@ -15,10 +15,25 @@ rm -rf "$BUILD_DIR" "$INSTALL_DIR"
 mkdir -p "$BUILD_DIR" "$INSTALL_DIR"
 
 cmake --preset=linux-release
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Configuration failed."
+    read -p "Press enter to continue..."
+    exit 1
+fi
 
-cmake --build --preset=linux-release
+cmake --build --preset=linux-release -- -j$(nproc)
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Build failed."
+    read -p "Press enter to continue..."
+    exit 1
+fi
 
 cmake --install build-release
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Install failed."
+    read -p "Press enter to continue..."
+    exit 1
+fi
 
 # Record end time
 TIME_END=$(date +%T)
