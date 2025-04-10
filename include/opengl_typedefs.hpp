@@ -13,7 +13,7 @@
 #include <GL/gl.h>
 
 //kalawindow
-#include "preprocessors.hpp"
+#include "platform.hpp"
 
 #ifdef KALAKIT_WINDOWS
     #ifndef APIENTRY

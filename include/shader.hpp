@@ -13,7 +13,7 @@
 #include "glm/ext/vector_float2.hpp"
 
 //kalawindow
-#include "preprocessors.hpp"
+#include "platform.hpp"
 #include "opengl_typedefs.hpp"
 
 namespace KalaKit

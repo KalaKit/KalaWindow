@@ -3,14 +3,10 @@
 set "PROJECT_ROOT=%~dp0"
 cd "%PROJECT_ROOT%"
 
-set "INSTALL_RELEASE=%PROJECT_ROOT%install-release"
-set "INSTALL_DEBUG=%PROJECT_ROOT%install-debug"
 set "BUILD_RELEASE=%PROJECT_ROOT%build-release"
 set "BUILD_DEBUG=%PROJECT_ROOT%build-debug"
 
-:: Remove old build and install folders
-if exist "%INSTALL_RELEASE%" rmdir /S /Q "%INSTALL_RELEASE%"
-if exist "%INSTALL_DEBUG%" rmdir /S /Q "%INSTALL_DEBUG%"
+:: Remove old build folders
 if exist "%BUILD_RELEASE%" rmdir /S /Q "%BUILD_RELEASE%"
 if exist "%BUILD_DEBUG%" rmdir /S /Q "%BUILD_DEBUG%"
 
@@ -45,11 +41,11 @@ echo [SUCCESS] Finished building and installing KalaWindow!
 echo =====================================
 echo.
 
-set "ORIGIN_RELEASE_DLL=%INSTALL_RELEASE%\bin\KalaWindow.dll"
-set "ORIGIN_RELEASE_LIB=%INSTALL_RELEASE%\lib\KalaWindow.lib"
-set "ORIGIN_DEBUG_DLL=%INSTALL_DEBUG%\bin\KalaWindowD.dll"
-set "ORIGIN_DEBUG_LIB=%INSTALL_DEBUG%\lib\KalaWindowD.lib"
-set "ORIGIN_FOLDER=%PROJECT_ROOT%\install-release\include"
+set "ORIGIN_RELEASE_DLL=%BUILD_RELEASE%\bin\KalaWindow.dll"
+set "ORIGIN_RELEASE_LIB=%BUILD_RELEASE%\lib\KalaWindow.lib"
+set "ORIGIN_DEBUG_DLL=%BUILD_DEBUG%\bin\KalaWindowD.dll"
+set "ORIGIN_DEBUG_LIB=%BUILD_DEBUG%\lib\KalaWindowD.lib"
+set "ORIGIN_FOLDER=%PROJECT_ROOT%\build-release\include"
 
 if not exist "%ORIGIN_RELEASE_DLL%" (
 	echo Failed to find origin release dll from '%ORIGIN_RELEASE_DLL%'!

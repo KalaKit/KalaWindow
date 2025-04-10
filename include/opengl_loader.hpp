@@ -8,7 +8,7 @@
 #include <vector>
 
 //kalawindow
-#include "preprocessors.hpp"
+#include "platform.hpp"
 #include "enums.hpp"
 #include "opengl_typedefs.hpp"
 

@@ -33,9 +33,16 @@ elseif(UNIX)
 
     include(FindPkgConfig)
 	pkg_check_modules(WAYLAND_CLIENT QUIET wayland-client)
+	pkg_check_modules(WAYLAND_EGL QUIET wayland-egl)
+	pkg_check_modules(EGL QUIET egl)
 
 	message(STATUS "X11_FOUND = ${X11_FOUND}")
 	message(STATUS "WAYLAND_CLIENT_FOUND = ${WAYLAND_CLIENT_FOUND}")
+	message(STATUS "WAYLAND_EGL_FOUND = ${WAYLAND_EGL_FOUND}")
+	message(STATUS "EGL_FOUND = ${EGL_FOUND}")
+
+	find_package(OpenGL REQUIRED)
+	message(STATUS "OpenGL_FOUND: ${OpenGL_FOUND}")
 
     if (WAYLAND_CLIENT_FOUND)
 		set(KALAKIT_WAYLAND TRUE)
@@ -82,6 +89,7 @@ set(WINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 set(EXT_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
 set(EXT_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
 set(EXT_CRASH_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaCrashHandler")
+set(EXT_XDG_DIR "${CMAKE_SOURCE_DIR}/_external_shared/xdg-shell")
 
 # Add KalaCrashHandler
 if (KALAKIT_WINDOWS)
@@ -99,103 +107,174 @@ else()
 endif()
 
 # Add source files
-file(GLOB_RECURSE WINDOW_SRC_FILES CONFIGURE_DEPENDS
-    ${WINDOW_SRC_DIR}/*.cpp
-	${WINDOW_SRC_DIR}/*/*.cpp
-)
+set(WINDOW_SRC_FILES)
 
-# Build as a shared library (DLL)
+# Root level source files
+file(GLOB ROOT_SRC CONFIGURE_DEPENDS
+    ${WINDOW_SRC_DIR}/*.cpp
+)
+list(APPEND WINDOW_SRC_FILES ${ROOT_SRC})
+
+# Windows source files
+if (KALAKIT_WINDOWS)
+    file(GLOB WINDOWS_SRC
+        ${WINDOW_SRC_DIR}/windows/*.cpp
+    )
+    list(APPEND WINDOW_SRC_FILES ${WINDOWS_SRC})
+
+# Wayland source files
+elseif (KALAKIT_WAYLAND)
+    file(GLOB WAYLAND_SRC
+		"${EXT_XDG_DIR}/xdg-shell-protocol.c"
+        "${WINDOW_SRC_DIR}/wayland/*.cpp"
+    )
+    list(APPEND WINDOW_SRC_FILES ${WAYLAND_SRC})
+
+# X11 source files
+elseif (KALAKIT_X11)
+    file(GLOB X11_SRC
+        ${WINDOW_SRC_DIR}/x11/*.cpp
+    )
+    list(APPEND WINDOW_SRC_FILES ${X11_SRC})
+endif()
+
+# Shared library
 target_sources(KalaWindow PRIVATE ${WINDOW_SRC_FILES})
-set_target_properties(KalaWindow PROPERTIES OUTPUT_NAME "KalaWindow")
+set_target_properties(KalaWindow PROPERTIES OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>")
 target_compile_features(KalaWindow PRIVATE cxx_std_20)
 
-# Append 'D' suffix to debug builds for both Windows and Linux
-set_target_properties(KalaWindow PROPERTIES
-    OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>"
-)
+# Static library
+add_library(KalaWindowStatic STATIC  ${WINDOW_SRC_FILES})
+set_target_properties(KalaWindowStatic PROPERTIES OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>")
+target_compile_features(KalaWindowStatic PRIVATE cxx_std_20)
 
-# Apply all directories to target
-target_include_directories(KalaWindow PRIVATE
-	# KalaWindow headers
-    ${WINDOW_INCLUDE_DIR}
-	
-	# External headers
-	${EXT_GLM_DIR}
-	${EXT_MAGIC_ENUM_DIR}
-	${EXT_CRASH_DIR}
+# Apply all directories
+function(set_kalawindow_includes target)
+	target_include_directories(${target} PRIVATE
+		# KalaWindow headers
+		"${WINDOW_INCLUDE_DIR}"
 
-	${WAYLAND_CLIENT_INCLUDE_DIRS}
-)
-
-if (KALAKIT_WINDOWS)
-	# Define as Windows
-	target_compile_definitions(KalaWindow PRIVATE KALAKIT_WINDOWS=1)
-	
-    target_link_libraries(KalaWindow PRIVATE
-		${CRASH_LIBRARY_PATH}
-		opengl32)
-else()
+		# External headers
+		"${EXT_GLM_DIR}"
+		"${EXT_MAGIC_ENUM_DIR}"
+		"${EXT_CRASH_DIR}"
+	)
 	if (KALAKIT_WAYLAND)
-		# Define as Wayland
-		target_compile_definitions(KalaWindow PRIVATE KALAKIT_WAYLAND=1)
-		
-		target_link_libraries(KalaWindow PRIVATE
-			${CRASH_LIBRARY_PATH}
-			${WAYLAND_CLIENT_LIBRARIES})
-	else()
-		# Define as X11
-		target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11=1)
-		
-		target_link_libraries(KalaWindow PRIVATE
-			${CRASH_LIBRARY_PATH}
-			${X11_LIBRARIES})
+		target_include_directories(${target} PRIVATE
+			"${EXT_XDG_DIR}"
+			"${WAYLAND_CLIENT_INCLUDE_DIRS}"
+			"${WAYLAND_EGL_INCLUDE_DIRS}"
+			"${EGL_INCLUDE_DIRS}"
+		)
+	elseif(KALAKIT_X11)
+		target_include_directories(${target} PRIVATE
+			"${EGL_INCLUDE_DIRS}"
+		)
 	endif()
-endif()
+endfunction()
+
+set_kalawindow_includes(KalaWindow)
+set_kalawindow_includes(KalaWindowStatic)
+
+function(configure_kalawindow_target target)
+	if (KALAKIT_WINDOWS)
+		target_compile_definitions(${target} PRIVATE KALAKIT_WINDOWS=1)
+
+		target_link_libraries(${target} PRIVATE
+			opengl32
+			${CRASH_LIBRARY_PATH}
+		)
+	else()
+		if (KALAKIT_WAYLAND)
+			target_compile_definitions(${target} PRIVATE KALAKIT_WAYLAND=1)
+
+			target_link_libraries(${target} PRIVATE
+				OpenGL::GL
+				EGL
+				${CRASH_LIBRARY_PATH}
+				${WAYLAND_CLIENT_LIBRARIES}
+				${WAYLAND_EGL_LIBRARIES}
+				${EGL_LIBRARIES}
+			)
+		else()
+			target_compile_definitions(${target} PRIVATE KALAKIT_X11=1)
+
+			target_link_libraries(${target} PRIVATE
+				OpenGL::GL
+				EGL
+				${CRASH_LIBRARY_PATH}
+				${X11_LIBRARIES}
+			)
+		endif()
+	endif()
+endfunction()
+
+configure_kalawindow_target(KalaWindow)
+configure_kalawindow_target(KalaWindowStatic)
 
 # Define preprocessor directives
-if(KALAKIT_DEBUG)
-	target_compile_definitions(KalaWindow PRIVATE 
-		KALAWINDOW_DLL_EXPORT
-		KALAWINDOW_DEBUG=1
-	)
-else()
-	target_compile_definitions(KalaWindow PRIVATE 
-		KALAWINDOW_DLL_EXPORT
-		KALAWINDOW_DEBUG=0
-	)
-endif()
+function(set_debug_defines target)
+	if(KALAKIT_DEBUG)
+		target_compile_definitions(${target} PRIVATE
+			KALAWINDOW_DLL_EXPORT
+			KALAWINDOW_DEBUG=1
+		)
+	else()
+		target_compile_definitions(${target} PRIVATE
+			KALAWINDOW_DLL_EXPORT
+			KALAWINDOW_DEBUG=0
+		)
+	endif()
+endfunction()
 
-# Copy all DLLs to the install directory after build
-if(KALAKIT_RELEASE)
-	set(DLL_ORIGIN_DIR "${CMAKE_SOURCE_DIR}/files/external dlls/release")
-else()
-	set(DLL_ORIGIN_DIR "${CMAKE_SOURCE_DIR}/files/external dlls/debug")
-endif()
-set(DLL_TARGET_DIR "$<TARGET_FILE_DIR:KalaWindow>")
+set_debug_defines(KalaWindow)
+set_debug_defines(KalaWindowStatic)
 
-file(GLOB DLL_FILES "${DLL_ORIGIN_DIR}/*")
-	
-foreach(DLL_FILE ${DLL_FILES})
-    get_filename_component(DLL_NAME ${DLL_FILE} NAME)
-    add_custom_command(TARGET KalaWindow POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy 
-            ${DLL_FILE} 
-            ${DLL_TARGET_DIR}/${DLL_NAME}
-    )
-endforeach()
+# Copy shared library to bin (.dll or .so)
+add_custom_command(TARGET KalaWindow POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/bin"
 
-# Install the DLL and its import library (KalaWindow.dll + KalaWindow.lib)
-install(TARGETS KalaWindow
-    RUNTIME DESTINATION bin  # .dll (Windows) and .so (Linux)
-    LIBRARY DESTINATION lib  # .lib (Windows import lib) or .so (Linux)
-    ARCHIVE DESTINATION lib  # .lib (Linux static lib)
+    # Copy the shared library to the bin directory
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_FILE:KalaWindow>
+        "${CMAKE_BINARY_DIR}/bin"
+
+    # Remove the original
+    COMMAND ${CMAKE_COMMAND} -E remove
+        $<TARGET_FILE:KalaWindow>
 )
 
-# Install header files
-install(DIRECTORY ${WINDOW_INCLUDE_DIR}/
-    DESTINATION include
-    FILES_MATCHING 
-		PATTERN "*.hpp" 
-		PATTERN "*.h" 
-		PATTERN "*.inl"
+# Copy static library to lib (.lib or .a)
+add_custom_command(TARGET KalaWindowStatic POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib"
+
+    # Copy the static library to the lib directory
+    COMMAND ${CMAKE_COMMAND} -E copy
+        $<TARGET_LINKER_FILE:KalaWindowStatic>
+        "${CMAKE_BINARY_DIR}/lib"
+
+    # Remove the original
+    COMMAND ${CMAKE_COMMAND} -E remove
+        $<TARGET_LINKER_FILE:KalaWindowStatic>
+)
+
+# Copy all headers to include folder
+add_custom_command(TARGET KalaWindow POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/KalaCrashHandler"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/glm"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/magic_enum"
+
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${WINDOW_INCLUDE_DIR}/"
+        "${CMAKE_BINARY_DIR}/include"
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${EXT_CRASH_DIR}/"
+        "${CMAKE_BINARY_DIR}/include/KalaCrashHandler"
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${EXT_MAGIC_ENUM_DIR}/"
+        "${CMAKE_BINARY_DIR}/include/magic_enum"
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${EXT_GLM_DIR}/"
+        "${CMAKE_BINARY_DIR}/include/glm"
 )

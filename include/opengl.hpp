@@ -6,7 +6,7 @@
 #pragma once
 
 //kalawindow
-#include "preprocessors.hpp"
+#include "platform.hpp"
 #include "opengl_typedefs.hpp"
 
 namespace KalaKit

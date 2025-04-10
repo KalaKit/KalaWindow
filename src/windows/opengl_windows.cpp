@@ -16,6 +16,7 @@
 #include "opengl.hpp"
 #include "window.hpp"
 #include "opengl_loader.hpp"
+#include "GL/gl.h"
 
 namespace KalaKit
 {

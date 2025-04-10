@@ -9,12 +9,36 @@
 
 //kalawindow
 #include "opengl.hpp"
+#include <EGL/egl.h>
 
 namespace KalaKit
 {
+	bool OpenGL::Initialize()
+	{
+		return false;
+	}
+
     OPENGLCONTEXT OpenGL::GetOpenGLContext()
 	{
     	return eglGetCurrentContext();
+	}
+
+	bool OpenGL::IsContextValid()
+	{
+		EGLContext current = eglGetCurrentContext();
+		if (current == nullptr)
+		{
+			LOG_ERROR("Current OpenGL context is null!");
+			return false;
+		}
+
+		if (current != realContext)
+		{
+			LOG_ERROR("Current OpenGL context does not match stored context!");
+			return false;
+		}
+
+		return true;
 	}
 }
 

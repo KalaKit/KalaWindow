@@ -6,26 +6,30 @@
 #pragma once
 
 #include <string>
-#ifdef KALAKIT_WINDOWS
-#include <Windows.h>
-#endif
+#include <memory>
 
 //kalawindow
-#include "preprocessors.hpp"
+#include "platform.hpp"
 #include "enums.hpp"
 
 namespace KalaKit
 {
 	using std::string;
+	using std::unique_ptr;
 
 	class KALAWINDOW_API KalaWindow
 	{
 	public:
-		//global os-agnostic reference to the window
-		static inline WINDOW window;
-#ifdef KALAKIT_WINDOWS
-		static inline WNDPROC proc;
-#endif
+		static inline window_win windowsWindow;
+		static inline context_win windowsContext;
+
+		static inline window_x11 x11Window;
+		static inline display_x11 x11Display;
+		static inline target_x11 x11GraphicsContext;
+
+		static inline surface_way waylandSurface;
+		static inline display_way waylandDisplay;
+		static inline target_way waylandRenderTarget;
 
 		/// <summary>
 		/// Title of the warning popup when user wants to exit
@@ -39,12 +43,15 @@ namespace KalaKit
 		/// <summary>
 		/// Initializes the window system, input system, creates an opengl context
 		/// and loads all the opengl functions and creates a window with the given parameters.
-		/// Returns true if the window was successfully created.
+		/// Returns true if the window was successfully created. If you set initializeOpenGL
+		/// to false then OpenGL and OpenGL functions will not be loaded and you will
+		/// only get the most basic window available with no support for rendering.
 		/// </summary>
 		static bool Initialize(
 			const string& title, 
 			int width, 
-			int height);
+			int height,
+			bool initializeOpenGL = true);
 
 		/// <summary>
 		/// Handles all input at runtime. 

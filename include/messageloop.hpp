@@ -11,7 +11,7 @@
 #endif
 
 //kalawindow
-#include "preprocessors.hpp"
+#include "platform.hpp"
 
 namespace KalaKit
 {

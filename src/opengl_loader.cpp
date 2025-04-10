@@ -9,6 +9,14 @@
 #include "opengl_loader.hpp"
 #include "opengl_typedefs.hpp"
 
+#ifdef KALAKIT_WINDOWS
+#include "GL/gl.h"
+#elif KALAKIT_WAYLAND
+#include <EGL/egl.h>
+#elif KALAKIT_X11
+#include <EGL/egl.h>
+#endif
+
 using std::find;
 
 namespace KalaKit
