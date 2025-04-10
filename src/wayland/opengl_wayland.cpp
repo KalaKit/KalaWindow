@@ -10,4 +10,12 @@
 //kalawindow
 #include "opengl.hpp"
 
+namespace KalaKit
+{
+    OPENGLCONTEXT OpenGL::GetOpenGLContext()
+	{
+    	return eglGetCurrentContext();
+	}
+}
+
 #endif // KALAKIT_WAYLAND

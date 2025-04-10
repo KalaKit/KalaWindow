@@ -190,6 +190,7 @@ namespace KalaKit
 		wglDeleteContext(dummyRC);
 
 		wglMakeCurrent(hdc, realContext);
+		context = realContext;
 
 		if (!IsCorrectVersion())
 		{
@@ -216,6 +217,11 @@ namespace KalaKit
 		OpenGLLoader::LoadAllFunctions();
 
 		return true;
+	}
+
+	OPENGLCONTEXT OpenGL::GetOpenGLContext()
+	{
+    	return wglGetCurrentContext();
 	}
 
 	bool OpenGL::IsContextValid()

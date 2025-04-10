@@ -21,6 +21,7 @@ namespace KalaKit
 	class KALAWINDOW_API KalaWindow
 	{
 	public:
+		//global os-agnostic reference to the window
 		static inline WINDOW window;
 #ifdef KALAKIT_WINDOWS
 		static inline WNDPROC proc;
@@ -40,12 +41,20 @@ namespace KalaKit
 		/// and loads all the opengl functions and creates a window with the given parameters.
 		/// Returns true if the window was successfully created.
 		/// </summary>
-		static bool Initialize(const string& title, int width, int height);
+		static bool Initialize(
+			const string& title, 
+			int width, 
+			int height);
 
 		/// <summary>
 		/// Handles all input at runtime. 
 		/// </summary>
 		static void Update();
+
+		/// <summary>
+		/// Cross-platform buffer swapper.
+		/// </summary>
+		static void SwapBuffers(const OPENGLCONTEXT& context);
 
 		using RedrawCallback = void(*)();
 		static inline RedrawCallback OnRedraw = nullptr;

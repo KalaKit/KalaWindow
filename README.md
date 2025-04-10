@@ -51,6 +51,9 @@ static void YourInitializeFunction()
 		cout << "Failed to initialize KalaWindow!\n";
 		return;
 	}
+
+	//use this to get the valid context depending on your OS
+	OPENGLCONTEXT context = KalaWindow::GetOpenGLContext();
 	
 	//use this if you want the window to properly keep drawing while it is being resized
 	KalaWindow::SetRedrawCallback(YourRedrawCallback);
@@ -64,6 +67,10 @@ static void YourUpdateLoop()
 	{
 		//capture all input and handle the message loop
 		KalaWindow::Update();
+
+		//use this instead of os-dependant buffer swapper functions
+		OPENGLCONTEXT context{};
+		KalaWindow::SwapBuffers();
 		
 		//you can pass one of the many debug types to this function
 		//to be able to see messages of that debug type printed to your console,

@@ -14,10 +14,18 @@ namespace KalaKit
 	class KALAWINDOW_API OpenGL
 	{
 	public:
+		//global os-agnostic reference to the opengl context
+		static inline OPENGLCONTEXT context;
+
 		/// <summary>
 		/// Creates a context of OpenGL 3.3 and attaches to the window.
 		/// </summary>
 		static bool Initialize();
+
+		/// <summary>
+		/// Returns the correct opengl context depending on your OS
+		/// </summary>
+		static OPENGLCONTEXT GetOpenGLContext();
 
 		static bool IsContextValid();
 

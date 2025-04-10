@@ -49,11 +49,16 @@
 	#include <GL/gl.h>
 	typedef POINT POS;
 	typedef HGLRC OPENGLCONTEXT;
-	typedef HWND WINDOW;
+	struct WINDOW
+	{
+		HWND handle;      //Window handle
+		HDC context;      //Device context
+		WNDPROC callback; //Window procedure callback
+	}
 #elif KALAKIT_X11
 	#include <X11/Xlib.h>
-	#include <GL/glx.h>
-	typedef GLXContext OPENGLCONTEXT;
+	#include <EGL/egl.h>
+	typedef EGLContext OPENGLCONTEXT;
 	struct POS
 	{
 		int x;
@@ -61,8 +66,8 @@
 	};
 	struct WINDOW
 	{
-		Display* display;
-		::Window window;
+		::Window handle;  //X11 native window handle
+		Display* display; //X11 display server connection
 	};
 #elif KALAKIT_WAYLAND
 	#include <wayland-client.h>
@@ -75,7 +80,9 @@
 	};
 	struct WINDOW
 	{
-		struct wl_display* display;
-		struct wl_surface* surface;
+		struct wl_surface* handle;          //Wayland native window handle
+		struct wl_display* display;         //Wayland display server connection
+		struct wl_egl_window* renderTarget; //EGL surface render wrapper
+
 	};
 #endif

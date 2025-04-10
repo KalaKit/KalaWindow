@@ -60,7 +60,7 @@ namespace KalaKit
 			return false;
 		}
 
-		window = CreateWindowExA(
+		HWND win = CreateWindowExA(
 			0,
 			"KalaWindowClass",
 			title.c_str(),
@@ -72,7 +72,7 @@ namespace KalaKit
 			hInstance,
 			nullptr);
 
-		if (!window)
+		if (!win)
 		{
 			LOG_ERROR("Failed to create window!");
 
@@ -91,13 +91,17 @@ namespace KalaKit
 
 			return false;
 		}
+		window.handle = win;
+
+		window.context = GetDC(window.handle);
 
 		proc = (WNDPROC)SetWindowLongPtr(
-			window,
+			window.handle,
 			GWLP_WNDPROC,
 			(LONG_PTR)MessageLoop::WindowProcCallback);
+		window.callback = proc;
 
-		ShowWindow(window, SW_SHOW);
+		ShowWindow(window.handle, SW_SHOW);
 
 		//also initialize input
 		KalaInput::Initialize();
@@ -125,7 +129,7 @@ namespace KalaKit
 
 		//prevent updates when not focused
 		if (isWindowFocusRequired
-			&& GetForegroundWindow() != window)
+			&& GetForegroundWindow() != window.handle)
 		{
 			return;
 		}
@@ -198,13 +202,13 @@ namespace KalaKit
 		switch (state)
 		{
 		case WindowState::WINDOW_RESET:
-			ShowWindow(window, SW_RESTORE);
+			ShowWindow(window.handle, SW_RESTORE);
 			break;
 		case WindowState::WINDOW_MINIMIZED:
-			ShowWindow(window, SW_MINIMIZE);
+			ShowWindow(window.handle, SW_MINIMIZE);
 			break;
 		case WindowState::WINDOW_MAXIMIZED:
-			ShowWindow(window, SW_MAXIMIZE);
+			ShowWindow(window.handle, SW_MAXIMIZE);
 			break;
 		}
 	}
@@ -217,7 +221,7 @@ namespace KalaKit
 			return false;
 		}
 
-		LONG style = GetWindowLong(window, GWL_STYLE);
+		LONG style = GetWindowLong(window.handle, GWL_STYLE);
 		return (style & WS_OVERLAPPEDWINDOW);
 	}
 	void KalaWindow::SetWindowBorderlessState(bool newWindowBorderlessState)
@@ -238,7 +242,7 @@ namespace KalaKit
 		if (!newWindowBorderlessState)
 		{
 			//save original style and placement
-			originalStyle = GetWindowLong(window, GWL_STYLE);
+			originalStyle = GetWindowLong(window.handle, GWL_STYLE);
 			GetWindowPlacement(window, &originalPlacement);
 
 			//set style to borderless
@@ -246,7 +250,7 @@ namespace KalaKit
 
 			//resize to full monitor
 			MONITORINFO mi = { sizeof(mi) };
-			GetMonitorInfo(MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST), &mi);
+			GetMonitorInfo(MonitorFromWindow(window.handle, MONITOR_DEFAULTTONEAREST), &mi);
 			SetWindowPos(
 				window,
 				HWND_TOP,
@@ -262,10 +266,10 @@ namespace KalaKit
 		else
 		{
 			//restore original style
-			SetWindowLong(window, GWL_STYLE, originalStyle);
+			SetWindowLong(window.handle, GWL_STYLE, originalStyle);
 
 			//restore previous size/position
-			SetWindowPlacement(window, &originalPlacement);
+			SetWindowPlacement(window.handle, &originalPlacement);
 			SetWindowPos(
 				window,
 				nullptr,
@@ -292,7 +296,7 @@ namespace KalaKit
 			return false;
 		}
 
-		return !IsWindowVisible(window);
+		return !IsWindowVisible(window.handle);
 	}
 	void KalaWindow::SetWindowHiddenState(bool newWindowHiddenState)
 	{
@@ -321,7 +325,7 @@ namespace KalaKit
 		}
 
 		RECT rect{};
-		GetWindowRect(window, &rect);
+		GetWindowRect(window.handle, &rect);
 
 		POINT pos{};
 		pos.x = rect.left;
@@ -346,7 +350,7 @@ namespace KalaKit
 		}
 
 		SetWindowPos(
-			window,
+			window.handle,
 			nullptr,
 			width,
 			height,
@@ -366,7 +370,7 @@ namespace KalaKit
 		}
 
 		RECT rect{};
-		GetWindowRect(window, &rect);
+		GetWindowRect(window.handle, &rect);
 
 		POINT size{};
 		size.x = rect.right - rect.left;
@@ -391,7 +395,7 @@ namespace KalaKit
 		}
 
 		SetWindowPos(
-			window,
+			window.handle,
 			nullptr,
 			0,
 			0,
@@ -411,7 +415,7 @@ namespace KalaKit
 		}
 
 		RECT rect{};
-		GetClientRect(window, &rect);
+		GetClientRect(window.handle, &rect);
 
 		POINT size{};
 		size.x = rect.right - rect.left;
@@ -439,12 +443,12 @@ namespace KalaKit
 		AdjustWindowRect(
 			&rect,
 			GetWindowLong(
-				window,
+				window.handle,
 				GWL_STYLE),
 			FALSE);
 
 		SetWindowPos(
-			window,
+			window.handle,
 			nullptr,
 			0,
 			0,

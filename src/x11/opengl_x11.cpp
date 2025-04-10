@@ -12,7 +12,10 @@
 
 namespace KalaKit
 {
-
+    OPENGLCONTEXT OpenGL::GetOpenGLContext()
+	{
+    	return eglGetCurrentContext();
+	}
 }
 
 #endif // KALAKIT_X11
