@@ -137,6 +137,13 @@ namespace KalaKit
 			return false;
 		}
 
+		if (!xdgWmBase)
+		{
+			LOG_ERROR("Failed to get xdg wm base from Wayland registry!");
+			wl_display_disconnect(newDisplay);
+			return false;
+		}
+
         //
 		// CREATE THE DRAWABLE AREA
 		//
@@ -158,7 +165,28 @@ namespace KalaKit
 
 		struct xdg_surface* xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, newSurface);
 		struct xdg_toplevel* xdgTopLevel = xdg_surface_get_toplevel(xdgSurface);
-		xdg_surface_commit(xdgSurface);
+
+		//set window title
+		xdg_toplevel_set_title(xdgTopLevel, title.c_str());
+
+		//set window size
+		xdg_toplevel_set_app_id(xdgTopLevel, "my-app-id");
+
+		//add a listener to handle configure events
+		static const struct xdg_surface_listener surface_listener =
+		{
+			.configure = [](
+				void* data,
+				struct xdg_surface* surface,
+				uint32_t serial)
+			{
+				xdg_surface_ack_configure(surface, serial);
+			}
+		};
+		xdg_surface_add_listener(xdgSurface, &surface_listener, newSurface);
+
+		//and finally commit the surface
+		wl_surface_commit(newSurface);
 
 		//
 		// CREATE A DUMMY BUFFER

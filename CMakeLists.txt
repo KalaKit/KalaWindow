@@ -106,6 +106,15 @@ else()
 	endif()
 endif()
 
+# Add xdg-shell
+if (KALAKIT_WAYLAND)
+	if(KALAKIT_RELEASE)
+		set(XDG_LIBRARY_PATH "${EXT_XDG_DIR}/release/libxdg-shell.so")
+	else()
+		set(XDG_LIBRARY_PATH "${EXT_XDG_DIR}/debug/libxdg-shellD.so")
+	endif()
+endif()
+
 # Add source files
 set(WINDOW_SRC_FILES)
 
@@ -125,7 +134,6 @@ if (KALAKIT_WINDOWS)
 # Wayland source files
 elseif (KALAKIT_WAYLAND)
     file(GLOB WAYLAND_SRC
-		"${EXT_XDG_DIR}/xdg-shell-protocol.c"
         "${WINDOW_SRC_DIR}/wayland/*.cpp"
     )
     list(APPEND WINDOW_SRC_FILES ${WAYLAND_SRC})
@@ -192,6 +200,7 @@ function(configure_kalawindow_target target)
 				OpenGL::GL
 				EGL
 				${CRASH_LIBRARY_PATH}
+				${XDG_LIBRARY_PATH}
 				${WAYLAND_CLIENT_LIBRARIES}
 				${WAYLAND_EGL_LIBRARIES}
 				${EGL_LIBRARIES}
