@@ -27,6 +27,7 @@
 #include "opengl_loader.hpp"
 
 using std::strcmp;
+using std::to_string;
 
 namespace KalaKit
 {
@@ -166,11 +167,13 @@ namespace KalaKit
 		struct xdg_surface* xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, newSurface);
 		struct xdg_toplevel* xdgTopLevel = xdg_surface_get_toplevel(xdgSurface);
 
-		//set window title
+		//set window title and app id
 		xdg_toplevel_set_title(xdgTopLevel, title.c_str());
+		xdg_toplevel_set_app_id(xdgTopLevel, title.c_str());
 
-		//set window size
-		xdg_toplevel_set_app_id(xdgTopLevel, "my-app-id");
+		//set window min and max size
+		xdg_toplevel_set_min_size(xdgTopLevel, 800, 600);
+		xdg_toplevel_set_max_size(xdgTopLevel, 7860, 4320);
 
 		//add a listener to handle configure events
 		static const struct xdg_surface_listener surface_listener =
@@ -185,7 +188,7 @@ namespace KalaKit
 		};
 		xdg_surface_add_listener(xdgSurface, &surface_listener, newSurface);
 
-		//and finally commit the surface
+		//commit surface to apply title and role decorations
 		wl_surface_commit(newSurface);
 
 		//
@@ -240,8 +243,12 @@ namespace KalaKit
 			WL_SHM_FORMAT_XRGB8888
 		);
 
-		//attach to surface
+		//attach the buffer to the surface 
 		wl_surface_attach(newSurface, buffer, 0, 0);
+		wl_surface_commit(newSurface);
+
+		//request a frame callback for synchronization
+		wl_surface_frame(newSurface);
 		wl_surface_commit(newSurface);
 
         wl_egl_window* newRenderTarget = wl_egl_window_create(
@@ -292,26 +299,73 @@ namespace KalaKit
 		if (display == nullptr)
 		{
 			display = reinterpret_cast<wl_display*>(KalaWindow::waylandDisplay.get());
+			if (display == nullptr)
+			{
+				LOG_ERROR("Failed to get wayland display! Shutting down...");
+				SetShouldCloseState(true);
+				return;
+			}
+			else
+			{
+				LOG_DEBUG("Update loop has valid wayland display!");
+			}
 		}
 
 		static wl_surface* surface{};
 		if (surface == nullptr)
 		{
 			surface = reinterpret_cast<wl_surface*>(KalaWindow::waylandSurface.get());
+			if (surface == nullptr)
+			{
+				LOG_ERROR("Failed to get wayland surface! Shutting down...");
+				SetShouldCloseState(true);
+				return;
+			}
+			else
+			{
+				LOG_DEBUG("Update loop has valid wayland surface!");
+			}
 		}
 
-		//process pending events
-		wl_display_dispatch_pending(display);
+		//process pending events and check if the display is still valid
+		int display_status = wl_display_dispatch_pending(display);
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+		{
+			LOG_DEBUG("Update loop display status: '" + to_string(display_status) + "'");
+		}
+		if (display_status == -1)
+		{
+			LOG_ERROR("Display connection lost! Shutting down...");
+			SetShouldCloseState(true);
+			return;
+		}
 
 		//flush any outgoing requests to the wayland server
-		wl_display_flush(display);
+		int display_flush_status = wl_display_flush(display);
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+		{
+			LOG_DEBUG("Update loop display flush status: '" + to_string(display_flush_status) + "'");
+		}
+		if (display_flush_status == -1)
+		{
+			LOG_ERROR("Failed to flush wayland display! Shutting down...");
+		}
 
 		//
 		// RENDER LOOP CONTENT HERE
 		//
 
-		//finish render loop
+		//request a frame callback for synchronization
+		wl_surface_frame(surface);
+
+		//commit the surface with the attached buffer
 		wl_surface_commit(surface);
+
+		//sleep for 16.67 ms to achieve 60 fps
+		//and to not waste cpu resources
+		usleep(16667);
 	}
 
     void KalaWindow::SwapBuffers(const OPENGLCONTEXT& context)
