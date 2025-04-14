@@ -13,6 +13,8 @@ External libraries included in this library:
 - magic_enum - enum-string operations (include\magic_enum)
 - GLM - OpenGL math functions (include\GLM)
 
+The Wayland version of the source code uses pre-generated Wayland-protocols c and h scripts. They were placed to '_external_shared/wayland-protocols' and contain a README file to describe how they were generated and what they are used for.
+
 # Prerequisites (when compiling from source code)
 
 - Visual Studio 2022 (with C++ CMake tools and Windows 10 or 11 SDK)

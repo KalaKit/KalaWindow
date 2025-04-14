@@ -189,7 +189,8 @@ namespace KalaKit
 		// SPECIAL DEBUG TYPES FOR SPECIFIC PLATFORMS
 		//
 
-		DEBUG_WAYLAND_DISPLAY_CHECK,   //Print display and surface debug checks at runtime   
+		DEBUG_WAYLAND_DISPLAY_CHECK,   //Print wayland display and surface debug checks at runtime   
+		DEBUG_WAYLAND_CALLBACK_CHECK,  //Print wayland frame done callback confirmation check at runtime
 
 		DEBUG_ALL                      //Print ALL debug updates
 	};

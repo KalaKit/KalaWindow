@@ -19,12 +19,11 @@
 #include "magic_enum.hpp"
 
 //kalawindow
-
 #include "window.hpp"
 #include "input.hpp"
-
 #include "opengl.hpp"
 #include "opengl_loader.hpp"
+#include "internal/window_wayland.hpp"
 
 using std::strcmp;
 using std::to_string;
@@ -46,98 +45,38 @@ namespace KalaKit
         //initialize the crash handler first
         KalaCrashHandler::Initialize();
 
-        //
-		// SET UP DISPLAY
+		//
+		// CREATE A NEW WAYLAND DISPLAY
 		//
 
-        struct wl_display* newDisplay = wl_display_connect(nullptr);
-        if (!newDisplay)
+        wl_display* newDisplay = Window_Wayland::CreateDisplay();
+		if (!newDisplay)
         {
             LOG_ERROR("Failed to connect to Wayland display!");
-            return false;
+			return false;
         }
-        
-		uintptr_t rawDisplay = reinterpret_cast<uintptr_t>(newDisplay);
-		KalaWindow::waylandDisplay = display_way(rawDisplay);
 
 		//
 		// GET STRUCTS FROM REGISTRY
 		//
 
-        struct wl_registry* registry = wl_display_get_registry(newDisplay);
-        if (!registry)
-        {
-            LOG_ERROR("Failed to get Wayland registry!");
-            wl_display_disconnect(newDisplay);
-            return false;
-        }
+        Window_Wayland::SetupRegistry(newDisplay);
+		wl_compositor* compositor = Window_Wayland::GetCompositor();
+		wl_shm* shm = Window_Wayland::GetSHM();
+		xdg_wm_base* xdgWmBase = Window_Wayland::GetWMBase();
 
-        static struct wl_compositor* compositor = nullptr;
-		static struct wl_shm* shm = nullptr;
-		static struct xdg_wm_base* xdgWmBase = nullptr;
-
-        static const struct wl_registry_listener registryListener =
-        {
-            .global = [](
-                void* data, 
-                struct wl_registry* registry, 
-                uint32_t name,
-                const char* interface,
-                uint32_t version)
-            {
-                if (strcmp(interface, "wl_compositor") == 0)
-                {
-                    //get access to the display server
-                    compositor = (wl_compositor*)wl_registry_bind(
-                        registry,
-                        name,
-                        &wl_compositor_interface,
-                        1
-                    );
-                }
-				else if (strcmp(interface, "wl_shm") == 0)
-				{
-					shm = static_cast<wl_shm*>(
-						wl_registry_bind(
-							registry,
-							name,
-							&wl_shm_interface,
-							1
-						)
-					);
-				}
-				else if (strcmp(interface, "xdg_wm_base") == 0)
-				{
-					xdgWmBase = static_cast<xdg_wm_base*>(
-						wl_registry_bind(
-							registry,
-							name,
-							&xdg_wm_base_interface,
-							1
-						)
-					);
-				}
-            },
-            .global_remove = [](void*, struct wl_registry*, uint32_t) {}
-        };
-
-        wl_registry_add_listener(registry, &registryListener, nullptr);
-        wl_display_roundtrip(newDisplay);
-
-        if (!compositor)
-        {
-            LOG_ERROR("Failed to get wl_compositor from Wayland registry!");
-            wl_display_disconnect(newDisplay);
-            return false;
-        }
-
+		if (!compositor)
+		{
+			LOG_ERROR("Failed to get wl_compositor from Wayland registry!");
+			wl_display_disconnect(newDisplay);
+			return false;
+		}
 		if (!shm)
 		{
 			LOG_ERROR("Failed to get shm from Wayland registry!");
 			wl_display_disconnect(newDisplay);
 			return false;
 		}
-
 		if (!xdgWmBase)
 		{
 			LOG_ERROR("Failed to get xdg wm base from Wayland registry!");
@@ -149,121 +88,36 @@ namespace KalaKit
 		// CREATE THE DRAWABLE AREA
 		//
 
-        wl_surface* newSurface = wl_compositor_create_surface(compositor);
-        if (!newSurface)
+        wl_surface* newSurface = Window_Wayland::CreateSurface();
+		if (!newSurface)
         {
             LOG_ERROR("Failed to create Wayland surface!");
             wl_display_disconnect(newDisplay);
             return false;
         }
 
-		uintptr_t rawSurface = reinterpret_cast<uintptr_t>(newSurface);
-		KalaWindow::waylandSurface = surface_way(rawSurface);
-
 		//
 		// ADDS ROLE, TITLE AND DECORATIONS
 		//
 
-		struct xdg_surface* xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, newSurface);
-		struct xdg_toplevel* xdgTopLevel = xdg_surface_get_toplevel(xdgSurface);
-
-		//set window title and app id
-		xdg_toplevel_set_title(xdgTopLevel, title.c_str());
-		xdg_toplevel_set_app_id(xdgTopLevel, title.c_str());
-
-		//set window min and max size
-		xdg_toplevel_set_min_size(xdgTopLevel, 800, 600);
-		xdg_toplevel_set_max_size(xdgTopLevel, 7860, 4320);
-
-		//add a listener to handle configure events
-		static const struct xdg_surface_listener surface_listener =
-		{
-			.configure = [](
-				void* data,
-				struct xdg_surface* surface,
-				uint32_t serial)
-			{
-				xdg_surface_ack_configure(surface, serial);
-			}
-		};
-		xdg_surface_add_listener(xdgSurface, &surface_listener, newSurface);
-
-		//commit surface to apply title and role decorations
-		wl_surface_commit(newSurface);
+		Window_Wayland::AddDecorations(title, newDisplay, newSurface);
 
 		//
-		// CREATE A DUMMY BUFFER
+		// CREATE A BUFFER SO CONTENT IS SHOWN
 		//
 
-		int stride = width * 4;
-		int size = stride * height;
-		
-		//create an in-memory file
-		int fd = memfd_create(
-			"wayland-shm", 
-			MFD_CLOEXEC
-			| MFD_ALLOW_SEALING);
-		if (fd >= 0)
-		{
-			if (ftruncate(fd, size) < 0)
-			{
-				LOG_ERROR("FTruncate failed!");
-				close(fd);
-				wl_display_disconnect(newDisplay);
-				return false;
-			}
-		}
-
-		void* data = mmap(
-			nullptr,
-			size,
-			PROT_READ
-			| PROT_WRITE,
-			MAP_SHARED,
-			fd,
-			0
-		);
-		if (data == MAP_FAILED)
-		{
-			LOG_ERROR("Failed to mmap shm file!");
-			close(fd);
-			wl_display_disconnect(newDisplay);
-			return false;
-		}
-
-		memset(data, 0, size); //black pixels
-
-		wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
-		wl_buffer* buffer = wl_shm_pool_create_buffer(
-			pool,
-			0,
+		bool createdBuffer = Window_Wayland::CreateBuffer(
 			width,
 			height,
-			stride,
-			WL_SHM_FORMAT_XRGB8888
+			newDisplay,
+			newSurface
 		);
-
-		//attach the buffer to the surface 
-		wl_surface_attach(newSurface, buffer, 0, 0);
-		wl_surface_commit(newSurface);
-
-		//request a frame callback for synchronization
-		wl_surface_frame(newSurface);
-		wl_surface_commit(newSurface);
-
-        wl_egl_window* newRenderTarget = wl_egl_window_create(
-            newSurface,
-            width,
-            height
-        );
-        if (!newRenderTarget)
-        {
-            LOG_ERROR("Failed to create egl window!");
+		if (!createdBuffer)
+		{
+			LOG_ERROR("Failed to create Wayland buffer!");
             wl_display_disconnect(newDisplay);
-            return false;
-        }
-		uintptr_t rawRenderTarget = reinterpret_cast<uintptr_t>(newRenderTarget);
-		KalaWindow::waylandRenderTarget = target_way(rawRenderTarget);
+			return false;
+		}
 
 		//
 		// REST OF THE INITIALIZATION
@@ -311,22 +165,6 @@ namespace KalaKit
 			}
 		}
 
-		static wl_surface* surface{};
-		if (surface == nullptr)
-		{
-			surface = reinterpret_cast<wl_surface*>(KalaWindow::waylandSurface.get());
-			if (surface == nullptr)
-			{
-				LOG_ERROR("Failed to get wayland surface! Shutting down...");
-				SetShouldCloseState(true);
-				return;
-			}
-			else
-			{
-				LOG_DEBUG("Update loop has valid wayland surface!");
-			}
-		}
-
 		//process pending events and check if the display is still valid
 		int display_status = wl_display_dispatch_pending(display);
 		if (debugType == DebugType::DEBUG_ALL
@@ -357,15 +195,11 @@ namespace KalaKit
 		// RENDER LOOP CONTENT HERE
 		//
 
-		//request a frame callback for synchronization
-		wl_surface_frame(surface);
-
-		//commit the surface with the attached buffer
-		wl_surface_commit(surface);
-
-		//sleep for 16.67 ms to achieve 60 fps
-		//and to not waste cpu resources
-		usleep(16667);
+		if (wl_display_dispatch(display) == -1)
+		{
+			LOG_ERROR("Wayland display dispatch failed! Shutting down...");
+			SetShouldCloseState(true);
+		}
 	}
 
     void KalaWindow::SwapBuffers(const OPENGLCONTEXT& context)

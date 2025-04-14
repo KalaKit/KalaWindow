@@ -89,7 +89,7 @@ set(WINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 set(EXT_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
 set(EXT_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
 set(EXT_CRASH_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaCrashHandler")
-set(EXT_XDG_DIR "${CMAKE_SOURCE_DIR}/_external_shared/xdg-shell")
+set(EXT_WAYLAND_DIR "${CMAKE_SOURCE_DIR}/_external_shared/Wayland-protocols")
 
 # Add KalaCrashHandler
 if (KALAKIT_WINDOWS)
@@ -103,15 +103,6 @@ else()
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/release/libKalaCrashHandler.so")
 	else()
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/libKalaCrashHandlerD.so")
-	endif()
-endif()
-
-# Add xdg-shell
-if (KALAKIT_WAYLAND)
-	if(KALAKIT_RELEASE)
-		set(XDG_LIBRARY_PATH "${EXT_XDG_DIR}/release/libxdg-shell.so")
-	else()
-		set(XDG_LIBRARY_PATH "${EXT_XDG_DIR}/debug/libxdg-shellD.so")
 	endif()
 endif()
 
@@ -135,6 +126,7 @@ if (KALAKIT_WINDOWS)
 elseif (KALAKIT_WAYLAND)
     file(GLOB WAYLAND_SRC
         "${WINDOW_SRC_DIR}/wayland/*.cpp"
+        "${EXT_WAYLAND_DIR}/*.c"
     )
     list(APPEND WINDOW_SRC_FILES ${WAYLAND_SRC})
 
@@ -169,7 +161,7 @@ function(set_kalawindow_includes target)
 	)
 	if (KALAKIT_WAYLAND)
 		target_include_directories(${target} PRIVATE
-			"${EXT_XDG_DIR}"
+			"${EXT_WAYLAND_DIR}"
 			"${WAYLAND_CLIENT_INCLUDE_DIRS}"
 			"${WAYLAND_EGL_INCLUDE_DIRS}"
 			"${EGL_INCLUDE_DIRS}"
@@ -200,7 +192,6 @@ function(configure_kalawindow_target target)
 				OpenGL::GL
 				EGL
 				${CRASH_LIBRARY_PATH}
-				${XDG_LIBRARY_PATH}
 				${WAYLAND_CLIENT_LIBRARIES}
 				${WAYLAND_EGL_LIBRARIES}
 				${EGL_LIBRARIES}
