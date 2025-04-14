@@ -106,7 +106,7 @@ namespace KalaKit
 		// CREATE A BUFFER SO CONTENT IS SHOWN
 		//
 
-		bool createdBuffer = Window_Wayland::CreateBuffer(
+		bool createdBuffer = Window_Wayland::CreateSHMBuffers(
 			width,
 			height,
 			newDisplay,

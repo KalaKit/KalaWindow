@@ -8,6 +8,7 @@
 #define KALAKIT_MODULE "WINDOW"
 
 #include <chrono>
+#include <fstream>
 
 #include "window.hpp"
 namespace KalaKit
@@ -15,6 +16,12 @@ namespace KalaKit
 	using std::chrono::steady_clock;
 	using std::chrono::milliseconds;
 	using std::to_string;
+	using std::ostringstream;
+	using std::hex;
+	using std::uppercase;
+	using std::setw;
+	using std::setfill;
+	using std::abs;
 
 	struct SHMBuffer
 	{
@@ -24,6 +31,7 @@ namespace KalaKit
 		int stride = 0;
 		int size = 0;
 		wl_buffer* buffer = nullptr;
+		bool busy = false;
 	};
 
     class Window_Wayland
@@ -147,190 +155,335 @@ namespace KalaKit
 		    wl_surface_commit(newSurface);
         }
 
-        static bool CreateBuffer(
-            int width, 
-            int height, 
-            wl_display* newDisplay, 
-            wl_surface* newSurface)
-        {
-            int stride = width * 4;
-		    int size = stride * height;
-		
-		    //create an in-memory file
-		    int fd = memfd_create(
-			    "wayland-shm", 
-			    MFD_CLOEXEC
-			    | MFD_ALLOW_SEALING);
-		    if (fd >= 0)
-		    {
-			    if (ftruncate(fd, size) < 0)
-			    {
-				    LOG_ERROR("FTruncate failed!");
-				    close(fd);
-				    wl_display_disconnect(newDisplay);
-				    return false;
-			    }
-		    }
-
-		    void* data = mmap(
-			    nullptr,
-			    size,
-			    PROT_READ
-			    | PROT_WRITE,
-			    MAP_SHARED,
-			    fd,
-			    0
-		    );
-		    if (data == MAP_FAILED)
-		    {
-			    LOG_ERROR("Failed to mmap shm file!");
-			    close(fd);
-			    wl_display_disconnect(newDisplay);
-			    return false;
-		    }
-
-			//
-			// DRAW CONTENT START
-			//
-
-		    uint32_t* pixels = static_cast<uint32_t*>(data);
-			uint32_t green = 0xFF00AA00;
-			uint32_t dark_gray = 0xFF202020;
-
-			//fill entire background with green
-			for (int i = 0; i < (width * height); ++i)
-			{
-				pixels[i] = green;
-			}
-
-			//draw title bar (top 32 pixels)
+        static bool CreateSHMBuffers(
+			int width,
+			int height,
+			wl_display* newDisplay,
+			wl_surface* newSurface)
+		{
 			int titlebar_height = 32;
-			for (int y = 0; y < titlebar_height; ++y)
+		
+			for (int i = 0; i < 2; ++i)
 			{
-				for (int x = 0; x < width; ++x)
+				int stride = width * 4;
+				int size = stride * height;
+		
+				//create an in-memory file
+				int fd = memfd_create(
+					"wayland-shm",
+					MFD_CLOEXEC
+					| MFD_ALLOW_SEALING);
+				if (fd < 0)
 				{
-					pixels[y * width + x] = dark_gray;
+					LOG_ERROR("memfd_create failed for SHM buffer.");
+					return false;
+				}
+		
+				if (ftruncate(fd, size) < 0)
+				{
+					LOG_ERROR("FTruncate failed on SHM buffer.");
+					close(fd);
+					return false;
+				}
+		
+				void* data = mmap(
+					nullptr,
+					size,
+					PROT_READ
+					| PROT_WRITE,
+					MAP_SHARED,
+					fd,
+					0
+				);
+				if (data == MAP_FAILED)
+				{
+					LOG_ERROR("Failed to mmap SHM file for SHM buffer.");
+					close(fd);
+					return false;
+				}
+		
+				wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
+				wl_buffer* buffer = wl_shm_pool_create_buffer(
+					pool,
+					0,
+					width,
+					height,
+					stride,
+					WL_SHM_FORMAT_XRGB8888
+				);
+				wl_shm_pool_destroy(pool);
+				close(fd); // can safely close after pool creation
+		
+				//store buffer in the double buffer array
+				uint32_t* pixels = static_cast<uint32_t*>(data);
+				shmBuffers[i] =
+				{
+					.pixels = pixels,
+					.width = width,
+					.height = height,
+					.stride = stride,
+					.size = size,
+					.buffer = buffer,
+					.busy = false
+				};
+
+				wl_buffer_add_listener(buffer, &BufferReleaseListener, &shmBuffers[i]);
+
+				//
+				// DRAW CONTENT
+				//
+		
+				uint32_t dark_gray = 0xFF202020;
+
+				//flip both buffers at the start
+				FlipPixels(shmBuffers[i], i == 0 ? color_red : color_blue);
+		
+				//draw title bar (top 32 pixels)
+				for (int y = 0; y < titlebar_height; ++y)
+				{
+					for (int x = 0; x < width; ++x)
+					{
+						pixels[y * width + x] = dark_gray;
+					}
 				}
 			}
-
-			//
-			// DRAW CONTENT END
-			//
-
-		    wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
-		    wl_buffer* buffer = wl_shm_pool_create_buffer(
-			    pool,
-			    0,
-			    width,
-			    height,
-			    stride,
-			    WL_SHM_FORMAT_XRGB8888
-		    );
-			wl_shm_pool_destroy(pool);
-
-			shmBuffer =
-			{
-				.pixels = pixels,
-				.width = width,
-				.height = height,
-				.stride = stride,
-				.size = size,
-				.buffer = buffer
-			};
-
-		    //attach the buffer to the surface 
-		    wl_surface_attach(newSurface, shmBuffer.buffer, 0, 0);
-			wl_surface_damage_buffer(newSurface, 0, 32, shmBuffer.width, shmBuffer.height - 32);
-		    
-		    //start the frame loop
-		    wl_callback* frame_cb = wl_surface_frame(newSurface);
+		
+			//set up the first frame callback (draw will begin in FrameDone)
+			wl_callback* frame_cb = wl_surface_frame(newSurface);
 			wl_callback_add_listener(frame_cb, &FrameListener, newSurface);
 
-			//commit after starting frame loop
+			//attach and commit the first buffer to trigger the first frame
+			wl_surface_attach(newSurface, shmBuffers[0].buffer, 0, 0);
+			wl_surface_damage_buffer(
+				newSurface, 
+				0, 
+				32, 
+				shmBuffers[0].width, 
+				shmBuffers[0].height - 32);
 			wl_surface_commit(newSurface);
-
-			LOG_DEBUG("Initial frame callback listener added.");
-
-			/*
-            wl_egl_window* newRenderTarget = wl_egl_window_create(
-                newSurface,
-                width,
-                height
-            );
-            if (!newRenderTarget)
-            {
-                LOG_ERROR("Failed to create egl window!");
-                wl_display_disconnect(newDisplay);
-                return false;
-            }
-		    uintptr_t rawRenderTarget = reinterpret_cast<uintptr_t>(newRenderTarget);
-		    KalaWindow::waylandRenderTarget = target_way(rawRenderTarget);
-			*/
-
+			shmBuffers[0].busy = true;
+	
+			LOG_DEBUG("Initial frame callback listener added (double buffer mode).");
+		
 			return true;
-        }
+		}
+		static inline const wl_buffer_listener BufferReleaseListener =
+		{
+			.release = [](void* data, wl_buffer* buffer)
+			{
+				auto* buf  = reinterpret_cast<SHMBuffer*>(data);
+				buf->busy = false;
 
+				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
+				{
+					LOG_DEBUG("Buffer released back by compositor.");
+				}
+			}
+		};
+		
 		static void FrameDone(void* data, wl_callback* callback, uint32_t time)
 		{
+			auto now = steady_clock::now();
+			LOG_DEBUG("Frame callback fired at: " 
+				+ to_string(duration_cast<milliseconds>(now.time_since_epoch()).count()) 
+				+ "ms");
+
 			wl_surface* surface = reinterpret_cast<wl_surface*>(data);
 
 			//destroy the current frame callback
 			wl_callback_destroy(callback);
 
-			//re-attach the existing bufffer
-			wl_surface_attach(surface, shmBuffer.buffer, 0, 0);
+			bool shouldFlip = (now - lastFlipTime >= flipInterval);
 
-			FlipPixels();
+			//try to find an available buffer
+			int nextBuffer = -1;
+			for (int i = 0; i < 2; ++i)
+			{
+				int candidate = (currentBufferIndex + 1 + i) % 2;
+				if (!shmBuffers[candidate].busy)
+				{
+					nextBuffer = candidate;
+					break;
+				}
+			}
 
-			//call redraw, may be ignored if content is unchanged
-			wl_surface_damage_buffer(surface, 0, 32, shmBuffer.width, shmBuffer.height - 32);
+			if (nextBuffer == -1)
+			{
+				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
+				{
+					LOG_DEBUG("Both SHM buffers are busy, skipping frame...");
+				}
+			}
+			else
+			{
+				//commit this buffer
+				currentBufferIndex = nextBuffer;
+				SHMBuffer& shmBuffer = shmBuffers[currentBufferIndex];
+
+				if (shouldFlip)
+				{
+					uint32_t color = flip ? color_red : color_blue;
+					FlipPixels(shmBuffer, color);
+
+					wl_surface_attach(surface, shmBuffer.buffer, 0, 0);
+					wl_surface_damage_buffer(
+						surface, 
+						0, 
+						32, 
+						shmBuffer.width, 
+						shmBuffer.height - 32);
+	
+					//mark buffer busy and then commit
+					shmBuffer.busy = true;
+					wl_surface_commit(surface);
+
+					lastFlipTime = now;
+					flip = !flip;
+	
+					if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+						|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
+					{
+						LOG_DEBUG("Time since last flip: " 
+							+ to_string(duration_cast<milliseconds>(now - lastFlipTime).count())
+							+ "ms, shouldFlip: " 
+							+ to_string(shouldFlip)
+							+ ", Using buffer index " 
+							+ to_string(currentBufferIndex) 
+							+ ", busy=" 
+							+ to_string(shmBuffers[currentBufferIndex].busy)
+							+ ", color= "
+							+ Uint_To_Color(color));
+					}
+
+					shouldFlip = false;
+				}
+			}
 
 			//request the next frame
 			wl_callback* next_frame = wl_surface_frame(surface);
 			wl_callback_add_listener(next_frame, &FrameListener, data);
-
-			//re-commit the surface
-			wl_surface_commit(surface);
-
-			if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
-				|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
-			{
-				LOG_DEBUG("Frame callback received. Re-committing surface...");
-			}
 		}
 		static inline const wl_callback_listener FrameListener = { .done = FrameDone };
+
+		static inline string Uint_To_Color(uint32_t value)
+		{
+			uint8_t a = (value >> 24) & 0xFF;
+			uint8_t r = (value >> 16) & 0xFF;
+			uint8_t g = (value >> 8) & 0xFF;
+			uint8_t b = (value >> 0) & 0xFF;
+
+			struct NamedColor
+    		{
+        		const char* name;
+        		uint8_t r, g, b;
+    		};
+
+			static const NamedColor namedColors[] = {
+				// === RGB Primaries ===
+				{ "Red",        0xFF, 0x00, 0x00 },
+				{ "Green",      0x00, 0xFF, 0x00 },
+				{ "Blue",       0x00, 0x00, 0xFF },
+			
+				// === RGB Secondaries ===
+				{ "Yellow",     0xFF, 0xFF, 0x00 },
+				{ "Cyan",       0x00, 0xFF, 0xFF },
+				{ "Magenta",    0xFF, 0x00, 0xFF },
+			
+				// === Perceptual + UI colors ===
+				{ "Orange",     0xFF, 0xA5, 0x00 },
+				{ "Pink",       0xFF, 0xC0, 0xCB },
+				{ "Purple",     0x80, 0x00, 0x80 },
+				{ "Brown",      0xA5, 0x2A, 0x2A },
+				{ "Lime",       0x32, 0xCD, 0x32 },
+				{ "Light Blue", 0xAD, 0xD8, 0xE6 },
+				{ "Teal",       0x00, 0x80, 0x80 },
+			
+				// === Grayscale ===
+				{ "Black",      0x00, 0x00, 0x00 },
+				{ "Gray",       0x80, 0x80, 0x80 },
+				{ "White",      0xFF, 0xFF, 0xFF }
+			};											
+
+			const NamedColor* closest = nullptr;
+    		int smallestTotalDelta = INT_MAX;
+    		bool isExact = false;
+
+    		for (const auto& named : namedColors)
+    		{
+        		int dr = abs(int(r) - int(named.r));
+        		int dg = abs(int(g) - int(named.g));
+        		int db = abs(int(b) - int(named.b));
+
+        		int totalDelta = dr + dg + db;
+
+        		if (dr <= 10 
+					&& dg <= 10 
+					&& db <= 10)
+        		{
+            		closest = &named;
+            		isExact = true;
+            		break;
+       			}
+
+        		if (totalDelta < smallestTotalDelta)
+        		{
+            		smallestTotalDelta = totalDelta;
+            		closest = &named;
+        		}
+    		}
+
+			ostringstream oss;
+			oss << "A: " << (int)a
+				<< "R: " << (int)r
+				<< "G: " << (int)g
+				<< "B: " << (int)b
+				<< " (0x" 
+				<< hex 
+				<< uppercase 
+				<< setw(8) 
+				<< setfill('0')
+				<< value
+				<< ")";
+
+				if (!closest 
+					|| smallestTotalDelta > 150)
+				{
+					oss << " [Unknown]";
+				}
+				else
+				{
+					oss << " [" << (isExact ? "" : "~") << closest->name << "]";
+				}
+
+			return oss.str();
+		}
     private:
         static inline struct wl_compositor* compositor;
         static inline struct wl_shm* shm;
         static inline struct xdg_wm_base* xdgWmBase;
-		static inline SHMBuffer shmBuffer;
+		static inline SHMBuffer shmBuffers[2];
+		static inline int currentBufferIndex = 0;
 
-		//Flip 50x50 pixels below title bar red and blue
-		static void FlipPixels()
+		static inline bool flip = false;
+		static inline steady_clock::time_point lastFlipTime = steady_clock::now();
+		static inline constexpr milliseconds flipInterval = milliseconds(16);
+		static inline uint32_t color_red = 0xFFFF0000;
+		static inline uint32_t color_blue = 0xFF0000FF;
+
+		//Flip screen pixels below title bar red and blue
+		static void FlipPixels(SHMBuffer& shmBuffer, uint32_t color)
 		{
-			static auto lastFlipTime = steady_clock::now();
-			auto now = steady_clock::now();
+			uint32_t* pixels = static_cast<uint32_t*>(shmBuffer.pixels);
+			LOG_DEBUG("Flipping pixels with color: " + Uint_To_Color(color));
 
-			//flip every 500ms
-			constexpr auto flipInterval = milliseconds(500);
-
-			if (now - lastFlipTime >= flipInterval)
+			for (int y = 32; y < shmBuffer.height; ++y) // skip title bar
 			{
-				static bool flip = false;
-				lastFlipTime = now;
-
-				uint32_t* pixels = static_cast<uint32_t*>(shmBuffer.pixels);
-				uint32_t color = flip ? 0xFFFF0000 : 0xFF0000FF; // RED : BLUE
-
-				for (int y = 32; y < shmBuffer.height; ++y) //skip title bar
+				for (int x = 0; x < shmBuffer.width; ++x)
 				{
-					for (int x = 0; x < shmBuffer.width; ++x)
-					{
-						pixels[y * shmBuffer.width + x] = color;
-					}
+					pixels[y * shmBuffer.width + x] = color;
 				}
-
-				flip = !flip;
 			}
 		}
     };
