@@ -20,17 +20,6 @@ namespace KalaKit
 	class KALAWINDOW_API KalaWindow
 	{
 	public:
-		static inline window_win windowsWindow;
-		static inline context_win windowsContext;
-
-		static inline window_x11 x11Window;
-		static inline display_x11 x11Display;
-		static inline target_x11 x11GraphicsContext;
-
-		static inline surface_way waylandSurface;
-		static inline display_way waylandDisplay;
-		static inline target_way waylandRenderTarget;
-
 		/// <summary>
 		/// Title of the warning popup when user wants to exit
 		/// </summary>

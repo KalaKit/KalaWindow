@@ -16,6 +16,7 @@
 #include "input.hpp"
 #include "messageloop.hpp"
 #include "opengl.hpp"
+#include "window_windows.hpp"
 
 using std::to_string;
 
@@ -94,13 +95,10 @@ namespace KalaKit
 
 			return false;
 		}
-
-		uintptr_t rawWindow = reinterpret_cast<uintptr_t>(newWindow);
-		KalaWindow::windowsWindow = window_win(rawWindow);
+		Window_Windows::newWindow = newWindow;
 
 		HDC newContext = GetDC(newWindow);
-		uintptr_t rawContext = reinterpret_cast<uintptr_t>(newContext);
-		KalaWindow::windowsContext = context_win(rawContext);
+		Window_Windows::newContext = newContext;
 
 		ShowWindow(newWindow, SW_SHOW);
 

@@ -71,33 +71,3 @@ struct POS
 	int x;
 	int y;
 };
-
-//windows structs
-
-struct Window_Win{};
-using window_win = StrongHandle<Window_Win>;     // Window or drawable region on Windows (HWND)
-
-struct Context_Win{};
-using context_win = StrongHandle<Context_Win>;   // Drawing surface/context for a window on Windows (HDC)
-
-//x11 structs
-
-struct Window_X11{};
-using window_x11 = StrongHandle<Window_X11>;     // Window or drawable region on X11 (Window)
-
-struct Display_X11{};
-using display_x11 = StrongHandle<Display_X11>;   // Session/context for communicating with the X server on X11 (Display)
-
-struct DrawContext_X11{};
-using target_x11 = StrongHandle<DrawContext_X11>; // Graphics context for drawing on X11 (GC)
-
-//wayland structs
-
-struct Surface_Way{};
-using surface_way = StrongHandle<Surface_Way>;   // Window or drawable region on Wayland (wl_surface*)
-
-struct Display_Way{};
-using display_way = StrongHandle<Display_Way>;   // Session/context for communicating with the Wayland server on Wayland (wl_display*)
-
-struct RenderTarget_Way{};
-using target_way = StrongHandle<RenderTarget_Way>; // Render target buffer for drawing on Wayland (eglSurface)

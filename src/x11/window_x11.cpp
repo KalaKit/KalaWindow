@@ -40,9 +40,7 @@ namespace KalaKit
             LOG_ERROR("Failed to open X11 display!");
             return false;
         }
-
-		uintptr_t rawDisplay = reinterpret_cast<uintptr_t>(newDisplay);
-		KalaWindow::x11Display = display_x11(rawDisplay);
+		Window_X11::newDisplay = newDisplay;
 
         ::Window root = DefaultRootWindow(newDisplay);
 
@@ -71,9 +69,7 @@ namespace KalaKit
             XCloseDisplay(newDisplay);
             return false;
         }
-
-		uintptr_t rawWindow = reinterpret_cast<uintptr_t>(newWindow);
-		KalaWindow::x11Window = window_x11(rawWindow);
+		Window_X11::newWindow = newWindow;
 
         XStoreName(newDisplay, newWindow, title.c_str());
         XMapWindow(newDisplay, newWindow); //show the window
@@ -86,9 +82,7 @@ namespace KalaKit
 			XCloseDisplay(newDisplay);
 			return false;
 		}
-
-		uintptr_t rawGC = reinterpret_cast<uintptr_t>(newGC);
-		target_x11 _tg(rawGC);
+		Window_X11::newGC = newGC;
 
         //initialize input
         KalaInput::Initialize();

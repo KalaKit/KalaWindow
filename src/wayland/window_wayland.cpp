@@ -60,7 +60,7 @@ namespace KalaKit
 		// GET STRUCTS FROM REGISTRY
 		//
 
-        Window_Wayland::SetupRegistry(newDisplay);
+        Window_Wayland::SetupRegistry();
 		wl_compositor* compositor = Window_Wayland::GetCompositor();
 		wl_shm* shm = Window_Wayland::GetSHM();
 		xdg_wm_base* xdgWmBase = Window_Wayland::GetWMBase();
@@ -100,18 +100,14 @@ namespace KalaKit
 		// ADDS ROLE, TITLE AND DECORATIONS
 		//
 
-		Window_Wayland::AddDecorations(title, newDisplay, newSurface);
+		Window_Wayland::AddDecorations(title);
 
 		//
 		// CREATE A BUFFER SO CONTENT IS SHOWN
 		//
 
-		bool createdBuffer = Window_Wayland::CreateSHMBuffers(
-			width,
-			height,
-			newDisplay,
-			newSurface
-		);
+		int realHeight = height + 32;
+		bool createdBuffer = Window_Wayland::CreateSHMBuffers(width, realHeight);
 		if (!createdBuffer)
 		{
 			LOG_ERROR("Failed to create Wayland buffer!");
@@ -149,24 +145,8 @@ namespace KalaKit
 			return;
 		}
 
-		static wl_display* display{};
-		if (display == nullptr)
-		{
-			display = reinterpret_cast<wl_display*>(KalaWindow::waylandDisplay.get());
-			if (display == nullptr)
-			{
-				LOG_ERROR("Failed to get wayland display! Shutting down...");
-				SetShouldCloseState(true);
-				return;
-			}
-			else
-			{
-				LOG_DEBUG("Update loop has valid wayland display!");
-			}
-		}
-
 		//process pending events and check if the display is still valid
-		int display_status = wl_display_dispatch_pending(display);
+		int display_status = wl_display_dispatch_pending(Window_Wayland::newDisplay);
 		if (debugType == DebugType::DEBUG_ALL
 			|| debugType == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
 		{
@@ -180,7 +160,7 @@ namespace KalaKit
 		}
 
 		//flush any outgoing requests to the wayland server
-		int display_flush_status = wl_display_flush(display);
+		int display_flush_status = wl_display_flush(Window_Wayland::newDisplay);
 		if (debugType == DebugType::DEBUG_ALL
 			|| debugType == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
 		{
@@ -189,17 +169,48 @@ namespace KalaKit
 		if (display_flush_status == -1)
 		{
 			LOG_ERROR("Failed to flush wayland display! Shutting down...");
+			SetShouldCloseState(true);
+			return;
 		}
 
-		//
-		// RENDER LOOP CONTENT HERE
-		//
+		//prepare to read events
+		int display_prepare_read_status = wl_display_prepare_read(Window_Wayland::newDisplay);
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+		{
+			LOG_DEBUG("Update loop display prepare read status: '" + to_string(display_prepare_read_status) + "'");
+		}
+		if (display_prepare_read_status == -1)
+		{
+			//required to avoid getting stuck
+			wl_display_dispatch_pending(Window_Wayland::newDisplay);
 
-		if (wl_display_dispatch(display) == -1)
+			LOG_ERROR("Failed to prepare read status! Shutting down...");
+			SetShouldCloseState(true);
+			return;
+		}
+
+		//custom poll function
+		Window_Wayland::WaylandPoll();
+
+		//always dispatch whatevere is pending
+		int display_dispatch_status = wl_display_dispatch_pending(Window_Wayland::newDisplay);
+		if (debugType == DebugType::DEBUG_ALL
+			|| debugType == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+		{
+			LOG_DEBUG("Update loop display dispatch status: '" + to_string(display_dispatch_status) + "'");
+		}
+		if (display_dispatch_status == -1)
 		{
 			LOG_ERROR("Wayland display dispatch failed! Shutting down...");
 			SetShouldCloseState(true);
 		}
+
+		//actually render the window
+		bool rendered = Window_Wayland::TryRender();
+
+		//finally pause before calling the next frame
+		Window_Wayland::Pause();
 	}
 
     void KalaWindow::SwapBuffers(const OPENGLCONTEXT& context)

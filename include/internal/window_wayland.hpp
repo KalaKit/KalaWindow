@@ -9,12 +9,15 @@
 
 #include <chrono>
 #include <fstream>
+#include <poll.h>
+#include <thread>
 
 #include "window.hpp"
 namespace KalaKit
 {
 	using std::chrono::steady_clock;
-	using std::chrono::milliseconds;
+	using std::chrono::microseconds;
+	using std::chrono::duration_cast;
 	using std::to_string;
 	using std::ostringstream;
 	using std::hex;
@@ -22,6 +25,7 @@ namespace KalaKit
 	using std::setw;
 	using std::setfill;
 	using std::abs;
+	using std::this_thread::sleep_for;
 
 	struct SHMBuffer
 	{
@@ -37,18 +41,18 @@ namespace KalaKit
     class Window_Wayland
     {
     public:
+		static inline wl_surface* newSurface = nullptr;
+		static inline wl_display* newDisplay = nullptr;
+
         static wl_display* CreateDisplay()
         {
-            struct wl_display* newDisplay = wl_display_connect(nullptr);
+            newDisplay = wl_display_connect(nullptr);
             if (!newDisplay) return nullptr;
-            
-            uintptr_t rawDisplay = reinterpret_cast<uintptr_t>(newDisplay);
-            KalaWindow::waylandDisplay = display_way(rawDisplay);
 
             return newDisplay;
         }
 
-        static void SetupRegistry(wl_display* newDisplay)
+        static void SetupRegistry()
         {
             struct wl_registry* registry = wl_display_get_registry(newDisplay);
             if (!registry)
@@ -98,6 +102,23 @@ namespace KalaKit
 							    version
 						    )
 					    );
+
+						static const xdg_wm_base_listener WmBaseListener =
+						{
+							.ping = [](
+								void* data,
+								xdg_wm_base* base,
+								uint32_t serial)
+							{
+								if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+									|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
+								{
+									LOG_DEBUG("Received xdg_wm_base ping, sending pong!");
+								}
+								xdg_wm_base_pong(base, serial);
+							}
+						};
+						xdg_wm_base_add_listener(xdgWmBase, &WmBaseListener, nullptr);
 				    }
                 },
                 .global_remove = [](void*, struct wl_registry*, uint32_t) {}
@@ -112,16 +133,13 @@ namespace KalaKit
 
         static wl_surface* CreateSurface()
         {
-            wl_surface* newSurface = wl_compositor_create_surface(compositor);
+            newSurface = wl_compositor_create_surface(compositor);
             if (newSurface == nullptr) return nullptr;
-            
-		    uintptr_t rawSurface = reinterpret_cast<uintptr_t>(newSurface);
-		    KalaWindow::waylandSurface = surface_way(rawSurface);
 
 			return newSurface;
         }
 
-        static void AddDecorations(const string& title, wl_display* newDisplay, wl_surface* newSurface)
+        static void AddDecorations(const string& title)
         {
             struct xdg_surface* xdgSurface = xdg_wm_base_get_xdg_surface(xdgWmBase, newSurface);
 		    struct xdg_toplevel* xdgTopLevel = xdg_surface_get_toplevel(xdgSurface);
@@ -131,8 +149,8 @@ namespace KalaKit
 		    xdg_toplevel_set_app_id(xdgTopLevel, title.c_str());
 
 		    //set window min and max size
-		    xdg_toplevel_set_min_size(xdgTopLevel, 800, 600);
-		    xdg_toplevel_set_max_size(xdgTopLevel, 7860, 4320);
+		    xdg_toplevel_set_min_size(xdgTopLevel, 800, 632);   //600 + 32
+		    xdg_toplevel_set_max_size(xdgTopLevel, 7860, 4352); //4320 + 32
 
 		    //add a listener to handle configure events
 		    static const struct xdg_surface_listener surface_listener =
@@ -142,8 +160,35 @@ namespace KalaKit
 				    struct xdg_surface* surface,
 				    uint32_t serial)
 			    {
-					LOG_DEBUG("Received xdg_surface configure event! Serial: " + to_string(serial));
+					
+					if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+						|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+					{
+						LOG_DEBUG("Received xdg_surface configure event! Serial: " + to_string(serial));
+					}
 				    xdg_surface_ack_configure(surface, serial);
+
+					wl_surface* targetSurface = static_cast<wl_surface*>(data);
+
+    				Window_Wayland::currentBufferIndex = 0;
+    				SHMBuffer& initialBuffer = Window_Wayland::shmBuffers[0];
+
+    				wl_surface_attach(targetSurface, initialBuffer.buffer, 0, 0);
+    				wl_surface_damage(
+						targetSurface, 
+						0, 
+						0, 
+						initialBuffer.width, 
+						initialBuffer.height);
+    				wl_surface_damage_buffer(targetSurface, 
+						0, 
+						0, 
+						initialBuffer.width, 
+						initialBuffer.height);
+    				wl_surface_commit(targetSurface);
+    				initialBuffer.busy = true;
+
+					wl_display_flush(newDisplay);
 			    }
 		    };
 		    xdg_surface_add_listener(xdgSurface, &surface_listener, newSurface);
@@ -157,9 +202,7 @@ namespace KalaKit
 
         static bool CreateSHMBuffers(
 			int width,
-			int height,
-			wl_display* newDisplay,
-			wl_surface* newSurface)
+			int height)
 		{
 			int titlebar_height = 32;
 		
@@ -232,38 +275,29 @@ namespace KalaKit
 				//
 				// DRAW CONTENT
 				//
-		
-				uint32_t dark_gray = 0xFF202020;
 
-				//flip both buffers at the start
-				FlipPixels(shmBuffers[i], i == 0 ? color_red : color_blue);
+				//light green
+				uint32_t color_window = 0xFF66CC99; 
+				//draw window content  
+				for (int y = titlebar_height; y < height; ++y)
+				{
+					for (int x = 0; x < width; ++x)
+					{
+						pixels[y * width + x] = color_window;
+					}
+				}
 		
+				//dark gray
+				uint32_t color_titleBar = 0xFF202020; 
 				//draw title bar (top 32 pixels)
 				for (int y = 0; y < titlebar_height; ++y)
 				{
 					for (int x = 0; x < width; ++x)
 					{
-						pixels[y * width + x] = dark_gray;
+						pixels[y * width + x] = color_titleBar;
 					}
 				}
 			}
-		
-			//set up the first frame callback (draw will begin in FrameDone)
-			wl_callback* frame_cb = wl_surface_frame(newSurface);
-			wl_callback_add_listener(frame_cb, &FrameListener, newSurface);
-
-			//attach and commit the first buffer to trigger the first frame
-			wl_surface_attach(newSurface, shmBuffers[0].buffer, 0, 0);
-			wl_surface_damage_buffer(
-				newSurface, 
-				0, 
-				32, 
-				shmBuffers[0].width, 
-				shmBuffers[0].height - 32);
-			wl_surface_commit(newSurface);
-			shmBuffers[0].busy = true;
-	
-			LOG_DEBUG("Initial frame callback listener added (double buffer mode).");
 		
 			return true;
 		}
@@ -282,90 +316,42 @@ namespace KalaKit
 			}
 		};
 		
-		static void FrameDone(void* data, wl_callback* callback, uint32_t time)
+		//Enables drawing only if a buffer is available
+		static bool TryRender()
 		{
-			auto now = steady_clock::now();
-			LOG_DEBUG("Frame callback fired at: " 
-				+ to_string(duration_cast<milliseconds>(now.time_since_epoch()).count()) 
-				+ "ms");
-
-			wl_surface* surface = reinterpret_cast<wl_surface*>(data);
-
-			//destroy the current frame callback
-			wl_callback_destroy(callback);
-
-			bool shouldFlip = (now - lastFlipTime >= flipInterval);
-
-			//try to find an available buffer
-			int nextBuffer = -1;
 			for (int i = 0; i < 2; ++i)
-			{
-				int candidate = (currentBufferIndex + 1 + i) % 2;
-				if (!shmBuffers[candidate].busy)
-				{
-					nextBuffer = candidate;
-					break;
-				}
-			}
+    		{
+        		int index = (currentBufferIndex + 1 + i) % 2;
+        		if (!shmBuffers[index].busy)
+        		{
+            		currentBufferIndex = index;
+            		SHMBuffer& buf = shmBuffers[index];
 
-			if (nextBuffer == -1)
-			{
-				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
-					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
-				{
-					LOG_DEBUG("Both SHM buffers are busy, skipping frame...");
-				}
-			}
-			else
-			{
-				//commit this buffer
-				currentBufferIndex = nextBuffer;
-				SHMBuffer& shmBuffer = shmBuffers[currentBufferIndex];
+            		buf.busy = true;
 
-				if (shouldFlip)
-				{
-					uint32_t color = flip ? color_red : color_blue;
-					FlipPixels(shmBuffer, color);
-
-					wl_surface_attach(surface, shmBuffer.buffer, 0, 0);
-					wl_surface_damage_buffer(
-						surface, 
+            		wl_surface_attach(newSurface, buf.buffer, 0, 0);
+            		wl_surface_damage(
+						newSurface, 
 						0, 
-						32, 
-						shmBuffer.width, 
-						shmBuffer.height - 32);
-	
-					//mark buffer busy and then commit
-					shmBuffer.busy = true;
-					wl_surface_commit(surface);
+						0, 
+						buf.width, 
+						buf.height);
+            		wl_surface_damage_buffer(
+						newSurface, 
+						0, 
+						0, 
+						buf.width, 
+						buf.height);
+            		wl_surface_commit(newSurface);
+            		wl_display_flush(newDisplay);
 
-					lastFlipTime = now;
-					flip = !flip;
-	
-					if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
-						|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
-					{
-						LOG_DEBUG("Time since last flip: " 
-							+ to_string(duration_cast<milliseconds>(now - lastFlipTime).count())
-							+ "ms, shouldFlip: " 
-							+ to_string(shouldFlip)
-							+ ", Using buffer index " 
-							+ to_string(currentBufferIndex) 
-							+ ", busy=" 
-							+ to_string(shmBuffers[currentBufferIndex].busy)
-							+ ", color= "
-							+ Uint_To_Color(color));
-					}
-
-					shouldFlip = false;
-				}
+            		return true;
+        		}
 			}
 
-			//request the next frame
-			wl_callback* next_frame = wl_surface_frame(surface);
-			wl_callback_add_listener(next_frame, &FrameListener, data);
+			LOG_DEBUG("TryRender returned false: no free buffer (both busy)");
+			return false;
 		}
-		static inline const wl_callback_listener FrameListener = { .done = FrameDone };
 
 		static inline string Uint_To_Color(uint32_t value)
 		{
@@ -459,34 +445,74 @@ namespace KalaKit
 
 			return oss.str();
 		}
-    private:
+    
+		static void WaylandPoll()
+		{
+			int fd = wl_display_get_fd(newDisplay);
+			struct pollfd pfd = 
+			{ 
+				fd, 
+				POLLIN, 
+				0 
+			};
+
+			//wait up to 5ms for incoming events
+			int pollResult = poll(&pfd, 1, 5);
+			if (pollResult > 0
+				&& (pfd.revents & POLLIN))
+			{
+				int readStatus = wl_display_read_events(newDisplay);
+				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+				{
+					LOG_DEBUG("Polled and read Wayland events, status: '" + to_string(readStatus) + "'");
+				}
+				if (readStatus == -1)
+				{
+					LOG_ERROR("Failed to read display events! Shutting down...");
+					KalaWindow::SetShouldCloseState(true);
+					return;
+				}
+			}
+			else
+			{
+				//no events ready, cancel read to avoid getting stuck
+				wl_display_cancel_read(newDisplay);
+
+				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+				{
+					LOG_DEBUG("No events ready, canceled Wayland read.");
+				}
+			}
+		}
+
+		//Enables drawing only 60 frames per second 
+		static void Pause()
+		{
+			static auto lastDrawTime = steady_clock::now();
+			auto now = steady_clock::now();
+			auto elapsed = duration_cast<microseconds>(now - lastDrawTime);
+				
+			//target: 60 FPS = 16.667 ms = 16,667 us
+			constexpr int64_t targetDelay = 16667;
+				
+			if (elapsed.count() < targetDelay)
+			{
+				auto sleepDuration = microseconds(targetDelay - elapsed.count());
+				sleep_for(sleepDuration);
+			}
+				
+			now = steady_clock::now();
+			lastDrawTime = now;
+		}
+	private:
         static inline struct wl_compositor* compositor;
         static inline struct wl_shm* shm;
         static inline struct xdg_wm_base* xdgWmBase;
 		static inline SHMBuffer shmBuffers[2];
 		static inline int currentBufferIndex = 0;
-
-		static inline bool flip = false;
-		static inline steady_clock::time_point lastFlipTime = steady_clock::now();
-		static inline constexpr milliseconds flipInterval = milliseconds(16);
-		static inline uint32_t color_red = 0xFFFF0000;
-		static inline uint32_t color_blue = 0xFF0000FF;
-
-		//Flip screen pixels below title bar red and blue
-		static void FlipPixels(SHMBuffer& shmBuffer, uint32_t color)
-		{
-			uint32_t* pixels = static_cast<uint32_t*>(shmBuffer.pixels);
-			LOG_DEBUG("Flipping pixels with color: " + Uint_To_Color(color));
-
-			for (int y = 32; y < shmBuffer.height; ++y) // skip title bar
-			{
-				for (int x = 0; x < shmBuffer.width; ++x)
-				{
-					pixels[y * shmBuffer.width + x] = color;
-				}
-			}
-		}
     };
 }
 
-#endif
+#endif // KALAKIT_WAYLAND
