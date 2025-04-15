@@ -12,7 +12,9 @@
 #include <poll.h>
 #include <thread>
 
+//kalawindow
 #include "window.hpp"
+
 namespace KalaKit
 {
 	using std::chrono::steady_clock;
@@ -36,6 +38,13 @@ namespace KalaKit
 		int size = 0;
 		wl_buffer* buffer = nullptr;
 		bool busy = false;
+	};
+	struct ButtonRect
+	{
+		int x;
+		int y;
+		int width;
+		int height;
 	};
 
     class Window_Wayland
@@ -201,11 +210,10 @@ namespace KalaKit
         }
 
         static bool CreateSHMBuffers(
+			const string& title,
 			int width,
 			int height)
 		{
-			int titlebar_height = 32;
-		
 			for (int i = 0; i < 2; ++i)
 			{
 				int stride = width * 4;
@@ -272,31 +280,11 @@ namespace KalaKit
 
 				wl_buffer_add_listener(buffer, &BufferReleaseListener, &shmBuffers[i]);
 
-				//
-				// DRAW CONTENT
-				//
-
-				//light green
-				uint32_t color_window = 0xFF66CC99; 
-				//draw window content  
-				for (int y = titlebar_height; y < height; ++y)
-				{
-					for (int x = 0; x < width; ++x)
-					{
-						pixels[y * width + x] = color_window;
-					}
-				}
-		
-				//dark gray
-				uint32_t color_titleBar = 0xFF202020; 
-				//draw title bar (top 32 pixels)
-				for (int y = 0; y < titlebar_height; ++y)
-				{
-					for (int x = 0; x < width; ++x)
-					{
-						pixels[y * width + x] = color_titleBar;
-					}
-				}
+				DrawWindowContent(
+					title,
+					shmBuffers[i],
+					width,
+					height);
 			}
 		
 			return true;
@@ -315,6 +303,100 @@ namespace KalaKit
 				}
 			}
 		};
+
+		static void DrawWindowContent(
+			const string& title,
+			SHMBuffer& buffer,
+			int width, 
+			int height)
+		{
+			uint32_t* pixels = static_cast<uint32_t*>(buffer.pixels);
+
+			//
+			// DRAW TITLE BAR
+			//
+
+			int titlebarHeight = 32;
+		
+			//dark gray
+			uint32_t color_titleBar = 0xFF202020; 
+			//draw title bar (top 32 pixels)
+			for (int y = 0; y < titlebarHeight; ++y)
+			{
+				for (int x = 0; x < width; ++x)
+				{
+					pixels[y * width + x] = color_titleBar;
+				}
+			}
+
+			//
+			// DRAW TITLEBAR BUTTONS
+			//
+
+			int buttonSize = 24;
+			int buttonPadding = 4;
+
+			closeButton = 
+			{
+				width - buttonPadding - buttonSize,
+				4,
+				buttonSize,
+				buttonSize
+			};
+			maxButton = 
+			{
+				closeButton.x - buttonPadding - buttonSize,
+				4,
+				buttonSize,
+				buttonSize
+			};
+			minButton = 
+			{
+				maxButton.x - buttonPadding - buttonSize,
+				4,
+				buttonSize,
+				buttonSize
+			};
+
+			DrawButtonRect(buffer, closeButton, 0xFFCC6666);  //red
+			DrawButtonRect(buffer, maxButton,   0xFFCCCC66);  //yellow
+			DrawButtonRect(buffer, minButton,   0xFF66CC66);  //green
+
+			//
+			// DRAW SCREEN CONTENT
+			//
+
+			//light green
+			uint32_t color_window = 0xFF66CC99; 
+			//draw window content  
+			for (int y = titlebarHeight; y < height; ++y)
+			{
+				for (int x = 0; x < width; ++x)
+				{
+					pixels[y * width + x] = color_window;
+				}
+			}
+		}
+		static void DrawButtonRect(
+			SHMBuffer& buffer,
+			const ButtonRect& rect,
+			uint32_t color)
+		{
+			uint32_t* pixels = static_cast<uint32_t*>(buffer.pixels);
+			for (int y = 0; y < rect.height; ++y)
+			{
+				for (int x = 0; x < rect.width; ++x)
+				{
+					int px = rect.x + x;
+					int py = rect.y + y;
+					if (px < buffer.width
+						&& py < buffer.height)
+					{
+						pixels[py * buffer.width + px] = color;
+					}
+				}
+			}
+		}
 		
 		//Enables drawing only if a buffer is available
 		static bool TryRender()
@@ -512,6 +594,10 @@ namespace KalaKit
         static inline struct xdg_wm_base* xdgWmBase;
 		static inline SHMBuffer shmBuffers[2];
 		static inline int currentBufferIndex = 0;
+
+		static inline ButtonRect minButton;
+		static inline ButtonRect maxButton;
+		static inline ButtonRect closeButton;
     };
 }
 

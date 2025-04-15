@@ -90,6 +90,7 @@ set(EXT_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
 set(EXT_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
 set(EXT_CRASH_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaCrashHandler")
 set(EXT_WAYLAND_DIR "${CMAKE_SOURCE_DIR}/_external_shared/Wayland-protocols")
+set(EXT_FREETYPE_DIR "${CMAKE_SOURCE_DIR}/_external_shared/FreeType")
 
 # Add KalaCrashHandler
 if (KALAKIT_WINDOWS)
@@ -103,6 +104,21 @@ else()
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/release/libKalaCrashHandler.so")
 	else()
 		set(CRASH_LIBRARY_PATH "${EXT_CRASH_DIR}/debug/libKalaCrashHandlerD.so")
+	endif()
+endif()
+
+# Add FreeType
+if (KALAKIT_WINDOWS)
+	if(KALAKIT_RELEASE)
+		set(FREETYPE_LIBRARY_PATH "${EXT_FREETYPE_DIR}/release/freetype.lib")
+	else()
+		set(FREETYPE_LIBRARY_PATH "${EXT_FREETYPE_DIR}/debug/freetyped.lib")
+	endif()
+else()
+	if(KALAKIT_RELEASE)
+		set(FREETYPE_LIBRARY_PATH "${EXT_FREETYPE_DIR}/release/libfreetype.so")
+	else()
+		set(FREETYPE_LIBRARY_PATH "${EXT_FREETYPE_DIR}/debug/libfreetyped.so")
 	endif()
 endif()
 
@@ -158,6 +174,7 @@ function(set_kalawindow_includes target)
 		"${EXT_GLM_DIR}"
 		"${EXT_MAGIC_ENUM_DIR}"
 		"${EXT_CRASH_DIR}"
+		"${EXT_FREETYPE_DIR}"
 	)
 	if (KALAKIT_WAYLAND)
 		target_include_directories(${target} PRIVATE
@@ -183,6 +200,7 @@ function(configure_kalawindow_target target)
 		target_link_libraries(${target} PRIVATE
 			opengl32
 			${CRASH_LIBRARY_PATH}
+			${FREETYPE_LIBRARY_PATH}
 		)
 	else()
 		if (KALAKIT_WAYLAND)
@@ -192,6 +210,7 @@ function(configure_kalawindow_target target)
 				OpenGL::GL
 				EGL
 				${CRASH_LIBRARY_PATH}
+				${FREETYPE_LIBRARY_PATH}
 				${WAYLAND_CLIENT_LIBRARIES}
 				${WAYLAND_EGL_LIBRARIES}
 				${EGL_LIBRARIES}
@@ -203,6 +222,7 @@ function(configure_kalawindow_target target)
 				OpenGL::GL
 				EGL
 				${CRASH_LIBRARY_PATH}
+				${FREETYPE_LIBRARY_PATH}
 				${X11_LIBRARIES}
 			)
 		endif()

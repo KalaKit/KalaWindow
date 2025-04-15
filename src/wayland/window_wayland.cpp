@@ -24,6 +24,7 @@
 #include "opengl.hpp"
 #include "opengl_loader.hpp"
 #include "internal/window_wayland.hpp"
+#include "freetype.hpp"
 
 using std::strcmp;
 using std::to_string;
@@ -44,6 +45,9 @@ namespace KalaKit
 
         //initialize the crash handler first
         KalaCrashHandler::Initialize();
+
+		//initialize FreeType
+		KalaKit::FreeType freeType;
 
 		//
 		// CREATE A NEW WAYLAND DISPLAY
@@ -107,7 +111,10 @@ namespace KalaKit
 		//
 
 		int realHeight = height + 32;
-		bool createdBuffer = Window_Wayland::CreateSHMBuffers(width, realHeight);
+		bool createdBuffer = Window_Wayland::CreateSHMBuffers(
+			title,
+			width,
+			realHeight);
 		if (!createdBuffer)
 		{
 			LOG_ERROR("Failed to create Wayland buffer!");
