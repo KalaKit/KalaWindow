@@ -28,6 +28,7 @@
 
 using std::strcmp;
 using std::to_string;
+using std::make_unique;
 
 namespace KalaKit
 {
@@ -47,7 +48,7 @@ namespace KalaKit
         KalaCrashHandler::Initialize();
 
 		//initialize FreeType
-		KalaKit::FreeType freeType;
+		KalaWindow::freeType = make_unique<FreeType>();
 
 		//
 		// CREATE A NEW WAYLAND DISPLAY

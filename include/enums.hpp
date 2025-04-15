@@ -186,12 +186,12 @@ namespace KalaKit
 		DEBUG_WINDOW_CORNER_EDGE,      //Print ID code and name of each corner and edge when cursor goes over it
 
 		//
-		// SPECIAL DEBUG TYPES FOR SPECIFIC PLATFORMS
+		// SPECIAL DEBUG TYPES FOR SPECIFIC SCENARIOS
 		//
 
 		DEBUG_WAYLAND_DISPLAY_CHECK,   //Print wayland display and surface debug checks at runtime   
 		DEBUG_WAYLAND_CALLBACK_CHECK,  //Print wayland frame done callback confirmation check at runtime
-
+		
 		DEBUG_ALL                      //Print ALL debug updates
 	};
 

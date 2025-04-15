@@ -5,6 +5,8 @@
 
 #ifdef KALAKIT_WAYLAND
 
+#pragma once
+
 #define KALAKIT_MODULE "WINDOW"
 
 #include <chrono>
@@ -431,7 +433,11 @@ namespace KalaKit
         		}
 			}
 
-			LOG_DEBUG("TryRender returned false: no free buffer (both busy)");
+			if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+				|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+			{
+				LOG_DEBUG("TryRender returned false: no free buffer (both busy)");
+			}
 			return false;
 		}
 
