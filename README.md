@@ -6,6 +6,8 @@
 
 ![Logo](logo.png)
 
+# THIS BRANCH IS DEPRECATED AND WILL NO LONGER BE SUPPORTED. IT WILL BE SAVED FOR ARCHIVAL PURPOSES ONLY.
+
 KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 context and uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes KalaCrashHandler for handy crash reports.
 
 External libraries included in this library:
