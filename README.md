@@ -6,21 +6,21 @@
 
 ![Logo](logo.png)
 
-KalaWindow is a lightweight C++ 20 library for Windows that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 context and uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes KalaCrashHandler for handy crash reports.
+KalaWindow is a lightweight C++ 20 library for Windows and Linux that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 context and uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes KalaCrashHandler for handy crash reports. All the code is completely OS-agnostic so the exact same code works on both Windows and Linux.
+
+> Wayland support has been deprecated due to nasty restrictions with the update loop. Only X11 will be supported.
 
 External libraries included in this library:
 
 - magic_enum - enum-string operations (include\magic_enum)
 - GLM - OpenGL math functions (include\GLM)
 
-The Wayland version of the source code uses pre-generated Wayland-protocols c and h scripts. They were placed to '_external_shared/wayland-protocols' and contain a README file to describe how they were generated and what they are used for.
-
 # Prerequisites (when compiling from source code)
 
 - Visual Studio 2022 (with C++ CMake tools and Windows 10 or 11 SDK)
 - Ninja and CMake 3.30.3 or newer (or extract Windows_prerequsites.7z and run setup.bat)
 
-To compile from source code simply run 'build_windows_release.bat' or 'build_windows_debug.bat' depending on your preferences then copy and attach the dll, lib and header files with your preferred way to your program source directory.
+Follow the [example project](https://github.com/greeenlaser/KalaTestProject) to see how to set up and use this library in a real-world example for both Windows and Linux.
 
 # How to set up
 
