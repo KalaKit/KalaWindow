@@ -149,9 +149,6 @@ namespace KalaKit
 		{
         	//initialize opengl
         	if (!OpenGL::Initialize()) return false;
-
-        	//and finally set opengl viewport size
-        	OpenGLLoader::glViewportPtr(0, 0, width, height);
 		}
 		else
 		{

@@ -22,7 +22,7 @@ namespace KalaKit
 		/// <summary>
 		/// Creates a context of OpenGL 3.3 and attaches to the window.
 		/// </summary>
-		static bool Initialize();
+		static bool Initialize(int width = 0, int height = 0);
 
 		/// <summary>
 		/// Returns the correct opengl context depending on your OS

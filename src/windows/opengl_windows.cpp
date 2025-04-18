@@ -20,7 +20,7 @@
 
 namespace KalaKit
 {
-	bool OpenGL::Initialize()
+	bool OpenGL::Initialize(int width, int height)
 	{
 		HDC hdc = GetDC(Window_Windows::newWindow);
 		LOG_DEBUG("Window HDC: " << hdc);
@@ -215,6 +215,9 @@ namespace KalaKit
 		LOG_SUCCESS("OpenGL version: " << glGetString(GL_VERSION));
 
 		OpenGLLoader::LoadAllFunctions();
+
+		//and finally set opengl viewport size
+		OpenGLLoader::glViewportPtr(0, 0, width, height);
 
 		return true;
 	}

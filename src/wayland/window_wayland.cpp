@@ -24,6 +24,7 @@
 #include "opengl.hpp"
 #include "opengl_loader.hpp"
 #include "internal/window_wayland.hpp"
+#include "internal/opengl_wayland.hpp"
 #include "freetype.hpp"
 
 using std::strcmp;
@@ -89,6 +90,22 @@ namespace KalaKit
 			return false;
 		}
 
+		//
+		// CREATE A BUFFER SO CONTENT IS SHOWN
+		//
+
+		int realHeight = height + 32;
+		bool createdBuffer = Window_Wayland::CreateSHMBuffers(
+			title,
+			width,
+			realHeight);
+		if (!createdBuffer)
+		{
+			LOG_ERROR("Failed to create Wayland buffer!");
+            wl_display_disconnect(newDisplay);
+			return false;
+		}
+
         //
 		// CREATE THE DRAWABLE AREA
 		//
@@ -108,22 +125,6 @@ namespace KalaKit
 		Window_Wayland::AddDecorations(title);
 
 		//
-		// CREATE A BUFFER SO CONTENT IS SHOWN
-		//
-
-		int realHeight = height + 32;
-		bool createdBuffer = Window_Wayland::CreateSHMBuffers(
-			title,
-			width,
-			realHeight);
-		if (!createdBuffer)
-		{
-			LOG_ERROR("Failed to create Wayland buffer!");
-            wl_display_disconnect(newDisplay);
-			return false;
-		}
-
-		//
 		// REST OF THE INITIALIZATION
 		//
 
@@ -133,10 +134,7 @@ namespace KalaKit
 		if (initializeOpenGL)
 		{
         	//initialize opengl
-        	if (!OpenGL::Initialize()) return false;
-
-        	//and finally set opengl viewport size
-        	OpenGLLoader::glViewportPtr(0, 0, width, height);
+        	if (!OpenGL::Initialize(width, height)) return false;
 		}
 
         isInitialized = true;

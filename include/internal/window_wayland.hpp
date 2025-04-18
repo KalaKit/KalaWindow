@@ -11,6 +11,15 @@
 #include <fstream>
 #include <poll.h>
 #include <thread>
+#include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/eventfd.h>
+#include <unistd.h>
+#include <stdio.h>
+
+//external
+#include "xdg-shell-client-protocol.h"
+#include "linux-drm-syncobj-v1-client-protocol.h"
 
 //kalawindow
 #include "window.hpp"
@@ -129,6 +138,22 @@ namespace KalaKit
 						};
 						xdg_wm_base_add_listener(xdgWmBase, &WmBaseListener, nullptr);
 				    }
+					//set up explicit sync
+					else if (strcmp(interface, "wp_linux_drm_syncobj_manager_v1") == 0
+							 && OpenGL::isInitialized)
+					{
+						drmSyncManager = static_cast<wp_linux_drm_syncobj_manager_v1*>(
+							wl_registry_bind(
+								registry,
+								name,
+								&wp_linux_drm_syncobj_manager_v1_interface,
+								1
+							)
+						);
+
+						LOG_DEBUG("Bound wp_linux_drm_syncobj_manager_v1");
+					}
+					
                 },
                 .global_remove = [](void*, struct wl_registry*, uint32_t) {}
             };
@@ -140,10 +165,159 @@ namespace KalaKit
         static wl_shm* GetSHM() { return shm; }
         static xdg_wm_base* GetWMBase() { return xdgWmBase; }
 
+		static bool CreateSHMBuffers(
+			const string& title,
+			int width,
+			int height)
+		{
+			if (OpenGL::isInitialized)
+			{
+				if (!drmSyncManager)
+				{
+					LOG_ERROR("Cannot set drm sync timeline because drm sync manager is null!");
+					KalaWindow::SetShouldCloseState(true);
+					return false;
+				}
+				else
+				{
+					int dummyFD = eventfd(0, 0);
+					if (dummyFD < 0)
+					{
+						LOG_ERROR("eventfd failed: " << to_string(errno));
+						return false;
+					}
+					drmSyncTimeline = wp_linux_drm_syncobj_manager_v1_import_timeline(
+						drmSyncManager,
+						dummyFD
+					);
+					close(dummyFD);
+				}
+	
+				if (!drmSyncTimeline)
+				{
+					LOG_DEBUG("Compositor rejected dummy sync timeline. Falling back to no explicit sync.");
+					drmSyncManager = nullptr;
+					drmSyncTimeline = nullptr;
+				}
+			}
+			else
+			{
+				for (int i = 0; i < 2; ++i)
+				{
+					int stride = width * 4;
+					int size = stride * height;
+			
+					//create an in-memory file
+					char shm_path[] = "/dev/shm/wayland-shmXXXXXX";
+					int fd = mkstemp(shm_path);
+					if (fd < 0)
+					{
+						LOG_ERROR("mkstemp failed for SHM buffer!");
+						return false;
+					}
+					shm_unlink(shm_path);
+			
+					if (ftruncate(fd, size) < 0)
+					{
+						LOG_ERROR("FTruncate failed on SHM buffer.");
+						close(fd);
+						return false;
+					}
+			
+					void* data = mmap(
+						nullptr,
+						size,
+						PROT_READ
+						| PROT_WRITE,
+						MAP_SHARED,
+						fd,
+						0
+					);
+					if (data == MAP_FAILED)
+					{
+						LOG_ERROR("Failed to mmap SHM file for SHM buffer.");
+						close(fd);
+						return false;
+					}
+			
+					wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
+					wl_buffer* buffer = wl_shm_pool_create_buffer(
+						pool,
+						0,
+						width,
+						height,
+						stride,
+						WL_SHM_FORMAT_XRGB8888
+					);
+					wl_shm_pool_destroy(pool);
+					close(fd); // can safely close after pool creation
+			
+					//store buffer in the double buffer array
+					uint32_t* pixels = static_cast<uint32_t*>(data);
+					shmBuffers[i] =
+					{
+						.pixels = pixels,
+						.width = width,
+						.height = height,
+						.stride = stride,
+						.size = size,
+						.buffer = buffer,
+						.busy = false
+					};
+	
+					wl_buffer_add_listener(buffer, &BufferReleaseListener, &shmBuffers[i]);
+	
+					DrawWindowContent(
+						title,
+						shmBuffers[i],
+						width,
+						height);
+				}
+			}
+		
+			return true;
+		}
+		static inline const wl_buffer_listener BufferReleaseListener =
+		{
+			.release = [](void* data, wl_buffer* buffer)
+			{
+				auto* buf  = reinterpret_cast<SHMBuffer*>(data);
+				buf->busy = false;
+
+				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
+				{
+					LOG_DEBUG("Buffer released back by compositor.");
+				}
+			}
+		};
+
         static wl_surface* CreateSurface()
         {
             newSurface = wl_compositor_create_surface(compositor);
             if (newSurface == nullptr) return nullptr;
+
+			if (OpenGL::isInitialized)
+			{
+				if (!drmSyncManager)
+				{
+					LOG_ERROR("Cannot set drm sync surface because drm sync manager is null!");
+					KalaWindow::SetShouldCloseState(true);
+				}
+				else
+				{
+					drmSyncSurface = wp_linux_drm_syncobj_manager_v1_get_surface(
+						drmSyncManager,
+						newSurface
+					);
+					
+					if (!drmSyncSurface)
+					{
+						LOG_ERROR("Failed to create drm sync surface!");
+						KalaWindow::SetShouldCloseState(true);
+					}
+				}
+			}
 
 			return newSurface;
         }
@@ -209,171 +383,79 @@ namespace KalaKit
 		    wl_surface_commit(newSurface);
         }
 
-        static bool CreateSHMBuffers(
-			const string& title,
-			int width,
-			int height)
-		{
-			for (int i = 0; i < 2; ++i)
-			{
-				int stride = width * 4;
-				int size = stride * height;
-		
-				//create an in-memory file
-				int fd = memfd_create(
-					"wayland-shm",
-					MFD_CLOEXEC
-					| MFD_ALLOW_SEALING);
-				if (fd < 0)
-				{
-					LOG_ERROR("memfd_create failed for SHM buffer.");
-					return false;
-				}
-		
-				if (ftruncate(fd, size) < 0)
-				{
-					LOG_ERROR("FTruncate failed on SHM buffer.");
-					close(fd);
-					return false;
-				}
-		
-				void* data = mmap(
-					nullptr,
-					size,
-					PROT_READ
-					| PROT_WRITE,
-					MAP_SHARED,
-					fd,
-					0
-				);
-				if (data == MAP_FAILED)
-				{
-					LOG_ERROR("Failed to mmap SHM file for SHM buffer.");
-					close(fd);
-					return false;
-				}
-		
-				wl_shm_pool* pool = wl_shm_create_pool(shm, fd, size);
-				wl_buffer* buffer = wl_shm_pool_create_buffer(
-					pool,
-					0,
-					width,
-					height,
-					stride,
-					WL_SHM_FORMAT_XRGB8888
-				);
-				wl_shm_pool_destroy(pool);
-				close(fd); // can safely close after pool creation
-		
-				//store buffer in the double buffer array
-				uint32_t* pixels = static_cast<uint32_t*>(data);
-				shmBuffers[i] =
-				{
-					.pixels = pixels,
-					.width = width,
-					.height = height,
-					.stride = stride,
-					.size = size,
-					.buffer = buffer,
-					.busy = false
-				};
-
-				wl_buffer_add_listener(buffer, &BufferReleaseListener, &shmBuffers[i]);
-
-				DrawWindowContent(
-					title,
-					shmBuffers[i],
-					width,
-					height);
-			}
-		
-			return true;
-		}
-		static inline const wl_buffer_listener BufferReleaseListener =
-		{
-			.release = [](void* data, wl_buffer* buffer)
-			{
-				auto* buf  = reinterpret_cast<SHMBuffer*>(data);
-				buf->busy = false;
-
-				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
-					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_CALLBACK_CHECK)
-				{
-					LOG_DEBUG("Buffer released back by compositor.");
-				}
-			}
-		};
-
 		static void DrawWindowContent(
 			const string& title,
 			SHMBuffer& buffer,
 			int width, 
 			int height)
 		{
-			uint32_t* pixels = static_cast<uint32_t*>(buffer.pixels);
-
-			//
-			// DRAW TITLE BAR
-			//
-
-			int titlebarHeight = 32;
-		
-			//dark gray
-			uint32_t color_titleBar = 0xFF202020; 
-			//draw title bar (top 32 pixels)
-			for (int y = 0; y < titlebarHeight; ++y)
+			if (!OpenGL::isInitialized)
 			{
-				for (int x = 0; x < width; ++x)
+				uint32_t* pixels = static_cast<uint32_t*>(buffer.pixels);
+
+				//
+				// DRAW TITLE BAR
+				//
+	
+				int titlebarHeight = 32;
+			
+				//dark gray
+				uint32_t color_titleBar = 0xFF202020; 
+				//draw title bar (top 32 pixels)
+				for (int y = 0; y < titlebarHeight; ++y)
 				{
-					pixels[y * width + x] = color_titleBar;
+					for (int x = 0; x < width; ++x)
+					{
+						pixels[y * width + x] = color_titleBar;
+					}
 				}
-			}
-
-			//
-			// DRAW TITLEBAR BUTTONS
-			//
-
-			int buttonSize = 24;
-			int buttonPadding = 4;
-
-			closeButton = 
-			{
-				width - buttonPadding - buttonSize,
-				4,
-				buttonSize,
-				buttonSize
-			};
-			maxButton = 
-			{
-				closeButton.x - buttonPadding - buttonSize,
-				4,
-				buttonSize,
-				buttonSize
-			};
-			minButton = 
-			{
-				maxButton.x - buttonPadding - buttonSize,
-				4,
-				buttonSize,
-				buttonSize
-			};
-
-			DrawButtonRect(buffer, closeButton, 0xFFCC6666);  //red
-			DrawButtonRect(buffer, maxButton,   0xFFCCCC66);  //yellow
-			DrawButtonRect(buffer, minButton,   0xFF66CC66);  //green
-
-			//
-			// DRAW SCREEN CONTENT
-			//
-
-			//light green
-			uint32_t color_window = 0xFF66CC99; 
-			//draw window content  
-			for (int y = titlebarHeight; y < height; ++y)
-			{
-				for (int x = 0; x < width; ++x)
+	
+				//
+				// DRAW TITLEBAR BUTTONS
+				//
+	
+				int buttonSize = 24;
+				int buttonPadding = 4;
+	
+				closeButton = 
 				{
-					pixels[y * width + x] = color_window;
+					width - buttonPadding - buttonSize,
+					4,
+					buttonSize,
+					buttonSize
+				};
+				maxButton = 
+				{
+					closeButton.x - buttonPadding - buttonSize,
+					4,
+					buttonSize,
+					buttonSize
+				};
+				minButton = 
+				{
+					maxButton.x - buttonPadding - buttonSize,
+					4,
+					buttonSize,
+					buttonSize
+				};
+	
+				DrawButtonRect(buffer, closeButton, 0xFFCC6666);  //red
+				DrawButtonRect(buffer, maxButton,   0xFFCCCC66);  //yellow
+				DrawButtonRect(buffer, minButton,   0xFF66CC66);  //green
+	
+				//
+				// DRAW SCREEN CONTENT
+				//
+	
+				//light green
+				uint32_t color_window = 0xFF66CC99; 
+				//draw window content  
+				for (int y = titlebarHeight; y < height; ++y)
+				{
+					for (int x = 0; x < width; ++x)
+					{
+						pixels[y * width + x] = color_window;
+					}
 				}
 			}
 		}
@@ -401,6 +483,8 @@ namespace KalaKit
 		//Enables drawing only if a buffer is available
 		static bool TryRender()
 		{
+			static uint64_t frameCounter = 0;
+
 			for (int i = 0; i < 2; ++i)
     		{
         		int index = (currentBufferIndex + 1 + i) % 2;
@@ -424,6 +508,29 @@ namespace KalaKit
 						0, 
 						buf.width, 
 						buf.height);
+
+					if (OpenGL::isInitialized)
+					{
+						//fake explicit sync to satisfy the nvidia overlords
+
+						if (drmSyncSurface
+							&& drmSyncTimeline)
+						{
+							uint64_t value = ++frameCounter;
+							uint32_t hi = value >> 32;
+							uint32_t lo = value & 0xFFFFFFFF;
+
+							wp_linux_drm_syncobj_surface_v1_set_acquire_point(
+								drmSyncSurface,
+								drmSyncTimeline,
+								hi,
+								lo
+							);
+						}
+
+						//fake explicit sync end	
+					}
+
             		wl_surface_commit(newSurface);
             		wl_display_flush(newDisplay);
 
@@ -437,99 +544,6 @@ namespace KalaKit
 				LOG_DEBUG("TryRender returned false: no free buffer (both busy)");
 			}
 			return false;
-		}
-
-		static inline string Uint_To_Color(uint32_t value)
-		{
-			uint8_t a = (value >> 24) & 0xFF;
-			uint8_t r = (value >> 16) & 0xFF;
-			uint8_t g = (value >> 8) & 0xFF;
-			uint8_t b = (value >> 0) & 0xFF;
-
-			struct NamedColor
-    		{
-        		const char* name;
-        		uint8_t r, g, b;
-    		};
-
-			static const NamedColor namedColors[] = {
-				// === RGB Primaries ===
-				{ "Red",        0xFF, 0x00, 0x00 },
-				{ "Green",      0x00, 0xFF, 0x00 },
-				{ "Blue",       0x00, 0x00, 0xFF },
-			
-				// === RGB Secondaries ===
-				{ "Yellow",     0xFF, 0xFF, 0x00 },
-				{ "Cyan",       0x00, 0xFF, 0xFF },
-				{ "Magenta",    0xFF, 0x00, 0xFF },
-			
-				// === Perceptual + UI colors ===
-				{ "Orange",     0xFF, 0xA5, 0x00 },
-				{ "Pink",       0xFF, 0xC0, 0xCB },
-				{ "Purple",     0x80, 0x00, 0x80 },
-				{ "Brown",      0xA5, 0x2A, 0x2A },
-				{ "Lime",       0x32, 0xCD, 0x32 },
-				{ "Light Blue", 0xAD, 0xD8, 0xE6 },
-				{ "Teal",       0x00, 0x80, 0x80 },
-			
-				// === Grayscale ===
-				{ "Black",      0x00, 0x00, 0x00 },
-				{ "Gray",       0x80, 0x80, 0x80 },
-				{ "White",      0xFF, 0xFF, 0xFF }
-			};											
-
-			const NamedColor* closest = nullptr;
-    		int smallestTotalDelta = INT_MAX;
-    		bool isExact = false;
-
-    		for (const auto& named : namedColors)
-    		{
-        		int dr = abs(int(r) - int(named.r));
-        		int dg = abs(int(g) - int(named.g));
-        		int db = abs(int(b) - int(named.b));
-
-        		int totalDelta = dr + dg + db;
-
-        		if (dr <= 10 
-					&& dg <= 10 
-					&& db <= 10)
-        		{
-            		closest = &named;
-            		isExact = true;
-            		break;
-       			}
-
-        		if (totalDelta < smallestTotalDelta)
-        		{
-            		smallestTotalDelta = totalDelta;
-            		closest = &named;
-        		}
-    		}
-
-			ostringstream oss;
-			oss << "A: " << (int)a
-				<< "R: " << (int)r
-				<< "G: " << (int)g
-				<< "B: " << (int)b
-				<< " (0x" 
-				<< hex 
-				<< uppercase 
-				<< setw(8) 
-				<< setfill('0')
-				<< value
-				<< ")";
-
-				if (!closest 
-					|| smallestTotalDelta > 150)
-				{
-					oss << " [Unknown]";
-				}
-				else
-				{
-					oss << " [" << (isExact ? "" : "~") << closest->name << "]";
-				}
-
-			return oss.str();
 		}
     
 		static void WaylandPoll()
@@ -596,6 +610,9 @@ namespace KalaKit
         static inline struct wl_compositor* compositor;
         static inline struct wl_shm* shm;
         static inline struct xdg_wm_base* xdgWmBase;
+		static inline wp_linux_drm_syncobj_manager_v1* drmSyncManager = nullptr;
+		static inline wp_linux_drm_syncobj_surface_v1* drmSyncSurface = nullptr;
+		static inline wp_linux_drm_syncobj_timeline_v1* drmSyncTimeline = nullptr;
 		static inline SHMBuffer shmBuffers[2];
 		static inline int currentBufferIndex = 0;
 
