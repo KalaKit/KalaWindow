@@ -139,7 +139,7 @@ namespace KalaKit
         */
 	}
 
-	void KalaWindow::SwapBuffers(const OPENGLCONTEXT& context)
+	void KalaWindow::SwapOpenGLBuffers(const OPENGLCONTEXT& context)
     {
 
     }

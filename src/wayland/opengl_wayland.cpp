@@ -32,12 +32,6 @@ namespace KalaKit
 			return false;
 		}
 
-		if (current != realContext)
-		{
-			LOG_ERROR("Current OpenGL context does not match stored context!");
-			return false;
-		}
-
 		return true;
 	}
 }

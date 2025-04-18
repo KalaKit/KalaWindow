@@ -56,9 +56,9 @@ fi
 
 # Set dll and lib paths
 RELEASE_DLL="${ROOT_DIR}/build-release/bin/libKalaWindow.so"
-RELEASE_LIB="${ROOT_DIR}/build-release/libKalaWindow.a"
+RELEASE_LIB="${ROOT_DIR}/build-release/lib/libKalaWindow.a"
 DEBUG_DLL="${ROOT_DIR}/build-debug/bin/libKalaWindowD.so"
-DEBUG_LIB="${ROOT_DIR}/build-debug/libKalaWindowD.a"
+DEBUG_LIB="${ROOT_DIR}/build-debug/lib/libKalaWindowD.a"
 
 # Confirm if dll and lib paths are valid
 if [[ ! -f "$RELEASE_DLL" ]]; then

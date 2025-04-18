@@ -150,6 +150,7 @@ namespace KalaKit
 		if (!isInitialized)
 		{
 			LOG_ERROR("Cannot run loop because KalaWindow is not initialized!");
+			SetShouldCloseState(true);
 			return;
 		}
 
@@ -221,7 +222,7 @@ namespace KalaKit
 		Window_Wayland::Pause();
 	}
 
-    void KalaWindow::SwapBuffers(const OPENGLCONTEXT& context)
+    void KalaWindow::SwapOpenGLBuffers(const OPENGLCONTEXT& context)
     {
 
     }
