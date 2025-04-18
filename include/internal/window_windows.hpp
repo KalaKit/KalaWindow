@@ -5,8 +5,6 @@
 
 #ifdef KALAKIT_WINDOWS
 
-#define KALAKIT_MODULE "WINDOW"
-
 //kalakit
 #include "window.hpp"
 
@@ -15,9 +13,10 @@ namespace KalaKit
     class Window_Windows
     {
     public:
-		static inline HWND* newWindow = nullptr;
-		static inline WNDPROC* newContext = nullptr;
-    }
+        static inline HWND newWindow = nullptr;
+        static inline WNDPROC newProc = nullptr;
+        static inline HGLRC newGLContext = nullptr;
+    };
 }
 
 #endif // KALAKIT_WINDOWS

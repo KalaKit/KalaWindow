@@ -16,6 +16,7 @@
 #include "window.hpp"
 #include "messageloop.hpp"
 #include "magic_enum.hpp"
+#include "internal/window_windows.hpp"
 
 using std::to_string;
 using std::next;
@@ -38,7 +39,7 @@ namespace KalaKit
 		rid.usUsagePage = 0x01;
 		rid.usUsage = 0x02;
 		rid.dwFlags = RIDEV_INPUTSINK;
-		rid.hwndTarget = KalaWindow::window;
+		rid.hwndTarget = Window_Windows::newWindow;
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
@@ -197,7 +198,7 @@ namespace KalaKit
 		return isDragging;
 	}
 
-	POINT KalaInput::GetMousePosition()
+	POS KalaInput::GetMousePosition()
 	{
 		if (!isInitialized)
 		{
@@ -226,7 +227,7 @@ namespace KalaKit
 
 		return mousePosition;
 	}
-	void KalaInput::SetMousePosition(POINT newMousePosition)
+	void KalaInput::SetMousePosition(POS newMousePosition)
 	{
 		if (!isInitialized)
 		{
@@ -238,7 +239,7 @@ namespace KalaKit
 		mousePosition.y = newMousePosition.y;
 	}
 
-	POINT KalaInput::GetMouseDelta()
+	POS KalaInput::GetMouseDelta()
 	{
 		if (!isInitialized)
 		{
@@ -262,7 +263,7 @@ namespace KalaKit
 
 		return mouseDelta;
 	}
-	void KalaInput::SetMouseDelta(POINT newMouseDelta)
+	void KalaInput::SetMouseDelta(POS newMouseDelta)
 	{
 		if (!isInitialized)
 		{
@@ -274,7 +275,7 @@ namespace KalaKit
 		mouseDelta.y = newMouseDelta.y;
 	}
 
-	POINT KalaInput::GetRawMouseDelta()
+	POS KalaInput::GetRawMouseDelta()
 	{
 		if (!isInitialized)
 		{
@@ -298,7 +299,7 @@ namespace KalaKit
 
 		return rawMouseDelta;
 	}
-	void KalaInput::SetRawMouseDelta(POINT newRawMouseDelta)
+	void KalaInput::SetRawMouseDelta(POS newRawMouseDelta)
 	{
 		if (!isInitialized)
 		{
@@ -410,9 +411,9 @@ namespace KalaKit
 
 			//clip the cursor to the window to prevent it from leaving
 			RECT rect{};
-			GetClientRect(KalaWindow::window, &rect);
-			ClientToScreen(KalaWindow::window, (POINT*)&rect.left);
-			ClientToScreen(KalaWindow::window, (POINT*)&rect.right);
+			GetClientRect(Window_Windows::newWindow, &rect);
+			ClientToScreen(Window_Windows::newWindow, (POINT*)&rect.left);
+			ClientToScreen(Window_Windows::newWindow, (POINT*)&rect.right);
 			ClipCursor(&rect);
 		}
 	}
@@ -441,13 +442,13 @@ namespace KalaKit
 	void KalaInput::LockCursorToCenter()
 	{
 		RECT rect{};
-		GetClientRect(KalaWindow::window, &rect);
+		GetClientRect(Window_Windows::newWindow, &rect);
 
 		POINT center{};
 		center.x = (rect.right - rect.left) / 2;
 		center.y = (rect.bottom - rect.top) / 2;
 
-		ClientToScreen(KalaWindow::window, &center);
+		ClientToScreen(Window_Windows::newWindow, &center);
 		SetCursorPos(center.x, center.y);
 	}
 }

@@ -7,8 +7,6 @@
 
 #pragma once
 
-#define KALAKIT_MODULE "WINDOW"
-
 #include <chrono>
 #include <fstream>
 #include <poll.h>

@@ -7,6 +7,9 @@
 
 #define KALAKIT_MODULE "WINDOW"
 
+#include <memory>
+#include <format>
+
 //external
 #include "crashHandler.hpp"
 #include "magic_enum.hpp"
@@ -16,9 +19,12 @@
 #include "input.hpp"
 #include "messageloop.hpp"
 #include "opengl.hpp"
-#include "window_windows.hpp"
+#include "opengl_loader.hpp"
+#include "internal/window_windows.hpp"
 
 using std::to_string;
+using std::make_unique;
+using std::format;
 
 namespace KalaKit
 {
@@ -34,22 +40,36 @@ namespace KalaKit
 			return false;
 		}
 
+		if (initializeOpenGL) OpenGL::isInitialized = true;
+
 		//first initialize crash handler
 		KalaCrashHandler::Initialize();
+
+		//initialize FreeType
+		KalaWindow::freeType = make_unique<FreeType>();
 
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
 		WNDCLASSA wc = {};
-		wc.lpfnWndProc = DefWindowProcA;
+		wc.lpfnWndProc = MessageLoop::WindowProcCallback; //DefWindowProcA;
 		wc.hInstance = hInstance;
 		wc.lpszClassName = "KalaWindowClass";
 
 		if (!RegisterClassA(&wc))
 		{
-			LOG_ERROR("Failed to register window class.");
+			DWORD err = GetLastError();
+			string message{};
+			if (err == ERROR_CLASS_ALREADY_EXISTS)
+			{
+				message = "Window class already exists with different definition.\n";
+			}
+			else
+			{
+				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
+			}
+			LOG_ERROR(message);
 
 			string title = "Window initialize error!";
-			string message = "Failed to register window class!";
 
 			if (KalaWindow::CreatePopup(
 				title,
@@ -78,10 +98,29 @@ namespace KalaKit
 
 		if (!newWindow)
 		{
-			LOG_ERROR("Failed to create window!");
+			DWORD errorCode = GetLastError();
+			LPSTR errorMsg = nullptr;
+			FormatMessageA(
+				FORMAT_MESSAGE_ALLOCATE_BUFFER 
+				| FORMAT_MESSAGE_FROM_SYSTEM 
+				| FORMAT_MESSAGE_IGNORE_INSERTS,
+				nullptr, 
+				errorCode, 
+				0, 
+				(LPSTR)&errorMsg, 
+				0, 
+				nullptr);
+
+			string message = "CreateWindowExA failed with error "
+				+ to_string(errorCode)
+				+ ": "
+				+ (errorMsg ? errorMsg : "Unknown");
+
+			LOG_ERROR(message);
+
+			if (errorMsg) LocalFree(errorMsg);
 
 			string title = "Window initialize error!";
-			string message = "Failed to create window!";
 
 			if (KalaWindow::CreatePopup(
 				title,
@@ -96,11 +135,10 @@ namespace KalaKit
 			return false;
 		}
 		Window_Windows::newWindow = newWindow;
-
-		HDC newContext = GetDC(newWindow);
-		Window_Windows::newContext = newContext;
+		Window_Windows::newProc = (WNDPROC)GetWindowLongPtr(newWindow, GWLP_WNDPROC);
 
 		ShowWindow(newWindow, SW_SHOW);
+		UpdateWindow(newWindow);
 
 		//also initialize input
 		KalaInput::Initialize();
@@ -112,6 +150,10 @@ namespace KalaKit
 
         	//and finally set opengl viewport size
         	OpenGLLoader::glViewportPtr(0, 0, width, height);
+		}
+		else
+		{
+			LOG_DEBUG("User chose not to initialize OpenGL!");
 		}
 
 		isInitialized = true;
@@ -130,7 +172,7 @@ namespace KalaKit
 
 		//prevent updates when not focused
 		if (isWindowFocusRequired
-			&& GetForegroundWindow() != newWindow)
+			&& GetForegroundWindow() != Window_Windows::newWindow)
 		{
 			return;
 		}
@@ -187,7 +229,7 @@ namespace KalaKit
 			LOG_DEBUG("New window title: " << title << "");
 		}
 
-		SetWindowTextA(window, title.c_str());
+		SetWindowTextA(Window_Windows::newWindow, title.c_str());
 	}
 
 	void KalaWindow::SetWindowState(WindowState state)
@@ -208,13 +250,13 @@ namespace KalaKit
 		switch (state)
 		{
 		case WindowState::WINDOW_RESET:
-			ShowWindow(newWindow, SW_RESTORE);
+			ShowWindow(Window_Windows::newWindow, SW_RESTORE);
 			break;
 		case WindowState::WINDOW_MINIMIZED:
-			ShowWindow(newWindow, SW_MINIMIZE);
+			ShowWindow(Window_Windows::newWindow, SW_MINIMIZE);
 			break;
 		case WindowState::WINDOW_MAXIMIZED:
-			ShowWindow(newWindow, SW_MAXIMIZE);
+			ShowWindow(Window_Windows::newWindow, SW_MAXIMIZE);
 			break;
 		}
 	}
@@ -227,7 +269,7 @@ namespace KalaKit
 			return false;
 		}
 
-		LONG style = GetWindowLong(newWindow, GWL_STYLE);
+		LONG style = GetWindowLong(Window_Windows::newWindow, GWL_STYLE);
 		return (style & WS_OVERLAPPEDWINDOW);
 	}
 	void KalaWindow::SetWindowBorderlessState(bool newWindowBorderlessState)
@@ -248,17 +290,17 @@ namespace KalaKit
 		if (!newWindowBorderlessState)
 		{
 			//save original style and placement
-			originalStyle = GetWindowLong(newWindow, GWL_STYLE);
-			GetWindowPlacement(window, &originalPlacement);
+			originalStyle = GetWindowLong(Window_Windows::newWindow, GWL_STYLE);
+			GetWindowPlacement(Window_Windows::newWindow, &originalPlacement);
 
 			//set style to borderless
-			SetWindowLong(window, GWL_STYLE, WS_POPUP);
+			SetWindowLong(Window_Windows::newWindow, GWL_STYLE, WS_POPUP);
 
 			//resize to full monitor
 			MONITORINFO mi = { sizeof(mi) };
-			GetMonitorInfo(MonitorFromWindow(newWindow, MONITOR_DEFAULTTONEAREST), &mi);
+			GetMonitorInfo(MonitorFromWindow(Window_Windows::newWindow, MONITOR_DEFAULTTONEAREST), &mi);
 			SetWindowPos(
-				window,
+				Window_Windows::newWindow,
 				HWND_TOP,
 				mi.rcMonitor.left, mi.rcMonitor.top,
 				mi.rcMonitor.right - mi.rcMonitor.left,
@@ -272,12 +314,12 @@ namespace KalaKit
 		else
 		{
 			//restore original style
-			SetWindowLong(newWindow, GWL_STYLE, originalStyle);
+			SetWindowLong(Window_Windows::newWindow, GWL_STYLE, originalStyle);
 
 			//restore previous size/position
-			SetWindowPlacement(newWindow, &originalPlacement);
+			SetWindowPlacement(Window_Windows::newWindow, &originalPlacement);
 			SetWindowPos(
-				window,
+				Window_Windows::newWindow,
 				nullptr,
 				0,
 				0,
@@ -302,7 +344,7 @@ namespace KalaKit
 			return false;
 		}
 
-		return !IsWindowVisible(newWindow);
+		return !IsWindowVisible(Window_Windows::newWindow);
 	}
 	void KalaWindow::SetWindowHiddenState(bool newWindowHiddenState)
 	{
@@ -319,7 +361,7 @@ namespace KalaKit
 			LOG_DEBUG("New window hidden state: " << type << "");
 		}
 
-		ShowWindow(window, newWindowHiddenState ? SW_HIDE : SW_SHOW);
+		ShowWindow(Window_Windows::newWindow, newWindowHiddenState ? SW_HIDE : SW_SHOW);
 	}
 
 	POS KalaWindow::GetWindowPosition()
@@ -331,7 +373,7 @@ namespace KalaKit
 		}
 
 		RECT rect{};
-		GetWindowRect(newWindow, &rect);
+		GetWindowRect(Window_Windows::newWindow, &rect);
 
 		POS pos{};
 		pos.x = rect.left;
@@ -356,7 +398,7 @@ namespace KalaKit
 		}
 
 		SetWindowPos(
-			newWindow,
+			Window_Windows::newWindow,
 			nullptr,
 			width,
 			height,
@@ -376,7 +418,7 @@ namespace KalaKit
 		}
 
 		RECT rect{};
-		GetWindowRect(newWindow, &rect);
+		GetWindowRect(Window_Windows::newWindow, &rect);
 
 		POS size{};
 		size.x = rect.right - rect.left;
@@ -401,7 +443,7 @@ namespace KalaKit
 		}
 
 		SetWindowPos(
-			newWindow,
+			Window_Windows::newWindow,
 			nullptr,
 			0,
 			0,
@@ -421,7 +463,7 @@ namespace KalaKit
 		}
 
 		RECT rect{};
-		GetClientRect(newWindow, &rect);
+		GetClientRect(Window_Windows::newWindow, &rect);
 
 		POS size{};
 		size.x = rect.right - rect.left;
@@ -449,12 +491,12 @@ namespace KalaKit
 		AdjustWindowRect(
 			&rect,
 			GetWindowLong(
-				newWindow,
+				Window_Windows::newWindow,
 				GWL_STYLE),
 			FALSE);
 
 		SetWindowPos(
-			newWindow,
+			Window_Windows::newWindow,
 			nullptr,
 			0,
 			0,
@@ -469,8 +511,8 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot get window max size because KalaWindow is not initialized!");
-			return { 0, 0 };
+			LOG_ERROR("Returning default window max size because KalaWindow is not initialized!");
+			return { 7680, 4320 };
 		}
 
 		POS point{};
@@ -482,8 +524,8 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Cannot get window min size because KalaWindow is not initialized!");
-			return { 0, 0 };
+			LOG_ERROR("Returning default window min size because KalaWindow is not initialized!");
+			return { 800, 600 };
 		}
 
 		POS point{};

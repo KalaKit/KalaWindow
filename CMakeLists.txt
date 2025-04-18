@@ -160,9 +160,11 @@ set_target_properties(KalaWindow PROPERTIES OUTPUT_NAME "KalaWindow$<$<CONFIG:De
 target_compile_features(KalaWindow PRIVATE cxx_std_20)
 
 # Static library
-add_library(KalaWindowStatic STATIC  ${WINDOW_SRC_FILES})
-set_target_properties(KalaWindowStatic PROPERTIES OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>")
-target_compile_features(KalaWindowStatic PRIVATE cxx_std_20)
+if (NOT KALAKIT_WINDOWS)
+	add_library(KalaWindowStatic STATIC  ${WINDOW_SRC_FILES})
+	set_target_properties(KalaWindowStatic PROPERTIES OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>")
+	target_compile_features(KalaWindowStatic PRIVATE cxx_std_20)
+endif()
 
 # Apply all directories
 function(set_kalawindow_includes target)
@@ -191,7 +193,9 @@ function(set_kalawindow_includes target)
 endfunction()
 
 set_kalawindow_includes(KalaWindow)
-set_kalawindow_includes(KalaWindowStatic)
+if (NOT KALAKIT_WINDOWS)
+	set_kalawindow_includes(KalaWindowStatic)
+endif()
 
 function(configure_kalawindow_target target)
 	if (KALAKIT_WINDOWS)
@@ -230,7 +234,9 @@ function(configure_kalawindow_target target)
 endfunction()
 
 configure_kalawindow_target(KalaWindow)
-configure_kalawindow_target(KalaWindowStatic)
+if (NOT KALAKIT_WINDOWS)
+	configure_kalawindow_target(KalaWindowStatic)
+endif()
 
 # Define preprocessor directives
 function(set_debug_defines target)
@@ -248,7 +254,9 @@ function(set_debug_defines target)
 endfunction()
 
 set_debug_defines(KalaWindow)
-set_debug_defines(KalaWindowStatic)
+if (NOT KALAKIT_WINDOWS)
+	set_debug_defines(KalaWindowStatic)
+endif()
 
 # Copy shared library to bin (.dll or .so)
 add_custom_command(TARGET KalaWindow POST_BUILD
@@ -264,19 +272,21 @@ add_custom_command(TARGET KalaWindow POST_BUILD
         $<TARGET_FILE:KalaWindow>
 )
 
-# Copy static library to lib (.lib or .a)
-add_custom_command(TARGET KalaWindowStatic POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib"
+if (NOT KALAKIT_WINDOWS)
+	# Copy static library to lib (.lib or .a)
+	add_custom_command(TARGET KalaWindowStatic POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib"
 
-    # Copy the static library to the lib directory
-    COMMAND ${CMAKE_COMMAND} -E copy
-        $<TARGET_LINKER_FILE:KalaWindowStatic>
-        "${CMAKE_BINARY_DIR}/lib"
+		# Copy the static library to the lib directory
+		COMMAND ${CMAKE_COMMAND} -E copy
+			$<TARGET_LINKER_FILE:KalaWindowStatic>
+			"${CMAKE_BINARY_DIR}/lib"
 
-    # Remove the original
-    COMMAND ${CMAKE_COMMAND} -E remove
-        $<TARGET_LINKER_FILE:KalaWindowStatic>
-)
+		# Remove the original
+		COMMAND ${CMAKE_COMMAND} -E remove
+			$<TARGET_LINKER_FILE:KalaWindowStatic>
+	)
+endif()
 
 # Copy all headers to include folder
 add_custom_command(TARGET KalaWindow POST_BUILD

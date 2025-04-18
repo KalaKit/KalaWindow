@@ -16,13 +16,13 @@
 #include "opengl.hpp"
 #include "window.hpp"
 #include "opengl_loader.hpp"
-#include "GL/gl.h"
+#include "internal/window_windows.hpp"
 
 namespace KalaKit
 {
 	bool OpenGL::Initialize()
 	{
-		HDC hdc = GetDC(KalaWindow::window);
+		HDC hdc = GetDC(Window_Windows::newWindow);
 		LOG_DEBUG("Window HDC: " << hdc);
 
 		//
@@ -162,8 +162,8 @@ namespace KalaKit
 			0
 		};
 
-		realContext = wglCreateContextAttribsARB(hdc, 0, attribs);
-		if (!realContext)
+		Window_Windows::newGLContext = wglCreateContextAttribsARB(hdc, 0, attribs);
+		if (!Window_Windows::newGLContext)
 		{
 			LOG_ERROR("Failed to create OpenGL 3.3 context!");
 
@@ -190,8 +190,7 @@ namespace KalaKit
 		wglMakeCurrent(nullptr, nullptr);
 		wglDeleteContext(dummyRC);
 
-		wglMakeCurrent(hdc, realContext);
-		context = realContext;
+		wglMakeCurrent(hdc, Window_Windows::newGLContext);
 
 		if (!IsCorrectVersion())
 		{
@@ -234,7 +233,7 @@ namespace KalaKit
 			return false;
 		}
 
-		if (current != realContext)
+		if (current != Window_Windows::newGLContext)
 		{
 			LOG_ERROR("Current OpenGL context does not match stored context!");
 			return false;

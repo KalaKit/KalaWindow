@@ -14,6 +14,8 @@ namespace KalaKit
 	class KALAWINDOW_API OpenGL
 	{
 	public:
+		static inline bool isInitialized;
+
 		//global os-agnostic reference to the opengl context
 		static inline OPENGLCONTEXT context;
 
@@ -45,8 +47,6 @@ namespace KalaKit
 		}
 
 	private:
-		static inline OPENGLCONTEXT realContext;
-
 		/// <summary>
 		/// Checks whether user has OpenGL 3.3 or higher.
 		/// </summary>

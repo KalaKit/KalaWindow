@@ -5,8 +5,6 @@
 
 #ifdef KALAKIT_X11
 
-#define KALAKIT_MODULE "WINDOW"
-
 //kalakit
 #include "window.hpp"
 

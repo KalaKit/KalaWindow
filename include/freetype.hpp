@@ -11,11 +11,14 @@
 #include "ft2build.h"
 #include FT_FREETYPE_H
 
+//kalawindow
+#include "platform.hpp"
+
 namespace KalaKit
 {
     using std::string;
 
-    class FreeType
+    class KALAWINDOW_API FreeType
     {
     public:
         FreeType();
@@ -25,7 +28,6 @@ namespace KalaKit
         bool LoadFont(const string& fontPath, int size, bool glyphTest = false);
 
 	private:
-        bool isInitialized;
         FT_Library lib;
         FT_Face face;
     };

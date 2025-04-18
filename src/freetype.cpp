@@ -9,7 +9,6 @@
 
 //kalawindow
 #include "freetype.hpp"
-#include "platform.hpp"
 #include "window.hpp"
 
 using std::filesystem::exists;
@@ -27,7 +26,6 @@ namespace KalaKit
             LOG_ERROR("Couldn't initialize FreeType!");
         }
         LOG_DEBUG("Successfully initialized FreeType!");
-        isInitialized = true;
     }
 
     FreeType::~FreeType() 
@@ -38,7 +36,7 @@ namespace KalaKit
 
     bool FreeType::LoadFont(const string& fontPath, int size, bool glyphTest)
     {
-        if (!isInitialized)
+        if (KalaWindow::freeType == nullptr)
         {
             LOG_ERROR("Cannot load font because FreeType is not yet initialized!");
             return false;

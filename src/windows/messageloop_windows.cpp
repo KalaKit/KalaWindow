@@ -24,7 +24,9 @@ using std::vector;
 #include "enums.hpp"
 #include "window.hpp"
 #include "input.hpp"
+#include "opengl.hpp"
 #include "opengl_loader.hpp"
+#include "internal/window_windows.hpp"
 
 namespace KalaKit
 {
@@ -116,8 +118,8 @@ namespace KalaKit
 
 		//tell windows this message is fully handled
 		if (handled) return 0;
-
-		return CallWindowProc(KalaWindow::proc, hwnd, msg, wParam, lParam);
+		
+		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
 
 	bool MessageLoop::ProcessMessage(const MSG& msg)
@@ -161,15 +163,15 @@ namespace KalaKit
 
 		case WM_MOUSEMOVE:
 		{
-			POINT newPos =
+			POS newPos =
 			{
 				GET_X_LPARAM(msg.lParam),
 				GET_Y_LPARAM(msg.lParam)
 			};
 			KalaInput::SetMousePosition(newPos);
 
-			POINT mouseCurrentPos = KalaInput::GetMousePosition();
-			POINT mouseCurrentDelta = KalaInput::GetMouseDelta();
+			POS mouseCurrentPos = KalaInput::GetMousePosition();
+			POS mouseCurrentDelta = KalaInput::GetMouseDelta();
 			mouseCurrentDelta.x = newPos.x - mouseCurrentPos.x;
 			mouseCurrentDelta.y = newPos.y - mouseCurrentPos.y;
 			KalaInput::SetMouseDelta(mouseCurrentDelta);
@@ -286,7 +288,7 @@ namespace KalaKit
 				//sets raw mouse movement
 				if (mouse.usFlags == MOUSE_MOVE_RELATIVE)
 				{
-					POINT newMouseRawDelta = KalaInput::GetRawMouseDelta();
+					POS newMouseRawDelta = KalaInput::GetRawMouseDelta();
 
 					newMouseRawDelta.x += mouse.lLastX;
 					newMouseRawDelta.y += mouse.lLastY;
@@ -322,8 +324,23 @@ namespace KalaKit
 		case WM_PAINT:
 		{
 			PAINTSTRUCT ps;
-			BeginPaint(KalaWindow::window, &ps);
-			EndPaint(KalaWindow::window, &ps);
+			HDC hdc = BeginPaint(Window_Windows::newWindow, &ps);
+			if (!OpenGL::isInitialized)
+			{
+				if (!hdc) LOG_ERROR("Cannot paint window green because HDC is not available!");
+				else
+				{
+					HBRUSH greenBrush = CreateSolidBrush(RGB(0, 255, 0));
+
+					RECT clientRect{};
+					GetClientRect(Window_Windows::newWindow, &clientRect);
+					FillRect(hdc, &clientRect, greenBrush);
+					DeleteObject(greenBrush);
+
+					LOG_DEBUG("Painting window green...");
+				}
+			}
+			EndPaint(Window_Windows::newWindow, &ps);
 			return true;
 		}
 
@@ -357,13 +374,18 @@ namespace KalaKit
 		case WM_ERASEBKGND:
 			return true;
 		case WM_ENTERSIZEMOVE:
-			SetTimer(KalaWindow::window, 1, 16, nullptr); //start count when entering resize, 60 fps
+			SetTimer(Window_Windows::newWindow, 1, 16, nullptr); //start count when entering resize, 60 fps
 			return true;
 		case WM_EXITSIZEMOVE:
-			KillTimer(KalaWindow::window, 1); //stop count after exiting resize
+			KillTimer(Window_Windows::newWindow, 1); //stop count after exiting resize
 			return true;
 		case WM_TIMER:
-			if (KalaWindow::OnRedraw) KalaWindow::OnRedraw(); //force redraw
+			if (KalaWindow::OnRedraw
+				&& OpenGL::isInitialized)
+			{
+				//user-defined redraw callback
+				KalaWindow::OnRedraw();
+			}
 			return true;
 
 		//
@@ -406,7 +428,7 @@ namespace KalaKit
 			KalaWindow::SetShouldCloseState(true);
 
 			//if user agrees to exit, then the window is destroyed
-			DestroyWindow(KalaWindow::window);
+			DestroyWindow(Window_Windows::newWindow);
 			return true;
 
 			//window was destroyed - tell the system to exit

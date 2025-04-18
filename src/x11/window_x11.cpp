@@ -7,6 +7,8 @@
 
 #define KALAKIT_MODULE "WINDOW"
 
+#include <memory>
+
 //external
 #include "crashHandler.hpp"
 #include "magic_enum.hpp"
@@ -16,6 +18,8 @@
 #include "input.hpp"
 #include "opengl.hpp"
 #include "opengl_loader.hpp"
+
+using std::make_unique;
 
 namespace KalaKit
 {
@@ -33,6 +37,9 @@ namespace KalaKit
 
         //initialize the crash handler first
         KalaCrashHandler::Initialize();
+
+		//initialize FreeType
+		KalaWindow::freeType = make_unique<FreeType>();
 
         Display* newDisplay = XOpenDisplay(nullptr);
         if (!display)
