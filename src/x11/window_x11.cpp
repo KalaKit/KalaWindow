@@ -8,6 +8,10 @@
 #define KALAKIT_MODULE "WINDOW"
 
 #include <memory>
+#include <thread>
+#include <chrono>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
 
 //external
 #include "crashHandler.hpp"
@@ -18,8 +22,11 @@
 #include "input.hpp"
 #include "opengl.hpp"
 #include "opengl_loader.hpp"
+#include "internal/window_x11.hpp"
 
 using std::make_unique;
+using std::this_thread::sleep_for;
+using std::chrono::milliseconds;
 
 namespace KalaKit
 {
@@ -42,7 +49,7 @@ namespace KalaKit
 		KalaWindow::freeType = make_unique<FreeType>();
 
         Display* newDisplay = XOpenDisplay(nullptr);
-        if (!display)
+        if (!newDisplay)
         {
             LOG_ERROR("Failed to open X11 display!");
             return false;
@@ -51,8 +58,8 @@ namespace KalaKit
 
         ::Window root = DefaultRootWindow(newDisplay);
 
-        XSSetWindowAttributes swa;
-        swa.event_mast =
+        XSetWindowAttributes swa;
+        swa.event_mask =
             ExposureMask
             | KeyPressMask
             | StructureNotifyMask;
@@ -81,6 +88,25 @@ namespace KalaKit
         XStoreName(newDisplay, newWindow, title.c_str());
         XMapWindow(newDisplay, newWindow); //show the window
 
+		XSizeHints* sizeHints = XAllocSizeHints();
+		if (sizeHints)
+		{
+			sizeHints->flags = PMinSize | PMaxSize;
+
+			sizeHints->min_width = 800;
+			sizeHints->min_height = 600;
+
+			sizeHints->max_width = 7680;
+			sizeHints->max_height = 4320;
+
+			XSetWMNormalHints(
+				Window_X11::newDisplay,
+				Window_X11::newWindow,
+				sizeHints
+			);
+			XFree(sizeHints);
+		}
+
 		GC newGC = XCreateGC(newDisplay, newWindow, 0, nullptr);
 		if (!newGC)
 		{
@@ -90,6 +116,28 @@ namespace KalaKit
 			return false;
 		}
 		Window_X11::newGC = newGC;
+		Colormap colorMap = DefaultColormap(
+			newDisplay,
+			DefaultScreen(newDisplay)
+		);
+
+		XColor color_green;
+		XParseColor(
+			newDisplay, 
+			colorMap, 
+			"#00CC66", 
+			&color_green
+		);
+		XAllocColor(
+			newDisplay,
+			colorMap,
+			&color_green
+		);
+		XSetForeground(
+			newDisplay,
+			newGC,
+			color_green.pixel
+		);
 
         //initialize input
         KalaInput::Initialize();
@@ -111,32 +159,32 @@ namespace KalaKit
 
     void KalaWindow::Update()
 	{
-        /*
-		if (!isInitialized)
+        while (XPending(Window_X11::newDisplay))
 		{
-			LOG_ERROR("Cannot run loop because KalaWindow is not initialized!");
-			return;
+			XEvent ev;
+			XNextEvent(Window_X11::newDisplay, &ev);
+
+			if (ev.type == ConfigureNotify)
+			{
+				Window_X11::width = ev.xconfigure.width;
+				Window_X11::height = ev.xconfigure.height;
+			}
+
+			// HANDLE EVENTS HERE (INPUT ETC)
 		}
 
-		//prevent updates when not focused
-		if (isWindowFocusRequired
-			&& GetForegroundWindow() != newWindow)
-		{
-			return;
-		}
+		XFillRectangle(
+			Window_X11::newDisplay,
+			Window_X11::newWindow,
+			Window_X11::newGC,
+			0, 0,
+			Window_X11::width, Window_X11::height
+		);
 
-		MSG msg;
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
-			DispatchMessage(&msg);  //send the message to the window procedure
-		}
+		XFlush(Window_X11::newDisplay);
 
-		//ensures cursor stays locked every frame
-		if (KalaInput::IsMouseLocked()) KalaInput::LockCursorToCenter();
-
-		KalaInput::ResetFrameInput();
-        */
+		//60 fps
+		sleep_for(milliseconds(16));
 	}
 
 	void KalaWindow::SwapOpenGLBuffers(const OPENGLCONTEXT& context)

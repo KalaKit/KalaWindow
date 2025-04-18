@@ -35,7 +35,7 @@
 	#else
 		#define KALAWINDOW_API __declspec(dllimport)
 	#endif
-#elif KALAKIT_X11 || KALAKIT_WAYLAND
+#elif KALAKIT_X11
 	#define KALAWINDOW_API __attribute__((visibility("default")))
 #else
 	#define KALAWINDOW_API

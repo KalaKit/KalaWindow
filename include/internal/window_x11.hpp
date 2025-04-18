@@ -13,10 +13,13 @@ namespace KalaKit
   class Window_X11
   {
   public:
-		static inline Display* newDisplay = nullptr;
-		static inline Window newWindow = nullptr;
-    staticc inline GC newGC = nullptr;
-  }
+		static inline Display* newDisplay;
+		static inline Window newWindow;
+    static inline GC newGC;
+
+    static inline int width;
+    static inline int height;
+  };
 }
 
 #endif // KALAKIT_WINDOWS

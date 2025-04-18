@@ -32,28 +32,20 @@ elseif(UNIX)
     find_package(X11 QUIET)
 
     include(FindPkgConfig)
-	pkg_check_modules(WAYLAND_CLIENT QUIET wayland-client)
-	pkg_check_modules(WAYLAND_EGL QUIET wayland-egl)
 	pkg_check_modules(EGL QUIET egl)
 
 	message(STATUS "X11_FOUND = ${X11_FOUND}")
-	message(STATUS "WAYLAND_CLIENT_FOUND = ${WAYLAND_CLIENT_FOUND}")
-	message(STATUS "WAYLAND_EGL_FOUND = ${WAYLAND_EGL_FOUND}")
 	message(STATUS "EGL_FOUND = ${EGL_FOUND}")
 
 	find_package(OpenGL REQUIRED)
 	message(STATUS "OpenGL_FOUND: ${OpenGL_FOUND}")
 
-    if (WAYLAND_CLIENT_FOUND)
-		set(KALAKIT_WAYLAND TRUE)
-		message(STATUS "[KALAKIT] Using Wayland backend")
-		target_compile_definitions(KalaWindow PRIVATE KALAKIT_WAYLAND)
-	elseif (X11_FOUND)
+	if (X11_FOUND)
 		set(KALAKIT_X11 TRUE)
 		message(STATUS "[KALAKIT] Using X11 backend")
 		target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11)
 	else()
-		message(FATAL_ERROR "[KALAKIT] No backend found! Must support Wayland or X11.")
+		message(FATAL_ERROR "[KALAKIT] No backend found! Must support X11.")
 	endif()
 else()
 	message(FATAL_ERROR "Unsupported OS version! Must be WIN32 or UNIX!")
@@ -89,7 +81,6 @@ set(WINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 set(EXT_GLM_DIR "${CMAKE_SOURCE_DIR}/include/glm")
 set(EXT_MAGIC_ENUM_DIR "${CMAKE_SOURCE_DIR}/include/magic_enum")
 set(EXT_CRASH_DIR "${CMAKE_SOURCE_DIR}/_external_shared/KalaCrashHandler")
-set(EXT_WAYLAND_DIR "${CMAKE_SOURCE_DIR}/_external_shared/Wayland-protocols")
 set(EXT_FREETYPE_DIR "${CMAKE_SOURCE_DIR}/_external_shared/FreeType")
 
 # Add KalaCrashHandler
@@ -138,14 +129,6 @@ if (KALAKIT_WINDOWS)
     )
     list(APPEND WINDOW_SRC_FILES ${WINDOWS_SRC})
 
-# Wayland source files
-elseif (KALAKIT_WAYLAND)
-    file(GLOB WAYLAND_SRC
-        "${WINDOW_SRC_DIR}/wayland/*.cpp"
-        "${EXT_WAYLAND_DIR}/*.c"
-    )
-    list(APPEND WINDOW_SRC_FILES ${WAYLAND_SRC})
-
 # X11 source files
 elseif (KALAKIT_X11)
     file(GLOB X11_SRC
@@ -176,16 +159,8 @@ function(set_kalawindow_includes target)
 		"${EXT_GLM_DIR}"
 		"${EXT_MAGIC_ENUM_DIR}"
 		"${EXT_CRASH_DIR}"
-		"${EXT_FREETYPE_DIR}"
-	)
-	if (KALAKIT_WAYLAND)
-		target_include_directories(${target} PRIVATE
-			"${EXT_WAYLAND_DIR}"
-			"${WAYLAND_CLIENT_INCLUDE_DIRS}"
-			"${WAYLAND_EGL_INCLUDE_DIRS}"
-			"${EGL_INCLUDE_DIRS}"
-		)
-	elseif(KALAKIT_X11)
+		"${EXT_FREETYPE_DIR}")
+	if(KALAKIT_X11)
 		target_include_directories(${target} PRIVATE
 			"${EGL_INCLUDE_DIRS}"
 		)
@@ -207,19 +182,7 @@ function(configure_kalawindow_target target)
 			${FREETYPE_LIBRARY_PATH}
 		)
 	else()
-		if (KALAKIT_WAYLAND)
-			target_compile_definitions(${target} PRIVATE KALAKIT_WAYLAND=1)
-
-			target_link_libraries(${target} PRIVATE
-				OpenGL::GL
-				EGL
-				${CRASH_LIBRARY_PATH}
-				${FREETYPE_LIBRARY_PATH}
-				${WAYLAND_CLIENT_LIBRARIES}
-				${WAYLAND_EGL_LIBRARIES}
-				${EGL_LIBRARIES}
-			)
-		else()
+		if (KALAKIT_X11)
 			target_compile_definitions(${target} PRIVATE KALAKIT_X11=1)
 
 			target_link_libraries(${target} PRIVATE

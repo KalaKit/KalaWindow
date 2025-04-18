@@ -11,9 +11,8 @@
 
 #ifdef KALAKIT_WINDOWS
 #include "GL/gl.h"
-#elif KALAKIT_WAYLAND
-#include <EGL/egl.h>
 #elif KALAKIT_X11
+#include <GL/glx.h>
 #include <EGL/egl.h>
 #endif
 
@@ -129,11 +128,10 @@ namespace KalaKit
 			}
 		}
 
-#elif KALAKIT_WAYLAND
-		func = reinterpret_cast<T>(eglGetProcAddress(name));
 #elif KALAKIT_X11
 		func = reinterpret_cast<T>(glXGetProcAddressARB(
-			reinterpret_cast<const GLubyte*>(name)));
+			reinterpret_cast<const GLubyte*>(name))
+		);
 #endif
 
 		if (!func)

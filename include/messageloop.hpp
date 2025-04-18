@@ -50,16 +50,6 @@ namespace KalaKit
 		// X11 MESSAGE LOOP
 		//
 
-
-
-#elif KALAKIT_WAYLAND
-
-		//
-		// WAYLAND MESSAGE LOOP
-		//
-
-
-
 #endif
 	};
 }

@@ -13,7 +13,7 @@
 
 namespace KalaKit
 {
-	bool OpenGL::Initialize()
+	bool OpenGL::Initialize(int width, int height)
 	{
 		return false;
 	}
@@ -29,12 +29,6 @@ namespace KalaKit
 		if (current == nullptr)
 		{
 			LOG_ERROR("Current OpenGL context is null!");
-			return false;
-		}
-
-		if (current != realContext)
-		{
-			LOG_ERROR("Current OpenGL context does not match stored context!");
 			return false;
 		}
 
