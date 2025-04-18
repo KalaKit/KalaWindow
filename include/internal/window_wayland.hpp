@@ -19,7 +19,6 @@
 
 //external
 #include "xdg-shell-client-protocol.h"
-#include "linux-drm-syncobj-v1-client-protocol.h"
 
 //kalawindow
 #include "window.hpp"
@@ -138,21 +137,13 @@ namespace KalaKit
 						};
 						xdg_wm_base_add_listener(xdgWmBase, &WmBaseListener, nullptr);
 				    }
-					//set up explicit sync
+					/*
 					else if (strcmp(interface, "wp_linux_drm_syncobj_manager_v1") == 0
 							 && OpenGL::isInitialized)
 					{
-						drmSyncManager = static_cast<wp_linux_drm_syncobj_manager_v1*>(
-							wl_registry_bind(
-								registry,
-								name,
-								&wp_linux_drm_syncobj_manager_v1_interface,
-								1
-							)
-						);
-
-						LOG_DEBUG("Bound wp_linux_drm_syncobj_manager_v1");
+						LOG_DEBUG("Skipping syncobj manager");
 					}
+					*/
 					
                 },
                 .global_remove = [](void*, struct wl_registry*, uint32_t) {}
@@ -170,37 +161,7 @@ namespace KalaKit
 			int width,
 			int height)
 		{
-			if (OpenGL::isInitialized)
-			{
-				if (!drmSyncManager)
-				{
-					LOG_ERROR("Cannot set drm sync timeline because drm sync manager is null!");
-					KalaWindow::SetShouldCloseState(true);
-					return false;
-				}
-				else
-				{
-					int dummyFD = eventfd(0, 0);
-					if (dummyFD < 0)
-					{
-						LOG_ERROR("eventfd failed: " << to_string(errno));
-						return false;
-					}
-					drmSyncTimeline = wp_linux_drm_syncobj_manager_v1_import_timeline(
-						drmSyncManager,
-						dummyFD
-					);
-					close(dummyFD);
-				}
-	
-				if (!drmSyncTimeline)
-				{
-					LOG_DEBUG("Compositor rejected dummy sync timeline. Falling back to no explicit sync.");
-					drmSyncManager = nullptr;
-					drmSyncTimeline = nullptr;
-				}
-			}
-			else
+			if (!OpenGL::isInitialized)
 			{
 				for (int i = 0; i < 2; ++i)
 				{
@@ -296,28 +257,6 @@ namespace KalaKit
         {
             newSurface = wl_compositor_create_surface(compositor);
             if (newSurface == nullptr) return nullptr;
-
-			if (OpenGL::isInitialized)
-			{
-				if (!drmSyncManager)
-				{
-					LOG_ERROR("Cannot set drm sync surface because drm sync manager is null!");
-					KalaWindow::SetShouldCloseState(true);
-				}
-				else
-				{
-					drmSyncSurface = wp_linux_drm_syncobj_manager_v1_get_surface(
-						drmSyncManager,
-						newSurface
-					);
-					
-					if (!drmSyncSurface)
-					{
-						LOG_ERROR("Failed to create drm sync surface!");
-						KalaWindow::SetShouldCloseState(true);
-					}
-				}
-			}
 
 			return newSurface;
         }
@@ -483,67 +422,46 @@ namespace KalaKit
 		//Enables drawing only if a buffer is available
 		static bool TryRender()
 		{
-			static uint64_t frameCounter = 0;
-
-			for (int i = 0; i < 2; ++i)
-    		{
-        		int index = (currentBufferIndex + 1 + i) % 2;
-        		if (!shmBuffers[index].busy)
-        		{
-            		currentBufferIndex = index;
-            		SHMBuffer& buf = shmBuffers[index];
-
-            		buf.busy = true;
-
-            		wl_surface_attach(newSurface, buf.buffer, 0, 0);
-            		wl_surface_damage(
-						newSurface, 
-						0, 
-						0, 
-						buf.width, 
-						buf.height);
-            		wl_surface_damage_buffer(
-						newSurface, 
-						0, 
-						0, 
-						buf.width, 
-						buf.height);
-
-					if (OpenGL::isInitialized)
-					{
-						//fake explicit sync to satisfy the nvidia overlords
-
-						if (drmSyncSurface
-							&& drmSyncTimeline)
-						{
-							uint64_t value = ++frameCounter;
-							uint32_t hi = value >> 32;
-							uint32_t lo = value & 0xFFFFFFFF;
-
-							wp_linux_drm_syncobj_surface_v1_set_acquire_point(
-								drmSyncSurface,
-								drmSyncTimeline,
-								hi,
-								lo
-							);
-						}
-
-						//fake explicit sync end	
-					}
-
-            		wl_surface_commit(newSurface);
-            		wl_display_flush(newDisplay);
-
-            		return true;
-        		}
-			}
-
-			if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
-				|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+			if (!OpenGL::isInitialized)
 			{
-				LOG_DEBUG("TryRender returned false: no free buffer (both busy)");
+				for (int i = 0; i < 2; ++i)
+				{
+					int index = (currentBufferIndex + 1 + i) % 2;
+					if (!shmBuffers[index].busy)
+					{
+						currentBufferIndex = index;
+						SHMBuffer& buf = shmBuffers[index];
+	
+						buf.busy = true;
+	
+						wl_surface_attach(newSurface, buf.buffer, 0, 0);
+						wl_surface_damage(
+							newSurface, 
+							0, 
+							0, 
+							buf.width, 
+							buf.height);
+						wl_surface_damage_buffer(
+							newSurface, 
+							0, 
+							0, 
+							buf.width, 
+							buf.height);
+						wl_surface_commit(newSurface);
+						wl_display_flush(newDisplay);
+	
+						return true;
+					}
+				}
+	
+				if (KalaWindow::GetDebugType() == DebugType::DEBUG_ALL
+					|| KalaWindow::GetDebugType() == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
+				{
+					LOG_DEBUG("TryRender returned false: no free buffer (both busy)");
+				}
+				return false;
 			}
-			return false;
+			return true;
 		}
     
 		static void WaylandPoll()
@@ -610,9 +528,6 @@ namespace KalaKit
         static inline struct wl_compositor* compositor;
         static inline struct wl_shm* shm;
         static inline struct xdg_wm_base* xdgWmBase;
-		static inline wp_linux_drm_syncobj_manager_v1* drmSyncManager = nullptr;
-		static inline wp_linux_drm_syncobj_surface_v1* drmSyncSurface = nullptr;
-		static inline wp_linux_drm_syncobj_timeline_v1* drmSyncTimeline = nullptr;
 		static inline SHMBuffer shmBuffers[2];
 		static inline int currentBufferIndex = 0;
 

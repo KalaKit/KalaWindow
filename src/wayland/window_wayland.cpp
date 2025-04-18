@@ -200,7 +200,7 @@ namespace KalaKit
 		//custom poll function
 		Window_Wayland::WaylandPoll();
 
-		//always dispatch whatevere is pending
+		//always dispatch whatever is pending
 		int display_dispatch_status = wl_display_dispatch_pending(Window_Wayland::newDisplay);
 		if (debugType == DebugType::DEBUG_ALL
 			|| debugType == DebugType::DEBUG_WAYLAND_DISPLAY_CHECK)
@@ -215,14 +215,36 @@ namespace KalaKit
 
 		//actually render the window
 		bool rendered = Window_Wayland::TryRender();
+		if (!rendered
+			&& OpenGL::isInitialized)
+		{
+			LOG_ERROR("Failed to render OpenGL content!");
+			KalaWindow::SetShouldCloseState(true);
+		}
 
-		//finally pause before calling the next frame
-		Window_Wayland::Pause();
+		if (!OpenGL::isInitialized)
+		{
+			//pause before calling the next frame
+			Window_Wayland::Pause();
+		}
 	}
 
     void KalaWindow::SwapOpenGLBuffers(const OPENGLCONTEXT& context)
     {
-
+		if (OpenGL::isInitialized)
+		{
+			if (!eglSwapBuffers(OpenGL_Wayland::eglDisplay, OpenGL_Wayland::eglSurface))
+			{
+				LOG_ERROR("eglSwapBuffers failed!");
+				KalaWindow::SetShouldCloseState(true);
+				return;
+			}
+	
+			wl_display_flush(Window_Wayland::newDisplay);
+	
+			//pause before calling the next frame
+			Window_Wayland::Pause();
+		}
     }
 
 	void KalaWindow::SetWindowFocusRequiredState(bool newWindowFocusRequiredState)
