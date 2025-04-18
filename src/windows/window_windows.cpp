@@ -9,6 +9,8 @@
 
 #include <memory>
 #include <format>
+#include <windows.h>
+#include <gl/GL.h>
 
 //external
 #include "crashHandler.hpp"
@@ -51,7 +53,7 @@ namespace KalaKit
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
 		WNDCLASSA wc = {};
-		wc.lpfnWndProc = MessageLoop::WindowProcCallback; //DefWindowProcA;
+		wc.lpfnWndProc = MessageLoop::WindowProcCallback;
 		wc.hInstance = hInstance;
 		wc.lpszClassName = "KalaWindowClass";
 
@@ -190,9 +192,19 @@ namespace KalaKit
 		KalaInput::ResetFrameInput();
 	}
 
-	void KalaWindow::SwapBuffers(const OPENGLCONTEXT& context)
+	void KalaWindow::SwapOpenGLBuffers(const OPENGLCONTEXT& context)
     {
+#ifdef KALAKIT_WINDOWS
+		HDC hdc = GetDC(Window_Windows::newWindow);
+		if (!SwapBuffers(hdc))
+		{
+			LOG_ERROR("SwapOpenGLBuffers failed on Windows!");
+		}
+#elif KALAKIT_X11
 
+#elif KALAKIT_WAYLAND
+
+#endif
     }
 
 	void KalaWindow::SetWindowFocusRequiredState(bool newWindowFocusRequiredState)
