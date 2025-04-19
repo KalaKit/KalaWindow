@@ -18,11 +18,6 @@ namespace KalaKit
 		return false;
 	}
 
-    OPENGLCONTEXT OpenGL::GetOpenGLContext()
-	{
-    	return eglGetCurrentContext();
-	}
-
 	bool OpenGL::IsContextValid()
 	{
 		EGLContext current = eglGetCurrentContext();
