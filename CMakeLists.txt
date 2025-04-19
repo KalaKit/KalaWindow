@@ -30,25 +30,24 @@ if (WIN32)
     target_compile_definitions(KalaWindow PRIVATE KALAKIT_WINDOWS)
 elseif(UNIX)
     find_package(X11 QUIET)
+    find_package(OpenGL REQUIRED)
 
     include(FindPkgConfig)
 	pkg_check_modules(EGL QUIET egl)
 
-	message(STATUS "X11_FOUND = ${X11_FOUND}")
-	message(STATUS "EGL_FOUND = ${EGL_FOUND}")
-
-	find_package(OpenGL REQUIRED)
-	message(STATUS "OpenGL_FOUND: ${OpenGL_FOUND}")
+	message(STATUS "[KALAKIT] X11_FOUND = ${X11_FOUND}")
+	message(STATUS "[KALAKIT] EGL_FOUND = ${EGL_FOUND}")
+	message(STATUS "[KALAKIT] OpenGL_FOUND: ${OpenGL_FOUND}")
 
 	if (X11_FOUND)
 		set(KALAKIT_X11 TRUE)
 		message(STATUS "[KALAKIT] Using X11 backend")
 		target_compile_definitions(KalaWindow PRIVATE KALAKIT_X11)
 	else()
-		message(FATAL_ERROR "[KALAKIT] No backend found! Must support X11.")
+		message(FATAL_ERROR "[KALAKIT] No valid backend found! Must support X11.")
 	endif()
 else()
-	message(FATAL_ERROR "Unsupported OS version! Must be WIN32 or UNIX!")
+	message(FATAL_ERROR "[KALAKIT] Unsupported platform version! Must be WIN32 or UNIX!")
 endif()
 
 # Set build global type
@@ -57,7 +56,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 elseif(CMAKE_BUILD_TYPE STREQUAL "Release" OR CMAKE_BUILD_TYPE STREQUAL "RelWithDebInfo")
 	set(KALAKIT_RELEASE TRUE)
 else()
-	message(FATAL_ERROR "Unknown CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'! Must be Debug, Release, or RelWithDebInfo.")
+	message(FATAL_ERROR "[KALAKIT] Unknown CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'! Must be Debug, Release, or RelWithDebInfo.")
 endif()
 
 # Set runtime library type for MSVC
@@ -182,17 +181,15 @@ function(configure_kalawindow_target target)
 			${FREETYPE_LIBRARY_PATH}
 		)
 	else()
-		if (KALAKIT_X11)
-			target_compile_definitions(${target} PRIVATE KALAKIT_X11=1)
+		target_compile_definitions(${target} PRIVATE KALAKIT_X11=1)
 
-			target_link_libraries(${target} PRIVATE
-				OpenGL::GL
-				EGL
-				${CRASH_LIBRARY_PATH}
-				${FREETYPE_LIBRARY_PATH}
-				${X11_LIBRARIES}
-			)
-		endif()
+		target_link_libraries(${target} PRIVATE
+			OpenGL::GL
+			EGL
+			${CRASH_LIBRARY_PATH}
+			${FREETYPE_LIBRARY_PATH}
+			${X11_LIBRARIES}
+		)
 	endif()
 endfunction()
 
