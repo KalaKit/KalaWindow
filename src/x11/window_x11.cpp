@@ -12,6 +12,7 @@
 #include <chrono>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
+#include <GL/glx.h>
 
 //external
 #include "crashHandler.hpp"
@@ -30,6 +31,20 @@ using std::chrono::milliseconds;
 
 namespace KalaKit
 {
+	static void ErrorPopup(const string& message)
+	{
+		LOG_ERROR(message);
+		if (KalaWindow::CreatePopup(
+			"Window error on X11", 
+			message,
+			PopupAction::POPUP_ACTION_OK, 
+			PopupType::POPUP_TYPE_ERROR)
+			== PopupResult::POPUP_RESULT_OK)
+		{
+			KalaWindow::SetShouldCloseState(true);
+		}
+	}
+
     bool KalaWindow::Initialize(
         const string& title,
         int width,
@@ -42,6 +57,8 @@ namespace KalaKit
             return false;
         }
 
+		if (initializeOpenGL) OpenGL::isInitialized = true;
+
         //initialize the crash handler first
         KalaCrashHandler::Initialize();
 
@@ -51,12 +68,13 @@ namespace KalaKit
         Display* newDisplay = XOpenDisplay(nullptr);
         if (!newDisplay)
         {
-            LOG_ERROR("Failed to open X11 display!");
+			ErrorPopup("Failed to open display!");
             return false;
         }
+		else LOG_DEBUG("X11 display opened successfully!");
 		Window_X11::newDisplay = newDisplay;
 
-        ::Window root = DefaultRootWindow(newDisplay);
+        Window root = DefaultRootWindow(newDisplay);
 
         XSetWindowAttributes swa;
         swa.event_mask =
@@ -64,29 +82,25 @@ namespace KalaKit
             | KeyPressMask
             | StructureNotifyMask;
 
-        ::Window newWindow = XCreateWindow(
-            newDisplay,
-            root,
-            0, 0,
-            width, height,
-            0,
-            CopyFromParent,
-            InputOutput,
-            CopyFromParent,
-            CWEventMask,
-            &swa
-        );
+		Window newWindow = Window_X11::CreateWindow(
+			newDisplay,
+			width,
+			height,
+			root, 
+			swa);
 
         if (!newWindow)
         {
-            LOG_ERROR("Failed to create X11 window!");
+			ErrorPopup("Failed to create window!");
             XCloseDisplay(newDisplay);
             return false;
         }
+		else LOG_DEBUG("X11 window created successfully!");
 		Window_X11::newWindow = newWindow;
 
-        XStoreName(newDisplay, newWindow, title.c_str());
-        XMapWindow(newDisplay, newWindow); //show the window
+		XStoreName(newDisplay, newWindow, title.c_str());
+		XMapWindow(Window_X11::newDisplay, Window_X11::newWindow);
+		XFlush(Window_X11::newDisplay);
 
 		XSizeHints* sizeHints = XAllocSizeHints();
 		if (sizeHints)
@@ -107,48 +121,50 @@ namespace KalaKit
 			XFree(sizeHints);
 		}
 
-		GC newGC = XCreateGC(newDisplay, newWindow, 0, nullptr);
-		if (!newGC)
+		if (!initializeOpenGL)
 		{
-			LOG_ERROR("Failed to create graphics context (GC)!");
-			XDestroyWindow(newDisplay, newWindow);
-			XCloseDisplay(newDisplay);
-			return false;
+			GC newGC = XCreateGC(newDisplay, newWindow, 0, nullptr);
+			if (!newGC)
+			{
+				ErrorPopup("Failed to create graphics context!");
+				XDestroyWindow(newDisplay, newWindow);
+				XCloseDisplay(newDisplay);
+				return false;
+			}
+			else LOG_DEBUG("X11 graphics context created successfully!");
+			Window_X11::newGC = newGC;
+	
+			Colormap colorMap = DefaultColormap(
+				newDisplay,
+				DefaultScreen(newDisplay)
+			);
+	
+			XColor color_green;
+			XParseColor(
+				newDisplay, 
+				colorMap, 
+				"#00CC66", 
+				&color_green
+			);
+			XAllocColor(
+				newDisplay,
+				colorMap,
+				&color_green
+			);
+			XSetForeground(
+				newDisplay,
+				newGC,
+				color_green.pixel
+			);
 		}
-		Window_X11::newGC = newGC;
-		Colormap colorMap = DefaultColormap(
-			newDisplay,
-			DefaultScreen(newDisplay)
-		);
-
-		XColor color_green;
-		XParseColor(
-			newDisplay, 
-			colorMap, 
-			"#00CC66", 
-			&color_green
-		);
-		XAllocColor(
-			newDisplay,
-			colorMap,
-			&color_green
-		);
-		XSetForeground(
-			newDisplay,
-			newGC,
-			color_green.pixel
-		);
 
         //initialize input
         KalaInput::Initialize();
 
-		if (initializeOpenGL)
+		if (initializeOpenGL
+			&& !OpenGL::Initialize(width, height))
 		{
-        	//initialize opengl
-        	if (!OpenGL::Initialize()) return false;
-
-        	//and finally set opengl viewport size
-        	OpenGLLoader::glViewportPtr(0, 0, width, height);
+			return false;
 		}
 
         isInitialized = true;
@@ -156,6 +172,101 @@ namespace KalaKit
         LOG_SUCCESS("Window successfully initialized");
         return true;
     }
+
+	Window Window_X11::CreateWindow(
+		Display* newDisplay,
+		int width,
+		int height,
+		Window root, 
+		XSetWindowAttributes swa)
+	{
+		if (!OpenGL::isInitialized)
+		{
+			Window newWindow = XCreateWindow(
+				newDisplay,
+				root,
+				0, 0,
+				width, height,
+				0,
+				CopyFromParent,
+				InputOutput,
+				CopyFromParent,
+				CWEventMask,
+				&swa
+			);
+
+			return newWindow;
+		}
+		else
+		{
+			int fbAttribs[] =
+			{
+				GLX_X_RENDERABLE, True,
+				GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+				GLX_RENDER_TYPE, GLX_RGBA_BIT,
+				GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+				GLX_RED_SIZE, 8,
+				GLX_GREEN_SIZE, 8,
+				GLX_BLUE_SIZE, 8,
+				GLX_ALPHA_SIZE, 8,
+				GLX_DEPTH_SIZE, 24,
+				GLX_STENCIL_SIZE, 8,
+				None
+			};
+
+			int fbCount = 0;
+			GLXFBConfig* fbConfigs = glXChooseFBConfig(
+				newDisplay,
+				DefaultScreen(newDisplay),
+				fbAttribs,
+				&fbCount
+			);
+			if (!fbConfigs
+				|| fbCount == 0)
+			{
+				ErrorPopup("glxChooseFBConfig failed!");
+				return 0;
+			}
+
+			GLXFBConfig fbConfig = fbConfigs[0];
+			XVisualInfo* visInfo = glXGetVisualFromFBConfig(newDisplay, fbConfig);
+			if (!visInfo)
+			{
+				ErrorPopup("glxGetVisualFromFBConfig failed!");
+				XFree(fbConfigs);
+				return 0;
+			}
+
+			swa.colormap = XCreateColormap(
+				newDisplay,
+				root,
+				visInfo->visual,
+				AllocNone
+			);
+
+			Window window = XCreateWindow(
+				newDisplay,
+				root,
+				0, 0,
+				width, height,
+				0,
+				visInfo->depth,
+				InputOutput,
+				visInfo->visual,
+				CWColormap | CWEventMask,
+				&swa
+			);
+
+			XFree(visInfo);
+			XFree(fbConfigs);
+
+			Window_X11::glxFBConfig = fbConfig;
+
+			return window;
+		}
+
+		return 0;
+	}
 
     void KalaWindow::Update()
 	{
@@ -168,20 +279,33 @@ namespace KalaKit
 			{
 				Window_X11::width = ev.xconfigure.width;
 				Window_X11::height = ev.xconfigure.height;
+
+				if (OpenGL::isInitialized)
+				{
+					OpenGLLoader::glViewportPtr(
+						0,
+						0,
+						Window_X11::width,
+						Window_X11::height
+					);
+				}
 			}
 
 			// HANDLE EVENTS HERE (INPUT ETC)
 		}
 
-		XFillRectangle(
-			Window_X11::newDisplay,
-			Window_X11::newWindow,
-			Window_X11::newGC,
-			0, 0,
-			Window_X11::width, Window_X11::height
-		);
+		if (!OpenGL::isInitialized)
+		{
+			XFillRectangle(
+				Window_X11::newDisplay,
+				Window_X11::newWindow,
+				Window_X11::newGC,
+				0, 0,
+				Window_X11::width, Window_X11::height
+			);
 
-		XFlush(Window_X11::newDisplay);
+			XFlush(Window_X11::newDisplay);
+		}
 
 		//60 fps
 		sleep_for(milliseconds(16));
@@ -189,7 +313,7 @@ namespace KalaKit
 
 	void KalaWindow::SwapOpenGLBuffers()
     {
-
+		glXSwapBuffers(Window_X11::newDisplay, Window_X11::newWindow);
     }
 
 	void KalaWindow::SetWindowFocusRequiredState(bool newWindowFocusRequiredState)

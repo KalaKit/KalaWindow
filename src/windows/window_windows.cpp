@@ -148,7 +148,7 @@ namespace KalaKit
 		if (initializeOpenGL)
 		{
         	//initialize opengl
-        	if (!OpenGL::Initialize()) return false;
+        	if (!OpenGL::Initialize(width, height)) return false;
 		}
 		else
 		{
@@ -156,9 +156,6 @@ namespace KalaKit
 		}
 
 		isInitialized = true;
-
-		//silly fix for window not showing triangle before resizing
-		KalaWindow::SetWindowContentSize(width, height);
 
 		LOG_SUCCESS("Window successfully initialized!");
 		return true;
