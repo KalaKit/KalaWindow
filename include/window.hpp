@@ -53,7 +53,7 @@ namespace KalaKit
 		/// <summary>
 		/// Cross-platform buffer swapper.
 		/// </summary>
-		static void SwapOpenGLBuffers(const OPENGLCONTEXT& context);
+		static void SwapOpenGLBuffers();
 
 		using RedrawCallback = void(*)();
 		static inline RedrawCallback OnRedraw = nullptr;

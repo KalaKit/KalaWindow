@@ -157,6 +157,9 @@ namespace KalaKit
 
 		isInitialized = true;
 
+		//silly fix for window not showing triangle before resizing
+		KalaWindow::SetWindowContentSize(width, height);
+
 		LOG_SUCCESS("Window successfully initialized!");
 		return true;
 	}
@@ -189,7 +192,7 @@ namespace KalaKit
 		KalaInput::ResetFrameInput();
 	}
 
-	void KalaWindow::SwapOpenGLBuffers(const OPENGLCONTEXT& context)
+	void KalaWindow::SwapOpenGLBuffers()
     {
 		HDC hdc = GetDC(Window_Windows::newWindow);
 		if (!SwapBuffers(hdc))
@@ -514,7 +517,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Returning default window max size because KalaWindow is not initialized!");
+			LOG_DEBUG("Returning default window max size because KalaWindow is not initialized!");
 			return { 7680, 4320 };
 		}
 
@@ -527,7 +530,7 @@ namespace KalaKit
 	{
 		if (!isInitialized)
 		{
-			LOG_ERROR("Returning default window min size because KalaWindow is not initialized!");
+			LOG_DEBUG("Returning default window min size because KalaWindow is not initialized!");
 			return { 800, 600 };
 		}
 

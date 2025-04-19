@@ -222,11 +222,6 @@ namespace KalaKit
 		return true;
 	}
 
-	OPENGLCONTEXT OpenGL::GetOpenGLContext()
-	{
-    	return wglGetCurrentContext();
-	}
-
 	bool OpenGL::IsContextValid()
 	{
 		HGLRC current = wglGetCurrentContext();

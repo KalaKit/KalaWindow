@@ -65,7 +65,6 @@ struct StrongHandle
 // DECLARE PLATFORM VARIABLES
 //
 
-typedef void* OPENGLCONTEXT;
 struct POS
 {
 	int x;

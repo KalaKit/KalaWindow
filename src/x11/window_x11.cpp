@@ -187,7 +187,7 @@ namespace KalaKit
 		sleep_for(milliseconds(16));
 	}
 
-	void KalaWindow::SwapOpenGLBuffers(const OPENGLCONTEXT& context)
+	void KalaWindow::SwapOpenGLBuffers()
     {
 
     }
