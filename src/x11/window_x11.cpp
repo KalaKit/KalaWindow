@@ -610,42 +610,65 @@ namespace KalaKit
 		PopupAction action,
 		PopupType type)
 	{
-        /*
-		int flags = 0;
+		string zenityCommand = "zenity ";
 
+		//dialog type
 		switch (action)
 		{
-		case PopupAction::POPUP_ACTION_OK: flags |= MB_OK; break;
-		case PopupAction::POPUP_ACTION_OK_CANCEL: flags |= MB_OKCANCEL; break;
-		case PopupAction::POPUP_ACTION_YES_NO: flags |= MB_YESNO; break;
-		case PopupAction::POPUP_ACTION_YES_NO_CANCEL: flags |= MB_YESNOCANCEL; break;
-		case PopupAction::POPUP_ACTION_RETRY_CANCEL: flags |= MB_RETRYCANCEL; break;
+		case PopupAction::POPUP_ACTION_OK:
+			zenityCommand += "--info ";
+			break;
+		case PopupAction::POPUP_ACTION_OK_CANCEL:
+		case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+			zenityCommand += "--question ";
+			zenityCommand += "--ok-label='OK' --cancel-label='Cancel' ";
+			break;
+		case PopupAction::POPUP_ACTION_YES_NO:
+		case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+			zenityCommand += "--question ";
+			break;
 		default:
-			flags |= MB_OK;
+			zenityCommand += "--info ";
 			break;
 		}
 
+		//icon type
 		switch (type)
 		{
-		case PopupType::POPUP_TYPE_INFO: flags |= MB_ICONINFORMATION; break;
-		case PopupType::POPUP_TYPE_WARNING: flags |= MB_ICONWARNING; break;
-		case PopupType::POPUP_TYPE_ERROR: flags |= MB_ICONERROR; break;
-		case PopupType::POPUP_TYPE_QUESTION: flags |= MB_ICONQUESTION; break;
-		default:
-			flags |= MB_ICONINFORMATION;
+		case PopupType::POPUP_TYPE_WARNING:
+			zenityCommand += "--icon=dialog-warning ";
 			break;
+		case PopupType::POPUP_TYPE_ERROR:
+			zenityCommand += "--icon=dialog-error ";
+			break;
+		case PopupType::POPUP_TYPE_QUESTION:
+			zenityCommand += "--icon=dialog-question ";
+			break;
+		case PopupType::POPUP_TYPE_INFO:
+		default:
+        	zenityCommand += "--icon=dialog-information ";
+        	break;
 		}
 
-		int result = MessageBox(
-			nullptr,
-			message.c_str(),
-			title.c_str(),
-			flags);
+		zenityCommand += "--title=\"" + title + "\" ";
+		zenityCommand += "--text=\"" + message + "\" ";
 
-		//cast the result directly to your strongly-typed enum
-		return static_cast<PopupResult>(result);
-        */
-       return PopupResult::POPUP_RESULT_NONE;
+		int result = system(zenityCommand.c_str());
+
+		//what input user chose
+		switch (action)
+		{
+		case PopupAction::POPUP_ACTION_OK:
+			return result == 0 ? PopupResult::POPUP_RESULT_OK : PopupResult::POPUP_RESULT_NONE;
+		case PopupAction::POPUP_ACTION_OK_CANCEL:
+		case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+			return result == 0 ? PopupResult::POPUP_RESULT_OK : PopupResult::POPUP_RESULT_CANCEL;
+		case PopupAction::POPUP_ACTION_YES_NO:
+		case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+			return result == 0 ? PopupResult::POPUP_RESULT_YES : PopupResult::POPUP_RESULT_NO;
+		default:
+        	return PopupResult::POPUP_RESULT_NONE;
+		}
 	}
 
 	void KalaWindow::SetExitState(
