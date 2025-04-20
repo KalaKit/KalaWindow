@@ -32,11 +32,7 @@ elseif(UNIX)
     find_package(X11 QUIET)
     find_package(OpenGL REQUIRED)
 
-    include(FindPkgConfig)
-	pkg_check_modules(EGL QUIET egl)
-
 	message(STATUS "[KALAKIT] X11_FOUND = ${X11_FOUND}")
-	message(STATUS "[KALAKIT] EGL_FOUND = ${EGL_FOUND}")
 	message(STATUS "[KALAKIT] OpenGL_FOUND: ${OpenGL_FOUND}")
 
 	if (X11_FOUND)
@@ -144,9 +140,7 @@ function(set_kalawindow_includes target)
 		"${EXT_CRASH_DIR}"
 		)
 	if(KALAKIT_X11)
-		target_include_directories(${target} PRIVATE
-			"${EGL_INCLUDE_DIRS}"
-		)
+		target_include_directories(${target} PRIVATE)
 	endif()
 endfunction()
 
