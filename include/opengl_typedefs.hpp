@@ -113,7 +113,7 @@
 #define GL_PROGRAM_INPUT     0x92E3
 #define GL_PROGRAM_OUTPUT    0x92E4
 #ifndef GL_ACTIVE_RESOURCES
-#define GL_ACTIVE_RESOURCES  0x929F
+    #define GL_ACTIVE_RESOURCES  0x929F
 #endif
 #define GL_NAME_LENGTH       0x92F9
 #define GL_TYPE              0x92FA
@@ -148,27 +148,54 @@
 #define GL_VERTEX_ATTRIB_ARRAY_TYPE       0x8625
 #define GL_VERTEX_ATTRIB_ARRAY_POINTER    0x8645
 
-#ifndef GL_TYPES_DEFINED
-#define GL_TYPES_DEFINED
+// Framebuffer object (FBO) defines
 
-typedef unsigned int    GLenum;
-typedef unsigned char   GLboolean;
-typedef unsigned int    GLbitfield;
-typedef void            GLvoid;
-typedef signed char     GLbyte;
-typedef short           GLshort;
-typedef int             GLint;
-typedef int             GLsizei;
-typedef unsigned char   GLubyte;
-typedef unsigned short  GLushort;
-typedef unsigned int    GLuint;
-typedef float           GLfloat;
-typedef float           GLclampf;
-typedef double          GLdouble;
-typedef double          GLclampd;
-typedef char            GLchar;
-typedef ptrdiff_t       GLintptr;
-typedef ptrdiff_t       GLsizeiptr;
+#ifndef GL_FRAMEBUFFER
+    #define GL_FRAMEBUFFER 0x8D40
+#endif
+
+#ifndef GL_RENDERBUFFER
+    #define GL_RENDERBUFFER 0x8D41
+#endif
+
+#ifndef GL_COLOR_ATTACHMENT0
+    #define GL_COLOR_ATTACHMENT0 0x8CE0
+#endif
+
+#ifndef GL_DEPTH24_STENCIL8
+    #define GL_DEPTH24_STENCIL8 0x88F0
+#endif
+
+#ifndef GL_DEPTH_STENCIL_ATTACHMENT
+    #define GL_DEPTH_STENCIL_ATTACHMENT 0x821A
+#endif
+
+#ifndef GL_FRAMEBUFFER_COMPLETE
+    #define GL_FRAMEBUFFER_COMPLETE 0x8CD5
+#endif
+
+
+#ifndef GL_TYPES_DEFINED
+    #define GL_TYPES_DEFINED
+
+    typedef unsigned int    GLenum;
+    typedef unsigned char   GLboolean;
+    typedef unsigned int    GLbitfield;
+    typedef void            GLvoid;
+    typedef signed char     GLbyte;
+    typedef short           GLshort;
+    typedef int             GLint;
+    typedef int             GLsizei;
+    typedef unsigned char   GLubyte;
+    typedef unsigned short  GLushort;
+    typedef unsigned int    GLuint;
+    typedef float           GLfloat;
+    typedef float           GLclampf;
+    typedef double          GLdouble;
+    typedef double          GLclampd;
+    typedef char            GLchar;
+    typedef ptrdiff_t       GLintptr;
+    typedef ptrdiff_t       GLsizeiptr;
 
 #endif // GL_TYPES_DEFINED
 
@@ -369,6 +396,39 @@ typedef void (APIENTRYP PFNGLTEXPARAMETERIPROC)(
     GLint param);
 typedef void (APIENTRYP PFNGLGENERATEMIPMAPPROC)(
     GLenum target);
+
+//framebuffers and renderbuffers
+
+typedef void (APIENTRYP PFNGLGENFRAMEBUFFERSPROC)(
+    GLsizei n,
+    GLuint* framebuffers);
+typedef void (APIENTRYP PFNGLBINDFRAMEBUFFERPROC)(
+    GLenum target,
+    GLuint framebuffer);
+typedef void (APIENTRYP PFNGLFRAMEBUFFERTEXTURE2DPROC)(
+    GLenum target,
+    GLenum attachment,
+    GLenum textarget,
+    GLuint texture,
+    GLint level);
+typedef GLenum(APIENTRYP PFNGLCHECKFRAMEBUFFERSTATUSPROC)(
+    GLenum target);
+typedef void (APIENTRYP PFNGLGENRENDERBUFFERSPROC)(
+    GLsizei n,
+    GLuint* renderbuffers);
+typedef void (APIENTRYP PFNGLBINDRENDERBUFFERPROC)(
+    GLenum target,
+    GLuint renderbuffer);
+typedef void (APIENTRYP PFNGLRENDERBUFFERSTORAGEPROC)(
+    GLenum target,
+    GLenum internalformat,
+    GLsizei width,
+    GLsizei height);
+typedef void (APIENTRYP PFNGLFRAMEBUFFERRENDERBUFFERPROC)(
+    GLenum target,
+    GLenum attachment,
+    GLenum renderbuffertarget,
+    GLuint renderbuffer);
 
 //frame and render state
 

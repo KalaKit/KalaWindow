@@ -94,9 +94,9 @@ namespace KalaKit
 
         LOG_DEBUG("Loading vertex shader: " << vertexPath);
 
-        GLuint vertex = OpenGLLoader::glCreateShaderPtr(GL_VERTEX_SHADER);
-        OpenGLLoader::glShaderSourcePtr(vertex, 1, &vShaderCode, nullptr);
-        OpenGLLoader::glCompileShaderPtr(vertex);
+        GLuint vertex = OpenGLLoader::glCreateShader(GL_VERTEX_SHADER);
+        OpenGLLoader::glShaderSource(vertex, 1, &vShaderCode, nullptr);
+        OpenGLLoader::glCompileShader(vertex);
 
         if (!CheckCompileErrors(vertex, "VERTEX"))
         {
@@ -125,9 +125,9 @@ namespace KalaKit
 
         LOG_DEBUG("Loading fragment shader: " << fragmentPath);
 
-        GLuint fragment = OpenGLLoader::glCreateShaderPtr(GL_FRAGMENT_SHADER);
-        OpenGLLoader::glShaderSourcePtr(fragment, 1, &fShaderCode, nullptr);
-        OpenGLLoader::glCompileShaderPtr(fragment);
+        GLuint fragment = OpenGLLoader::glCreateShader(GL_FRAGMENT_SHADER);
+        OpenGLLoader::glShaderSource(fragment, 1, &fShaderCode, nullptr);
+        OpenGLLoader::glCompileShader(fragment);
 
         if (!CheckCompileErrors(fragment, "FRAGMENT"))
         {
@@ -155,23 +155,23 @@ namespace KalaKit
         // CREATE SHADER PROGRAM
         //
 
-        ID = OpenGLLoader::glCreateProgramPtr();
-        OpenGLLoader::glAttachShaderPtr(ID, vertex);
-        OpenGLLoader::glAttachShaderPtr(ID, fragment);
-        OpenGLLoader::glLinkProgramPtr(ID);
+        ID = OpenGLLoader::glCreateProgram();
+        OpenGLLoader::glAttachShader(ID, vertex);
+        OpenGLLoader::glAttachShader(ID, fragment);
+        OpenGLLoader::glLinkProgram(ID);
 
         GLint success = 0;
-        OpenGLLoader::glGetProgramivPtr(ID, GL_LINK_STATUS, &success);
+        OpenGLLoader::glGetProgramiv(ID, GL_LINK_STATUS, &success);
 
         if (success != GL_TRUE)
         {
             GLint logLength = 0;
-            OpenGLLoader::glGetProgramivPtr(ID, GL_INFO_LOG_LENGTH, &logLength);
+            OpenGLLoader::glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &logLength);
 
             if (logLength > 0)
             {
                 std::vector<GLchar> log(logLength);
-                OpenGLLoader::glGetProgramInfoLogPtr(ID, logLength, nullptr, log.data());
+                OpenGLLoader::glGetProgramInfoLog(ID, logLength, nullptr, log.data());
                 LOG_ERROR("Shader link failed:\n" << log.data());
             }
 
@@ -195,17 +195,17 @@ namespace KalaKit
         }
 
         //validate the shader program before using it
-        OpenGLLoader::glValidateProgramPtr(ID);
+        OpenGLLoader::glValidateProgram(ID);
         GLint validated = 0;
-        OpenGLLoader::glGetProgramivPtr(ID, GL_VALIDATE_STATUS, &validated);
+        OpenGLLoader::glGetProgramiv(ID, GL_VALIDATE_STATUS, &validated);
         if (validated != GL_TRUE)
         {
             GLint logLength = 0;
-            OpenGLLoader::glGetProgramivPtr(ID, GL_INFO_LOG_LENGTH, &logLength);
+            OpenGLLoader::glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &logLength);
             if (logLength > 0)
             {
                 std::vector<GLchar> log(logLength);
-                OpenGLLoader::glGetProgramInfoLogPtr(ID, logLength, nullptr, log.data());
+                OpenGLLoader::glGetProgramInfoLog(ID, logLength, nullptr, log.data());
                 LOG_ERROR("Shader::Use() failed! Shader program validation failed:\n" << log.data());
                 isValid = false;
                 ID = 0;
@@ -218,7 +218,7 @@ namespace KalaKit
             return;
         }
 
-        GLint valid = OpenGLLoader::glIsProgramPtr(ID);
+        GLint valid = OpenGLLoader::glIsProgram(ID);
         bool isProgramValid = valid == GL_TRUE;
         if (!isProgramValid)
         {
@@ -237,13 +237,13 @@ namespace KalaKit
         // CLEANUP
         //
 
-        OpenGLLoader::glDeleteShaderPtr(vertex);
-        OpenGLLoader::glDeleteShaderPtr(fragment);
+        OpenGLLoader::glDeleteShader(vertex);
+        OpenGLLoader::glDeleteShader(fragment);
     }
 
     Shader::~Shader()
     {
-        if (ID != 0) OpenGLLoader::glDeleteProgramPtr(ID);
+        if (ID != 0) OpenGLLoader::glDeleteProgram(ID);
     }
 
     void Shader::Use() const
@@ -260,16 +260,16 @@ namespace KalaKit
             return;
         }
 
-        OpenGLLoader::glUseProgramPtr(ID);
+        OpenGLLoader::glUseProgram(ID);
 
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
         {
-            LOG_ERROR("glUseProgramPtr error: " << OpenGL::GetGLErrorString(err));
+            LOG_ERROR("glUseProgram error: " << OpenGL::GetGLErrorString(err));
         }
 
         GLint activeProgram = 0;
-        OpenGLLoader::glGetIntegervPtr(GL_CURRENT_PROGRAM, &activeProgram);
+        OpenGLLoader::glGetIntegerv(GL_CURRENT_PROGRAM, &activeProgram);
 
         if (activeProgram != (GLint)ID)
         {
@@ -279,47 +279,47 @@ namespace KalaKit
 
     void Shader::SetBool(const string& name, bool value) const 
     {
-        OpenGLLoader::glUniform1iPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), (int)value);
+        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), (int)value);
     }
     void Shader::SetInt(const string& name, int value) const 
     {
-        OpenGLLoader::glUniform1iPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), value);
+        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), value);
     }
     void Shader::SetFloat(const string& name, float value) const 
     {
-        OpenGLLoader::glUniform1fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), value);
+        OpenGLLoader::glUniform1f(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), value);
     }
 
     void Shader::SetVec2(const string& name, const kvec2& value) const 
     {
-        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
-        OpenGLLoader::glUniform2fvPtr(loc, 1, &value.x);
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniform2fv(loc, 1, &value.x);
     }
     void Shader::SetVec3(const string& name, const kvec3& value) const 
     {
-        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
-        OpenGLLoader::glUniform3fvPtr(loc, 1, &value.x);
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniform3fv(loc, 1, &value.x);
     }
     void Shader::SetVec4(const string& name, const kvec4& value) const 
     {
-        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
-        OpenGLLoader::glUniform4fvPtr(loc, 1, &value.x);
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniform4fv(loc, 1, &value.x);
     }
 
     void Shader::SetMat2(const string& name, const kmat2& mat) const 
     {
-        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
-        OpenGLLoader::glUniformMatrix2fvPtr(loc, 1, GL_FALSE, &mat.columns[0].x);
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix2fv(loc, 1, GL_FALSE, &mat.columns[0].x);
     }
     void Shader::SetMat3(const string& name, const kmat3& mat) const 
     {
-        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
-        OpenGLLoader::glUniformMatrix3fvPtr(loc, 1, GL_FALSE, &mat.columns[0].x);
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix3fv(loc, 1, GL_FALSE, &mat.columns[0].x);
     }
     void Shader::SetMat4(const string& name, const kmat4& mat) const 
     {
-        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
-        OpenGLLoader::glUniformMatrix4fvPtr(loc, 1, GL_FALSE, &mat.columns[0].x);
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix4fv(loc, 1, GL_FALSE, &mat.columns[0].x);
     }
 
     bool Shader::CheckCompileErrors(GLuint shader, const string& type)
@@ -329,20 +329,20 @@ namespace KalaKit
 
         if (type != "PROGRAM")
         {
-            OpenGLLoader::glGetShaderivPtr(shader, GL_COMPILE_STATUS, &success);
+            OpenGLLoader::glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
             if (!success)
             {
-                OpenGLLoader::glGetShaderInfoLogPtr(shader, 1024, nullptr, infoLog);
+                OpenGLLoader::glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
                 LOG_ERROR("Shader compilation failed (" << type << "):\n" << infoLog);
                 return false;
             }
         }
         else
         {
-            OpenGLLoader::glGetProgramivPtr(shader, GL_LINK_STATUS, &success);
+            OpenGLLoader::glGetProgramiv(shader, GL_LINK_STATUS, &success);
             if (!success)
             {
-                OpenGLLoader::glGetProgramInfoLogPtr(shader, 1024, nullptr, infoLog);
+                OpenGLLoader::glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
                 LOG_ERROR("Program linking failed:\n" << infoLog);
                 return false;
             }

@@ -259,6 +259,17 @@ namespace KalaKit
 		OPENGL_TEXIMAGE2D,              //Upload texture data
 		OPENGL_TEXPARAMETERI,           //Set texture parameter (filtering/wrapping)
 		OPENGL_GENERATEMIPMAP,          //Generate mipmaps for the current texture
+
+		//framebuffers and renderbuffers
+
+		OPENGL_GENFRAMEBUFFERS,         //Generate framebuffer object(s)
+		OPENGL_BINDFRAMEBUFFER,         //Bind a framebuffer object
+		OPENGL_FRAMEBUFFERTEXTURE2D,    //Attach a texture to a framebuffer
+		OPENGL_CHECKFRAMEBUFFERSTATUS,  //Check if framebuffer is complete
+		OPENGL_GENRENDERBUFFERS,        //Generate renderbuffer object(s)
+		OPENGL_BINDRENDERBUFFER,        //Bind a renderbuffer object
+		OPENGL_RENDERBUFFERSTORAGE,     //Define storage for a renderbuffer
+		OPENGL_FRAMEBUFFERRENDERBUFFER, //Attach a renderbuffer to a framebuffer
 	
 		//frame and render state
 

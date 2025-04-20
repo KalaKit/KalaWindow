@@ -217,7 +217,7 @@ namespace KalaKit
 		OpenGLLoader::LoadAllFunctions();
 
 		//and finally set opengl viewport size
-		OpenGLLoader::glViewportPtr(0, 0, width, height);
+		OpenGLLoader::glViewport(0, 0, width, height);
 
 		return true;
 	}

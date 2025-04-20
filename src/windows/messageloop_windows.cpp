@@ -397,9 +397,9 @@ namespace KalaKit
 			int width = LOWORD(msg.lParam);
 			int height = HIWORD(msg.lParam);
 
-			if (OpenGLLoader::glViewportPtr)
+			if (OpenGLLoader::glViewport)
 			{
-				OpenGLLoader::glViewportPtr(0, 0, width, height);
+				OpenGLLoader::glViewport(0, 0, width, height);
 			}
 
 			if (type == DebugType::DEBUG_ALL
