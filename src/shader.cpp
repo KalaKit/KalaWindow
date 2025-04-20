@@ -11,7 +11,7 @@
 #include <string>
 
 //external
-#include "glm/gtc/type_ptr.hpp"
+#include "glm.hpp"
 
 //kalawindow
 #include "shader.hpp"
@@ -281,60 +281,45 @@ namespace KalaKit
     {
         OpenGLLoader::glUniform1iPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), (int)value);
     }
-
     void Shader::SetInt(const string& name, int value) const 
     {
         OpenGLLoader::glUniform1iPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), value);
     }
-
     void Shader::SetFloat(const string& name, float value) const 
     {
         OpenGLLoader::glUniform1fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), value);
     }
 
-    void Shader::SetVec2(const string& name, const glm::vec2& value) const 
+    void Shader::SetVec2(const string& name, const kvec2& value) const 
     {
-        OpenGLLoader::glUniform2fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, glm::value_ptr(value));
+        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
+        OpenGLLoader::glUniform2fvPtr(loc, 1, &value.x);
+    }
+    void Shader::SetVec3(const string& name, const kvec3& value) const 
+    {
+        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
+        OpenGLLoader::glUniform3fvPtr(loc, 1, &value.x);
+    }
+    void Shader::SetVec4(const string& name, const kvec4& value) const 
+    {
+        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
+        OpenGLLoader::glUniform4fvPtr(loc, 1, &value.x);
     }
 
-    void Shader::SetVec2(const string& name, float x, float y) const 
+    void Shader::SetMat2(const string& name, const kmat2& mat) const 
     {
-        OpenGLLoader::glUniform2fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), x, y);
+        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix2fvPtr(loc, 1, GL_FALSE, &mat.columns[0].x);
     }
-
-    void Shader::SetVec3(const string& name, const glm::vec3& value) const 
+    void Shader::SetMat3(const string& name, const kmat3& mat) const 
     {
-        OpenGLLoader::glUniform3fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, glm::value_ptr(value));
+        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix3fvPtr(loc, 1, GL_FALSE, &mat.columns[0].x);
     }
-
-    void Shader::SetVec3(const string& name, float x, float y, float z) const 
+    void Shader::SetMat4(const string& name, const kmat4& mat) const 
     {
-        OpenGLLoader::glUniform3fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), x, y, z);
-    }
-
-    void Shader::SetVec4(const string& name, const glm::vec4& value) const 
-    {
-        OpenGLLoader::glUniform4fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, glm::value_ptr(value));
-    }
-
-    void Shader::SetVec4(const string& name, float x, float y, float z, float w) const 
-    {
-        OpenGLLoader::glUniform4fPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), x, y, z, w);
-    }
-
-    void Shader::SetMat2(const string& name, const glm::mat2& mat) const 
-    {
-        OpenGLLoader::glUniformMatrix2fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
-    }
-
-    void Shader::SetMat3(const string& name, const glm::mat3& mat) const 
-    {
-        OpenGLLoader::glUniformMatrix3fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
-    }
-
-    void Shader::SetMat4(const string& name, const glm::mat4& mat) const 
-    {
-        OpenGLLoader::glUniformMatrix4fvPtr(OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(mat));
+        auto loc = OpenGLLoader::glGetUniformLocationPtr(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix4fvPtr(loc, 1, GL_FALSE, &mat.columns[0].x);
     }
 
     bool Shader::CheckCompileErrors(GLuint shader, const string& type)

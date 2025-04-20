@@ -125,7 +125,7 @@ namespace KalaKit
 		/// <summary>
 		/// Gets the position of the window.
 		/// </summary>
-		static POS GetWindowPosition();
+		static kvec2 GetWindowPosition();
 		/// <summary>
 		/// Sets the position of the window.
 		/// </summary>
@@ -134,7 +134,7 @@ namespace KalaKit
 		/// <summary>
 		/// Gets the total outer size (includes borders and top bar)
 		/// </summary>
-		static POS GetWindowFullSize();
+		static kvec2 GetWindowFullSize();
 		/// <summary>
 		/// Sets the total outer size of the window (includes borders and top bar)
 		/// </summary>
@@ -143,7 +143,7 @@ namespace KalaKit
 		/// <summary>
 		/// Gets the drawable/client area (without borders and top bar)
 		/// </summary>
-		static POS GetWindowContentSize();
+		static kvec2 GetWindowContentSize();
 		/// <summary>
 		/// Sets the drawable/client area (without borders and top bar)
 		/// </summary>
@@ -152,11 +152,11 @@ namespace KalaKit
 		/// <summary>
 		/// Get window maximum allowed size.
 		/// </summary>
-		static POS GetWindowMaxSize();
+		static kvec2 GetWindowMaxSize();
 		/// <summary>
 		/// Get window minimum allowed size.
 		/// </summary>
-		static POS GetWindowMinSize();
+		static kvec2 GetWindowMinSize();
 		/// <summary>
 		/// Set window minimum and maximum allowed size.
 		/// </summary>

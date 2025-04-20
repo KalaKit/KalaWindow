@@ -65,8 +65,10 @@ struct StrongHandle
 // DECLARE PLATFORM VARIABLES
 //
 
-struct POS
-{
-	int x;
-	int y;
-};
+struct kvec2 { float x, y; };
+struct kvec3 { float x, y, z; };
+struct kvec4 { float x, y, z, w; };
+
+struct kmat2 { kvec2 columns[2]; };
+struct kmat3 { kvec3 columns[3]; };
+struct kmat4 { kvec4 columns[4]; };

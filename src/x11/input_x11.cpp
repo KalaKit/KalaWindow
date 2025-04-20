@@ -202,7 +202,7 @@ namespace KalaKit
         return false;
 	}
 
-	POS KalaInput::GetMousePosition()
+	kvec2 KalaInput::GetMousePosition()
 	{
 		if (!isInitialized)
 		{
@@ -214,7 +214,7 @@ namespace KalaKit
 		if (type == DebugType::DEBUG_ALL
 			|| type == DebugType::DEBUG_MOUSE_POSITION)
 		{
-			static POS lastPos = { -9999, -9999 };
+			static kvec2 lastPos = { -9999, -9999 };
 
 			//only print if mouse moved
 			if (mousePosition.x != lastPos.x
@@ -231,7 +231,7 @@ namespace KalaKit
 
 		return mousePosition;
 	}
-	void KalaInput::SetMousePosition(POS newMousePosition)
+	void KalaInput::SetMousePosition(kvec2 newMousePosition)
 	{
 		if (!isInitialized)
 		{
@@ -243,7 +243,7 @@ namespace KalaKit
 		mousePosition.y = newMousePosition.y;
 	}
 
-	POS KalaInput::GetMouseDelta()
+	kvec2 KalaInput::GetMouseDelta()
 	{
 		if (!isInitialized)
 		{
@@ -267,7 +267,7 @@ namespace KalaKit
 
 		return mouseDelta;
 	}
-	void KalaInput::SetMouseDelta(POS newMouseDelta)
+	void KalaInput::SetMouseDelta(kvec2 newMouseDelta)
 	{
 		if (!isInitialized)
 		{
@@ -279,7 +279,7 @@ namespace KalaKit
 		mouseDelta.y = newMouseDelta.y;
 	}
 
-	POS KalaInput::GetRawMouseDelta()
+	kvec2 KalaInput::GetRawMouseDelta()
 	{
 		if (!isInitialized)
 		{
@@ -303,7 +303,7 @@ namespace KalaKit
 
 		return rawMouseDelta;
 	}
-	void KalaInput::SetRawMouseDelta(POS newRawMouseDelta)
+	void KalaInput::SetRawMouseDelta(kvec2 newRawMouseDelta)
 	{
 		if (!isInitialized)
 		{
@@ -419,8 +419,8 @@ namespace KalaKit
 			//clip the cursor to the window to prevent it from leaving
 			RECT rect{};
 			GetClientRect(KalaWindow::window, &rect);
-			ClientToScreen(KalaWindow::window, (POS*)&rect.left);
-			ClientToScreen(KalaWindow::window, (POS*)&rect.right);
+			ClientToScreen(KalaWindow::window, (kvec2*)&rect.left);
+			ClientToScreen(KalaWindow::window, (kvec2*)&rect.right);
 			ClipCursor(&rect);
 		}
         */
@@ -453,7 +453,7 @@ namespace KalaKit
 		RECT rect{};
 		GetClientRect(KalaWindow::window, &rect);
 
-		POS center{};
+		kvec2 center{};
 		center.x = (rect.right - rect.left) / 2;
 		center.y = (rect.bottom - rect.top) / 2;
 

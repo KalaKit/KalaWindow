@@ -229,23 +229,13 @@ if (NOT KALAKIT_WINDOWS)
 	)
 endif()
 
-# Copy all headers to include folder
-add_custom_command(TARGET KalaWindow POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/KalaCrashHandler"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/glm"
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/include/magic_enum"
-
-    COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${WINDOW_INCLUDE_DIR}/"
-        "${CMAKE_BINARY_DIR}/include"
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${EXT_CRASH_DIR}/"
-        "${CMAKE_BINARY_DIR}/include/KalaCrashHandler"
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${EXT_MAGIC_ENUM_DIR}/"
-        "${CMAKE_BINARY_DIR}/include/magic_enum"
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-        "${EXT_GLM_DIR}/"
-        "${CMAKE_BINARY_DIR}/include/glm"
-)
+# Copy all project-related headers to include folder
+file(GLOB PUBLIC_HEADERS "${WINDOW_INCLUDE_DIR}/*.hpp")
+foreach (header ${PUBLIC_HEADERS})
+	get_filename_component(fname "${header}" NAME)
+	add_custom_command(TARGET KalaWindow POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy
+			"${header}"
+			"${CMAKE_BINARY_DIR}/include/${fname}"
+	)
+endforeach()

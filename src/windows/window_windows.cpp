@@ -364,7 +364,7 @@ namespace KalaKit
 		ShowWindow(Window_Windows::newWindow, newWindowHiddenState ? SW_HIDE : SW_SHOW);
 	}
 
-	POS KalaWindow::GetWindowPosition()
+	kvec2 KalaWindow::GetWindowPosition()
 	{
 		if (!isInitialized)
 		{
@@ -375,7 +375,7 @@ namespace KalaKit
 		RECT rect{};
 		GetWindowRect(Window_Windows::newWindow, &rect);
 
-		POS pos{};
+		kvec2 pos{};
 		pos.x = rect.left;
 		pos.y = rect.top;
 		return pos;
@@ -409,7 +409,7 @@ namespace KalaKit
 			| SWP_NOOWNERZORDER);
 	}
 
-	POS KalaWindow::GetWindowFullSize()
+	kvec2 KalaWindow::GetWindowFullSize()
 	{
 		if (!isInitialized)
 		{
@@ -420,7 +420,7 @@ namespace KalaKit
 		RECT rect{};
 		GetWindowRect(Window_Windows::newWindow, &rect);
 
-		POS size{};
+		kvec2 size{};
 		size.x = rect.right - rect.left;
 		size.y = rect.bottom - rect.top;
 		return size;
@@ -454,7 +454,7 @@ namespace KalaKit
 			| SWP_NOOWNERZORDER);
 	}
 
-	POS KalaWindow::GetWindowContentSize()
+	kvec2 KalaWindow::GetWindowContentSize()
 	{
 		if (!isInitialized)
 		{
@@ -465,7 +465,7 @@ namespace KalaKit
 		RECT rect{};
 		GetClientRect(Window_Windows::newWindow, &rect);
 
-		POS size{};
+		kvec2 size{};
 		size.x = rect.right - rect.left;
 		size.y = rect.bottom - rect.top;
 		return size;
@@ -507,7 +507,7 @@ namespace KalaKit
 			| SWP_NOOWNERZORDER);
 	}
 
-	POS KalaWindow::GetWindowMaxSize()
+	kvec2 KalaWindow::GetWindowMaxSize()
 	{
 		if (!isInitialized)
 		{
@@ -515,12 +515,12 @@ namespace KalaKit
 			return { 7680, 4320 };
 		}
 
-		POS point{};
+		kvec2 point{};
 		point.x = maxWidth;
 		point.y = maxHeight;
 		return point;
 	}
-	POS KalaWindow::GetWindowMinSize()
+	kvec2 KalaWindow::GetWindowMinSize()
 	{
 		if (!isInitialized)
 		{
@@ -528,7 +528,7 @@ namespace KalaKit
 			return { 800, 600 };
 		}
 
-		POS point{};
+		kvec2 point{};
 		point.x = minWidth;
 		point.y = minHeight;
 		return point;

@@ -163,15 +163,15 @@ namespace KalaKit
 
 		case WM_MOUSEMOVE:
 		{
-			POS newPos =
+			kvec2 newPos =
 			{
-				GET_X_LPARAM(msg.lParam),
-				GET_Y_LPARAM(msg.lParam)
+				float(GET_X_LPARAM(msg.lParam)),
+				float(GET_Y_LPARAM(msg.lParam))
 			};
 			KalaInput::SetMousePosition(newPos);
 
-			POS mouseCurrentPos = KalaInput::GetMousePosition();
-			POS mouseCurrentDelta = KalaInput::GetMouseDelta();
+			kvec2 mouseCurrentPos = KalaInput::GetMousePosition();
+			kvec2 mouseCurrentDelta = KalaInput::GetMouseDelta();
 			mouseCurrentDelta.x = newPos.x - mouseCurrentPos.x;
 			mouseCurrentDelta.y = newPos.y - mouseCurrentPos.y;
 			KalaInput::SetMouseDelta(mouseCurrentDelta);
@@ -288,7 +288,7 @@ namespace KalaKit
 				//sets raw mouse movement
 				if (mouse.usFlags == MOUSE_MOVE_RELATIVE)
 				{
-					POS newMouseRawDelta = KalaInput::GetRawMouseDelta();
+					kvec2 newMouseRawDelta = KalaInput::GetRawMouseDelta();
 
 					newMouseRawDelta.x += mouse.lLastX;
 					newMouseRawDelta.y += mouse.lLastY;
