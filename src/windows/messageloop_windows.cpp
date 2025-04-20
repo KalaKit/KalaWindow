@@ -144,12 +144,14 @@ namespace KalaKit
 			// KEYBOARD INPUT
 			//
 
+		case WM_SYSKEYDOWN:
 		case WM_KEYDOWN:
 		{
 			Key key = static_cast<Key>(msg.wParam);
 			KalaInput::SetKeyState(key, true);
 			return false;
 		}
+		case WM_SYSKEYUP:
 		case WM_KEYUP:
 		{
 			Key key = static_cast<Key>(msg.wParam);
@@ -163,18 +165,23 @@ namespace KalaKit
 
 		case WM_MOUSEMOVE:
 		{
-			kvec2 newPos =
+			kvec2 newPos = 
 			{
 				float(GET_X_LPARAM(msg.lParam)),
 				float(GET_Y_LPARAM(msg.lParam))
 			};
-			KalaInput::SetMousePosition(newPos);
 
-			kvec2 mouseCurrentPos = KalaInput::GetMousePosition();
-			kvec2 mouseCurrentDelta = KalaInput::GetMouseDelta();
-			mouseCurrentDelta.x = newPos.x - mouseCurrentPos.x;
-			mouseCurrentDelta.y = newPos.y - mouseCurrentPos.y;
-			KalaInput::SetMouseDelta(mouseCurrentDelta);
+			//get the old position *before* updating
+			kvec2 oldPos = KalaInput::GetMousePosition();
+
+			kvec2 delta = {
+				newPos.x - oldPos.x,
+				newPos.y - oldPos.y
+			};
+
+			KalaInput::SetMousePosition(newPos);
+			KalaInput::SetMouseDelta(delta);
+
 			return false;
 		}
 
@@ -184,13 +191,14 @@ namespace KalaKit
 
 		case WM_MOUSEWHEEL:
 		{
-			int currentDelta = KalaInput::GetMouseWheelDelta();
-
 			int delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
-			if (delta > 0) currentDelta += 1;
-			else if (delta < 0) currentDelta -= 1;
 
-			KalaInput::SetMouseWheelDelta(currentDelta);
+			//convert to float steps (+1 or -1)
+			float scroll = 0.0f;
+			if (delta > 0) scroll = +1.0f;
+			else if (delta < 0) scroll = -1.0f;
+
+			KalaInput::SetMouseWheelDelta(scroll);
 
 			return false;
 		}
@@ -214,27 +222,63 @@ namespace KalaKit
 		// MOUSE BUTTONS
 		//
 
-		case WM_LBUTTONDOWN: KalaInput::SetKeyState(Key::MouseLeft, true); return false;
-		case WM_LBUTTONUP: KalaInput::SetKeyState(Key::MouseLeft, false); return false;
+		case WM_LBUTTONDOWN:
+		{
+			KalaInput::SetKeyState(Key::MouseLeft, true); 
+			return false;
+		}
+		case WM_LBUTTONUP:
+		{
+			KalaInput::SetKeyState(Key::MouseLeft, false); 
+			return false;
+		}
 
-		case WM_RBUTTONDOWN: KalaInput::SetKeyState(Key::MouseRight, true); return false;
-		case WM_RBUTTONUP: KalaInput::SetKeyState(Key::MouseRight, false); return false;
+		case WM_RBUTTONDOWN: 
+		{
+			KalaInput::SetKeyState(Key::MouseRight, true); 
+			return false;
+		}
+		case WM_RBUTTONUP: 
+		{
+			KalaInput::SetKeyState(Key::MouseRight, false); 
+			return false;
+		}
 
-		case WM_MBUTTONDOWN: KalaInput::SetKeyState(Key::MouseMiddle, true); return false;
-		case WM_MBUTTONUP: KalaInput::SetKeyState(Key::MouseMiddle, false); return false;
+		case WM_MBUTTONDOWN: 
+		{
+			KalaInput::SetKeyState(Key::MouseMiddle, true); 
+			return false;
+		}
+		case WM_MBUTTONUP: 
+		{
+			KalaInput::SetKeyState(Key::MouseMiddle, false); 
+			return false;
+		}
 
 		case WM_XBUTTONDOWN:
 		{
 			WORD button = GET_XBUTTON_WPARAM(msg.wParam);
-			if (button == XBUTTON1) KalaInput::SetKeyState(Key::MouseX1, true);
-			if (button == XBUTTON2) KalaInput::SetKeyState(Key::MouseX2, true);
+			if (button == XBUTTON1)
+			{
+				KalaInput::SetKeyState(Key::MouseX1, true);
+			}
+			if (button == XBUTTON2)
+			{
+				KalaInput::SetKeyState(Key::MouseX2, true);
+			}
 			return false;
 		}
 		case WM_XBUTTONUP:
 		{
 			WORD button = GET_XBUTTON_WPARAM(msg.wParam);
-			if (button == XBUTTON1) KalaInput::SetKeyState(Key::MouseX1, false);
-			if (button == XBUTTON2) KalaInput::SetKeyState(Key::MouseX2, false);
+			if (button == XBUTTON1)
+			{
+				KalaInput::SetKeyState(Key::MouseX1, false);
+			}
+			if (button == XBUTTON2)
+			{
+				KalaInput::SetKeyState(Key::MouseX2, false);
+			}
 			return false;
 		}
 
