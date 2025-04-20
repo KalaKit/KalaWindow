@@ -206,6 +206,11 @@ namespace KalaKit
 		isWindowFocusRequired = newWindowFocusRequiredState;
 	}
 
+	kwindow KalaWindow::GetWindow()
+	{
+		return reinterpret_cast<kwindow>(Window_Windows::newWindow);
+	}
+
 	DebugType KalaWindow::GetDebugType()
 	{
 		return debugType;

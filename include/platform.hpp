@@ -42,28 +42,10 @@
 #endif
 
 //
-// TEMPLATE FOR ALL OS VARIABLES
-//
-
-template <typename Tag>
-struct StrongHandle
-{
-	uintptr_t value;
-	
-	//default constructor
-	StrongHandle() : value(0) {} 
-
-	explicit StrongHandle(uintptr_t v) : value(v) {}
-
-	bool operator==(const StrongHandle& other) const { return value == other.value; }
-	bool operator!=(const StrongHandle& other) const { return value != other.value; }
-
-	uintptr_t get() const { return value; }
-};
-
-//
 // DECLARE PLATFORM VARIABLES
 //
+
+typedef void* kwindow;
 
 struct kvec2 { float x, y; };
 struct kvec3 { float x, y, z; };

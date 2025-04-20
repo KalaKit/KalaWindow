@@ -18,8 +18,8 @@ namespace KalaKit
     static inline int width;
     static inline int height;
   
-		static inline Display* newDisplay = nullptr;
-		static inline Window newWindow = 0;
+	static inline Display* newDisplay = nullptr;
+	static inline Window newWindow = 0;
     static inline GC newGC = nullptr;
     static inline GLXContext glxContext = nullptr;
     static inline GLXFBConfig glxFBConfig = nullptr;

@@ -318,13 +318,22 @@ Call these functions INSIDE KalaWindow::ShouldClose and AFTER KalaWindow::Update
 These functions are used primarily for window interactions.
 
 ```cpp
-#include <windows.h>
-
 #include "window.hpp"
 #include "enums.hpp"
+#include "platform.hpp"
 
 using KalaKit::KalaWindow;
 using KalaKit::WindowState;
+
+//get the os-specific window
+kwindow yourWindow = KalaWindow::GetWindow();
+#ifdef KALAKIT_WINDOWS
+#include <windows.h>
+HWND yourWindowsWindow = reinterpret_cast<HWND>(yourWindow);
+#elif KALAKIT_X11
+#include <X11/Xlib.h>
+Window yourX11Window = reinterpret_cast<Window>(yourWindow);
+#endif
 
 //assign a title to the window
 string windowTitle = "yourWindowTitle";
@@ -349,7 +358,7 @@ bool yourHiddenState = true;
 KalaWindow::SetWindowHiddenState(yourHiddenState);
 
 //returns the position of the window
-POINT windowPosition = KalaWindow::GetWindowPosition;
+kvec2 windowPosition = KalaWindow::GetWindowPosition;
 
 //set window position with width and height parameter
 int yourWindowWidth = 1920;
@@ -357,7 +366,7 @@ int yourWindowHeight = 1080;
 KalaWindow::SetWindowPosition(yourWindowWidth, yourWindowHeight);
 
 //returns the full size of the window (with borders and top bar)
-POINT windowFullSize = KalaWindow::GetWindowFullSize;
+kvec2 windowFullSize = KalaWindow::GetWindowFullSize;
 
 //set window full size with width and height (with borders and top bar)
 int yourfullWidth = 1111;
@@ -365,7 +374,7 @@ int yourFullHeight = 2222;
 KalaWindow::SetWindowFullSize(yourfullWidth, yourFullHeight);
 
 //returns the drawamble/client size of the window (without borders and top bar)
-POINT windowContentSize = KalaWindow::GetWindowContentSize;
+kvec2 windowContentSize = KalaWindow::GetWindowContentSize;
 
 //set window content size with width and height (without borders and top bar)
 int yourContentWidth = 3333;
@@ -373,10 +382,10 @@ int yourContentHeight = 4444;
 KalaWindow::SetWindowContentSize(yourContentWidth, yourContentHeight);
 
 //get the maximum allowed size of the window
-POINT maxWindowSize = KalaWindow::GetWindowMaxSize();
+kvec2 maxWindowSize = KalaWindow::GetWindowMaxSize();
 
 //get the minimum allowed size of the window
-POINT minWindowSize = KalaWindow::GetWindowMinSize();
+kvec2 minWindowSize = KalaWindow::GetWindowMinSize();
 
 //set the new maximum and minimum allowed width and height
 int newMaxWidth = 10000;
@@ -397,7 +406,6 @@ Call these functions INSIDE KalaWindow::ShouldClose and AFTER KalaWindow::Update
 Pass one of any of the keys in KalaWindow Key enum as a parameter for most of these functions where Key is requested.
 
 ```cpp
-#include <windows.h>
 #include <initializer_list>
 
 #include "input.hpp"
@@ -438,26 +446,26 @@ bool isMouseDragging = KalaInput::IsMouseDragging();
 
 //get current mouse position relative to the client area (top-left = 0,0).
 //coordinates are in pixels
-POINT mousePos = KalaInput::GetMousePosition();
+kvec2 mousePos = KalaInput::GetMousePosition();
 
 //set a new position for the mouse
-POINT newMousePosition = { 0, 0 };
+kvec2 newMousePosition = { 0, 0 };
 KalaInput::SetMousePosition(newMousePosition);
 
 //get how much the cursor moved on screen (in client space) since the last frame.
 //this uses absolute screen-based movement, affected by OS acceleration and DPI
-POINT mouseDelta = KalaInput::GetMouseDelta();
+kvec2 mouseDelta = KalaInput::GetMouseDelta();
 
 //set a new mouse delta for the mouse
-POINT newMouseDelta = { 100, 100 };
+kvec2 newMouseDelta = { 100, 100 };
 KalaInput::SetMouseDelta(newMouseDelta);
 
 //get raw, unfiltered mouse movement from the hardware since the last frame.
 //not affected by DPI, sensitivity, or OS mouse settings, ideal for game camera control
-POINT rawMouseDelta = KalaInput::GetRawMouseDelta();
+kvec2 rawMouseDelta = KalaInput::GetRawMouseDelta();
 
 //set a new raw mouse delta for the mouse
-POINT newRawMouseDelta = { 200, 200 };
+kvec2 newRawMouseDelta = { 200, 200 };
 KalaInput::SetRawMouseDelta(newRawMouseDelta);
 
 //get how many scroll steps the mouse wheel moved since the last frame.

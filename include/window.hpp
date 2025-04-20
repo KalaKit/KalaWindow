@@ -23,11 +23,11 @@ namespace KalaKit
 		/// <summary>
 		/// Title of the warning popup when user wants to exit
 		/// </summary>
-		static inline string exitTitle = "Closing program";
+		static inline string exitTitle = "MISSING TITLE";
 		/// <summary>
 		/// Description of the warning popup when user wants to exit
 		/// </summary>
-		static inline string exitInfo = "Do you want to exit? You might lose unsaved data.";
+		static inline string exitInfo = "MISSING DESCRIPTION";
 
 		/// <summary>
 		/// Initializes the window system, input system, creates an opengl context
@@ -78,6 +78,14 @@ namespace KalaKit
 		/// </summary>
 		/// <param name="newWindowFocusedState"></param>
 		static void SetWindowFocusRequiredState(bool newWindowFocusRequiredState);
+
+		/// <summary>
+		/// Get the window specific to the platform.
+		/// You must reinterpret_cast back to HWND on windows 
+		/// or Window on x11, kwindow is just a void* and
+		/// won't work on its own if you need the window.
+		/// </summary>
+		static kwindow GetWindow();
 
 		/// <summary>
 		/// Get the currently assigned debug type.
