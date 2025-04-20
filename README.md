@@ -15,11 +15,21 @@ External libraries included in this library:
 - magic_enum - enum-string operations (include\magic_enum)
 - GLM - OpenGL math functions (include\GLM)
 
+---
+
 # Prerequisites (when compiling from source code)
 
-The Windows_prerequisites.zip and linux_prerequisites.md files will describe how to set up this library for use if you wish to compile from source code.
+## On Windows
+
+> Read Windows_prerequisites.txt and use Windows_prerequisites.zip
+
+## On Linux
+
+> Read Linux_prerequisites.txt
 
 Follow the [example project](https://github.com/greeenlaser/KalaTestProject) to see how to set up and use this library in a real-world example for both Windows and Linux.
+
+---
 
 # How to set up
 
