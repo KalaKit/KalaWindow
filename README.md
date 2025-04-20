@@ -17,8 +17,7 @@ External libraries included in this library:
 
 # Prerequisites (when compiling from source code)
 
-- Visual Studio 2022 (with C++ CMake tools and Windows 10 or 11 SDK)
-- Ninja and CMake 3.30.3 or newer (or extract Windows_prerequsites.7z and run setup.bat)
+The Windows_prerequisites.zip and linux_prerequisites.md files will describe how to set up this library for use if you wish to compile from source code.
 
 Follow the [example project](https://github.com/greeenlaser/KalaTestProject) to see how to set up and use this library in a real-world example for both Windows and Linux.
 
@@ -53,9 +52,6 @@ static void YourInitializeFunction()
 		cout << "Failed to initialize KalaWindow!\n";
 		return;
 	}
-
-	//use this to get the valid context depending on your OS
-	OPENGLCONTEXT context = KalaWindow::GetOpenGLContext();
 	
 	//use this if you want the window to properly keep drawing while it is being resized
 	KalaWindow::SetRedrawCallback(YourRedrawCallback);
@@ -69,10 +65,6 @@ static void YourUpdateLoop()
 	{
 		//capture all input and handle the message loop
 		KalaWindow::Update();
-
-		//use this instead of os-dependant buffer swapper functions
-		OPENGLCONTEXT context{};
-		KalaWindow::SwapBuffers();
 		
 		//you can pass one of the many debug types to this function
 		//to be able to see messages of that debug type printed to your console,
@@ -89,7 +81,8 @@ static void YourUpdateLoop()
 		KalaWindow::SetWindowFocusRequiredState(true);
 	
 		//set this function to false and assign a title and info
-		//if you want to prevent the user from exiting your program.
+		//if you want to prevent the user from exiting your program
+		//if a certain condition has not yet been met, like unsaved game.
 		//setting this to false shows a warning popup with yes or no
 		//and your title and info. if user presses yes the program can close,
 		//if user presses no then the program stays open and the popup closes
@@ -120,6 +113,9 @@ static void YourUpdateLoop()
 		{
 			cout << "Pressed yes!\n";
 		}
+
+		//always swap buffers at the end of the update loop
+		KalaWindow::SwapBuffers();
 	}
 }
 
