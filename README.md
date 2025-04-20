@@ -6,14 +6,14 @@
 
 ![Logo](logo.png)
 
-KalaWindow is a lightweight C++ 20 library for Windows and Linux that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 context and uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes KalaCrashHandler for handy crash reports. All the code is completely OS-agnostic so the exact same code works on both Windows and Linux.
+KalaWindow is a lightweight C++ 20 library for Windows and Linux that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 context and uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes [KalaCrashHandler](https://github.com/KalaKit/KalaCrashHandler) for handy crash reports. All the code is completely OS-agnostic so the exact same code works on both Windows and Linux.
 
 > Wayland support has been deprecated due to nasty restrictions with the update loop. Only X11 will be supported.
 
 External libraries included in this library:
 
-- magic_enum - enum-string operations (include\magic_enum)
-- GLM - OpenGL math functions (include\GLM)
+- [magic_enum](https://github.com/Neargye/magic_enum) – enum-string operations
+- [GLM](https://github.com/g-truc/glm) – OpenGL math functions
 
 ---
 
