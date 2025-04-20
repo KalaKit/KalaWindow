@@ -62,9 +62,6 @@ namespace KalaKit
         //initialize the crash handler first
         KalaCrashHandler::Initialize();
 
-		//initialize FreeType
-		KalaWindow::freeType = make_unique<FreeType>();
-
         Display* newDisplay = XOpenDisplay(nullptr);
         if (!newDisplay)
         {

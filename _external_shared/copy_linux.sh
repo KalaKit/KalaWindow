@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo "Starting to copy DLLs..."
+echo "Starting to copy binaries..."
 echo ""
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -9,9 +9,6 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 CRASH_RELEASE="${ROOT_DIR}/KalaCrashHandler/release/libKalaCrashHandler.so"
 CRASH_DEBUG="${ROOT_DIR}/KalaCrashHandler/debug/libKalaCrashHandlerD.so"
-
-FREETYPE_RELEASE="${ROOT_DIR}/FreeType/release/libfreetype.so"
-FREETYPE_DEBUG="${ROOT_DIR}/FreeType/debug/libfreetyped.so"
 
 # Target paths
 
@@ -23,16 +20,10 @@ DEBUG_DLLS="${ROOT_DIR}/../files/external dlls/debug"
 cp -f "$CRASH_RELEASE" "$RELEASE_DLLS"
 echo "Copied $CRASH_RELEASE to $RELEASE_DLLS"
 
-cp -f "$FREETYPE_RELEASE" "$RELEASE_DLLS"
-echo "Copied $FREETYPE_RELEASE to $RELEASE_DLLS"
-
 # Copy debug dlls
 
 cp -f "$CRASH_DEBUG" "$DEBUG_DLLS"
 echo "Copied $CRASH_DEBUG to $DEBUG_DLLS"
-
-cp -f "$FREETYPE_DEBUG" "$DEBUG_DLLS"
-echo "Copied $FREETYPE_DEBUG to $DEBUG_DLLS"
 
 echo ""
 echo "Finished copying DLLs!"

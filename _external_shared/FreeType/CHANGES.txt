@@ -1,2 +1,0 @@
-- deleted everything except the .dll, .lib, .so, .a and header files
-- commented out this part of the CMAKELISTS.txt

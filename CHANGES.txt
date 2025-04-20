@@ -12,3 +12,7 @@
 - message loop in its own source and header script
 - added missing KalaCrashHandler
 - moved all initialization inside KalaWindow::Initialize
+
+0.3:
+- support for linux (x11)
+- major cleanup and project structure improvements

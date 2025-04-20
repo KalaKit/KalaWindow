@@ -11,7 +11,6 @@
 //kalawindow
 #include "platform.hpp"
 #include "enums.hpp"
-#include "freetype.hpp"
 
 namespace KalaKit
 {
@@ -21,8 +20,6 @@ namespace KalaKit
 	class KALAWINDOW_API KalaWindow
 	{
 	public:
-		static inline unique_ptr<FreeType> freeType;
-
 		/// <summary>
 		/// Title of the warning popup when user wants to exit
 		/// </summary>

@@ -47,9 +47,6 @@ namespace KalaKit
 		//first initialize crash handler
 		KalaCrashHandler::Initialize();
 
-		//initialize FreeType
-		KalaWindow::freeType = make_unique<FreeType>();
-
 		HINSTANCE hInstance = GetModuleHandle(nullptr);
 
 		WNDCLASSA wc = {};
