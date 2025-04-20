@@ -1,7 +1,7 @@
 # KalaWindow
 
 [![License](https://img.shields.io/badge/license-Zlib-blue)](LICENSE.md)
-![Platform](https://img.shields.io/badge/platform-Windows-brightgreen)
+![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-brightgreen)
 ![Development Stage](https://img.shields.io/badge/development-Alpha-yellow)
 
 ![Logo](logo.png)
