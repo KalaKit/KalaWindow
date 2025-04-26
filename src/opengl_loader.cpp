@@ -26,6 +26,8 @@ namespace KalaKit
 	inline PFNGLBINDVERTEXARRAYPROC        OpenGLLoader::glBindVertexArray = nullptr;
 	inline PFNGLGENBUFFERSPROC             OpenGLLoader::glGenBuffers = nullptr;
 	inline PFNGLBINDBUFFERPROC             OpenGLLoader::glBindBuffer = nullptr;
+	inline PFNGLDELETEVERTEXARRAYSPROC     OpenGLLoader::glDeleteVertexArrays = nullptr;
+	inline PFNGLDELETEBUFFERSPROC          OpenGLLoader::glDeleteBuffers = nullptr;
 	inline PFNGLBUFFERDATAPROC             OpenGLLoader::glBufferData = nullptr;
 	inline PFNGLENABLEVERTEXATTRIBARRAYPROC OpenGLLoader::glEnableVertexAttribArray = nullptr;
 	inline PFNGLVERTEXATTRIBPOINTERPROC    OpenGLLoader::glVertexAttribPointer = nullptr;
@@ -160,6 +162,8 @@ namespace KalaKit
 		{ OpenGLFunction::OPENGL_BINDVERTEXARRAY, "glBindVertexArray", reinterpret_cast<void**>(&glBindVertexArray) },
 		{ OpenGLFunction::OPENGL_GENBUFFERS, "glGenBuffers", reinterpret_cast<void**>(&glGenBuffers) },
 		{ OpenGLFunction::OPENGL_BINDBUFFER, "glBindBuffer", reinterpret_cast<void**>(&glBindBuffer) },
+		{ OpenGLFunction::OPENGL_DELETEVERTEXARRAY, "glDeleteVertexArrays", reinterpret_cast<void**>(&glDeleteVertexArrays) },
+		{ OpenGLFunction::OPENGL_DELETEBUFFER,      "glDeleteBuffers",      reinterpret_cast<void**>(&glDeleteBuffers) },
 		{ OpenGLFunction::OPENGL_BUFFERDATA, "glBufferData", reinterpret_cast<void**>(&glBufferData) },
 		{ OpenGLFunction::OPENGL_ENABLEVERTEXATTRIBARRAY, "glEnableVertexAttribArray", reinterpret_cast<void**>(&glEnableVertexAttribArray) },
 		{ OpenGLFunction::OPENGL_VERTEXATTRIBPOINTER, "glVertexAttribPointer", reinterpret_cast<void**>(&glVertexAttribPointer) },

@@ -88,6 +88,12 @@ namespace KalaKit
 		static kwindow GetWindow();
 
 		/// <summary>
+		/// Launches a file explorer to allow the user to select a file or folder, 
+		/// returns path as string of chosen file or folder.
+		/// </summary>
+		static string FileExplorer(FileType fileType);
+
+		/// <summary>
 		/// Get the currently assigned debug type.
 		/// </summary>
 		/// <returns></returns>

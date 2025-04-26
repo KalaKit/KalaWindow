@@ -335,6 +335,12 @@ HWND yourWindowsWindow = reinterpret_cast<HWND>(yourWindow);
 Window yourX11Window = reinterpret_cast<Window>(yourWindow);
 #endif
 
+//get a path as a string to chosen file or folder in file explorer,
+//pass a valid file/folder type to filter out possible files that will be
+//allowed to be selected, or leave it empty to allow picking any file
+FileType myFileType = FileType::FILE_ANY_VIDEO;
+string chosenFilePath = KalaWindow::FileExplorer(myFileType);
+
 //assign a title to the window
 string windowTitle = "yourWindowTitle";
 void KalaWindow::SetWindowTitle(windowTitle);

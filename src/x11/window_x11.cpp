@@ -329,6 +329,57 @@ namespace KalaKit
 		return reinterpret_cast<kwindow>(Window_X11::newWindow);
 	}
 
+	string KalaWindow::FileExplorer(FileType fileType)
+	{
+		string command = "zenity --file-selection";
+
+		switch (fileType)
+		{
+		case FileType::FILE_ANY:
+		case FileType::FILE_EXE:
+			command += " --file-filter='Any files | *'";
+			break;
+		case FileType::FILE_ANY_VIDEO:
+			command += " --file-filter='Video files | *.mp4 *.mov *.mkv *.webm'";
+			break;
+		case FileType::FILE_ANY_AUDIO:
+			command += " --file-filter='Audio files | *.mp3 *.wav *.flac *.ogg *.m4a *.opus'";
+			break;
+		case FileType::FILE_ANY_MODEL:
+			command += " --file-filter='Model files | *.obj *.fbx *.gltf *.glb'";
+			break;
+		case FileType::FILE_ANY_TEXTURE:
+			command += " --file-filter='Texture files | *.png *.jpg *.jpeg'";
+			break;
+		case FileType::FILE_FOLDER:
+			command = "zenity --file-selection --directory";
+			break;
+		}
+
+		//execute the command and capture the output
+		array<char, 128> buffer{};
+		string result;
+		FILE* pipe = popen(command.c_str(), "r");
+		if (!pipe)
+		{
+			Engine::CreateErrorPopup("Failed to open file dialog!");
+		}
+		while (fgets(buffer.data(), buffer.size(), pipe) != nullptr)
+		{
+			result += buffer.data();
+		}
+		pclose(pipe);
+
+		//remove trailing newline from result
+		if (!result.empty()
+			&& result.back() == '\n')
+		{
+			result.pop_back();
+		}
+
+		return result;
+	}
+
 	DebugType KalaWindow::GetDebugType()
 	{
 		return debugType;

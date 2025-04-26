@@ -228,6 +228,12 @@ typedef void (APIENTRYP PFNGLGENBUFFERSPROC)(
 typedef void (APIENTRYP PFNGLBINDBUFFERPROC)(
     GLenum, 
     GLuint);
+typedef void (APIENTRYP PFNGLDELETEVERTEXARRAYSPROC)(
+    GLsizei n,
+    const GLuint* arrays);
+typedef void (APIENTRYP PFNGLDELETEBUFFERSPROC)(
+    GLsizei n,
+    const GLuint* buffers);
 typedef void (APIENTRYP PFNGLBUFFERDATAPROC)(
     GLenum, 
     GLsizeiptr, 

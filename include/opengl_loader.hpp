@@ -52,6 +52,8 @@ namespace KalaKit
 		static PFNGLBINDVERTEXARRAYPROC        glBindVertexArray;         //Bind a VAO
 		static PFNGLGENBUFFERSPROC             glGenBuffers;              //Create one or more VBO (Vertex buffer object)
 		static PFNGLBINDBUFFERPROC             glBindBuffer;              //Bind a VBO
+		static PFNGLDELETEVERTEXARRAYSPROC     glDeleteVertexArrays;      //Delete a VAO
+		static PFNGLDELETEBUFFERSPROC          glDeleteBuffers;           //Delete a VBO
 		static PFNGLBUFFERDATAPROC             glBufferData;              //Upload data to currently bound VBO
 		static PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;//Enable a vertex attribute slot (position, color etc)
 		static PFNGLVERTEXATTRIBPOINTERPROC    glVertexAttribPointer;     //Defines how to read vertex data from VBO

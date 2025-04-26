@@ -10,6 +10,7 @@
 #include <memory>
 #include <format>
 #include <windows.h>
+#include <ShlObj.h>
 #include <gl/GL.h>
 
 //external
@@ -27,6 +28,7 @@
 using std::to_string;
 using std::make_unique;
 using std::format;
+using std::wstring;
 
 namespace KalaKit
 {
@@ -209,6 +211,238 @@ namespace KalaKit
 	kwindow KalaWindow::GetWindow()
 	{
 		return reinterpret_cast<kwindow>(Window_Windows::newWindow);
+	}
+
+	string KalaWindow::FileExplorer(FileType fileType)
+	{
+		//initialize COM
+		HRESULT hr = CoInitializeEx(NULL, COINIT_MULTITHREADED | COINIT_DISABLE_OLE1DDE);
+		if (FAILED(hr) && hr != S_FALSE)
+		{
+			LOG_ERROR("File Explorer error: Failed to initialize COM! HRESULT: " << to_string(hr));
+			return "";
+		}
+
+		//create an instance of the File Open dialog
+		IFileOpenDialog* pFileOpen = nullptr;
+		hr = CoCreateInstance(
+			CLSID_FileOpenDialog,
+			NULL,
+			CLSCTX_ALL,
+			IID_IFileOpenDialog,
+			reinterpret_cast<void**>(&pFileOpen));
+		if (FAILED(hr))
+		{
+			LOG_ERROR("File Explorer error: Failed to create File Open dialog! HRESULT: " << to_string(hr));
+			CoUninitialize();
+			return "";
+		}
+
+		else if (fileType == FileType::FILE_ANY)
+		{
+			//restrict file selection to any files
+			COMDLG_FILTERSPEC filterSpec[] = {
+				{ L"any files", L"*.*"} };
+			hr = pFileOpen->SetFileTypes(1, filterSpec);
+			if (FAILED(hr))
+			{
+				LOG_ERROR("File Explorer error: Failed to set file filter! HRESULT: " << to_string(hr));
+				pFileOpen->Release();
+				CoUninitialize();
+				return "";
+			}
+		}
+
+		else if (fileType == FileType::FILE_ANY_VIDEO)
+		{
+			//restrict file selection to video files
+			COMDLG_FILTERSPEC filterSpec[] = {
+				{ L"mp4 files", L"*.mp4"},
+				{ L"mov files", L"*.mov"},
+				{ L"mkv files", L"*.mkv"},
+				{ L"webm files", L"*.webm" } };
+			hr = pFileOpen->SetFileTypes(4, filterSpec);
+			if (FAILED(hr))
+			{
+				LOG_ERROR("File Explorer error: Failed to set file filter! HRESULT: " << to_string(hr));
+				pFileOpen->Release();
+				CoUninitialize();
+				return "";
+			}
+		}
+
+		else if (fileType == FileType::FILE_ANY_AUDIO)
+		{
+			//restrict file selection to audio files
+			COMDLG_FILTERSPEC filterSpec[] = {
+				{ L"mp3 files", L"*.mp3"},
+				{ L"wav files", L"*.wav"},
+				{ L"flac files", L"*.flac"},
+				{ L"ogg files", L"*.ogg" },
+				{ L"m4a files", L"*.m4a" },
+				{ L"opus files", L"*.opus" } };
+			hr = pFileOpen->SetFileTypes(6, filterSpec);
+			if (FAILED(hr))
+			{
+				LOG_ERROR("File Explorer error: Failed to set file filter! HRESULT: " << to_string(hr));
+				pFileOpen->Release();
+				CoUninitialize();
+				return "";
+			}
+		}
+
+		else if (fileType == FileType::FILE_ANY_MODEL)
+		{
+			//restrict file selection to model files
+			COMDLG_FILTERSPEC filterSpec[] = {
+				{ L"obj files", L"*.obj"},
+				{ L"fbx files", L"*.fbx"},
+				{ L"gltf files", L"*.gltf"},
+				{ L"glb files", L"*.glb" } };
+			hr = pFileOpen->SetFileTypes(4, filterSpec);
+			if (FAILED(hr))
+			{
+				LOG_ERROR("File Explorer error: Failed to set file filter! HRESULT: " << to_string(hr));
+				pFileOpen->Release();
+				CoUninitialize();
+				return "";
+			}
+		}
+
+		else if (fileType == FileType::FILE_ANY_TEXTURE)
+		{
+			//restrict file selection to textures
+			COMDLG_FILTERSPEC filterSpec[] = {
+				{ L"png textures", L"*.png"},
+				{ L"jpg textures", L"*.jpg"},
+				{ L"jpeg textures", L"*.jpeg"} };
+			hr = pFileOpen->SetFileTypes(3, filterSpec);
+			if (FAILED(hr))
+			{
+				LOG_ERROR("File Explorer error: Failed to set file filter! HRESULT: " << to_string(hr));
+				pFileOpen->Release();
+				CoUninitialize();
+				return "";
+			}
+		}
+
+		else if (fileType == FileType::FILE_EXE)
+		{
+			//restrict file selection to executables
+			COMDLG_FILTERSPEC filterSpec[] = {
+				{ L"Executables", L"*.exe"} };
+			hr = pFileOpen->SetFileTypes(1, filterSpec);
+			if (FAILED(hr))
+			{
+				LOG_ERROR("File Explorer error: Failed to set file filter! HRESULT: " << to_string(hr));
+				pFileOpen->Release();
+				CoUninitialize();
+				return "";
+			}
+		}
+
+		else if (fileType == FileType::FILE_FOLDER)
+		{
+			//restrict the selection to folders
+			DWORD dwOptions;
+			hr = pFileOpen->GetOptions(&dwOptions);
+			if (SUCCEEDED(hr))
+			{
+				hr = pFileOpen->SetOptions(dwOptions | FOS_PICKFOLDERS);
+				if (FAILED(hr))
+				{
+					LOG_ERROR("File Explorer error: Failed to set options! HRESULT: " << to_string(hr));
+					pFileOpen->Release();
+					CoUninitialize();
+					return "";
+				}
+			}
+			else
+			{
+				LOG_ERROR("File Explorer error: Failed to get options!");
+				pFileOpen->Release();
+				CoUninitialize();
+				return "";
+			}
+		}
+
+		//show the File Open dialog
+		hr = pFileOpen->Show(NULL);
+		if (FAILED(hr))
+		{
+			/*
+			ConsoleManager::WriteConsoleMessage(
+				Caller::FILE,
+				Type::EXCEPTION,
+				"File Explorer error: Failed to show dialog!\n");
+			*/
+			pFileOpen->Release();
+			CoUninitialize();
+			return "";
+		}
+
+		//get the result of the user's selection
+		IShellItem* pItem;
+		hr = pFileOpen->GetResult(&pItem);
+		if (FAILED(hr))
+		{
+			LOG_ERROR("File Explorer error: Failed to retrieve result!");
+			pFileOpen->Release();
+			CoUninitialize();
+			return "";
+		}
+
+		//get the path pf the selected file or folder
+		PWSTR filePath;
+		hr = pItem->GetDisplayName(SIGDN_FILESYSPATH, &filePath);
+		if (FAILED(hr))
+		{
+			LOG_ERROR("File Explorer error: Failed to retrieve path!");
+			pItem->Release();
+			pFileOpen->Release();
+			CoUninitialize();
+			return "";
+		}
+
+		//convert the wide string to a string
+		wstring ws(filePath);
+
+		//get the required buffer size
+		int size_needed = WideCharToMultiByte(
+			CP_UTF8,
+			0,
+			ws.c_str(),
+			static_cast<int>(ws.length()),
+			NULL,
+			0,
+			NULL,
+			NULL);
+
+		//convert wide string to utf-8 encoded narrow string
+		string narrowPath(size_needed, 0);
+		WideCharToMultiByte(
+			CP_UTF8,
+			0,
+			ws.c_str(),
+			static_cast<int>(ws.length()),
+			&narrowPath[0],
+			size_needed,
+			NULL,
+			NULL);
+
+		//free memory allocated for filePath
+		CoTaskMemFree(filePath);
+
+		//release the shell item
+		pItem->Release();
+
+		//release the file open dialog
+		pFileOpen->Release();
+
+		//uninitialze COM
+		CoUninitialize();
+
+		return narrowPath;
 	}
 
 	DebugType KalaWindow::GetDebugType()

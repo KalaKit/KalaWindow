@@ -209,6 +209,8 @@ namespace KalaKit
 		OPENGL_BINDVERTEXARRAY,         //Bind a VAO
 		OPENGL_GENBUFFERS,              //Create one or more VBO (Vertex buffer object)
 		OPENGL_BINDBUFFER,              //Bind a VBO
+		OPENGL_DELETEVERTEXARRAY,       //Delete a VAO
+		OPENGL_DELETEBUFFER,            //Delete a VBO
 		OPENGL_BUFFERDATA,              //Upload data to currently bound VBO
 		OPENGL_ENABLEVERTEXATTRIBARRAY, //Enable a vertex attribute slot (position, color etc)
 		OPENGL_VERTEXATTRIBPOINTER,     //Defines how to read vertex data from VBO
@@ -323,4 +325,15 @@ namespace KalaKit
 		POPUP_RESULT_RETRY = 5          // User clicked Retry
 	};
 #endif
+
+	enum class FileType
+	{
+		FILE_ANY,         // Can select any file type
+		FILE_ANY_VIDEO,   // Can select any common video file type
+		FILE_ANY_AUDIO,   // Can select any common audio file type
+		FILE_ANY_MODEL,   // Can select any common model file type (for graphics software and game development)
+		FILE_ANY_TEXTURE, // Can select any common texture file type (for graphics software and game development)
+		FILE_EXE,         // Can select any executable
+		FILE_FOLDER       // Can select any folder
+	};
 }
