@@ -75,9 +75,12 @@ namespace KalaKit
 
 	inline PFNGLGENTEXTURESPROC            OpenGLLoader::glGenTextures = nullptr;
 	inline PFNGLBINDTEXTUREPROC            OpenGLLoader::glBindTexture = nullptr;
+	inline PFNGLACTIVETEXTUREPROC          OpenGLLoader::glActiveTexture = nullptr;
 	inline PFNGLTEXIMAGE2DPROC             OpenGLLoader::glTexImage2D = nullptr;
+	inline PFNGLTEXSUBIMAGE2DPROC          OpenGLLoader::glTexSubImage2D = nullptr;
 	inline PFNGLTEXPARAMETERIPROC          OpenGLLoader::glTexParameteri = nullptr;
 	inline PFNGLGENERATEMIPMAPPROC         OpenGLLoader::glGenerateMipmap = nullptr;
+	inline PFNGLDELETETEXTURESPROC         OpenGLLoader::glDeleteTextures = nullptr;
 
 	//framebuffers and renderbuffers
 
@@ -209,11 +212,14 @@ namespace KalaKit
 
 		//textures
 
-		{ OpenGLFunction::OPENGL_GENTEXTURES, "glGenTextures", reinterpret_cast<void**>(&glGenTextures) },
-		{ OpenGLFunction::OPENGL_BINDTEXTURE, "glBindTexture", reinterpret_cast<void**>(&glBindTexture) },
-		{ OpenGLFunction::OPENGL_TEXIMAGE2D, "glTexImage2D", reinterpret_cast<void**>(&glTexImage2D) },
-		{ OpenGLFunction::OPENGL_TEXPARAMETERI, "glTexParameteri", reinterpret_cast<void**>(&glTexParameteri) },
-		{ OpenGLFunction::OPENGL_GENERATEMIPMAP, "glGenerateMipmap", reinterpret_cast<void**>(&glGenerateMipmap) },
+		{ OpenGLFunction::OPENGL_GENTEXTURES,     "glGenTextures",     reinterpret_cast<void**>(&glGenTextures) },
+		{ OpenGLFunction::OPENGL_BINDTEXTURE,     "glBindTexture",     reinterpret_cast<void**>(&glBindTexture) },
+		{ OpenGLFunction::OPENGL_ACTIVETEXTURE,   "glActiveTexture",   reinterpret_cast<void**>(&glActiveTexture) },
+		{ OpenGLFunction::OPENGL_TEXIMAGE2D,      "glTexImage2D",      reinterpret_cast<void**>(&glTexImage2D) },
+		{ OpenGLFunction::OPENGL_TEXSUBIMAGE2D,   "glTexSubImage2D",   reinterpret_cast<void**>(&glTexSubImage2D) },
+		{ OpenGLFunction::OPENGL_TEXPARAMETERI,   "glTexParameteri",   reinterpret_cast<void**>(&glTexParameteri) },
+		{ OpenGLFunction::OPENGL_GENERATEMIPMAP,  "glGenerateMipmap",  reinterpret_cast<void**>(&glGenerateMipmap) },
+		{ OpenGLFunction::OPENGL_DELETETEXTURES,  "glDeleteTextures",  reinterpret_cast<void**>(&glDeleteTextures) },
 
 		//framebuffers and renderbuffers
 

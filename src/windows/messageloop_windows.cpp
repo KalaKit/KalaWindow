@@ -410,7 +410,17 @@ namespace KalaKit
 
 			return true;
 		}
+		case WM_SIZING:
+		{
+			if (KalaWindow::OnRedraw 
+				&& OpenGL::isInitialized)
+			{
+				KalaWindow::OnRedraw();
+			}
+			return true;
+		}
 
+		/*
 		//
 		// HANDLE RENDERING WHILE RESIZING
 		//
@@ -431,6 +441,7 @@ namespace KalaKit
 				KalaWindow::OnRedraw();
 			}
 			return true;
+		*/
 
 		//
 		// CAP MIN AND MAX WINDOW SIZE

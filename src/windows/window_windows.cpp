@@ -191,10 +191,13 @@ namespace KalaKit
 	void KalaWindow::SwapOpenGLBuffers()
     {
 		HDC hdc = GetDC(Window_Windows::newWindow);
+		SwapBuffers(hdc);
+		/*
 		if (!SwapBuffers(hdc))
 		{
 			LOG_ERROR("SwapOpenGLBuffers failed on Windows!");
 		}
+		*/
     }
 
 	void KalaWindow::SetWindowFocusRequiredState(bool newWindowFocusRequiredState)

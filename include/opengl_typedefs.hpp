@@ -125,6 +125,14 @@
 
 #define GL_FALSE 0
 
+//texture usage
+
+#define GL_TEXTURE0           0x84C0
+#define GL_CLAMP_TO_EDGE      0x812F
+#define GL_TEXTURE_2D         0x0DE1
+#define GL_TEXTURE_BASE_LEVEL 0x813C
+#define GL_TEXTURE_MAX_LEVEL  0x813D
+
 //buffer targets
 
 #define GL_ARRAY_BUFFER 0x8892
@@ -173,7 +181,6 @@
 #ifndef GL_FRAMEBUFFER_COMPLETE
     #define GL_FRAMEBUFFER_COMPLETE 0x8CD5
 #endif
-
 
 #ifndef GL_TYPES_DEFINED
     #define GL_TYPES_DEFINED
@@ -381,27 +388,42 @@ typedef void (APIENTRYP PFNGLUNIFORMMATRIX4FVPROC)(
 //textures
 
 typedef void (APIENTRYP PFNGLGENTEXTURESPROC)(
-    GLsizei n, 
+    GLsizei n,
     GLuint* textures);
 typedef void (APIENTRYP PFNGLBINDTEXTUREPROC)(
     GLenum target,
     GLuint texture);
+typedef void (APIENTRYP PFNGLACTIVETEXTUREPROC)(
+    GLenum texture);
 typedef void (APIENTRYP PFNGLTEXIMAGE2DPROC)(
-    GLenum target, 
-    GLint level, 
+    GLenum target,
+    GLint level,
     GLint internalFormat,
-    GLsizei width, 
-    GLsizei height, 
+    GLsizei width,
+    GLsizei height,
     GLint border,
-    GLenum format, 
-    GLenum type, 
+    GLenum format,
+    GLenum type,
     const void* data);
+typedef void (APIENTRYP PFNGLTEXSUBIMAGE2DPROC)(
+    GLenum target,
+    GLint level,
+    GLint xoffset,
+    GLint yoffset,
+    GLsizei width,
+    GLsizei height,
+    GLenum format,
+    GLenum type,
+    const void* pixels);
 typedef void (APIENTRYP PFNGLTEXPARAMETERIPROC)(
-    GLenum target, 
-    GLenum pname, 
+    GLenum target,
+    GLenum pname,
     GLint param);
 typedef void (APIENTRYP PFNGLGENERATEMIPMAPPROC)(
     GLenum target);
+typedef void (APIENTRYP PFNGLDELETETEXTURESPROC)(
+    GLsizei n,
+    const GLuint* textures);
 
 //framebuffers and renderbuffers
 
