@@ -56,9 +56,9 @@ echo =====================================
 echo.
 
 set "ORIGIN_RELEASE_DLL=%BUILD_RELEASE%\bin\KalaWindow.dll"
-set "ORIGIN_RELEASE_LIB=%BUILD_RELEASE%\KalaWindow.lib"
+set "ORIGIN_RELEASE_LIB=%BUILD_RELEASE%\lib\KalaWindow.lib"
 set "ORIGIN_DEBUG_DLL=%BUILD_DEBUG%\bin\KalaWindowD.dll"
-set "ORIGIN_DEBUG_LIB=%BUILD_DEBUG%\KalaWindowD.lib"
+set "ORIGIN_DEBUG_LIB=%BUILD_DEBUG%\lib\KalaWindowD.lib"
 set "ORIGIN_FOLDER=%PROJECT_ROOT%\build-release\include"
 
 if not exist "%ORIGIN_RELEASE_DLL%" (

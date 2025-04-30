@@ -207,8 +207,17 @@ add_custom_command(TARGET KalaWindow POST_BUILD
         $<TARGET_FILE:KalaWindow>
 )
 
-if (NOT KALAKIT_WINDOWS)
-	# Copy static library to lib (.lib or .a)
+# Copy library file to lib folder (.lib or .so)
+if (WIN32)
+	add_custom_command(TARGET KalaWindow POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib"
+
+		# Copy the shared library to the lib directory
+		COMMAND ${CMAKE_COMMAND} -E copy
+			$<TARGET_LINKER_FILE:KalaWindow>
+			"${CMAKE_BINARY_DIR}/lib"
+	)
+else()
 	add_custom_command(TARGET KalaWindowStatic POST_BUILD
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_BINARY_DIR}/lib"
 
@@ -216,10 +225,6 @@ if (NOT KALAKIT_WINDOWS)
 		COMMAND ${CMAKE_COMMAND} -E copy
 			$<TARGET_LINKER_FILE:KalaWindowStatic>
 			"${CMAKE_BINARY_DIR}/lib"
-
-		# Remove the original
-		COMMAND ${CMAKE_COMMAND} -E remove
-			$<TARGET_LINKER_FILE:KalaWindowStatic>
 	)
 endif()
 
