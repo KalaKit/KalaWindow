@@ -7,9 +7,9 @@ set "BUILD_DIR=%PROJECT_ROOT%build-release"
 
 set "PRESET=windows-release"
 
-if exist "%BUILD_DIR%" (
-	echo [INFO] Removing existing build directory
-	rmdir /s /q "%BUILD_DIR%"
+if "%1" == "clean" if exist "%BUILD_DIR%" (
+    echo [INFO] Cleaning build directory...
+    rmdir /s /q "%BUILD_DIR%"
 )
 
 :: Ensure Visual Studio environment is set up correctly

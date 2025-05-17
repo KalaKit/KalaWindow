@@ -9,8 +9,10 @@ TIME_START=$(date +%T)
 
 cd "$PROJECT_ROOT"
 
-# Always start with a clean build directory
-rm -rf "$BUILD_DIR"
+if [[ "$1" == "clean" ]]; then
+    echo "[INFO] Cleaning build directory..."
+    rm -rf "$BUILD_DIR"
+fi
 mkdir -p "$BUILD_DIR"
 
 cmake --preset=linux-release
