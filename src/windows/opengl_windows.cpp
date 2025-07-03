@@ -26,7 +26,7 @@ namespace KalaWindow::Graphics
 		HWND windowRef = reinterpret_cast<HWND>(window.hwnd);
 
 		HDC hdc = GetDC(windowRef);
-		window.hdc = reinterpret_cast<void*>(hdc);
+		window.openglData.hdc = reinterpret_cast<void*>(hdc);
 		LOG_DEBUG("Window HDC: " << hdc);
 
 		//
@@ -166,8 +166,8 @@ namespace KalaWindow::Graphics
 			0
 		};
 
-		window.hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
-		if (!window.hglrc)
+		window.openglData.hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
+		if (!window.openglData.hglrc)
 		{
 			LOG_ERROR("Failed to create OpenGL 3.3 context!");
 
@@ -194,7 +194,7 @@ namespace KalaWindow::Graphics
 		wglMakeCurrent(nullptr, nullptr);
 		wglDeleteContext(dummyRC);
 
-		wglMakeCurrent(hdc, reinterpret_cast<HGLRC>(window.hglrc));
+		wglMakeCurrent(hdc, reinterpret_cast<HGLRC>(window.openglData.hglrc));
 
 		if (!IsCorrectVersion())
 		{
@@ -229,7 +229,7 @@ namespace KalaWindow::Graphics
 	void Renderer_OpenGL::SwapOpenGLBuffers(Window* targetWindow)
 	{
 		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-		HDC hdc = reinterpret_cast<HDC>(window.hdc);
+		HDC hdc = reinterpret_cast<HDC>(window.openglData.hdc);
 		SwapBuffers(hdc);
 	}
 

@@ -19,22 +19,62 @@ namespace KalaWindow::Graphics
 	using std::unique_ptr;
 	using std::vector;
 
+	struct Window_OpenGLData
+	{
+		void* hglrc;      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
+		void* hdc;        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
+		void* glxContext; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
+	};
+	struct Window_VulkanData
+	{
+		//Core surface & swapchain handles
+
+		void* surface;   //VkSurfaceKHR
+		void* swapchain; //VkSwapchainKHR
+
+		//Swapchain image metadata
+
+		void* swapchainImageFormat; //VkFormat
+		void* swapchainExtent;      //VkExtent2D
+
+		//Swapchain image views and framebuffers
+
+		vector<void*>  images;       //VkImage
+		vector<void*>  imageViews;   //VkImageView
+		vector<void*>  framebuffers; //VkFramebuffer
+
+		//Synchronization primitives, one set per swapchain image
+
+		vector<void*>  imageAvailableSemaphores; //VkSemaphore
+		vector<void*>  renderFinishedSemaphores; //VkSemaphore
+		vector<void*>  inFlightFences;           //VkFence
+
+		//Command buffers & pool used for recording into those framebuffers
+
+		vector<void*>  commandBuffers; //VkCommandBuffer
+		void* commandPool;             //VkCommandPool
+
+		//The render pass used when drawing into these framebuffers
+
+		void* renderPass; //VkRenderPass
+	};
+
 	struct WindowStruct_Windows
 	{
 		void* hwnd;
 		void* hInstance;
-		void* wndProc;   //WINDOW PROC, NOT USED IN VULKAN
-		void* hglrc;     //OPENGL CONTEXT VIA WGL, NOT USED IN VULKAN
-		void* hdc;       //OPENGL HANDLE TO DEVICE CONTEXT, NOT USED IN VULKAN
-		void* surface;   //VULKAN SURFACE, NOT USED IN OPENGL
+		void* wndProc;   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
+		Window_OpenGLData openglData;
+		Window_VulkanData vulkanData;
+
 	};
 	struct WindowStruct_X11
 	{
 		void* display;
 		void* window;
 		void* visual;
-		void* glxContext; //OPENGL CONTEXT VIA GLX, NOT USED IN VULKAN
-		void* surface;    //VULKAN SURFACE, NOT USED IN OPENGL
+		Window_OpenGLData openglData;
+		Window_VulkanData vulkanData;
 	};
 
 	class KALAWINDOW_API Window

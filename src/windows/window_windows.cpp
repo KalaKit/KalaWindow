@@ -132,11 +132,15 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
+		Window_OpenGLData oData{};
+		Window_VulkanData vData{};
 		WindowStruct_Windows newWindowStruct =
 		{
 			.hwnd = newHwnd,
 			.hInstance = newHInstance,
-			.wndProc = reinterpret_cast<void*>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
+			.wndProc = reinterpret_cast<void*>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC)),
+			.openglData = oData,
+			.vulkanData = vData
 		};
 		newWindow->SetWindow_Windows(newWindowStruct);
 
@@ -297,29 +301,29 @@ namespace KalaWindow::Graphics
 		GlyphSystem::ClearGlyphs(window);
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
-		if (win.hglrc)
+		if (win.openglData.hglrc)
 		{
 			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(reinterpret_cast<HGLRC>(win.hglrc));
-			win.hglrc = nullptr;
+			wglDeleteContext(reinterpret_cast<HGLRC>(win.openglData.hglrc));
+			win.openglData.hglrc = nullptr;
 		}
 		if (win.wndProc) win.wndProc = nullptr;
-		if (win.hdc)
+		if (win.openglData.hdc)
 		{
 			ReleaseDC(
 				reinterpret_cast<HWND>(win.hwnd),
-				reinterpret_cast<HDC>(win.hdc));
-			win.hdc = nullptr;
+				reinterpret_cast<HDC>(win.openglData.hdc));
+			win.openglData.hdc = nullptr;
 		}
 		if (win.wndProc) win.wndProc = nullptr;
 #elif KALAWINDOW_SUPPORT_VULKAN
-		if (win.surface)
+		if (win.vulkanData.surface)
 		{
 			vkDestroySurfaceKHR(
 				static_cast<VkInstance>(Renderer_Vulkan::instancePtr),
-				static_cast<VkSurfaceKHR>(win.surface),
+				static_cast<VkSurfaceKHR>(win.vulkanData.surface),
 				nullptr);
-			win.surface = nullptr;
+			win.vulkanData.surface = nullptr;
 		}
 #endif //KALAWINDOW_SUPPORT_VULKAN
 		if (win.hwnd)

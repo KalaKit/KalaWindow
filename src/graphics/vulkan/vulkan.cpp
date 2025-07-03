@@ -58,22 +58,6 @@ static VkDevice device = VK_NULL_HANDLE;
 static VkQueue graphicsQueue = VK_NULL_HANDLE;
 static uint32_t graphicsQueueFamilyIndex = 0;
 
-static VkSwapchainKHR swapchain = VK_NULL_HANDLE;
-static VkFormat swapchainImageFormat = VK_FORMAT_UNDEFINED;
-static VkExtent2D swapchainExtent = {};
-static vector<VkImage> swapchainImages{};
-static vector<VkImageView> swapchainImageViews{};
-
-static VkSemaphore imageAvailableSemaphore = VK_NULL_HANDLE;
-static VkSemaphore renderFinishedSemaphore = VK_NULL_HANDLE;
-static VkFence inFlightFence = VK_NULL_HANDLE;
-
-static vector<VkCommandBuffer> commandBuffers = {};
-static VkCommandPool commandPool = VK_NULL_HANDLE;
-
-static VkRenderPass renderPass = VK_NULL_HANDLE;
-static vector<VkFramebuffer> frameBuffers = {};
-
 static vector<VulkanExtensions> delayedExt{};
 
 static const unordered_map<VulkanLayers, const char*> layerInfo =
@@ -465,13 +449,13 @@ namespace KalaWindow::Graphics
 				"Failed to create Win32 Vulkan surface!");
 		}
 
-		window.surface = static_cast<void*>(surface);
+		vData.surface = static_cast<void*>(surface);
 #elif __linux__
 		//TODO: ADD LINUX SUPPORT
 #endif
 	}
 
-	bool Renderer_Vulkan::CreateCommandPool()
+	bool Renderer_Vulkan::CreateCommandPool(Window* window)
 	{
 		if (device == VK_NULL_HANDLE)
 		{
@@ -488,7 +472,7 @@ namespace KalaWindow::Graphics
 			device,
 			&poolInfo,
 			nullptr,
-			&commandPool) != VK_SUCCESS)
+			&vData.commandPool) != VK_SUCCESS)
 		{
 			LOG_ERROR("Failed to create Vulkan command pool!");
 			return false;
@@ -497,15 +481,15 @@ namespace KalaWindow::Graphics
 		return true;
 	}
 
-	bool Renderer_Vulkan::CreateCommandBuffer()
+	bool Renderer_Vulkan::CreateCommandBuffer(Window* window)
 	{
-		commandBuffers.resize(swapchainImages.size());
+		vData.commandBuffers.resize(vData.images.size());
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = commandPool;
+		allocInfo.commandPool = vData.commandPool;
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+		allocInfo.commandBufferCount = static_cast<uint32_t>(vData.commandBuffers.size());
 
 		if (vkAllocateCommandBuffers(
 			device,
@@ -523,17 +507,25 @@ namespace KalaWindow::Graphics
 	// RUNTIME LOOP PHASE
 	//
 
-	FrameResult Renderer_Vulkan::BeginFrame(uint32_t& imageIndex)
+	FrameResult Renderer_Vulkan::BeginFrame(
+		Window* window,
+		uint32_t& imageIndex)
 	{
+		uint32_t nextImage = 0;
 		VkResult result = vkAcquireNextImageKHR(
 			device,
-			swapchain,
+			vData.swapchain,
 			UINT64_MAX,
-			imageAvailableSemaphore,
+			vData.imageAvailableSemaphores[nextImage],
 			VK_NULL_HANDLE,
-			&imageIndex);
+			&nextImage);
 
-		if (result == VK_SUCCESS) return FrameResult::VK_FRAME_OK;
+		if (result == VK_SUCCESS)
+		{
+			imageIndex = nextImage;
+
+			return FrameResult::VK_FRAME_OK;
+		}
 
 		if (result == VK_SUBOPTIMAL_KHR
 			|| result == VK_ERROR_OUT_OF_DATE_KHR)
@@ -545,9 +537,22 @@ namespace KalaWindow::Graphics
 		return FrameResult::VK_FRAME_ERROR;
 	}
 
-	bool Renderer_Vulkan::RecordCommandBuffer(uint32_t imageIndex)
+	bool Renderer_Vulkan::RecordCommandBuffer(
+		Window* window,
+		uint32_t imageIndex)
 	{
-		VkCommandBuffer cmd = commandBuffers[imageIndex];
+		vkWaitForFences(
+			device,
+			1,
+			&vData.inFlightFences[imageIndex],
+			VK_TRUE,
+			UINT64_MAX);
+		vkResetFences(
+			device,
+			1,
+			&vData.inFlightFences[imageIndex]);
+
+		VkCommandBuffer cmd = vData.commandBuffers[imageIndex];
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -563,10 +568,10 @@ namespace KalaWindow::Graphics
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = renderPass;
-		renderPassInfo.framebuffer = frameBuffers[imageIndex];
+		renderPassInfo.renderPass = vData.renderPass;
+		renderPassInfo.framebuffer = vData.frameBuffers[imageIndex];
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = swapchainExtent;
+		renderPassInfo.renderArea.extent = vData.swapchainExtent;
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
 
@@ -588,32 +593,23 @@ namespace KalaWindow::Graphics
 		return true;
 	}
 
-	bool Renderer_Vulkan::SubmitFrame(uint32_t imageIndex)
+	bool Renderer_Vulkan::SubmitFrame(
+		Window* window,
+		uint32_t imageIndex)
 	{
-		vkWaitForFences(
-			device,
-			1,
-			&inFlightFence,
-			VK_TRUE,
-			UINT64_MAX);
-		vkResetFences(
-			device,
-			1,
-			&inFlightFence);
-
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		VkSemaphore waitSemaphores[] = { imageAvailableSemaphore };
+		VkSemaphore waitSemaphores[] = { vData.imageAvailableSemaphores[imageIndex] };
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffers[imageIndex];
+		submitInfo.pCommandBuffers = &vData.commandBuffers[imageIndex];
 
-		VkSemaphore signalSemaphores[] = { renderFinishedSemaphore };
+		VkSemaphore signalSemaphores[] = { vData.renderFinishedSemaphores[imageIndex] };
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
@@ -621,7 +617,7 @@ namespace KalaWindow::Graphics
 			graphicsQueue,
 			1,
 			&submitInfo,
-			inFlightFence) != VK_SUCCESS)
+			vData.inFlightFences[imageIndex]) != VK_SUCCESS)
 		{
 			LOG_ERROR("Failed to submit frame!");
 			return false;
@@ -630,14 +626,16 @@ namespace KalaWindow::Graphics
 		return true;
 	}
 
-	FrameResult Renderer_Vulkan::PresentFrame(uint32_t imageIndex)
+	FrameResult Renderer_Vulkan::PresentFrame(
+		Window* window,
+		uint32_t imageIndex)
 	{
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &renderFinishedSemaphore;
+		presentInfo.pWaitSemaphores = &vData.renderFinishedSemaphores[imageIndex];
 		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = &swapchain;
+		presentInfo.pSwapchains = &vData.swapchain;
 		presentInfo.pImageIndices = &imageIndex;
 
 		VkResult result = vkQueuePresentKHR(graphicsQueue, &presentInfo);
@@ -654,14 +652,75 @@ namespace KalaWindow::Graphics
 		return FrameResult::VK_FRAME_ERROR;
 	}
 
+	void Renderer_Vulkan::HardReset(Window* window)
+	{
+		if (!device)
+		{
+			LOG_ERROR("Cannot drain pending signals because no device has been assigned!");
+			return;
+		}
+
+		Window* window = Window::windows.front().get();
+
+		vkDeviceWaitIdle(device);
+
+		DestroySwapchain();
+		CreateSwapchain(window);
+		CreateRenderPass();
+		CreateFramebuffers();
+		CreateCommandBuffer(window);
+	}
+
+	void Renderer_Vulkan::SoftReset(
+		Window* window,
+		uint32_t imageIndex)
+	{
+		if (!graphicsQueue)
+		{
+			LOG_ERROR("Cannot soft-reset because graphicsQueue has not been assigned!");
+			return;
+		}
+		if (!vData.swapchain)
+		{
+			LOG_ERROR("Cannot soft-reset because swapchain has not been assigned!");
+			return;
+		}
+		if (imageIndex >= vData.renderFinishedSemaphores.size())
+		{
+			LOG_ERROR("Cannot soft-reset! Image index " << imageIndex << " is out of range!");
+			return;
+		}
+
+		vkQueueSubmit(
+			graphicsQueue,
+			0,
+			nullptr,
+			VK_NULL_HANDLE);
+
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = &vData.renderFinishedSemaphores[imageIndex];
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = &vData.swapchain;
+		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pResults = nullptr;
+
+		VkResult presentResult = vkQueuePresentKHR(graphicsQueue, &presentInfo);
+		if (presentResult != VK_SUCCESS)
+		{
+			LOG_ERROR("Soft-reset failed! Reason: " << presentResult);
+		}
+	}
+
 	//
 	// REMAKE PHASE
 	//
 
-	bool Renderer_Vulkan::CreateRenderPass()
+	bool Renderer_Vulkan::CreateRenderPass(Window* window)
 	{
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = swapchainImageFormat;
+		colorAttachment.format = vData.swapchainImageFormat;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -700,7 +759,7 @@ namespace KalaWindow::Graphics
 			device,
 			&renderPassInfo,
 			nullptr,
-			&renderPass) != VK_SUCCESS)
+			&vData.renderPass) != VK_SUCCESS)
 		{
 			LOG_ERROR("Failed to create Vulkan render pass!");
 			return false;
@@ -709,28 +768,31 @@ namespace KalaWindow::Graphics
 		return true;
 	}
 
-	bool Renderer_Vulkan::CreateFramebuffers()
+	bool Renderer_Vulkan::CreateFramebuffers(Window* window)
 	{
-		frameBuffers.resize(swapchainImageViews.size());
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData vData = winData.vulkanData;
 
-		for (size_t i = 0; i < swapchainImageViews.size(); ++i)
+		vData.frameBuffers.resize(vData.imageViews.size());
+
+		for (size_t i = 0; i < reinterpret_cast<VkImageView>(vData.imageViews).size(); ++i)
 		{
-			VkImageView attachments[] = { swapchainImageViews[i] };
+			VkImageView attachments[] = { imageViews[i] };
 
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = renderPass;
+			framebufferInfo.renderPass = vData.renderPass;
 			framebufferInfo.attachmentCount = 1;
 			framebufferInfo.pAttachments = attachments;
-			framebufferInfo.width = swapchainExtent.width;
-			framebufferInfo.height = swapchainExtent.height;
+			framebufferInfo.width = vData.swapchainExtent.width;
+			framebufferInfo.height = reinterpret_cast<VkExtent2D>(swapchainExtent).height;
 			framebufferInfo.layers = 1;
 
 			if (vkCreateFramebuffer(
 				device,
 				&framebufferInfo,
 				nullptr,
-				&frameBuffers[i]) != VK_SUCCESS)
+				&vData.frameBuffers[i]) != VK_SUCCESS)
 			{
 				LOG_ERROR("Failed to create framebuffer for image " << i);
 				return false;
@@ -754,6 +816,9 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData vData = winData.vulkanData;
+
 		//surface capabilities
 
 #ifdef _WIN32
@@ -761,7 +826,7 @@ namespace KalaWindow::Graphics
 #elif __linux__
 		WindowStruct_X11 win = window->GetWindow_X11();
 #endif
-		VkSurfaceKHR surfacePtr = reinterpret_cast<VkSurfaceKHR>(win.surface);
+		VkSurfaceKHR surfacePtr = reinterpret_cast<VkSurfaceKHR>(vData.surface);
 
 		VkSurfaceCapabilitiesKHR capabilities{};
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
@@ -770,7 +835,7 @@ namespace KalaWindow::Graphics
 			&capabilities);
 
 		VkExtent2D extent = capabilities.currentExtent;
-		swapchainExtent = extent;
+		vData.swapchainExtent = extent;
 
 		//pick format
 
@@ -779,7 +844,7 @@ namespace KalaWindow::Graphics
 			VK_FORMAT_B8G8R8A8_UNORM,
 			VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
 		};
-		swapchainImageFormat = format.format;
+		vData.swapchainImageFormat = format.format;
 
 		//present mode
 
@@ -807,7 +872,7 @@ namespace KalaWindow::Graphics
 			device,
 			&createInfo,
 			nullptr,
-			&swapchain) != VK_SUCCESS)
+			&reinterpret_cast<VkSwapchainKHR>(vData.swapchain)) != VK_SUCCESS)
 		{
 			LOG_ERROR("Failed to create Vulkan swapchain!");
 			return false;
@@ -818,26 +883,26 @@ namespace KalaWindow::Graphics
 		uint32_t count = 0;
 		vkGetSwapchainImagesKHR(
 			device,
-			swapchain,
+			reinterpret_cast<VkSwapchainKHR>(vData.swapchain),
 			&count,
 			nullptr);
-		swapchainImages.resize(count);
+		vData.images.resize(count);
 		vkGetSwapchainImagesKHR(
 			device,
-			swapchain,
+			reinterpret_cast<VkSwapchainKHR>(vData.swapchain),
 			&count,
-			swapchainImages.data());
+			reinterpret_cast<VkImage>(vData.images).data());
 
 		//create image views
 
-		swapchainImageViews.resize(count);
+		vData.imageViews.resize(count);
 		for (uint32_t i = 0; i < count; ++i)
 		{
 			VkImageViewCreateInfo viewInfo{};
 			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = swapchainImages[i];
+			viewInfo.image = reinterpret_cast<VkImage>(vData.images[i]);
 			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			viewInfo.format = swapchainImageFormat;
+			viewInfo.format = reinterpret_cast<VkFormat>(vData.swapchainImageFormat);
 			viewInfo.components =
 			{
 				VK_COMPONENT_SWIZZLE_IDENTITY,
@@ -855,7 +920,7 @@ namespace KalaWindow::Graphics
 				device,
 				&viewInfo,
 				nullptr,
-				&swapchainImageViews[i]) != VK_SUCCESS)
+				&vData.imageViews[i]) != VK_SUCCESS)
 			{
 				LOG_ERROR("Failed to create image view for swapchain image " << i);
 				return false;
@@ -864,97 +929,98 @@ namespace KalaWindow::Graphics
 
 		//create semaphores and fence
 
-		VkSemaphoreCreateInfo semInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
-		vkCreateSemaphore(
-			device,
-			&semInfo,
-			nullptr,
-			&imageAvailableSemaphore);
-		vkCreateSemaphore(
-			device,
-			&semInfo,
-			nullptr,
-			&renderFinishedSemaphore);
+		vData.imageAvailableSemaphores.resize(count);
+		vData.renderFinishedSemaphores.resize(count);
+		vData.inFlightFences.resize(count);
 
+		VkSemaphoreCreateInfo semInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 		VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-		vkCreateFence(
-			device,
-			&fenceInfo,
-			nullptr,
-			&inFlightFence);
+
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			vkCreateSemaphore(
+				device,
+				&semInfo,
+				nullptr,
+				&reinterpret_cast<VkFence>(vData.imageAvailableSemaphores[i]));
+			vkCreateSemaphore(
+				device,
+				&semInfo,
+				nullptr,
+				&reinterpret_cast<VkFence>(vData.renderFinishedSemaphores[i]));
+			vkCreateFence(
+				device,
+				&fenceInfo,
+				nullptr,
+				&reinterpret_cast<VkFence>(vData.inFlightFences[i]));
+		}
 
 		LOG_SUCCESS("Successfully created Vulkan swapchain and released resources!");
 		return true;
 	}
 
-	void Renderer_Vulkan::DestroySwapchain()
+	void Renderer_Vulkan::DestroySwapchain(Window* window)
 	{
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData vData = winData.vulkanData;
+
 		//destroy framebuffers
 
-		for (auto fb : frameBuffers)
+		for (auto fb : vData.framebuffers)
 		{
-			if (fb) vkDestroyFramebuffer(device, fb, nullptr);
+			if (fb) vkDestroyFramebuffer(device, reinterpret_cast<VkFramebuffer>(fb), nullptr);
 		}
-		frameBuffers.clear();
+		vData.framebuffers.clear();
 
 		//destroy image views
 
-		for (auto view : swapchainImageViews)
+		for (auto view : vData.framebuffers)
 		{
-			if (view) vkDestroyImageView(device, view, nullptr);
+			if (view) vkDestroyImageView(device, reinterpret_cast<VkImageView>(view), nullptr);
 		}
-		swapchainImageViews.clear();
-		swapchainImages.clear();
+		vData.imageViews.clear();
+		vData.images.clear();
 
 		//destroy render pass
 
-		if (renderPass)
+		if (vData.renderPass)
 		{
-			vkDestroyRenderPass(device, renderPass, nullptr);
-			renderPass = VK_NULL_HANDLE;
+			vkDestroyRenderPass(device,  reinterpret_cast<VkRenderPass>(vData.renderPass), nullptr);
+			vData.renderPass = nullptr;
 		}
 
 		//destroy semaphores and fence
 
-		if (imageAvailableSemaphore)
+		for (auto s : vData.imageAvailableSemaphores)
 		{
-			vkDestroySemaphore(
-				device,
-				imageAvailableSemaphore,
-				nullptr);
+			vkDestroySemaphore(device, reinterpret_cast<VkSemaphore>(s), nullptr);
 		}
-		if (renderFinishedSemaphore)
+		for (auto s : vData.renderFinishedSemaphores)
 		{
-			vkDestroySemaphore(
-				device,
-				renderFinishedSemaphore,
-				nullptr);
+			vkDestroySemaphore(device, reinterpret_cast<VkSemaphore>(s), nullptr);
 		}
-		if (inFlightFence)
+		for (auto f : vData.inFlightFences)
 		{
-			vkDestroyFence(
-				device,
-				inFlightFence,
-				nullptr);
+			vkDestroyFence(device, reinterpret_cast<VkFence>(f), nullptr);
 		}
 
 		//destroy swapchain itself
 
-		if (swapchain)
+		if (vData.swapchain)
 		{
 			vkDestroySwapchainKHR(
 				device,
-				swapchain,
+				reinterpret_cast<VkSwapchainKHR>(vData.swapchain),
 				nullptr);
 		}
 
 		//reset handles
 
-		swapchain = VK_NULL_HANDLE;
-		imageAvailableSemaphore = VK_NULL_HANDLE;
-		renderFinishedSemaphore = VK_NULL_HANDLE;
-		inFlightFence = VK_NULL_HANDLE;
+		vData.swapchain = VK_NULL_HANDLE;
+		vData.imageAvailableSemaphores.clear();
+		vData.renderFinishedSemaphores.clear();
+		vData.inFlightFences.clear();
 	}
 
 	void Renderer_Vulkan::Shutdown()
@@ -963,13 +1029,23 @@ namespace KalaWindow::Graphics
 		{
 			vkDeviceWaitIdle(device);
 
-			//destroy runtime resources first
-			DestroySwapchain();
-
-			if (commandPool)
+			for (const auto& window : Window::windows)
 			{
-				vkDestroyCommandPool(device, commandPool, nullptr);
-				commandPool = VK_NULL_HANDLE;
+				Window* win = window.get();
+				WindowStruct_Windows& winData = win->GetWindow_Windows();
+				Window_VulkanData vData = winData.vulkanData;
+
+				//destroy runtime resources first
+				DestroySwapchain(win);
+
+				if (vData.commandPool)
+				{
+					vkDestroyCommandPool(
+						device,
+						reinterpret_cast<VkCommandPool>(vData.commandPool),
+						nullptr);
+					vData.commandPool = VK_NULL_HANDLE;
+				}
 			}
 
 			vkDestroyDevice(device, nullptr);
@@ -984,10 +1060,21 @@ namespace KalaWindow::Graphics
 
 		enabledLayers.clear();
 		enabledExtensions.clear();
-		commandBuffers.clear();
-		frameBuffers.clear();
-		swapchainImages.clear();
-		swapchainImageViews.clear();
+
+		for (const auto& window : Window::windows)
+		{
+			Window* win = window.get();
+			WindowStruct_Windows& winData = win->GetWindow_Windows();
+			Window_VulkanData& vData = winData.vulkanData;
+
+			vData.commandBuffers.clear();
+			vData.framebuffers.clear();
+			vData.images.clear();
+			vData.imageViews.clear();
+			vData.imageAvailableSemaphores.clear();
+			vData.renderFinishedSemaphores.clear();
+			vData.inFlightFences.clear();
+		}
 	}
 }
 
