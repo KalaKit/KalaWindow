@@ -2,11 +2,11 @@
 
 cd /d "%~dp0"
 
-set "INCLUDE_TARGET=..\_KalaTestProject\_external_shared\KalaWindow\include"
-set "DEBUG_OPENGL_TARGET=..\_KalaTestProject\_external_shared\KalaWindow\debug_opengl"
-set "DEBUG_VULKAN_TARGET=..\_KalaTestProject\_external_shared\KalaWindow\debug_vulkan"
-set "RELEASE_OPENGL_TARGET=..\_KalaTestProject\_external_shared\KalaWindow\release_opengl"
-set "RELEASE_VULKAN_TARGET=..\_KalaTestProject\_external_shared\KalaWindow\release_vulkan"
+set "INCLUDE_TARGET=..\KalaTestProject\_external_shared\KalaWindow\include"
+set "DEBUG_OPENGL_TARGET=..\KalaTestProject\_external_shared\KalaWindow\debug_opengl"
+set "DEBUG_VULKAN_TARGET=..\KalaTestProject\_external_shared\KalaWindow\debug_vulkan"
+set "RELEASE_OPENGL_TARGET=..\KalaTestProject\_external_shared\KalaWindow\release_opengl"
+set "RELEASE_VULKAN_TARGET=..\KalaTestProject\_external_shared\KalaWindow\release_vulkan"
 
 if exist "%INCLUDE_TARGET%" (
 	rmdir /S /Q "%INCLUDE_TARGET%"
