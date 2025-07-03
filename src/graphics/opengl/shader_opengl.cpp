@@ -1,0 +1,385 @@
+//Copyright(C) 2025 Lost Empire Entertainment
+//This program comes with ABSOLUTELY NO WARRANTY.
+//This is free software, and you are welcome to redistribute it under certain conditions.
+//Read LICENSE.md for more information.
+
+#ifdef KALAWINDOW_SUPPORT_OPENGL
+
+#define KALAKIT_MODULE "SHADER_OPENGL"
+
+#include <string>
+#include <fstream>
+#include <sstream>
+
+#ifdef _WIN32
+#include <Windows.h>
+#include "GL/gl.h"
+#elif __linux__
+#include <GL/glx.h>
+#include <EGL/egl.h>
+#endif
+
+#include "graphics/window.hpp"
+#include "graphics/opengl/shader_opengl.hpp"
+#include "graphics/opengl/opengl.hpp"
+#include "graphics/opengl/opengl_typedefs.hpp"
+#include "graphics/opengl/opengl_loader.hpp"
+
+using KalaWindow::Graphics::OpenGLLoader;
+
+using std::string;
+using std::ifstream;
+using std::stringstream;
+
+static bool CheckCompileErrors(GLuint shader, const string& type);
+
+namespace KalaWindow::Graphics
+{
+    Shader_OpenGL::Shader_OpenGL(
+        const string& vertexPath,
+        const string& fragmentPath)
+    {
+        //
+        // READ SHADER SOURCE FILES
+        //
+
+        ifstream vertexFile(vertexPath);
+        if (!vertexFile.is_open())
+        {
+            string title = "Shader error detected!";
+            string message = "Vertex shader '" + vertexPath + "' file is invalid! Close program?";
+
+            Window* firstWindow = Window::windows.front().get();
+            if (firstWindow->CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                Render::Shutdown();
+            }
+
+            LOG_ERROR("Failed to open vertex shader file: " << vertexPath);
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        ifstream fragmentFile(fragmentPath);
+        if (!fragmentFile.is_open())
+        {
+            string title = "Shader error detected!";
+            string message = "Fragment shader '" + fragmentPath + "' file is invalid! Close program?";
+
+            Window* firstWindow = Window::windows.front().get();
+            if (firstWindow->CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                Render::Shutdown();
+            }
+
+            LOG_ERROR("Failed to open fragment shader file: " << fragmentPath);
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        stringstream vertexStream, fragmentStream;
+
+        vertexStream << vertexFile.rdbuf();
+        fragmentStream << fragmentFile.rdbuf();
+
+        const string vertexCode = vertexStream.str();
+        const string fragmentCode = fragmentStream.str();
+        const char* vShaderCode = vertexCode.c_str();
+        const char* fShaderCode = fragmentCode.c_str();
+
+        //
+        // CREATE AND COMPILE VERTEX SHADER
+        //
+
+        LOG_DEBUG("Loading vertex shader: " << vertexPath);
+
+        GLuint vertex = OpenGLLoader::glCreateShader(GL_VERTEX_SHADER);
+        OpenGLLoader::glShaderSource(vertex, 1, &vShaderCode, nullptr);
+        OpenGLLoader::glCompileShader(vertex);
+
+        if (!CheckCompileErrors(vertex, "VERTEX"))
+        {
+            OpenGLLoader::glDeleteShader(vertex);
+
+            string title = "Shader error detected!";
+            string message = "Vertex shader '" + vertexPath + "' failed to compile! Close program?";
+
+            Window* firstWindow = Window::windows.front().get();
+            if (firstWindow->CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                Render::Shutdown();
+            }
+
+            LOG_ERROR("Vertex shader compilation failed!");
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        //
+        // CREATE AND COMPILE FRAGMENT SHADER
+        //
+
+        LOG_DEBUG("Loading fragment shader: " << fragmentPath);
+
+        GLuint fragment = OpenGLLoader::glCreateShader(GL_FRAGMENT_SHADER);
+        OpenGLLoader::glShaderSource(fragment, 1, &fShaderCode, nullptr);
+        OpenGLLoader::glCompileShader(fragment);
+
+        if (!CheckCompileErrors(fragment, "FRAGMENT"))
+        {
+            OpenGLLoader::glDeleteShader(fragment);
+
+            LOG_ERROR("Fragment shader compilation failed!");
+
+            string title = "Shader error detected!";
+            string message = "Fragment shader '" + fragmentPath + "' failed to compile! Close program?";
+
+            Window* firstWindow = Window::windows.front().get();
+            if (firstWindow->CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                Render::Shutdown();
+            }
+
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        //
+        // CREATE SHADER PROGRAM
+        //
+
+        ID = OpenGLLoader::glCreateProgram();
+        OpenGLLoader::glAttachShader(ID, vertex);
+        OpenGLLoader::glAttachShader(ID, fragment);
+        OpenGLLoader::glLinkProgram(ID);
+
+        GLint success = 0;
+        OpenGLLoader::glGetProgramiv(ID, GL_LINK_STATUS, &success);
+
+        if (success != GL_TRUE)
+        {
+            OpenGLLoader::glDeleteShader(vertex);
+            OpenGLLoader::glDeleteShader(fragment);
+
+            GLint logLength = 0;
+            OpenGLLoader::glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &logLength);
+
+            if (logLength > 0)
+            {
+                std::vector<GLchar> log(logLength);
+                OpenGLLoader::glGetProgramInfoLog(ID, logLength, nullptr, log.data());
+                LOG_ERROR("Shader link failed:\n" << log.data());
+            }
+
+            string title = "Shader error detected!";
+            string message = "Failed to link vertex shader '" + vertexPath + "' and fragment shader '" + fragmentPath + "' to program! Close program?";
+
+            Window* firstWindow = Window::windows.front().get();
+            if (firstWindow->CreatePopup(
+                title,
+                message,
+                PopupAction::POPUP_ACTION_YES_NO,
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_YES)
+            {
+                Render::Shutdown();
+            }
+
+            LOG_ERROR("Shader program linking failed!");
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        //validate the shader program before using it
+        OpenGLLoader::glValidateProgram(ID);
+        GLint validated = 0;
+        OpenGLLoader::glGetProgramiv(ID, GL_VALIDATE_STATUS, &validated);
+        if (validated != GL_TRUE)
+        {
+            OpenGLLoader::glDeleteShader(vertex);
+            OpenGLLoader::glDeleteShader(fragment);
+
+            GLint logLength = 0;
+            OpenGLLoader::glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &logLength);
+            if (logLength > 0)
+            {
+                std::vector<GLchar> log(logLength);
+                OpenGLLoader::glGetProgramInfoLog(ID, logLength, nullptr, log.data());
+                LOG_ERROR("Shader::Use() failed! Shader program validation failed:\n" << log.data());
+                isValid = false;
+                ID = 0;
+                return;
+            }
+
+            LOG_ERROR("Shader::Use() failed! Shader program validation failed!");
+            isValid = false;
+            ID = 0;
+            return;
+        }
+
+        GLint valid = OpenGLLoader::glIsProgram(ID);
+        bool isProgramValid = valid == GL_TRUE;
+        if (!isProgramValid)
+        {
+            OpenGLLoader::glDeleteShader(vertex);
+            OpenGLLoader::glDeleteShader(fragment);
+
+            LOG_ERROR("Shader program ID " << ID << " is not valid!\n");
+
+            isValid = false;
+            ID = 0;
+            return;
+        }
+        else
+        {
+            LOG_DEBUG("Shader program ID " << ID << " is valid!\n");
+        }
+
+        //
+        // CLEANUP
+        //
+
+        OpenGLLoader::glDeleteShader(vertex);
+        OpenGLLoader::glDeleteShader(fragment);
+    }
+
+    Shader_OpenGL::~Shader_OpenGL()
+    {
+        if (ID != 0) OpenGLLoader::glDeleteProgram(ID);
+    }
+
+    void Shader_OpenGL::Use(Window* window) const
+    {
+        if (ID == 0)
+        {
+            LOG_ERROR("Shader::Use() failed! ID is 0.");
+            return;
+        }
+
+        if (!Renderer_OpenGL::IsContextValid(window))
+        {
+            LOG_ERROR("Shader::Use() failed! OpenGL context is invalid.");
+            return;
+        }
+
+        OpenGLLoader::glUseProgram(ID);
+
+        GLenum err = glGetError();
+        if (err != GL_NO_ERROR)
+        {
+            unsigned int errInt = static_cast<unsigned int>(err);
+            const char* errorMsg = Renderer_OpenGL::GetGLErrorString(errInt);
+
+            LOG_ERROR("glUseProgram error: " << errorMsg);
+        }
+
+        GLint activeProgram = 0;
+        OpenGLLoader::glGetIntegerv(GL_CURRENT_PROGRAM, &activeProgram);
+
+        if (activeProgram != (GLint)ID)
+        {
+            LOG_ERROR("Shader::Use() failed! Program ID not bound after glUseProgram. Expected ID: '" << ID << "', but got: '" << activeProgram << "'.");
+        }
+    }
+
+    void Shader_OpenGL::SetBool(const string& name, bool value) const
+    {
+        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), (int)value);
+    }
+    void Shader_OpenGL::SetInt(const string& name, int value) const
+    {
+        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), value);
+    }
+    void Shader_OpenGL::SetFloat(const string& name, float value) const
+    {
+        OpenGLLoader::glUniform1f(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), value);
+    }
+
+    void Shader_OpenGL::SetVec2(const string& name, const kvec2& value) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniform2fv(loc, 1, &value.x);
+    }
+    void Shader_OpenGL::SetVec3(const string& name, const kvec3& value) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniform3fv(loc, 1, &value.x);
+    }
+    void Shader_OpenGL::SetVec4(const string& name, const kvec4& value) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniform4fv(loc, 1, &value.x);
+    }
+
+    void Shader_OpenGL::SetMat2(const string& name, const kmat2& mat) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix2fv(loc, 1, GL_FALSE, &mat.columns[0].x);
+    }
+    void Shader_OpenGL::SetMat3(const string& name, const kmat3& mat) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix3fv(loc, 1, GL_FALSE, &mat.columns[0].x);
+    }
+    void Shader_OpenGL::SetMat4(const string& name, const kmat4& mat) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
+        OpenGLLoader::glUniformMatrix4fv(loc, 1, GL_FALSE, &mat.columns[0].x);
+    }
+}
+
+static bool CheckCompileErrors(GLuint shader, const string& type)
+{
+    GLint success = 0;
+    GLchar infoLog[1024];
+
+    if (type != "PROGRAM")
+    {
+        OpenGLLoader::glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        if (!success)
+        {
+            OpenGLLoader::glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
+            LOG_ERROR("Shader compilation failed (" << type << "):\n" << infoLog);
+            return false;
+        }
+    }
+    else
+    {
+        OpenGLLoader::glGetProgramiv(shader, GL_LINK_STATUS, &success);
+        if (!success)
+        {
+            OpenGLLoader::glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
+            LOG_ERROR("Program linking failed:\n" << infoLog);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+#endif //KALAWINDOW_SUPPORT_OPENGL

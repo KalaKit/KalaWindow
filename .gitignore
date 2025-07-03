@@ -1,0 +1,5 @@
+/debug_opengl
+/debug_vulkan
+/release_opengl
+/release_vulkan
+/.vs
