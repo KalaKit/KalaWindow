@@ -24,7 +24,7 @@ KalaWindow is a lightweight C++ 20 library for Windows and Linux that is used fo
 
 > Read Linux_prerequisites.txt
 
-Follow the [example project](https://github.com/greeenlaser/KalaTestProject) to see how to set up and use this library in a real-world example for both Windows and Linux.
+Follow the [example project](https://github.com/KalaKit/KalaTestProject) to see how to set up and use this library in a real-world example for both Windows and Linux.
 
 ---
 
