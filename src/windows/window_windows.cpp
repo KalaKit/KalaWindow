@@ -291,6 +291,8 @@ namespace KalaWindow::Graphics
 		}
 
 		WindowStruct_Windows& win = window->GetWindow_Windows();
+		HWND winRef = reinterpret_cast<HWND>(win.hwnd);
+		ShowWindow(winRef, SW_HIDE);
 
 		GlyphSystem::ClearGlyphs(window);
 
@@ -322,7 +324,7 @@ namespace KalaWindow::Graphics
 #endif //KALAWINDOW_SUPPORT_VULKAN
 		if (win.hwnd)
 		{
-			DestroyWindow(reinterpret_cast<HWND>(win.hwnd));
+			DestroyWindow(winRef);
 			win.hwnd = nullptr;
 		}
 		win.hInstance = nullptr;

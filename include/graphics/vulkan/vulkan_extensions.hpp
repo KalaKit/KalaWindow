@@ -1,3 +1,10 @@
+//Copyright(C) 2025 Lost Empire Entertainment
+//This program comes with ABSOLUTELY NO WARRANTY.
+//This is free software, and you are welcome to redistribute it under certain conditions.
+//Read LICENSE.md for more information.
+
+#ifdef KALAWINDOW_SUPPORT_VULKAN
+
 #pragma once
 
 #include <unordered_map>
@@ -440,3 +447,5 @@ namespace KalaWindow::Graphics
 		{ VulkanInstanceExtensions::VI_xlib_surface,                    "VK_KHR_xlib_surface" }
 	};
 }
+
+#endif //KALAWINDOW_SUPPORT_VULKAN

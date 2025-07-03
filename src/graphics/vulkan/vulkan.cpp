@@ -961,6 +961,8 @@ namespace KalaWindow::Graphics
 	{
 		if (device)
 		{
+			vkDeviceWaitIdle(device);
+
 			//destroy runtime resources first
 			DestroySwapchain();
 
