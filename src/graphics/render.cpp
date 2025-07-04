@@ -36,26 +36,6 @@ namespace KalaWindow::Graphics
 		timeBeginPeriod(1);
 #endif //_WIN32
 		
-		Window* newWindow = Window::Initialize(
-			title,
-			width,
-			height);
-		if (newWindow == nullptr) return false;
-
-		if (!Input::Initialize(newWindow)) return false;
-
-#ifdef KALAWINDOW_SUPPORT_OPENGL
-		if (!Renderer_OpenGL::Initialize(Window::windows.front().get()))
-		{
-			return false;
-		}
-#elif KALAWINDOW_SUPPORT_VULKAN
-		if (!Renderer_Vulkan::Initialize())
-		{
-			return false;
-		}
-#endif //KALAWINDOW_SUPPORT_VULKAN
-
 		return true;
 	}
 

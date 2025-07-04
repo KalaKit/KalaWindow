@@ -104,8 +104,11 @@ namespace KalaWindow::Graphics
 		//Enable selected vulkan extension, must be called before initializing Vulkan
 		static bool EnableExtension(VulkanExtensions extension);
 
-		//Initialize Vulkan and apply enabled layers and extensions
-		static bool Initialize();
+		//Initialize Vulkan and apply enabled layers and extensions.
+		//Max_frames must be 2 or 3: 
+		//   2 = lower latency (fast-paced titles, VR, etc.)
+		//   3 = better throughput / smoother frame pacing for most apps.
+		static bool Initialize(uint32_t max_frames);
 
 		//Attach Vulkan to window
 		static void CreateVulkanSurface(Window* window);
@@ -115,6 +118,10 @@ namespace KalaWindow::Graphics
 
 		//Allocates a single primary command buffer
 		static bool CreateCommandBuffer(Window* window);
+
+		//Creates new semaphores and fences per window
+		static bool CreateSyncObjects(Window* window);
+		static void DestroySyncObjects(Window* window);
 
 		//
 		// RUNTIME LOOP PHASE

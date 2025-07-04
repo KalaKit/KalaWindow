@@ -150,6 +150,13 @@ namespace KalaWindow::Graphics
 		newWindow->SetInitializedState(true);
 
 		windows.push_back(move(newWindow));
+
+		Window* window = FindWindowByID(windowID);
+
+#ifdef KALAWINDOW_SUPPORT_VULKAN
+		Renderer_Vulkan::CreateSyncObjects(window);
+#endif //KALAWINDOW_SUPPORT_VULKAN
+
 		return FindWindowByID(windowID);
 	}
 
@@ -324,6 +331,8 @@ namespace KalaWindow::Graphics
 				reinterpret_cast<VkSurfaceKHR>(win.vulkanData.surface),
 				nullptr);
 			win.vulkanData.surface = NULL;
+
+			Renderer_Vulkan::DestroySyncObjects(window);
 		}
 #endif //KALAWINDOW_SUPPORT_VULKAN
 		if (win.hwnd)
