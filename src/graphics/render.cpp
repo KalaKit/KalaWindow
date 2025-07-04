@@ -27,15 +27,12 @@ using std::terminate;
 
 namespace KalaWindow::Graphics
 {
-	bool Render::Initialize(
-		const string& title,
-		int width,
-		int height)
+	bool Render::Initialize()
 	{
 #ifdef _WIN32
 		timeBeginPeriod(1);
 #endif //_WIN32
-		
+
 		return true;
 	}
 

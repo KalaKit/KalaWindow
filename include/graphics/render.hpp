@@ -21,10 +21,7 @@ namespace KalaWindow::Graphics
 	public:
 		static inline DebugType debugType;
 
-		static bool Initialize(
-			const string& title,
-			int width,
-			int height);
+		static bool Initialize();
 
 		/// <summary>
 		/// The core shutdown function, call this
