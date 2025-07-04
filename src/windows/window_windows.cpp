@@ -153,10 +153,6 @@ namespace KalaWindow::Graphics
 
 		Window* window = FindWindowByID(windowID);
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
-		Renderer_Vulkan::CreateSyncObjects(window);
-#endif //KALAWINDOW_SUPPORT_VULKAN
-
 		return FindWindowByID(windowID);
 	}
 
