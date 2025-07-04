@@ -1150,7 +1150,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!device
-			|| physicalDevice)
+			|| !physicalDevice)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "create swapchain");
 			return false;

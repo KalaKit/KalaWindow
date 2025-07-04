@@ -326,7 +326,8 @@ namespace KalaWindow::Graphics
 				reinterpret_cast<VkInstance>(Renderer_Vulkan::instancePtr),
 				reinterpret_cast<VkSurfaceKHR>(win.vulkanData.surface),
 				nullptr);
-			win.vulkanData.surface = NULL;
+			//TODO: investigate why it calls error here in vs debug_vulkan
+			//win.vulkanData.surface = NULL;
 
 			Renderer_Vulkan::DestroySyncObjects(window);
 		}
