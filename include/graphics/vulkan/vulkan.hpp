@@ -93,8 +93,6 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Renderer_Vulkan
 	{
 	public:
-		static inline void* instancePtr;
-
 		//
 		// INITIALIZE PHASE
 		//
@@ -158,6 +156,9 @@ namespace KalaWindow::Graphics
 		static void SoftReset(
 			Window* window,
 			uint32_t imageIndex);
+
+		//Ensures all window-related data is cleared
+		static void DestroyWindowData(Window* window);
 
 		//
 		// REMAKE PHASE

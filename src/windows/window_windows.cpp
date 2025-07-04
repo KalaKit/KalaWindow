@@ -320,17 +320,7 @@ namespace KalaWindow::Graphics
 		}
 		if (win.wndProc) win.wndProc = nullptr;
 #elif KALAWINDOW_SUPPORT_VULKAN
-		if (win.vulkanData.surface)
-		{
-			vkDestroySurfaceKHR(
-				reinterpret_cast<VkInstance>(Renderer_Vulkan::instancePtr),
-				reinterpret_cast<VkSurfaceKHR>(win.vulkanData.surface),
-				nullptr);
-			//TODO: investigate why it calls error here in vs debug_vulkan
-			//win.vulkanData.surface = NULL;
-
-			Renderer_Vulkan::DestroySyncObjects(window);
-		}
+		Renderer_Vulkan::DestroyWindowData(window);
 #endif //KALAWINDOW_SUPPORT_VULKAN
 		if (win.hwnd)
 		{

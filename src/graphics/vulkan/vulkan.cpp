@@ -337,7 +337,6 @@ namespace KalaWindow::Graphics
 		}
 
 		volkLoadInstance(instance);
-		instancePtr = static_cast<void*>(instance);
 
 		//enumerate and pick physical device
 
@@ -1333,31 +1332,51 @@ namespace KalaWindow::Graphics
 		vData.framebuffers.clear();
 	}
 
+	void Renderer_Vulkan::DestroyWindowData(Window* window)
+	{
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData& vData = winData.vulkanData;
+
+		DestroySyncObjects(window);
+		DestroySwapchain(window);
+
+		if (vData.commandPool
+			&& device)
+		{
+			vkDestroyCommandPool(
+				device,
+				reinterpret_cast<VkCommandPool>(vData.commandPool),
+				nullptr);
+			vData.commandPool = NULL;
+		}
+
+		if (vData.surface
+			&& instance)
+		{
+			vkDestroySurfaceKHR(
+				instance,
+				reinterpret_cast<VkSurfaceKHR>(vData.surface),
+				nullptr);
+		}
+
+		vData.commandBuffers.clear();
+		vData.framebuffers.clear();
+		vData.images.clear();
+		vData.imageViews.clear();
+	}
+
 	void Renderer_Vulkan::Shutdown()
 	{
+		if (device) vkDeviceWaitIdle(device);
+
+		for (const auto& window : Window::windows)
+		{
+			Window* win = window.get();
+			DestroyWindowData(win);
+		}
+
 		if (device)
 		{
-			vkDeviceWaitIdle(device);
-
-			for (const auto& window : Window::windows)
-			{
-				Window* win = window.get();
-				WindowStruct_Windows& winData = win->GetWindow_Windows();
-				Window_VulkanData& vData = winData.vulkanData;
-
-				//destroy runtime resources first
-				DestroySwapchain(win);
-
-				if (vData.commandPool)
-				{
-					vkDestroyCommandPool(
-						device,
-						reinterpret_cast<VkCommandPool>(vData.commandPool),
-						nullptr);
-					vData.commandPool = NULL;
-				}
-			}
-
 			vkDestroyDevice(device, nullptr);
 			device = VK_NULL_HANDLE;
 		}
@@ -1370,18 +1389,6 @@ namespace KalaWindow::Graphics
 
 		enabledLayers.clear();
 		enabledExtensions.clear();
-
-		for (const auto& window : Window::windows)
-		{
-			Window* win = window.get();
-			WindowStruct_Windows& winData = win->GetWindow_Windows();
-			Window_VulkanData& vData = winData.vulkanData;
-
-			vData.commandBuffers.clear();
-			vData.framebuffers.clear();
-			vData.images.clear();
-			vData.imageViews.clear();
-		}
 	}
 }
 
