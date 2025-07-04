@@ -18,6 +18,7 @@ namespace KalaWindow::Graphics
 	using std::string;
 	using std::unique_ptr;
 	using std::vector;
+	using std::uintptr_t;
 
 	struct Window_OpenGLData
 	{
@@ -29,34 +30,35 @@ namespace KalaWindow::Graphics
 	{
 		//Core surface & swapchain handles
 
-		void* surface;   //VkSurfaceKHR
-		void* swapchain; //VkSwapchainKHR
+		uintptr_t surface;   //VkSurfaceKHR
+		uintptr_t swapchain; //VkSwapchainKHR
 
 		//Swapchain image metadata
 
-		void* swapchainImageFormat; //VkFormat
-		void* swapchainExtent;      //VkExtent2D
+		uint32_t swapchainImageFormat;  //VkFormat
+		uint32_t swapchainExtentWidth;  //VkExtent2D
+		uint32_t swapchainExtentHeight; //VkExtent2D
 
 		//Swapchain image views and framebuffers
 
-		vector<void*>  images;       //VkImage
-		vector<void*>  imageViews;   //VkImageView
-		vector<void*>  framebuffers; //VkFramebuffer
+		vector<uintptr_t>  images;       //VkImage
+		vector<uintptr_t>  imageViews;   //VkImageView
+		vector<uintptr_t>  framebuffers; //VkFramebuffer
 
 		//Synchronization primitives, one set per swapchain image
 
-		vector<void*>  imageAvailableSemaphores; //VkSemaphore
-		vector<void*>  renderFinishedSemaphores; //VkSemaphore
-		vector<void*>  inFlightFences;           //VkFence
+		vector<uintptr_t>  imageAvailableSemaphores; //VkSemaphore
+		vector<uintptr_t>  renderFinishedSemaphores; //VkSemaphore
+		vector<uintptr_t>  inFlightFences;           //VkFence
 
 		//Command buffers & pool used for recording into those framebuffers
 
-		vector<void*>  commandBuffers; //VkCommandBuffer
-		void* commandPool;             //VkCommandPool
+		vector<uintptr_t>  commandBuffers; //VkCommandBuffer
+		uintptr_t commandPool;             //VkCommandPool
 
 		//The render pass used when drawing into these framebuffers
 
-		void* renderPass; //VkRenderPass
+		uintptr_t renderPass; //VkRenderPass
 	};
 
 	struct WindowStruct_Windows

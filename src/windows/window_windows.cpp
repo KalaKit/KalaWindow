@@ -320,10 +320,10 @@ namespace KalaWindow::Graphics
 		if (win.vulkanData.surface)
 		{
 			vkDestroySurfaceKHR(
-				static_cast<VkInstance>(Renderer_Vulkan::instancePtr),
-				static_cast<VkSurfaceKHR>(win.vulkanData.surface),
+				reinterpret_cast<VkInstance>(Renderer_Vulkan::instancePtr),
+				reinterpret_cast<VkSurfaceKHR>(win.vulkanData.surface),
 				nullptr);
-			win.vulkanData.surface = nullptr;
+			win.vulkanData.surface = NULL;
 		}
 #endif //KALAWINDOW_SUPPORT_VULKAN
 		if (win.hwnd)
