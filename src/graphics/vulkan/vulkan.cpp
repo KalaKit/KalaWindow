@@ -530,7 +530,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "create command pool");
 			return false;
@@ -604,7 +604,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "create sync objects");
 			return false;
@@ -672,7 +672,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "destroy sync objects");
 			return;
@@ -713,7 +713,7 @@ namespace KalaWindow::Graphics
 			return FrameResult::VK_FRAME_ERROR;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "begin frame");
 			return FrameResult::VK_FRAME_ERROR;
@@ -762,7 +762,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "record command buffer");
 			return false;
@@ -840,13 +840,13 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "submit frame");
 			return false;
 		}
 
-		if (!graphicsQueue)
+		if (graphicsQueue == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_GQ, "submit frame");
 			return false;
@@ -941,7 +941,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "hard reset");
 			return;
@@ -966,7 +966,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (!graphicsQueue)
+		if (graphicsQueue == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_GQ, "soft reset");
 			return;
@@ -975,11 +975,6 @@ namespace KalaWindow::Graphics
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
-		if (!graphicsQueue)
-		{
-			LOG_ERROR("Cannot soft-reset because graphicsQueue has not been assigned!");
-			return;
-		}
 		if (!vData.swapchain)
 		{
 			LOG_ERROR("Cannot soft-reset because swapchain has not been assigned!");
@@ -1030,13 +1025,13 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (!device)
+		if (device == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_D, "create render pass");
 			return false;
 		}
 
-		if (!graphicsQueue)
+		if (graphicsQueue == VK_NULL_HANDLE)
 		{
 			ForceCloseMsg(ForceCloseType::FC_GQ, "create render pass");
 			return false;
