@@ -45,13 +45,30 @@ using std::unordered_map;
 using std::pair;
 using std::uintptr_t;
 
-static void ForceClose(const string& title, const string& reason);
+enum class ForceCloseType
+{
+	FC_VO, //is volk initialized
+	FC_VU, //is vulkan initialized
+	FC_D,  //is device assigned
+	FC_GQ  //is graphics queue assigned
+};
+
+static void ForceClose(
+	const string& title, 
+	const string& reason);
+static void ForceCloseMsg(
+	ForceCloseType ct,
+	const string& targetMsg);
+
 static const char* ToString(VulkanLayers layer);
 static const char* ToString(VulkanExtensions ext);
 static bool IsExtensionInstance(VulkanExtensions ext);
 static int RatePhysicalDevice(
 	VkPhysicalDevice device,
 	string& failReason);
+
+static bool isVolkInitialized = false;
+static bool isVulkanInitialized = false;
 
 static VkInstance instance = VK_NULL_HANDLE;
 static VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
@@ -63,6 +80,19 @@ static uint32_t MAX_FRAMES = 0;
 static uint32_t currentFrame = 0;
 
 static vector<VulkanExtensions> delayedExt{};
+
+static bool InitVolk()
+{
+	if (volkInitialize() != VK_SUCCESS)
+	{
+		ForceClose(
+			"Vulkan initialization error",
+			"Volk initialization failed!");
+		return false;
+	}
+
+	return true;
+}
 
 static const unordered_map<VulkanLayers, const char*> layerInfo =
 {
@@ -135,6 +165,13 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::EnableLayer(VulkanLayers layer)
 	{
+		if (!isVolkInitialized
+			&& !InitVolk())
+		{
+			ForceCloseMsg(ForceCloseType::FC_VO, "enable layer");
+			return false;
+		}
+
 		const char* name = ToString(layer);
 		if (!name)
 		{
@@ -172,6 +209,13 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::EnableExtension(VulkanExtensions ext)
 	{
+		if (!isVolkInitialized
+			&& !InitVolk())
+		{
+			ForceCloseMsg(ForceCloseType::FC_VO, "enable extension");
+			return false;
+		}
+
 		const char* name = ToString(ext);
 		if (!name)
 		{
@@ -236,17 +280,16 @@ namespace KalaWindow::Graphics
 			|| max_frames > 3)
 		{
 			ForceClose(
-				"Vulkan initialization error",
-				"Max frames must be 2 or 3!");
+				"Vulkan error",
+				"Cannot initialize Vulkan because max_frames was not set to 2 or 3!");
 			return false;
 		}
 		MAX_FRAMES = max_frames;
 
-		if (volkInitialize() != VK_SUCCESS)
+		if (!isVolkInitialized
+			&& !InitVolk())
 		{
-			ForceClose(
-				"Vulkan initialization error",
-				"Volk initialization failed!");
+			ForceCloseMsg(ForceCloseType::FC_VO, "initialize Vulkan");
 			return false;
 		}
 
@@ -434,6 +477,7 @@ namespace KalaWindow::Graphics
 			0,
 			&graphicsQueue);
 
+		isVulkanInitialized = true;
 		LOG_SUCCESS("Initialized Vulkan!");
 
 		return true;
@@ -441,6 +485,12 @@ namespace KalaWindow::Graphics
 
 	void Renderer_Vulkan::CreateVulkanSurface(Window* targetWindow)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "create vulkan surface");
+			return;
+		}
+
 		WindowStruct_Windows& winData = targetWindow->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -474,14 +524,20 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::CreateCommandPool(Window* window)
 	{
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
-
-		if (device == VK_NULL_HANDLE)
+		if (!isVulkanInitialized)
 		{
-			LOG_ERROR("Cannot create command pool because device is not assigned!");
+			ForceCloseMsg(ForceCloseType::FC_VU, "create command pool");
 			return false;
 		}
+
+		if (!device)
+		{
+			ForceCloseMsg(ForceCloseType::FC_D, "create command pool");
+			return false;
+		}
+
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData& vData = winData.vulkanData;
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -505,6 +561,12 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::CreateCommandBuffer(Window* window)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "create command buffer");
+			return false;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -536,14 +598,20 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::CreateSyncObjects(Window* window)
 	{
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "create sync objects");
+			return false;
+		}
 
 		if (!device)
 		{
-			LOG_ERROR("Cannot create sync objects because device is not assigned!");
+			ForceCloseMsg(ForceCloseType::FC_D, "create sync objects");
 			return false;
 		}
+
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData& vData = winData.vulkanData;
 
 		vData.imageAvailableSemaphores.resize(MAX_FRAMES);
 		vData.renderFinishedSemaphores.resize(MAX_FRAMES);
@@ -598,6 +666,18 @@ namespace KalaWindow::Graphics
 
 	void Renderer_Vulkan::DestroySyncObjects(Window* window)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "destroy sync objects");
+			return;
+		}
+
+		if (!device)
+		{
+			ForceCloseMsg(ForceCloseType::FC_D, "destroy sync objects");
+			return;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -627,6 +707,18 @@ namespace KalaWindow::Graphics
 		Window* window,
 		uint32_t& imageIndex)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "begin frame");
+			return FrameResult::VK_FRAME_ERROR;
+		}
+
+		if (!device)
+		{
+			ForceCloseMsg(ForceCloseType::FC_D, "begin frame");
+			return FrameResult::VK_FRAME_ERROR;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -664,6 +756,18 @@ namespace KalaWindow::Graphics
 		Window* window,
 		uint32_t imageIndex)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "record command buffer");
+			return false;
+		}
+
+		if (!device)
+		{
+			ForceCloseMsg(ForceCloseType::FC_D, "record command buffer");
+			return false;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -730,6 +834,24 @@ namespace KalaWindow::Graphics
 		Window* window,
 		uint32_t imageIndex)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "submit frame");
+			return false;
+		}
+
+		if (!device)
+		{
+			ForceCloseMsg(ForceCloseType::FC_D, "submit frame");
+			return false;
+		}
+
+		if (!graphicsQueue)
+		{
+			ForceCloseMsg(ForceCloseType::FC_GQ, "submit frame");
+			return false;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -773,6 +895,12 @@ namespace KalaWindow::Graphics
 		Window* window,
 		uint32_t imageIndex)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "present frame");
+			return FrameResult::VK_FRAME_ERROR;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -807,9 +935,15 @@ namespace KalaWindow::Graphics
 
 	void Renderer_Vulkan::HardReset(Window* window)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "hard reset");
+			return;
+		}
+
 		if (!device)
 		{
-			LOG_ERROR("Cannot drain pending signals because no device has been assigned!");
+			ForceCloseMsg(ForceCloseType::FC_D, "hard reset");
 			return;
 		}
 
@@ -826,6 +960,18 @@ namespace KalaWindow::Graphics
 		Window* window,
 		uint32_t imageIndex)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "soft reset");
+			return;
+		}
+
+		if (!graphicsQueue)
+		{
+			ForceCloseMsg(ForceCloseType::FC_GQ, "soft reset");
+			return;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -878,6 +1024,24 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::CreateRenderPass(Window* window)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "create render pass");
+			return false;
+		}
+
+		if (!device)
+		{
+			ForceCloseMsg(ForceCloseType::FC_D, "create render pass");
+			return false;
+		}
+
+		if (!graphicsQueue)
+		{
+			ForceCloseMsg(ForceCloseType::FC_GQ, "create render pass");
+			return false;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -936,6 +1100,12 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::CreateFramebuffers(Window* window)
 	{
+		if (!isVulkanInitialized)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "create framebuffers");
+			return false;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -977,11 +1147,17 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_Vulkan::CreateSwapchain(Window* window)
 	{
-		if (!instance
-			|| !device
-			|| !physicalDevice)
+		if (!isVulkanInitialized
+			|| !instance)
 		{
-			LOG_ERROR("Cannot create swapchain before Vulkan is fully initialized!");
+			ForceCloseMsg(ForceCloseType::FC_VU, "create swapchain");
+			return false;
+		}
+
+		if (!device
+			|| physicalDevice)
+		{
+			ForceCloseMsg(ForceCloseType::FC_D, "create swapchain");
 			return false;
 		}
 
@@ -1227,6 +1403,36 @@ static void ForceClose(const string& title, const string& reason)
 		== PopupResult::POPUP_RESULT_OK)
 	{
 		Render::Shutdown();
+	}
+}
+void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
+{
+	if (fct == ForceCloseType::FC_VO)
+	{
+		ForceClose(
+			"Vulkan error",
+			"Cannot " + targetMsg + " because Volk failed to initialize!");
+	}
+
+	else if (fct == ForceCloseType::FC_VU)
+	{
+		ForceClose(
+			"Vulkan error",
+			"Cannot " + targetMsg + " because Vulkan is not initialized!");
+	}
+
+	else if (fct == ForceCloseType::FC_D)
+	{
+		ForceClose(
+			"Vulkan error",
+			"Cannot " + targetMsg + " because no valid device was assigned!");
+	}
+
+	else if (fct == ForceCloseType::FC_GQ)
+	{
+		ForceClose(
+			"Vulkan error",
+			"Cannot " + targetMsg + " because no graphics queue was assigned!");
 	}
 }
 
