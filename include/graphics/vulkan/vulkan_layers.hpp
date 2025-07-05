@@ -15,28 +15,28 @@ namespace KalaWindow::Graphics
 
 	enum class VulkanLayers
 	{
-        VL_api_dump,
-        VL_crash_diagnostic,
-        VL_gfxreconstruct,
-        VL_monitor,
-        VL_profiles,
-        VL_screenshot,
-        VL_shader_object,
-        VL_synchronization2,
-        VL_validation
+        VK_LAYER_api_dump,
+        VK_LAYER_crash_diagnostic,
+        VK_LAYER_gfxreconstruct,
+        VK_LAYER_monitor,
+        VK_LAYER_profiles,
+        VK_LAYER_screenshot,
+        VK_LAYER_shader_object,
+        VK_LAYER_synchronization2,
+        VK_LAYER_validation
 	};
 
 	static const unordered_map<VulkanLayers, const char*> vulkanLayerInfo =
 	{
-        { VulkanLayers::VL_api_dump,           "VK_LAYER_LUNARG_api_dump" },
-        { VulkanLayers::VL_crash_diagnostic,   "VK_LAYER_LUNARG_crash_diagnostic" },
-        { VulkanLayers::VL_gfxreconstruct,     "VK_LAYER_LUNARG_gfxreconstruct" },
-        { VulkanLayers::VL_monitor,            "VK_LAYER_LUNARG_monitor" },
-        { VulkanLayers::VL_profiles,           "VK_LAYER_KHRONOS_profiles" },
-        { VulkanLayers::VL_screenshot,         "VK_LAYER_LUNARG_screenshot" },
-        { VulkanLayers::VL_shader_object,      "VK_LAYER_KHRONOS_shader_object" },
-        { VulkanLayers::VL_synchronization2,   "VK_LAYER_KHRONOS_synchronization2" },
-        { VulkanLayers::VL_validation,         "VK_LAYER_KHRONOS_validation" },
+        { VulkanLayers::VK_LAYER_api_dump,           "VK_LAYER_LUNARG_api_dump" },
+        { VulkanLayers::VK_LAYER_crash_diagnostic,   "VK_LAYER_LUNARG_crash_diagnostic" },
+        { VulkanLayers::VK_LAYER_gfxreconstruct,     "VK_LAYER_LUNARG_gfxreconstruct" },
+        { VulkanLayers::VK_LAYER_monitor,            "VK_LAYER_LUNARG_monitor" },
+        { VulkanLayers::VK_LAYER_profiles,           "VK_LAYER_KHRONOS_profiles" },
+        { VulkanLayers::VK_LAYER_screenshot,         "VK_LAYER_LUNARG_screenshot" },
+        { VulkanLayers::VK_LAYER_shader_object,      "VK_LAYER_KHRONOS_shader_object" },
+        { VulkanLayers::VK_LAYER_synchronization2,   "VK_LAYER_KHRONOS_synchronization2" },
+        { VulkanLayers::VK_LAYER_validation,         "VK_LAYER_KHRONOS_validation" }
 	};
 }
 
