@@ -18,7 +18,6 @@ namespace KalaWindow::Graphics
 	using std::string;
 	using std::unique_ptr;
 	using std::vector;
-	using std::uintptr_t;
 
 	struct Window_OpenGLData
 	{
@@ -35,9 +34,9 @@ namespace KalaWindow::Graphics
 
 		//Swapchain image metadata
 
-		uint32_t swapchainImageFormat;  //VkFormat
-		uint32_t swapchainExtentWidth;  //VkExtent2D
-		uint32_t swapchainExtentHeight; //VkExtent2D
+		uintptr_t swapchainImageFormat;  //VkFormat
+		uintptr_t swapchainExtentWidth;  //VkExtent2D
+		uintptr_t swapchainExtentHeight; //VkExtent2D
 
 		//Swapchain image views and framebuffers
 
@@ -50,6 +49,7 @@ namespace KalaWindow::Graphics
 		vector<uintptr_t>  imageAvailableSemaphores; //VkSemaphore
 		vector<uintptr_t>  renderFinishedSemaphores; //VkSemaphore
 		vector<uintptr_t>  inFlightFences;           //VkFence
+		vector<uintptr_t>  imagesInFlight;           //VkFence
 
 		//Command buffers & pool used for recording into those framebuffers
 

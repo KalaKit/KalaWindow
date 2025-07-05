@@ -8,6 +8,8 @@
 #include <iostream>
 #include <cstdint>
 
+using std::is_pointer_v;
+
 //
 // LOG PREPROCESSORS
 //
@@ -55,3 +57,28 @@ struct kvec4 { float x, y, z, w; };
 struct kmat2 { kvec2 columns[2]; };
 struct kmat3 { kvec3 columns[3]; };
 struct kmat4 { kvec4 columns[4]; };
+
+//
+// CONVERT TO PLATFORM-AGNOSTIC VARIABLES AND BACK
+//
+
+//Convert an uintptr_t to a platform-specific or renderer-specific type.
+//Usage example: ToVar<yourTargetType>(yourInput);
+template<typename var> static constexpr var ToVar(uintptr_t h)
+{
+	if constexpr (is_pointer_v<var>)
+	{
+		return reinterpret_cast<var>(h);
+	}
+	else return static_cast<var>(h);
+}
+//Convert a platform-specific or renderer-specific type to an uintptr_t for use elsewhere.
+//Usage example: FromVar<yourTargetType>(yourInput);
+template<typename var> static constexpr uintptr_t FromVar(var h)
+{
+	if constexpr (is_pointer_v<var>)
+	{
+		return reinterpret_cast<uintptr_t>(h);
+	}
+	else return static_cast<uintptr_t>(h);
+}

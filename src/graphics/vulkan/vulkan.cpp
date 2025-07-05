@@ -28,6 +28,7 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/render.hpp"
 #include "core/enums.hpp"
+#include "core/platform.hpp"
 
 using KalaWindow::Graphics::Renderer_Vulkan;
 using KalaWindow::Graphics::VulkanLayers;
@@ -647,17 +648,17 @@ namespace KalaWindow::Graphics
 			{
 				LOG_ERROR("Failed to create sync objects for frame " << i);
 
-				vData.imageAvailableSemaphores[i] = reinterpret_cast<uintptr_t>(realAvailableSemaphore);
-				vData.renderFinishedSemaphores[i] = reinterpret_cast<uintptr_t>(realFinishedSemaphore);
-				vData.inFlightFences[i] = reinterpret_cast<uintptr_t>(realFence);
+				vData.imageAvailableSemaphores[i] = FromVar<VkSemaphore>(realAvailableSemaphore);
+				vData.renderFinishedSemaphores[i] = FromVar<VkSemaphore>(realFinishedSemaphore);
+				vData.inFlightFences[i] = FromVar<VkFence>(realFence);
 				DestroySyncObjects(window);
 
 				return false;
 			}
 
-			vData.imageAvailableSemaphores[i] = reinterpret_cast<uintptr_t>(realAvailableSemaphore);
-			vData.renderFinishedSemaphores[i] = reinterpret_cast<uintptr_t>(realFinishedSemaphore);
-			vData.inFlightFences[i] = reinterpret_cast<uintptr_t>(realFence);
+			vData.imageAvailableSemaphores[i] = FromVar<VkSemaphore>(realAvailableSemaphore);
+			vData.renderFinishedSemaphores[i] = FromVar<VkSemaphore>(realFinishedSemaphore);
+			vData.inFlightFences[i] = FromVar<VkFence>(realFence);
 		}
 
 		return true;
@@ -682,15 +683,15 @@ namespace KalaWindow::Graphics
 
 		for (auto s : vData.imageAvailableSemaphores)
 		{
-			vkDestroySemaphore(device, reinterpret_cast<VkSemaphore>(s), nullptr);
+			vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
 		}
 		for (auto s : vData.renderFinishedSemaphores)
 		{
-			vkDestroySemaphore(device, reinterpret_cast<VkSemaphore>(s), nullptr);
+			vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
 		}
 		for (auto f : vData.inFlightFences)
 		{
-			vkDestroyFence(device, reinterpret_cast<VkFence>(f), nullptr);
+			vkDestroyFence(device, ToVar<VkFence>(f), nullptr);
 		}
 
 		vData.imageAvailableSemaphores.clear();
@@ -724,11 +725,11 @@ namespace KalaWindow::Graphics
 		uint32_t nextImage = 0;
 
 		VkSemaphore sem = 
-			reinterpret_cast<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame]);
+			ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame]);
 
 		VkResult result = vkAcquireNextImageKHR(
 			device,
-			reinterpret_cast<VkSwapchainKHR>(vData.swapchain),
+			ToVar<VkSwapchainKHR>(vData.swapchain),
 			UINT64_MAX,
 			sem,
 			VK_NULL_HANDLE,
@@ -770,7 +771,7 @@ namespace KalaWindow::Graphics
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
-		VkFence fence = reinterpret_cast<VkFence>(vData.inFlightFences[currentFrame]);
+		VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
 		vkWaitForFences(
 			device,
 			1,
@@ -787,7 +788,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		VkCommandBuffer cmd = reinterpret_cast<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
+		VkCommandBuffer cmd = ToVar<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -803,8 +804,8 @@ namespace KalaWindow::Graphics
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = reinterpret_cast<VkRenderPass>(vData.renderPass);
-		renderPassInfo.framebuffer = reinterpret_cast<VkFramebuffer>(vData.framebuffers[imageIndex]);
+		renderPassInfo.renderPass = ToVar<VkRenderPass>(vData.renderPass);
+		renderPassInfo.framebuffer = ToVar<VkFramebuffer>(vData.framebuffers[imageIndex]);
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent.width = vData.swapchainExtentWidth;
 		renderPassInfo.renderArea.extent.height = vData.swapchainExtentHeight;
@@ -859,7 +860,7 @@ namespace KalaWindow::Graphics
 
 		VkSemaphore waitSemaphores[] = 
 		{ 
-			reinterpret_cast<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame]) 
+			ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame])
 		};
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.waitSemaphoreCount = 1;
@@ -867,12 +868,12 @@ namespace KalaWindow::Graphics
 		submitInfo.pWaitDstStageMask = waitStages;
 
 		submitInfo.commandBufferCount = 1;
-		VkCommandBuffer realCB = reinterpret_cast<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
+		VkCommandBuffer realCB = ToVar<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
 		submitInfo.pCommandBuffers = &realCB;
 
 		VkSemaphore signalSemaphores[] = 
 		{ 
-			reinterpret_cast<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame])
+			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame])
 		};
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
@@ -881,7 +882,7 @@ namespace KalaWindow::Graphics
 			graphicsQueue,
 			1,
 			&submitInfo,
-			reinterpret_cast<VkFence>(vData.inFlightFences[currentFrame])) != VK_SUCCESS)
+			ToVar<VkFence>(vData.inFlightFences[currentFrame])) != VK_SUCCESS)
 		{
 			LOG_ERROR("Failed to submit frame!");
 			return false;
@@ -904,9 +905,9 @@ namespace KalaWindow::Graphics
 		Window_VulkanData& vData = winData.vulkanData;
 
 		VkSemaphore realFinishedSemaphore = 
-			reinterpret_cast<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame]);
+			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame]);
 		VkSwapchainKHR realSwapchain = 
-			reinterpret_cast<VkSwapchainKHR>(vData.swapchain);
+			ToVar<VkSwapchainKHR>(vData.swapchain);
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -992,9 +993,9 @@ namespace KalaWindow::Graphics
 			VK_NULL_HANDLE);
 
 		VkSemaphore realFinishedSemaphore =
-			reinterpret_cast<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame]);
+			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame]);
 		VkSwapchainKHR realSwapchain =
-			reinterpret_cast<VkSwapchainKHR>(vData.swapchain);
+			ToVar<VkSwapchainKHR>(vData.swapchain);
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -1087,7 +1088,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		vData.renderPass = reinterpret_cast<uintptr_t>(realRP);
+		vData.renderPass = FromVar<VkRenderPass>(realRP);
 
 		return true;
 	}
@@ -1107,11 +1108,11 @@ namespace KalaWindow::Graphics
 
 		for (size_t i = 0; i < vData.imageViews.size(); ++i)
 		{
-			VkImageView attachments[] = { reinterpret_cast<VkImageView>(vData.imageViews[i]) };
+			VkImageView attachments[] = { ToVar<VkImageView>(vData.imageViews[i]) };
 
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-			framebufferInfo.renderPass = reinterpret_cast<VkRenderPass>(vData.renderPass);
+			framebufferInfo.renderPass = ToVar<VkRenderPass>(vData.renderPass);
 			framebufferInfo.attachmentCount = 1;
 			framebufferInfo.pAttachments = attachments;
 			framebufferInfo.width = vData.swapchainExtentWidth;
@@ -1129,7 +1130,7 @@ namespace KalaWindow::Graphics
 				return false;
 			}
 
-			vData.framebuffers[i] = reinterpret_cast<uintptr_t>(realFB);
+			vData.framebuffers[i] = FromVar<VkFramebuffer>(realFB);
 		}
 
 		return true;
@@ -1165,7 +1166,7 @@ namespace KalaWindow::Graphics
 #elif __linux__
 		WindowStruct_X11& win = window->GetWindow_X11();
 #endif
-		VkSurfaceKHR surfacePtr = reinterpret_cast<VkSurfaceKHR>(vData.surface);
+		VkSurfaceKHR surfacePtr = ToVar<VkSurfaceKHR>(vData.surface);
 
 		VkSurfaceCapabilitiesKHR capabilities{};
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
@@ -1222,28 +1223,28 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		vData.swapchain = reinterpret_cast<uintptr_t>(realSC);
+		vData.swapchain = FromVar<VkSwapchainKHR>(realSC);
 
 		//get swapchain images
 
 		uint32_t count = 0;
 		vkGetSwapchainImagesKHR(
 			device,
-			reinterpret_cast<VkSwapchainKHR>(vData.swapchain),
+			ToVar<VkSwapchainKHR>(vData.swapchain),
 			&count,
 			nullptr);
 
 		vector<VkImage> tempImages(count);
 		vkGetSwapchainImagesKHR(
 			device,
-			reinterpret_cast<VkSwapchainKHR>(vData.swapchain),
+			ToVar<VkSwapchainKHR>(vData.swapchain),
 			&count,
 			tempImages.data());
 
 		vData.images.resize(count);
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			vData.images[i] = reinterpret_cast<uintptr_t>(tempImages[i]);
+			vData.images[i] = FromVar<VkImage>(tempImages[i]);
 		}
 
 		//create image views
@@ -1253,7 +1254,7 @@ namespace KalaWindow::Graphics
 		{
 			VkImageViewCreateInfo viewInfo{};
 			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = reinterpret_cast<VkImage>(vData.images[i]);
+			viewInfo.image = ToVar<VkImage>(vData.images[i]);
 			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
 			viewInfo.format = static_cast<VkFormat>(vData.swapchainImageFormat);
 			viewInfo.components =
@@ -1280,7 +1281,7 @@ namespace KalaWindow::Graphics
 				return false;
 			}
 
-			vData.imageViews[i] = reinterpret_cast<uintptr_t>(realIV);
+			vData.imageViews[i] = FromVar<VkImageView>(realIV);
 		}
 
 		LOG_SUCCESS("Successfully created Vulkan swapchain and released resources!");
@@ -1296,21 +1297,21 @@ namespace KalaWindow::Graphics
 
 		for (auto view : vData.imageViews)
 		{
-			if (view) vkDestroyImageView(device, reinterpret_cast<VkImageView>(view), nullptr);
+			if (view) vkDestroyImageView(device, ToVar<VkImageView>(view), nullptr);
 		}
 
 		//destroy framebuffers
 
 		for (auto fb : vData.framebuffers)
 		{
-			if (fb) vkDestroyFramebuffer(device, reinterpret_cast<VkFramebuffer>(fb), nullptr);
+			if (fb) vkDestroyFramebuffer(device, ToVar<VkFramebuffer>(fb), nullptr);
 		}
 
 		//destroy render pass
 
 		if (vData.renderPass)
 		{
-			vkDestroyRenderPass(device,  reinterpret_cast<VkRenderPass>(vData.renderPass), nullptr);
+			vkDestroyRenderPass(device, ToVar<VkRenderPass>(vData.renderPass), nullptr);
 			vData.renderPass = NULL;
 		}
 
@@ -1320,7 +1321,7 @@ namespace KalaWindow::Graphics
 		{
 			vkDestroySwapchainKHR(
 				device,
-				reinterpret_cast<VkSwapchainKHR>(vData.swapchain),
+				ToVar<VkSwapchainKHR>(vData.swapchain),
 				nullptr);
 		}
 
@@ -1345,7 +1346,7 @@ namespace KalaWindow::Graphics
 		{
 			vkDestroyCommandPool(
 				device,
-				reinterpret_cast<VkCommandPool>(vData.commandPool),
+				ToVar<VkCommandPool>(vData.commandPool),
 				nullptr);
 			vData.commandPool = NULL;
 		}
@@ -1355,7 +1356,7 @@ namespace KalaWindow::Graphics
 		{
 			vkDestroySurfaceKHR(
 				instance,
-				reinterpret_cast<VkSurfaceKHR>(vData.surface),
+				ToVar<VkSurfaceKHR>(vData.surface),
 				nullptr);
 		}
 
