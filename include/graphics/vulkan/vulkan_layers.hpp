@@ -26,7 +26,7 @@ namespace KalaWindow::Graphics
         VL_validation
 	};
 
-	static const unordered_map<VulkanLayers, const char*> VulkanLayerInfo =
+	static const unordered_map<VulkanLayers, const char*> vulkanLayerInfo =
 	{
         { VulkanLayers::VL_api_dump,           "VK_LAYER_LUNARG_api_dump" },
         { VulkanLayers::VL_crash_diagnostic,   "VK_LAYER_LUNARG_crash_diagnostic" },

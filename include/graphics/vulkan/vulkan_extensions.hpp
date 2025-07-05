@@ -13,6 +13,62 @@ namespace KalaWindow::Graphics
 {
 	using std::unordered_map;
 
+	enum class VulkanInstanceExtensions
+	{
+		// Debugging & Tooling
+
+		VI_debug_report,
+		VI_validation_flags,
+
+		// Device & Properties
+
+
+		// External & Synchronization
+
+		VI_win32_surface,
+
+		// Miscellaneous
+
+		VI_portability_enumeration,
+
+		// Surface & Windowing
+
+		VI_acquire_xlib_display,
+		VI_android_surface,
+		VI_surface_maintenance1,
+		VI_surface_protected_capabilities,
+		VI_xcb_surface,
+		VI_xlib_surface
+	};
+
+	static const unordered_map<VulkanInstanceExtensions, const char*> vulkanInstanceExtensionsInfo =
+	{
+		// Debugging & Tooling
+
+		{ VulkanInstanceExtensions::VI_debug_report,              "VK_EXT_debug_report" },
+		{ VulkanInstanceExtensions::VI_validation_flags,          "VK_EXT_validation_flags" },
+
+		// Device & Properties
+
+
+		// External & Synchronization
+
+		{ VulkanInstanceExtensions::VI_win32_surface,                   "VK_KHR_win32_surface" },
+
+		// Miscellaneous
+
+		{ VulkanInstanceExtensions::VI_portability_enumeration,         "VK_KHR_portability_enumeration" },
+
+		// Surface & Windowing
+
+		{ VulkanInstanceExtensions::VI_acquire_xlib_display,            "VK_EXT_acquire_xlib_display" },
+		{ VulkanInstanceExtensions::VI_android_surface,                 "VK_KHR_android_surface" },
+		{ VulkanInstanceExtensions::VI_surface_maintenance1,            "VK_EXT_surface_maintenance1" },
+		{ VulkanInstanceExtensions::VI_surface_protected_capabilities,  "VK_KHR_surface_protected_capabilities" },
+		{ VulkanInstanceExtensions::VI_xcb_surface,                     "VK_KHR_xcb_surface" },
+		{ VulkanInstanceExtensions::VI_xlib_surface,                    "VK_KHR_xlib_surface" }
+	};
+
 	enum class VulkanDeviceExtensions
 	{
 		// Debugging & Tooling
@@ -202,7 +258,7 @@ namespace KalaWindow::Graphics
 		VE_video_decode_vp9
 	};
 
-	static const unordered_map<VulkanDeviceExtensions, const char*> VulkanDeviceExtensionsInfo =
+	static const unordered_map<VulkanDeviceExtensions, const char*> vulkanDeviceExtensionsInfo =
 	{
 		// Debugging & Tooling
 		
@@ -389,62 +445,6 @@ namespace KalaWindow::Graphics
 		{ VulkanDeviceExtensions::VE_video_maintenance1,           "VK_KHR_video_maintenance1" },
 		{ VulkanDeviceExtensions::VE_video_maintenance2,           "VK_KHR_video_maintenance2" },
 		{ VulkanDeviceExtensions::VE_video_queue,                  "VK_KHR_video_queue" }
-	};
-
-	enum class VulkanInstanceExtensions
-	{
-		// Debugging & Tooling
-
-		VI_debug_report,
-		VI_validation_flags,
-
-		// Device & Properties
-
-
-		// External & Synchronization
-		
-		VI_win32_surface,
-
-		// Miscellaneous
-
-		VI_portability_enumeration,
-
-		// Surface & Windowing
-
-		VI_acquire_xlib_display,
-		VI_android_surface,
-		VI_surface_maintenance1,
-		VI_surface_protected_capabilities,
-		VI_xcb_surface,
-		VI_xlib_surface
-	};
-
-	static const unordered_map<VulkanInstanceExtensions, const char*> VulkanInstanceExtensionsInfo =
-	{
-		// Debugging & Tooling
-
-		{ VulkanInstanceExtensions::VI_debug_report,              "VK_EXT_debug_report" },
-		{ VulkanInstanceExtensions::VI_validation_flags,          "VK_EXT_validation_flags" },
-
-		// Device & Properties
-
-
-		// External & Synchronization
-
-		{ VulkanInstanceExtensions::VI_win32_surface,                   "VK_KHR_win32_surface" },
-
-		// Miscellaneous
-
-		{ VulkanInstanceExtensions::VI_portability_enumeration,         "VK_KHR_portability_enumeration" },
-
-		// Surface & Windowing
-
-		{ VulkanInstanceExtensions::VI_acquire_xlib_display,            "VK_EXT_acquire_xlib_display" },
-		{ VulkanInstanceExtensions::VI_android_surface,                 "VK_KHR_android_surface" },
-		{ VulkanInstanceExtensions::VI_surface_maintenance1,            "VK_EXT_surface_maintenance1" },
-		{ VulkanInstanceExtensions::VI_surface_protected_capabilities,  "VK_KHR_surface_protected_capabilities" },
-		{ VulkanInstanceExtensions::VI_xcb_surface,                     "VK_KHR_xcb_surface" },
-		{ VulkanInstanceExtensions::VI_xlib_surface,                    "VK_KHR_xlib_surface" }
 	};
 }
 

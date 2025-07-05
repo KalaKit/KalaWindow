@@ -32,12 +32,16 @@
 
 using KalaWindow::Graphics::Renderer_Vulkan;
 using KalaWindow::Graphics::VulkanLayers;
-using KalaWindow::Graphics::VulkanExtensions;
+using KalaWindow::Graphics::VulkanInstanceExtensions;
+using KalaWindow::Graphics::VulkanDeviceExtensions;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Render;
 using KalaWindow::PopupAction;
 using KalaWindow::PopupType;
 using KalaWindow::PopupResult;
+using KalaWindow::Graphics::vulkanLayerInfo;
+using KalaWindow::Graphics::vulkanInstanceExtensionsInfo;
+using KalaWindow::Graphics::vulkanDeviceExtensionsInfo;
 
 using std::string;
 using std::to_string;
@@ -62,8 +66,8 @@ static void ForceCloseMsg(
 	const string& targetMsg);
 
 static const char* ToString(VulkanLayers layer);
-static const char* ToString(VulkanExtensions ext);
-static bool IsExtensionInstance(VulkanExtensions ext);
+static const char* ToString(VulkanInstanceExtensions ext);
+static const char* ToString(VulkanDeviceExtensions ext);
 static int RatePhysicalDevice(
 	VkPhysicalDevice device,
 	string& failReason);
@@ -80,10 +84,12 @@ static uint32_t graphicsQueueFamilyIndex = 0;
 static uint32_t MAX_FRAMES = 0;
 static uint32_t currentFrame = 0;
 
-static vector<VulkanExtensions> delayedExt{};
+static vector<VulkanDeviceExtensions> delayedExt{};
 
 static bool InitVolk()
 {
+	if (isVolkInitialized) return true;
+
 	if (volkInitialize() != VK_SUCCESS)
 	{
 		ForceClose(
@@ -94,69 +100,6 @@ static bool InitVolk()
 
 	return true;
 }
-
-static const unordered_map<VulkanLayers, const char*> layerInfo =
-{
-	// --- Meta-layer ---
-
-	{ VulkanLayers::VL_KhronosValidation,     "VK_LAYER_KHRONOS_validation" },
-
-	// --- Sub-layers ---
-
-	{ VulkanLayers::VL_LunargThreading,       "VK_LAYER_LUNARG_threading" },
-	{ VulkanLayers::VL_LunargParamValidation, "VK_LAYER_LUNARG_parameter_validation" },
-	{ VulkanLayers::VL_LunargObjectTracker,   "VK_LAYER_LUNARG_object_tracker" },
-	{ VulkanLayers::VL_LunargCoreValidation,  "VK_LAYER_LUNARG_core_validation" },
-	{ VulkanLayers::VL_LunargSwapchain,       "VK_LAYER_LUNARG_swapchain" },
-	{ VulkanLayers::VL_LunargImage,           "VK_LAYER_LUNARG_image" },
-	{ VulkanLayers::VL_LunargApiDump,         "VK_LAYER_LUNARG_api_dump" }
-};
-
-static const unordered_map<VulkanExtensions, pair<const char*, bool>> extensionInfo = 
-{
-	// --- Surface Support ---
-
-	{ VulkanExtensions::VE_Surface,                  { "VK_KHR_surface", false } },
-	{ VulkanExtensions::VE_Win32Surface,             { "VK_KHR_win32_surface", false } },
-	{ VulkanExtensions::VE_XcbSurface,               { "VK_KHR_xcb_surface", false } },
-	{ VulkanExtensions::VE_XlibSurface,              { "VK_KHR_xlib_surface", false } },
-	{ VulkanExtensions::VE_ExtHeadlessSurface,       { "VK_EXT_headless_surface", false } },
-
-	// --- Presentation & Display ---
-
-	{ VulkanExtensions::VE_KhrSwapchain,             { "VK_KHR_swapchain", true } },
-	{ VulkanExtensions::VE_KhrDisplay,               { "VK_KHR_display", true } },
-	{ VulkanExtensions::VE_KhrDisplaySwapchain,      { "VK_KHR_display_swapchain", true } },
-
-	// --- Ray Tracing ---
-	{ VulkanExtensions::VE_KhrAccelerationStructure, { "VK_KHR_acceleration_structure", true } },
-	{ VulkanExtensions::VE_KhrRayTracingPipeline,    { "VK_KHR_ray_tracing_pipeline", true } },
-	{ VulkanExtensions::VE_KhrRayQuery,              { "VK_KHR_ray_query", true } },
-	{ VulkanExtensions::VE_KhrDeferredHostOperations,{ "VK_KHR_deferred_host_operations", true } },
-	{ VulkanExtensions::VE_KhrBufferDeviceAddress,   { "VK_KHR_buffer_device_address", true } },
-
-	// --- Shader Features ---
-	{ VulkanExtensions::VE_KhrShaderAtomicInt64,     { "VK_KHR_shader_atomic_int64", true } },
-	{ VulkanExtensions::VE_KhrShaderSubgroupExtendedTypes, { "VK_KHR_shader_subgroup_extended_types", true } },
-	{ VulkanExtensions::VE_KhrShaderTerminateInvocation,   { "VK_KHR_shader_terminate_invocation", true } },
-	{ VulkanExtensions::VE_KhrShaderClock,           { "VK_KHR_shader_clock", true } },
-
-	// --- Debugging & Validation ---
-	{ VulkanExtensions::VE_DebugUtils,               { "VK_EXT_debug_utils", false } },
-	{ VulkanExtensions::VE_ExtDebugReport,           { "VK_EXT_debug_report", false } },
-	{ VulkanExtensions::VE_ExtValidationFeatures,    { "VK_EXT_validation_features", false } },
-	{ VulkanExtensions::VE_ExtDebugMarker,           { "VK_EXT_debug_marker", true } },
-	{ VulkanExtensions::VE_ExtPipelineCreationFeedback, { "VK_EXT_pipeline_creation_feedback", true } },
-	{ VulkanExtensions::VE_ExtToolingInfo,           { "VK_EXT_tooling_info", false } },
-
-	// --- Utility & Maintenance ---
-	{ VulkanExtensions::VE_KhrMaintenance1,          { "VK_KHR_maintenance1", true } },
-	{ VulkanExtensions::VE_KhrMaintenance2,          { "VK_KHR_maintenance2", true } },
-	{ VulkanExtensions::VE_KhrMaintenance3,          { "VK_KHR_maintenance3", true } },
-	{ VulkanExtensions::VE_KhrBindMemory2,           { "VK_KHR_bind_memory2", true } },
-	{ VulkanExtensions::VE_KhrDedicatedAllocation,   { "VK_KHR_dedicated_allocation", true } },
-	{ VulkanExtensions::VE_ExtTransformFeedback,     { "VK_EXT_transform_feedback", true } },
-};
 
 namespace KalaWindow::Graphics
 {
@@ -208,12 +151,62 @@ namespace KalaWindow::Graphics
 		return false;
 	}
 
-	bool Renderer_Vulkan::EnableExtension(VulkanExtensions ext)
+	bool Renderer_Vulkan::EnableInstanceExtension(VulkanInstanceExtensions ext)
 	{
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			ForceCloseMsg(ForceCloseType::FC_VO, "enable extension");
+			ForceCloseMsg(ForceCloseType::FC_VO, "enable instance extension");
+			return false;
+		}
+
+		const char* name = ToString(ext);
+		if (!name)
+		{
+			LOG_ERROR("Can not enable instance extension (unknown enum value)");
+			return false;
+		}
+
+		if (find(
+			enabledInstanceExtensions.begin(),
+			enabledInstanceExtensions.end(),
+			ext) != enabledInstanceExtensions.end())
+		{
+			LOG_ERROR("Can not enable instance extension '" << name << "' because it is already enabled!");
+			return false;
+		}
+
+		uint32_t count = 0;
+		vkEnumerateInstanceExtensionProperties(
+			nullptr,
+			&count,
+			nullptr);
+		vector<VkExtensionProperties> exts(count);
+		vkEnumerateInstanceExtensionProperties(
+			nullptr,
+			&count,
+			exts.data());
+
+		for (const auto& e : exts)
+		{
+			if (strcmp(e.extensionName, name) == 0)
+			{
+				enabledInstanceExtensions.push_back(ext);
+				LOG_SUCCESS("Enabled instance extension '" << string(name) << "'!");
+				return true;
+			}
+		}
+
+		LOG_ERROR("Instance extension '" << name << "' not supported on this system!");
+		return false;
+	}
+
+	bool Renderer_Vulkan::EnableDeviceExtension(VulkanDeviceExtensions ext)
+	{
+		if (!isVolkInitialized
+			&& !InitVolk())
+		{
+			ForceCloseMsg(ForceCloseType::FC_VO, "enable device extension");
 			return false;
 		}
 
@@ -225,11 +218,11 @@ namespace KalaWindow::Graphics
 		}
 
 		if (find(
-			enabledExtensions.begin(),
-			enabledExtensions.end(),
-			ext) != enabledExtensions.end())
+			enabledDeviceExtensions.begin(),
+			enabledDeviceExtensions.end(),
+			ext) != enabledDeviceExtensions.end())
 		{
-			LOG_ERROR("Can not enable extension '" << name << "' because it is already enabled!");
+			LOG_ERROR("Can not enable device extension '" << name << "' because it is already enabled!");
 			return false;
 		}
 		if (find(
@@ -237,42 +230,13 @@ namespace KalaWindow::Graphics
 			delayedExt.end(),
 			ext) != delayedExt.end())
 		{
-			LOG_ERROR("Can not enable extension '" << name << "' because it is already assigned as a delayed extension!");
+			LOG_ERROR("Can not enable device extension '" << name << "' because it is already assigned as a delayed extension!");
 			return false;
 		}
 
-		if (IsExtensionInstance(ext))
-		{
-			uint32_t count = 0;
-			vkEnumerateInstanceExtensionProperties(
-				nullptr,
-				&count,
-				nullptr);
-			vector<VkExtensionProperties> exts(count);
-			vkEnumerateInstanceExtensionProperties(
-				nullptr,
-				&count,
-				exts.data());
-
-			for (const auto& e : exts)
-			{
-				if (strcmp(e.extensionName, name) == 0)
-				{
-					enabledExtensions.push_back(ext);
-					LOG_SUCCESS("Enabled extension '" << string(name) << "'!");
-					return true;
-				}
-			}
-
-			LOG_ERROR("Instance extension '" << name << "' not supported on this system!");
-			return false;
-		}
-		else
-		{
-			delayedExt.push_back(ext);
-			LOG_SUCCESS("Queued device extension '" << name << "' for delayed enable");
-			return true;
-		}
+		delayedExt.push_back(ext);
+		LOG_SUCCESS("Queued device extension '" << name << "' for delayed enable");
+		return true;
 	}
 
 	bool Renderer_Vulkan::Initialize(uint32_t max_frames)
@@ -302,10 +266,10 @@ namespace KalaWindow::Graphics
 		}
 
 		vector<const char*> instanceExtensions{};
-		for (const auto& extension : enabledExtensions)
+		for (const auto& extension : enabledInstanceExtensions)
 		{
 			const char* name = ToString(extension);
-			if (IsExtensionInstance(extension)) instanceExtensions.push_back(name);
+			instanceExtensions.push_back(name);
 		}
 
 		VkApplicationInfo appInfo{};
@@ -1389,7 +1353,8 @@ namespace KalaWindow::Graphics
 		}
 
 		enabledLayers.clear();
-		enabledExtensions.clear();
+		enabledInstanceExtensions.clear();
+		enabledDeviceExtensions.clear();
 	}
 }
 
@@ -1441,20 +1406,20 @@ void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
 
 static const char* ToString(VulkanLayers layer)
 {
-	auto it = layerInfo.find(layer);
-	return it != layerInfo.end() ? it->second : nullptr;
+	auto it = vulkanLayerInfo.find(layer);
+	return it != vulkanLayerInfo.end() ? it->second : nullptr;
 }
 
-static const char* ToString(VulkanExtensions ext)
+static const char* ToString(VulkanInstanceExtensions ext)
 {
-	auto it = extensionInfo.find(ext);
-	return it != extensionInfo.end() ? it->second.first : nullptr;
+	auto it = vulkanInstanceExtensionsInfo.find(ext);
+	return it != vulkanInstanceExtensionsInfo.end() ? it->second : nullptr;
 }
 
-static bool IsExtensionInstance(VulkanExtensions ext)
+static const char* ToString(VulkanDeviceExtensions ext)
 {
-	auto it = extensionInfo.find(ext);
-	return it != extensionInfo.end() ? !it->second.second : false;
+	auto it = vulkanDeviceExtensionsInfo.find(ext);
+	return it != vulkanDeviceExtensionsInfo.end() ? it->second : nullptr;
 }
 
 static int RatePhysicalDevice(
