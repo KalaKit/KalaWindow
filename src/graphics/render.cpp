@@ -3,6 +3,8 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+#define KALAKIT_MODULE "RENDER"
+
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/input.hpp"
@@ -26,6 +28,7 @@ using KalaWindow::Core::Input;
 using std::exit;
 using std::terminate;
 using std::abort;
+using std::exception;
 
 namespace KalaWindow::Graphics
 {
@@ -38,8 +41,21 @@ namespace KalaWindow::Graphics
 		return true;
 	}
 
-	void Render::Shutdown(ShutdownState state)
+	void Render::Shutdown(
+		ShutdownState state,
+		bool useWindowShutdown,
+		bool userEarlyShutdown,
+		function<void()> userShutdown)
 	{
+		try
+		{
+			if (userEarlyShutdown && userShutdown) userShutdown();
+		}
+		catch (const exception& e)
+		{
+			LOG_ERROR("User-provided shutdown condition failed! Reason: " << e.what());
+		}
+
 		for (const auto& window : Window::windows)
 		{
 			Window* winPtr = window.get();
@@ -50,21 +66,37 @@ namespace KalaWindow::Graphics
 		Renderer_Vulkan::Shutdown();
 #endif //KALAWINDOW_SUPPORT_VULKAN
 
+		try
+		{
+			if (!userEarlyShutdown && userShutdown) userShutdown();
+		}
+		catch (const exception& e)
+		{
+			LOG_ERROR("User-provided shutdown condition failed! Reason: " << e.what());
+		}
+
 #ifdef _WIN32
 		timeEndPeriod(1);
 #endif //_WIN32
 
-		switch (state)
+		LOG_SUCCESS(
+			"KalaWindow shutting down with state = " 
+			<< static_cast<int>(state));
+
+		if (useWindowShutdown)
 		{
-		case ShutdownState::SHUTDOWN_CLEAN:
-			exit(0);
-			break;
-		case ShutdownState::SHUTDOWN_FAILURE:
-			terminate();
-			break;
-		case ShutdownState::SHUTDOWN_CRITICAL:
-			abort();
-			break;
+			switch (state)
+			{
+			case ShutdownState::SHUTDOWN_CLEAN:
+				exit(0);
+				break;
+			case ShutdownState::SHUTDOWN_FAILURE:
+				terminate();
+				break;
+			case ShutdownState::SHUTDOWN_CRITICAL:
+				abort();
+				break;
+			}
 		}
 	}
 }

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <functional>
 
 #include "core/platform.hpp"
 #include "core/enums.hpp"
@@ -15,6 +16,7 @@ namespace KalaWindow::Graphics
 {
 	using std::string;
 	using std::vector;
+	using std::function;
 
 	enum class ShutdownState
 	{
@@ -30,9 +32,29 @@ namespace KalaWindow::Graphics
 
 		static bool Initialize();
 
-		//The core shutdown function, call this
-		//to trigger an immediate shutdown.
-		//Turn emergencyShutdown true only if you have a known crash location.
-		static void Shutdown(ShutdownState state);
+		/// <summary>
+		/// Handles the shutdown conditions of KalaWindow.
+		/// </summary>
+		/// <param name="state">
+		///		Targets either regular exit, terminate or abort
+		///		based on ShutdownState enum.
+		/// </param>
+		/// <param name="useWindowShutdown">
+		///		If false, then KalaWindow ShutdownState and its actions are ignored
+		///		and user must provide their own setup.
+		/// </param>
+		/// <param name="userEarlyShutdown">
+		///		If true, then user-provided shutdown function userShutdown
+		///		is called before the windows and the renderer are destroyed,
+		///		otherwise userShutdown is called after them.
+		/// </param>
+		/// <param name="userShutdown">
+		///		The function user can optionally pass to KalaWindow shutdown procedure.
+		/// </param>
+		static void Shutdown(
+			ShutdownState state,
+			bool useWindowShutdown = true,
+			bool userEarlyShutdown = false,
+			function<void()> userShutdown = nullptr);
 	};
 }
