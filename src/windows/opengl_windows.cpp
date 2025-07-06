@@ -14,8 +14,37 @@
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_loader.hpp"
+#include "graphics/render.hpp"
+#include "graphics/window.hpp"
+#include "core/enums.hpp"
+
+using KalaWindow::Graphics::Render;
+using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Graphics::Window;
+using KalaWindow::PopupAction;
+using KalaWindow::PopupType;
+using KalaWindow::PopupResult;
 
 using std::string;
+
+static void ForceClose(
+	const string& title,
+	const string& reason,
+	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE)
+{
+	LOG_ERROR(reason);
+
+	Window* mainWindow = Window::windows.front().get();
+	if (mainWindow->CreatePopup(
+		title,
+		reason,
+		PopupAction::POPUP_ACTION_OK,
+		PopupType::POPUP_TYPE_ERROR)
+		== PopupResult::POPUP_RESULT_OK)
+	{
+		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+	}
+}
 
 namespace KalaWindow::Graphics
 {
@@ -50,18 +79,9 @@ namespace KalaWindow::Graphics
 		{
 			LOG_ERROR("ChoosePixelFormat failed!");
 
-			string title = "OpenGL error detected!";
-			string message = "ChoosePixelFormat failed!";
-
-			if (targetWindow->CreatePopup(
-				title,
-				message,
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_ERROR)
-				== PopupResult::POPUP_RESULT_OK)
-			{
-				Render::Shutdown();
-			}
+			ForceClose(
+				"OpenGL error",
+				"[Initialize] ChoosePixelFormat failed!");
 
 			return false;
 		}
@@ -71,18 +91,9 @@ namespace KalaWindow::Graphics
 		{
 			LOG_ERROR("SetPixelFormat failed!");
 
-			string title = "OpenGL error detected!";
-			string message = "SetPixelFormat failed!";
-
-			if (targetWindow->CreatePopup(
-				title,
-				message,
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_ERROR)
-				== PopupResult::POPUP_RESULT_OK)
-			{
-				Render::Shutdown();
-			}
+			ForceClose(
+				"OpenGL error",
+				"[Initialize] SetPixelFormat failed!");
 
 			return false;
 		}
@@ -94,18 +105,9 @@ namespace KalaWindow::Graphics
 		{
 			LOG_ERROR("DescribePixelFormat failed!");
 
-			string title = "OpenGL error detected!";
-			string message = "DescribePixelFormat failed!";
-
-			if (targetWindow->CreatePopup(
-				title,
-				message,
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_ERROR)
-				== PopupResult::POPUP_RESULT_OK)
-			{
-				Render::Shutdown();
-			}
+			ForceClose(
+				"OpenGL error",
+				"[Initialize] DescribePixelFormat failed!");
 
 			return false;
 		}
@@ -138,18 +140,9 @@ namespace KalaWindow::Graphics
 		{
 			LOG_ERROR("wglCreateContextAttribsARB is not supported!");
 
-			string title = "OpenGL error detected!";
-			string message = "wglCreateContextAttribsARB is not supported!";
-
-			if (targetWindow->CreatePopup(
-				title,
-				message,
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_ERROR)
-				== PopupResult::POPUP_RESULT_OK)
-			{
-				Render::Shutdown();
-			}
+			ForceClose(
+				"OpenGL error",
+				"[Initialize] wglCreateContextAttribsARB is not supported!");
 
 			return false;
 		}
@@ -171,18 +164,9 @@ namespace KalaWindow::Graphics
 		{
 			LOG_ERROR("Failed to create OpenGL 3.3 context!");
 
-			string title = "OpenGL error detected!";
-			string message = "Failed to create OpenGL 3.3 context!";
-
-			if (targetWindow->CreatePopup(
-				title,
-				message,
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_ERROR)
-				== PopupResult::POPUP_RESULT_OK)
-			{
-				Render::Shutdown();
-			}
+			ForceClose(
+				"OpenGL error",
+				"[Initialize] Failed to create OpenGL 3.3 context!");
 
 			return false;
 		}
@@ -203,15 +187,9 @@ namespace KalaWindow::Graphics
 			string title = "OpenGL error detected!";
 			string message = "OpenGL 3.3 or higher is required!";
 
-			if (targetWindow->CreatePopup(
-				title,
-				message,
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_ERROR)
-				== PopupResult::POPUP_RESULT_OK)
-			{
-				Render::Shutdown();
-			}
+			ForceClose(
+				"OpenGL error",
+				"[Initialize] OpenGL 3.3 or higher is required!");
 
 			return false;
 		}

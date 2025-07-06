@@ -24,14 +24,41 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_typedefs.hpp"
 #include "graphics/opengl/opengl_loader.hpp"
+#include "graphics/render.hpp"
+#include "core/enums.hpp"
 
 using KalaWindow::Graphics::OpenGLLoader;
+using KalaWindow::Graphics::Render;
+using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Graphics::Window;
+using KalaWindow::PopupAction;
+using KalaWindow::PopupType;
+using KalaWindow::PopupResult;
 
 using std::string;
 using std::ifstream;
 using std::stringstream;
 
 static bool CheckCompileErrors(GLuint shader, const string& type);
+
+static void ForceClose(
+    const string& title,
+    const string& reason,
+    ShutdownState state = ShutdownState::SHUTDOWN_FAILURE)
+{
+    LOG_ERROR(reason);
+
+    Window* mainWindow = Window::windows.front().get();
+    if (mainWindow->CreatePopup(
+        title,
+        reason,
+        PopupAction::POPUP_ACTION_OK,
+        PopupType::POPUP_TYPE_ERROR)
+        == PopupResult::POPUP_RESULT_OK)
+    {
+        Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+    }
+}
 
 namespace KalaWindow::Graphics
 {
@@ -46,46 +73,19 @@ namespace KalaWindow::Graphics
         ifstream vertexFile(vertexPath);
         if (!vertexFile.is_open())
         {
-            string title = "Shader error detected!";
-            string message = "Vertex shader '" + vertexPath + "' file is invalid! Close program?";
-
-            Window* firstWindow = Window::windows.front().get();
-            if (firstWindow->CreatePopup(
-                title,
-                message,
-                PopupAction::POPUP_ACTION_YES_NO,
-                PopupType::POPUP_TYPE_ERROR)
-                == PopupResult::POPUP_RESULT_YES)
-            {
-                Render::Shutdown();
-            }
-
-            LOG_ERROR("Failed to open vertex shader file: " << vertexPath);
-            isValid = false;
-            ID = 0;
+            ForceClose(
+                "OpenGL error",
+                "[Shader_OpenGL] Failed to open vertex shader file: " + vertexPath);
             return;
         }
 
         ifstream fragmentFile(fragmentPath);
         if (!fragmentFile.is_open())
         {
-            string title = "Shader error detected!";
-            string message = "Fragment shader '" + fragmentPath + "' file is invalid! Close program?";
+            ForceClose(
+                "OpenGL error",
+                "[Shader_OpenGL] Failed to open fragment shader file: " + fragmentPath);
 
-            Window* firstWindow = Window::windows.front().get();
-            if (firstWindow->CreatePopup(
-                title,
-                message,
-                PopupAction::POPUP_ACTION_YES_NO,
-                PopupType::POPUP_TYPE_ERROR)
-                == PopupResult::POPUP_RESULT_YES)
-            {
-                Render::Shutdown();
-            }
-
-            LOG_ERROR("Failed to open fragment shader file: " << fragmentPath);
-            isValid = false;
-            ID = 0;
             return;
         }
 
@@ -113,21 +113,10 @@ namespace KalaWindow::Graphics
         {
             OpenGLLoader::glDeleteShader(vertex);
 
-            string title = "Shader error detected!";
-            string message = "Vertex shader '" + vertexPath + "' failed to compile! Close program?";
+            ForceClose(
+                "OpenGL error",
+                "[Shader_OpenGL] Vertex shader '" + vertexPath + "' failed to compile!");
 
-            Window* firstWindow = Window::windows.front().get();
-            if (firstWindow->CreatePopup(
-                title,
-                message,
-                PopupAction::POPUP_ACTION_YES_NO,
-                PopupType::POPUP_TYPE_ERROR)
-                == PopupResult::POPUP_RESULT_YES)
-            {
-                Render::Shutdown();
-            }
-
-            LOG_ERROR("Vertex shader compilation failed!");
             isValid = false;
             ID = 0;
             return;
@@ -147,24 +136,10 @@ namespace KalaWindow::Graphics
         {
             OpenGLLoader::glDeleteShader(fragment);
 
-            LOG_ERROR("Fragment shader compilation failed!");
+            ForceClose(
+                "OpenGL error",
+                "[Shader_OpenGL] Fragment shader '" + fragmentPath + "' failed to compile!");
 
-            string title = "Shader error detected!";
-            string message = "Fragment shader '" + fragmentPath + "' failed to compile! Close program?";
-
-            Window* firstWindow = Window::windows.front().get();
-            if (firstWindow->CreatePopup(
-                title,
-                message,
-                PopupAction::POPUP_ACTION_YES_NO,
-                PopupType::POPUP_TYPE_ERROR)
-                == PopupResult::POPUP_RESULT_YES)
-            {
-                Render::Shutdown();
-            }
-
-            isValid = false;
-            ID = 0;
             return;
         }
 
@@ -195,23 +170,10 @@ namespace KalaWindow::Graphics
                 LOG_ERROR("Shader link failed:\n" << log.data());
             }
 
-            string title = "Shader error detected!";
-            string message = "Failed to link vertex shader '" + vertexPath + "' and fragment shader '" + fragmentPath + "' to program! Close program?";
+            ForceClose(
+                "OpenGL error",
+                "[Shader_OpenGL] Failed to link vertex shader '" + vertexPath + "' and fragment shader '" + fragmentPath + "' to program!");
 
-            Window* firstWindow = Window::windows.front().get();
-            if (firstWindow->CreatePopup(
-                title,
-                message,
-                PopupAction::POPUP_ACTION_YES_NO,
-                PopupType::POPUP_TYPE_ERROR)
-                == PopupResult::POPUP_RESULT_YES)
-            {
-                Render::Shutdown();
-            }
-
-            LOG_ERROR("Shader program linking failed!");
-            isValid = false;
-            ID = 0;
             return;
         }
 
@@ -228,17 +190,22 @@ namespace KalaWindow::Graphics
             OpenGLLoader::glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &logLength);
             if (logLength > 0)
             {
-                std::vector<GLchar> log(logLength);
+                vector<GLchar> log(logLength);
                 OpenGLLoader::glGetProgramInfoLog(ID, logLength, nullptr, log.data());
-                LOG_ERROR("Shader::Use() failed! Shader program validation failed:\n" << log.data());
-                isValid = false;
-                ID = 0;
+                
+                string logStr(log.begin(), log.end());
+
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Shader program validation failed:\n" + logStr);
+
                 return;
             }
 
-            LOG_ERROR("Shader::Use() failed! Shader program validation failed!");
-            isValid = false;
-            ID = 0;
+            ForceClose(
+                "OpenGL error",
+                "[Shader_OpenGL] Shader program validation failed!");
+
             return;
         }
 

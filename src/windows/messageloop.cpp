@@ -37,6 +37,7 @@ using KalaWindow::DebugType;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::MouseButton;
+using KalaWindow::Graphics::ShutdownState;
 
 using std::string;
 using std::vector;
@@ -497,7 +498,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	//user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
-		Render::Shutdown();
+		Render::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		return true;
 
 		//window was destroyed - tell the system to exit

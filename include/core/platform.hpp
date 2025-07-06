@@ -19,7 +19,7 @@ using std::is_pointer_v;
 #endif
 
 //log types
-#ifdef KALAWINDOW_DEBUG
+#ifdef _DEBUG
 #define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
 #else
 #define LOG_DEBUG(msg)

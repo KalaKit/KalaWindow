@@ -23,7 +23,9 @@ using KalaWindow::Graphics::Renderer_Vulkan;
 
 using KalaWindow::Core::Input;
 
+using std::exit;
 using std::terminate;
+using std::abort;
 
 namespace KalaWindow::Graphics
 {
@@ -36,7 +38,7 @@ namespace KalaWindow::Graphics
 		return true;
 	}
 
-	void Render::Shutdown()
+	void Render::Shutdown(ShutdownState state)
 	{
 		for (const auto& window : Window::windows)
 		{
@@ -52,6 +54,17 @@ namespace KalaWindow::Graphics
 		timeEndPeriod(1);
 #endif //_WIN32
 
-		terminate();
+		switch (state)
+		{
+		case ShutdownState::SHUTDOWN_CLEAN:
+			exit(0);
+			break;
+		case ShutdownState::SHUTDOWN_FAILURE:
+			terminate();
+			break;
+		case ShutdownState::SHUTDOWN_CRITICAL:
+			abort();
+			break;
+		}
 	}
 }

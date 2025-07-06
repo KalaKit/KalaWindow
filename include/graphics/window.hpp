@@ -34,9 +34,9 @@ namespace KalaWindow::Graphics
 
 		//Swapchain image metadata
 
-		uintptr_t swapchainImageFormat;  //VkFormat
-		uintptr_t swapchainExtentWidth;  //VkExtent2D
-		uintptr_t swapchainExtentHeight; //VkExtent2D
+		uint32_t swapchainImageFormat;  //VkFormat
+		uint32_t swapchainExtentWidth;  //VkExtent2D
+		uint32_t swapchainExtentHeight; //VkExtent2D
 
 		//Swapchain image views and framebuffers
 

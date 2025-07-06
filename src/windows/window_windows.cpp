@@ -75,7 +75,7 @@ namespace KalaWindow::Graphics
 				PopupType::POPUP_TYPE_ERROR)
 				== PopupResult::POPUP_RESULT_OK)
 			{
-				Render::Shutdown();
+				Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 			}
 
 			return nullptr;
@@ -126,7 +126,7 @@ namespace KalaWindow::Graphics
 				PopupType::POPUP_TYPE_ERROR)
 				== PopupResult::POPUP_RESULT_OK)
 			{
-				Render::Shutdown();
+				Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 			}
 
 			return nullptr;

@@ -42,6 +42,7 @@ using KalaWindow::PopupResult;
 using KalaWindow::Graphics::vulkanLayerInfo;
 using KalaWindow::Graphics::vulkanInstanceExtensionsInfo;
 using KalaWindow::Graphics::vulkanDeviceExtensionsInfo;
+using KalaWindow::Graphics::ShutdownState;
 
 using std::string;
 using std::to_string;
@@ -53,17 +54,73 @@ using std::uintptr_t;
 enum class ForceCloseType
 {
 	FC_VO, //is volk initialized
-	FC_VU, //is vulkan initialized
-	FC_D,  //is device assigned
-	FC_GQ  //is graphics queue assigned
+	FC_VU  //is vulkan initialized
 };
 
 static void ForceClose(
 	const string& title, 
-	const string& reason);
+	const string& reason,
+	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE);
 static void ForceCloseMsg(
 	ForceCloseType ct,
 	const string& targetMsg);
+
+static bool IsValidHandle(
+	uintptr_t handle,
+	const string& variableName,
+	const string& originFunction)
+{
+	if (handle == 0
+		|| handle == UINTPTR_MAX)
+	{
+		ForceClose(
+			"Vulkan critical error",
+			"[ " + originFunction + " ]"
+			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!",
+			ShutdownState::SHUTDOWN_CRITICAL);
+		return false;
+	}
+	return true;
+}
+
+template<typename T>
+static bool IsValidIndex(
+	uint32_t index,
+	const vector<T>& targetVector,
+	const string& variableName,
+	const string& originFunction)
+{
+	if (targetVector.empty())
+	{
+		ForceClose(
+			"Vulkan critical error",
+			"[ " + originFunction + " ]"
+			"\nVector for variable '" + variableName + "' is empty!",
+			ShutdownState::SHUTDOWN_CRITICAL);
+		return false;
+	}
+
+	if (index == UINT32_MAX)
+	{
+		ForceClose(
+			"Vulkan critical error",
+			"[ " + originFunction + " ]"
+			"\nVariable '" + variableName + "' value '" + to_string(index) + "' is invalid!",
+			ShutdownState::SHUTDOWN_CRITICAL);
+		return false;
+	}
+	if (index >= targetVector.size())
+	{
+		ForceClose(
+			"Vulkan critical error",
+			"[ " + originFunction + " ]"
+			"\nVariable '" + variableName + "' value '" + to_string(index) + "' is out of range!"
+			" Size was '" + to_string(targetVector.size()) + "'.",
+			ShutdownState::SHUTDOWN_CRITICAL);
+		return false;
+	}
+	return true;
+}
 
 static const char* ToString(VulkanLayers layer);
 static const char* ToString(VulkanInstanceExtensions ext);
@@ -494,9 +551,11 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (device == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"CreateCommandPool"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "create command pool");
 			return false;
 		}
 
@@ -531,14 +590,39 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"CreateCommandBuffer"))
+		{
+			return false;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
+
+		if (!IsValidIndex(
+			0,
+			vData.images,
+			"vData images",
+			"CreateCommandBuffer"))
+		{
+			return false;
+		}
+
+		if (!IsValidHandle(
+			vData.commandPool,
+			"commandPool",
+			"CreateCommandBuffer"))
+		{
+			return false;
+		}
 
 		vData.commandBuffers.resize(vData.images.size());
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = reinterpret_cast<VkCommandPool>(vData.commandPool);
+		allocInfo.commandPool = ToVar<VkCommandPool>(vData.commandPool);
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = static_cast<uint32_t>(vData.commandBuffers.size());
 
@@ -554,7 +638,15 @@ namespace KalaWindow::Graphics
 
 		for (uint32_t i = 0; i < allocInfo.commandBufferCount; ++i)
 		{
-			vData.commandBuffers[i] = reinterpret_cast<uintptr_t>(tempCB[i]);
+			uintptr_t handle = FromVar<VkCommandBuffer>(tempCB[i]);
+			if (!IsValidHandle(
+				handle, 
+				"commandBuffer[" + to_string(i) + "]", 
+				"CreateCommandBuffer"))
+			{
+				return false;
+			}
+			vData.commandBuffers[i] = handle;
  		}
 
 		return true;
@@ -568,18 +660,31 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (device == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"CreateSyncObjects"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "create sync objects");
 			return false;
 		}
 
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
+		if (!IsValidIndex(
+			0,
+			vData.images,
+			"vData images",
+			"CreateSyncObjects"))
+		{
+			return false;
+		}
+
 		vData.imageAvailableSemaphores.resize(MAX_FRAMES);
-		vData.renderFinishedSemaphores.resize(MAX_FRAMES);
 		vData.inFlightFences.resize(MAX_FRAMES);
+
+		size_t imgCount = vData.images.size();
+		vData.renderFinishedSemaphores.resize(imgCount);
 
 		VkSemaphoreCreateInfo semInfo{ VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO };
 		VkFenceCreateInfo fenceInfo{ VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
@@ -597,12 +702,6 @@ namespace KalaWindow::Graphics
 					nullptr,
 					&realAvailableSemaphore)
 				!= VK_SUCCESS
-				|| vkCreateSemaphore(
-					device,
-					&semInfo,
-					nullptr,
-					&realFinishedSemaphore)
-				!= VK_SUCCESS
 				|| vkCreateFence(
 					device,
 					&fenceInfo,
@@ -610,19 +709,32 @@ namespace KalaWindow::Graphics
 					&realFence)
 				!= VK_SUCCESS)
 			{
-				LOG_ERROR("Failed to create sync objects for frame " << i);
-
-				vData.imageAvailableSemaphores[i] = FromVar<VkSemaphore>(realAvailableSemaphore);
-				vData.renderFinishedSemaphores[i] = FromVar<VkSemaphore>(realFinishedSemaphore);
-				vData.inFlightFences[i] = FromVar<VkFence>(realFence);
+				LOG_ERROR("Failed to create per-frame sync objects for frame " << i);
 				DestroySyncObjects(window);
-
 				return false;
 			}
 
-			vData.imageAvailableSemaphores[i] = FromVar<VkSemaphore>(realAvailableSemaphore);
-			vData.renderFinishedSemaphores[i] = FromVar<VkSemaphore>(realFinishedSemaphore);
-			vData.inFlightFences[i] = FromVar<VkFence>(realFence);
+			vData.imageAvailableSemaphores[i] = 
+				FromVar<VkSemaphore>(realAvailableSemaphore);
+			vData.inFlightFences[i] = 
+				FromVar<VkFence>(realFence);
+		}
+
+		for (size_t i = 0; i < imgCount; ++i)
+		{
+			VkSemaphore realFinishedSemaphore = VK_NULL_HANDLE;
+			if (vkCreateSemaphore(
+				device,
+				&semInfo,
+				nullptr,
+				&realFinishedSemaphore) != VK_SUCCESS)
+			{
+				LOG_ERROR("Failed to create render-finished semaphore for image" << i);
+				DestroySyncObjects(window);
+				return false;
+			}
+			vData.renderFinishedSemaphores[i] = 
+				FromVar<VkSemaphore>(realFinishedSemaphore);
 		}
 
 		return true;
@@ -636,31 +748,31 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (device == VK_NULL_HANDLE)
-		{
-			ForceCloseMsg(ForceCloseType::FC_D, "destroy sync objects");
-			return;
-		}
-
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
-		for (auto s : vData.imageAvailableSemaphores)
+		if (device)
 		{
-			vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
-		}
-		for (auto s : vData.renderFinishedSemaphores)
-		{
-			vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
-		}
-		for (auto f : vData.inFlightFences)
-		{
-			vkDestroyFence(device, ToVar<VkFence>(f), nullptr);
+			vkDeviceWaitIdle(device);
+
+			for (auto s : vData.imageAvailableSemaphores)
+			{
+				vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
+			}
+			for (auto s : vData.renderFinishedSemaphores)
+			{
+				vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
+			}
+			for (auto f : vData.inFlightFences)
+			{
+				vkDestroyFence(device, ToVar<VkFence>(f), nullptr);
+			}
 		}
 
 		vData.imageAvailableSemaphores.clear();
 		vData.renderFinishedSemaphores.clear();
 		vData.inFlightFences.clear();
+		vData.imagesInFlight.clear();
 	}
 
 	//
@@ -677,16 +789,33 @@ namespace KalaWindow::Graphics
 			return FrameResult::VK_FRAME_ERROR;
 		}
 
-		if (device == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"BeginFrame"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "begin frame");
 			return FrameResult::VK_FRAME_ERROR;
 		}
 
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
+		{
+			VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
 
-		uint32_t nextImage = 0;
+			VkResult waitResult = vkWaitForFences(
+				device,
+				1,
+				&fence,
+				VK_TRUE,
+				UINT64_MAX);
+
+			vkResetFences(
+				device,
+				1,
+				&fence);
+		}
+
+		uint32_t nextImage = UINT32_MAX;
 
 		VkSemaphore sem = 
 			ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame]);
@@ -701,7 +830,33 @@ namespace KalaWindow::Graphics
 
 		if (result == VK_SUCCESS)
 		{
+			if (!IsValidIndex(
+				nextImage,
+				vData.images,
+				"nextImage",
+				"BeginFrame"))
+			{
+				return FrameResult::VK_FRAME_ERROR;
+			}
+
 			imageIndex = nextImage;
+
+			if (vData.imagesInFlight[imageIndex] != vData.inFlightFences[currentFrame])
+			{
+				vData.imagesInFlight[imageIndex] = vData.inFlightFences[currentFrame];
+			}
+
+			VkFence inFlight = ToVar<VkFence>(vData.imagesInFlight[imageIndex]);
+			if (inFlight != VK_NULL_HANDLE
+				&& inFlight != ToVar<VkFence>(vData.inFlightFences[currentFrame]))
+			{
+				vkWaitForFences(
+					device,
+					1,
+					&inFlight,
+					VK_TRUE,
+					UINT64_MAX);
+			}
 
 			return FrameResult::VK_FRAME_OK;
 		}
@@ -726,9 +881,11 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (device == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"RecordCommandBuffer"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "record command buffer");
 			return false;
 		}
 
@@ -736,27 +893,26 @@ namespace KalaWindow::Graphics
 		Window_VulkanData& vData = winData.vulkanData;
 
 		VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
-		vkWaitForFences(
-			device,
-			1,
-			&fence,
-			VK_TRUE,
-			UINT64_MAX);
 
-		if (vkResetFences(
-			device,
-			1,
-			&fence) != VK_SUCCESS)
+		if (!IsValidIndex(
+			imageIndex,
+			vData.commandBuffers,
+			"imageIndex",
+			"RecordCommandBuffer"))
 		{
-			LOG_ERROR("Failed to reset fence when recording command buffer!");
 			return false;
 		}
-
 		VkCommandBuffer cmd = ToVar<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS)
+		{
+			LOG_ERROR("Failed to reset command buffer before recording!");
+			return false;
+		}
 
 		if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
 		{
@@ -804,15 +960,19 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (device == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"SubmitFrame"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "submit frame");
 			return false;
 		}
 
-		if (graphicsQueue == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkQueue>(graphicsQueue),
+			"graphicsQueue",
+			"SubmitFrame"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_GQ, "submit frame");
 			return false;
 		}
 
@@ -832,12 +992,13 @@ namespace KalaWindow::Graphics
 		submitInfo.pWaitDstStageMask = waitStages;
 
 		submitInfo.commandBufferCount = 1;
+
 		VkCommandBuffer realCB = ToVar<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
 		submitInfo.pCommandBuffers = &realCB;
 
 		VkSemaphore signalSemaphores[] = 
 		{ 
-			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame])
+			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex])
 		};
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
@@ -852,6 +1013,8 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
+		vData.imagesInFlight[imageIndex] = vData.inFlightFences[currentFrame];
+
 		return true;
 	}
 
@@ -865,11 +1028,19 @@ namespace KalaWindow::Graphics
 			return FrameResult::VK_FRAME_ERROR;
 		}
 
+		if (!IsValidHandle(
+			FromVar<VkQueue>(graphicsQueue),
+			"graphicsQueue",
+			"PresentFrame"))
+		{
+			return FrameResult::VK_FRAME_ERROR;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
 		VkSemaphore realFinishedSemaphore = 
-			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame]);
+			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex]);
 		VkSwapchainKHR realSwapchain = 
 			ToVar<VkSwapchainKHR>(vData.swapchain);
 
@@ -905,19 +1076,68 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (device == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"HardReset"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "hard reset");
 			return;
 		}
 
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData& vData = winData.vulkanData;
+
 		vkDeviceWaitIdle(device);
 
+		DestroySyncObjects(window);
 		DestroySwapchain(window);
-		CreateSwapchain(window);
-		CreateRenderPass(window);
-		CreateFramebuffers(window);
-		CreateCommandBuffer(window);
+		vkDestroyCommandPool(device,
+			ToVar<VkCommandPool>(vData.commandPool), nullptr);
+		vData.commandPool = 0;
+
+		if (!CreateSwapchain(window))
+		{
+			ForceClose(
+				"Vulkan error",
+				"Hard reset failed because of CreateSwapchain!");
+			return;
+		}
+
+		if (!CreateRenderPass(window))
+		{
+			ForceClose(
+				"Vulkan error",
+				"Hard reset failed because of CreateRenderPass!");
+			return;
+		}
+		if (!CreateFramebuffers(window))
+		{
+			ForceClose(
+				"Vulkan error",
+				"Hard reset failed because of CreateFramebuffers!");
+			return;
+		}
+		if (!CreateCommandPool(window))
+		{
+			ForceClose(
+				"Vulkan error",
+				"Hard reset failed because of CreateCommandPool!");
+			return;
+		}
+		if (!CreateCommandBuffer(window))
+		{
+			ForceClose(
+				"Vulkan error",
+				"Hard reset failed because of CreateCommandBuffer!");
+			return;
+		}
+		if (!CreateSyncObjects(window))
+		{
+			ForceClose(
+				"Vulkan error",
+				"Hard reset failed because of CreateSyncObjects!");
+			return;
+		}
 	}
 
 	void Renderer_Vulkan::SoftReset(
@@ -930,9 +1150,11 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (graphicsQueue == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkQueue>(graphicsQueue),
+			"graphicsQueue",
+			"SoftReset"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_GQ, "soft reset");
 			return;
 		}
 
@@ -957,7 +1179,7 @@ namespace KalaWindow::Graphics
 			VK_NULL_HANDLE);
 
 		VkSemaphore realFinishedSemaphore =
-			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[currentFrame]);
+			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex]);
 		VkSwapchainKHR realSwapchain =
 			ToVar<VkSwapchainKHR>(vData.swapchain);
 
@@ -989,15 +1211,19 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (device == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"CreateRenderPass"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "create render pass");
 			return false;
 		}
 
-		if (graphicsQueue == VK_NULL_HANDLE)
+		if (!IsValidHandle(
+			FromVar<VkQueue>(graphicsQueue),
+			"graphicsQueue",
+			"CreateRenderPass"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_GQ, "create render pass");
 			return false;
 		}
 
@@ -1065,6 +1291,14 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"CreateFramebuffers"))
+		{
+			return false;
+		}
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -1113,10 +1347,11 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		if (!device
-			|| !physicalDevice)
+		if (!IsValidHandle(
+			FromVar<VkDevice>(device),
+			"device",
+			"CreateSwapchain"))
 		{
-			ForceCloseMsg(ForceCloseType::FC_D, "create swapchain");
 			return false;
 		}
 
@@ -1211,6 +1446,8 @@ namespace KalaWindow::Graphics
 			vData.images[i] = FromVar<VkImage>(tempImages[i]);
 		}
 
+		vData.imagesInFlight.assign(count, FromVar<VkFence>(VK_NULL_HANDLE));
+
 		//create image views
 
 		vData.imageViews.resize(count);
@@ -1257,40 +1494,33 @@ namespace KalaWindow::Graphics
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
-		//destroy image views
-
-		for (auto view : vData.imageViews)
+		if (device)
 		{
-			if (view) vkDestroyImageView(device, ToVar<VkImageView>(view), nullptr);
-		}
+			vkDeviceWaitIdle(device);
 
-		//destroy framebuffers
-
-		for (auto fb : vData.framebuffers)
-		{
-			if (fb) vkDestroyFramebuffer(device, ToVar<VkFramebuffer>(fb), nullptr);
-		}
-
-		//destroy render pass
-
-		if (vData.renderPass)
-		{
-			vkDestroyRenderPass(device, ToVar<VkRenderPass>(vData.renderPass), nullptr);
-			vData.renderPass = NULL;
-		}
-
-		//destroy swapchain itself
-
-		if (vData.swapchain)
-		{
-			vkDestroySwapchainKHR(
-				device,
-				ToVar<VkSwapchainKHR>(vData.swapchain),
-				nullptr);
+			for (auto view : vData.imageViews)
+			{
+				if (view) vkDestroyImageView(device, ToVar<VkImageView>(view), nullptr);
+			}
+			for (auto fb : vData.framebuffers)
+			{
+				if (fb) vkDestroyFramebuffer(device, ToVar<VkFramebuffer>(fb), nullptr);
+			}
+			if (vData.renderPass)
+			{
+				vkDestroyRenderPass(device, ToVar<VkRenderPass>(vData.renderPass), nullptr);
+				vData.renderPass = NULL;
+			}
+			if (vData.swapchain)
+			{
+				vkDestroySwapchainKHR(
+					device,
+					ToVar<VkSwapchainKHR>(vData.swapchain),
+					nullptr);
+			}
 		}
 
 		//reset handles
-
 		vData.swapchain = NULL;
 		vData.images.clear();
 		vData.imageViews.clear();
@@ -1299,6 +1529,8 @@ namespace KalaWindow::Graphics
 
 	void Renderer_Vulkan::DestroyWindowData(Window* window)
 	{
+		if (device) vkDeviceWaitIdle(device);
+
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
@@ -1358,7 +1590,10 @@ namespace KalaWindow::Graphics
 	}
 }
 
-static void ForceClose(const string& title, const string& reason)
+static void ForceClose(
+	const string& title,
+	const string& reason,
+	ShutdownState state)
 {
 	LOG_ERROR(reason);
 
@@ -1370,7 +1605,7 @@ static void ForceClose(const string& title, const string& reason)
 		PopupType::POPUP_TYPE_ERROR)
 		== PopupResult::POPUP_RESULT_OK)
 	{
-		Render::Shutdown();
+		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }
 void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
@@ -1387,20 +1622,6 @@ void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
 		ForceClose(
 			"Vulkan error",
 			"Cannot " + targetMsg + " because Vulkan is not initialized!");
-	}
-
-	else if (fct == ForceCloseType::FC_D)
-	{
-		ForceClose(
-			"Vulkan error",
-			"Cannot " + targetMsg + " because no valid device was assigned!");
-	}
-
-	else if (fct == ForceCloseType::FC_GQ)
-	{
-		ForceClose(
-			"Vulkan error",
-			"Cannot " + targetMsg + " because no graphics queue was assigned!");
 	}
 }
 

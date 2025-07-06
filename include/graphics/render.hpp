@@ -16,6 +16,13 @@ namespace KalaWindow::Graphics
 	using std::string;
 	using std::vector;
 
+	enum class ShutdownState
+	{
+		SHUTDOWN_CLEAN,   //Regular exit (exit)
+		SHUTDOWN_FAILURE, //Problem detected, controlled shutdown (terminate)
+		SHUTDOWN_CRITICAL //Catastrophic/forced shutdown, worst case scenario (abort)
+	};
+
 	class KALAWINDOW_API Render
 	{
 	public:
@@ -23,10 +30,9 @@ namespace KalaWindow::Graphics
 
 		static bool Initialize();
 
-		/// <summary>
-		/// The core shutdown function, call this
-		/// to trigger an immediate shutdown.
-		/// </summary>
-		static void Shutdown();
+		//The core shutdown function, call this
+		//to trigger an immediate shutdown.
+		//Turn emergencyShutdown true only if you have a known crash location.
+		static void Shutdown(ShutdownState state);
 	};
 }
