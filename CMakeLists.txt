@@ -79,6 +79,11 @@ endif()
 # === SHARED LIBRARY (.dll) ===
 add_library(KalaWindow SHARED ${WINDOW_SRC_FILES})
 
+# Enable C++ exception handling semantics for MSVC
+if (MSVC)
+    target_compile_options(KalaWindow PRIVATE /EHsc)
+endif()
+
 # Set output name with renderer suffix and debug postfix
 set_target_properties(KalaWindow PROPERTIES
     OUTPUT_NAME "KalaWindow_${KALAWINDOW_RENDERER}$<$<CONFIG:Debug>:D>"
