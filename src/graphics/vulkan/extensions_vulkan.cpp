@@ -368,14 +368,11 @@ namespace KalaWindow::Graphics
 	//
 
 	VSyncState Window::GetVSyncState() { return vsyncState; }
-	void Window::SetVSyncState(
-		Window* window,
-		VSyncState newVSyncState)
+	void Window::SetVSyncState(VSyncState newVSyncState)
 	{
 		vsyncState = newVSyncState;
 
-		Extensions_Vulkan::DestroySwapchain(window);
-		Extensions_Vulkan::CreateSwapchain(window);
+		Renderer_Vulkan::HardReset(this);
 	}
 }
 

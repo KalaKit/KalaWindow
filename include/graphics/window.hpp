@@ -134,10 +134,7 @@ namespace KalaWindow::Graphics
 		VSyncState GetVSyncState();
 		//Allows to set vsync true or false.
 		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
-		//Window* window is unused in opengl, but required for vulkan.
-		void SetVSyncState(
-			Window* window,
-			VSyncState vsyncState);
+		void SetVSyncState(VSyncState vsyncState);
 
 		kvec2 GetMaxSize() const { return maxSize; }
 		void SetMaxSize(const kvec2& newMaxSize) { maxSize = newMaxSize; }

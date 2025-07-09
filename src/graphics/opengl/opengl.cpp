@@ -65,9 +65,7 @@ namespace KalaWindow::Graphics
 	//
 
 	VSyncState Window::GetVSyncState() { return vsyncState; }
-	void Window::SetVSyncState(
-		Window* window,
-		VSyncState newVSyncState)
+	void Window::SetVSyncState(VSyncState newVSyncState)
 	{
 		vsyncState = newVSyncState;
 
