@@ -7,7 +7,12 @@
 
 #define KALAKIT_MODULE "EXTENSIONS_VULKAN"
 
-#include <vulkan/vulkan.h>
+#ifdef _WIN32
+#define VK_USE_PLATFORM_WIN32_KHR
+#elif __linux__
+#define VK_USE_PLATFORM_XLIB_KHR
+#endif
+#include <Volk/volk.h>
 #ifdef _WIN32
 #include <Windows.h>
 #include <vulkan/vulkan_win32.h>
@@ -26,9 +31,14 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::PopupAction;
 using KalaWindow::PopupType;
 using KalaWindow::PopupResult;
+using KalaWindow::Graphics::VSyncState;
 
 using std::string;
 using std::to_string;
+
+//If off, then all framerate is uncapped.
+//Used in window.hpp
+static VSyncState vsyncState = VSyncState::VSYNC_ON;
 
 enum class ForceCloseType
 {
@@ -86,8 +96,9 @@ namespace KalaWindow::Graphics
 		surfaceInfo.hinstance = windowIns;
 
 		VkSurfaceKHR surface{};
+		VkInstance instance = ToVar<VkInstance>(Renderer_Vulkan::GetInstance());
 		if (vkCreateWin32SurfaceKHR(
-			ToVar<VkInstance>(Renderer_Vulkan::GetInstance()),
+			instance,
 			&surfaceInfo,
 			nullptr,
 			&surface) != VK_SUCCESS)
@@ -106,7 +117,7 @@ namespace KalaWindow::Graphics
 	bool Extensions_Vulkan::CreateSwapchain(Window* window)
 	{
 		if (!Renderer_Vulkan::IsVulkanInitialized()
-			|| !Renderer_Vulkan::GetInstance() == NULL)
+			|| Renderer_Vulkan::GetInstance() == NULL)
 		{
 			ForceCloseMsg(ForceCloseType::FC_VU, "create swapchain");
 			return false;
@@ -156,7 +167,62 @@ namespace KalaWindow::Graphics
 
 		//present mode
 
+		VkPhysicalDevice pd = ToVar<VkPhysicalDevice>(Renderer_Vulkan::GetPhysicalDevice());
+		VkSurfaceKHR surface = ToVar<VkSurfaceKHR>(vData.surface);
+		uint32_t presentCount{};
+		
+		if (vkGetPhysicalDeviceSurfacePresentModesKHR(
+			pd,
+			surface,
+			&presentCount,
+			nullptr) != VK_SUCCESS)
+		{
+			LOG_ERROR("Failed to query Vulkan present mode count!");
+			return false;
+		}
+
+		vector<VkPresentModeKHR> modes(presentCount);
+		if (vkGetPhysicalDeviceSurfacePresentModesKHR(
+			pd,
+			surface,
+			&presentCount,
+			modes.data()) != VK_SUCCESS)
+		{
+			LOG_ERROR("Failed to query Vulkan present modes!");
+			return false;
+		}
+
+		auto SupportsMode = [&](VkPresentModeKHR target) -> bool
+		{
+			for (auto mode : modes)
+			{
+				if (mode == target) return true;
+			}
+			return false;
+		};
+
 		VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+		switch (vsyncState)
+		{
+		case VSyncState::VSYNC_ON:
+		default:
+			presentMode = VK_PRESENT_MODE_FIFO_KHR;
+			break;
+		case VSyncState::VSYNC_OFF:
+			if (SupportsMode(VK_PRESENT_MODE_IMMEDIATE_KHR))
+			{
+				presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+			}
+			else LOG_ERROR("Cannot set vsync to 'OFF' because it is not supported on this device! Falling back to 'ON'.");
+			break;
+		case VSyncState::VSYNC_TRIPLE_BUFFERING:
+			if (SupportsMode(VK_PRESENT_MODE_MAILBOX_KHR))
+			{
+				presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+			}
+			else LOG_ERROR("Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on this device! Falling back to 'ON'.");
+			break;
+		}
 
 		//create swapchain
 
@@ -194,7 +260,7 @@ namespace KalaWindow::Graphics
 
 		//get swapchain images
 
-		uint32_t count = 0;
+		uint32_t count{};
 		vkGetSwapchainImagesKHR(
 			dev,
 			ToVar<VkSwapchainKHR>(vData.swapchain),
@@ -295,6 +361,21 @@ namespace KalaWindow::Graphics
 		vData.images.clear();
 		vData.imageViews.clear();
 		vData.framebuffers.clear();
+	}
+
+	//
+	// EXTERNAL
+	//
+
+	VSyncState Window::GetVSyncState() { return vsyncState; }
+	void Window::SetVSyncState(
+		Window* window,
+		VSyncState newVSyncState)
+	{
+		vsyncState = newVSyncState;
+
+		Extensions_Vulkan::DestroySwapchain(window);
+		Extensions_Vulkan::CreateSwapchain(window);
 	}
 }
 

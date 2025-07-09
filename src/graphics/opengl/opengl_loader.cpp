@@ -233,9 +233,8 @@ namespace KalaWindow::Graphics
 		{ OpenGLFunction::OPENGL_GENRENDERBUFFERS, "glGenRenderbuffers", reinterpret_cast<void**>(&glGenRenderbuffers) },
 		{ OpenGLFunction::OPENGL_BINDRENDERBUFFER, "glBindRenderbuffer", reinterpret_cast<void**>(&glBindRenderbuffer) },
 		{ OpenGLFunction::OPENGL_RENDERBUFFERSTORAGE, "glRenderbufferStorage", reinterpret_cast<void**>(&glRenderbufferStorage) },
-	{ OpenGLFunction::OPENGL_FRAMEBUFFERRENDERBUFFER, "glFramebufferRenderbuffer", reinterpret_cast<void**>(&glFramebufferRenderbuffer) },
+		{ OpenGLFunction::OPENGL_FRAMEBUFFERRENDERBUFFER, "glFramebufferRenderbuffer", reinterpret_cast<void**>(&glFramebufferRenderbuffer) },
 
-	
 		//frame and render state
 		
 		{ OpenGLFunction::OPENGL_VIEWPORT, "glViewport", reinterpret_cast<void**>(&glViewport) },

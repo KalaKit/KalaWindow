@@ -222,6 +222,7 @@ typedef BOOL(WINAPI* PFNWGLCHOOSEPIXELFORMATARBPROC)(
 	UINT,
 	int*,
 	UINT*);
+typedef BOOL(WINAPI* PFNWGLSWAPINTERVALEXTPROC)(int interval);
 #endif
 
 //geometry

@@ -19,6 +19,13 @@ namespace KalaWindow::Graphics
 	using std::unique_ptr;
 	using std::vector;
 
+	enum VSyncState
+	{
+		VSYNC_ON,              //Framerate is capped to monitor refresh rate.
+		VSYNC_OFF,             //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
+		VSYNC_TRIPLE_BUFFERING //Low latency, no screen tearing. Does not exist in OpenGL, will default to 'ON'!
+	};
+
 	struct Window_OpenGLData
 	{
 		void* hglrc;      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
@@ -121,6 +128,16 @@ namespace KalaWindow::Graphics
 
 		unsigned int GetHeight() const { return height; }
 		void SetHeight(unsigned int newHeight) { height = newHeight; }
+
+		//Checks if vsync is enabled or not.
+		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
+		VSyncState GetVSyncState();
+		//Allows to set vsync true or false.
+		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
+		//Window* window is unused in opengl, but required for vulkan.
+		void SetVSyncState(
+			Window* window,
+			VSyncState vsyncState);
 
 		kvec2 GetMaxSize() const { return maxSize; }
 		void SetMaxSize(const kvec2& newMaxSize) { maxSize = newMaxSize; }

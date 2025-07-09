@@ -132,7 +132,6 @@ static int RatePhysicalDevice(
 	string& failReason);
 
 static bool isVolkInitialized = false;
-static bool isVulkanInitialized = false;
 
 static VkQueue graphicsQueue = VK_NULL_HANDLE;
 static uint32_t graphicsQueueFamilyIndex = 0;
@@ -502,6 +501,8 @@ namespace KalaWindow::Graphics
 			graphicsQueueFamilyIndex,
 			0,
 			&graphicsQueue);
+
+		device = FromVar<VkDevice>(newDevice);
 
 		isVulkanInitialized = true;
 		LOG_SUCCESS("Initialized Vulkan!");

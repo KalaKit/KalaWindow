@@ -9,6 +9,16 @@
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_typedefs.hpp"
+#include "graphics/window.hpp"
+
+using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::VSyncState;
+
+//If off, then all framerate is uncapped.
+//Used in window.hpp
+static VSyncState vsyncState = VSyncState::VSYNC_ON;
+
+static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = nullptr;
 
 namespace KalaWindow::Graphics
 {
@@ -48,6 +58,42 @@ namespace KalaWindow::Graphics
 		}
 
 		return true;
+	}
+
+	//
+	// EXTERNAL
+	//
+
+	VSyncState Window::GetVSyncState() { return vsyncState; }
+	void Window::SetVSyncState(
+		Window* window,
+		VSyncState newVSyncState)
+	{
+		vsyncState = newVSyncState;
+
+		if (!wglSwapIntervalEXT)
+		{
+			wglSwapIntervalEXT = reinterpret_cast<PFNWGLSWAPINTERVALEXTPROC>(
+				wglGetProcAddress("wglSwapIntervalEXT"));
+		}
+
+		if (wglSwapIntervalEXT)
+		{
+			if (newVSyncState == VSyncState::VSYNC_ON)
+			{
+				wglSwapIntervalEXT(1);
+			}
+			else if (newVSyncState == VSyncState::VSYNC_OFF)
+			{
+				wglSwapIntervalEXT(0);
+			}
+			else
+			{
+				LOG_WARNING("Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on OpenGL! Falling back to 'ON'.");
+				wglSwapIntervalEXT(1);
+			}
+		}
+		else LOG_ERROR("wglSwapIntervalEXT not supported! VSync setting ignored.");
 	}
 }
 
