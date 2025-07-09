@@ -5,13 +5,14 @@
 
 #ifdef KALAWINDOW_SUPPORT_VULKAN
 
+#include "core/platform.hpp"
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics
 {
     using KalaWindow::Graphics::Window;
 
-    class Extensions_Vulkan
+    class KALAWINDOW_API Extensions_Vulkan
     {
     public:
         //Attach Vulkan to window
