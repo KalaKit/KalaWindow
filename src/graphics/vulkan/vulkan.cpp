@@ -26,6 +26,7 @@
 #include <unordered_map>
 
 #include "graphics/vulkan/vulkan.hpp"
+#include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/render.hpp"
 #include "core/enums.hpp"
 #include "core/platform.hpp"
@@ -34,6 +35,7 @@ using KalaWindow::Graphics::Renderer_Vulkan;
 using KalaWindow::Graphics::VulkanLayers;
 using KalaWindow::Graphics::VulkanInstanceExtensions;
 using KalaWindow::Graphics::VulkanDeviceExtensions;
+using KalaWindow::Graphics::Extensions_Vulkan;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Render;
 using KalaWindow::PopupAction;
@@ -132,9 +134,6 @@ static int RatePhysicalDevice(
 static bool isVolkInitialized = false;
 static bool isVulkanInitialized = false;
 
-static VkInstance instance = VK_NULL_HANDLE;
-static VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
-static VkDevice device = VK_NULL_HANDLE;
 static VkQueue graphicsQueue = VK_NULL_HANDLE;
 static uint32_t graphicsQueueFamilyIndex = 0;
 
@@ -347,10 +346,12 @@ namespace KalaWindow::Graphics
 			static_cast<uint32_t>(instanceExtensions.size());
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
+		VkInstance newInstance = VK_NULL_HANDLE;
+
 		if (vkCreateInstance(
 			&instanceCreateInfo,
 			nullptr,
-			&instance) != VK_SUCCESS)
+			&newInstance) != VK_SUCCESS)
 		{
 			ForceClose(
 				"Vulkan initialization error",
@@ -358,13 +359,13 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		volkLoadInstance(instance);
+		volkLoadInstance(newInstance);
 
 		//enumerate and pick physical device
 
 		uint32_t gpuCount = 0;
 		vkEnumeratePhysicalDevices(
-			instance, 
+			newInstance,
 			&gpuCount, 
 			nullptr);
 		if (gpuCount == 0)
@@ -375,9 +376,11 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
+		instance = FromVar<VkInstance>(newInstance);
+
 		vector<VkPhysicalDevice> devices(gpuCount);
 		vkEnumeratePhysicalDevices(
-			instance, 
+			newInstance,
 			&gpuCount, 
 			devices.data());
 		
@@ -418,7 +421,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		physicalDevice = bestDevice;
+		physicalDevice = FromVar<VkPhysicalDevice>(bestDevice);
 
 		vector<const char*> deviceExtensions{};
 		for (const auto& ext : delayedExt)
@@ -431,12 +434,12 @@ namespace KalaWindow::Graphics
 
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(
-			physicalDevice,
+			ToVar<VkPhysicalDevice>(physicalDevice),
 			&queueFamilyCount,
 			nullptr);
 		vector<VkQueueFamilyProperties> families(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(
-			physicalDevice,
+			ToVar<VkPhysicalDevice>(physicalDevice),
 			&queueFamilyCount,
 			families.data());
 
@@ -479,11 +482,13 @@ namespace KalaWindow::Graphics
 			static_cast<uint32_t>(deviceExtensions.size());
 		deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
+		VkDevice newDevice = VK_NULL_HANDLE;
+
 		if (vkCreateDevice(
-			physicalDevice,
+			ToVar<VkPhysicalDevice>(physicalDevice),
 			&deviceCreateInfo,
 			nullptr,
-			&device) != VK_SUCCESS)
+			&newDevice) != VK_SUCCESS)
 		{
 			ForceClose(
 				"Vulkan initialization error",
@@ -491,9 +496,9 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		volkLoadDevice(device);
+		volkLoadDevice(newDevice);
 		vkGetDeviceQueue(
-			device,
+			newDevice,
 			graphicsQueueFamilyIndex,
 			0,
 			&graphicsQueue);
@@ -502,45 +507,6 @@ namespace KalaWindow::Graphics
 		LOG_SUCCESS("Initialized Vulkan!");
 
 		return true;
-	}
-
-	void Renderer_Vulkan::CreateVulkanSurface(Window* targetWindow)
-	{
-		if (!isVulkanInitialized)
-		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "create vulkan surface");
-			return;
-		}
-
-		WindowStruct_Windows& winData = targetWindow->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
-
-#ifdef _WIN32
-		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-		HWND windowRef = reinterpret_cast<HWND>(window.hwnd);
-		HINSTANCE windowIns = reinterpret_cast<HINSTANCE>(window.hInstance);
-
-		VkWin32SurfaceCreateInfoKHR surfaceInfo{};
-		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		surfaceInfo.hwnd = windowRef;
-		surfaceInfo.hinstance = windowIns;
-
-		VkSurfaceKHR surface{};
-		if (vkCreateWin32SurfaceKHR(
-			instance,
-			&surfaceInfo,
-			nullptr,
-			&surface) != VK_SUCCESS)
-		{
-			ForceClose(
-				"Vulkan error",
-				"Failed to create Win32 Vulkan surface!");
-		}
-
-		vData.surface = reinterpret_cast<uintptr_t>(surface);
-#elif __linux__
-		//TODO: ADD LINUX SUPPORT
-#endif
 	}
 
 	bool Renderer_Vulkan::CreateCommandPool(Window* window)
@@ -552,7 +518,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
+			device,
 			"device",
 			"CreateCommandPool"))
 		{
@@ -569,7 +535,7 @@ namespace KalaWindow::Graphics
 
 		VkCommandPool realPool = VK_NULL_HANDLE;
 		if (vkCreateCommandPool(
-			device,
+			ToVar<VkDevice>(device),
 			&poolInfo,
 			nullptr,
 			&realPool) != VK_SUCCESS)
@@ -591,7 +557,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
+			device,
 			"device",
 			"CreateCommandBuffer"))
 		{
@@ -628,7 +594,7 @@ namespace KalaWindow::Graphics
 
 		vector<VkCommandBuffer> tempCB(allocInfo.commandBufferCount);
 		if (vkAllocateCommandBuffers(
-			device,
+			ToVar<VkDevice>(device),
 			&allocInfo,
 			tempCB.data()) != VK_SUCCESS)
 		{
@@ -661,7 +627,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
+			device,
 			"device",
 			"CreateSyncObjects"))
 		{
@@ -697,13 +663,13 @@ namespace KalaWindow::Graphics
 			VkFence realFence = VK_NULL_HANDLE;
 
 			if (vkCreateSemaphore(
-					device,
+					ToVar<VkDevice>(device),
 					&semInfo,
 					nullptr,
 					&realAvailableSemaphore)
 				!= VK_SUCCESS
 				|| vkCreateFence(
-					device,
+					ToVar<VkDevice>(device),
 					&fenceInfo,
 					nullptr,
 					&realFence)
@@ -724,7 +690,7 @@ namespace KalaWindow::Graphics
 		{
 			VkSemaphore realFinishedSemaphore = VK_NULL_HANDLE;
 			if (vkCreateSemaphore(
-				device,
+				ToVar<VkDevice>(device),
 				&semInfo,
 				nullptr,
 				&realFinishedSemaphore) != VK_SUCCESS)
@@ -753,19 +719,21 @@ namespace KalaWindow::Graphics
 
 		if (device)
 		{
-			vkDeviceWaitIdle(device);
+			VkDevice d = ToVar<VkDevice>(device);
+
+			vkDeviceWaitIdle(d);
 
 			for (auto s : vData.imageAvailableSemaphores)
 			{
-				vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
+				vkDestroySemaphore(d, ToVar<VkSemaphore>(s), nullptr);
 			}
 			for (auto s : vData.renderFinishedSemaphores)
 			{
-				vkDestroySemaphore(device, ToVar<VkSemaphore>(s), nullptr);
+				vkDestroySemaphore(d, ToVar<VkSemaphore>(s), nullptr);
 			}
 			for (auto f : vData.inFlightFences)
 			{
-				vkDestroyFence(device, ToVar<VkFence>(f), nullptr);
+				vkDestroyFence(d, ToVar<VkFence>(f), nullptr);
 			}
 		}
 
@@ -790,12 +758,14 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
+			device,
 			"device",
 			"BeginFrame"))
 		{
 			return FrameResult::VK_FRAME_ERROR;
 		}
+
+		VkDevice d = ToVar<VkDevice>(device);
 
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
@@ -803,14 +773,14 @@ namespace KalaWindow::Graphics
 			VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
 
 			VkResult waitResult = vkWaitForFences(
-				device,
+				d,
 				1,
 				&fence,
 				VK_TRUE,
 				UINT64_MAX);
 
 			vkResetFences(
-				device,
+				d,
 				1,
 				&fence);
 		}
@@ -821,7 +791,7 @@ namespace KalaWindow::Graphics
 			ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame]);
 
 		VkResult result = vkAcquireNextImageKHR(
-			device,
+			d,
 			ToVar<VkSwapchainKHR>(vData.swapchain),
 			UINT64_MAX,
 			sem,
@@ -851,7 +821,7 @@ namespace KalaWindow::Graphics
 				&& inFlight != ToVar<VkFence>(vData.inFlightFences[currentFrame]))
 			{
 				vkWaitForFences(
-					device,
+					d,
 					1,
 					&inFlight,
 					VK_TRUE,
@@ -878,14 +848,6 @@ namespace KalaWindow::Graphics
 		if (!isVulkanInitialized)
 		{
 			ForceCloseMsg(ForceCloseType::FC_VU, "record command buffer");
-			return false;
-		}
-
-		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
-			"device",
-			"RecordCommandBuffer"))
-		{
 			return false;
 		}
 
@@ -957,14 +919,6 @@ namespace KalaWindow::Graphics
 		if (!isVulkanInitialized)
 		{
 			ForceCloseMsg(ForceCloseType::FC_VU, "submit frame");
-			return false;
-		}
-
-		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
-			"device",
-			"SubmitFrame"))
-		{
 			return false;
 		}
 
@@ -1077,7 +1031,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
+			device,
 			"device",
 			"HardReset"))
 		{
@@ -1087,15 +1041,17 @@ namespace KalaWindow::Graphics
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
-		vkDeviceWaitIdle(device);
+		vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
 		DestroySyncObjects(window);
-		DestroySwapchain(window);
-		vkDestroyCommandPool(device,
-			ToVar<VkCommandPool>(vData.commandPool), nullptr);
+		Extensions_Vulkan::DestroySwapchain(window);
+		vkDestroyCommandPool(
+			ToVar<VkDevice>(device),
+			ToVar<VkCommandPool>(vData.commandPool),
+			nullptr);
 		vData.commandPool = 0;
 
-		if (!CreateSwapchain(window))
+		if (!Extensions_Vulkan::CreateSwapchain(window))
 		{
 			ForceClose(
 				"Vulkan error",
@@ -1212,7 +1168,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
+			device,
 			"device",
 			"CreateRenderPass"))
 		{
@@ -1269,7 +1225,7 @@ namespace KalaWindow::Graphics
 		VkRenderPass realRP = VK_NULL_HANDLE;
 
 		if (vkCreateRenderPass(
-			device,
+			ToVar<VkDevice>(device),
 			&renderPassInfo,
 			nullptr,
 			&realRP) != VK_SUCCESS)
@@ -1292,7 +1248,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
+			device,
 			"device",
 			"CreateFramebuffers"))
 		{
@@ -1319,7 +1275,7 @@ namespace KalaWindow::Graphics
 
 			VkFramebuffer realFB = VK_NULL_HANDLE;
 			if (vkCreateFramebuffer(
-				device,
+				ToVar<VkDevice>(device),
 				&framebufferInfo,
 				nullptr,
 				&realFB) != VK_SUCCESS)
@@ -1338,210 +1294,21 @@ namespace KalaWindow::Graphics
 	// REUSABLES
 	//
 
-	bool Renderer_Vulkan::CreateSwapchain(Window* window)
-	{
-		if (!isVulkanInitialized
-			|| !instance)
-		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "create swapchain");
-			return false;
-		}
-
-		if (!IsValidHandle(
-			FromVar<VkDevice>(device),
-			"device",
-			"CreateSwapchain"))
-		{
-			return false;
-		}
-
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
-
-		//surface capabilities
-
-#ifdef _WIN32
-		WindowStruct_Windows& win = window->GetWindow_Windows();
-#elif __linux__
-		WindowStruct_X11& win = window->GetWindow_X11();
-#endif
-		VkSurfaceKHR surfacePtr = ToVar<VkSurfaceKHR>(vData.surface);
-
-		VkSurfaceCapabilitiesKHR capabilities{};
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
-			physicalDevice,
-			(VkSurfaceKHR)surfacePtr,
-			&capabilities);
-
-		VkExtent2D extent = capabilities.currentExtent;
-		vData.swapchainExtentWidth = extent.width;
-		vData.swapchainExtentHeight = extent.height;
-
-		//pick format
-
-		VkSurfaceFormatKHR format =
-		{
-			VK_FORMAT_B8G8R8A8_UNORM,
-			VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
-		};
-		vData.swapchainImageFormat = format.format;
-
-		//present mode
-
-		VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
-
-		//create swapchain
-
-		VkSwapchainCreateInfoKHR createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-		createInfo.surface = (VkSurfaceKHR)surfacePtr;
-		uint32_t minImageCount = capabilities.minImageCount + 1;
-		if (minImageCount > capabilities.maxImageCount) minImageCount = capabilities.maxImageCount;
-		createInfo.minImageCount = minImageCount;
-		createInfo.imageFormat = format.format;
-		createInfo.imageColorSpace = format.colorSpace;
-		createInfo.imageExtent = extent;
-		createInfo.imageArrayLayers = 1;
-		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		createInfo.preTransform = capabilities.currentTransform;
-		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		createInfo.presentMode = presentMode;
-		createInfo.clipped = VK_TRUE;
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
-
-		VkSwapchainKHR realSC = VK_NULL_HANDLE;
-
-		if (vkCreateSwapchainKHR(
-			device,
-			&createInfo,
-			nullptr,
-			&realSC) != VK_SUCCESS)
-		{
-			LOG_ERROR("Failed to create Vulkan swapchain!");
-			return false;
-		}
-
-		vData.swapchain = FromVar<VkSwapchainKHR>(realSC);
-
-		//get swapchain images
-
-		uint32_t count = 0;
-		vkGetSwapchainImagesKHR(
-			device,
-			ToVar<VkSwapchainKHR>(vData.swapchain),
-			&count,
-			nullptr);
-
-		vector<VkImage> tempImages(count);
-		vkGetSwapchainImagesKHR(
-			device,
-			ToVar<VkSwapchainKHR>(vData.swapchain),
-			&count,
-			tempImages.data());
-
-		vData.images.resize(count);
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			vData.images[i] = FromVar<VkImage>(tempImages[i]);
-		}
-
-		vData.imagesInFlight.assign(count, FromVar<VkFence>(VK_NULL_HANDLE));
-
-		//create image views
-
-		vData.imageViews.resize(count);
-		for (uint32_t i = 0; i < count; ++i)
-		{
-			VkImageViewCreateInfo viewInfo{};
-			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-			viewInfo.image = ToVar<VkImage>(vData.images[i]);
-			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			viewInfo.format = static_cast<VkFormat>(vData.swapchainImageFormat);
-			viewInfo.components =
-			{
-				VK_COMPONENT_SWIZZLE_IDENTITY,
-				VK_COMPONENT_SWIZZLE_IDENTITY,
-				VK_COMPONENT_SWIZZLE_IDENTITY,
-				VK_COMPONENT_SWIZZLE_IDENTITY
-			};
-			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-			viewInfo.subresourceRange.baseMipLevel = 0;
-			viewInfo.subresourceRange.levelCount = 1;
-			viewInfo.subresourceRange.baseArrayLayer = 0;
-			viewInfo.subresourceRange.layerCount = 1;
-
-			VkImageView realIV = VK_NULL_HANDLE;
-			if (vkCreateImageView(
-				device,
-				&viewInfo,
-				nullptr,
-				&realIV) != VK_SUCCESS)
-			{
-				LOG_ERROR("Failed to create image view for swapchain image " << i);
-				return false;
-			}
-
-			vData.imageViews[i] = FromVar<VkImageView>(realIV);
-		}
-
-		LOG_SUCCESS("Successfully created Vulkan swapchain and released resources!");
-		return true;
-	}
-
-	void Renderer_Vulkan::DestroySwapchain(Window* window)
-	{
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
-
-		if (device)
-		{
-			vkDeviceWaitIdle(device);
-
-			for (auto view : vData.imageViews)
-			{
-				if (view) vkDestroyImageView(device, ToVar<VkImageView>(view), nullptr);
-			}
-			for (auto fb : vData.framebuffers)
-			{
-				if (fb) vkDestroyFramebuffer(device, ToVar<VkFramebuffer>(fb), nullptr);
-			}
-			if (vData.renderPass)
-			{
-				vkDestroyRenderPass(device, ToVar<VkRenderPass>(vData.renderPass), nullptr);
-				vData.renderPass = NULL;
-			}
-			if (vData.swapchain)
-			{
-				vkDestroySwapchainKHR(
-					device,
-					ToVar<VkSwapchainKHR>(vData.swapchain),
-					nullptr);
-			}
-		}
-
-		//reset handles
-		vData.swapchain = NULL;
-		vData.images.clear();
-		vData.imageViews.clear();
-		vData.framebuffers.clear();
-	}
-
 	void Renderer_Vulkan::DestroyWindowData(Window* window)
 	{
-		if (device) vkDeviceWaitIdle(device);
+		if (device) vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = winData.vulkanData;
 
 		DestroySyncObjects(window);
-		DestroySwapchain(window);
+		Extensions_Vulkan::DestroySwapchain(window);
 
 		if (vData.commandPool
 			&& device)
 		{
 			vkDestroyCommandPool(
-				device,
+				ToVar<VkDevice>(device),
 				ToVar<VkCommandPool>(vData.commandPool),
 				nullptr);
 			vData.commandPool = NULL;
@@ -1551,7 +1318,7 @@ namespace KalaWindow::Graphics
 			&& instance)
 		{
 			vkDestroySurfaceKHR(
-				instance,
+				ToVar<VkInstance>(instance),
 				ToVar<VkSurfaceKHR>(vData.surface),
 				nullptr);
 		}
@@ -1564,7 +1331,7 @@ namespace KalaWindow::Graphics
 
 	void Renderer_Vulkan::Shutdown()
 	{
-		if (device) vkDeviceWaitIdle(device);
+		if (device) vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
 		for (const auto& window : Window::windows)
 		{
@@ -1574,14 +1341,14 @@ namespace KalaWindow::Graphics
 
 		if (device)
 		{
-			vkDestroyDevice(device, nullptr);
-			device = VK_NULL_HANDLE;
+			vkDestroyDevice(ToVar<VkDevice>(device), nullptr);
+			device = NULL;
 		}
 
 		if (instance)
 		{
-			vkDestroyInstance(instance, nullptr);
-			instance = VK_NULL_HANDLE;
+			vkDestroyInstance(ToVar<VkInstance>(instance), nullptr);
+			instance = NULL;
 		}
 
 		enabledLayers.clear();

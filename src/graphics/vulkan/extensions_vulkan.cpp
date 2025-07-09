@@ -1,0 +1,336 @@
+//Copyright(C) 2025 Lost Empire Entertainment
+//This program comes with ABSOLUTELY NO WARRANTY.
+//This is free software, and you are welcome to redistribute it under certain conditions.
+//Read LICENSE.md for more information.
+
+#ifdef KALAWINDOW_SUPPORT_VULKAN
+
+#define KALAKIT_MODULE "EXTENSIONS_VULKAN"
+
+#include <vulkan/vulkan.h>
+#ifdef _WIN32
+#include <Windows.h>
+#include <vulkan/vulkan_win32.h>
+#endif
+#include <string>
+
+#include "graphics/vulkan/extensions_vulkan.hpp"
+#include "graphics/vulkan/vulkan.hpp"
+#include "graphics/render.hpp"
+#include "graphics/window.hpp"
+#include "core/enums.hpp"
+
+using KalaWindow::Graphics::Render;
+using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Graphics::Window;
+using KalaWindow::PopupAction;
+using KalaWindow::PopupType;
+using KalaWindow::PopupResult;
+
+using std::string;
+using std::to_string;
+
+enum class ForceCloseType
+{
+	FC_VO, //is volk initialized
+	FC_VU  //is vulkan initialized
+};
+
+static void ForceClose(
+	const string& title,
+	const string& reason,
+	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE);
+static void ForceCloseMsg(
+	ForceCloseType ct,
+	const string& targetMsg);
+
+static bool IsValidHandle(
+	uintptr_t handle,
+	const string& variableName,
+	const string& originFunction)
+{
+	if (handle == 0
+		|| handle == UINTPTR_MAX)
+	{
+		ForceClose(
+			"Vulkan critical error",
+			"[ " + originFunction + " ]"
+			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!",
+			ShutdownState::SHUTDOWN_CRITICAL);
+		return false;
+	}
+	return true;
+}
+
+namespace KalaWindow::Graphics
+{
+	void Extensions_Vulkan::CreateVulkanSurface(Window* targetWindow)
+	{
+		if (!Renderer_Vulkan::IsVulkanInitialized())
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "create vulkan surface");
+			return;
+		}
+
+		WindowStruct_Windows& winData = targetWindow->GetWindow_Windows();
+		Window_VulkanData& vData = winData.vulkanData;
+
+#ifdef _WIN32
+		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
+		HWND windowRef = reinterpret_cast<HWND>(window.hwnd);
+		HINSTANCE windowIns = reinterpret_cast<HINSTANCE>(window.hInstance);
+
+		VkWin32SurfaceCreateInfoKHR surfaceInfo{};
+		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		surfaceInfo.hwnd = windowRef;
+		surfaceInfo.hinstance = windowIns;
+
+		VkSurfaceKHR surface{};
+		if (vkCreateWin32SurfaceKHR(
+			ToVar<VkInstance>(Renderer_Vulkan::GetInstance()),
+			&surfaceInfo,
+			nullptr,
+			&surface) != VK_SUCCESS)
+		{
+			ForceClose(
+				"Vulkan error",
+				"Failed to create Win32 Vulkan surface!");
+		}
+
+		vData.surface = reinterpret_cast<uintptr_t>(surface);
+#elif __linux__
+		//TODO: ADD LINUX SUPPORT
+#endif
+	}
+
+	bool Extensions_Vulkan::CreateSwapchain(Window* window)
+	{
+		if (!Renderer_Vulkan::IsVulkanInitialized()
+			|| !Renderer_Vulkan::GetInstance() == NULL)
+		{
+			ForceCloseMsg(ForceCloseType::FC_VU, "create swapchain");
+			return false;
+		}
+
+		if (!IsValidHandle(
+			Renderer_Vulkan::GetDevice(),
+			"device",
+			"CreateSwapchain"))
+		{
+			return false;
+		}
+
+		VkDevice dev = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
+		VkPhysicalDevice pDev = ToVar<VkPhysicalDevice>(Renderer_Vulkan::GetPhysicalDevice());
+
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData& vData = winData.vulkanData;
+
+		//surface capabilities
+
+#ifdef _WIN32
+		WindowStruct_Windows& win = window->GetWindow_Windows();
+#elif __linux__
+		WindowStruct_X11& win = window->GetWindow_X11();
+#endif
+		VkSurfaceKHR surfacePtr = ToVar<VkSurfaceKHR>(vData.surface);
+
+		VkSurfaceCapabilitiesKHR capabilities{};
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+			pDev,
+			(VkSurfaceKHR)surfacePtr,
+			&capabilities);
+
+		VkExtent2D extent = capabilities.currentExtent;
+		vData.swapchainExtentWidth = extent.width;
+		vData.swapchainExtentHeight = extent.height;
+
+		//pick format
+
+		VkSurfaceFormatKHR format =
+		{
+			VK_FORMAT_B8G8R8A8_UNORM,
+			VK_COLOR_SPACE_SRGB_NONLINEAR_KHR
+		};
+		vData.swapchainImageFormat = format.format;
+
+		//present mode
+
+		VkPresentModeKHR presentMode = VK_PRESENT_MODE_FIFO_KHR;
+
+		//create swapchain
+
+		VkSwapchainCreateInfoKHR createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+		createInfo.surface = (VkSurfaceKHR)surfacePtr;
+		uint32_t minImageCount = capabilities.minImageCount + 1;
+		if (minImageCount > capabilities.maxImageCount) minImageCount = capabilities.maxImageCount;
+		createInfo.minImageCount = minImageCount;
+		createInfo.imageFormat = format.format;
+		createInfo.imageColorSpace = format.colorSpace;
+		createInfo.imageExtent = extent;
+		createInfo.imageArrayLayers = 1;
+		createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		createInfo.preTransform = capabilities.currentTransform;
+		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
+		createInfo.presentMode = presentMode;
+		createInfo.clipped = VK_TRUE;
+		createInfo.oldSwapchain = VK_NULL_HANDLE;
+
+		VkSwapchainKHR realSC = VK_NULL_HANDLE;
+
+		if (vkCreateSwapchainKHR(
+			dev,
+			&createInfo,
+			nullptr,
+			&realSC) != VK_SUCCESS)
+		{
+			LOG_ERROR("Failed to create Vulkan swapchain!");
+			return false;
+		}
+
+		vData.swapchain = FromVar<VkSwapchainKHR>(realSC);
+
+		//get swapchain images
+
+		uint32_t count = 0;
+		vkGetSwapchainImagesKHR(
+			dev,
+			ToVar<VkSwapchainKHR>(vData.swapchain),
+			&count,
+			nullptr);
+
+		vector<VkImage> tempImages(count);
+		vkGetSwapchainImagesKHR(
+			dev,
+			ToVar<VkSwapchainKHR>(vData.swapchain),
+			&count,
+			tempImages.data());
+
+		vData.images.resize(count);
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			vData.images[i] = FromVar<VkImage>(tempImages[i]);
+		}
+
+		vData.imagesInFlight.assign(count, FromVar<VkFence>(VK_NULL_HANDLE));
+
+		//create image views
+
+		vData.imageViews.resize(count);
+		for (uint32_t i = 0; i < count; ++i)
+		{
+			VkImageViewCreateInfo viewInfo{};
+			viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			viewInfo.image = ToVar<VkImage>(vData.images[i]);
+			viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			viewInfo.format = static_cast<VkFormat>(vData.swapchainImageFormat);
+			viewInfo.components =
+			{
+				VK_COMPONENT_SWIZZLE_IDENTITY,
+				VK_COMPONENT_SWIZZLE_IDENTITY,
+				VK_COMPONENT_SWIZZLE_IDENTITY,
+				VK_COMPONENT_SWIZZLE_IDENTITY
+			};
+			viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			viewInfo.subresourceRange.baseMipLevel = 0;
+			viewInfo.subresourceRange.levelCount = 1;
+			viewInfo.subresourceRange.baseArrayLayer = 0;
+			viewInfo.subresourceRange.layerCount = 1;
+
+			VkImageView realIV = VK_NULL_HANDLE;
+			if (vkCreateImageView(
+				dev,
+				&viewInfo,
+				nullptr,
+				&realIV) != VK_SUCCESS)
+			{
+				LOG_ERROR("Failed to create image view for swapchain image " << i);
+				return false;
+			}
+
+			vData.imageViews[i] = FromVar<VkImageView>(realIV);
+		}
+
+		LOG_SUCCESS("Successfully created Vulkan swapchain and released resources!");
+		return true;
+	}
+
+	void Extensions_Vulkan::DestroySwapchain(Window* window)
+	{
+		WindowStruct_Windows& winData = window->GetWindow_Windows();
+		Window_VulkanData& vData = winData.vulkanData;
+
+		if (Renderer_Vulkan::GetDevice() != NULL)
+		{
+			VkDevice dev = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
+
+			vkDeviceWaitIdle(dev);
+
+			for (auto view : vData.imageViews)
+			{
+				if (view) vkDestroyImageView(dev, ToVar<VkImageView>(view), nullptr);
+			}
+			for (auto fb : vData.framebuffers)
+			{
+				if (fb) vkDestroyFramebuffer(dev, ToVar<VkFramebuffer>(fb), nullptr);
+			}
+			if (vData.renderPass)
+			{
+				vkDestroyRenderPass(dev, ToVar<VkRenderPass>(vData.renderPass), nullptr);
+				vData.renderPass = NULL;
+			}
+			if (vData.swapchain)
+			{
+				vkDestroySwapchainKHR(
+					dev,
+					ToVar<VkSwapchainKHR>(vData.swapchain),
+					nullptr);
+			}
+		}
+
+		//reset handles
+		vData.swapchain = NULL;
+		vData.images.clear();
+		vData.imageViews.clear();
+		vData.framebuffers.clear();
+	}
+}
+
+static void ForceClose(
+	const string& title,
+	const string& reason,
+	ShutdownState state)
+{
+	LOG_ERROR(reason);
+
+	Window* mainWindow = Window::windows.front().get();
+	if (mainWindow->CreatePopup(
+		title,
+		reason,
+		PopupAction::POPUP_ACTION_OK,
+		PopupType::POPUP_TYPE_ERROR)
+		== PopupResult::POPUP_RESULT_OK)
+	{
+		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+	}
+}
+void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
+{
+	if (fct == ForceCloseType::FC_VO)
+	{
+		ForceClose(
+			"Vulkan error",
+			"Cannot " + targetMsg + " because Volk failed to initialize!");
+	}
+
+	else if (fct == ForceCloseType::FC_VU)
+	{
+		ForceClose(
+			"Vulkan error",
+			"Cannot " + targetMsg + " because Vulkan is not initialized!");
+	}
+}
+
+#endif //KALAWINDOW_SUPPORT_VULKAN

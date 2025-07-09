@@ -11,8 +11,7 @@
 
 #include "core/platform.hpp"
 #include "graphics/window.hpp"
-#include "graphics/vulkan/vulkan_layers.hpp"
-#include "graphics/vulkan/vulkan_extensions.hpp"
+#include "graphics/vulkan/enums_vulkan.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -28,6 +27,11 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Renderer_Vulkan
 	{
 	public:
+		static bool IsVulkanInitialized() { return isVulkanInitialized; }
+		static uintptr_t GetInstance() { return instance; }
+		static uintptr_t GetDevice() { return device; }
+		static uintptr_t GetPhysicalDevice() { return physicalDevice; }
+
 		//
 		// INITIALIZE PHASE
 		//
@@ -44,9 +48,6 @@ namespace KalaWindow::Graphics
 		//   2 = lower latency (fast-paced titles, VR, etc.)
 		//   3 = better throughput / smoother frame pacing for most apps.
 		static bool Initialize(uint32_t max_frames);
-
-		//Attach Vulkan to window
-		static void CreateVulkanSurface(Window* window);
 
 		//Creates the command pool from command buffers
 		static bool CreateCommandPool(Window* window);
@@ -107,19 +108,17 @@ namespace KalaWindow::Graphics
 		//Creates framebuffers from swapchain image views
 		static bool CreateFramebuffers(Window* window);
 
-		//
-		// REUSABLES
-		//
-
-		static bool CreateSwapchain(Window* window);
-		static void DestroySwapchain(Window* window);
-
 		static const vector<VulkanLayers> GetEnabledLayers() { return enabledLayers; }
 		static const vector<VulkanInstanceExtensions> GetEnabledInstanceExtensions() { return enabledInstanceExtensions; }
 		static const vector<VulkanDeviceExtensions> GetEnabledDeviceExtensions() { return enabledDeviceExtensions; }
 
 		static void Shutdown();
 	private:
+		static inline bool isVulkanInitialized;
+		static inline uintptr_t instance;
+		static inline uintptr_t device;
+		static inline uintptr_t physicalDevice;
+
 		static inline vector<VulkanLayers> enabledLayers{};
 		static inline vector<VulkanInstanceExtensions> enabledInstanceExtensions{};
 		static inline vector<VulkanDeviceExtensions> enabledDeviceExtensions{};
