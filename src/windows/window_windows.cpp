@@ -277,8 +277,6 @@ namespace KalaWindow::Graphics
 			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
 			DispatchMessage(&msg);  //send the message to the window procedure
 		}
-
-		Input::EndFrameUpdate();
 	}
 
 	void Window::UpdateIdleState(Window* window)

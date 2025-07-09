@@ -5,9 +5,8 @@
 
 #ifdef _WIN32
 
-#define KALAKIT_MODULE "INPUT"
-
 #include <Windows.h>
+#include <unordered_map>
 
 #include "core/input.hpp"
 
