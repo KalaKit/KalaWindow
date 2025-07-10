@@ -33,7 +33,7 @@ namespace KalaWindow::Graphics
 {
 	static unsigned int nextWindowID = 0;
 
-	Window* Window::Initialize(
+	unique_ptr<Window> Window::Initialize(
 		const string& title,
 		int width,
 		int height)
@@ -149,11 +149,9 @@ namespace KalaWindow::Graphics
 
 		newWindow->SetInitializedState(true);
 
-		windows.push_back(move(newWindow));
+		windows.push_back(newWindow.get());
 
-		Window* window = FindWindowByID(windowID);
-
-		return FindWindowByID(windowID);
+		return newWindow;
 	}
 
 	Window* Window::FindWindowByName(const string& targetName)
@@ -161,12 +159,12 @@ namespace KalaWindow::Graphics
 		auto it = find_if(
 			windows.begin(),
 			windows.end(),
-			[targetName](const unique_ptr<Window>& win)
+			[targetName](const Window* win)
 			{
 				return win->title == targetName;
 			});
 
-		if (it != windows.end()) return it->get();
+		if (it != windows.end()) return *it;
 
 		return nullptr;
 	}
@@ -175,12 +173,12 @@ namespace KalaWindow::Graphics
 		auto it = find_if(
 			windows.begin(),
 			windows.end(),
-			[targetID](const unique_ptr<Window>& win)
+			[targetID](const Window* win)
 			{
 				return win->ID == targetID;
 			});
 
-		if (it != windows.end()) return it->get();
+		if (it != windows.end()) return *it;
 
 		return nullptr;
 	}
@@ -329,7 +327,7 @@ namespace KalaWindow::Graphics
 
 		for (size_t i = 0; i < Window::windows.size(); ++i)
 		{
-			if (Window::windows[i].get() == window)
+			if (Window::windows[i] == window)
 			{
 				Window::windows.erase(Window::windows.begin() + i);
 				break;

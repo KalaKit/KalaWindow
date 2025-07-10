@@ -58,7 +58,7 @@ namespace KalaWindow::Graphics
 
 		for (const auto& window : Window::windows)
 		{
-			Window* winPtr = window.get();
+			Window* winPtr = window;
 			Window::DeleteWindow(winPtr);
 		}
 

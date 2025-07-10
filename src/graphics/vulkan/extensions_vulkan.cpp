@@ -383,7 +383,7 @@ static void ForceClose(
 {
 	LOG_ERROR(reason);
 
-	Window* mainWindow = Window::windows.front().get();
+	Window* mainWindow = Window::windows.front();
 	if (mainWindow->CreatePopup(
 		title,
 		reason,

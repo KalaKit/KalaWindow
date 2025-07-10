@@ -204,7 +204,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 		WindowStruct_Windows& data = windowPtr->GetWindow_Windows();
 		if (reinterpret_cast<HWND>(data.hwnd) == hwnd)
 		{
-			window = windowPtr.get();
+			window = windowPtr;
 			break;
 		}
 	}

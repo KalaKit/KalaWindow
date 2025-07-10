@@ -91,9 +91,9 @@ namespace KalaWindow::Graphics
 	{
 	public:
 		//All created windows are stored here.
-		static inline vector<unique_ptr<Window>> windows;
+		static inline vector<Window*> windows{};
 
-		static Window* Initialize(
+		static unique_ptr<Window> Initialize(
 			const string& title,
 			int width,
 			int height);
