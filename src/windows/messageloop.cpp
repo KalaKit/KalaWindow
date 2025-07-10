@@ -582,12 +582,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		int width = LOWORD(msg.lParam);
 		int height = HIWORD(msg.lParam);
-		
-		window->SetSize(kvec2
-			{ 
-				static_cast<float>(width),
-				static_cast<float>(height)
-			});
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 		if (OpenGLLoader::glViewport)
