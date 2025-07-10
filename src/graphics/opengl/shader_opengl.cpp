@@ -10,6 +10,7 @@
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 
 #ifdef _WIN32
 #include <Windows.h>
@@ -38,6 +39,9 @@ using KalaWindow::PopupResult;
 using std::string;
 using std::ifstream;
 using std::stringstream;
+using std::make_unique;
+using std::filesystem::exists;
+using std::filesystem::path;
 
 static bool CheckCompileErrors(GLuint shader, const string& type);
 
@@ -62,136 +66,347 @@ static void ForceClose(
 
 namespace KalaWindow::Graphics
 {
-    Shader_OpenGL::Shader_OpenGL(
-        const string& vertexPath,
-        const string& fragmentPath)
+    unique_ptr<Shader_OpenGL> Shader_OpenGL::CreateShader(
+        const string& shaderName,
+        const vector<ShaderStage>& shaderStages)
     {
-        //
-        // READ SHADER SOURCE FILES
-        //
+        unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
+        ShaderData newShaderData{};
+        ShaderStage newVertStage{};
+        ShaderStage newFragStage{};
+        ShaderStage newGeomStage{};
 
-        ifstream vertexFile(vertexPath);
-        if (!vertexFile.is_open())
+        if (shaderName.empty())
         {
-            ForceClose(
-                "OpenGL error",
-                "[Shader_OpenGL] Failed to open vertex shader file: " + vertexPath);
-            return;
+            LOG_ERROR("Cannot create a shader with no name!");
+            return nullptr;
+        }
+        for (const auto& [key, _] : createdShaders)
+        {
+            if (key == shaderName)
+            {
+                LOG_ERROR("Cannot create a shader with the name '" + shaderName + "' because a shader with that name already exists!");
+                return nullptr;
+            }
         }
 
-        ifstream fragmentFile(fragmentPath);
-        if (!fragmentFile.is_open())
+        if (shaderStages.empty())
         {
-            ForceClose(
-                "OpenGL error",
-                "[Shader_OpenGL] Failed to open fragment shader file: " + fragmentPath);
-
-            return;
+            LOG_ERROR("Cannot create a shader with no stages!");
+            return nullptr;
         }
 
-        stringstream vertexStream, fragmentStream;
+        for (const auto& stage : shaderStages)
+        {
+            string shaderType{};
+            for (const auto& stage : shaderStages)
+            {
+                switch (stage.shaderType)
+                {
+                case ShaderType::Shader_Vertex:
+                    shaderType = "vertex";
+                    break;
+                case ShaderType::Shader_Fragment:
+                    shaderType = "fragment";
+                    break;
+                case ShaderType::Shader_Geometry:
+                    shaderType = "geometry";
+                    break;
+                }
+            }
 
-        vertexStream << vertexFile.rdbuf();
-        fragmentStream << fragmentFile.rdbuf();
+            if (stage.shaderPath.empty())
+            {
+                LOG_ERROR("Shader '" + shaderName + "' with type '"
+                    + shaderType + "' has no assigned path!");
+                return nullptr;
+            }
+            else if (!exists(stage.shaderPath))
+            {
+                LOG_ERROR("Shader '" + shaderName + "' with type '"
+                    + shaderType + "' has an invalid path '" + stage.shaderPath + "'!");
+                return nullptr;
+            }
+            else
+            {
+                switch (stage.shaderType)
+                {
+                case ShaderType::Shader_Vertex:
+                    newVertStage.shaderPath = stage.shaderPath;
+                    newVertStage.shaderType = stage.shaderType;
+                    
+                    break;
+                case ShaderType::Shader_Fragment:
+                    newFragStage.shaderPath = stage.shaderPath;
+                    newFragStage.shaderType = stage.shaderType;
+                    break;
+                case ShaderType::Shader_Geometry:
+                    newGeomStage.shaderPath = stage.shaderPath;
+                    newGeomStage.shaderType = stage.shaderType;
+                    break;
+                }
+            }
+        }
 
-        const string vertexCode = vertexStream.str();
-        const string fragmentCode = fragmentStream.str();
-        const char* vShaderCode = vertexCode.c_str();
-        const char* fShaderCode = fragmentCode.c_str();
+        bool vertShaderExists = !newVertStage.shaderPath.empty();
+        bool fragShaderExists = !newFragStage.shaderPath.empty();
+        bool geomShaderExists = !newGeomStage.shaderPath.empty();
 
         //
         // CREATE AND COMPILE VERTEX SHADER
         //
 
-        LOG_DEBUG("Loading vertex shader: " << vertexPath);
-
-        GLuint vertex = OpenGLLoader::glCreateShader(GL_VERTEX_SHADER);
-        OpenGLLoader::glShaderSource(vertex, 1, &vShaderCode, nullptr);
-        OpenGLLoader::glCompileShader(vertex);
-
-        if (!CheckCompileErrors(vertex, "VERTEX"))
+        if (!vertShaderExists)
         {
-            OpenGLLoader::glDeleteShader(vertex);
+            LOG_INFO("Skipped loading vertex shader because it was not assigned as a shader stage.");
+        }
+        else
+        {
+            LOG_INFO("Loading vertex shader: " << newVertStage.shaderPath);
 
-            ForceClose(
-                "OpenGL error",
-                "[Shader_OpenGL] Vertex shader '" + vertexPath + "' failed to compile!");
+            ifstream vertexFile(newVertStage.shaderPath);
+            if (!vertexFile.is_open())
+            {
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Failed to open vertex shader file: " + newVertStage.shaderPath);
+                return nullptr;
+            }
 
-            isValid = false;
-            ID = 0;
-            return;
+            stringstream vertexStream{};
+            vertexStream << vertexFile.rdbuf();
+            const string vertexCode = vertexStream.str();
+            const char* vShaderCode = vertexCode.c_str();
+
+            newVertStage.shaderID = OpenGLLoader::glCreateShader(GL_VERTEX_SHADER);
+            OpenGLLoader::glShaderSource(
+                newVertStage.shaderID,
+                1, 
+                &vShaderCode, 
+                nullptr);
+            OpenGLLoader::glCompileShader(newVertStage.shaderID);
+
+            if (!CheckCompileErrors(newVertStage.shaderID, "VERTEX"))
+            {
+                OpenGLLoader::glDetachShader(newVertStage.shaderID);
+                OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Vertex shader '" + newVertStage.shaderPath + "' failed to compile!");
+
+                return nullptr;
+            }
         }
 
         //
         // CREATE AND COMPILE FRAGMENT SHADER
         //
 
-        LOG_DEBUG("Loading fragment shader: " << fragmentPath);
-
-        GLuint fragment = OpenGLLoader::glCreateShader(GL_FRAGMENT_SHADER);
-        OpenGLLoader::glShaderSource(fragment, 1, &fShaderCode, nullptr);
-        OpenGLLoader::glCompileShader(fragment);
-
-        if (!CheckCompileErrors(fragment, "FRAGMENT"))
+        if (!fragShaderExists)
         {
-            OpenGLLoader::glDeleteShader(fragment);
+            LOG_INFO("Skipped loading fragment shader because it was not assigned as a shader stage.");
+        }
+        else
+        {
+            LOG_INFO("Loading fragment shader: " << newFragStage.shaderPath);
 
-            ForceClose(
-                "OpenGL error",
-                "[Shader_OpenGL] Fragment shader '" + fragmentPath + "' failed to compile!");
+            ifstream fragmentFile(newFragStage.shaderPath);
+            if (!fragmentFile.is_open())
+            {
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Failed to open fragment shader file: " + newFragStage.shaderPath);
 
-            return;
+                return nullptr;
+            }
+
+            stringstream fragmentStream{};
+            fragmentStream << fragmentFile.rdbuf();
+            const string fragmentCode = fragmentStream.str();
+            const char* fShaderCode = fragmentCode.c_str();
+
+            newFragStage.shaderID = OpenGLLoader::glCreateShader(GL_FRAGMENT_SHADER);
+            OpenGLLoader::glShaderSource(
+                newFragStage.shaderID,
+                1, 
+                &fShaderCode, 
+                nullptr);
+            OpenGLLoader::glCompileShader(newFragStage.shaderID);
+
+            if (!CheckCompileErrors(newFragStage.shaderID, "FRAGMENT"))
+            {
+                OpenGLLoader::glDetachShader(newFragStage.shaderID);
+                OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Fragment shader '" + newFragStage.shaderPath + "' failed to compile!");
+
+                return nullptr;
+            }
+        }
+
+        //
+        // CREATE AND COMPILE GEOMETRY SHADER
+        //
+
+        if (!geomShaderExists)
+        {
+            LOG_INFO("Skipped loading fragment shader because it was not assigned as a shader stage.");
+        }
+        else
+        {
+            LOG_INFO("Loading geometry shader: " << newGeomStage.shaderPath);
+
+            ifstream geometryFile(newGeomStage.shaderPath);
+            if (!geometryFile.is_open())
+            {
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Failed to open geometry shader file: " + newGeomStage.shaderPath);
+
+                return nullptr;
+            }
+
+            stringstream geometryStream{};
+            geometryStream << geometryFile.rdbuf();
+            const string geometryCode = geometryStream.str();
+            const char* gShaderCode = geometryCode.c_str();
+
+            newGeomStage.shaderID = OpenGLLoader::glCreateShader(GL_GEOMETRY_SHADER);
+            OpenGLLoader::glShaderSource(
+                newGeomStage.shaderID,
+                1, 
+                &gShaderCode, 
+                nullptr);
+            OpenGLLoader::glCompileShader(newGeomStage.shaderID);
+
+            if (!CheckCompileErrors(newGeomStage.shaderID, "GEOMETRY"))
+            {
+                OpenGLLoader::glDetachShader(newGeomStage.shaderID);
+                OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] geometry shader '" + newGeomStage.shaderPath + "' failed to compile!");
+
+                return nullptr;
+            }
         }
 
         //
         // CREATE SHADER PROGRAM
         //
 
-        ID = OpenGLLoader::glCreateProgram();
-        OpenGLLoader::glAttachShader(ID, vertex);
-        OpenGLLoader::glAttachShader(ID, fragment);
-        OpenGLLoader::glLinkProgram(ID);
+        newShaderData.programID = OpenGLLoader::glCreateProgram();
+
+        OpenGLLoader::glAttachShader(
+            newShaderData.programID, 
+            newVertStage.shaderID);
+        OpenGLLoader::glAttachShader(
+            newShaderData.programID, 
+            newFragStage.shaderID);
+        if (geomShaderExists)
+        {
+            OpenGLLoader::glAttachShader(
+                newShaderData.programID, 
+                newGeomStage.shaderID);
+        }
+        OpenGLLoader::glLinkProgram(newShaderData.programID);
 
         GLint success = 0;
-        OpenGLLoader::glGetProgramiv(ID, GL_LINK_STATUS, &success);
+        OpenGLLoader::glGetProgramiv(
+            newShaderData.programID, 
+            GL_LINK_STATUS, 
+            &success);
 
         if (success != GL_TRUE)
         {
-            OpenGLLoader::glDeleteShader(vertex);
-            OpenGLLoader::glDeleteShader(fragment);
+            OpenGLLoader::glDetachShader(newVertStage.shaderID);
+            OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+
+            OpenGLLoader::glDetachShader(newFragStage.shaderID);
+            OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+
+            if (geomShaderExists)
+            {
+                OpenGLLoader::glDetachShader(newGeomStage.shaderID);
+                OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+            }
 
             GLint logLength = 0;
-            OpenGLLoader::glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &logLength);
+            OpenGLLoader::glGetProgramiv(
+                newShaderData.programID, 
+                GL_INFO_LOG_LENGTH, 
+                &logLength);
 
             if (logLength > 0)
             {
                 std::vector<GLchar> log(logLength);
-                OpenGLLoader::glGetProgramInfoLog(ID, logLength, nullptr, log.data());
+                OpenGLLoader::glGetProgramInfoLog(
+                    newShaderData.programID, 
+                    logLength, 
+                    nullptr, 
+                    log.data());
                 LOG_ERROR("Shader link failed:\n" << log.data());
             }
 
-            ForceClose(
-                "OpenGL error",
-                "[Shader_OpenGL] Failed to link vertex shader '" + vertexPath + "' and fragment shader '" + fragmentPath + "' to program!");
+            if (!geomShaderExists)
+            {
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Failed to link vertex shader '" +
+                    newVertStage.shaderPath + "' and fragment shader '" +
+                    newFragStage.shaderPath + "' to program!");
+            }
+            else
+            {
+                ForceClose(
+                    "OpenGL error",
+                    "[Shader_OpenGL] Failed to link vertex shader '" +
+                    newVertStage.shaderPath + "', fragment shader '" +
+                    newFragStage.shaderPath + "' and geometry shader '" +
+                    newGeomStage.shaderPath + "' to program!");
+            }
 
-            return;
+            return nullptr;
         }
 
         //validate the shader program before using it
-        OpenGLLoader::glValidateProgram(ID);
+        OpenGLLoader::glValidateProgram(newShaderData.programID);
         GLint validated = 0;
-        OpenGLLoader::glGetProgramiv(ID, GL_VALIDATE_STATUS, &validated);
+        OpenGLLoader::glGetProgramiv(
+            newShaderData.programID, 
+            GL_VALIDATE_STATUS, 
+            &validated);
         if (validated != GL_TRUE)
         {
-            OpenGLLoader::glDeleteShader(vertex);
-            OpenGLLoader::glDeleteShader(fragment);
+            OpenGLLoader::glDetachShader(newVertStage.shaderID);
+            OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+
+            OpenGLLoader::glDetachShader(newFragStage.shaderID);
+            OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+
+            if (geomShaderExists)
+            {
+                OpenGLLoader::glDetachShader(newGeomStage.shaderID);
+                OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+            }
 
             GLint logLength = 0;
-            OpenGLLoader::glGetProgramiv(ID, GL_INFO_LOG_LENGTH, &logLength);
+            OpenGLLoader::glGetProgramiv(
+                newShaderData.programID, 
+                GL_INFO_LOG_LENGTH, 
+                &logLength);
             if (logLength > 0)
             {
                 vector<GLchar> log(logLength);
-                OpenGLLoader::glGetProgramInfoLog(ID, logLength, nullptr, log.data());
+                OpenGLLoader::glGetProgramInfoLog(
+                    newShaderData.programID, 
+                    logLength, 
+                    nullptr, 
+                    log.data());
                 
                 string logStr(log.begin(), log.end());
 
@@ -199,63 +414,97 @@ namespace KalaWindow::Graphics
                     "OpenGL error",
                     "[Shader_OpenGL] Shader program validation failed:\n" + logStr);
 
-                return;
+                return nullptr;
             }
 
             ForceClose(
                 "OpenGL error",
                 "[Shader_OpenGL] Shader program validation failed!");
 
-            return;
+            return nullptr;
         }
 
-        GLint valid = OpenGLLoader::glIsProgram(ID);
+        GLint valid = OpenGLLoader::glIsProgram(newShaderData.programID);
         bool isProgramValid = valid == GL_TRUE;
         if (!isProgramValid)
         {
-            OpenGLLoader::glDeleteShader(vertex);
-            OpenGLLoader::glDeleteShader(fragment);
+            OpenGLLoader::glDetachShader(newVertStage.shaderID);
+            OpenGLLoader::glDeleteShader(newVertStage.shaderID);
 
-            LOG_ERROR("Shader program ID " << ID << " is not valid!\n");
+            OpenGLLoader::glDetachShader(newFragStage.shaderID);
+            OpenGLLoader::glDeleteShader(newFragStage.shaderID);
 
-            isValid = false;
-            ID = 0;
-            return;
+            if (geomShaderExists)
+            {
+                OpenGLLoader::glDetachShader(newGeomStage.shaderID);
+                OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+            }
+
+            LOG_ERROR("Shader program ID " << newShaderData.programID << " is not valid!\n");
+
+            return nullptr;
         }
         else
         {
-            LOG_DEBUG("Shader program ID " << ID << " is valid!\n");
+            LOG_DEBUG("Shader program ID " << newShaderData.programID << " is valid!\n");
         }
 
         //
         // CLEANUP
         //
 
-        OpenGLLoader::glDeleteShader(vertex);
-        OpenGLLoader::glDeleteShader(fragment);
+        OpenGLLoader::glDetachShader(newVertStage.shaderID);
+        OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+
+        OpenGLLoader::glDetachShader(newFragStage.shaderID);
+        OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+
+        if (geomShaderExists)
+        {
+            OpenGLLoader::glDetachShader(newGeomStage.shaderID);
+            OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+        }
+
+        if (vertShaderExists) newShaderData.stages.push_back(newVertStage);
+        if (fragShaderExists) newShaderData.stages.push_back(newFragStage);
+        if (geomShaderExists) newShaderData.stages.push_back(newGeomStage);
+
+        newShader->name = shaderName;
+        newShader->shaders.push_back(newShaderData);
+        createdShaders[shaderName] = newShader.get();
+
+        return newShader;
     }
 
-    Shader_OpenGL::~Shader_OpenGL()
+    bool Shader_OpenGL::Bind(
+        Window* window,
+        const ShaderData& shaderData) const
     {
-        if (ID != 0) OpenGLLoader::glDeleteProgram(ID);
-    }
+#ifdef _WIN32
+        auto& oglData = window->GetWindow_Windows().openglData;
+#elif __linux__
+        auto& oglData = window->GetWindow_X11().openglData;
+#endif
+        unsigned int& lastProgramID = oglData.lastProgramID;
+        unsigned int ID = shaderData.programID;
 
-    void Shader_OpenGL::Use(Window* window) const
-    {
         if (ID == 0)
         {
-            LOG_ERROR("Shader::Use() failed! ID is 0.");
-            return;
+            LOG_ERROR("OpenGL shader bind failed! ID is 0.");
+            return false;
         }
 
         if (!Renderer_OpenGL::IsContextValid(window))
         {
-            LOG_ERROR("Shader::Use() failed! OpenGL context is invalid.");
-            return;
+            LOG_ERROR("OpenGL shader bind failed! OpenGL context is invalid.");
+            return false;
         }
+
+        if (ID == lastProgramID) return true;
 
         OpenGLLoader::glUseProgram(ID);
 
+#ifdef _DEBUG
         GLenum err = glGetError();
         if (err != GL_NO_ERROR)
         {
@@ -270,53 +519,178 @@ namespace KalaWindow::Graphics
 
         if (activeProgram != (GLint)ID)
         {
-            LOG_ERROR("Shader::Use() failed! Program ID not bound after glUseProgram. Expected ID: '" << ID << "', but got: '" << activeProgram << "'.");
+            LOG_ERROR("OpenGL shader bind failed! Program ID not bound after glUseProgram. Expected ID: '" << ID << "', but got: '" << activeProgram << "'.");
+            return false;
         }
+#endif
+
+        lastProgramID = ID;
+
+        return true;
     }
 
-    void Shader_OpenGL::SetBool(const string& name, bool value) const
+    void Shader_OpenGL::HotReload(Shader_OpenGL* shader)
     {
-        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), (int)value);
-    }
-    void Shader_OpenGL::SetInt(const string& name, int value) const
-    {
-        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), value);
-    }
-    void Shader_OpenGL::SetFloat(const string& name, float value) const
-    {
-        OpenGLLoader::glUniform1f(OpenGLLoader::glGetUniformLocation(ID, name.c_str()), value);
+        if (shader == nullptr)
+        {
+            LOG_ERROR("Cannot hot reload shader because it is null!");
+            return;
+        }
+        string shaderName = shader->name;
+
+        //back up old data
+        vector<ShaderData> oldShaders = shader->GetAllShaderData();
+
+        //attepmt to recreate
+
+        vector<ShaderStage> stagesToReload{};
+        for (const auto& stage : oldShaders.front().stages)
+        {
+            stagesToReload.push_back(
+                {
+                    stage.shaderType,
+                    stage.shaderPath,
+                    0
+                });
+        }
+
+        auto reloadedShader = Shader_OpenGL::CreateShader(
+            shaderName,
+            stagesToReload);
+        if (!reloadedShader)
+        {
+            LOG_ERROR("Hot reload failed for shader '" + shaderName + "'! Keeping old version.");
+            return;
+        }
+
+        //replace internal data
+        shader->shaders = reloadedShader->shaders;
+        LOG_SUCCESS("Shader '" + shaderName + "' was hot reloaded!");
     }
 
-    void Shader_OpenGL::SetVec2(const string& name, const kvec2& value) const
+    void Shader_OpenGL::SetBool(
+        unsigned int programID,
+        const string& name, 
+        bool value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
-        OpenGLLoader::glUniform2fv(loc, 1, &value.x);
+        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(
+            programID, 
+            name.c_str()), 
+            (int)value);
     }
-    void Shader_OpenGL::SetVec3(const string& name, const kvec3& value) const
+    void Shader_OpenGL::SetInt(
+        unsigned int programID,
+        const string& name, 
+        int value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
-        OpenGLLoader::glUniform3fv(loc, 1, &value.x);
+        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(
+            programID, 
+            name.c_str()), 
+            value);
     }
-    void Shader_OpenGL::SetVec4(const string& name, const kvec4& value) const
+    void Shader_OpenGL::SetFloat(
+        unsigned int programID,
+        const string& name, 
+        float value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
-        OpenGLLoader::glUniform4fv(loc, 1, &value.x);
+        OpenGLLoader::glUniform1f(OpenGLLoader::glGetUniformLocation(
+            programID, 
+            name.c_str()), 
+            value);
     }
 
-    void Shader_OpenGL::SetMat2(const string& name, const kmat2& mat) const
+    void Shader_OpenGL::SetVec2(
+        unsigned int programID,
+        const string& name, 
+        const kvec2& value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
-        OpenGLLoader::glUniformMatrix2fv(loc, 1, GL_FALSE, &mat.columns[0].x);
+        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
+        OpenGLLoader::glUniform2fv(
+            loc, 
+            1, 
+            &value.x);
     }
-    void Shader_OpenGL::SetMat3(const string& name, const kmat3& mat) const
+    void Shader_OpenGL::SetVec3(
+        unsigned int programID,
+        const string& name, 
+        const kvec3& value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
-        OpenGLLoader::glUniformMatrix3fv(loc, 1, GL_FALSE, &mat.columns[0].x);
+        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
+        OpenGLLoader::glUniform3fv(
+            loc, 
+            1, 
+            &value.x);
     }
-    void Shader_OpenGL::SetMat4(const string& name, const kmat4& mat) const
+    void Shader_OpenGL::SetVec4(
+        unsigned int programID,
+        const string& name, 
+        const kvec4& value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(ID, name.c_str());
-        OpenGLLoader::glUniformMatrix4fv(loc, 1, GL_FALSE, &mat.columns[0].x);
+        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
+        OpenGLLoader::glUniform4fv(
+            loc, 
+            1, 
+            &value.x);
+    }
+
+    void Shader_OpenGL::SetMat2(
+        unsigned int programID,
+        const string& name, 
+        const kmat2& mat) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
+        OpenGLLoader::glUniformMatrix2fv(
+            loc, 
+            1, 
+            GL_FALSE, 
+            &mat.columns[0].x);
+    }
+    void Shader_OpenGL::SetMat3(
+        unsigned int programID,
+        const string& name, 
+        const kmat3& mat) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
+        OpenGLLoader::glUniformMatrix3fv(
+            loc, 
+            1, 
+            GL_FALSE, 
+            &mat.columns[0].x);
+    }
+    void Shader_OpenGL::SetMat4(
+        unsigned int programID,
+        const string& name, 
+        const kmat4& mat) const
+    {
+        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
+        OpenGLLoader::glUniformMatrix4fv(
+            loc, 
+            1, 
+            GL_FALSE, 
+            &mat.columns[0].x);
+    }
+
+    void Shader_OpenGL::DestroyShader()
+    {
+        for (auto& shaderData : this->GetAllShaderData())
+        {
+            for (auto& shaderStage : shaderData.stages)
+            {
+                if (shaderStage.shaderID != 0)
+                {
+                    OpenGLLoader::glDetachShader(shaderStage.shaderID);
+                    OpenGLLoader::glDeleteShader(shaderStage.shaderID);
+                    shaderStage.shaderID = 0;
+                }
+            }
+            if (shaderData.programID != 0)
+            {
+                OpenGLLoader::glDeleteProgram(shaderData.programID);
+                shaderData.programID = 0;
+            }
+        }
+        shaders.clear();
+        createdShaders.erase(this->name);
     }
 }
 

@@ -73,6 +73,7 @@ namespace KalaWindow::Graphics
 		static PFNGLUSEPROGRAMPROC             glUseProgram;              //Use a shader program for drawing
 		static PFNGLATTACHSHADERPROC           glAttachShader;            //Attach a shader to the program
 		static PFNGLLINKPROGRAMPROC            glLinkProgram;             //Link the shader program
+		static PFNGLDETACHSHADERPROC           glDetachShader;            //Detach a shader object
 		static PFNGLDELETESHADERPROC           glDeleteShader;            //Delete a shader object
 		static PFNGLGETSHADERIVPROC            glGetShaderiv;             //Get shader compile status
 		static PFNGLGETSHADERINFOLOGPROC       glGetShaderInfoLog;        //Get shader compilation log

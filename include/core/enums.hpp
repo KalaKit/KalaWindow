@@ -86,6 +86,7 @@ namespace KalaWindow
 		OPENGL_USEPROGRAM,              //Use a shader program for drawing
 		OPENGL_ATTACHSHADER,            //Attach a shader to the program
 		OPENGL_LINKPROGRAM,             //Link the shader program
+		OPENGL_DETACHSHADER,            //Detach a shader object
 		OPENGL_DELETESHADER,            //Delete a shader object
 		OPENGL_GETSHADERIV,             //Get shader compile status
 		OPENGL_GETSHADERINFOLOG,        //Get shader compilation log

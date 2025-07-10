@@ -8,6 +8,9 @@
 #pragma once
 
 #include <string>
+#include <memory>
+#include <unordered_map>
+#include <vector>
 
 #include "core/platform.hpp"
 #include "graphics/window.hpp"
@@ -15,36 +18,114 @@
 namespace KalaWindow::Graphics
 {
 	using std::string;
+	using std::unordered_map;
+	using std::vector;
+
+	enum class ShaderType
+	{
+		Shader_Vertex,
+		Shader_Fragment,
+		Shader_Geometry,
+	};
+
+	struct ShaderStage
+	{
+		ShaderType shaderType;
+		string shaderPath;
+		unsigned int shaderID;
+	};
+	struct ShaderData
+	{
+		vector<ShaderStage> stages;
+		unsigned int programID;
+	};
 
 	class KALAWINDOW_API Shader_OpenGL
 	{
-		unsigned int ID{};
+	public:
+		static inline unordered_map<string, Shader_OpenGL*> createdShaders{};
 
-		Shader_OpenGL() = default;
+		static unique_ptr<Shader_OpenGL> CreateShader(
+			const string& shaderName,
+			const vector<ShaderStage>& shaderStages);
 
-		Shader_OpenGL(
-			const string& vertexPath,
-			const string& fragmentPath);
+		static Shader_OpenGL* GetShaderByName(const string& name)
+		{
+			auto it = createdShaders.find(name);
+			return it != createdShaders.end() ? it->second : nullptr;
+		}
 
-		~Shader_OpenGL();
+		vector<ShaderData> GetAllShaderData() { return shaders; }
 
-		bool IsValid() const { return isValid; }
+		//Returns true if this shader is loaded
+		bool IsShaderLoaded(
+			ShaderType targetType,
+			const ShaderData& shaderData)
+		{
+			if (shaderData.stages.empty()
+				|| shaderData.programID == 0)
+			{
+				return false;
+			}
 
-		void Use(Window* window) const;
+			for (const auto& stage : shaderData.stages)
+			{
+				if (stage.shaderType == targetType
+					&& !stage.shaderPath.empty()
+					&& stage.shaderID != 0)
+				{
+					return true;
+				}
+			}
 
-		void SetBool(const string& name, bool value) const;
-		void SetInt(const string& name, int value) const;
-		void SetFloat(const string& name, float value) const;
+			return false;
+		}
+		//Returns true if the shader path of this shader type exists
+		bool ShaderExists(
+			ShaderType targetType,
+			const ShaderData& shaderData)
+		{
+			if (shaderData.stages.empty()
+				|| shaderData.programID == 0)
+			{
+				return false;
+			}
 
-		void SetVec2(const string& name, const kvec2& value) const;
-		void SetVec3(const string& name, const kvec3& value) const;
-		void SetVec4(const string& name, const kvec4& value) const;
+			for (const auto& stage : shaderData.stages)
+			{
+				if (stage.shaderType == targetType
+					&& !stage.shaderPath.empty())
+				{
+					return true;
+				}
+			}
 
-		void SetMat2(const string& name, const kmat2& mat) const;
-		void SetMat3(const string& name, const kmat3& mat) const;
-		void SetMat4(const string& name, const kmat4& mat) const;
+			return false;
+		}
+
+		bool Bind(
+			Window* window,
+			const ShaderData& shaderData) const;
+
+		void HotReload(Shader_OpenGL* shader);
+
+		void SetBool(unsigned int programID, const string& name, bool value) const;
+		void SetInt(unsigned int programID, const string& name, int value) const;
+		void SetFloat(unsigned int programID, const string& name, float value) const;
+
+		void SetVec2(unsigned int programID, const string& name, const kvec2& value) const;
+		void SetVec3(unsigned int programID, const string& name, const kvec3& value) const;
+		void SetVec4(unsigned int programID, const string& name, const kvec4& value) const;
+
+		void SetMat2(unsigned int programID, const string& name, const kmat2& mat) const;
+		void SetMat3(unsigned int programID, const string& name, const kmat3& mat) const;
+		void SetMat4(unsigned int programID, const string& name, const kmat4& mat) const;
+
+		//Destroys this created shader and its data
+		void DestroyShader();
 	private:
-		bool isValid = true;
+		string name;
+		vector<ShaderData> shaders;
 	};
 }
 

@@ -21,23 +21,34 @@ using std::ifstream;
 using std::ios;
 
 static vector<char> LoadBinaryFile(const string& path);
-static VkShaderModule CreateShaderModule(VkDevice device, const vector<char>& code);
+static VkShaderModule CreateShaderModule(
+	VkDevice device,
+	const vector<char>& code);
 
 namespace KalaWindow::Graphics
 {
-	unique_ptr<Shader_Vulkan> Shader_Vulkan::CreateFromFiles(
-		const string& vertexPath,
-		const string& fragmentPath)
+	unique_ptr<Shader_Vulkan> Shader_Vulkan::CreateShader(
+		const string& shaderName,
+		const vector<ShaderStage>& shaderStages)
 	{
 		return nullptr;
 	}
 
-	bool Shader_Vulkan::Bind(void* commandBuffer)
+	bool Shader_Vulkan::Bind(
+		uintptr_t commandBuffer,
+		const ShaderData& shaderData) const
 	{
 		return true;
 	}
 
-	void Shader_Vulkan::CleanResources()
+	void Shader_Vulkan::HotReload(
+		Shader_Vulkan* shader,
+		Window* window)
+	{
+
+	}
+
+	void Shader_Vulkan::DestroyShader()
 	{
 
 	}

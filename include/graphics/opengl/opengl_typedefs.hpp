@@ -100,6 +100,7 @@
 
 #define GL_VERTEX_SHADER     0x8B31
 #define GL_FRAGMENT_SHADER   0x8B30
+#define GL_GEOMETRY_SHADER   0x8DD9
 
 //shader parameter enums
 
@@ -296,6 +297,8 @@ typedef void (APIENTRYP PFNGLATTACHSHADERPROC)(
     GLuint shader);
 typedef void (APIENTRYP PFNGLLINKPROGRAMPROC)(
     GLuint program);
+typedef void (APIENTRYP PFNGLDETACHSHADERPROC)(
+    GLuint shader);
 typedef void (APIENTRYP PFNGLDELETESHADERPROC)(
     GLuint shader);
 typedef void (APIENTRYP PFNGLGETSHADERIVPROC)(

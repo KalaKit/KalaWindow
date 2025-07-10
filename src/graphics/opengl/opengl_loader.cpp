@@ -47,6 +47,7 @@ namespace KalaWindow::Graphics
 	inline PFNGLUSEPROGRAMPROC             OpenGLLoader::glUseProgram = nullptr;
 	inline PFNGLATTACHSHADERPROC           OpenGLLoader::glAttachShader = nullptr;
 	inline PFNGLLINKPROGRAMPROC            OpenGLLoader::glLinkProgram = nullptr;
+	inline PFNGLDETACHSHADERPROC           OpenGLLoader::glDetachShader = nullptr;
 	inline PFNGLDELETESHADERPROC           OpenGLLoader::glDeleteShader = nullptr;
 	inline PFNGLGETSHADERIVPROC            OpenGLLoader::glGetShaderiv = nullptr;
 	inline PFNGLGETSHADERINFOLOGPROC       OpenGLLoader::glGetShaderInfoLog = nullptr;
@@ -186,6 +187,7 @@ namespace KalaWindow::Graphics
 		{ OpenGLFunction::OPENGL_USEPROGRAM, "glUseProgram", reinterpret_cast<void**>(&glUseProgram) },
 		{ OpenGLFunction::OPENGL_ATTACHSHADER, "glAttachShader", reinterpret_cast<void**>(&glAttachShader) },
 		{ OpenGLFunction::OPENGL_LINKPROGRAM, "glLinkProgram", reinterpret_cast<void**>(&glLinkProgram) },
+		{ OpenGLFunction::OPENGL_DETACHSHADER, "glDetachShader", reinterpret_cast<void**>(&glDetachShader) },
 		{ OpenGLFunction::OPENGL_DELETESHADER, "glDeleteShader", reinterpret_cast<void**>(&glDeleteShader) },
 		{ OpenGLFunction::OPENGL_GETSHADERIV, "glGetShaderiv", reinterpret_cast<void**>(&glGetShaderiv) },
 		{ OpenGLFunction::OPENGL_GETSHADERINFOLOG, "glGetShaderInfoLog", reinterpret_cast<void**>(&glGetShaderInfoLog) },

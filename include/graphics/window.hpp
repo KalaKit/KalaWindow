@@ -31,6 +31,7 @@ namespace KalaWindow::Graphics
 		void* hglrc;      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
 		void* hdc;        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
 		void* glxContext; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
+		unsigned int lastProgramID = 0;
 	};
 	struct Window_VulkanData
 	{

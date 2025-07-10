@@ -290,7 +290,7 @@ namespace KalaWindow::Graphics
 		}
 
 		delayedExt.push_back(ext);
-		LOG_SUCCESS("Queued device extension '" << name << "' for delayed enable");
+		LOG_INFO("Queued device extension '" << name << "' for delayed enable.");
 		return true;
 	}
 
@@ -1089,65 +1089,6 @@ namespace KalaWindow::Graphics
 				"Vulkan error",
 				"Hard reset failed because of CreateSyncObjects!");
 			return;
-		}
-	}
-
-	void Renderer_Vulkan::SoftReset(
-		Window* window,
-		uint32_t imageIndex)
-	{
-		if (!isVulkanInitialized)
-		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "soft reset");
-			return;
-		}
-
-		if (!IsValidHandle(
-			FromVar<VkQueue>(graphicsQueue),
-			"graphicsQueue",
-			"SoftReset"))
-		{
-			return;
-		}
-
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
-
-		if (!vData.swapchain)
-		{
-			LOG_ERROR("Cannot soft-reset because swapchain has not been assigned!");
-			return;
-		}
-		if (imageIndex >= vData.renderFinishedSemaphores.size())
-		{
-			LOG_ERROR("Cannot soft-reset! Image index " << imageIndex << " is out of range!");
-			return;
-		}
-
-		vkQueueSubmit(
-			graphicsQueue,
-			0,
-			nullptr,
-			VK_NULL_HANDLE);
-
-		VkSemaphore realFinishedSemaphore =
-			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex]);
-		VkSwapchainKHR realSwapchain =
-			ToVar<VkSwapchainKHR>(vData.swapchain);
-
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &realFinishedSemaphore;
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = &realSwapchain;
-		presentInfo.pImageIndices = &imageIndex;
-		presentInfo.pResults = nullptr;
-
-		VkResult presentResult = vkQueuePresentKHR(graphicsQueue, &presentInfo);
-		if (presentResult != VK_SUCCESS)
-		{
-			LOG_ERROR("Soft-reset failed! Reason: " << presentResult);
 		}
 	}
 

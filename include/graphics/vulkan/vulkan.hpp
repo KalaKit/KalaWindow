@@ -88,13 +88,6 @@ namespace KalaWindow::Graphics
 		//(render pass, framebuffers, semaphores/fences, and command buffers)
 		static void HardReset(Window* window);
 
-		//Issue a zero‐work submit to consume the image
-		//- acquire semaphore, then immediately present that image back to the swapchain
-		//- resetting its semaphores without tearing down the swapchain
-		static void SoftReset(
-			Window* window,
-			uint32_t imageIndex);
-
 		//Ensures all window-related data is cleared
 		static void DestroyWindowData(Window* window);
 
