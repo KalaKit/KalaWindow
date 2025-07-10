@@ -544,7 +544,7 @@ namespace KalaWindow::Graphics
 			LOG_ERROR("Failed to create Vulkan command pool!");
 			return false;
 		}
-		vData.commandPool = reinterpret_cast<uintptr_t>(realPool);
+		vData.commandPool = FromVar<VkCommandPool>(realPool);
 
 		return true;
 	}

@@ -27,7 +27,7 @@ namespace KalaWindow::Core
 		//
 
 		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND winRef = reinterpret_cast<HWND>(win.hwnd);
+		HWND winRef = ToVar<HWND>(win.hwnd);
 
 		RAWINPUTDEVICE rid{};
 		rid.usUsagePage = 0x01;
@@ -61,7 +61,7 @@ namespace KalaWindow::Core
 		if (isLocked)
 		{
 			WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-			HWND windowRef = reinterpret_cast<HWND>(window.hwnd);
+			HWND windowRef = ToVar<HWND>(window.hwnd);
 
 			RECT rect{};
 			GetClientRect(windowRef, &rect);

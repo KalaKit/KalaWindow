@@ -202,7 +202,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 		if (!windowPtr) continue;
 
 		WindowStruct_Windows& data = windowPtr->GetWindow_Windows();
-		if (reinterpret_cast<HWND>(data.hwnd) == hwnd)
+		if (ToVar<HWND>(data.hwnd) == hwnd)
 		{
 			window = windowPtr;
 			break;
@@ -566,7 +566,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_PAINT:
 	{
 		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND hwnd = reinterpret_cast<HWND>(win.hwnd);
+		HWND hwnd = ToVar<HWND>(win.hwnd);
 		
 		PAINTSTRUCT ps;
 		BeginPaint(hwnd, &ps);
@@ -606,7 +606,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 	case WM_SIZING:
 	{
-		HWND windowRef = reinterpret_cast<HWND>(window);
+		HWND windowRef = ToVar<HWND>(window->GetWindow_Windows().hwnd);
 
 		if (window->IsInitialized())
 		{
@@ -621,7 +621,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_GETMINMAXINFO:
 	{
-		HWND windowRef = reinterpret_cast<HWND>(window);
+		HWND windowRef = ToVar<HWND>(window->GetWindow_Windows().hwnd);
 
 		MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(msg.lParam);
 

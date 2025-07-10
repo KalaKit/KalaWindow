@@ -52,7 +52,7 @@ namespace KalaWindow::Graphics
 		Window* targetWindow)
 	{
 		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-		HWND windowRef = reinterpret_cast<HWND>(window.hwnd);
+		HWND windowRef = ToVar<HWND>(window.hwnd);
 
 		HDC hdc = GetDC(windowRef);
 		window.openglData.hdc = FromVar<HDC>(hdc);
@@ -211,7 +211,7 @@ namespace KalaWindow::Graphics
 	void Renderer_OpenGL::SwapOpenGLBuffers(Window* targetWindow)
 	{
 		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-		HDC hdc = reinterpret_cast<HDC>(window.openglData.hdc);
+		HDC hdc = ToVar<HDC>(window.openglData.hdc);
 		SwapBuffers(hdc);
 	}
 

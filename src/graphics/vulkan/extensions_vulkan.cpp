@@ -87,8 +87,8 @@ namespace KalaWindow::Graphics
 
 #ifdef _WIN32
 		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-		HWND windowRef = reinterpret_cast<HWND>(window.hwnd);
-		HINSTANCE windowIns = reinterpret_cast<HINSTANCE>(window.hInstance);
+		HWND windowRef = ToVar<HWND>(window.hwnd);
+		HINSTANCE windowIns = ToVar<HINSTANCE>(window.hInstance);
 
 		VkWin32SurfaceCreateInfoKHR surfaceInfo{};
 		surfaceInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
@@ -108,7 +108,7 @@ namespace KalaWindow::Graphics
 				"Failed to create Win32 Vulkan surface!");
 		}
 
-		vData.surface = reinterpret_cast<uintptr_t>(surface);
+		vData.surface = FromVar<VkSurfaceKHR>(surface);
 #elif __linux__
 		//TODO: ADD LINUX SUPPORT
 #endif

@@ -244,7 +244,7 @@ namespace KalaWindow::Graphics
 	bool Window::IsFocused(Window* window) const
 	{
 		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND hwnd = reinterpret_cast<HWND>(win.hwnd);
+		HWND hwnd = ToVar<HWND>(win.hwnd);
 
 		return hwnd == GetForegroundWindow();
 	}
@@ -252,7 +252,7 @@ namespace KalaWindow::Graphics
 	bool Window::IsMinimized(Window* window) const
 	{
 		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND hwnd = reinterpret_cast<HWND>(win.hwnd);
+		HWND hwnd = ToVar<HWND>(win.hwnd);
 
 		//IsIconic returns TRUE if the window is minimized (iconic state)
 		return IsIconic(hwnd) == TRUE;
@@ -261,7 +261,7 @@ namespace KalaWindow::Graphics
 	bool Window::IsVisible(Window* window) const
 	{
 		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND hwnd = reinterpret_cast<HWND>(win.hwnd);
+		HWND hwnd = ToVar<HWND>(win.hwnd);
 
 		return IsWindowVisible(hwnd) == TRUE;
 	}
@@ -352,7 +352,7 @@ namespace KalaWindow::Graphics
 		}
 
 		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND winRef = reinterpret_cast<HWND>(win.hwnd);
+		HWND winRef = ToVar<HWND>(win.hwnd);
 		ShowWindow(winRef, SW_HIDE);
 
 		GlyphSystem::ClearGlyphs(window);
@@ -361,15 +361,15 @@ namespace KalaWindow::Graphics
 		if (win.openglData.hglrc)
 		{
 			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(reinterpret_cast<HGLRC>(win.openglData.hglrc));
+			wglDeleteContext(ToVar<HGLRC>(win.openglData.hglrc));
 			win.openglData.hglrc = NULL;
 		}
 		if (win.wndProc) win.wndProc = NULL;
 		if (win.openglData.hdc)
 		{
 			ReleaseDC(
-				reinterpret_cast<HWND>(win.hwnd),
-				reinterpret_cast<HDC>(win.openglData.hdc));
+				ToVar<HWND>(win.hwnd),
+				ToVar<HDC>(win.openglData.hdc));
 			win.openglData.hdc = NULL;
 		}
 		if (win.wndProc) win.wndProc = NULL;

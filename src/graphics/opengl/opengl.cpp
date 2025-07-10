@@ -42,7 +42,7 @@ namespace KalaWindow::Graphics
 	bool Renderer_OpenGL::IsContextValid(Window* targetWindow)
 	{
 		WindowStruct_Windows& win = targetWindow->GetWindow_Windows();
-		HGLRC hglrc = reinterpret_cast<HGLRC>(win.openglData.hglrc);
+		HGLRC hglrc = ToVar<HGLRC>(win.openglData.hglrc);
 
 		HGLRC current = wglGetCurrentContext();
 		if (current == nullptr)
