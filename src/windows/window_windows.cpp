@@ -35,15 +35,13 @@ namespace KalaWindow::Graphics
 
 	unique_ptr<Window> Window::Initialize(
 		const string& title,
-		int width,
-		int height)
+		kvec2 size)
 	{
 		unsigned int windowID = nextWindowID++;
 		unique_ptr<Window> newWindow = make_unique<Window>(
 			title,
 			windowID,
-			width,
-			height);
+			size);
 
 		HINSTANCE newHInstance = GetModuleHandle(nullptr);
 
@@ -86,8 +84,10 @@ namespace KalaWindow::Graphics
 			"KalaWindowClass",
 			title.c_str(),
 			WS_OVERLAPPEDWINDOW,
-			CW_USEDEFAULT, CW_USEDEFAULT,
-			width, height,
+			CW_USEDEFAULT,
+			CW_USEDEFAULT,
+			size.x,
+			size.y,
 			nullptr,
 			nullptr,
 			newHInstance,
@@ -134,11 +134,12 @@ namespace KalaWindow::Graphics
 
 		Window_OpenGLData oData{};
 		Window_VulkanData vData{};
+
 		WindowStruct_Windows newWindowStruct =
 		{
-			.hwnd = newHwnd,
-			.hInstance = newHInstance,
-			.wndProc = reinterpret_cast<void*>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC)),
+			.hwnd = FromVar<HWND>(newHwnd),
+			.hInstance = FromVar<HINSTANCE>(newHInstance),
+			.wndProc = FromVar<WNDPROC>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC)),
 			.openglData = oData,
 			.vulkanData = vData
 		};
@@ -181,6 +182,63 @@ namespace KalaWindow::Graphics
 		if (it != windows.end()) return *it;
 
 		return nullptr;
+	}
+
+	void Window::SetTitle(const string& newTitle)
+	{
+		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+		SetWindowTextA(window, newTitle.c_str());
+
+		this->title = newTitle;
+	}
+
+	void Window::SetSize(kvec2 newSize)
+	{
+		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			newSize.x,
+			newSize.y,
+			SWP_NOMOVE
+			| SWP_NOZORDER);
+
+		this->size = newSize;
+	}
+
+	kvec2 Window::GetPosition()
+	{
+		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+
+		RECT rect{};
+		if (GetWindowRect(window, &rect))
+		{
+			return kvec2
+			{ 
+				static_cast<float>(rect.left),
+				static_cast<float>(rect.top)
+			};
+		}
+
+		return kvec2{ 0, 0 };
+	}
+
+	void Window::SetPosition(kvec2 newPosition)
+	{
+		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			newPosition.x,
+			newPosition.y,
+			0,
+			0,
+			SWP_NOSIZE
+			| SWP_NOZORDER);
 	}
 
 	bool Window::IsFocused(Window* window) const
@@ -304,26 +362,26 @@ namespace KalaWindow::Graphics
 		{
 			wglMakeCurrent(nullptr, nullptr);
 			wglDeleteContext(reinterpret_cast<HGLRC>(win.openglData.hglrc));
-			win.openglData.hglrc = nullptr;
+			win.openglData.hglrc = NULL;
 		}
-		if (win.wndProc) win.wndProc = nullptr;
+		if (win.wndProc) win.wndProc = NULL;
 		if (win.openglData.hdc)
 		{
 			ReleaseDC(
 				reinterpret_cast<HWND>(win.hwnd),
 				reinterpret_cast<HDC>(win.openglData.hdc));
-			win.openglData.hdc = nullptr;
+			win.openglData.hdc = NULL;
 		}
-		if (win.wndProc) win.wndProc = nullptr;
+		if (win.wndProc) win.wndProc = NULL;
 #elif KALAWINDOW_SUPPORT_VULKAN
 		Renderer_Vulkan::DestroyWindowData(window);
 #endif //KALAWINDOW_SUPPORT_VULKAN
 		if (win.hwnd)
 		{
 			DestroyWindow(winRef);
-			win.hwnd = nullptr;
+			win.hwnd = NULL;
 		}
-		win.hInstance = nullptr;
+		win.hInstance = NULL;
 
 		for (size_t i = 0; i < Window::windows.size(); ++i)
 		{

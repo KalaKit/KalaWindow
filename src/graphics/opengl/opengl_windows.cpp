@@ -55,7 +55,7 @@ namespace KalaWindow::Graphics
 		HWND windowRef = reinterpret_cast<HWND>(window.hwnd);
 
 		HDC hdc = GetDC(windowRef);
-		window.openglData.hdc = reinterpret_cast<void*>(hdc);
+		window.openglData.hdc = FromVar<HDC>(hdc);
 		LOG_DEBUG("Window HDC: " << hdc);
 
 		//
@@ -159,7 +159,7 @@ namespace KalaWindow::Graphics
 			0
 		};
 
-		window.openglData.hglrc = wglCreateContextAttribsARB(hdc, 0, attribs);
+		window.openglData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(hdc, 0, attribs));
 		if (!window.openglData.hglrc)
 		{
 			LOG_ERROR("Failed to create OpenGL 3.3 context!");
@@ -199,7 +199,11 @@ namespace KalaWindow::Graphics
 		OpenGLLoader::LoadAllFunctions();
 
 		//and finally set opengl viewport size
-		OpenGLLoader::glViewport(0, 0, targetWindow->GetWidth(), targetWindow->GetHeight());
+		OpenGLLoader::glViewport(
+			0, 
+			0, 
+			targetWindow->GetSize().x,
+			targetWindow->GetSize().y);
 
 		return true;
 	}

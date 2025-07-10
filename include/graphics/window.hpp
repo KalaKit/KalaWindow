@@ -28,9 +28,9 @@ namespace KalaWindow::Graphics
 
 	struct Window_OpenGLData
 	{
-		void* hglrc;      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
-		void* hdc;        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
-		void* glxContext; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
+		uintptr_t hglrc;      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
+		uintptr_t hdc;        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
+		uintptr_t glxContext; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
 		unsigned int lastProgramID = 0;
 	};
 	struct Window_VulkanData
@@ -71,18 +71,18 @@ namespace KalaWindow::Graphics
 
 	struct WindowStruct_Windows
 	{
-		void* hwnd;
-		void* hInstance;
-		void* wndProc;   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
+		uintptr_t hwnd;
+		uintptr_t hInstance;
+		uintptr_t wndProc;   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
 		Window_OpenGLData openglData;
 		Window_VulkanData vulkanData;
 
 	};
 	struct WindowStruct_X11
 	{
-		void* display;
-		void* window;
-		void* visual;
+		uintptr_t display;
+		uintptr_t window;
+		uintptr_t visual;
 		Window_OpenGLData openglData;
 		Window_VulkanData vulkanData;
 	};
@@ -95,18 +95,15 @@ namespace KalaWindow::Graphics
 
 		static unique_ptr<Window> Initialize(
 			const string& title,
-			int width,
-			int height);
+			kvec2 size);
 
 		Window(
 			string title,
 			unsigned int ID,
-			int width,
-			int height) :
+			kvec2 size) :
 			title(title),
 			ID(ID),
-			width(width),
-			height(height) {
+			size(size) {
 		}
 
 		WindowStruct_Windows& GetWindow_Windows() { return window_windows; }
@@ -122,13 +119,13 @@ namespace KalaWindow::Graphics
 		}
 
 		const string& GetTitle() const { return title; }
-		void SetTitle(const string& newTitle) { title = newTitle; }
+		void SetTitle(const string& newTitle);
 
-		unsigned int GetWidth() const { return width; }
-		void SetWidth(unsigned int newWidth) { width = newWidth; }
+		kvec2 GetSize() const { return size; }
+		void SetSize(kvec2 newSize);
 
-		unsigned int GetHeight() const { return height; }
-		void SetHeight(unsigned int newHeight) { height = newHeight; }
+		kvec2 GetPosition();
+		void SetPosition(kvec2 newPos);
 
 		//Checks if vsync is enabled or not.
 		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
@@ -188,8 +185,7 @@ namespace KalaWindow::Graphics
 
 		string title;        //The title of this window
 		unsigned int ID;     //The ID of this window
-		unsigned int width;  //The width of this window
-		unsigned int height; //The height of this window
+		kvec2 size;          //The width and height of this window
 
 		//platform-specific variables
 
