@@ -585,7 +585,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		vData.commandBuffers.resize(vData.images.size());
+		vData.commandBuffers.resize(MAX_FRAMES);
 
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -812,11 +812,6 @@ namespace KalaWindow::Graphics
 
 			imageIndex = nextImage;
 
-			if (vData.imagesInFlight[imageIndex] != vData.inFlightFences[currentFrame])
-			{
-				vData.imagesInFlight[imageIndex] = vData.inFlightFences[currentFrame];
-			}
-
 			VkFence inFlight = ToVar<VkFence>(vData.imagesInFlight[imageIndex]);
 			if (inFlight != VK_NULL_HANDLE
 				&& inFlight != ToVar<VkFence>(vData.inFlightFences[currentFrame]))
@@ -828,6 +823,8 @@ namespace KalaWindow::Graphics
 					VK_TRUE,
 					UINT64_MAX);
 			}
+
+			vData.imagesInFlight[imageIndex] = vData.inFlightFences[currentFrame];
 
 			return FrameResult::VK_FRAME_OK;
 		}
@@ -858,14 +855,14 @@ namespace KalaWindow::Graphics
 		VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
 
 		if (!IsValidIndex(
-			imageIndex,
+			currentFrame,
 			vData.commandBuffers,
 			"imageIndex",
 			"RecordCommandBuffer"))
 		{
 			return false;
 		}
-		VkCommandBuffer cmd = ToVar<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
+		VkCommandBuffer cmd = ToVar<VkCommandBuffer>(vData.commandBuffers[currentFrame]);
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -948,7 +945,7 @@ namespace KalaWindow::Graphics
 
 		submitInfo.commandBufferCount = 1;
 
-		VkCommandBuffer realCB = ToVar<VkCommandBuffer>(vData.commandBuffers[imageIndex]);
+		VkCommandBuffer realCB = ToVar<VkCommandBuffer>(vData.commandBuffers[currentFrame]);
 		submitInfo.pCommandBuffers = &realCB;
 
 		VkSemaphore signalSemaphores[] = 
@@ -967,8 +964,6 @@ namespace KalaWindow::Graphics
 			LOG_ERROR("Failed to submit frame!");
 			return false;
 		}
-
-		vData.imagesInFlight[imageIndex] = vData.inFlightFences[currentFrame];
 
 		return true;
 	}
