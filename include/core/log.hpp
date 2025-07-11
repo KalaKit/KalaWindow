@@ -33,7 +33,7 @@ namespace KalaWindow::Core
 	enum class DateFormat
 	{
 		DATE_NONE,
-		DATE_DEFAULT,      //Globally configured default date format
+		DATE_DEFAULT,      //Globally defined default date format
 		DATE_DMY,          //31/12/2025
 		DATE_MDY,          //12/31/2025
 		DATE_ISO_8601,     //2025-12-31
@@ -61,6 +61,17 @@ namespace KalaWindow::Core
 					2);
 				return;
 			}
+			if (format == TimeFormat::TIME_NONE)
+			{
+				Print(
+					"Default time format was set to TIME_NONE!"
+					"No timestamps will be printed for logs that use TIME_DEFAULT.",
+					"LOG",
+					LogType::LOG_WARNING,
+					2);
+				return;
+			}
+
 			defaultTimeFormat = format;
 		}
 
@@ -79,6 +90,17 @@ namespace KalaWindow::Core
 					2);
 				return;
 			}
+			if (format == DateFormat::DATE_NONE)
+			{
+				Print(
+					"Default DATE format was set to DATE_NONE!"
+					"No date stamps will be printed for logs that use DATE_DEFAULT.",
+					"LOG",
+					LogType::LOG_WARNING,
+					2);
+				return;
+			}
+
 			defaultDateFormat = format;
 		}
 
@@ -106,6 +128,6 @@ namespace KalaWindow::Core
 			DateFormat dateFormat = DateFormat::DATE_DEFAULT);
 	private:
 		static inline TimeFormat defaultTimeFormat = TimeFormat::TIME_HMS_MS;
-		static inline DateFormat defaultDateFormat = DateFormat::DATE_DMY;
+		static inline DateFormat defaultDateFormat = DateFormat::DATE_NONE;
 	};
 }

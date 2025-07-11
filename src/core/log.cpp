@@ -26,7 +26,15 @@ namespace KalaWindow::Core
 {
 	string Logger::GetTime(TimeFormat timeFormat)
 	{
-		if (timeFormat == TimeFormat::TIME_NONE) return "";
+		if (timeFormat == TimeFormat::TIME_NONE)
+		{
+			Print(
+				"Cannot get time because timeFormat was set to TIME_NONE!",
+				"LOG",
+				LogType::LOG_ERROR,
+				2);
+			return "";
+		}
 		if (timeFormat == TimeFormat::TIME_DEFAULT)
 		{
 			return GetTime(defaultTimeFormat);
@@ -73,7 +81,15 @@ namespace KalaWindow::Core
 
 	string Logger::GetDate(DateFormat dateFormat)
 	{
-		if (dateFormat == DateFormat::DATE_NONE) return "";
+		if (dateFormat == DateFormat::DATE_NONE)
+		{
+			Print(
+				"Cannot get date because dateFormat was set to DATE_NONE!",
+				"LOG",
+				LogType::LOG_ERROR,
+				2);
+			return "";
+		}
 		if (dateFormat == DateFormat::DATE_DEFAULT)
 		{
 			return GetDate(defaultDateFormat);
