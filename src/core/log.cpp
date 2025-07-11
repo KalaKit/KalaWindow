@@ -27,6 +27,10 @@ namespace KalaWindow::Core
 	string Logger::GetTime(TimeFormat timeFormat)
 	{
 		if (timeFormat == TimeFormat::TIME_NONE) return "";
+		if (timeFormat == TimeFormat::TIME_DEFAULT)
+		{
+			return GetTime(defaultTimeFormat);
+		}
 
 		auto now = system_clock::now();
 		auto in_time_t = system_clock::to_time_t(now);
@@ -70,6 +74,10 @@ namespace KalaWindow::Core
 	string Logger::GetDate(DateFormat dateFormat)
 	{
 		if (dateFormat == DateFormat::DATE_NONE) return "";
+		if (dateFormat == DateFormat::DATE_DEFAULT)
+		{
+			return GetDate(defaultDateFormat);
+		}
 
 		auto now = system_clock::now();
 		auto in_time_t = system_clock::to_time_t(now);
@@ -112,6 +120,10 @@ namespace KalaWindow::Core
 		TimeFormat timeFormat,
 		DateFormat dateFormat)
 	{
+#ifndef _DEBUG
+		if (type == LogType::LOG_DEBUG) return;
+#endif
+
 		if (message.empty())
 		{
 			Print(

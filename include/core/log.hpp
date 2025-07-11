@@ -13,15 +13,16 @@ namespace KalaWindow::Core
 
 	enum class LogType
 	{
-		LOG_INFO,
-		LOG_DEBUG,
-		LOG_SUCCESS,
-		LOG_WARNING,
-		LOG_ERROR
+		LOG_INFO,    //General-purpose log message, sent to std::cout
+		LOG_DEBUG,   //Debugging message, only appears in debug builds, sent to std::clog
+		LOG_SUCCESS, //Confirmation that an operation succeeded, sent to std::cout
+		LOG_WARNING, //Non-critical issue that should be looked into, sent to std::clog
+		LOG_ERROR    //Serious issue or failure, sent to std::cerr
 	};
 	enum class TimeFormat
 	{
 		TIME_NONE,
+		TIME_DEFAULT,    //Globally defined default time format
 		TIME_HMS,        //23:59:59
 		TIME_HMS_MS,     //23:59:59:123
 		TIME_12H,        //11:59:59 PM
@@ -32,6 +33,7 @@ namespace KalaWindow::Core
 	enum class DateFormat
 	{
 		DATE_NONE,
+		DATE_DEFAULT,      //Globally configured default date format
 		DATE_DMY,          //31/12/2025
 		DATE_MDY,          //12/31/2025
 		DATE_ISO_8601,     //2025-12-31
@@ -44,10 +46,46 @@ namespace KalaWindow::Core
 	class Logger
 	{
 	public:
-		//Returns current time in chosen format.
-		static string GetTime(TimeFormat time);
-		//Returns current date in chosen format.
-		static string GetDate(DateFormat date);
+		static TimeFormat GetDefaultTimeFormat()
+		{
+			return defaultTimeFormat;
+		}
+		static void SetDefaultTimeFormat(TimeFormat format)
+		{
+			if (format == TimeFormat::TIME_DEFAULT)
+			{
+				Print(
+					"Cannot set default time format as TIME_DEFAULT!",
+					"LOG",
+					LogType::LOG_ERROR,
+					2);
+				return;
+			}
+			defaultTimeFormat = format;
+		}
+
+		static DateFormat GetDefaultDateFormat()
+		{
+			return defaultDateFormat;
+		}
+		static void SetDefaultDateFormat(DateFormat format)
+		{
+			if (format == DateFormat::DATE_DEFAULT)
+			{
+				Print(
+					"Cannot set default date format as DATE_DEFAULT!",
+					"LOG",
+					LogType::LOG_ERROR,
+					2);
+				return;
+			}
+			defaultDateFormat = format;
+		}
+
+		//Returns current time in chosen or default format.
+		static string GetTime(TimeFormat time = TimeFormat::TIME_DEFAULT);
+		//Returns current date in chosen or default format.
+		static string GetDate(DateFormat date = DateFormat::DATE_DEFAULT);
 
 		//Prints a log message to the console using
 		//cout, clog or cerr depending on the log type.
@@ -64,7 +102,10 @@ namespace KalaWindow::Core
 			const string& target,
 			LogType type,
 			unsigned int indentation = 0,
-			TimeFormat timeFormat = TimeFormat::TIME_NONE,
-			DateFormat dateFormat = DateFormat::DATE_NONE);
+			TimeFormat timeFormat = TimeFormat::TIME_DEFAULT,
+			DateFormat dateFormat = DateFormat::DATE_DEFAULT);
+	private:
+		static inline TimeFormat defaultTimeFormat = TimeFormat::TIME_HMS_MS;
+		static inline DateFormat defaultDateFormat = DateFormat::DATE_DMY;
 	};
 }
