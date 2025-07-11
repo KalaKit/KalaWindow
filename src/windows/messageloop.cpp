@@ -311,7 +311,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Input::SetKeyState(key, true);
 
 		Logger::Print(
-			"Windows detected keyboard key down: " + static_cast<int>(key),
+			"Windows detected keyboard key down: " + to_string(static_cast<int>(key)),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
 		return false;
@@ -323,7 +323,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Input::SetKeyState(key, false);
 
 		Logger::Print(
-			"Windows detected keyboard key up: " + static_cast<int>(key),
+			"Windows detected keyboard key up: " + to_string(static_cast<int>(key)),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
 			
