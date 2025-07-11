@@ -148,11 +148,7 @@ namespace KalaWindow::Core
 
 		static void SetKeyState(Key key, bool isDown)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot set key state because Input is not initialized!");
-				return;
-			}
+			if (!isInitialized) return;
 
 			size_t index = static_cast<size_t>(key);
 
@@ -161,11 +157,7 @@ namespace KalaWindow::Core
 		}
 		static void SetMouseButtonState(MouseButton button, bool isDown)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot set mouse button state because Input is not initialized!");
-				return;
-			}
+			if (!isInitialized) return;
 
 			size_t index = static_cast<size_t>(button);
 
@@ -174,11 +166,7 @@ namespace KalaWindow::Core
 		}
 		static void SetMouseButtonDoubleClickState(MouseButton button, bool isDown)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot set mouse double button click state because Input is not initialized!");
-				return;
-			}
+			if (!isInitialized) return;
 
 			size_t index = static_cast<size_t>(button);
 
@@ -188,11 +176,7 @@ namespace KalaWindow::Core
 		//Is the key currently held down?
 		static bool IsKeyDown(Key key)
 		{ 
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot check key down state because Input is not initialized!");
-				return false;
-			}
+			if (!isInitialized) return false;
 
 			size_t index = static_cast<size_t>(key);
 
@@ -201,11 +185,7 @@ namespace KalaWindow::Core
 		//Was the key just pressed this frame?
 		static bool IsKeyPressed(Key key)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot check key pressed state because Input is not initialized!");
-				return false;
-			}
+			if (!isInitialized) return false;
 
 			size_t index = static_cast<size_t>(key);
 
@@ -216,11 +196,7 @@ namespace KalaWindow::Core
 		//Was the key just released this frame?
 		static bool IsKeyReleased(Key key)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot check key released state because Input is not initialized!");
-				return false;
-			}
+			if (!isInitialized) return false;
 
 			size_t index = static_cast<size_t>(key);
 
@@ -232,11 +208,7 @@ namespace KalaWindow::Core
 		//Is the mouse button currently held down?
 		static bool IsMouseDown(MouseButton button)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot check mouse down state because Input is not initialized!");
-				return false;
-			}
+			if (!isInitialized) return false;
 
 			size_t index = static_cast<size_t>(button);
 
@@ -245,11 +217,7 @@ namespace KalaWindow::Core
 		//Was the mouse button just pressed this frame?
 		static bool IsMousePressed(MouseButton button)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot check mouse pressed state because Input is not initialized!");
-				return false;
-			}
+			if (!isInitialized) return false;
 
 			size_t index = static_cast<size_t>(button);
 
@@ -260,11 +228,7 @@ namespace KalaWindow::Core
 		//Was the mouse button just released this frame?
 		static bool IsMouseReleased(MouseButton button)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot check mouse released state because Input is not initialized!");
-				return false;
-			}
+			if (!isInitialized) return false;
 
 			size_t index = static_cast<size_t>(button);
 
@@ -276,11 +240,7 @@ namespace KalaWindow::Core
 		//Was the mouse button just double-clicked this frame?
 		static bool IsMouseButtonDoubleClicked(MouseButton button)
 		{
-			if (!isInitialized)
-			{
-				LOG_DEBUG("Cannot check mouse double clicked state because Input is not initialized!");
-				return false;
-			}
+			if (!isInitialized) return false;
 
 			size_t index = static_cast<size_t>(button);
 

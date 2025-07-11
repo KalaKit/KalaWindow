@@ -5,6 +5,8 @@
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 
+#include <string>
+
 #include "graphics/opengl/opengl_loader.hpp"
 #include "graphics/opengl/opengl_typedefs.hpp"
 #include "core/log.hpp"
@@ -20,6 +22,7 @@ using KalaWindow::Core::LogType;
 #endif
 
 using std::find;
+using std::string;
 
 namespace KalaWindow::Graphics
 {
@@ -160,7 +163,11 @@ namespace KalaWindow::Graphics
 
 		if (!func)
 		{
-			LOG_ERROR("Failed to load OpenGL function: " << name);
+			Logger::Print(
+				"Failed to load OpenGL function: " + string(name),
+				"OPENGL_LOADER",
+				LogType::LOG_ERROR,
+				2);
 		}
 		return func;
 	}
