@@ -49,14 +49,16 @@ namespace KalaWindow::Core
 		//Returns current date in chosen format.
 		static string GetDate(DateFormat date);
 
-		//Prints a log message to the console using cout or cerr (for LOG_ERROR).
-		//Target is the origin, good for tracking which class owns the message type.
-		//LogType sets the tag type, LOG_INFO has no tag.
-		//Indentation adds extra spaces in front of the message.
-		//DateFormat adds current date in chosen format.
-		//TimeFormat adds current time in chosen format.
+		//Prints a log message to the console using
+		//cout, clog or cerr depending on the log type.
 		//A newline is added automatically so std::endline or \n is not needed.
-		//The full format is this: [DATE | TIME] [ TYPE | TARGET ] MESSAGE
+		//Full result: [DATE | TIME] [ TYPE | TARGET ] MESSAGE
+		//  - message: the actual message of this log
+		//  - target: name of the namespace, class, function or variable of this log
+		//  - type: sets the tag type, LOG_INFO has no tag
+		//  - indentation: optional leading space count in front of the message
+		//  - timeFormat: optional time stamp
+		//  - dateFormat: optional date stamp
 		static void Print(
 			const string& message,
 			const string& target,
