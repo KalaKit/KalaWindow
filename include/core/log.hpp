@@ -52,9 +52,9 @@ namespace KalaWindow::Core
 		//Prints a log message to the console using cout or cerr (for LOG_ERROR).
 		//Target is the origin, good for tracking which class owns the message type.
 		//LogType sets the tag type, LOG_INFO has no tag.
-		//DateFormat adds current date.
-		//TimeFormat adds current time.
 		//Indentation adds extra spaces in front of the message.
+		//DateFormat adds current date in chosen format.
+		//TimeFormat adds current time in chosen format.
 		//A newline is added automatically so std::endline or \n is not needed.
 		//The full format is this: [DATE | TIME] [ TYPE | TARGET ] MESSAGE
 		static void Print(

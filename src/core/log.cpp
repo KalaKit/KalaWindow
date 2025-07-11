@@ -12,6 +12,7 @@
 
 using std::cout;
 using std::cerr;
+using std::clog;
 using std::chrono::system_clock;
 using std::chrono::duration_cast;
 using std::chrono::milliseconds;
@@ -138,13 +139,13 @@ namespace KalaWindow::Core
 				LogType::LOG_WARNING);
 			safeMessage = safeMessage.substr(0, 997) + "...";
 		}
-		if (target.length() > 50)
+		if (target.length() > 20)
 		{
 			Print(
-				"Log target length is too long! Target was cut off after 50 characters.",
+				"Log target length is too long! Target was cut off after 20 characters.",
 				"LOG",
 				LogType::LOG_WARNING);
-			safeTarget = safeTarget.substr(0, 47) + "...";
+			safeTarget = safeTarget.substr(0, 17) + "...";
 		}
 
 		string fullMessage = "[ ";
@@ -180,7 +181,20 @@ namespace KalaWindow::Core
 
 		fullMessage += target + " ] " + message + "\n";
 
-		if (type == LogType::LOG_ERROR) cerr << fullMessage;
-		else cout << fullMessage;
+		switch (type)
+		{
+		case LogType::LOG_ERROR:
+			cerr << fullMessage;
+			break;
+		case LogType::LOG_WARNING:
+		case LogType::LOG_DEBUG:
+			clog << fullMessage;
+			break;
+		case LogType::LOG_INFO:
+		case LogType::LOG_SUCCESS:
+		default:
+			cout << fullMessage;
+			break;
+		}
 	}
 }
