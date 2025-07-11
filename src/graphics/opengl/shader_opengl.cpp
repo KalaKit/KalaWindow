@@ -36,6 +36,8 @@ using KalaWindow::PopupType;
 using KalaWindow::PopupResult;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::TimeFormat;
+using KalaWindow::Core::DateFormat;
 
 using std::string;
 using std::to_string;
@@ -56,8 +58,9 @@ static void ForceClose(
         reason,
         "SHADER_OPENGL",
         LogType::LOG_ERROR,
-        false,
-        2);
+        2,
+        TimeFormat::TIME_NONE,
+        DateFormat::DATE_NONE);
 
     Window* mainWindow = Window::windows.front();
     if (mainWindow->CreatePopup(
@@ -89,7 +92,6 @@ namespace KalaWindow::Graphics
                 "Cannot create a shader with no name!",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return nullptr;
         }
@@ -101,7 +103,8 @@ namespace KalaWindow::Graphics
                     "Cannot create a shader with the name '" + shaderName 
                     + "' because a shader with that name already exists!",
                     "SHADER_OPENGL",
-                    LogType::LOG_ERROR);
+                    LogType::LOG_ERROR,
+                    2);
                 return nullptr;
             }
         }
@@ -112,7 +115,6 @@ namespace KalaWindow::Graphics
                 "Cannot create a shader with no stages!",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return nullptr;
         }
@@ -143,7 +145,6 @@ namespace KalaWindow::Graphics
                     + shaderType + "' has no assigned path!",
                     "SHADER_OPENGL",
                     LogType::LOG_ERROR,
-                    true,
                     2);
                 return nullptr;
             }
@@ -154,7 +155,6 @@ namespace KalaWindow::Graphics
                     + shaderType + "' has an invalid path '" + stage.shaderPath + "'!",
                     "SHADER_OPENGL",
                     LogType::LOG_ERROR,
-                    true,
                     2);
                 return nullptr;
             }
@@ -193,7 +193,6 @@ namespace KalaWindow::Graphics
                 "Skipped loading vertex shader because it was not assigned as a shader stage.",
                 "SHADER_OPENGL",
                 LogType::LOG_INFO,
-                true,
                 0);
         }
         else
@@ -202,7 +201,6 @@ namespace KalaWindow::Graphics
                 "Loading vertex shader: " + newVertStage.shaderPath,
                 "SHADER_OPENGL",
                 LogType::LOG_INFO,
-                true,
                 0);
 
             ifstream vertexFile(newVertStage.shaderPath);
@@ -250,7 +248,6 @@ namespace KalaWindow::Graphics
                 "Skipped loading fragment shader because it was not assigned as a shader stage.",
                 "SHADER_OPENGL",
                 LogType::LOG_INFO,
-                true,
                 0);
         }
         else
@@ -259,7 +256,6 @@ namespace KalaWindow::Graphics
                 "Loading fragment shader: " + newFragStage.shaderPath,
                 "SHADER_OPENGL",
                 LogType::LOG_INFO,
-                true,
                 0);
 
             ifstream fragmentFile(newFragStage.shaderPath);
@@ -308,7 +304,6 @@ namespace KalaWindow::Graphics
                 "Skipped loading fragment shader because it was not assigned as a shader stage.",
                 "SHADER_OPENGL",
                 LogType::LOG_INFO,
-                true,
                 0);
         }
         else
@@ -317,7 +312,6 @@ namespace KalaWindow::Graphics
                 "Loading geometry shader: " + newGeomStage.shaderPath,
                 "SHADER_OPENGL",
                 LogType::LOG_INFO,
-                true,
                 0);
 
             ifstream geometryFile(newGeomStage.shaderPath);
@@ -415,7 +409,6 @@ namespace KalaWindow::Graphics
                     "Shader link failed:\n" + string(log.data()),
                     "SHADER_OPENGL",
                     LogType::LOG_ERROR,
-                    true,
                     2);
             }
 
@@ -511,7 +504,6 @@ namespace KalaWindow::Graphics
                 "Shader program ID " + to_string(newShaderData.programID) + " is not valid!",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
 
             return nullptr;
@@ -522,7 +514,6 @@ namespace KalaWindow::Graphics
                 "Shader program ID " + to_string(newShaderData.programID) + " is valid!",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
         }
 
@@ -571,7 +562,6 @@ namespace KalaWindow::Graphics
                 "OpenGL shader bind failed! ID is 0.",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return false;
         }
@@ -582,7 +572,6 @@ namespace KalaWindow::Graphics
                 "OpenGL shader bind failed! OpenGL context is invalid.",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return false;
         }
@@ -602,7 +591,6 @@ namespace KalaWindow::Graphics
                 "glUseProgram error: " + string(errorMsg),
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
         }
 
@@ -616,7 +604,6 @@ namespace KalaWindow::Graphics
                 string("Expected ID: '") + to_string(ID) + "', but got: '" + to_string(activeProgram) + "'.",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return false;
         }
@@ -635,7 +622,6 @@ namespace KalaWindow::Graphics
                 "Cannot hot reload shader because it is null!",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return;
         }
@@ -666,7 +652,6 @@ namespace KalaWindow::Graphics
                 "Hot reload failed for shader '" + shaderName + "'! Keeping old version.",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return;
         }
@@ -678,7 +663,6 @@ namespace KalaWindow::Graphics
             "Shader '" + shaderName + "' was hot reloaded!",
             "SHADER_OPENGL",
             LogType::LOG_SUCCESS,
-            true,
             0);
     }
 
@@ -824,7 +808,6 @@ static bool CheckCompileErrors(GLuint shader, const string& type)
                 "Shader compilation failed (" + type + "):\n" + infoLog,
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return false;
         }
@@ -840,7 +823,6 @@ static bool CheckCompileErrors(GLuint shader, const string& type)
                 "Program linking failed:\n" + string(infoLog),
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
-                true,
                 2);
             return false;
         }

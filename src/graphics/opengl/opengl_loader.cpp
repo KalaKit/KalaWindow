@@ -131,8 +131,7 @@ namespace KalaWindow::Graphics
 			"Loaded all OpenGL functions!",
 			"OPENGL_LOADER",
 			LogType::LOG_SUCCESS,
-			0,
-			true);
+			0);
 	}
 
 	template <typename T>

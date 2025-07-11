@@ -26,6 +26,8 @@ using KalaWindow::PopupType;
 using KalaWindow::PopupResult;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::TimeFormat;
+using KalaWindow::Core::DateFormat;
 
 using std::string;
 using std::to_string;
@@ -40,7 +42,9 @@ static void ForceClose(
 		reason,
 		"OPENGL_WINDOWS",
 		LogType::LOG_ERROR,
-		2);
+		2,
+		TimeFormat::TIME_NONE,
+		DateFormat::DATE_NONE);
 
 	Window* mainWindow = Window::windows.front();
 	if (mainWindow->CreatePopup(
@@ -89,8 +93,7 @@ namespace KalaWindow::Graphics
 				message,
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 
 			ForceClose(
 				"OpenGL error",
@@ -102,8 +105,7 @@ namespace KalaWindow::Graphics
 			"Pixel Format Index: " + pixelFormat,
 			"OPENGL_WINDOWS",
 			LogType::LOG_DEBUG,
-			0,
-			true);
+			0);
 
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
@@ -112,8 +114,7 @@ namespace KalaWindow::Graphics
 				message,
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 
 			ForceClose(
 				"OpenGL error",
@@ -125,8 +126,7 @@ namespace KalaWindow::Graphics
 			"SetPixelFormat worked!",
 			"OPENGL_WINDOWS",
 			LogType::LOG_DEBUG,
-			0,
-			true);
+			0);
 
 		PIXELFORMATDESCRIPTOR actualPFD = {};
 		int describeResult = DescribePixelFormat(hdc, pixelFormat, sizeof(actualPFD), &actualPFD);
@@ -137,8 +137,7 @@ namespace KalaWindow::Graphics
 				message,
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 
 			ForceClose(
 				"OpenGL error",
@@ -150,8 +149,7 @@ namespace KalaWindow::Graphics
 			"DescribePixelFormat value: " + describeResult,
 			"OPENGL_WINDOWS",
 			LogType::LOG_DEBUG,
-			0,
-			true);
+			0);
 
 		stringstream ss{};
 		ss << "Pixel Format Details:\n"
@@ -166,8 +164,7 @@ namespace KalaWindow::Graphics
 			ss.str(),
 			"OPENGL_WINDOWS",
 			LogType::LOG_DEBUG,
-			0,
-			true);
+			0);
 
 		HGLRC dummyRC = wglCreateContext(hdc);
 		wglMakeCurrent(hdc, dummyRC);
@@ -187,8 +184,7 @@ namespace KalaWindow::Graphics
 				message,
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 
 			ForceClose(
 				"OpenGL error",
@@ -217,8 +213,7 @@ namespace KalaWindow::Graphics
 				message,
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 
 			ForceClose(
 				"OpenGL error",
@@ -243,8 +238,7 @@ namespace KalaWindow::Graphics
 				message,
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 
 			ForceClose(
 				"OpenGL error",
@@ -257,8 +251,7 @@ namespace KalaWindow::Graphics
 			"OpenGL version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
 			"OPENGL_WINDOWS",
 			LogType::LOG_SUCCESS,
-			0,
-			true);
+			0);
 
 		OpenGLLoader::LoadAllFunctions();
 

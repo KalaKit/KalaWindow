@@ -9,8 +9,11 @@
 #include <unordered_map>
 
 #include "core/input.hpp"
+#include "core/log.hpp"
 
 using KalaWindow::Graphics::WindowStruct_Windows;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 namespace KalaWindow::Core
 {
@@ -18,7 +21,11 @@ namespace KalaWindow::Core
 	{
 		if (isInitialized)
 		{
-			LOG_ERROR("KalaInput is already initialized!");
+			Logger::Print(
+				"Input is already initialized!",
+				"INPUT",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 

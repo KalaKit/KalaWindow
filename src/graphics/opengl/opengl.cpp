@@ -52,8 +52,7 @@ namespace KalaWindow::Graphics
 				"Current OpenGL context is null!",
 				"OPENGL",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 			return false;
 		}
 
@@ -63,8 +62,7 @@ namespace KalaWindow::Graphics
 				"Current OpenGL context does not match stored context!",
 				"OPENGL",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 			return false;
 		}
 
@@ -102,8 +100,7 @@ namespace KalaWindow::Graphics
 					"Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on OpenGL! Falling back to 'ON'.",
 					"OPENGL",
 					LogType::LOG_WARNING,
-					2,
-					true);
+					2);
 				wglSwapIntervalEXT(1);
 			}
 		}
@@ -113,8 +110,7 @@ namespace KalaWindow::Graphics
 				"wglSwapIntervalEXT not supported! VSync setting ignored.",
 				"OPENGL",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 		}
 	}
 }

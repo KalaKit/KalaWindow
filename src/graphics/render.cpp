@@ -58,8 +58,7 @@ namespace KalaWindow::Graphics
 				"User-provided shutdown condition failed! Reason: " + string(e.what()),
 				"RENDER",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 		}
 
 		for (const auto& window : Window::windows)
@@ -82,8 +81,7 @@ namespace KalaWindow::Graphics
 				"User-provided shutdown condition failed! Reason: " + string(e.what()),
 				"RENDER",
 				LogType::LOG_ERROR,
-				2,
-				true);
+				2);
 		}
 
 #ifdef _WIN32
@@ -94,8 +92,7 @@ namespace KalaWindow::Graphics
 			"KalaWindow shutting down with state = " + static_cast<int>(state),
 			"RENDER",
 			LogType::LOG_SUCCESS,
-			0,
-			true);
+			0);
 
 		if (useWindowShutdown)
 		{

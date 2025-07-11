@@ -80,8 +80,7 @@ namespace KalaWindow::Graphics
                 "Cannot initialize glyph renderer because one or more glyph textures are missing!",
                 "GLYPH",
                 LogType::LOG_ERROR,
-                2,
-                true);
+                2);
             return false;
         }
 
@@ -98,8 +97,7 @@ namespace KalaWindow::Graphics
             "Initialized glyph renderer!",
             "GLYPH",
             LogType::LOG_SUCCESS,
-            0,
-            true);
+            0);
         isInitialized = true;
         return true;
     }
@@ -117,8 +115,7 @@ namespace KalaWindow::Graphics
                 "Cannot place any glyphs because glyph renderer is not initialized!",
                 "GLYPH",
                 LogType::LOG_ERROR,
-                2,
-                true);
+                2);
             return validGlyphs;
         }
 
@@ -132,8 +129,7 @@ namespace KalaWindow::Graphics
                     "Did not find char '" + to_string(c) + "' in template glyphs!",
                     "GLYPH",
                     LogType::LOG_ERROR,
-                    2,
-                    true);
+                    2);
                 continue;
             }
 
@@ -166,8 +162,7 @@ namespace KalaWindow::Graphics
                 "Cannot place any glyphs because glyph renderer is not initialized!",
                 "GLYPH",
                 LogType::LOG_ERROR,
-                2,
-                true);
+                2);
             return nullptr;
         }
 
@@ -194,8 +189,7 @@ namespace KalaWindow::Graphics
                 "Cannot place render glyphs because glyph renderer is not initialized!",
                 "GLYPH",
                 LogType::LOG_ERROR,
-                2,
-                true);
+                2);
             return false;
         }
 
@@ -224,8 +218,7 @@ namespace KalaWindow::Graphics
             "All glyphs were cleared!",
             "GLYPH",
             LogType::LOG_SUCCESS,
-            0,
-            true);
+            0);
     }
 }
 
