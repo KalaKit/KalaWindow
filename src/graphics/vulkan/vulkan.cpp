@@ -5,8 +5,6 @@
 
 #ifdef KALAWINDOW_SUPPORT_VULKAN
 
-#define KALAKIT_MODULE "VULKAN"
-
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
@@ -29,7 +27,7 @@
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/render.hpp"
 #include "core/enums.hpp"
-#include "core/platform.hpp"
+#include "core/log.hpp"
 
 using KalaWindow::Graphics::Renderer_Vulkan;
 using KalaWindow::Graphics::VulkanLayers;
@@ -45,6 +43,8 @@ using KalaWindow::Graphics::vulkanLayerInfo;
 using KalaWindow::Graphics::vulkanInstanceExtensionsInfo;
 using KalaWindow::Graphics::vulkanDeviceExtensionsInfo;
 using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 using std::string;
 using std::to_string;
@@ -175,18 +175,18 @@ namespace KalaWindow::Graphics
 		}
 
 		const char* name = ToString(layer);
-		if (!name)
-		{
-			LOG_ERROR("Can not enable layer (unknown enum value)");
-			return false;
-		}
 
 		if (find(
 			enabledLayers.begin(),
 			enabledLayers.end(),
 			layer) != enabledLayers.end())
 		{
-			LOG_ERROR("Can not enable layer '" << name << "' because it is already enabled!");
+			Logger::Print(
+				"Can not enable layer '" + string(name) + "' because it is already enabled!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				true,
+				2);
 			return false;
 		}
 
@@ -200,12 +200,23 @@ namespace KalaWindow::Graphics
 			if (strcmp(l.layerName, name) == 0)
 			{
 				enabledLayers.push_back(layer);
-				LOG_SUCCESS("Enabled layer '" << string(name) << "'!");
+
+				Logger::Print(
+					"Enabled layer '" + string(name) + "'!",
+					"VULKAN",
+					LogType::LOG_SUCCESS,
+					true,
+					0);
 				return true;
 			}
 		}
 
-		LOG_ERROR("Can not enable layer '" << name << "' because it is not supported on this system!");
+		Logger::Print(
+			"Can not enable layer '" + string(name) + "' because it is not supported on this system!",
+			"VULKAN",
+			LogType::LOG_ERROR,
+			true,
+			2);
 		return false;
 	}
 
@@ -219,18 +230,18 @@ namespace KalaWindow::Graphics
 		}
 
 		const char* name = ToString(ext);
-		if (!name)
-		{
-			LOG_ERROR("Can not enable instance extension (unknown enum value)");
-			return false;
-		}
 
 		if (find(
 			enabledInstanceExtensions.begin(),
 			enabledInstanceExtensions.end(),
 			ext) != enabledInstanceExtensions.end())
 		{
-			LOG_ERROR("Can not enable instance extension '" << name << "' because it is already enabled!");
+			Logger::Print(
+				"Can not enable instance extension '" + string(name) + "' because it is already enabled!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				true,
+				2);
 			return false;
 		}
 
@@ -250,12 +261,22 @@ namespace KalaWindow::Graphics
 			if (strcmp(e.extensionName, name) == 0)
 			{
 				enabledInstanceExtensions.push_back(ext);
-				LOG_SUCCESS("Enabled instance extension '" << string(name) << "'!");
+				Logger::Print(
+					"Enabled instance extension '" + string(name) + "'!",
+					"VULKAN",
+					LogType::LOG_SUCCESS,
+					true,
+					0);
 				return true;
 			}
 		}
 
-		LOG_ERROR("Instance extension '" << name << "' not supported on this system!");
+		Logger::Print(
+			"Instance extension '" + string(name) + "' not supported on this system!",
+			"VULKAN",
+			LogType::LOG_ERROR,
+			true,
+			2);
 		return false;
 	}
 
@@ -271,7 +292,7 @@ namespace KalaWindow::Graphics
 		const char* name = ToString(ext);
 		if (!name)
 		{
-			LOG_ERROR("Can not enable extension (unknown enum value)");
+			Logger::Print("Can not enable extension (unknown enum value)");
 			return false;
 		}
 
@@ -280,7 +301,7 @@ namespace KalaWindow::Graphics
 			enabledDeviceExtensions.end(),
 			ext) != enabledDeviceExtensions.end())
 		{
-			LOG_ERROR("Can not enable device extension '" << name << "' because it is already enabled!");
+			Logger::Print("Can not enable device extension '" << name << "' because it is already enabled!");
 			return false;
 		}
 		if (find(
@@ -288,7 +309,7 @@ namespace KalaWindow::Graphics
 			delayedExt.end(),
 			ext) != delayedExt.end())
 		{
-			LOG_ERROR("Can not enable device extension '" << name << "' because it is already assigned as a delayed extension!");
+			Logger::Print("Can not enable device extension '" << name << "' because it is already assigned as a delayed extension!");
 			return false;
 		}
 
@@ -544,7 +565,7 @@ namespace KalaWindow::Graphics
 			nullptr,
 			&realPool) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to create Vulkan command pool!");
+			Logger::Print("Failed to create Vulkan command pool!");
 			return false;
 		}
 		vData.commandPool = FromVar<VkCommandPool>(realPool);
@@ -602,7 +623,7 @@ namespace KalaWindow::Graphics
 			&allocInfo,
 			tempCB.data()) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to allocate command buffers!");
+			Logger::Print("Failed to allocate command buffers!");
 			return false;
 		}
 
@@ -679,7 +700,7 @@ namespace KalaWindow::Graphics
 					&realFence)
 				!= VK_SUCCESS)
 			{
-				LOG_ERROR("Failed to create per-frame sync objects for frame " << i);
+				Logger::Print("Failed to create per-frame sync objects for frame " << i);
 				DestroySyncObjects(window);
 				return false;
 			}
@@ -699,7 +720,7 @@ namespace KalaWindow::Graphics
 				nullptr,
 				&realFinishedSemaphore) != VK_SUCCESS)
 			{
-				LOG_ERROR("Failed to create render-finished semaphore for image" << i);
+				Logger::Print("Failed to create render-finished semaphore for image" << i);
 				DestroySyncObjects(window);
 				return false;
 			}
@@ -838,7 +859,7 @@ namespace KalaWindow::Graphics
 			return FrameResult::VK_FRAME_RESIZE_NEEDED;
 		}
 
-		LOG_ERROR("vkAquireNextImageKHR failed with error: " << result);
+		Logger::Print("vkAquireNextImageKHR failed with error: " << result);
 		return FrameResult::VK_FRAME_ERROR;
 	}
 
@@ -873,13 +894,13 @@ namespace KalaWindow::Graphics
 
 		if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to reset command buffer before recording!");
+			Logger::Print("Failed to reset command buffer before recording!");
 			return false;
 		}
 
 		if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to begin recording command buffer!");
+			Logger::Print("Failed to begin recording command buffer!");
 			return false;
 		}
 
@@ -911,14 +932,14 @@ namespace KalaWindow::Graphics
 		}
 		catch (const exception& e)
 		{
-			LOG_ERROR("Error during DrawCommands: " << e.what());
+			Logger::Print("Error during DrawCommands: " << e.what());
 		}
 
 		vkCmdEndRenderPass(cmd);
 
 		if (vkEndCommandBuffer(cmd) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to record command buffer!");
+			Logger::Print("Failed to record command buffer!");
 			return false;
 		}
 
@@ -976,7 +997,7 @@ namespace KalaWindow::Graphics
 			&submitInfo,
 			ToVar<VkFence>(vData.inFlightFences[currentFrame])) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to submit frame!");
+			Logger::Print("Failed to submit frame!");
 			return false;
 		}
 
@@ -1029,7 +1050,7 @@ namespace KalaWindow::Graphics
 			return FrameResult::VK_FRAME_RESIZE_NEEDED;
 		}
 
-		LOG_ERROR("vkQueuePresentKHR failed with error: " << result);
+		Logger::Print("vkQueuePresentKHR failed with error: " << result);
 		return FrameResult::VK_FRAME_ERROR;
 	}
 
@@ -1182,7 +1203,7 @@ namespace KalaWindow::Graphics
 			nullptr,
 			&realRP) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to create Vulkan render pass!");
+			Logger::Print("Failed to create Vulkan render pass!");
 			return false;
 		}
 
@@ -1232,7 +1253,7 @@ namespace KalaWindow::Graphics
 				nullptr,
 				&realFB) != VK_SUCCESS)
 			{
-				LOG_ERROR("Failed to create framebuffer for image " << i);
+				Logger::Print("Failed to create framebuffer for image " << i);
 				return false;
 			}
 
@@ -1314,7 +1335,11 @@ static void ForceClose(
 	const string& reason,
 	ShutdownState state)
 {
-	LOG_ERROR(reason);
+	Logger::Print(
+		reason,
+		"VULKAN",
+		LogType::LOG_ERROR,
+		2);
 
 	Window* mainWindow = Window::windows.front();
 	if (mainWindow->CreatePopup(

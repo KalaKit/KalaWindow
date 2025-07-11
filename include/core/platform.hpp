@@ -5,30 +5,9 @@
 
 #pragma once
 
-#include <iostream>
 #include <cstdint>
 
 using std::is_pointer_v;
-using std::cout;
-
-//
-// LOG PREPROCESSORS
-//
-
-#ifndef WRITE_LOG
-#define WRITE_LOG(type, msg) cout << "[KALAKIT_" << KALAKIT_MODULE << " | " << type << "] " << msg << "\n"
-#endif
-
-//log types
-#ifdef _DEBUG
-#define LOG_DEBUG(msg) WRITE_LOG("DEBUG", msg)
-#else
-#define LOG_DEBUG(msg)
-#endif
-#define LOG_SUCCESS(msg) WRITE_LOG("SUCCESS", msg)
-#define LOG_INFO(msg) WRITE_LOG("INFO", msg)
-#define LOG_WARNING(msg) WRITE_LOG("WARNING", msg)
-#define LOG_ERROR(msg) WRITE_LOG("ERROR", msg)
 
 //
 // DLL EXPORT/IMPORT MACRO

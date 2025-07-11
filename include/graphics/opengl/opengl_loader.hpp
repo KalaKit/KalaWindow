@@ -9,7 +9,6 @@
 
 #include <vector>
 
-//kalawindow
 #include "core/platform.hpp"
 #include "core/enums.hpp"
 #include "graphics/opengl/opengl_typedefs.hpp"

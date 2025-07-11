@@ -5,7 +5,6 @@
 
 #pragma once
 
-//kalawindow
 #include "platform.hpp"
 
 namespace KalaWindow

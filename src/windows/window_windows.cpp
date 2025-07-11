@@ -5,8 +5,6 @@
 
 #ifdef _WIN32
 
-#define KALAKIT_MODULE "WINDOW"
-
 #include <windows.h>
 #include <ShlObj.h>
 #include <algorithm>

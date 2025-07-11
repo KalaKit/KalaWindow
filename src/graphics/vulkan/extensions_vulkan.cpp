@@ -5,8 +5,6 @@
 
 #ifdef KALAWINDOW_SUPPORT_VULKAN
 
-#define KALAKIT_MODULE "EXTENSIONS_VULKAN"
-
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
@@ -177,7 +175,7 @@ namespace KalaWindow::Graphics
 			&presentCount,
 			nullptr) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to query Vulkan present mode count!");
+			Logger::Print("Failed to query Vulkan present mode count!");
 			return false;
 		}
 
@@ -188,7 +186,7 @@ namespace KalaWindow::Graphics
 			&presentCount,
 			modes.data()) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to query Vulkan present modes!");
+			Logger::Print("Failed to query Vulkan present modes!");
 			return false;
 		}
 
@@ -213,14 +211,14 @@ namespace KalaWindow::Graphics
 			{
 				presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 			}
-			else LOG_ERROR("Cannot set vsync to 'OFF' because it is not supported on this device! Falling back to 'ON'.");
+			else Logger::Print("Cannot set vsync to 'OFF' because it is not supported on this device! Falling back to 'ON'.");
 			break;
 		case VSyncState::VSYNC_TRIPLE_BUFFERING:
 			if (SupportsMode(VK_PRESENT_MODE_MAILBOX_KHR))
 			{
 				presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 			}
-			else LOG_ERROR("Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on this device! Falling back to 'ON'.");
+			else Logger::Print("Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on this device! Falling back to 'ON'.");
 			break;
 		}
 
@@ -252,7 +250,7 @@ namespace KalaWindow::Graphics
 			nullptr,
 			&realSC) != VK_SUCCESS)
 		{
-			LOG_ERROR("Failed to create Vulkan swapchain!");
+			Logger::Print("Failed to create Vulkan swapchain!");
 			return false;
 		}
 
@@ -312,7 +310,7 @@ namespace KalaWindow::Graphics
 				nullptr,
 				&realIV) != VK_SUCCESS)
 			{
-				LOG_ERROR("Failed to create image view for swapchain image " << i);
+				Logger::Print("Failed to create image view for swapchain image " << i);
 				return false;
 			}
 
@@ -381,7 +379,7 @@ static void ForceClose(
 	const string& reason,
 	ShutdownState state)
 {
-	LOG_ERROR(reason);
+	Logger::Print(reason);
 
 	Window* mainWindow = Window::windows.front();
 	if (mainWindow->CreatePopup(

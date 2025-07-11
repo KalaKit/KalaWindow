@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#define KALAKIT_MODULE "GLYPH"
-
 #include <unordered_map>
 #include <vector>
 #include <string>
@@ -13,16 +11,20 @@
 
 #include "graphics/glyph.hpp"
 #include "graphics/window.hpp"
+#include "core/log.hpp"
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::GlyphType;
 using KalaWindow::Graphics::Glyph;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 using std::unordered_map;
 using std::vector;
 using std::unique_ptr;
 using std::make_unique;
 using std::string;
+using std::to_string;
 using std::filesystem::path;
 using std::filesystem::exists;
 using std::filesystem::current_path;
@@ -74,26 +76,30 @@ namespace KalaWindow::Graphics
         }
         if (foundCount < charSize)
         {
-            LOG_ERROR("Cannot initialize glyph renderer because one or more glyph textures are missing!");
+            Logger::Print(
+                "Cannot initialize glyph renderer because one or more glyph textures are missing!",
+                "GLYPH",
+                LogType::LOG_ERROR,
+                2,
+                true);
             return false;
         }
 
         bool initSuccess = false;
         string failReason{};
 #ifdef KALAWINDOW_SUPPORT_OPENGL
-        failReason = "OpenGL";
         initSuccess = InitializeGlyphs_OpenGL(window);
 #elif KALAWINDOW_SUPPORT_VULKAN
-        failReason = "Vulkan";
         initSuccess = InitializeGlyphs_Vulkan(window);
 #endif
-        if (!initSuccess)
-        {
-            LOG_ERROR("Failed to initialize glyph renderer because of " << failReason << " error!");
-            return false;
-        }
+        if (!initSuccess) return false;
 
-        LOG_SUCCESS("Initialized glyph renderer!");
+        Logger::Print(
+            "Initialized glyph renderer!",
+            "GLYPH",
+            LogType::LOG_SUCCESS,
+            0,
+            true);
         isInitialized = true;
         return true;
     }
@@ -107,7 +113,12 @@ namespace KalaWindow::Graphics
 
         if (!isInitialized)
         {
-            LOG_ERROR("Cannot place any glyphs because glyph renderer is not initialized!");
+            Logger::Print(
+                "Cannot place any glyphs because glyph renderer is not initialized!",
+                "GLYPH",
+                LogType::LOG_ERROR,
+                2,
+                true);
             return validGlyphs;
         }
 
@@ -117,7 +128,12 @@ namespace KalaWindow::Graphics
 
             if (templateGlyphs.find(type) == templateGlyphs.end())
             {
-                LOG_ERROR("Did not find char '" << c << "' in template glyphs!");
+                Logger::Print(
+                    "Did not find char '" + to_string(c) + "' in template glyphs!",
+                    "GLYPH",
+                    LogType::LOG_ERROR,
+                    2,
+                    true);
                 continue;
             }
 
@@ -126,18 +142,11 @@ namespace KalaWindow::Graphics
             unique_ptr<Glyph> newGlyph{};
             string failReason{};
 #ifdef KALAWINDOW_SUPPORT_OPENGL
-            failReason = "OpenGL";
             newGlyph = PlaceGlyph_OpenGL(window);
 #elif KALAWINDOW_SUPPORT_VULKAN
-            failReason = "Vulkan";
             newGlyph = PlaceGlyph_Vulkan(window);
 #endif
-
-            if (newGlyph == nullptr)
-            {
-                LOG_ERROR("Failed to place glyph because of " << failReason << " error!");
-                continue;
-            }
+            if (newGlyph == nullptr) continue;
 
             validGlyphs.push_back(move(newGlyph));
         }
@@ -153,7 +162,12 @@ namespace KalaWindow::Graphics
 
         if (!isInitialized)
         {
-            LOG_ERROR("Cannot place any glyphs because glyph renderer is not initialized!");
+            Logger::Print(
+                "Cannot place any glyphs because glyph renderer is not initialized!",
+                "GLYPH",
+                LogType::LOG_ERROR,
+                2,
+                true);
             return nullptr;
         }
 
@@ -167,11 +181,7 @@ namespace KalaWindow::Graphics
         newGlyph = PlaceGlyph_Vulkan(window);
 #endif
 
-        if (newGlyph == nullptr)
-        {
-            LOG_ERROR("Failed to place glyph because of " << failReason << " error!");
-            return nullptr;
-        }
+        if (newGlyph == nullptr) return nullptr;
 
         return newGlyph;
     }
@@ -180,7 +190,12 @@ namespace KalaWindow::Graphics
     {
         if (!isInitialized)
         {
-            LOG_ERROR("Cannot render any glyphs because glyph renderer is not initialized!");
+            Logger::Print(
+                "Cannot place render glyphs because glyph renderer is not initialized!",
+                "GLYPH",
+                LogType::LOG_ERROR,
+                2,
+                true);
             return false;
         }
 
@@ -193,13 +208,7 @@ namespace KalaWindow::Graphics
         failReason = "Vulkan";
         renderSuccess = RenderGlyphs_Vulkan(window);
 #endif
-
-        if (!renderSuccess)
-        {
-            LOG_ERROR("Failed to render glyph because of " << failReason << " error!");
-            return false;
-        }
-        return true;
+        return renderSuccess;
     }
 
     void GlyphSystem::ClearGlyphs(Window* window)
@@ -211,7 +220,12 @@ namespace KalaWindow::Graphics
 #endif
         placedGlyphs.clear();
 
-        LOG_SUCCESS("All glyphs were cleared!");
+        Logger::Print(
+            "All glyphs were cleared!",
+            "GLYPH",
+            LogType::LOG_SUCCESS,
+            0,
+            true);
     }
 }
 

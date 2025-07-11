@@ -5,11 +5,12 @@
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 
-#define KALAKIT_MODULE "OPENGL_LOADER"
-
-//kalawindow
 #include "graphics/opengl/opengl_loader.hpp"
 #include "graphics/opengl/opengl_typedefs.hpp"
+#include "core/log.hpp"
+
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 #ifdef _WIN32
 #include "GL/gl.h"
@@ -126,7 +127,12 @@ namespace KalaWindow::Graphics
 			*entry.target = LoadOpenGLFunction<void*>(entry.name);
 		}
 
-		LOG_SUCCESS("Loaded all OpenGL functions!");
+		Logger::Print(
+			"Loaded all OpenGL functions!",
+			"OPENGL_LOADER",
+			LogType::LOG_SUCCESS,
+			0,
+			true);
 	}
 
 	template <typename T>

@@ -5,8 +5,6 @@
 
 #ifdef KALAWINDOW_SUPPORT_VULKAN
 
-#define KALAKIT_MODULE = "VULKAN_SHADER"
-
 #include <vector>
 #include <string>
 #include <fstream>

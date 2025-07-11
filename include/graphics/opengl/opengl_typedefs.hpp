@@ -14,7 +14,6 @@
 #endif
 #include <GL/gl.h>
 
-//kalawindow
 #include "core/platform.hpp"
 
 #ifdef _WIN32

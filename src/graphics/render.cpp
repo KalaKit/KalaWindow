@@ -3,11 +3,16 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#define KALAKIT_MODULE "RENDER"
-
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/input.hpp"
+#include "core/log.hpp"
+
+#ifdef _WIN32
+#include <Windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
+#endif //_WIN32
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 #include "graphics/opengl/opengl.hpp"
@@ -17,13 +22,9 @@ using KalaWindow::Graphics::Renderer_OpenGL;
 using KalaWindow::Graphics::Renderer_Vulkan;
 #endif //KALAWINDOW_SUPPORT_VULKAN
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")
-#endif //_WIN32
-
 using KalaWindow::Core::Input;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 using std::exit;
 using std::terminate;
@@ -53,7 +54,12 @@ namespace KalaWindow::Graphics
 		}
 		catch (const exception& e)
 		{
-			LOG_ERROR("User-provided shutdown condition failed! Reason: " << e.what());
+			Logger::Print(
+				"User-provided shutdown condition failed! Reason: " + string(e.what()),
+				"RENDER",
+				LogType::LOG_ERROR,
+				2,
+				true);
 		}
 
 		for (const auto& window : Window::windows)
@@ -72,16 +78,24 @@ namespace KalaWindow::Graphics
 		}
 		catch (const exception& e)
 		{
-			LOG_ERROR("User-provided shutdown condition failed! Reason: " << e.what());
+			Logger::Print(
+				"User-provided shutdown condition failed! Reason: " + string(e.what()),
+				"RENDER",
+				LogType::LOG_ERROR,
+				2,
+				true);
 		}
 
 #ifdef _WIN32
 		timeEndPeriod(1);
 #endif //_WIN32
 
-		LOG_SUCCESS(
-			"KalaWindow shutting down with state = " 
-			<< static_cast<int>(state));
+		Logger::Print(
+			"KalaWindow shutting down with state = " + static_cast<int>(state),
+			"RENDER",
+			LogType::LOG_SUCCESS,
+			0,
+			true);
 
 		if (useWindowShutdown)
 		{

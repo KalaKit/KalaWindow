@@ -5,14 +5,15 @@
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 
-#define KALAKIT_MODULE "OPENGL"
-
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_typedefs.hpp"
 #include "graphics/window.hpp"
+#include "core/log.hpp"
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::VSyncState;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 //If off, then all framerate is uncapped.
 //Used in window.hpp
@@ -47,13 +48,23 @@ namespace KalaWindow::Graphics
 		HGLRC current = wglGetCurrentContext();
 		if (current == nullptr)
 		{
-			LOG_ERROR("Current OpenGL context is null!");
+			Logger::Print(
+				"Current OpenGL context is null!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2,
+				true);
 			return false;
 		}
 
 		if (current != hglrc)
 		{
-			LOG_ERROR("Current OpenGL context does not match stored context!");
+			Logger::Print(
+				"Current OpenGL context does not match stored context!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2,
+				true);
 			return false;
 		}
 
@@ -87,11 +98,24 @@ namespace KalaWindow::Graphics
 			}
 			else
 			{
-				LOG_WARNING("Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on OpenGL! Falling back to 'ON'.");
+				Logger::Print(
+					"Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on OpenGL! Falling back to 'ON'.",
+					"OPENGL",
+					LogType::LOG_WARNING,
+					2,
+					true);
 				wglSwapIntervalEXT(1);
 			}
 		}
-		else LOG_ERROR("wglSwapIntervalEXT not supported! VSync setting ignored.");
+		else
+		{
+			Logger::Print(
+				"wglSwapIntervalEXT not supported! VSync setting ignored.",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2,
+				true);
+		}
 	}
 }
 

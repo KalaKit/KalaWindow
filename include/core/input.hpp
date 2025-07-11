@@ -12,10 +12,6 @@
 
 namespace KalaWindow::Core
 {
-#ifndef KALAKIT_MODULE
-#define KALAKIT_MODULE "INPUT"
-#endif
-
 	using KalaWindow::Graphics::Window;
 
 	using std::array;

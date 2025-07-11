@@ -5,18 +5,18 @@
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 
-#define KALAKIT_MODULE "OPENGL"
-
 #include <Windows.h>
 #include <gl/GL.h>
 #include <gl/GLU.h>
 #include <string>
+#include <sstream>
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_loader.hpp"
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/enums.hpp"
+#include "core/log.hpp"
 
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
@@ -24,15 +24,23 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::PopupAction;
 using KalaWindow::PopupType;
 using KalaWindow::PopupResult;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 using std::string;
+using std::to_string;
+using std::stringstream;
 
 static void ForceClose(
 	const string& title,
 	const string& reason,
 	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE)
 {
-	LOG_ERROR(reason);
+	Logger::Print(
+		reason,
+		"OPENGL_WINDOWS",
+		LogType::LOG_ERROR,
+		2);
 
 	Window* mainWindow = Window::windows.front();
 	if (mainWindow->CreatePopup(
@@ -56,7 +64,6 @@ namespace KalaWindow::Graphics
 
 		HDC hdc = GetDC(windowRef);
 		window.openglData.hdc = FromVar<HDC>(hdc);
-		LOG_DEBUG("Window HDC: " << hdc);
 
 		//
 		// CREATE A DUMMY CONTEXT TO LOAD WGL EXTENSIONS
@@ -77,53 +84,90 @@ namespace KalaWindow::Graphics
 		int pixelFormat = ChoosePixelFormat(hdc, &pfd);
 		if (pixelFormat == 0)
 		{
-			LOG_ERROR("ChoosePixelFormat failed!");
+			string message = "ChoosePixelFormat failed!";
+			Logger::Print(
+				message,
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR,
+				2,
+				true);
 
 			ForceClose(
 				"OpenGL error",
-				"[Initialize] ChoosePixelFormat failed!");
+				message);
 
 			return false;
 		}
-		LOG_DEBUG("Pixel Format Index: " << pixelFormat);
+		Logger::Print(
+			"Pixel Format Index: " + pixelFormat,
+			"OPENGL_WINDOWS",
+			LogType::LOG_DEBUG,
+			0,
+			true);
 
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
-			LOG_ERROR("SetPixelFormat failed!");
+			string message = "SetPixelFormat failed!";
+			Logger::Print(
+				message,
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR,
+				2,
+				true);
 
 			ForceClose(
 				"OpenGL error",
-				"[Initialize] SetPixelFormat failed!");
+				message);
 
 			return false;
 		}
-		LOG_DEBUG("SetPixelFormat worked!");
+		Logger::Print(
+			"SetPixelFormat worked!",
+			"OPENGL_WINDOWS",
+			LogType::LOG_DEBUG,
+			0,
+			true);
 
 		PIXELFORMATDESCRIPTOR actualPFD = {};
 		int describeResult = DescribePixelFormat(hdc, pixelFormat, sizeof(actualPFD), &actualPFD);
 		if (describeResult == 0)
 		{
-			LOG_ERROR("DescribePixelFormat failed!");
+			string message = "DescribePixelFormat failed!";
+			Logger::Print(
+				message,
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR,
+				2,
+				true);
 
 			ForceClose(
 				"OpenGL error",
-				"[Initialize] DescribePixelFormat failed!");
+				message);
 
 			return false;
 		}
-		else
-		{
-			LOG_DEBUG("DescribePixelFormat value: " << describeResult);
-		}
+		Logger::Print(
+			"DescribePixelFormat value: " + describeResult,
+			"OPENGL_WINDOWS",
+			LogType::LOG_DEBUG,
+			0,
+			true);
 
-		LOG_DEBUG("Pixel Format Details:");
-		LOG_DEBUG("  ColorBits   = " << static_cast<int>(actualPFD.cColorBits));
-		LOG_DEBUG("  DepthBits   = " << static_cast<int>(actualPFD.cDepthBits));
-		LOG_DEBUG("  StencilBits = " << static_cast<int>(actualPFD.cStencilBits));
-		LOG_DEBUG("  Flags:");
-		LOG_DEBUG("    DRAW_TO_WINDOW = " << ((actualPFD.dwFlags & PFD_DRAW_TO_WINDOW) ? "Yes" : "No"));
-		LOG_DEBUG("    SUPPORT_OPENGL = " << ((actualPFD.dwFlags & PFD_SUPPORT_OPENGL) ? "Yes" : "No"));
-		LOG_DEBUG("    DOUBLEBUFFER    = " << ((actualPFD.dwFlags & PFD_DOUBLEBUFFER) ? "Yes" : "No"));
+		stringstream ss{};
+		ss << "Pixel Format Details:\n"
+			<< "  ColorBits   = " + static_cast<int>(actualPFD.cColorBits) << "\n"
+			<< "  DepthBits   = " << static_cast<int>(actualPFD.cDepthBits) << "\n"
+			<< "  StencilBits = " << static_cast<int>(actualPFD.cStencilBits) << "\n"
+			<< "  Flags:\n"
+			<< "    DRAW_TO_WINDOW = " << ((actualPFD.dwFlags & PFD_DRAW_TO_WINDOW) ? "Yes" : "No") << "\n"
+			<< "    SUPPORT_OPENGL = " << ((actualPFD.dwFlags & PFD_SUPPORT_OPENGL) ? "Yes" : "No") << "\n"
+			<< "    DOUBLEBUFFER    = " << ((actualPFD.dwFlags & PFD_DOUBLEBUFFER) ? "Yes" : "No");
+		Logger::Print(
+			ss.str(),
+			"OPENGL_WINDOWS",
+			LogType::LOG_DEBUG,
+			0,
+			true);
 
 		HGLRC dummyRC = wglCreateContext(hdc);
 		wglMakeCurrent(hdc, dummyRC);
@@ -138,11 +182,17 @@ namespace KalaWindow::Graphics
 
 		if (!wglCreateContextAttribsARB)
 		{
-			LOG_ERROR("wglCreateContextAttribsARB is not supported!");
+			string message = "wglCreateContextAttribsARB is not supported!";
+			Logger::Print(
+				message,
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR,
+				2,
+				true);
 
 			ForceClose(
 				"OpenGL error",
-				"[Initialize] wglCreateContextAttribsARB is not supported!");
+				message);
 
 			return false;
 		}
@@ -162,11 +212,17 @@ namespace KalaWindow::Graphics
 		window.openglData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(hdc, 0, attribs));
 		if (!window.openglData.hglrc)
 		{
-			LOG_ERROR("Failed to create OpenGL 3.3 context!");
+			string message = "Failed to create OpenGL 3.3 context!";
+			Logger::Print(
+				message,
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR,
+				2,
+				true);
 
 			ForceClose(
 				"OpenGL error",
-				"[Initialize] Failed to create OpenGL 3.3 context!");
+				message);
 
 			return false;
 		}
@@ -182,19 +238,27 @@ namespace KalaWindow::Graphics
 
 		if (!IsCorrectVersion())
 		{
-			LOG_ERROR("OpenGL 3.3 or higher is required!");
-
-			string title = "OpenGL error detected!";
 			string message = "OpenGL 3.3 or higher is required!";
+			Logger::Print(
+				message,
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR,
+				2,
+				true);
 
 			ForceClose(
 				"OpenGL error",
-				"[Initialize] OpenGL 3.3 or higher is required!");
+				message);
 
 			return false;
 		}
 
-		LOG_SUCCESS("OpenGL version: " << glGetString(GL_VERSION));
+		Logger::Print(
+			"OpenGL version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
+			"OPENGL_WINDOWS",
+			LogType::LOG_SUCCESS,
+			0,
+			true);
 
 		OpenGLLoader::LoadAllFunctions();
 

@@ -5,8 +5,6 @@
 
 #ifdef _WIN32
 
-#define KALAKIT_MODULE "MESSAGELOOP"
-
 #include <Windows.h>
 #include <string>
 #include <vector>

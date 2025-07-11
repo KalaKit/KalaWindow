@@ -23,12 +23,93 @@ using std::stringstream;
 
 namespace KalaWindow::Core
 {
+	string Logger::GetTime(TimeFormat timeFormat)
+	{
+		if (timeFormat == TimeFormat::TIME_NONE) return "";
+
+		auto now = system_clock::now();
+		auto in_time_t = system_clock::to_time_t(now);
+		auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+
+		stringstream ss{};
+		switch (timeFormat)
+		{
+		default: break;
+		case TimeFormat::TIME_HMS:
+			ss << put_time(localtime(&in_time_t), "%H:%M:%S");
+			break;
+		case TimeFormat::TIME_HMS_MS:
+			ss << put_time(localtime(&in_time_t), "%H:%M:%S")
+				<< ':'
+				<< setw(3)
+				<< setfill('0')
+				<< ms.count();
+			break;
+		case TimeFormat::TIME_12H:
+			ss << put_time(localtime(&in_time_t), "%I:%M:%S %p");
+			break;
+		case TimeFormat::TIME_ISO_8601:
+			ss << put_time(localtime(&in_time_t), "%H:%M:%S") << "Z";
+			break;
+		case TimeFormat::TIME_FILENAME:
+			ss << put_time(localtime(&in_time_t), "%H-%M-%S");
+			break;
+		case TimeFormat::TIME_FILENAME_MS:
+			ss << put_time(localtime(&in_time_t), "%H-%M-%S")
+				<< '-'
+				<< setw(3)
+				<< setfill('0')
+				<< ms.count();
+			break;
+		}
+
+		return ss.str();
+	}
+
+	string Logger::GetDate(DateFormat dateFormat)
+	{
+		if (dateFormat == DateFormat::DATE_NONE) return "";
+
+		auto now = system_clock::now();
+		auto in_time_t = system_clock::to_time_t(now);
+		stringstream ss{};
+
+		switch (dateFormat)
+		{
+		default: break;
+		case DateFormat::DATE_DMY:
+			ss << put_time(localtime(&in_time_t), "%d/%m/%Y");
+			break;
+		case DateFormat::DATE_MDY:
+			ss << put_time(localtime(&in_time_t), "%m/%d/%Y");
+			break;
+		case DateFormat::DATE_ISO_8601:
+			ss << put_time(localtime(&in_time_t), "%Y-%m-%d");
+			break;
+		case DateFormat::DATE_TEXT_DMY:
+			ss << put_time(localtime(&in_time_t), "%d %B, %Y");
+			break;
+		case DateFormat::DATE_TEXT_MDY:
+			ss << put_time(localtime(&in_time_t), "%B %d, %Y");
+			break;
+		case DateFormat::DATE_FILENAME_DMY:
+			ss << put_time(localtime(&in_time_t), "%d-%B-%Y");
+			break;
+		case DateFormat::DATE_FILENAME_MDY:
+			ss << put_time(localtime(&in_time_t), "%B-%d-%Y");
+			break;
+		}
+
+		return ss.str();
+	}
+
 	void Logger::Print(
 		const string& message,
 		const string& target,
 		LogType type,
-		bool addTimeStamp,
-		unsigned int indentation)
+		unsigned int indentation,
+		TimeFormat timeFormat,
+		DateFormat dateFormat)
 	{
 		if (message.empty())
 		{
@@ -68,25 +149,17 @@ namespace KalaWindow::Core
 
 		string fullMessage = "[ ";
 
-		string timeStamp{};
-		if (addTimeStamp)
+		if (dateFormat != DateFormat::DATE_NONE)
 		{
-			auto now = system_clock::now();
-			auto in_time_t = system_clock::to_time_t(now);
-			auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
-
-			stringstream ss{};
-			ss << put_time(localtime(&in_time_t), "%H:%M:%S")
-				<< ':'
-				<< setw(3)
-				<< setfill('0')
-				<< ms.count();
-
-			timeStamp = ss.str();
-			fullMessage += timeStamp;
+			string dateStamp = GetDate(dateFormat);
+			fullMessage += dateStamp + " | ";
 		}
 
-		if (addTimeStamp) fullMessage += " ] [ ";
+		if (timeFormat != TimeFormat::TIME_NONE)
+		{
+			string timeStamp = GetTime(timeFormat);
+			fullMessage += timeStamp + " ] [ ";
+		}
 
 		string logType{};
 		switch (type)
@@ -105,7 +178,7 @@ namespace KalaWindow::Core
 			break;
 		}
 
-		fullMessage += target + " ]" + message + "\n";
+		fullMessage += target + " ] " + message + "\n";
 
 		if (type == LogType::LOG_ERROR) cerr << fullMessage;
 		else cout << fullMessage;
