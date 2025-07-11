@@ -69,7 +69,6 @@ namespace KalaWindow::Core
 					"LOG",
 					LogType::LOG_WARNING,
 					2);
-				return;
 			}
 
 			defaultTimeFormat = format;
@@ -98,7 +97,6 @@ namespace KalaWindow::Core
 					"LOG",
 					LogType::LOG_WARNING,
 					2);
-				return;
 			}
 
 			defaultDateFormat = format;
