@@ -16,6 +16,7 @@
 namespace KalaWindow::Graphics
 {
 	using std::vector;
+	using std::function;
 
 	enum class FrameResult
 	{
@@ -90,6 +91,10 @@ namespace KalaWindow::Graphics
 
 		//Ensures all window-related data is cleared
 		static void DestroyWindowData(Window* window);
+
+		//All draw commands must be passed to this
+		//for the window to render anything besides a black screen.
+		static function<void()> DrawCommands;
 
 		//
 		// REMAKE PHASE

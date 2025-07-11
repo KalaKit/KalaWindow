@@ -52,6 +52,7 @@ using std::vector;
 using std::unordered_map;
 using std::pair;
 using std::uintptr_t;
+using std::exception;
 
 enum class ForceCloseType
 {
@@ -158,6 +159,8 @@ static bool InitVolk()
 
 namespace KalaWindow::Graphics
 {
+	function<void()> Renderer_Vulkan::DrawCommands = nullptr;
+
 	//
 	// INITIALIZE PHASE
 	//
@@ -897,7 +900,19 @@ namespace KalaWindow::Graphics
 			&renderPassInfo,
 			VK_SUBPASS_CONTENTS_INLINE);
 
-		//user can insert draw commands here
+		try
+		{
+			if (DrawCommands)
+			{
+				LOG_DEBUG("User draw commands start.");
+				DrawCommands();
+				LOG_DEBUG("User draw commands end.");
+			}
+		}
+		catch (const exception& e)
+		{
+			LOG_ERROR("Error during DrawCommands: " << e.what());
+		}
 
 		vkCmdEndRenderPass(cmd);
 
