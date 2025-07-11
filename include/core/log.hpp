@@ -7,6 +7,8 @@
 
 #include <string>
 
+#include "core/platform.hpp"
+
 namespace KalaWindow::Core
 {
 	using std::string;
@@ -43,7 +45,7 @@ namespace KalaWindow::Core
 		DATE_FILENAME_MDY  //12-31-2025
 	};
 
-	class Logger
+	class KALAWINDOW_API Logger
 	{
 	public:
 		static TimeFormat GetDefaultTimeFormat()
@@ -67,8 +69,7 @@ namespace KalaWindow::Core
 					"Default time format was set to TIME_NONE!"
 					"No timestamps will be printed for logs that use TIME_DEFAULT.",
 					"LOG",
-					LogType::LOG_WARNING,
-					2);
+					LogType::LOG_WARNING);
 			}
 
 			defaultTimeFormat = format;
@@ -95,8 +96,7 @@ namespace KalaWindow::Core
 					"Default DATE format was set to DATE_NONE!"
 					"No date stamps will be printed for logs that use DATE_DEFAULT.",
 					"LOG",
-					LogType::LOG_WARNING,
-					2);
+					LogType::LOG_WARNING);
 			}
 
 			defaultDateFormat = format;

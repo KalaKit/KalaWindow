@@ -187,7 +187,6 @@ namespace KalaWindow::Graphics
 				"Can not enable layer '" + string(name) + "' because it is already enabled!",
 				"VULKAN",
 				LogType::LOG_ERROR,
-				true,
 				2);
 			return false;
 		}
@@ -206,9 +205,7 @@ namespace KalaWindow::Graphics
 				Logger::Print(
 					"Enabled layer '" + string(name) + "'!",
 					"VULKAN",
-					LogType::LOG_SUCCESS,
-					true,
-					0);
+					LogType::LOG_SUCCESS);
 				return true;
 			}
 		}
@@ -217,7 +214,6 @@ namespace KalaWindow::Graphics
 			"Can not enable layer '" + string(name) + "' because it is not supported on this system!",
 			"VULKAN",
 			LogType::LOG_ERROR,
-			true,
 			2);
 		return false;
 	}
@@ -242,7 +238,6 @@ namespace KalaWindow::Graphics
 				"Can not enable instance extension '" + string(name) + "' because it is already enabled!",
 				"VULKAN",
 				LogType::LOG_ERROR,
-				true,
 				2);
 			return false;
 		}
@@ -266,9 +261,7 @@ namespace KalaWindow::Graphics
 				Logger::Print(
 					"Enabled instance extension '" + string(name) + "'!",
 					"VULKAN",
-					LogType::LOG_SUCCESS,
-					true,
-					0);
+					LogType::LOG_SUCCESS);
 				return true;
 			}
 		}
@@ -277,7 +270,6 @@ namespace KalaWindow::Graphics
 			"Instance extension '" + string(name) + "' not supported on this system!",
 			"VULKAN",
 			LogType::LOG_ERROR,
-			true,
 			2);
 		return false;
 	}
@@ -294,7 +286,11 @@ namespace KalaWindow::Graphics
 		const char* name = ToString(ext);
 		if (!name)
 		{
-			Logger::Print("Can not enable extension (unknown enum value)");
+			Logger::Print(
+				"Can not enable extension (unknown enum value)",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -303,7 +299,11 @@ namespace KalaWindow::Graphics
 			enabledDeviceExtensions.end(),
 			ext) != enabledDeviceExtensions.end())
 		{
-			Logger::Print("Can not enable device extension '" << name << "' because it is already enabled!");
+			Logger::Print(
+				"Can not enable device extension '" + string(name) + "' because it is already enabled!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 		if (find(
@@ -311,12 +311,19 @@ namespace KalaWindow::Graphics
 			delayedExt.end(),
 			ext) != delayedExt.end())
 		{
-			Logger::Print("Can not enable device extension '" << name << "' because it is already assigned as a delayed extension!");
+			Logger::Print(
+				"Can not enable device extension '" + string(name) + "' because it is already assigned as a delayed extension!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
 		delayedExt.push_back(ext);
-		LOG_INFO("Queued device extension '" << name << "' for delayed enable.");
+		Logger::Print(
+			"Queued device extension '" + string(name) + "' for delayed enable.",
+			"VULKAN",
+			LogType::LOG_INFO);
 		return true;
 	}
 
@@ -424,11 +431,13 @@ namespace KalaWindow::Graphics
 
 			if (!failReason.empty())
 			{
-				LOG_WARNING(
-					"Device '" 
-					<< string(props.deviceName) 
-					<< "' was not picked because: " 
-					+ failReason);
+				Logger::Print(
+					"Device '" +
+					string(props.deviceName) +
+					"' was not picked because: " 
+					+ failReason,
+					"VULKAN",
+					LogType::LOG_WARNING);
 			}
 
 			if (score > bestScore)
@@ -531,7 +540,9 @@ namespace KalaWindow::Graphics
 		device = FromVar<VkDevice>(newDevice);
 
 		isVulkanInitialized = true;
-		LOG_SUCCESS("Initialized Vulkan!");
+		Logger::Print("Initialized Vulkan!",
+			"VULKAN",
+			LogType::LOG_SUCCESS);
 
 		return true;
 	}
@@ -567,7 +578,11 @@ namespace KalaWindow::Graphics
 			nullptr,
 			&realPool) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to create Vulkan command pool!");
+			Logger::Print(
+				"Failed to create Vulkan command pool!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 		vData.commandPool = FromVar<VkCommandPool>(realPool);
@@ -625,7 +640,11 @@ namespace KalaWindow::Graphics
 			&allocInfo,
 			tempCB.data()) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to allocate command buffers!");
+			Logger::Print(
+				"Failed to allocate command buffers!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -702,7 +721,11 @@ namespace KalaWindow::Graphics
 					&realFence)
 				!= VK_SUCCESS)
 			{
-				Logger::Print("Failed to create per-frame sync objects for frame " << i);
+				Logger::Print(
+					"Failed to create per-frame sync objects for frame " + i,
+					"VULKAN",
+					LogType::LOG_ERROR,
+					2);
 				DestroySyncObjects(window);
 				return false;
 			}
@@ -722,7 +745,11 @@ namespace KalaWindow::Graphics
 				nullptr,
 				&realFinishedSemaphore) != VK_SUCCESS)
 			{
-				Logger::Print("Failed to create render-finished semaphore for image" << i);
+				Logger::Print(
+					"Failed to create render-finished semaphore for image" + i,
+					"VULKAN",
+					LogType::LOG_ERROR,
+					2);
 				DestroySyncObjects(window);
 				return false;
 			}
@@ -861,7 +888,11 @@ namespace KalaWindow::Graphics
 			return FrameResult::VK_FRAME_RESIZE_NEEDED;
 		}
 
-		Logger::Print("vkAquireNextImageKHR failed with error: " << result);
+		Logger::Print(
+			"vkAquireNextImageKHR failed with error: " + result,
+			"VULKAN",
+			LogType::LOG_ERROR,
+			2);
 		return FrameResult::VK_FRAME_ERROR;
 	}
 
@@ -896,13 +927,21 @@ namespace KalaWindow::Graphics
 
 		if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to reset command buffer before recording!");
+			Logger::Print(
+				"Failed to reset command buffer before recording!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
 		if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to begin recording command buffer!");
+			Logger::Print(
+				"Failed to begin recording command buffer!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -927,21 +966,37 @@ namespace KalaWindow::Graphics
 		{
 			if (DrawCommands)
 			{
-				LOG_DEBUG("User draw commands start.");
+				Logger::Print(
+					"User draw commands start.",
+					"VULKAN",
+					LogType::LOG_DEBUG);
+
 				DrawCommands();
-				LOG_DEBUG("User draw commands end.");
+
+				Logger::Print(
+					"User draw commands end.",
+					"VULKAN",
+					LogType::LOG_ERROR);
 			}
 		}
 		catch (const exception& e)
 		{
-			Logger::Print("Error during DrawCommands: " << e.what());
+			Logger::Print(
+				"Error during DrawCommands: " + string(e.what()),
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 		}
 
 		vkCmdEndRenderPass(cmd);
 
 		if (vkEndCommandBuffer(cmd) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to record command buffer!");
+			Logger::Print(
+				"Failed to record command buffer!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -999,7 +1054,11 @@ namespace KalaWindow::Graphics
 			&submitInfo,
 			ToVar<VkFence>(vData.inFlightFences[currentFrame])) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to submit frame!");
+			Logger::Print(
+				"Failed to submit frame!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -1052,7 +1111,11 @@ namespace KalaWindow::Graphics
 			return FrameResult::VK_FRAME_RESIZE_NEEDED;
 		}
 
-		Logger::Print("vkQueuePresentKHR failed with error: " << result);
+		Logger::Print(
+			"vkQueuePresentKHR failed with error: " + result,
+			"VULKAN",
+			LogType::LOG_ERROR,
+			2);
 		return FrameResult::VK_FRAME_ERROR;
 	}
 
@@ -1205,7 +1268,11 @@ namespace KalaWindow::Graphics
 			nullptr,
 			&realRP) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to create Vulkan render pass!");
+			Logger::Print(
+				"Failed to create Vulkan render pass!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -1255,7 +1322,11 @@ namespace KalaWindow::Graphics
 				nullptr,
 				&realFB) != VK_SUCCESS)
 			{
-				Logger::Print("Failed to create framebuffer for image " << i);
+				Logger::Print(
+					"Failed to create framebuffer for image " + i,
+					"VULKAN",
+					LogType::LOG_ERROR,
+					2);
 				return false;
 			}
 

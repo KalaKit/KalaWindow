@@ -88,83 +88,76 @@ namespace KalaWindow::Graphics
 		int pixelFormat = ChoosePixelFormat(hdc, &pfd);
 		if (pixelFormat == 0)
 		{
-			string message = "ChoosePixelFormat failed!";
 			Logger::Print(
-				message,
+				"ChoosePixelFormat failed!",
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 
 			ForceClose(
 				"OpenGL error",
-				message);
+				"ChoosePixelFormat failed!");
 
 			return false;
 		}
 		Logger::Print(
-			"Pixel Format Index: " + pixelFormat,
+			"Pixel Format Index: " + to_string(pixelFormat),
 			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG,
-			0);
+			LogType::LOG_DEBUG);
 
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
-			string message = "SetPixelFormat failed!";
 			Logger::Print(
-				message,
+				"SetPixelFormat failed!",
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 
 			ForceClose(
 				"OpenGL error",
-				message);
+				"SetPixelFormat failed!");
 
 			return false;
 		}
 		Logger::Print(
 			"SetPixelFormat worked!",
 			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG,
-			0);
+			LogType::LOG_DEBUG);
 
 		PIXELFORMATDESCRIPTOR actualPFD = {};
 		int describeResult = DescribePixelFormat(hdc, pixelFormat, sizeof(actualPFD), &actualPFD);
 		if (describeResult == 0)
 		{
-			string message = "DescribePixelFormat failed!";
 			Logger::Print(
-				message,
+				"DescribePixelFormat failed!",
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 
 			ForceClose(
 				"OpenGL error",
-				message);
+				"DescribePixelFormat failed!");
 
 			return false;
 		}
 		Logger::Print(
-			"DescribePixelFormat value: " + describeResult,
+			"DescribePixelFormat value: " + to_string(describeResult),
 			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG,
-			0);
+			LogType::LOG_DEBUG);
 
 		stringstream ss{};
 		ss << "Pixel Format Details:\n"
-			<< "  ColorBits   = " + static_cast<int>(actualPFD.cColorBits) << "\n"
-			<< "  DepthBits   = " << static_cast<int>(actualPFD.cDepthBits) << "\n"
-			<< "  StencilBits = " << static_cast<int>(actualPFD.cStencilBits) << "\n"
+			<< "  ColorBits   = " << to_string(static_cast<int>(actualPFD.cColorBits)) << "\n"
+			<< "  DepthBits   = " << to_string(static_cast<int>(actualPFD.cDepthBits)) << "\n"
+			<< "  StencilBits = " << to_string(static_cast<int>(actualPFD.cStencilBits)) << "\n"
 			<< "  Flags:\n"
 			<< "    DRAW_TO_WINDOW = " << ((actualPFD.dwFlags & PFD_DRAW_TO_WINDOW) ? "Yes" : "No") << "\n"
 			<< "    SUPPORT_OPENGL = " << ((actualPFD.dwFlags & PFD_SUPPORT_OPENGL) ? "Yes" : "No") << "\n"
-			<< "    DOUBLEBUFFER    = " << ((actualPFD.dwFlags & PFD_DOUBLEBUFFER) ? "Yes" : "No");
+			<< "    DOUBLEBUFFER   = " << ((actualPFD.dwFlags & PFD_DOUBLEBUFFER) ? "Yes" : "No");
 		Logger::Print(
 			ss.str(),
 			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG,
-			0);
+			LogType::LOG_DEBUG);
 
 		HGLRC dummyRC = wglCreateContext(hdc);
 		wglMakeCurrent(hdc, dummyRC);
@@ -179,16 +172,15 @@ namespace KalaWindow::Graphics
 
 		if (!wglCreateContextAttribsARB)
 		{
-			string message = "wglCreateContextAttribsARB is not supported!";
 			Logger::Print(
-				message,
+				"wglCreateContextAttribsARB is not supported!",
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 
 			ForceClose(
 				"OpenGL error",
-				message);
+				"wglCreateContextAttribsARB is not supported!");
 
 			return false;
 		}
@@ -208,16 +200,15 @@ namespace KalaWindow::Graphics
 		window.openglData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(hdc, 0, attribs));
 		if (!window.openglData.hglrc)
 		{
-			string message = "Failed to create OpenGL 3.3 context!";
 			Logger::Print(
-				message,
+				"Failed to create OpenGL 3.3 context!",
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 
 			ForceClose(
 				"OpenGL error",
-				message);
+				"Failed to create OpenGL 3.3 context!");
 
 			return false;
 		}
@@ -233,16 +224,15 @@ namespace KalaWindow::Graphics
 
 		if (!IsCorrectVersion())
 		{
-			string message = "OpenGL 3.3 or higher is required!";
 			Logger::Print(
-				message,
+				"OpenGL 3.3 or higher is required!",
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 
 			ForceClose(
 				"OpenGL error",
-				message);
+				"OpenGL 3.3 or higher is required!");
 
 			return false;
 		}

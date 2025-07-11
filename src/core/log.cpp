@@ -26,13 +26,10 @@ namespace KalaWindow::Core
 {
 	string Logger::GetTime(TimeFormat timeFormat)
 	{
-		if (timeFormat == TimeFormat::TIME_NONE)
+		if (timeFormat == TimeFormat::TIME_NONE
+			|| (timeFormat == TimeFormat::TIME_DEFAULT
+			&& defaultTimeFormat == TimeFormat::TIME_NONE))
 		{
-			Print(
-				"Cannot get time because timeFormat was set to TIME_NONE!",
-				"LOG",
-				LogType::LOG_ERROR,
-				2);
 			return "";
 		}
 		if (timeFormat == TimeFormat::TIME_DEFAULT)
@@ -81,13 +78,10 @@ namespace KalaWindow::Core
 
 	string Logger::GetDate(DateFormat dateFormat)
 	{
-		if (dateFormat == DateFormat::DATE_NONE)
+		if (dateFormat == DateFormat::DATE_NONE
+			|| (dateFormat == DateFormat::DATE_DEFAULT
+			&& defaultDateFormat == DateFormat::DATE_NONE))
 		{
-			Print(
-				"Cannot get date because dateFormat was set to DATE_NONE!",
-				"LOG",
-				LogType::LOG_ERROR,
-				2);
 			return "";
 		}
 		if (dateFormat == DateFormat::DATE_DEFAULT)
@@ -145,7 +139,8 @@ namespace KalaWindow::Core
 			Print(
 				"Cannot write a log message with no message!",
 				"LOG",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 			return;
 		}
 		if (target.empty())
@@ -153,7 +148,8 @@ namespace KalaWindow::Core
 			Print(
 				"Cannot write a log message with no target!",
 				"LOG",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 			return;
 		}
 
@@ -178,13 +174,15 @@ namespace KalaWindow::Core
 
 		string fullMessage = "[ ";
 
-		if (dateFormat != DateFormat::DATE_NONE)
+		if (dateFormat != DateFormat::DATE_NONE
+			&& defaultDateFormat != DateFormat::DATE_NONE)
 		{
 			string dateStamp = GetDate(dateFormat);
 			fullMessage += dateStamp + " | ";
 		}
 
-		if (timeFormat != TimeFormat::TIME_NONE)
+		if (timeFormat != TimeFormat::TIME_NONE
+			&& defaultTimeFormat != TimeFormat::TIME_NONE)
 		{
 			string timeStamp = GetTime(timeFormat);
 			fullMessage += timeStamp + " ] [ ";

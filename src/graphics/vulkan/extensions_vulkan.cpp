@@ -180,7 +180,11 @@ namespace KalaWindow::Graphics
 			&presentCount,
 			nullptr) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to query Vulkan present mode count!");
+			Logger::Print(
+				"Failed to query Vulkan present mode count!",
+				"EXTENSIONS_VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -191,7 +195,11 @@ namespace KalaWindow::Graphics
 			&presentCount,
 			modes.data()) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to query Vulkan present modes!");
+			Logger::Print(
+				"Failed to query Vulkan present modes!",
+				"EXTENSIONS_VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -216,14 +224,28 @@ namespace KalaWindow::Graphics
 			{
 				presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
 			}
-			else Logger::Print("Cannot set vsync to 'OFF' because it is not supported on this device! Falling back to 'ON'.");
+			else
+			{
+				Logger::Print(
+					"Cannot set vsync to 'OFF' because it is not supported on this device! Falling back to 'ON'.",
+					"EXTENSIONS_VULKAN",
+					LogType::LOG_ERROR,
+					2);
+			}
 			break;
 		case VSyncState::VSYNC_TRIPLE_BUFFERING:
 			if (SupportsMode(VK_PRESENT_MODE_MAILBOX_KHR))
 			{
 				presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
 			}
-			else Logger::Print("Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on this device! Falling back to 'ON'.");
+			else
+			{
+				Logger::Print(
+					"Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on this device! Falling back to 'ON'.",
+					"EXTENSIONS_VULKAN",
+					LogType::LOG_ERROR,
+					2);
+			}
 			break;
 		}
 
@@ -255,7 +277,11 @@ namespace KalaWindow::Graphics
 			nullptr,
 			&realSC) != VK_SUCCESS)
 		{
-			Logger::Print("Failed to create Vulkan swapchain!");
+			Logger::Print(
+				"Failed to create Vulkan swapchain!",
+				"EXTENSIONS_VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -315,14 +341,21 @@ namespace KalaWindow::Graphics
 				nullptr,
 				&realIV) != VK_SUCCESS)
 			{
-				Logger::Print("Failed to create image view for swapchain image " << i);
+				Logger::Print(
+					"Failed to create image view for swapchain image " + i,
+					"EXTENSIONS_VULKAN",
+					LogType::LOG_ERROR,
+					2);
 				return false;
 			}
 
 			vData.imageViews[i] = FromVar<VkImageView>(realIV);
 		}
 
-		LOG_SUCCESS("Successfully created Vulkan swapchain and released resources!");
+		Logger::Print(
+			"Successfully created Vulkan swapchain and released resources!",
+			"EXTENSIONS_VULKAN",
+			LogType::LOG_SUCCESS);
 		return true;
 	}
 
