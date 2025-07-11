@@ -45,6 +45,8 @@ using KalaWindow::Graphics::vulkanDeviceExtensionsInfo;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::TimeFormat;
+using KalaWindow::Core::DateFormat;
 
 using std::string;
 using std::to_string;
@@ -1339,7 +1341,9 @@ static void ForceClose(
 		reason,
 		"VULKAN",
 		LogType::LOG_ERROR,
-		2);
+		2,
+		TimeFormat::TIME_NONE,
+		DateFormat::DATE_NONE);
 
 	Window* mainWindow = Window::windows.front();
 	if (mainWindow->CreatePopup(

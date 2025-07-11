@@ -16,11 +16,14 @@
 
 #include "graphics/window.hpp"
 #include "windows/messageloop.hpp"
-#include "core/input.hpp"
 #include "graphics/glyph.hpp"
+#include "core/input.hpp"
+#include "core/log.hpp"
 
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 using std::make_unique;
 using std::move;
@@ -60,9 +63,13 @@ namespace KalaWindow::Graphics
 			{
 				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
 			}
-			LOG_ERROR(message);
+			Logger::Print(
+				message,
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
 
-			string title = "Window initialize error!";
+			string title = "Window error";
 
 			if (newWindow->CreatePopup(
 				title,
@@ -111,11 +118,15 @@ namespace KalaWindow::Graphics
 				+ ": "
 				+ (errorMsg ? errorMsg : "Unknown");
 
-			LOG_ERROR(message);
+			Logger::Print(
+				message,
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
 
 			if (errorMsg) LocalFree(errorMsg);
 
-			string title = "Window initialize error!";
+			string title = "Window error";
 
 			if (newWindow->CreatePopup(
 				title,
@@ -312,7 +323,13 @@ namespace KalaWindow::Graphics
 	{
 		if (!targetWindow->IsInitialized())
 		{
-			LOG_ERROR("Cannot run loop because window '" << targetWindow->GetTitle() << "' has not been initialized!");
+			Logger::Print(
+				"Cannot run loop because window '" +
+				targetWindow->GetTitle() +
+				"' has not been initialized!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
 			return;
 		}
 
@@ -345,7 +362,11 @@ namespace KalaWindow::Graphics
 	{
 		if (window == nullptr)
 		{
-			LOG_ERROR("Cannot destroy window because it is nullptr!");
+			Logger::Print(
+				"Cannot destroy window because it is nullptr!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
 			return;
 		}
 

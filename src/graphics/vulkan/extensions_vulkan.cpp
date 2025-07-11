@@ -22,6 +22,7 @@
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/enums.hpp"
+#include "core/log.hpp"
 
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
@@ -30,6 +31,10 @@ using KalaWindow::PopupAction;
 using KalaWindow::PopupType;
 using KalaWindow::PopupResult;
 using KalaWindow::Graphics::VSyncState;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
+using KalaWindow::Core::TimeFormat;
+using KalaWindow::Core::DateFormat;
 
 using std::string;
 using std::to_string;
@@ -379,7 +384,13 @@ static void ForceClose(
 	const string& reason,
 	ShutdownState state)
 {
-	Logger::Print(reason);
+	Logger::Print(
+		reason,
+		"EXTENSIONS_VULKAN",
+		LogType::LOG_ERROR,
+		2,
+		TimeFormat::TIME_NONE,
+		DateFormat::DATE_NONE);
 
 	Window* mainWindow = Window::windows.front();
 	if (mainWindow->CreatePopup(
