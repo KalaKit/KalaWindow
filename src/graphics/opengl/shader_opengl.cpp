@@ -574,34 +574,76 @@ namespace KalaWindow::Graphics
 
         if (ID == lastProgramID) return true;
 
+#ifdef _DEBUG
+        Logger::Print(
+            "glUseProgram(" + to_string(ID) + ")",
+            "SHADER_OPENGL",
+            LogType::LOG_DEBUG);
+
+        GLint linked = 0;
+        OpenGLLoader::glGetProgramiv(
+            ID,
+            GL_LINK_STATUS,
+            &linked);
+        if (linked != GL_TRUE)
+        {
+            Logger::Print(
+                "GL_LINK_STATUS = " + to_string(linked),
+                "SHADER_OPENGL",
+                LogType::LOG_DEBUG);
+        }
+
+        GLint validated = 0;
+        OpenGLLoader::glGetProgramiv(
+            ID,
+            GL_VALIDATE_STATUS,
+            &validated);
+        if (validated != GL_TRUE)
+        {
+            Logger::Print(
+                "GL_VALIDATE_STATUS = " + to_string(validated),
+                "SHADER_OPENGL",
+                LogType::LOG_DEBUG);
+        }
+#endif
+
         OpenGLLoader::glUseProgram(ID);
 
 #ifdef _DEBUG
         GLenum err = glGetError();
-        if (err != GL_NO_ERROR)
-        {
-            unsigned int errInt = static_cast<unsigned int>(err);
-            const char* errorMsg = Renderer_OpenGL::GetGLErrorString(errInt);
-
-            Logger::Print(
-                "glUseProgram error: " + string(errorMsg),
-                "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
-        }
-
         GLint activeProgram = 0;
-        OpenGLLoader::glGetIntegerv(GL_CURRENT_PROGRAM, &activeProgram);
+        OpenGLLoader::glGetIntegerv(
+            GL_CURRENT_PROGRAM,
+            &activeProgram);
 
-        if (activeProgram != (GLint)ID)
+        bool programMisMatch = activeProgram != (GLint)ID;
+        bool hasError = err != GL_NO_ERROR;
+
+        if (programMisMatch
+            || hasError)
         {
-            Logger::Print(
-                "OpenGL shader bind failed! Program ID not bound after glUseProgram." +
-                string("Expected ID: '") + to_string(ID) + "', but got: '" + to_string(activeProgram) + "'.",
-                "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
-            return false;
+            if (hasError)
+            {
+                unsigned int errInt = static_cast<unsigned int>(err);
+                const char* errorMsg = Renderer_OpenGL::GetGLErrorString(errInt);
+
+                Logger::Print(
+                    "glUseProgram error: " + string(errorMsg),
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+            }
+
+            if (activeProgram != (GLint)ID)
+            {
+                Logger::Print(
+                    "OpenGL shader bind failed! Program ID not bound after glUseProgram." +
+                    string("Expected ID: '") + to_string(ID) + "', but got: '" + to_string(activeProgram) + "'.",
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+                return false;
+            }
         }
 #endif
 
