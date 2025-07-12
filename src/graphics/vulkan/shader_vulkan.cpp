@@ -25,7 +25,7 @@ static VkShaderModule CreateShaderModule(
 
 namespace KalaWindow::Graphics
 {
-	unique_ptr<Shader_Vulkan> Shader_Vulkan::CreateShader(
+	Shader_Vulkan* Shader_Vulkan::CreateShader(
 		const string& shaderName,
 		const vector<ShaderStage>& shaderStages)
 	{
