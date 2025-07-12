@@ -3,6 +3,8 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+#include <functional>
+
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/input.hpp"
@@ -33,6 +35,9 @@ using std::terminate;
 using std::abort;
 using std::exception;
 using std::to_string;
+using std::function;
+
+static function<void()> userRegularShutdown;
 
 namespace KalaWindow::Graphics
 {
@@ -45,6 +50,11 @@ namespace KalaWindow::Graphics
 		return true;
 	}
 
+	void Render::SetUserShutdownFunction(function<void()> regularShutdown)
+	{
+		userRegularShutdown = regularShutdown;
+	}
+
 	void Render::Shutdown(
 		ShutdownState state,
 		bool useWindowShutdown,
@@ -53,12 +63,25 @@ namespace KalaWindow::Graphics
 	{
 		try
 		{
+			if (userRegularShutdown) userRegularShutdown();
+		}
+		catch (const exception& e)
+		{
+			Logger::Print(
+				"User-provided regular shutdown condition failed! Reason: " + string(e.what()),
+				"RENDER",
+				LogType::LOG_ERROR,
+				2);
+		}
+
+		try
+		{
 			if (userEarlyShutdown && userShutdown) userShutdown();
 		}
 		catch (const exception& e)
 		{
 			Logger::Print(
-				"User-provided shutdown condition failed! Reason: " + string(e.what()),
+				"User-provided early shutdown condition failed! Reason: " + string(e.what()),
 				"RENDER",
 				LogType::LOG_ERROR,
 				2);
@@ -81,7 +104,7 @@ namespace KalaWindow::Graphics
 		catch (const exception& e)
 		{
 			Logger::Print(
-				"User-provided shutdown condition failed! Reason: " + string(e.what()),
+				"User-provided early shutdown condition failed! Reason: " + string(e.what()),
 				"RENDER",
 				LogType::LOG_ERROR,
 				2);

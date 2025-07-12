@@ -32,6 +32,11 @@ namespace KalaWindow::Graphics
 
 		static bool Initialize();
 
+		//Intended to be used for regular shutdown conditions, if program exited
+		//with no errors and so on. Called at shutdown stage before any
+		//windows or the render pipeline are destroyed.
+		static void SetUserShutdownFunction(function<void()> regularShutdown);
+
 		/// <summary>
 		/// Handles the shutdown conditions of KalaWindow.
 		/// </summary>
