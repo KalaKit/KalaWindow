@@ -513,8 +513,7 @@ namespace KalaWindow::Graphics
             Logger::Print(
                 "Shader program ID " + to_string(newShaderData.programID) + " is valid!",
                 "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
+                LogType::LOG_SUCCESS);
         }
 
         //
