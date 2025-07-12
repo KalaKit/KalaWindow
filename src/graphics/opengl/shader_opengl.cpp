@@ -301,7 +301,7 @@ namespace KalaWindow::Graphics
         if (!geomShaderExists)
         {
             Logger::Print(
-                "Skipped loading fragment shader because it was not assigned as a shader stage.",
+                "Skipped loading geometry shader because it was not assigned as a shader stage.",
                 "SHADER_OPENGL",
                 LogType::LOG_INFO,
                 0);
