@@ -605,6 +605,14 @@ namespace KalaWindow::Graphics
                 "SHADER_OPENGL",
                 LogType::LOG_DEBUG);
         }
+
+        {
+            GLenum e;
+            while ((e = glGetError()) != GL_NO_ERROR) 
+            {
+                // discard
+            }
+        }
 #endif
 
         OpenGLLoader::glUseProgram(ID);
