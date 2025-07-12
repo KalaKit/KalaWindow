@@ -14,6 +14,8 @@
 #pragma comment(lib, "winmm.lib")
 #endif //_WIN32
 
+#include <string>
+
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 #include "graphics/opengl/opengl.hpp"
 using KalaWindow::Graphics::Renderer_OpenGL;
@@ -30,6 +32,7 @@ using std::exit;
 using std::terminate;
 using std::abort;
 using std::exception;
+using std::to_string;
 
 namespace KalaWindow::Graphics
 {
@@ -89,7 +92,7 @@ namespace KalaWindow::Graphics
 #endif //_WIN32
 
 		Logger::Print(
-			"KalaWindow shutting down with state = " + static_cast<int>(state),
+			"KalaWindow shutting down with state = " + to_string(static_cast<int>(state)),
 			"RENDER",
 			LogType::LOG_SUCCESS,
 			0);
