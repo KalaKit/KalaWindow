@@ -130,8 +130,6 @@ namespace KalaWindow::Graphics
 		kvec2 GetPosition();
 		void SetPosition(kvec2 newPos);
 
-
-
 		//Checks if vsync is enabled or not.
 		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
 		VSyncState GetVSyncState();
