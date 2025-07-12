@@ -706,7 +706,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Render::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		return true;
 
-		//window was destroyed - tell the system to exit
+	//window was destroyed - tell the system to exit
 	case WM_DESTROY:
 		Logger::Print(
 			"Window is destroyed.",
