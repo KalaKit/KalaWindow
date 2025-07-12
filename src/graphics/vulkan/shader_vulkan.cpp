@@ -32,9 +32,7 @@ namespace KalaWindow::Graphics
 		return nullptr;
 	}
 
-	bool Shader_Vulkan::Bind(
-		uintptr_t commandBuffer,
-		const ShaderData& shaderData) const
+	bool Shader_Vulkan::Bind(uintptr_t commandBuffer) const
 	{
 		return true;
 	}

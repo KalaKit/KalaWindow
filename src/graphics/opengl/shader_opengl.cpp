@@ -81,7 +81,7 @@ namespace KalaWindow::Graphics
         const vector<ShaderStage>& shaderStages)
     {
         unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
-        ShaderData newShaderData{};
+        Shader_OpenGL* shaderPtr = newShader.get();
         ShaderStage newVertStage{};
         ShaderStage newFragStage{};
         ShaderStage newGeomStage{};
@@ -354,25 +354,25 @@ namespace KalaWindow::Graphics
         // CREATE SHADER PROGRAM
         //
 
-        newShaderData.programID = OpenGLLoader::glCreateProgram();
+        shaderPtr->programID = OpenGLLoader::glCreateProgram();
 
         OpenGLLoader::glAttachShader(
-            newShaderData.programID, 
+            shaderPtr->programID, 
             newVertStage.shaderID);
         OpenGLLoader::glAttachShader(
-            newShaderData.programID, 
+            shaderPtr->programID, 
             newFragStage.shaderID);
         if (geomShaderExists)
         {
             OpenGLLoader::glAttachShader(
-                newShaderData.programID, 
+                shaderPtr->programID, 
                 newGeomStage.shaderID);
         }
-        OpenGLLoader::glLinkProgram(newShaderData.programID);
+        OpenGLLoader::glLinkProgram(shaderPtr->programID);
 
         GLint success = 0;
         OpenGLLoader::glGetProgramiv(
-            newShaderData.programID, 
+            shaderPtr->programID, 
             GL_LINK_STATUS, 
             &success);
 
@@ -392,7 +392,7 @@ namespace KalaWindow::Graphics
 
             GLint logLength = 0;
             OpenGLLoader::glGetProgramiv(
-                newShaderData.programID, 
+                shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
                 &logLength);
 
@@ -400,7 +400,7 @@ namespace KalaWindow::Graphics
             {
                 vector<GLchar> log(logLength);
                 OpenGLLoader::glGetProgramInfoLog(
-                    newShaderData.programID, 
+                    shaderPtr->programID, 
                     logLength, 
                     nullptr, 
                     log.data());
@@ -434,10 +434,10 @@ namespace KalaWindow::Graphics
         }
 
         //validate the shader program before using it
-        OpenGLLoader::glValidateProgram(newShaderData.programID);
+        OpenGLLoader::glValidateProgram(shaderPtr->programID);
         GLint validated = 0;
         OpenGLLoader::glGetProgramiv(
-            newShaderData.programID, 
+            shaderPtr->programID, 
             GL_VALIDATE_STATUS, 
             &validated);
         if (validated != GL_TRUE)
@@ -456,14 +456,14 @@ namespace KalaWindow::Graphics
 
             GLint logLength = 0;
             OpenGLLoader::glGetProgramiv(
-                newShaderData.programID, 
+                shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
                 &logLength);
             if (logLength > 0)
             {
                 vector<GLchar> log(logLength);
                 OpenGLLoader::glGetProgramInfoLog(
-                    newShaderData.programID, 
+                    shaderPtr->programID, 
                     logLength, 
                     nullptr, 
                     log.data());
@@ -484,7 +484,7 @@ namespace KalaWindow::Graphics
             return nullptr;
         }
 
-        GLint valid = OpenGLLoader::glIsProgram(newShaderData.programID);
+        GLint valid = OpenGLLoader::glIsProgram(shaderPtr->programID);
         bool isProgramValid = valid == GL_TRUE;
         if (!isProgramValid)
         {
@@ -501,7 +501,7 @@ namespace KalaWindow::Graphics
             }
 
             Logger::Print(
-                "Shader program ID " + to_string(newShaderData.programID) + " is not valid!",
+                "Shader program ID " + to_string(shaderPtr->programID) + " is not valid!",
                 "SHADER_OPENGL",
                 LogType::LOG_ERROR,
                 2);
@@ -511,7 +511,7 @@ namespace KalaWindow::Graphics
         else
         {
             Logger::Print(
-                "Shader program ID " + to_string(newShaderData.programID) + " is valid!",
+                "Shader program ID " + to_string(shaderPtr->programID) + " is valid!",
                 "SHADER_OPENGL",
                 LogType::LOG_SUCCESS);
         }
@@ -532,20 +532,17 @@ namespace KalaWindow::Graphics
             OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
         }
 
-        if (vertShaderExists) newShaderData.stages.push_back(newVertStage);
-        if (fragShaderExists) newShaderData.stages.push_back(newFragStage);
-        if (geomShaderExists) newShaderData.stages.push_back(newGeomStage);
+        if (vertShaderExists) shaderPtr->shaders.push_back(newVertStage);
+        if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
+        if (geomShaderExists) shaderPtr->shaders.push_back(newGeomStage);
 
         newShader->name = shaderName;
-        newShader->shaders.push_back(newShaderData);
         createdShaders[shaderName] = newShader.get();
 
         return newShader;
     }
 
-    bool Shader_OpenGL::Bind(
-        Window* window,
-        const ShaderData& shaderData) const
+    bool Shader_OpenGL::Bind(Window* window) const
     {
 #ifdef _WIN32
         auto& oglData = window->GetWindow_Windows().openglData;
@@ -553,7 +550,7 @@ namespace KalaWindow::Graphics
         auto& oglData = window->GetWindow_X11().openglData;
 #endif
         unsigned int& lastProgramID = oglData.lastProgramID;
-        unsigned int ID = shaderData.programID;
+        unsigned int ID = this->programID;
 
         if (ID == 0)
         {
@@ -627,12 +624,12 @@ namespace KalaWindow::Graphics
         string shaderName = shader->name;
 
         //back up old data
-        vector<ShaderData> oldShaders = shader->GetAllShaderData();
+        vector<ShaderStage> oldShaders = shader->GetAllShaders();
 
         //attepmt to recreate
 
         vector<ShaderStage> stagesToReload{};
-        for (const auto& stage : oldShaders.front().stages)
+        for (const auto& stage : oldShaders)
         {
             stagesToReload.push_back(
                 {
@@ -769,9 +766,9 @@ namespace KalaWindow::Graphics
 
     void Shader_OpenGL::DestroyShader()
     {
-        for (auto& shaderData : this->GetAllShaderData())
+        for (auto& shaderData : this->GetAllShaders())
         {
-            for (auto& shaderStage : shaderData.stages)
+            for (auto& shaderStage : shaders)
             {
                 if (shaderStage.shaderID != 0)
                 {
@@ -780,10 +777,10 @@ namespace KalaWindow::Graphics
                     shaderStage.shaderID = 0;
                 }
             }
-            if (shaderData.programID != 0)
+            if (programID != 0)
             {
-                OpenGLLoader::glDeleteProgram(shaderData.programID);
-                shaderData.programID = 0;
+                OpenGLLoader::glDeleteProgram(programID);
+               programID = 0;
             }
         }
         shaders.clear();

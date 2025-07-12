@@ -34,11 +34,6 @@ namespace KalaWindow::Graphics
 		string shaderPath;
 		unsigned int shaderID;
 	};
-	struct ShaderData
-	{
-		vector<ShaderStage> stages;
-		unsigned int programID;
-	};
 
 	class KALAWINDOW_API Shader_OpenGL
 	{
@@ -55,20 +50,18 @@ namespace KalaWindow::Graphics
 			return it != createdShaders.end() ? it->second : nullptr;
 		}
 
-		vector<ShaderData> GetAllShaderData() { return shaders; }
+		vector<ShaderStage> GetAllShaders() { return shaders; }
 
 		//Returns true if this shader is loaded
-		bool IsShaderLoaded(
-			ShaderType targetType,
-			const ShaderData& shaderData)
+		bool IsShaderLoaded(ShaderType targetType)
 		{
-			if (shaderData.stages.empty()
-				|| shaderData.programID == 0)
+			if (shaders.empty()
+				|| programID == 0)
 			{
 				return false;
 			}
 
-			for (const auto& stage : shaderData.stages)
+			for (const auto& stage : shaders)
 			{
 				if (stage.shaderType == targetType
 					&& !stage.shaderPath.empty()
@@ -81,17 +74,15 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 		//Returns true if the shader path of this shader type exists
-		bool ShaderExists(
-			ShaderType targetType,
-			const ShaderData& shaderData)
+		bool ShaderExists(ShaderType targetType)
 		{
-			if (shaderData.stages.empty()
-				|| shaderData.programID == 0)
+			if (shaders.empty()
+				|| programID == 0)
 			{
 				return false;
 			}
 
-			for (const auto& stage : shaderData.stages)
+			for (const auto& stage : shaders)
 			{
 				if (stage.shaderType == targetType
 					&& !stage.shaderPath.empty())
@@ -103,9 +94,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		bool Bind(
-			Window* window,
-			const ShaderData& shaderData) const;
+		bool Bind(Window* window) const;
 
 		void HotReload(Shader_OpenGL* shader);
 
@@ -125,7 +114,10 @@ namespace KalaWindow::Graphics
 		void DestroyShader();
 	private:
 		string name;
-		vector<ShaderData> shaders;
+
+		unsigned int programID;
+
+		vector<ShaderStage> shaders;
 	};
 }
 
