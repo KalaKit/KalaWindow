@@ -249,8 +249,8 @@ namespace KalaWindow::Graphics
 		OpenGLLoader::glViewport(
 			0, 
 			0, 
-			targetWindow->GetSize().x,
-			targetWindow->GetSize().y);
+			targetWindow->GetSize(targetWindow).x,
+			targetWindow->GetSize(targetWindow).y);
 
 		return true;
 	}

@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 #include <sstream>
+#include <functional>
 
 #ifndef GET_X_LPARAM
 	#define GET_X_LPARAM(lp) ((int)(short)LOWORD(lp))
@@ -40,6 +41,7 @@ using KalaWindow::Core::MouseButton;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::Key;
 
 using std::string;
 using std::to_string;
@@ -47,8 +49,7 @@ using std::vector;
 using std::stringstream;
 using std::hex;
 using std::dec;
-
-using KalaWindow::Core::Key;
+using std::function;
 
 using std::unordered_map;
 
@@ -663,6 +664,17 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				"New resolution: " + to_string(width) + ", " + to_string(height),
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
+		}
+
+		Window* mainWindow = Window::windows.front();
+		function<void(int width, int height)> callback = mainWindow->GetResizeCallback();
+		if (callback)
+		{
+			kvec2 size = mainWindow->GetSize(mainWindow);
+			callback(
+				static_cast<int>(size.x),
+				static_cast<int>(size.y)
+			);
 		}
 
 		return true;

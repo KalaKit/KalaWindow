@@ -8,6 +8,7 @@
 #include <string>
 #include <memory>
 #include <vector>
+#include <functional>
 
 #include "core/platform.hpp"
 #include "core/enums.hpp"
@@ -18,6 +19,7 @@ namespace KalaWindow::Graphics
 	using std::string;
 	using std::unique_ptr;
 	using std::vector;
+	using std::function;
 
 	enum VSyncState
 	{
@@ -128,6 +130,8 @@ namespace KalaWindow::Graphics
 		kvec2 GetPosition();
 		void SetPosition(kvec2 newPos);
 
+
+
 		//Checks if vsync is enabled or not.
 		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
 		VSyncState GetVSyncState();
@@ -163,6 +167,15 @@ namespace KalaWindow::Graphics
 			PopupAction action,
 			PopupType type);
 
+		void SetResizeCallback(function<void(int width, int height)> callback)
+		{
+			resizeCallback = callback;
+		}
+		function<void(int width, int height)> GetResizeCallback()
+		{
+			return resizeCallback;
+		}
+
 		using RedrawCallback = void(*)();
 		void SetRedrawCallback(RedrawCallback callback) { OnRedraw = callback; }
 		void TriggerRedraw() const { if (OnRedraw) OnRedraw(); }
@@ -192,6 +205,8 @@ namespace KalaWindow::Graphics
 
 		WindowStruct_Windows window_windows{}; //The windows data of this window
 		WindowStruct_X11 window_x11{};         //The X11 data of this window
+
+		function<void(int width, int height)> resizeCallback;
 
 		//KalaWindow will dynamically update window idle state
 		void UpdateIdleState(Window* window);
