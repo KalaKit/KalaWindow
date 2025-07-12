@@ -76,7 +76,7 @@ static void ForceClose(
 
 namespace KalaWindow::Graphics
 {
-    unique_ptr<Shader_OpenGL> Shader_OpenGL::CreateShader(
+    Shader_OpenGL* Shader_OpenGL::CreateShader(
         const string& shaderName,
         const vector<ShaderStage>& shaderStages)
     {
@@ -537,9 +537,9 @@ namespace KalaWindow::Graphics
         if (geomShaderExists) shaderPtr->shaders.push_back(newGeomStage);
 
         newShader->name = shaderName;
-        createdShaders[shaderName] = newShader.get();
+        createdShaders[shaderName] = move(newShader);
 
-        return newShader;
+        return shaderPtr;
     }
 
     bool Shader_OpenGL::Bind(Window* window) const

@@ -38,16 +38,16 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Shader_OpenGL
 	{
 	public:
-		static inline unordered_map<string, Shader_OpenGL*> createdShaders{};
+		static inline unordered_map<string, unique_ptr<Shader_OpenGL>> createdShaders{};
 
-		static unique_ptr<Shader_OpenGL> CreateShader(
+		static Shader_OpenGL* CreateShader(
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
 		static Shader_OpenGL* GetShaderByName(const string& name)
 		{
 			auto it = createdShaders.find(name);
-			return it != createdShaders.end() ? it->second : nullptr;
+			return it != createdShaders.end() ? it->second.get() : nullptr;
 		}
 
 		vector<ShaderStage> GetAllShaders() { return shaders; }

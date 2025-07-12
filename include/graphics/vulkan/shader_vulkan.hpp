@@ -53,16 +53,16 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Shader_Vulkan
 	{
 	public:
-		static inline unordered_map<string, Shader_Vulkan*> createdShaders{};
+		static inline unordered_map<string, unique_ptr<Shader_Vulkan>> createdShaders{};
 
-		static unique_ptr<Shader_Vulkan> CreateShader(
+		static Shader_Vulkan* CreateShader(
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
 		static Shader_Vulkan* GetShaderByName(const string& name)
 		{
 			auto it = createdShaders.find(name);
-			return it != createdShaders.end() ? it->second : nullptr;
+			return it != createdShaders.end() ? it->second.get() : nullptr;
 		}
 
 		vector<ShaderStage> GetAllShaders() { return shaders; }
