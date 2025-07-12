@@ -121,7 +121,8 @@ namespace KalaWindow::Graphics
 		const string& GetTitle() const { return title; }
 		void SetTitle(const string& newTitle);
 
-		kvec2 GetSize() const { return size; }
+		//Returns dpi-accurate framebuffer size.
+		kvec2 GetSize(Window* window);
 		void SetSize(kvec2 newSize);
 
 		kvec2 GetPosition();

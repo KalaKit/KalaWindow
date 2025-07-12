@@ -201,6 +201,30 @@ namespace KalaWindow::Graphics
 		this->title = newTitle;
 	}
 
+	kvec2 Window::GetSize(Window* window)
+	{
+		HWND hwnd = ToVar<HWND>(window->GetWindow_Windows().hwnd);
+
+		UINT dpi = GetDpiForWindow(hwnd);
+		RECT rect{};
+		GetClientRect(hwnd, &rect);
+
+		int width = MulDiv(
+			rect.right - rect.left, 
+			dpi, 
+			96);
+		int height = MulDiv(
+			rect.bottom - rect.top,
+			dpi,
+			96);
+
+		return kvec2
+		{
+			static_cast<float>(width),
+			static_cast<float>(height)
+		};
+	}
+
 	void Window::SetSize(kvec2 newSize)
 	{
 		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
