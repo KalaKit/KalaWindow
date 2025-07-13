@@ -26,7 +26,6 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/render.hpp"
-#include "core/enums.hpp"
 #include "core/log.hpp"
 
 using KalaWindow::Graphics::Renderer_Vulkan;
@@ -36,9 +35,9 @@ using KalaWindow::Graphics::VulkanDeviceExtensions;
 using KalaWindow::Graphics::Extensions_Vulkan;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Render;
-using KalaWindow::PopupAction;
-using KalaWindow::PopupType;
-using KalaWindow::PopupResult;
+using KalaWindow::Graphics::PopupAction;
+using KalaWindow::Graphics::PopupType;
+using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::vulkanLayerInfo;
 using KalaWindow::Graphics::vulkanInstanceExtensionsInfo;
 using KalaWindow::Graphics::vulkanDeviceExtensionsInfo;

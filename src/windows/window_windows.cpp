@@ -201,9 +201,10 @@ namespace KalaWindow::Graphics
 		this->title = newTitle;
 	}
 
-	kvec2 Window::GetSize(Window* window)
+	kvec2 Window::GetSize()
 	{
-		HWND hwnd = ToVar<HWND>(window->GetWindow_Windows().hwnd);
+		WindowStruct_Windows& winData = this->GetWindow_Windows();
+		HWND hwnd = ToVar<HWND>(winData.hwnd);
 
 		UINT dpi = GetDpiForWindow(hwnd);
 		RECT rect{};
@@ -274,27 +275,24 @@ namespace KalaWindow::Graphics
 			| SWP_NOZORDER);
 	}
 
-	bool Window::IsFocused(Window* window) const
+	bool Window::IsFocused() const
 	{
-		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND hwnd = ToVar<HWND>(win.hwnd);
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
 		return hwnd == GetForegroundWindow();
 	}
 
-	bool Window::IsMinimized(Window* window) const
+	bool Window::IsMinimized() const
 	{
-		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND hwnd = ToVar<HWND>(win.hwnd);
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
 		//IsIconic returns TRUE if the window is minimized (iconic state)
 		return IsIconic(hwnd) == TRUE;
 	}
 
-	bool Window::IsVisible(Window* window) const
+	bool Window::IsVisible() const
 	{
-		WindowStruct_Windows& win = window->GetWindow_Windows();
-		HWND hwnd = ToVar<HWND>(win.hwnd);
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
 		return IsWindowVisible(hwnd) == TRUE;
 	}
@@ -357,7 +355,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		targetWindow->UpdateIdleState(targetWindow);
+		targetWindow->UpdateIdleState();
 
 		MSG msg;
 		
@@ -374,12 +372,12 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::UpdateIdleState(Window* window)
+	void Window::UpdateIdleState()
 	{
 		isIdle =
-			!IsFocused(window)
-			|| IsMinimized(window)
-			|| !IsVisible(window);
+			!IsFocused()
+			|| IsMinimized()
+			|| !IsVisible();
 	}
 
 	void Window::DeleteWindow(Window* window)

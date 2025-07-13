@@ -21,15 +21,14 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
-#include "core/enums.hpp"
 #include "core/log.hpp"
 
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
-using KalaWindow::PopupAction;
-using KalaWindow::PopupType;
-using KalaWindow::PopupResult;
+using KalaWindow::Graphics::PopupAction;
+using KalaWindow::Graphics::PopupType;
+using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::VSyncState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;

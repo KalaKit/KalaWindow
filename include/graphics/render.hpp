@@ -10,7 +10,6 @@
 #include <functional>
 
 #include "core/platform.hpp"
-#include "core/enums.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -28,8 +27,6 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Render
 	{
 	public:
-		static inline DebugType debugType;
-
 		static bool Initialize();
 
 		//Intended to be used for regular shutdown conditions, if program exited

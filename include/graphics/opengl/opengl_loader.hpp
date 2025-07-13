@@ -10,12 +10,101 @@
 #include <vector>
 
 #include "core/platform.hpp"
-#include "core/enums.hpp"
 #include "graphics/opengl/opengl_typedefs.hpp"
 
 namespace KalaWindow::Graphics
 {
 	using std::vector;
+
+	/// <summary>
+	/// All the currently supported OpenGL functions that can be loaded by the user.
+	/// </summary>
+	enum class OpenGLFunction
+	{
+		//geometry
+
+		OPENGL_GENVERTEXARRAYS,         //Create one or more VAO (Vertex array object)
+		OPENGL_BINDVERTEXARRAY,         //Bind a VAO
+		OPENGL_GENBUFFERS,              //Create one or more VBO (Vertex buffer object)
+		OPENGL_BINDBUFFER,              //Bind a VBO
+		OPENGL_DELETEVERTEXARRAY,       //Delete a VAO
+		OPENGL_DELETEBUFFER,            //Delete a VBO
+		OPENGL_BUFFERDATA,              //Upload data to currently bound VBO
+		OPENGL_ENABLEVERTEXATTRIBARRAY, //Enable a vertex attribute slot (position, color etc)
+		OPENGL_VERTEXATTRIBPOINTER,     //Defines how to read vertex data from VBO
+		OPENGL_GETVERTEXATTRIBIV,       //Query an integer attribute parameter (size, type, stride, enabled, etc)
+		OPENGL_GETVERTEXATTRIBPOINTERV, //Query the memory pointer for a vertex attribute
+		OPENGL_DRAWARRAYS,              //Draws vertices with bound VAO and shader (non-indexed)
+		OPENGL_DRAWELEMENTS,            //Draws vertices using index data (EBO)
+
+		//shaders
+
+		OPENGL_CREATESHADER,            //Create shader object (vertex/fragment)
+		OPENGL_SHADERSOURCE,            //Set the shader source code
+		OPENGL_COMPILESHADER,           //Compile the shader
+		OPENGL_CREATEPROGRAM,           //Create a shader program
+		OPENGL_USEPROGRAM,              //Use a shader program for drawing
+		OPENGL_ATTACHSHADER,            //Attach a shader to the program
+		OPENGL_LINKPROGRAM,             //Link the shader program
+		OPENGL_DETACHSHADER,            //Detach a shader object
+		OPENGL_DELETESHADER,            //Delete a shader object
+		OPENGL_GETSHADERIV,             //Get shader compile status
+		OPENGL_GETSHADERINFOLOG,        //Get shader compilation log
+		OPENGL_GETPROGRAMIV,            //Get program link status
+		OPENGL_GETPROGRAMINFOLOG,       //Get program linking log
+		OPENGL_GETACTIVEATTRIB,         //Query active vertex attribute (name, type, size)
+		OPENGL_GETATTRIBLOCATION,       //Get location of a vertex attribute by name
+		OPENGL_DELETEPROGRAM,           //Delete a shader program
+		OPENGL_VALIDATEPROGRAM,         //Validate the shader program
+		OPENGL_ISPROGRAM,               //Check if a given ID is a valid shader program
+
+		//uniforms
+
+		OPENGL_GETUNIFORMLOCATION,      //Get a uniform variable's location
+		OPENGL_UNIFORM1I,               //Set int uniform
+		OPENGL_UNIFORM1F,               //Set float uniform
+		OPENGL_UNIFORM2F,               //Set vec2 uniform (x, y)
+		OPENGL_UNIFORM2FV,              //Set vec2 uniform from pointer
+		OPENGL_UNIFORM3F,               //Set vec3 uniform (x, y, z)
+		OPENGL_UNIFORM3FV,              //Set vec3 uniform from pointer
+		OPENGL_UNIFORM4F,               //Set vec4 uniform (x, y, z, w)
+		OPENGL_UNIFORM4FV,              //Set vec4 uniform from pointer
+		OPENGL_UNIFORMMATRIX2FV,        //Set mat2 uniform
+		OPENGL_UNIFORMMATRIX3FV,        //Set mat3 uniform
+		OPENGL_UNIFORMMATRIX4FV,        //Set mat4 uniform
+
+		//textures
+
+		OPENGL_GENTEXTURES,             //Create texture objects
+		OPENGL_BINDTEXTURE,             //Bind a texture
+		OPENGL_ACTIVETEXTURE,           //Select active texture unit
+		OPENGL_TEXIMAGE2D,              //Upload texture data
+		OPENGL_TEXSUBIMAGE2D,           //Upload a sub-region of texture data
+		OPENGL_TEXPARAMETERI,           //Set texture parameter (filtering/wrapping)
+		OPENGL_GENERATEMIPMAP,          //Generate mipmaps for the current texture
+		OPENGL_DELETETEXTURES,          //Delete one or more textures
+
+		//framebuffers and renderbuffers
+
+		OPENGL_GENFRAMEBUFFERS,         //Generate framebuffer object(s)
+		OPENGL_BINDFRAMEBUFFER,         //Bind a framebuffer object
+		OPENGL_FRAMEBUFFERTEXTURE2D,    //Attach a texture to a framebuffer
+		OPENGL_CHECKFRAMEBUFFERSTATUS,  //Check if framebuffer is complete
+		OPENGL_GENRENDERBUFFERS,        //Generate renderbuffer object(s)
+		OPENGL_BINDRENDERBUFFER,        //Bind a renderbuffer object
+		OPENGL_RENDERBUFFERSTORAGE,     //Define storage for a renderbuffer
+		OPENGL_FRAMEBUFFERRENDERBUFFER, //Attach a renderbuffer to a framebuffer
+
+		//frame and render state
+
+		OPENGL_VIEWPORT,                //Set the viewport area
+		OPENGL_DISABLE,                 //Disable OpenGL capabilities like depth test
+		OPENGL_CLEARCOLOR,              //Set background color for clearing
+		OPENGL_CLEAR,                   //Clear framebuffer (color, depth, etc)
+		OPENGL_GETINTEGERV,             //Query integer values (like bound objects or limits)
+		OPENGL_GETSTRING,               //Get OpenGL version/vendor info as strings
+		OPENGL_GETERROR                 //Get last OpenGL error code
+	};
 
 	class KALAWINDOW_API OpenGLLoader
 	{

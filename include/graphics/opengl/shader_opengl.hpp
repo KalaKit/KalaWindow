@@ -13,10 +13,14 @@
 #include <vector>
 
 #include "core/platform.hpp"
+#include "core/log.hpp"
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics
 {
+	using KalaWindow::Core::Logger;
+	using KalaWindow::Core::LogType;
+
 	using std::string;
 	using std::unordered_map;
 	using std::vector;
@@ -44,13 +48,118 @@ namespace KalaWindow::Graphics
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
-		static Shader_OpenGL* GetShaderByName(const string& name)
+		const string& GetName() { return name; }
+		void SetName(const string& newName)
 		{
-			auto it = createdShaders.find(name);
-			return it != createdShaders.end() ? it->second.get() : nullptr;
+			if (newName.empty())
+			{
+				Logger::Print(
+					"Cannot set shader name to empty name!",
+					"SHADER_OPENGL",
+					LogType::LOG_ERROR,
+					2);
+				return;
+			}
+			for (const auto& createdShader : createdShaders)
+			{
+				string thisName = createdShader.first.c_str();
+				if (newName == thisName)
+				{
+					Logger::Print(
+						"Cannot set shader name to already existing shader name '" + thisName + "'!",
+						"SHADER_OPENGL",
+						LogType::LOG_ERROR,
+						2);
+					return;
+				}
+			}
+			name = newName;
 		}
 
+		unsigned int GetProgramID() { return programID; }
 		vector<ShaderStage> GetAllShaders() { return shaders; }
+
+		void SetShaderPath(
+			const string& path,
+			ShaderType type)
+		{
+			if (path.empty())
+			{
+				Logger::Print(
+					"Cannot set shader path to empty path!",
+					"SHADER_OPENGL",
+					LogType::LOG_ERROR,
+					2);
+				return;
+			}
+
+			for (auto& stage : shaders)
+			{
+				if (stage.shaderType == type)
+				{
+					stage.shaderPath = path;
+					break;
+				}
+			}
+		}
+
+		unsigned int GetShaderID(ShaderType type)
+		{
+			for (const auto& stage : shaders)
+			{
+				if (stage.shaderType == type)
+				{
+					return stage.shaderID;
+				}
+			}
+
+			string typeStr{};
+			switch (type)
+			{
+			case ShaderType::Shader_Vertex:
+				typeStr = "vertex"; break;
+			case ShaderType::Shader_Fragment:
+				typeStr = "fragment"; break;
+			case ShaderType::Shader_Geometry:
+				typeStr = "geometry"; break;
+			}
+
+			Logger::Print(
+				"Shader with type '" + typeStr + "' was not assigned! Returning ID 0.",
+				"SHADER_OPENGL",
+				LogType::LOG_ERROR,
+				2);
+			return 0;
+		}
+		string GetShaderPath(ShaderType type)
+		{
+			for (const auto& stage : shaders)
+			{
+				if (stage.shaderType == type)
+				{
+					return stage.shaderPath;
+					break;
+				}
+			}
+
+			string typeStr{};
+			switch (type)
+			{
+			case ShaderType::Shader_Vertex:
+				typeStr = "vertex"; break;
+			case ShaderType::Shader_Fragment:
+				typeStr = "fragment"; break;
+			case ShaderType::Shader_Geometry:
+				typeStr = "geometry"; break;
+			}
+
+			Logger::Print(
+				"Shader with type '" + typeStr + "' was not assigned! Returning empty path.",
+				"SHADER_OPENGL",
+				LogType::LOG_ERROR,
+				2);
+			return "";
+		}
 
 		//Returns true if this shader is loaded
 		bool IsShaderLoaded(ShaderType targetType)

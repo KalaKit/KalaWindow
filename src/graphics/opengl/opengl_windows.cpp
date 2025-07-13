@@ -15,15 +15,14 @@
 #include "graphics/opengl/opengl_loader.hpp"
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
-#include "core/enums.hpp"
 #include "core/log.hpp"
 
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
-using KalaWindow::PopupAction;
-using KalaWindow::PopupType;
-using KalaWindow::PopupResult;
+using KalaWindow::Graphics::PopupAction;
+using KalaWindow::Graphics::PopupType;
+using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::TimeFormat;
@@ -249,8 +248,8 @@ namespace KalaWindow::Graphics
 		OpenGLLoader::glViewport(
 			0, 
 			0, 
-			targetWindow->GetSize(targetWindow).x,
-			targetWindow->GetSize(targetWindow).y);
+			targetWindow->GetSize().x,
+			targetWindow->GetSize().y);
 
 		return true;
 	}

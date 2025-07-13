@@ -21,7 +21,6 @@
 #include "windows/messageloop.hpp"
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
-#include "core/enums.hpp"
 #include "core/input.hpp"
 #include "core/log.hpp"
 
@@ -34,7 +33,6 @@ using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowStruct_Windows;
-using KalaWindow::DebugType;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::MouseButton;
@@ -225,26 +223,24 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	{
 		auto result = CursorTest(hwnd, msg, wParam, lParam);
 
-		if (Render::debugType == DebugType::DEBUG_ALL
-			|| Render::debugType == DebugType::DEBUG_WINDOW_CORNER_EDGE)
-		{
-			string resultValue{};
+		/*
+		string resultValue{};
 
-			if (result == 1) resultValue = "center";
-			if (result == 10) resultValue = "left edge";
-			if (result == 11) resultValue = "right edge";
-			if (result == 12) resultValue = "top bar";
-			if (result == 13) resultValue = "top left corner";
-			if (result == 14) resultValue = "top right corner";
-			if (result == 15) resultValue = "bottom edge";
-			if (result == 16) resultValue = "bottom left corner";
-			if (result == 17) resultValue = "bottom right corner";
+		if (result == 1) resultValue = "center";
+		if (result == 10) resultValue = "left edge";
+		if (result == 11) resultValue = "right edge";
+		if (result == 12) resultValue = "top bar";
+		if (result == 13) resultValue = "top left corner";
+		if (result == 14) resultValue = "top right corner";
+		if (result == 15) resultValue = "bottom edge";
+		if (result == 16) resultValue = "bottom left corner";
+		if (result == 17) resultValue = "bottom right corner";
 
-			Logger::Print(
-				"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
-		}
+		Logger::Print(
+			"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
+			"MESSAGELOOP",
+			LogType::LOG_DEBUG);
+		*/
 
 		return result;
 	}
@@ -269,35 +265,32 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 
 static bool ProcessMessage(const MSG& msg, Window* window)
 {
-	DebugType type = Render::debugType;
-	if (type == DebugType::DEBUG_ALL
-		|| type == DebugType::DEBUG_PROCESS_MESSAGE_TEST)
+	/*
+	if (msg.message == 0)
 	{
-		if (msg.message == 0)
-		{
-			Logger::Print(
-				"Received empty or WM_NULL message.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
-		}
-		else
-		{
-			stringstream ss{};
-			ss << "MSG { " << "\n"
-				<< "hwnd: " << msg.hwnd << "\n"
-				<< ", message: 0x" << hex << msg.message << "\n"
-				<< ", wParam: 0x" << hex << msg.wParam << "\n"
-				<< ", lParam: 0x" << hex << msg.lParam << "\n"
-				<< ", time: " << dec << msg.time << "\n"
-				<< ", pt: (" << msg.pt.x << ", " << msg.pt.y << ")" << "\n"
-				<< " }";
-
-			Logger::Print(
-				"Got message: " + ss.str(),
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
-		}
+		Logger::Print(
+			"Received empty or WM_NULL message.",
+			"MESSAGELOOP",
+			LogType::LOG_DEBUG);
 	}
+	else
+	{
+		stringstream ss{};
+		ss << "MSG { " << "\n"
+			<< "hwnd: " << msg.hwnd << "\n"
+			<< ", message: 0x" << hex << msg.message << "\n"
+			<< ", wParam: 0x" << hex << msg.wParam << "\n"
+			<< ", lParam: 0x" << hex << msg.lParam << "\n"
+			<< ", time: " << dec << msg.time << "\n"
+			<< ", pt: (" << msg.pt.x << ", " << msg.pt.y << ")" << "\n"
+			<< " }";
+
+		Logger::Print(
+			"Got message: " + ss.str(),
+			"MESSAGELOOP",
+			LogType::LOG_DEBUG);
+	}
+	*/
 
 	switch (msg.message)
 	{
@@ -657,24 +650,19 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		}
 #endif //KALAWINDOW_SUPPORT_OPENGL
 
-		if (type == DebugType::DEBUG_ALL
-			|| type == DebugType::DEBUG_WINDOW_RESIZE)
-		{
-			Logger::Print(
-				"New resolution: " + to_string(width) + ", " + to_string(height),
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
-		}
+		/*
+		Logger::Print(
+			"New resolution: " + to_string(width) + ", " + to_string(height),
+			"MESSAGELOOP",
+			LogType::LOG_DEBUG);
+		*/
 
 		Window* mainWindow = Window::windows.front();
-		function<void(int width, int height)> callback = mainWindow->GetResizeCallback();
+		function<void()> callback = mainWindow->GetResizeCallback();
 		if (callback)
 		{
-			kvec2 size = mainWindow->GetSize(mainWindow);
-			callback(
-				static_cast<int>(size.x),
-				static_cast<int>(size.y)
-			);
+			kvec2 size = mainWindow->GetSize();
+			callback();
 		}
 
 		return true;

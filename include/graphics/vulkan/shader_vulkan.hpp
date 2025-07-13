@@ -59,12 +59,6 @@ namespace KalaWindow::Graphics
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
-		static Shader_Vulkan* GetShaderByName(const string& name)
-		{
-			auto it = createdShaders.find(name);
-			return it != createdShaders.end() ? it->second.get() : nullptr;
-		}
-
 		vector<ShaderStage> GetAllShaders() { return shaders; }
 
 		//Returns true if this shader is loaded
