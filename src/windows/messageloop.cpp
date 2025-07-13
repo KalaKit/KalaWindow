@@ -659,11 +659,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		Window* mainWindow = Window::windows.front();
 		function<void()> callback = mainWindow->GetResizeCallback();
-		if (callback)
-		{
-			kvec2 size = mainWindow->GetSize();
-			callback();
-		}
+		if (callback) callback();
 
 		return true;
 	}
