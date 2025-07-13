@@ -13,10 +13,14 @@
 #include <vector>
 
 #include "core/platform.hpp"
+#include "core/log.hpp"
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics
 {
+	using KalaWindow::Core::Logger;
+	using KalaWindow::Core::LogType;
+
 	using std::string;
 	using std::unique_ptr;
 	using std::unordered_map;
@@ -25,11 +29,11 @@ namespace KalaWindow::Graphics
 	enum class ShaderType
 	{
 		Shader_Vertex,         //VK_SHADER_STAGE_VERTEX_BIT
+		Shader_Fragment,       //VK_SHADER_STAGE_FRAGMENT_BIT
+		Shader_Geometry,       //VK_SHADER_STAGE_GEOMETRY_BIT
+		Shader_Compute,        //VK_SHADER_STAGE_COMPUTE_BIT
 		Shader_TessControl,    //VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT
 		Shader_TessEvaluation, //VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT
-		Shader_Geometry,       //VK_SHADER_STAGE_GEOMETRY_BIT
-		Shader_Fragment,       //VK_SHADER_STAGE_FRAGMENT_BIT
-		Shader_Compute,        //VK_SHADER_STAGE_COMPUTE_BIT
 
 		//REQUIRES OPT-IN EXTENSIONS
 
@@ -59,7 +63,141 @@ namespace KalaWindow::Graphics
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
+		const string& GetName() { return name; }
+		void SetName(const string& newName)
+		{
+			if (newName.empty())
+			{
+				Logger::Print(
+					"Cannot set shader name to empty name!",
+					"SHADER_VULKAN",
+					LogType::LOG_ERROR,
+					2);
+				return;
+			}
+			for (const auto& createdShader : createdShaders)
+			{
+				string thisName = createdShader.first.c_str();
+				if (newName == thisName)
+				{
+					Logger::Print(
+						"Cannot set shader name to already existing shader name '" + thisName + "'!",
+						"SHADER_VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return;
+				}
+			}
+			name = newName;
+		}
+
+		unsigned int GetPipeline() { return pipeline; }
+		unsigned int GetLayout() { return layout; }
+		unsigned int GetDescriptorSetLayout() { return descriptorSetLayout; }
+
 		vector<ShaderStage> GetAllShaders() { return shaders; }
+
+		void SetShaderPath(
+			const string& path,
+			ShaderType type)
+		{
+			if (path.empty())
+			{
+				Logger::Print(
+					"Cannot set shader path to empty path!",
+					"SHADER_VULKAN",
+					LogType::LOG_ERROR,
+					2);
+				return;
+			}
+
+			for (auto& stage : shaders)
+			{
+				if (stage.shaderType == type)
+				{
+					stage.shaderPath = path;
+					break;
+				}
+			}
+		}
+
+		string GetShaderTypeName(ShaderType type)
+		{
+			switch (type)
+			{
+			case ShaderType::Shader_Vertex:
+				return "vertex";
+			case ShaderType::Shader_Fragment:
+				return "fragment";
+			case ShaderType::Shader_Geometry:
+				return "geometry";
+			case ShaderType::Shader_Compute:
+				return "compute";
+			case ShaderType::Shader_TessControl:
+				return "tesselation control";
+			case ShaderType::Shader_TessEvaluation:
+				return "tesselation evaluation";
+
+			case ShaderType::Shader_RayGen:
+				return "raygen";
+			case ShaderType::Shader_AnyHit:
+				return "any hit";
+			case ShaderType::Shader_ClosestHit:
+				return "closest hit";
+			case ShaderType::Shader_Miss:
+				return "miss";
+			case ShaderType::Shader_Intersection:
+				return "intersection";
+			case ShaderType::Shader_Callable:
+				return "callable";
+			case ShaderType::Shader_Task:
+				return "task";
+			case ShaderType::Shader_Mesh:
+				return "mesh";
+			}
+
+			return "";
+		}
+
+		unsigned int GetShaderModule(ShaderType type)
+		{
+			for (const auto& stage : shaders)
+			{
+				if (stage.shaderType == type)
+				{
+					return stage.shaderModule;
+				}
+			}
+
+			string typeStr = GetShaderTypeName(type);
+
+			Logger::Print(
+				"Shader with type '" + typeStr + "' was not assigned! Returning module 0.",
+				"SHADER_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+			return 0;
+		}
+		string GetShaderPath(ShaderType type)
+		{
+			for (const auto& stage : shaders)
+			{
+				if (stage.shaderType == type)
+				{
+					return stage.shaderPath;
+					break;
+				}
+			}
+
+			string typeStr = GetShaderTypeName(type);
+
+			Logger::Print(
+				"Shader with type '" + typeStr + "' was not assigned! Returning empty path.",
+				"SHADER_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+			return "";
+		}
 
 		//Returns true if this shader is loaded
 		bool IsShaderLoaded(ShaderType targetType)

@@ -25,8 +25,7 @@
       "binaryDir": "${sourceDir}/debug_opengl",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "KALAWINDOW_RENDERER": "opengl",
-        "CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_OPENGL"
+        "KALAWINDOW_RENDERER": "opengl"
       }
     },
     {
@@ -35,8 +34,7 @@
       "binaryDir": "${sourceDir}/debug_vulkan",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug",
-        "KALAWINDOW_RENDERER": "vulkan",
-        "CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_VULKAN"
+        "KALAWINDOW_RENDERER": "vulkan"
       }
     },
     {
@@ -45,8 +43,7 @@
       "binaryDir": "${sourceDir}/release_opengl",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "KALAWINDOW_RENDERER": "opengl",
-		"CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_OPENGL"
+        "KALAWINDOW_RENDERER": "opengl"
       }
     },
     {
@@ -55,8 +52,7 @@
       "binaryDir": "${sourceDir}/release_vulkan",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release",
-        "KALAWINDOW_RENDERER": "vulkan",
-		"CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_VULKAN"
+        "KALAWINDOW_RENDERER": "vulkan"
       }
     }
   ],

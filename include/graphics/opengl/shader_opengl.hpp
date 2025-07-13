@@ -77,6 +77,7 @@ namespace KalaWindow::Graphics
 		}
 
 		unsigned int GetProgramID() { return programID; }
+
 		vector<ShaderStage> GetAllShaders() { return shaders; }
 
 		void SetShaderPath(
@@ -103,6 +104,21 @@ namespace KalaWindow::Graphics
 			}
 		}
 
+		string GetShaderTypeName(ShaderType type)
+		{
+			switch (type)
+			{
+			case ShaderType::Shader_Vertex:
+				return "vertex";
+			case ShaderType::Shader_Fragment:
+				return "fragment";
+			case ShaderType::Shader_Geometry:
+				return "geometry";
+			}
+
+			return "";
+		}
+
 		unsigned int GetShaderID(ShaderType type)
 		{
 			for (const auto& stage : shaders)
@@ -113,16 +129,7 @@ namespace KalaWindow::Graphics
 				}
 			}
 
-			string typeStr{};
-			switch (type)
-			{
-			case ShaderType::Shader_Vertex:
-				typeStr = "vertex"; break;
-			case ShaderType::Shader_Fragment:
-				typeStr = "fragment"; break;
-			case ShaderType::Shader_Geometry:
-				typeStr = "geometry"; break;
-			}
+			string typeStr = GetShaderTypeName(type);
 
 			Logger::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning ID 0.",
@@ -142,16 +149,7 @@ namespace KalaWindow::Graphics
 				}
 			}
 
-			string typeStr{};
-			switch (type)
-			{
-			case ShaderType::Shader_Vertex:
-				typeStr = "vertex"; break;
-			case ShaderType::Shader_Fragment:
-				typeStr = "fragment"; break;
-			case ShaderType::Shader_Geometry:
-				typeStr = "geometry"; break;
-			}
+			string typeStr = GetShaderTypeName(type);
 
 			Logger::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning empty path.",
