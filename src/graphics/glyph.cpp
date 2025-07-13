@@ -96,8 +96,7 @@ namespace KalaWindow::Graphics
         Logger::Print(
             "Initialized glyph renderer!",
             "GLYPH",
-            LogType::LOG_SUCCESS,
-            0);
+            LogType::LOG_SUCCESS);
         isInitialized = true;
         return true;
     }
@@ -217,8 +216,7 @@ namespace KalaWindow::Graphics
         Logger::Print(
             "All glyphs were cleared!",
             "GLYPH",
-            LogType::LOG_SUCCESS,
-            0);
+            LogType::LOG_SUCCESS);
     }
 }
 

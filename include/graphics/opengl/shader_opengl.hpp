@@ -48,6 +48,21 @@ namespace KalaWindow::Graphics
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
+		static string GetShaderTypeName(ShaderType type)
+		{
+			switch (type)
+			{
+			case ShaderType::Shader_Vertex:
+				return "vertex";
+			case ShaderType::Shader_Fragment:
+				return "fragment";
+			case ShaderType::Shader_Geometry:
+				return "geometry";
+			}
+
+			return "";
+		}
+
 		const string& GetName() { return name; }
 		void SetName(const string& newName)
 		{
@@ -102,21 +117,6 @@ namespace KalaWindow::Graphics
 					break;
 				}
 			}
-		}
-
-		string GetShaderTypeName(ShaderType type)
-		{
-			switch (type)
-			{
-			case ShaderType::Shader_Vertex:
-				return "vertex";
-			case ShaderType::Shader_Fragment:
-				return "fragment";
-			case ShaderType::Shader_Geometry:
-				return "geometry";
-			}
-
-			return "";
 		}
 
 		unsigned int GetShaderID(ShaderType type)
@@ -203,7 +203,7 @@ namespace KalaWindow::Graphics
 
 		bool Bind(Window* window) const;
 
-		void HotReload(Shader_OpenGL* shader);
+		void HotReload();
 
 		void SetBool(unsigned int programID, const string& name, bool value) const;
 		void SetInt(unsigned int programID, const string& name, int value) const;

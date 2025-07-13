@@ -117,8 +117,7 @@ namespace KalaWindow::Graphics
 		Logger::Print(
 			"KalaWindow shutting down with state = " + to_string(static_cast<int>(state)),
 			"RENDER",
-			LogType::LOG_SUCCESS,
-			0);
+			LogType::LOG_SUCCESS);
 
 		if (useWindowShutdown)
 		{

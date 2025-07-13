@@ -63,6 +63,44 @@ namespace KalaWindow::Graphics
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
+		static string GetShaderTypeName(ShaderType type)
+		{
+			switch (type)
+			{
+			case ShaderType::Shader_Vertex:
+				return "vertex";
+			case ShaderType::Shader_Fragment:
+				return "fragment";
+			case ShaderType::Shader_Geometry:
+				return "geometry";
+			case ShaderType::Shader_Compute:
+				return "compute";
+			case ShaderType::Shader_TessControl:
+				return "tesselation control";
+			case ShaderType::Shader_TessEvaluation:
+				return "tesselation evaluation";
+
+			case ShaderType::Shader_RayGen:
+				return "raygen";
+			case ShaderType::Shader_AnyHit:
+				return "any hit";
+			case ShaderType::Shader_ClosestHit:
+				return "closest hit";
+			case ShaderType::Shader_Miss:
+				return "miss";
+			case ShaderType::Shader_Intersection:
+				return "intersection";
+			case ShaderType::Shader_Callable:
+				return "callable";
+			case ShaderType::Shader_Task:
+				return "task";
+			case ShaderType::Shader_Mesh:
+				return "mesh";
+			}
+
+			return "";
+		}
+
 		const string& GetName() { return name; }
 		void SetName(const string& newName)
 		{
@@ -119,44 +157,6 @@ namespace KalaWindow::Graphics
 					break;
 				}
 			}
-		}
-
-		string GetShaderTypeName(ShaderType type)
-		{
-			switch (type)
-			{
-			case ShaderType::Shader_Vertex:
-				return "vertex";
-			case ShaderType::Shader_Fragment:
-				return "fragment";
-			case ShaderType::Shader_Geometry:
-				return "geometry";
-			case ShaderType::Shader_Compute:
-				return "compute";
-			case ShaderType::Shader_TessControl:
-				return "tesselation control";
-			case ShaderType::Shader_TessEvaluation:
-				return "tesselation evaluation";
-
-			case ShaderType::Shader_RayGen:
-				return "raygen";
-			case ShaderType::Shader_AnyHit:
-				return "any hit";
-			case ShaderType::Shader_ClosestHit:
-				return "closest hit";
-			case ShaderType::Shader_Miss:
-				return "miss";
-			case ShaderType::Shader_Intersection:
-				return "intersection";
-			case ShaderType::Shader_Callable:
-				return "callable";
-			case ShaderType::Shader_Task:
-				return "task";
-			case ShaderType::Shader_Mesh:
-				return "mesh";
-			}
-
-			return "";
 		}
 
 		unsigned int GetShaderModule(ShaderType type)
@@ -245,9 +245,7 @@ namespace KalaWindow::Graphics
 		//Uses vkcommandbuffer internally.
 		bool Bind(uintptr_t commandBuffer) const;
 
-		void HotReload(
-			Shader_Vulkan* shader, 
-			Window* window);
+		static void HotReload(Shader_Vulkan* shader);
 
 		//Destroys this created shader and its data
 		void DestroyShader();

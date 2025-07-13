@@ -239,8 +239,7 @@ namespace KalaWindow::Graphics
 		Logger::Print(
 			"OpenGL version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
 			"OPENGL_WINDOWS",
-			LogType::LOG_SUCCESS,
-			0);
+			LogType::LOG_SUCCESS);
 
 		OpenGLLoader::LoadAllFunctions();
 
