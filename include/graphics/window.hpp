@@ -205,6 +205,15 @@ namespace KalaWindow::Graphics
 			PopupAction action,
 			PopupType type);
 
+		void SetResizeCallback(function<void()> callback)
+		{
+			resizeCallback = callback;
+		}
+		function<void()> GetResizeCallback()
+		{
+			return resizeCallback;
+		}
+
 		using RedrawCallback = void(*)();
 		void SetRedrawCallback(RedrawCallback callback) { OnRedraw = callback; }
 		void TriggerRedraw() const { if (OnRedraw) OnRedraw(); }
@@ -234,6 +243,8 @@ namespace KalaWindow::Graphics
 
 		WindowStruct_Windows window_windows{}; //The windows data of this window
 		WindowStruct_X11 window_x11{};         //The X11 data of this window
+
+		function<void()> resizeCallback;
 
 		//KalaWindow will dynamically update window idle state
 		void UpdateIdleState();
