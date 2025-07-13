@@ -657,14 +657,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			LogType::LOG_DEBUG);
 		*/
 
-		Window* mainWindow = Window::windows.front();
-		function<void()> callback = mainWindow->GetResizeCallback();
-		if (callback)
-		{
-			kvec2 size = mainWindow->GetSize();
-			callback();
-		}
-
 		return true;
 	}
 	case WM_SIZING:
