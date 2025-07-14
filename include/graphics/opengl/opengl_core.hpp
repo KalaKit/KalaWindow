@@ -12,12 +12,6 @@
 
 #include "core/platform.hpp"
 
-#ifdef _WIN32
-#include "graphics/opengl/opengl_win.hpp"
-#elif __linux__
-#include "graphics/opengl/opengl_linux.hpp"
-#endif
-
 using std::uint32_t;
 using std::int32_t;
 using std::ptrdiff_t;
@@ -140,6 +134,17 @@ inline constexpr GLenum GL_COLOR_ATTACHMENT0          = 0x8CE0; //First color at
 inline constexpr GLenum GL_DEPTH24_STENCIL8           = 0x88F0; //Combined depth+stencil internal format
 inline constexpr GLenum GL_DEPTH_STENCIL_ATTACHMENT   = 0x821A; //Attachment point for combined depth/stencil
 inline constexpr GLenum GL_FRAMEBUFFER_COMPLETE       = 0x8CD5; //Framebuffer is complete and ready for rendering
+
+//Drawing and clearing commands
+
+inline constexpr GLbitfield GL_COLOR_BUFFER_BIT   = 0x00004000; //Bitmask for clearing the color buffer
+inline constexpr GLbitfield GL_DEPTH_BUFFER_BIT   = 0x00000100; //Bitmask for clearing the depth buffer
+inline constexpr GLbitfield GL_STENCIL_BUFFER_BIT = 0x00000400; //Bitmask for clearing the stencil buffer
+inline constexpr GLenum     GL_LINES              = 0x0001; //Primitive type: lines
+inline constexpr GLenum     GL_LINE_STRIP         = 0x0003; //Primitive type: connected line strip
+inline constexpr GLenum     GL_TRIANGLES          = 0x0004; //Primitive type: triangles
+inline constexpr GLenum     GL_TRIANGLE_STRIP     = 0x0005; //Primitive type: connected triangle strip
+inline constexpr GLenum     GL_TRIANGLE_FAN       = 0x0006; //Primitive type: connected triangle fan
 
 //
 // GEOMETRY

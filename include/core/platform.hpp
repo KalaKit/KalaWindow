@@ -6,6 +6,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 using std::is_pointer_v;
 

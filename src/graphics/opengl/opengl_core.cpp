@@ -156,11 +156,18 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		for (const auto& entry : functionTable)
 		{
+			if (string(entry.name).find("wgl") != string::npos) continue;
+
 			void* ptr = getProc(entry.name);
 			if (ptr)
 			{
 				*entry.pointer = ptr;
 				functionRegistry[entry.name] = ptr;
+
+				Logger::Print(
+					string("Initialized function '") + entry.name + "'!",
+					"OPENGL_CORE",
+					LogType::LOG_DEBUG);
 			}
 			else
 			{
@@ -168,7 +175,7 @@ namespace KalaWindow::Graphics::OpenGL
 				Logger::Print(
 					string("Function '") + entry.name + "' is not available!",
 					"OPENGL_CORE",
-					LogType::LOG_DEBUG);
+					LogType::LOG_WARNING);
 			}
 		}
 	}
@@ -184,6 +191,11 @@ namespace KalaWindow::Graphics::OpenGL
 				{
 					*entry.pointer = ptr;
 					functionRegistry[name] = ptr;
+
+					Logger::Print(
+						string("Initialized function '") + entry.name + "'!",
+						"OPENGL_CORE",
+						LogType::LOG_DEBUG);
 				}
 				else
 				{
@@ -191,7 +203,7 @@ namespace KalaWindow::Graphics::OpenGL
 					Logger::Print(
 						string("Function '") + entry.name + "' is not available!",
 						"OPENGL_CORE",
-						LogType::LOG_DEBUG);
+						LogType::LOG_WARNING);
 				}
 				break;
 			}

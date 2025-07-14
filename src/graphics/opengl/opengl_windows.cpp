@@ -14,6 +14,11 @@
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
+#ifdef _WIN32
+#include "graphics/opengl/opengl_win.hpp"
+#elif __linux__
+#include "graphics/opengl/opengl_linux.hpp"
+#endif
 
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
@@ -159,6 +164,14 @@ namespace KalaWindow::Graphics
 
 		HGLRC dummyRC = wglCreateContext(hdc);
 		wglMakeCurrent(hdc, dummyRC);
+
+		//
+		// INITIALIZE WGL EXTENSIONS
+		//
+
+		OpenGLCore::InitializeFunction("wglCreateContextAttribsARB");
+		OpenGLCore::InitializeFunction("wglChoosePixelFormatARB");
+		OpenGLCore::InitializeFunction("wglSwapIntervalEXT");
 
 		//
 		// CREATE REAL OPENGL 3.3 CONTEXT

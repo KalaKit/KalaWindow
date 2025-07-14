@@ -15,6 +15,11 @@
 #include "graphics/opengl/opengl_core.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
+#ifdef _WIN32
+#include "graphics/opengl/opengl_win.hpp"
+#elif __linux__
+#include "graphics/opengl/opengl_linux.hpp"
+#endif
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::VSyncState;
