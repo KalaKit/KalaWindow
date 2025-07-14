@@ -37,6 +37,15 @@ using GLushort = uint16_t;
 
 //OpenGL error codes
 
+#undef GL_INVALID_ENUM
+#undef GL_INVALID_FRAMEBUFFER_OPERATION
+#undef GL_INVALID_OPERATION
+#undef GL_INVALID_VALUE
+#undef GL_NO_ERROR
+#undef GL_OUT_OF_MEMORY
+#undef GL_STACK_OVERFLOW
+#undef GL_STACK_UNDERFLOW
+
 inline constexpr GLenum	GL_INVALID_ENUM = 0x0500; //An unacceptable value is specified for an enumerated argument
 inline constexpr GLenum	GL_INVALID_FRAMEBUFFER_OPERATION = 0x0506; //Framebuffer object is not complete
 inline constexpr GLenum	GL_INVALID_OPERATION = 0x0502; //The specified operation is not allowed in the current state
@@ -73,9 +82,15 @@ inline constexpr GLenum	GL_TYPE = 0x92FA; //Type of resource
 
 //Uniform usage
 
+#undef GL_TRUE
+#undef GL_FALSE
+
+inline constexpr GLboolean	GL_TRUE = 0; //Boolean true (as GLboolean)
 inline constexpr GLboolean	GL_FALSE = 0; //Boolean false (as GLboolean)
 
 //Texture usage
+
+#undef GL_TEXTURE_2D
 
 inline constexpr GLenum	GL_CLAMP_TO_EDGE = 0x812F; //Texture clamp mode
 inline constexpr GLenum	GL_TEXTURE0 = 0x84C0; //First texture unit
@@ -94,7 +109,23 @@ inline constexpr GLenum	GL_STATIC_DRAW = 0x88E4; //Data modified once, used many
 
 //Vertex attribute types
 
-inline constexpr GLenum	GL_FLOAT = 0x1406; //float vertex attribute type
+#undef GL_BYTE
+#undef GL_UNSIGNED_BYTE
+#undef GL_SHORT
+#undef GL_UNSIGNED_SHORT
+#undef GL_INT
+#undef GL_UNSIGNED_INT
+#undef GL_FLOAT
+#undef GL_HALF_FLOAT
+
+inline constexpr GLenum GL_BYTE = 0x1400; //signed 8-bit integer vertex attribute type
+inline constexpr GLenum GL_UNSIGNED_BYTE = 0x1401; //unsigned 8-bit integer vertex attribute type
+inline constexpr GLenum GL_SHORT = 0x1402; //signed 16-bit integer vertex attribute type
+inline constexpr GLenum GL_UNSIGNED_SHORT = 0x1403; //unsigned 16-bit integer vertex attribute type
+inline constexpr GLenum GL_INT = 0x1404; //signed 32-bit integer vertex attribute type
+inline constexpr GLenum GL_UNSIGNED_INT = 0x1405; //unsigned 32-bit integer vertex attribute type
+inline constexpr GLenum GL_FLOAT = 0x1406; //float vertex attribute type
+inline constexpr GLenum GL_HALF_FLOAT = 0x140B; //16-bit float (half float), used in some texture formats
 
 //Vertex attribute state queries
 
