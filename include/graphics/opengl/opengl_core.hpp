@@ -22,6 +22,12 @@ using std::uint32_t;
 using std::int32_t;
 using std::ptrdiff_t;
 
+#ifdef _WIN32
+#define K_APIENTRY __stdcall
+#elif __linux__
+#define K_APIENTRY
+#endif
+
 using GLbitfield = uint32_t;
 using GLboolean = uint8_t;
 using GLbyte = int8_t;
@@ -35,187 +41,177 @@ using GLuint = uint32_t;
 using GLubyte = uint8_t;
 using GLushort = uint16_t;
 
+//OpenGL system queries
+
+inline constexpr GLenum GL_VENDOR   = 0x1F00; //String identifying the vendor
+inline constexpr GLenum GL_RENDERER = 0x1F01; //String identifying the renderer
+inline constexpr GLenum GL_VERSION  = 0x1F02; //String describing the OpenGL version
+inline constexpr GLenum GL_EXTENSIONS = 0x1F03; //Space-separated list of supported extensions (deprecated in 3.0+)
+
+//For glGetStringi (OpenGL 3.0+)
+
+inline constexpr GLenum GL_NUM_EXTENSIONS           = 0x821D; //Number of supported extensions
+inline constexpr GLenum GL_SHADING_LANGUAGE_VERSION = 0x8B8C; //GLSL version string
+
 //OpenGL error codes
 
-#undef GL_INVALID_ENUM
-#undef GL_INVALID_FRAMEBUFFER_OPERATION
-#undef GL_INVALID_OPERATION
-#undef GL_INVALID_VALUE
-#undef GL_NO_ERROR
-#undef GL_OUT_OF_MEMORY
-#undef GL_STACK_OVERFLOW
-#undef GL_STACK_UNDERFLOW
-
-inline constexpr GLenum	GL_INVALID_ENUM = 0x0500; //An unacceptable value is specified for an enumerated argument
-inline constexpr GLenum	GL_INVALID_FRAMEBUFFER_OPERATION = 0x0506; //Framebuffer object is not complete
-inline constexpr GLenum	GL_INVALID_OPERATION = 0x0502; //The specified operation is not allowed in the current state
-inline constexpr GLenum	GL_INVALID_VALUE = 0x0501; //A numeric argument is out of range
-inline constexpr GLenum	GL_NO_ERROR = 0x0000; //No error has been recorded
-inline constexpr GLenum	GL_OUT_OF_MEMORY = 0x0505; //There is not enough memory left to execute the command
-inline constexpr GLenum	GL_STACK_OVERFLOW = 0x0503; //Function would cause a stack overflow
-inline constexpr GLenum	GL_STACK_UNDERFLOW = 0x0504; //Function would cause a stack underflow
+inline constexpr GLenum GL_INVALID_ENUM      = 0x0500; //An unacceptable value is specified for an enumerated argument
+inline constexpr GLenum GL_INVALID_FRAMEBUFFER_OPERATION = 0x0506; //Framebuffer object is not complete
+inline constexpr GLenum GL_INVALID_OPERATION = 0x0502; //The specified operation is not allowed in the current state
+inline constexpr GLenum GL_INVALID_VALUE     = 0x0501; //A numeric argument is out of range
+inline constexpr GLenum GL_NO_ERROR          = 0x0000; //No error has been recorded
+inline constexpr GLenum GL_OUT_OF_MEMORY     = 0x0505; //There is not enough memory left to execute the command
+inline constexpr GLenum GL_STACK_OVERFLOW    = 0x0503; //Function would cause a stack overflow
+inline constexpr GLenum GL_STACK_UNDERFLOW   = 0x0504; //Function would cause a stack underflow
 
 //Shader types
 
-inline constexpr GLenum	GL_FRAGMENT_SHADER = 0x8B30; //Fragment shader type
-inline constexpr GLenum	GL_GEOMETRY_SHADER = 0x8DD9; //Geometry shader type
-inline constexpr GLenum	GL_VERTEX_SHADER = 0x8B31; //Vertex shader type
+inline constexpr GLenum GL_FRAGMENT_SHADER = 0x8B30; //Fragment shader type
+inline constexpr GLenum GL_GEOMETRY_SHADER = 0x8DD9; //Geometry shader type
+inline constexpr GLenum GL_VERTEX_SHADER   = 0x8B31; //Vertex shader type
 
 //Shader parameter enums
 
-inline constexpr GLenum	GL_ACTIVE_ATTRIBUTES = 0x8B89; //Number of active attributes
-inline constexpr GLenum	GL_ACTIVE_UNIFORMS = 0x8B86; //Number of active uniforms
-inline constexpr GLenum	GL_COMPILE_STATUS = 0x8B81; //Shader compilation status
-inline constexpr GLenum	GL_INFO_LOG_LENGTH = 0x8B84; //Length of the shader info log
-inline constexpr GLenum	GL_LINK_STATUS = 0x8B82; //Shader program link status
-inline constexpr GLenum	GL_VALIDATE_STATUS = 0x8B83; //Shader program validation status
+inline constexpr GLenum GL_ACTIVE_ATTRIBUTES  = 0x8B89; //Number of active attributes
+inline constexpr GLenum GL_ACTIVE_UNIFORMS    = 0x8B86; //Number of active uniforms
+inline constexpr GLenum GL_COMPILE_STATUS     = 0x8B81; //Shader compilation status
+inline constexpr GLenum GL_INFO_LOG_LENGTH    = 0x8B84; //Length of the shader info log
+inline constexpr GLenum GL_LINK_STATUS        = 0x8B82; //Shader program link status
+inline constexpr GLenum GL_VALIDATE_STATUS    = 0x8B83; //Shader program validation status
 
 //Shader interface queries
 
-inline constexpr GLenum	GL_ACTIVE_RESOURCES = 0x929F; //Active resource query
-inline constexpr GLenum	GL_CURRENT_PROGRAM = 0x8B8D; //Currently active program
-inline constexpr GLenum	GL_LOCATION = 0x930E; //Shader variable location
-inline constexpr GLenum	GL_NAME_LENGTH = 0x92F9; //Length of active resource name
-inline constexpr GLenum	GL_PROGRAM_INPUT = 0x92E3; //Program input interface
-inline constexpr GLenum	GL_PROGRAM_OUTPUT = 0x92E4; //Program output interface
-inline constexpr GLenum	GL_TYPE = 0x92FA; //Type of resource
+inline constexpr GLenum GL_ACTIVE_RESOURCES   = 0x929F; //Active resource query
+inline constexpr GLenum GL_CURRENT_PROGRAM    = 0x8B8D; //Currently active program
+inline constexpr GLenum GL_LOCATION           = 0x930E; //Shader variable location
+inline constexpr GLenum GL_NAME_LENGTH        = 0x92F9; //Length of active resource name
+inline constexpr GLenum GL_PROGRAM_INPUT      = 0x92E3; //Program input interface
+inline constexpr GLenum GL_PROGRAM_OUTPUT     = 0x92E4; //Program output interface
+inline constexpr GLenum GL_TYPE               = 0x92FA; //Type of resource
+
 
 //Uniform usage
 
-#undef GL_TRUE
-#undef GL_FALSE
-
-inline constexpr GLboolean	GL_TRUE = 0; //Boolean true (as GLboolean)
-inline constexpr GLboolean	GL_FALSE = 0; //Boolean false (as GLboolean)
+inline constexpr GLboolean GL_TRUE  = 0; //Boolean true (as GLboolean)
+inline constexpr GLboolean GL_FALSE = 0; //Boolean false (as GLboolean)
 
 //Texture usage
 
-#undef GL_TEXTURE_2D
-
-inline constexpr GLenum	GL_CLAMP_TO_EDGE = 0x812F; //Texture clamp mode
-inline constexpr GLenum	GL_TEXTURE0 = 0x84C0; //First texture unit
-inline constexpr GLenum	GL_TEXTURE_2D = 0x0DE1; //2D texture target
-inline constexpr GLenum	GL_TEXTURE_BASE_LEVEL = 0x813C; //Base mipmap level
-inline constexpr GLenum	GL_TEXTURE_MAX_LEVEL = 0x813D; //Max mipmap level
+inline constexpr GLenum GL_CLAMP_TO_EDGE      = 0x812F; //Texture clamp mode
+inline constexpr GLenum GL_TEXTURE0           = 0x84C0; //First texture unit
+inline constexpr GLenum GL_TEXTURE_2D         = 0x0DE1; //2D texture target
+inline constexpr GLenum GL_TEXTURE_BASE_LEVEL = 0x813C; //Base mipmap level
+inline constexpr GLenum GL_TEXTURE_MAX_LEVEL  = 0x813D; //Max mipmap level
 
 //Buffer targets
 
-inline constexpr GLenum	GL_ARRAY_BUFFER = 0x8892; //Vertex attribute buffer
-inline constexpr GLenum	GL_ARRAY_BUFFER_BINDING = 0x8894; //Currently bound vertex buffer
+inline constexpr GLenum GL_ARRAY_BUFFER           = 0x8892; //Vertex attribute buffer
+inline constexpr GLenum GL_ARRAY_BUFFER_BINDING   = 0x8894; //Currently bound vertex buffer
 
 //Buffer usage
 
-inline constexpr GLenum	GL_STATIC_DRAW = 0x88E4; //Data modified once, used many times
+inline constexpr GLenum GL_STATIC_DRAW = 0x88E4; //Data modified once, used many times
 
 //Vertex attribute types
 
-#undef GL_BYTE
-#undef GL_UNSIGNED_BYTE
-#undef GL_SHORT
-#undef GL_UNSIGNED_SHORT
-#undef GL_INT
-#undef GL_UNSIGNED_INT
-#undef GL_FLOAT
-#undef GL_HALF_FLOAT
-
-inline constexpr GLenum GL_BYTE = 0x1400; //signed 8-bit integer vertex attribute type
-inline constexpr GLenum GL_UNSIGNED_BYTE = 0x1401; //unsigned 8-bit integer vertex attribute type
-inline constexpr GLenum GL_SHORT = 0x1402; //signed 16-bit integer vertex attribute type
+inline constexpr GLenum GL_BYTE           = 0x1400; //signed 8-bit integer vertex attribute type
+inline constexpr GLenum GL_UNSIGNED_BYTE  = 0x1401; //unsigned 8-bit integer vertex attribute type
+inline constexpr GLenum GL_SHORT          = 0x1402; //signed 16-bit integer vertex attribute type
 inline constexpr GLenum GL_UNSIGNED_SHORT = 0x1403; //unsigned 16-bit integer vertex attribute type
-inline constexpr GLenum GL_INT = 0x1404; //signed 32-bit integer vertex attribute type
-inline constexpr GLenum GL_UNSIGNED_INT = 0x1405; //unsigned 32-bit integer vertex attribute type
-inline constexpr GLenum GL_FLOAT = 0x1406; //float vertex attribute type
-inline constexpr GLenum GL_HALF_FLOAT = 0x140B; //16-bit float (half float), used in some texture formats
+inline constexpr GLenum GL_INT            = 0x1404; //signed 32-bit integer vertex attribute type
+inline constexpr GLenum GL_UNSIGNED_INT   = 0x1405; //unsigned 32-bit integer vertex attribute type
+inline constexpr GLenum GL_FLOAT          = 0x1406; //float vertex attribute type
+inline constexpr GLenum GL_HALF_FLOAT     = 0x140B; //16-bit float (half float), used in some texture formats
 
 //Vertex attribute state queries
 
-inline constexpr GLenum	GL_VERTEX_ARRAY_BINDING = 0x85B5; //Currently bound vertex array object
-inline constexpr GLenum	GL_VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622; //Whether a vertex attribute array is enabled
-inline constexpr GLenum	GL_VERTEX_ATTRIB_ARRAY_SIZE = 0x8623; //Number of components per vertex attribute
-inline constexpr GLenum	GL_VERTEX_ATTRIB_ARRAY_STRIDE = 0x8624; //Byte offset between consecutive attributes
-inline constexpr GLenum	GL_VERTEX_ATTRIB_ARRAY_TYPE = 0x8625; //Data type of attribute components
-inline constexpr GLenum	GL_VERTEX_ATTRIB_ARRAY_POINTER = 0x8645; //Memory location of the vertex attribute data
+inline constexpr GLenum GL_VERTEX_ARRAY_BINDING        = 0x85B5; //Currently bound vertex array object
+inline constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_ENABLED = 0x8622; //Whether a vertex attribute array is enabled
+inline constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_SIZE    = 0x8623; //Number of components per vertex attribute
+inline constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_STRIDE  = 0x8624; //Byte offset between consecutive attributes
+inline constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_TYPE    = 0x8625; //Data type of attribute components
+inline constexpr GLenum GL_VERTEX_ATTRIB_ARRAY_POINTER = 0x8645; //Memory location of the vertex attribute data
 
 //Framebuffer object (FBO) defines
 
-inline constexpr GLenum	GL_FRAMEBUFFER = 0x8D40; //Framebuffer object target
-inline constexpr GLenum	GL_RENDERBUFFER = 0x8D41; //Renderbuffer object target
-inline constexpr GLenum	GL_COLOR_ATTACHMENT0 = 0x8CE0; //First color attachment point for framebuffer
-inline constexpr GLenum	GL_DEPTH24_STENCIL8 = 0x88F0; //Combined depth+stencil internal format
-inline constexpr GLenum	GL_DEPTH_STENCIL_ATTACHMENT = 0x821A; //Attachment point for combined depth/stencil
-inline constexpr GLenum	GL_FRAMEBUFFER_COMPLETE = 0x8CD5; //Framebuffer is complete and ready for rendering
+inline constexpr GLenum GL_FRAMEBUFFER                = 0x8D40; //Framebuffer object target
+inline constexpr GLenum GL_RENDERBUFFER               = 0x8D41; //Renderbuffer object target
+inline constexpr GLenum GL_COLOR_ATTACHMENT0          = 0x8CE0; //First color attachment point for framebuffer
+inline constexpr GLenum GL_DEPTH24_STENCIL8           = 0x88F0; //Combined depth+stencil internal format
+inline constexpr GLenum GL_DEPTH_STENCIL_ATTACHMENT   = 0x821A; //Attachment point for combined depth/stencil
+inline constexpr GLenum GL_FRAMEBUFFER_COMPLETE       = 0x8CD5; //Framebuffer is complete and ready for rendering
 
 //
 // GEOMETRY
 //
 
 //Binds a named buffer to a specified buffer binding point
-static inline void (APIENTRY* glBindBuffer)(
+static inline void (K_APIENTRY* kglBindBuffer)(
 	GLenum target,
 	GLuint buffer) = nullptr;
 
 //Binds a vertex array object
-static inline void (APIENTRY* glBindVertexArray)(
+static inline void (K_APIENTRY* kglBindVertexArray)(
 	GLuint array) = nullptr;
 
 //Creates and initializes a buffer object's data store
-static inline void (APIENTRY* glBufferData)(
+static inline void (K_APIENTRY* kglBufferData)(
 	GLenum target,
 	GLsizeiptr size,
 	const void* data,
 	GLenum usage) = nullptr;
 
 //Deletes one or more named buffer objects
-static inline void (APIENTRY* glDeleteBuffers)(
+static inline void (K_APIENTRY* kglDeleteBuffers)(
 	GLsizei n,
 	const GLuint* buffers) = nullptr;
 
 //Deletes one or more named vertex array objects
-static inline void (APIENTRY* glDeleteVertexArrays)(
+static inline void (K_APIENTRY* kglDeleteVertexArrays)(
 	GLsizei n,
 	const GLuint* arrays) = nullptr;
 
 //Draws non-indexed primitives from array data
-static inline void (APIENTRY* glDrawArrays)(
+static inline void (K_APIENTRY* kglDrawArrays)(
 	GLenum mode,
 	GLint first,
 	GLsizei count) = nullptr;
 
 //Draws indexed primitives using array data and element indices
-static inline void (APIENTRY* glDrawElements)(
+static inline void (K_APIENTRY* kglDrawElements)(
 	GLenum mode,
 	GLsizei count,
 	GLenum type,
 	const void* indices) = nullptr;
 
 //Enables a generic vertex attribute array
-static inline void (APIENTRY* glEnableVertexAttribArray)(
+static inline void (K_APIENTRY* kglEnableVertexAttribArray)(
 	GLuint index) = nullptr;
 
 //Generates buffer object names
-static inline void (APIENTRY* glGenBuffers)(
+static inline void (K_APIENTRY* kglGenBuffers)(
 	GLsizei n,
 	GLuint* buffers) = nullptr;
 
 //Generates vertex array object names
-static inline void (APIENTRY* glGenVertexArrays)(
+static inline void (K_APIENTRY* kglGenVertexArrays)(
 	GLsizei n,
 	GLuint* arrays) = nullptr;
 
 //Retrieves parameter values for a vertex attribute array
-static inline void (APIENTRY* glGetVertexAttribiv)(
+static inline void (K_APIENTRY* kglGetVertexAttribiv)(
 	GLuint index,
 	GLenum pname,
 	GLint* params) = nullptr;
 
 //Retrieves a pointer to a vertex attribute array parameter
-static inline void (APIENTRY* glGetVertexAttribPointerv)(
+static inline void (K_APIENTRY* kglGetVertexAttribPointerv)(
 	GLuint index,
 	GLenum pname,
 	void** pointer) = nullptr;
 
 //Defines an array of generic vertex attribute data
-static inline void (APIENTRY* glVertexAttribPointer)(
+static inline void (K_APIENTRY* kglVertexAttribPointer)(
 	GLuint index,
 	GLint size,
 	GLenum type,
@@ -228,36 +224,36 @@ static inline void (APIENTRY* glVertexAttribPointer)(
 //
 
 //Attaches a shader object to a program
-static inline void (APIENTRY* glAttachShader)(
+static inline void (K_APIENTRY* kglAttachShader)(
 	GLuint program,
 	GLuint shader) = nullptr;
 
 //Compiles a shader object
-static inline void (APIENTRY* glCompileShader)(
+static inline void (K_APIENTRY* kglCompileShader)(
 	GLuint shader) = nullptr;
 
 //Creates a new shader program object
-static inline GLuint(APIENTRY* glCreateProgram)(
+static inline GLuint(K_APIENTRY* kglCreateProgram)(
 	void) = nullptr;
 
 //Creates a shader object of the specified type
-static inline GLuint(APIENTRY* glCreateShader)(
+static inline GLuint(K_APIENTRY* kglCreateShader)(
 	GLenum type) = nullptr;
 
 //Deletes a shader object
-static inline void (APIENTRY* glDeleteShader)(
+static inline void (K_APIENTRY* kglDeleteShader)(
 	GLuint shader) = nullptr;
 
 //Deletes a program object
-static inline void (APIENTRY* glDeleteProgram)(
+static inline void (K_APIENTRY* kglDeleteProgram)(
 	GLuint program) = nullptr;
 
 //Detaches a shader object from a program
-static inline void (APIENTRY* glDetachShader)(
+static inline void (K_APIENTRY* kglDetachShader)(
 	GLuint shader) = nullptr;
 
 //Retrieves information about an active attribute variable
-static inline void (APIENTRY* glGetActiveAttrib)(
+static inline void (K_APIENTRY* kglGetActiveAttrib)(
 	GLuint program,
 	GLuint index,
 	GLsizei bufSize,
@@ -267,57 +263,57 @@ static inline void (APIENTRY* glGetActiveAttrib)(
 	char* name) = nullptr;
 
 //Returns the attribute location within a shader program
-static inline GLint(APIENTRY* glGetAttribLocation)(
+static inline GLint(K_APIENTRY* kglGetAttribLocation)(
 	GLuint program,
 	const char* name) = nullptr;
 
 //Retrieves a parameter from a program object
-static inline void (APIENTRY* glGetProgramiv)(
+static inline void (K_APIENTRY* kglGetProgramiv)(
 	GLuint program,
 	GLenum pname,
 	GLint* params) = nullptr;
 
 //Returns the information log for a program object
-static inline void (APIENTRY* glGetProgramInfoLog)(
+static inline void (K_APIENTRY* kglGetProgramInfoLog)(
 	GLuint program,
 	GLsizei bufSize,
 	GLsizei* length,
 	char* infoLog) = nullptr;
 
 //Retrieves a parameter from a shader object
-static inline void (APIENTRY* glGetShaderiv)(
+static inline void (K_APIENTRY* kglGetShaderiv)(
 	GLuint shader,
 	GLenum pname,
 	GLint* params) = nullptr;
 
 //Returns the information log for a shader object
-static inline void (APIENTRY* glGetShaderInfoLog)(
+static inline void (K_APIENTRY* kglGetShaderInfoLog)(
 	GLuint shader,
 	GLsizei bufSize,
 	GLsizei* length,
 	char* infoLog) = nullptr;
 
 //Links a program object
-static inline void (APIENTRY* glLinkProgram)(
+static inline void (K_APIENTRY* kglLinkProgram)(
 	GLuint program) = nullptr;
 
 //Sets the source code for a shader
-static inline void (APIENTRY* glShaderSource)(
+static inline void (K_APIENTRY* kglShaderSource)(
 	GLuint shader,
 	GLsizei count,
 	const char* const* string,
 	const GLint* length) = nullptr;
 
 //Activates a shader program for rendering
-static inline void (APIENTRY* glUseProgram)(
+static inline void (K_APIENTRY* kglUseProgram)(
 	GLuint program) = nullptr;
 
 //Validates a program object to see if it's executable
-static inline void (APIENTRY* glValidateProgram)(
+static inline void (K_APIENTRY* kglValidateProgram)(
 	GLuint program) = nullptr;
 
 //Returns whether a given program name is a valid program object
-static inline GLboolean(APIENTRY* glIsProgram)(
+static inline GLboolean(K_APIENTRY* kglIsProgram)(
 	GLuint program) = nullptr;
 
 //
@@ -325,47 +321,47 @@ static inline GLboolean(APIENTRY* glIsProgram)(
 //
 
 //Retrieves the location of a uniform variable within a shader program
-static inline GLint(APIENTRY* glGetUniformLocation)(
+static inline GLint(K_APIENTRY* kglGetUniformLocation)(
 	GLuint program,
 	const char* name) = nullptr;
 
 //Sets a single float uniform value
-static inline void (APIENTRY* glUniform1f)(
+static inline void (K_APIENTRY* kglUniform1f)(
 	GLint location,
 	float v0) = nullptr;
 
 //Sets a single integer uniform value
-static inline void (APIENTRY* glUniform1i)(
+static inline void (K_APIENTRY* kglUniform1i)(
 	GLint location,
 	GLint v0) = nullptr;
 
 //Sets a vec2 uniform (2 float components)
-static inline void (APIENTRY* glUniform2f)(
+static inline void (K_APIENTRY* kglUniform2f)(
 	GLint location,
 	float v0,
 	float v1) = nullptr;
 
 //Sets a vec2 uniform from an array of values
-static inline void (APIENTRY* glUniform2fv)(
+static inline void (K_APIENTRY* kglUniform2fv)(
 	GLint location,
 	GLsizei count,
 	const float* value) = nullptr;
 
 //Sets a vec3 uniform (3 float components)
-static inline void (APIENTRY* glUniform3f)(
+static inline void (K_APIENTRY* kglUniform3f)(
 	GLint location,
 	float v0,
 	float v1,
 	float v2) = nullptr;
 
 //Sets a vec3 uniform from an array of values
-static inline void (APIENTRY* glUniform3fv)(
+static inline void (K_APIENTRY* kglUniform3fv)(
 	GLint location,
 	GLsizei count,
 	const float* value) = nullptr;
 
 //Sets a vec4 uniform (4 float components)
-static inline void (APIENTRY* glUniform4f)(
+static inline void (K_APIENTRY* kglUniform4f)(
 	GLint location,
 	float v0,
 	float v1,
@@ -373,27 +369,27 @@ static inline void (APIENTRY* glUniform4f)(
 	float v3) = nullptr;
 
 //Sets a vec4 uniform from an array of values
-static inline void (APIENTRY* glUniform4fv)(
+static inline void (K_APIENTRY* kglUniform4fv)(
 	GLint location,
 	GLsizei count,
 	const float* value) = nullptr;
 
 //Sets a 2×2 matrix uniform from an array of floats
-static inline void (APIENTRY* glUniformMatrix2fv)(
+static inline void (K_APIENTRY* kglUniformMatrix2fv)(
 	GLint location,
 	GLsizei count,
 	GLboolean transpose,
 	const float* value) = nullptr;
 
 //Sets a 3×3 matrix uniform from an array of floats
-static inline void (APIENTRY* glUniformMatrix3fv)(
+static inline void (K_APIENTRY* kglUniformMatrix3fv)(
 	GLint location,
 	GLsizei count,
 	GLboolean transpose,
 	const float* value) = nullptr;
 
 //Sets a 4×4 matrix uniform from an array of floats
-static inline void (APIENTRY* glUniformMatrix4fv)(
+static inline void (K_APIENTRY* kglUniformMatrix4fv)(
 	GLint location,
 	GLsizei count,
 	GLboolean transpose,
@@ -404,30 +400,30 @@ static inline void (APIENTRY* glUniformMatrix4fv)(
 //
 
 //Binds a named texture to a texturing target
-static inline void (APIENTRY* glBindTexture)(
+static inline void (K_APIENTRY* kglBindTexture)(
 	GLenum target,
 	GLuint texture) = nullptr;
 
 //Activates the specified texture unit
-static inline void (APIENTRY* glActiveTexture)(
+static inline void (K_APIENTRY* kglActiveTexture)(
 	GLenum texture) = nullptr;
 
 //Deletes one or more named textures
-static inline void (APIENTRY* glDeleteTextures)(
+static inline void (K_APIENTRY* kglDeleteTextures)(
 	GLsizei n,
 	const GLuint* textures) = nullptr;
 
 //Generates mipmaps for the currently bound texture
-static inline void (APIENTRY* glGenerateMipmap)(
+static inline void (K_APIENTRY* kglGenerateMipmap)(
 	GLenum target) = nullptr;
 
 //Generates texture object names
-static inline void (APIENTRY* glGenTextures)(
+static inline void (K_APIENTRY* kglGenTextures)(
 	GLsizei n,
 	GLuint* textures) = nullptr;
 
 //Specifies a two-dimensional texture image
-static inline void (APIENTRY* glTexImage2D)(
+static inline void (K_APIENTRY* kglTexImage2D)(
 	GLenum target,
 	GLint level,
 	GLint internalFormat,
@@ -439,13 +435,13 @@ static inline void (APIENTRY* glTexImage2D)(
 	const void* data) = nullptr;
 
 //Sets texture parameters for the currently bound texture
-static inline void (APIENTRY* glTexParameteri)(
+static inline void (K_APIENTRY* kglTexParameteri)(
 	GLenum target,
 	GLenum pname,
 	GLint param) = nullptr;
 
 //Specifies a subregion of an existing 2D texture image
-static inline void (APIENTRY* glTexSubImage2D)(
+static inline void (K_APIENTRY* kglTexSubImage2D)(
 	GLenum target,
 	GLint level,
 	GLint xoffset,
@@ -461,28 +457,28 @@ static inline void (APIENTRY* glTexSubImage2D)(
 //
 
 //Binds a renderbuffer to the renderbuffer target
-static inline void (APIENTRY* glBindRenderbuffer)(
+static inline void (K_APIENTRY* kglBindRenderbuffer)(
 	GLenum target,
 	GLuint renderbuffer) = nullptr;
 
 //Binds a framebuffer to a framebuffer target
-static inline void (APIENTRY* glBindFramebuffer)(
+static inline void (K_APIENTRY* kglBindFramebuffer)(
 	GLenum target,
 	GLuint framebuffer) = nullptr;
 
 //Checks the completeness status of a framebuffer
-static inline GLenum(APIENTRY* glCheckFramebufferStatus)(
+static inline GLenum(K_APIENTRY* kglCheckFramebufferStatus)(
 	GLenum target) = nullptr;
 
 //Attaches a renderbuffer to a framebuffer attachment point
-static inline void (APIENTRY* glFramebufferRenderbuffer)(
+static inline void (K_APIENTRY* kglFramebufferRenderbuffer)(
 	GLenum target,
 	GLenum attachment,
 	GLenum renderbuffertarget,
 	GLuint renderbuffer) = nullptr;
 
 //Attaches a 2D texture image to a framebuffer attachment point
-static inline void (APIENTRY* glFramebufferTexture2D)(
+static inline void (K_APIENTRY* kglFramebufferTexture2D)(
 	GLenum target,
 	GLenum attachment,
 	GLenum textarget,
@@ -490,17 +486,17 @@ static inline void (APIENTRY* glFramebufferTexture2D)(
 	GLint level) = nullptr;
 
 //Generates renderbuffer object names
-static inline void (APIENTRY* glGenRenderbuffers)(
+static inline void (K_APIENTRY* kglGenRenderbuffers)(
 	GLsizei n,
 	GLuint* renderbuffers) = nullptr;
 
 //Generates framebuffer object names
-static inline void (APIENTRY* glGenFramebuffers)(
+static inline void (K_APIENTRY* kglGenFramebuffers)(
 	GLsizei n,
 	GLuint* framebuffers) = nullptr;
 
 //Establishes data storage format and dimensions for a renderbuffer
-static inline void (APIENTRY* glRenderbufferStorage)(
+static inline void (K_APIENTRY* kglRenderbufferStorage)(
 	GLenum target,
 	GLenum internalformat,
 	GLsizei width,
@@ -511,35 +507,35 @@ static inline void (APIENTRY* glRenderbufferStorage)(
 //
 
 //Clears buffers to preset values
-static inline void (APIENTRY* glClear)(
+static inline void (K_APIENTRY* kglClear)(
 	GLbitfield mask) = nullptr;
 
 //Specifies the clear color for color buffers
-static inline void (APIENTRY* glClearColor)(
+static inline void (K_APIENTRY* kglClearColor)(
 	float red,
 	float green,
 	float blue,
 	float alpha) = nullptr;
 
 //Disables a specific OpenGL capability
-static inline void (APIENTRY* glDisable)(
+static inline void (K_APIENTRY* kglDisable)(
 	GLenum cap) = nullptr;
 
 //Returns the last error flag raised
-static inline GLenum(APIENTRY* glGetError)(
+static inline GLenum(K_APIENTRY* kglGetError)(
 	void) = nullptr;
 
 //Retrieves integer-valued parameters
-static inline void (APIENTRY* glGetIntegerv)(
+static inline void (K_APIENTRY* kglGetIntegerv)(
 	GLenum pname,
 	GLint* data) = nullptr;
 
 //Returns a string describing the current GL connection
-static inline const GLubyte* (APIENTRY* glGetString)(
+static inline const GLubyte* (K_APIENTRY* kglGetString)(
 	GLenum name) = nullptr;
 
 //Sets the viewport transformation dimensions
-static inline void (APIENTRY* glViewport)(
+static inline void (K_APIENTRY* kglViewport)(
 	GLint x,
 	GLint y,
 	GLsizei width,
@@ -560,7 +556,7 @@ namespace KalaWindow::Graphics::OpenGL
 		static bool IsFunctionAvailable(const char* name);
 
 		//Returns the address of an OpenGL function. Requires a current context.
-		void* GetGLProcAddress(const char* name);
+		static void* GetGLProcAddress(const char* name);
 	};
 }
 

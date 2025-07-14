@@ -6,8 +6,6 @@
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 
 #include <Windows.h>
-#include <gl/GL.h>
-#include <gl/GLU.h>
 #include <string>
 #include <sstream>
 
@@ -218,14 +216,14 @@ namespace KalaWindow::Graphics
 		}
 
 		Logger::Print(
-			"OpenGL version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
+			"OpenGL version: " + string(reinterpret_cast<const char*>(kglGetString(GL_VERSION))),
 			"OPENGL_WINDOWS",
 			LogType::LOG_SUCCESS);
 
 		OpenGLCore::InitializeAllFunctions();
 
 		//and finally set opengl viewport size
-		glViewport(
+		kglViewport(
 			0, 
 			0, 
 			targetWindow->GetSize().x,
@@ -243,7 +241,7 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_OpenGL::IsCorrectVersion()
 	{
-		const char* versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+		const char* versionStr = reinterpret_cast<const char*>(kglGetString(GL_VERSION));
 		if (!versionStr) return false;
 
 		int major = 0;

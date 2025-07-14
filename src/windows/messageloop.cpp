@@ -25,8 +25,7 @@
 #include "core/log.hpp"
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
-#include "graphics/opengl/opengl_loader.hpp"
-using KalaWindow::Graphics::OpenGLLoader;
+#include "graphics/opengl/opengl_core.hpp"
 #endif //KALAWINDOW_SUPPORT_OPENGL
 
 using KalaWindow::Core::MessageLoop;
@@ -644,10 +643,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		int height = HIWORD(msg.lParam);
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
-		if (OpenGLLoader::glViewport)
-		{
-			OpenGLLoader::glViewport(0, 0, width, height);
-		}
+		kglViewport(0, 0, width, height);
 #endif //KALAWINDOW_SUPPORT_OPENGL
 
 		/*

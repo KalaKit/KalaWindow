@@ -29,7 +29,10 @@ using std::string;
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	static void* (*getProc)(const char*) = GetGLProcAddress;
+#define FN_ENTRY(name, trap) { #name, reinterpret_cast<void**>(&name), trap }
+#define FN_ENTRY_CAST(name, trap) { #name, reinterpret_cast<void**>(reinterpret_cast<void*>(&name)), trap }
+
+	static void* (*getProc)(const char*) = OpenGLCore::GetGLProcAddress;
 
 	static unordered_map<string_view, void*> functionRegistry;
 	static const char* lastFailedFunctionName{};
@@ -39,7 +42,8 @@ namespace KalaWindow::Graphics::OpenGL
 		Void,
 		Int,
 		Enum,
-		BytePtr
+		BytePtr,
+		Pointer
 	};
 
 	static void* GetTrapForType(
@@ -57,87 +61,95 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		//geometry
 
-		{ "glBindBuffer",            reinterpret_cast<void**>(&glBindBuffer),            TrapType::Void },
-		{ "glBindVertexArray",       reinterpret_cast<void**>(&glBindVertexArray),       TrapType::Void },
-		{ "glBufferData",            reinterpret_cast<void**>(&glBufferData),            TrapType::Void },
-		{ "glDeleteBuffers",         reinterpret_cast<void**>(&glDeleteBuffers),         TrapType::Void },
-		{ "glDeleteVertexArrays",    reinterpret_cast<void**>(&glDeleteVertexArrays),    TrapType::Void },
-		{ "glDrawArrays",            reinterpret_cast<void**>(&glDrawArrays),            TrapType::Void },
-		{ "glDrawElements",          reinterpret_cast<void**>(&glDrawElements),          TrapType::Void },
-		{ "glEnableVertexAttribArray", reinterpret_cast<void**>(&glEnableVertexAttribArray), TrapType::Void },
-		{ "glGenBuffers",            reinterpret_cast<void**>(&glGenBuffers),            TrapType::Void },
-		{ "glGenVertexArrays",       reinterpret_cast<void**>(&glGenVertexArrays),       TrapType::Void },
-		{ "glGetVertexAttribiv",     reinterpret_cast<void**>(&glGetVertexAttribiv),     TrapType::Void },
-		{ "glGetVertexAttribPointerv", reinterpret_cast<void**>(&glGetVertexAttribPointerv), TrapType::Void },
-		{ "glVertexAttribPointer",   reinterpret_cast<void**>(&glVertexAttribPointer),   TrapType::Void },
+		FN_ENTRY(kglBindBuffer,            TrapType::Void),
+		FN_ENTRY(kglBindVertexArray,       TrapType::Void),
+		FN_ENTRY(kglBufferData,            TrapType::Void),
+		FN_ENTRY(kglDeleteBuffers,         TrapType::Void),
+		FN_ENTRY(kglDeleteVertexArrays,    TrapType::Void),
+		FN_ENTRY(kglDrawArrays,            TrapType::Void),
+		FN_ENTRY(kglDrawElements,          TrapType::Void),
+		FN_ENTRY(kglEnableVertexAttribArray, TrapType::Void),
+		FN_ENTRY(kglGenBuffers,            TrapType::Void),
+		FN_ENTRY(kglGenVertexArrays,       TrapType::Void),
+		FN_ENTRY(kglGetVertexAttribiv,     TrapType::Void),
+		FN_ENTRY(kglGetVertexAttribPointerv, TrapType::Void),
+		FN_ENTRY(kglVertexAttribPointer,   TrapType::Void),
 
 		//shaders
 
-		{ "glAttachShader",       reinterpret_cast<void**>(&glAttachShader),       TrapType::Void },
-		{ "glCompileShader",      reinterpret_cast<void**>(&glCompileShader),      TrapType::Void },
-		{ "glCreateProgram",      reinterpret_cast<void**>(&glCreateProgram),      TrapType::Int  },
-		{ "glCreateShader",       reinterpret_cast<void**>(&glCreateShader),       TrapType::Int  },
-		{ "glDeleteShader",       reinterpret_cast<void**>(&glDeleteShader),       TrapType::Void },
-		{ "glDeleteProgram",      reinterpret_cast<void**>(&glDeleteProgram),      TrapType::Void },
-		{ "glDetachShader",       reinterpret_cast<void**>(&glDetachShader),       TrapType::Void },
-		{ "glGetActiveAttrib",    reinterpret_cast<void**>(&glGetActiveAttrib),    TrapType::Void },
-		{ "glGetAttribLocation",  reinterpret_cast<void**>(&glGetAttribLocation),  TrapType::Int  },
-		{ "glGetProgramiv",       reinterpret_cast<void**>(&glGetProgramiv),       TrapType::Void },
-		{ "glGetProgramInfoLog",  reinterpret_cast<void**>(&glGetProgramInfoLog),  TrapType::Void },
-		{ "glGetShaderiv",        reinterpret_cast<void**>(&glGetShaderiv),        TrapType::Void },
-		{ "glGetShaderInfoLog",   reinterpret_cast<void**>(&glGetShaderInfoLog),   TrapType::Void },
-		{ "glLinkProgram",        reinterpret_cast<void**>(&glLinkProgram),        TrapType::Void },
-		{ "glShaderSource",       reinterpret_cast<void**>(&glShaderSource),       TrapType::Void },
-		{ "glUseProgram",         reinterpret_cast<void**>(&glUseProgram),         TrapType::Void },
-		{ "glValidateProgram",    reinterpret_cast<void**>(&glValidateProgram),    TrapType::Void },
-		{ "glIsProgram",          reinterpret_cast<void**>(&glIsProgram),          TrapType::Int  },
+		FN_ENTRY(kglAttachShader,       TrapType::Void),
+		FN_ENTRY(kglCompileShader,      TrapType::Void),
+		FN_ENTRY(kglCreateProgram,      TrapType::Int),
+		FN_ENTRY(kglCreateShader,       TrapType::Int),
+		FN_ENTRY(kglDeleteShader,       TrapType::Void),
+		FN_ENTRY(kglDeleteProgram,      TrapType::Void),
+		FN_ENTRY(kglDetachShader,       TrapType::Void),
+		FN_ENTRY(kglGetActiveAttrib,    TrapType::Void),
+		FN_ENTRY(kglGetAttribLocation,  TrapType::Int),
+		FN_ENTRY(kglGetProgramiv,       TrapType::Void),
+		FN_ENTRY(kglGetProgramInfoLog,  TrapType::Void),
+		FN_ENTRY(kglGetShaderiv,        TrapType::Void),
+		FN_ENTRY(kglGetShaderInfoLog,   TrapType::Void),
+		FN_ENTRY(kglLinkProgram,        TrapType::Void),
+		FN_ENTRY(kglShaderSource,       TrapType::Void),
+		FN_ENTRY(kglUseProgram,         TrapType::Void),
+		FN_ENTRY(kglValidateProgram,    TrapType::Void),
+		FN_ENTRY(kglIsProgram,          TrapType::Int),
 
 		//uniforms
 
-		{ "glGetUniformLocation", reinterpret_cast<void**>(&glGetUniformLocation), TrapType::Int  },
-		{ "glUniform1f",          reinterpret_cast<void**>(&glUniform1f),          TrapType::Void },
-		{ "glUniform1i",          reinterpret_cast<void**>(&glUniform1i),          TrapType::Void },
-		{ "glUniform2f",          reinterpret_cast<void**>(&glUniform2f),          TrapType::Void },
-		{ "glUniform2fv",         reinterpret_cast<void**>(&glUniform2fv),         TrapType::Void },
-		{ "glUniform3f",          reinterpret_cast<void**>(&glUniform3f),          TrapType::Void },
-		{ "glUniform3fv",         reinterpret_cast<void**>(&glUniform3fv),         TrapType::Void },
-		{ "glUniform4f",          reinterpret_cast<void**>(&glUniform4f),          TrapType::Void },
-		{ "glUniform4fv",         reinterpret_cast<void**>(&glUniform4fv),         TrapType::Void },
-		{ "glUniformMatrix2fv",   reinterpret_cast<void**>(&glUniformMatrix2fv),   TrapType::Void },
-		{ "glUniformMatrix3fv",   reinterpret_cast<void**>(&glUniformMatrix3fv),   TrapType::Void },
-		{ "glUniformMatrix4fv",   reinterpret_cast<void**>(&glUniformMatrix4fv),   TrapType::Void },
+		FN_ENTRY(kglGetUniformLocation, TrapType::Int),
+		FN_ENTRY(kglUniform1f,          TrapType::Void),
+		FN_ENTRY(kglUniform1i,          TrapType::Void),
+		FN_ENTRY(kglUniform2f,          TrapType::Void),
+		FN_ENTRY(kglUniform2fv,         TrapType::Void),
+		FN_ENTRY(kglUniform3f,          TrapType::Void),
+		FN_ENTRY(kglUniform3fv,         TrapType::Void),
+		FN_ENTRY(kglUniform4f,          TrapType::Void),
+		FN_ENTRY(kglUniform4fv,         TrapType::Void),
+		FN_ENTRY(kglUniformMatrix2fv,   TrapType::Void),
+		FN_ENTRY(kglUniformMatrix3fv,   TrapType::Void),
+		FN_ENTRY(kglUniformMatrix4fv,   TrapType::Void),
 
 		//textures
 
-		{ "glBindTexture",     reinterpret_cast<void**>(&glBindTexture),     TrapType::Void },
-		{ "glActiveTexture",   reinterpret_cast<void**>(&glActiveTexture),   TrapType::Void },
-		{ "glDeleteTextures",  reinterpret_cast<void**>(&glDeleteTextures),  TrapType::Void },
-		{ "glGenerateMipmap",  reinterpret_cast<void**>(&glGenerateMipmap),  TrapType::Void },
-		{ "glGenTextures",     reinterpret_cast<void**>(&glGenTextures),     TrapType::Void },
-		{ "glTexImage2D",      reinterpret_cast<void**>(&glTexImage2D),      TrapType::Void },
-		{ "glTexParameteri",   reinterpret_cast<void**>(&glTexParameteri),   TrapType::Void },
-		{ "glTexSubImage2D",   reinterpret_cast<void**>(&glTexSubImage2D),   TrapType::Void },
+		FN_ENTRY(kglBindTexture,     TrapType::Void),
+		FN_ENTRY(kglActiveTexture,   TrapType::Void),
+		FN_ENTRY(kglDeleteTextures,  TrapType::Void),
+		FN_ENTRY(kglGenerateMipmap,  TrapType::Void),
+		FN_ENTRY(kglGenTextures,     TrapType::Void),
+		FN_ENTRY(kglTexImage2D,      TrapType::Void),
+		FN_ENTRY(kglTexParameteri,   TrapType::Void),
+		FN_ENTRY(kglTexSubImage2D,   TrapType::Void),
 
 		//framebuffers and renderbuffers
 
-		{ "glBindRenderbuffer",        reinterpret_cast<void**>(&glBindRenderbuffer),        TrapType::Void },
-		{ "glBindFramebuffer",         reinterpret_cast<void**>(&glBindFramebuffer),         TrapType::Void },
-		{ "glCheckFramebufferStatus", reinterpret_cast<void**>(reinterpret_cast<void*>(&glCheckFramebufferStatus)), TrapType::Enum },
-		{ "glFramebufferRenderbuffer", reinterpret_cast<void**>(&glFramebufferRenderbuffer), TrapType::Void },
-		{ "glFramebufferTexture2D",   reinterpret_cast<void**>(&glFramebufferTexture2D),     TrapType::Void },
-		{ "glGenRenderbuffers",       reinterpret_cast<void**>(&glGenRenderbuffers),         TrapType::Void },
-		{ "glGenFramebuffers",        reinterpret_cast<void**>(&glGenFramebuffers),          TrapType::Void },
-		{ "glRenderbufferStorage",    reinterpret_cast<void**>(&glRenderbufferStorage),      TrapType::Void },
+		FN_ENTRY(kglBindRenderbuffer,        TrapType::Void),
+		FN_ENTRY(kglBindFramebuffer,         TrapType::Void),
+		FN_ENTRY_CAST(kglCheckFramebufferStatus, TrapType::Enum),
+		FN_ENTRY(kglFramebufferRenderbuffer, TrapType::Void),
+		FN_ENTRY(kglFramebufferTexture2D,    TrapType::Void),
+		FN_ENTRY(kglGenRenderbuffers,        TrapType::Void),
+		FN_ENTRY(kglGenFramebuffers,         TrapType::Void),
+		FN_ENTRY(kglRenderbufferStorage,     TrapType::Void),
 
 		//frame and render state
 
-		{ "glClear",         reinterpret_cast<void**>(&glClear),         TrapType::Void },
-		{ "glClearColor",    reinterpret_cast<void**>(&glClearColor),    TrapType::Void },
-		{ "glDisable",       reinterpret_cast<void**>(&glDisable),       TrapType::Void },
-		{ "glGetError",      reinterpret_cast<void**>(reinterpret_cast<void*>(&glGetError)), TrapType::Enum },
-		{ "glGetIntegerv",   reinterpret_cast<void**>(&glGetIntegerv),   TrapType::Void },
-		{ "glGetString",     reinterpret_cast<void**>(reinterpret_cast<void*>(&glGetString)), TrapType::BytePtr },
-		{ "glViewport",      reinterpret_cast<void**>(&glViewport),      TrapType::Void },
+		FN_ENTRY(kglClear,          TrapType::Void),
+		FN_ENTRY(kglClearColor,     TrapType::Void),
+		FN_ENTRY(kglDisable,        TrapType::Void),
+		FN_ENTRY_CAST(kglGetError,  TrapType::Enum),
+		FN_ENTRY(kglGetIntegerv,    TrapType::Void),
+		FN_ENTRY_CAST(kglGetString, TrapType::BytePtr),
+		FN_ENTRY(kglViewport,       TrapType::Void),
+
+#ifdef _WIN32 //WGL extensions (Windows only)
+		FN_ENTRY(wglCreateContextAttribsARB, TrapType::Pointer),
+		FN_ENTRY(wglChoosePixelFormatARB,    TrapType::Int),
+		FN_ENTRY(wglSwapIntervalEXT,         TrapType::Int)
+#elif __linux__
+
+#endif
 	};
 
 	void OpenGLCore::InitializeAllFunctions()
@@ -194,12 +206,12 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 #ifdef _WIN32
-	void* GetGLProcAddress(const char* name)
+	void* OpenGLCore::GetGLProcAddress(const char* name)
 	{
 		return reinterpret_cast<void*>(wglGetProcAddress(name));
 	}
 #elif __linux__
-	void* GetGLProcAddress(const char* name)
+	void* OpenGLCore::GetGLProcAddress(const char* name)
 	{
 		return reinterpret_cast<void*>(
 			glXGetProcAddressARB(reinterpret_cast<const GLuByte*>(name)));
@@ -254,6 +266,17 @@ namespace KalaWindow::Graphics::OpenGL
 		return nullptr;
 	}
 
+	static const void* FunctionNotLoadedPointerTrap()
+	{
+		string name = string(lastFailedFunctionName);
+
+		Logger::Print(
+			"OpenGL const pointer-returning function '" + name + "' was not loaded.",
+			"OPENGL_CORE",
+			LogType::LOG_ERROR);
+		return nullptr;
+	}
+
 	static void* GetTrapForType(
 		TrapType type,
 		const char* name)
@@ -266,6 +289,7 @@ namespace KalaWindow::Graphics::OpenGL
 		case TrapType::Int:     return reinterpret_cast<void*>(&FunctionNotLoadedIntTrap);
 		case TrapType::Enum:    return reinterpret_cast<void*>(&FunctionNotLoadedEnumTrap);
 		case TrapType::BytePtr: return reinterpret_cast<void*>(&FunctionNotLoadedBytePtrTrap);
+		case TrapType::Pointer: return reinterpret_cast<void*>(&FunctionNotLoadedPointerTrap);
 		}
 		return nullptr;
 	}

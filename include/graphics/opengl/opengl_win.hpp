@@ -9,6 +9,7 @@
 #ifdef _WIN32
 
 #include <cstdint>
+#include <windows.h>
 
 using std::uintptr_t;
 
@@ -18,23 +19,23 @@ using std::uintptr_t;
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
 
 //Creates an OpenGL rendering context with specific attributes (version, profile)
-static inline uintptr_t(*wglCreateContextAttribsARB)(
-	uintptr_t deviceContext,
-	uintptr_t shareContext,
+static inline HGLRC(WINAPI* wglCreateContextAttribsARB)(
+	HDC hDC,
+	HGLRC hShareContext,
 	const int* attribList) = nullptr;
 
 //Chooses a pixel format that matches specified attributes
-static inline bool (*wglChoosePixelFormatARB)(
-	uintptr_t deviceContext,
-	const int* attribIList,
-	const float* attribFList,
-	unsigned int maxFormats,
-	int* formats,
-	unsigned int* numFormats) = nullptr;
+static inline BOOL(WINAPI* wglChoosePixelFormatARB)(
+    HDC hDC,
+    const int* attribIList,
+    const FLOAT* attribFList,
+    UINT maxFormats,
+    int* formats,
+    UINT* numFormats) = nullptr;
 
 //Sets the swap interval for buffer swaps (vsync control)
-static inline bool (*wglSwapIntervalEXT)(
-	int interval) = nullptr;
+static inline BOOL(WINAPI* wglSwapIntervalEXT)(
+    int interval) = nullptr;
 
 #endif //_WIN32
 #endif //KALAWINDOW_SUPPORT_OPENGL

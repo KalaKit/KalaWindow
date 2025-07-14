@@ -10,23 +10,13 @@
 #include <sstream>
 #include <filesystem>
 
-#ifdef _WIN32
-#include <Windows.h>
-#include "GL/gl.h"
-#elif __linux__
-#include <GL/glx.h>
-#include <EGL/egl.h>
-#endif
-
 #include "graphics/window.hpp"
 #include "graphics/opengl/shader_opengl.hpp"
 #include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/opengl_typedefs.hpp"
-#include "graphics/opengl/opengl_loader.hpp"
+#include "graphics/opengl/opengl_core.hpp"
 #include "graphics/render.hpp"
 #include "core/log.hpp"
 
-using KalaWindow::Graphics::OpenGLLoader;
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
@@ -112,13 +102,13 @@ static bool InitShader(
         shaderEnum = GL_GEOMETRY_SHADER; break;
     }
 
-    shaderID = OpenGLLoader::glCreateShader(shaderEnum);
-    OpenGLLoader::glShaderSource(
+    shaderID = kglCreateShader(shaderEnum);
+    kglShaderSource(
         shaderID,
         1,
         &shaderCodeChar,
         nullptr);
-    OpenGLLoader::glCompileShader(shaderID);
+    kglCompileShader(shaderID);
 
     string capitalShaderName{};
     switch (type)
@@ -133,8 +123,8 @@ static bool InitShader(
 
     if (!CheckCompileErrors(shaderID, capitalShaderName))
     {
-        OpenGLLoader::glDetachShader(shaderID);
-        OpenGLLoader::glDeleteShader(shaderID);
+        kglDetachShader(shaderID);
+        kglDeleteShader(shaderID);
 
         ForceClose(
             "OpenGL error",
@@ -309,52 +299,52 @@ namespace KalaWindow::Graphics
         // CREATE SHADER PROGRAM
         //
 
-        shaderPtr->programID = OpenGLLoader::glCreateProgram();
+        shaderPtr->programID = kglCreateProgram();
 
-        OpenGLLoader::glAttachShader(
+        kglAttachShader(
             shaderPtr->programID, 
             newVertStage.shaderID);
-        OpenGLLoader::glAttachShader(
+        kglAttachShader(
             shaderPtr->programID, 
             newFragStage.shaderID);
         if (geomShaderExists)
         {
-            OpenGLLoader::glAttachShader(
+            kglAttachShader(
                 shaderPtr->programID, 
                 newGeomStage.shaderID);
         }
-        OpenGLLoader::glLinkProgram(shaderPtr->programID);
+        kglLinkProgram(shaderPtr->programID);
 
         GLint success = 0;
-        OpenGLLoader::glGetProgramiv(
+        kglGetProgramiv(
             shaderPtr->programID, 
             GL_LINK_STATUS, 
             &success);
 
         if (success != GL_TRUE)
         {
-            OpenGLLoader::glDetachShader(newVertStage.shaderID);
-            OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+            kglDetachShader(newVertStage.shaderID);
+            kglDeleteShader(newVertStage.shaderID);
 
-            OpenGLLoader::glDetachShader(newFragStage.shaderID);
-            OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+            kglDetachShader(newFragStage.shaderID);
+            kglDeleteShader(newFragStage.shaderID);
 
             if (geomShaderExists)
             {
-                OpenGLLoader::glDetachShader(newGeomStage.shaderID);
-                OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+                kglDetachShader(newGeomStage.shaderID);
+                kglDeleteShader(newGeomStage.shaderID);
             }
 
             GLint logLength = 0;
-            OpenGLLoader::glGetProgramiv(
+            kglGetProgramiv(
                 shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
                 &logLength);
 
             if (logLength > 0)
             {
-                vector<GLchar> log(logLength);
-                OpenGLLoader::glGetProgramInfoLog(
+                vector<char> log(logLength);
+                kglGetProgramInfoLog(
                     shaderPtr->programID, 
                     logLength, 
                     nullptr, 
@@ -389,35 +379,35 @@ namespace KalaWindow::Graphics
         }
 
         //validate the shader program before using it
-        OpenGLLoader::glValidateProgram(shaderPtr->programID);
+        kglValidateProgram(shaderPtr->programID);
         GLint validated = 0;
-        OpenGLLoader::glGetProgramiv(
+        kglGetProgramiv(
             shaderPtr->programID, 
             GL_VALIDATE_STATUS, 
             &validated);
         if (validated != GL_TRUE)
         {
-            OpenGLLoader::glDetachShader(newVertStage.shaderID);
-            OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+            kglDetachShader(newVertStage.shaderID);
+            kglDeleteShader(newVertStage.shaderID);
 
-            OpenGLLoader::glDetachShader(newFragStage.shaderID);
-            OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+            kglDetachShader(newFragStage.shaderID);
+            kglDeleteShader(newFragStage.shaderID);
 
             if (geomShaderExists)
             {
-                OpenGLLoader::glDetachShader(newGeomStage.shaderID);
-                OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+                kglDetachShader(newGeomStage.shaderID);
+                kglDeleteShader(newGeomStage.shaderID);
             }
 
             GLint logLength = 0;
-            OpenGLLoader::glGetProgramiv(
+            kglGetProgramiv(
                 shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
                 &logLength);
             if (logLength > 0)
             {
-                vector<GLchar> log(logLength);
-                OpenGLLoader::glGetProgramInfoLog(
+                vector<char> log(logLength);
+                kglGetProgramInfoLog(
                     shaderPtr->programID, 
                     logLength, 
                     nullptr, 
@@ -439,20 +429,20 @@ namespace KalaWindow::Graphics
             return nullptr;
         }
 
-        GLint valid = OpenGLLoader::glIsProgram(shaderPtr->programID);
+        GLint valid = kglIsProgram(shaderPtr->programID);
         bool isProgramValid = valid == GL_TRUE;
         if (!isProgramValid)
         {
-            OpenGLLoader::glDetachShader(newVertStage.shaderID);
-            OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+            kglDetachShader(newVertStage.shaderID);
+            kglDeleteShader(newVertStage.shaderID);
 
-            OpenGLLoader::glDetachShader(newFragStage.shaderID);
-            OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+            kglDetachShader(newFragStage.shaderID);
+            kglDeleteShader(newFragStage.shaderID);
 
             if (geomShaderExists)
             {
-                OpenGLLoader::glDetachShader(newGeomStage.shaderID);
-                OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+                kglDetachShader(newGeomStage.shaderID);
+                kglDeleteShader(newGeomStage.shaderID);
             }
 
             Logger::Print(
@@ -475,16 +465,16 @@ namespace KalaWindow::Graphics
         // CLEANUP
         //
 
-        OpenGLLoader::glDetachShader(newVertStage.shaderID);
-        OpenGLLoader::glDeleteShader(newVertStage.shaderID);
+        kglDetachShader(newVertStage.shaderID);
+        kglDeleteShader(newVertStage.shaderID);
 
-        OpenGLLoader::glDetachShader(newFragStage.shaderID);
-        OpenGLLoader::glDeleteShader(newFragStage.shaderID);
+        kglDetachShader(newFragStage.shaderID);
+        kglDeleteShader(newFragStage.shaderID);
 
         if (geomShaderExists)
         {
-            OpenGLLoader::glDetachShader(newGeomStage.shaderID);
-            OpenGLLoader::glDeleteShader(newGeomStage.shaderID);
+            kglDetachShader(newGeomStage.shaderID);
+            kglDeleteShader(newGeomStage.shaderID);
         }
 
         if (vertShaderExists) shaderPtr->shaders.push_back(newVertStage);
@@ -536,7 +526,7 @@ namespace KalaWindow::Graphics
             LogType::LOG_DEBUG);
 
         GLint linked = 0;
-        OpenGLLoader::glGetProgramiv(
+        kglGetProgramiv(
             ID,
             GL_LINK_STATUS,
             &linked);
@@ -549,7 +539,7 @@ namespace KalaWindow::Graphics
         }
 
         GLint validated = 0;
-        OpenGLLoader::glGetProgramiv(
+        kglGetProgramiv(
             ID,
             GL_VALIDATE_STATUS,
             &validated);
@@ -563,19 +553,19 @@ namespace KalaWindow::Graphics
 
         {
             GLenum e;
-            while ((e = glGetError()) != GL_NO_ERROR) 
+            while ((e = kglGetError()) != GL_NO_ERROR) 
             {
                 // discard
             }
         }
 #endif
 
-        OpenGLLoader::glUseProgram(ID);
+        kglUseProgram(ID);
 
 #ifdef _DEBUG
-        GLenum err = glGetError();
+        GLenum err = kglGetError();
         GLint activeProgram = 0;
-        OpenGLLoader::glGetIntegerv(
+        kglGetIntegerv(
             GL_CURRENT_PROGRAM,
             &activeProgram);
 
@@ -662,7 +652,7 @@ namespace KalaWindow::Graphics
         const string& name, 
         bool value) const
     {
-        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(
+        kglUniform1i(kglGetUniformLocation(
             programID, 
             name.c_str()), 
             (int)value);
@@ -672,7 +662,7 @@ namespace KalaWindow::Graphics
         const string& name, 
         int value) const
     {
-        OpenGLLoader::glUniform1i(OpenGLLoader::glGetUniformLocation(
+        kglUniform1i(kglGetUniformLocation(
             programID, 
             name.c_str()), 
             value);
@@ -682,7 +672,7 @@ namespace KalaWindow::Graphics
         const string& name, 
         float value) const
     {
-        OpenGLLoader::glUniform1f(OpenGLLoader::glGetUniformLocation(
+        kglUniform1f(kglGetUniformLocation(
             programID, 
             name.c_str()), 
             value);
@@ -693,8 +683,8 @@ namespace KalaWindow::Graphics
         const string& name, 
         const kvec2& value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
-        OpenGLLoader::glUniform2fv(
+        auto loc = kglGetUniformLocation(programID, name.c_str());
+        kglUniform2fv(
             loc, 
             1, 
             &value.x);
@@ -704,8 +694,8 @@ namespace KalaWindow::Graphics
         const string& name, 
         const kvec3& value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
-        OpenGLLoader::glUniform3fv(
+        auto loc = kglGetUniformLocation(programID, name.c_str());
+        kglUniform3fv(
             loc, 
             1, 
             &value.x);
@@ -715,8 +705,8 @@ namespace KalaWindow::Graphics
         const string& name, 
         const kvec4& value) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
-        OpenGLLoader::glUniform4fv(
+        auto loc = kglGetUniformLocation(programID, name.c_str());
+        kglUniform4fv(
             loc, 
             1, 
             &value.x);
@@ -727,8 +717,8 @@ namespace KalaWindow::Graphics
         const string& name, 
         const kmat2& mat) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
-        OpenGLLoader::glUniformMatrix2fv(
+        auto loc = kglGetUniformLocation(programID, name.c_str());
+        kglUniformMatrix2fv(
             loc, 
             1, 
             GL_FALSE, 
@@ -739,8 +729,8 @@ namespace KalaWindow::Graphics
         const string& name, 
         const kmat3& mat) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
-        OpenGLLoader::glUniformMatrix3fv(
+        auto loc = kglGetUniformLocation(programID, name.c_str());
+        kglUniformMatrix3fv(
             loc, 
             1, 
             GL_FALSE, 
@@ -751,8 +741,8 @@ namespace KalaWindow::Graphics
         const string& name, 
         const kmat4& mat) const
     {
-        auto loc = OpenGLLoader::glGetUniformLocation(programID, name.c_str());
-        OpenGLLoader::glUniformMatrix4fv(
+        auto loc = kglGetUniformLocation(programID, name.c_str());
+        kglUniformMatrix4fv(
             loc, 
             1, 
             GL_FALSE, 
@@ -767,15 +757,15 @@ namespace KalaWindow::Graphics
             {
                 if (shaderStage.shaderID != 0)
                 {
-                    OpenGLLoader::glDetachShader(shaderStage.shaderID);
-                    OpenGLLoader::glDeleteShader(shaderStage.shaderID);
+                    kglDetachShader(shaderStage.shaderID);
+                    kglDeleteShader(shaderStage.shaderID);
                     shaderStage.shaderID = 0;
                 }
             }
             if (programID != 0)
             {
-                OpenGLLoader::glDeleteProgram(programID);
-               programID = 0;
+                kglDeleteProgram(programID);
+                programID = 0;
             }
         }
         shaders.clear();
@@ -786,14 +776,14 @@ namespace KalaWindow::Graphics
 static bool CheckCompileErrors(GLuint shader, const string& type)
 {
     GLint success = 0;
-    GLchar infoLog[1024];
+    char infoLog[1024];
 
     if (type != "PROGRAM")
     {
-        OpenGLLoader::glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        kglGetShaderiv(shader, GL_COMPILE_STATUS, &success);
         if (!success)
         {
-            OpenGLLoader::glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
+            kglGetShaderInfoLog(shader, 1024, nullptr, infoLog);
 
             Logger::Print(
                 "Shader compilation failed (" + type + "):\n" + infoLog,
@@ -805,10 +795,10 @@ static bool CheckCompileErrors(GLuint shader, const string& type)
     }
     else
     {
-        OpenGLLoader::glGetProgramiv(shader, GL_LINK_STATUS, &success);
+        kglGetProgramiv(shader, GL_LINK_STATUS, &success);
         if (!success)
         {
-            OpenGLLoader::glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
+            kglGetProgramInfoLog(shader, 1024, nullptr, infoLog);
 
             Logger::Print(
                 "Program linking failed:\n" + string(infoLog),
