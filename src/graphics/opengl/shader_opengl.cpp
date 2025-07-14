@@ -142,6 +142,8 @@ static bool InitShader(
 
         return false;
     }
+
+    return true;
 }
 
 namespace KalaWindow::Graphics

@@ -12,7 +12,7 @@
 #include <sstream>
 
 #include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/opengl_loader.hpp"
+#include "graphics/opengl/opengl_core.hpp"
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
@@ -23,6 +23,7 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::PopupResult;
+using KalaWindow::Graphics::OpenGL::OpenGLCore;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::TimeFormat;
@@ -162,29 +163,6 @@ namespace KalaWindow::Graphics
 		wglMakeCurrent(hdc, dummyRC);
 
 		//
-		// LOAD WGL EXTENSIONS
-		//
-
-		auto wglCreateContextAttribsARB =
-			reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(
-				wglGetProcAddress("wglCreateContextAttribsARB"));
-
-		if (!wglCreateContextAttribsARB)
-		{
-			Logger::Print(
-				"wglCreateContextAttribsARB is not supported!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
-			ForceClose(
-				"OpenGL error",
-				"wglCreateContextAttribsARB is not supported!");
-
-			return false;
-		}
-
-		//
 		// CREATE REAL OPENGL 3.3 CONTEXT
 		//
 
@@ -196,7 +174,10 @@ namespace KalaWindow::Graphics
 			0
 		};
 
-		window.openglData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(hdc, 0, attribs));
+		window.openglData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(
+			hdc, 
+			0, 
+			attribs));
 		if (!window.openglData.hglrc)
 		{
 			Logger::Print(
@@ -241,10 +222,10 @@ namespace KalaWindow::Graphics
 			"OPENGL_WINDOWS",
 			LogType::LOG_SUCCESS);
 
-		OpenGLLoader::LoadAllFunctions();
+		OpenGLCore::InitializeAllFunctions();
 
 		//and finally set opengl viewport size
-		OpenGLLoader::glViewport(
+		glViewport(
 			0, 
 			0, 
 			targetWindow->GetSize().x,

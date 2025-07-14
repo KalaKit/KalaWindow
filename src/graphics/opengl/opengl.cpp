@@ -5,8 +5,14 @@
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
 
+#ifdef _WIN32
+#include <windows.h>
+#elif __linux__
+
+#endif
+
 #include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/opengl_typedefs.hpp"
+#include "graphics/opengl/opengl_core.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
 
@@ -18,8 +24,6 @@ using KalaWindow::Core::LogType;
 //If off, then all framerate is uncapped.
 //Used in window.hpp
 static VSyncState vsyncState = VSyncState::VSYNC_ON;
-
-static PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = nullptr;
 
 namespace KalaWindow::Graphics
 {
@@ -42,6 +46,7 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_OpenGL::IsContextValid(Window* targetWindow)
 	{
+#ifdef _WIN32
 		WindowStruct_Windows& win = targetWindow->GetWindow_Windows();
 		HGLRC hglrc = ToVar<HGLRC>(win.openglData.hglrc);
 
@@ -55,6 +60,9 @@ namespace KalaWindow::Graphics
 				2);
 			return false;
 		}
+#elif __linux__
+		//TODO: set up for linux too
+#endif
 
 		if (current != hglrc)
 		{
@@ -77,12 +85,6 @@ namespace KalaWindow::Graphics
 	void Window::SetVSyncState(VSyncState newVSyncState)
 	{
 		vsyncState = newVSyncState;
-
-		if (!wglSwapIntervalEXT)
-		{
-			wglSwapIntervalEXT = reinterpret_cast<PFNWGLSWAPINTERVALEXTPROC>(
-				wglGetProcAddress("wglSwapIntervalEXT"));
-		}
 
 		if (wglSwapIntervalEXT)
 		{
