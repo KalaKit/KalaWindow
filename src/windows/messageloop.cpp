@@ -643,7 +643,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		int height = HIWORD(msg.lParam);
 
 #ifdef KALAWINDOW_SUPPORT_OPENGL
-		kglViewport(0, 0, width, height);
+		glViewport(0, 0, width, height);
 #endif //KALAWINDOW_SUPPORT_OPENGL
 
 		/*

@@ -19,13 +19,13 @@ using std::uintptr_t;
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
 
 //Creates an OpenGL rendering context with specific attributes (version, profile)
-static inline HGLRC(WINAPI* wglCreateContextAttribsARB)(
+inline HGLRC(WINAPI* wglCreateContextAttribsARB)(
 	HDC hDC,
 	HGLRC hShareContext,
 	const int* attribList) = nullptr;
 
 //Chooses a pixel format that matches specified attributes
-static inline BOOL(WINAPI* wglChoosePixelFormatARB)(
+inline BOOL(WINAPI* wglChoosePixelFormatARB)(
     HDC hDC,
     const int* attribIList,
     const FLOAT* attribFList,
@@ -34,7 +34,7 @@ static inline BOOL(WINAPI* wglChoosePixelFormatARB)(
     UINT* numFormats) = nullptr;
 
 //Sets the swap interval for buffer swaps (vsync control)
-static inline BOOL(WINAPI* wglSwapIntervalEXT)(
+inline BOOL(WINAPI* wglSwapIntervalEXT)(
     int interval) = nullptr;
 
 #endif //_WIN32

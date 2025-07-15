@@ -151,72 +151,72 @@ inline constexpr GLenum     GL_TRIANGLE_FAN       = 0x0006; //Primitive type: co
 //
 
 //Binds a named buffer to a specified buffer binding point
-static inline void (K_APIENTRY* kglBindBuffer)(
+inline void (K_APIENTRY* glBindBuffer)(
 	GLenum target,
 	GLuint buffer) = nullptr;
 
 //Binds a vertex array object
-static inline void (K_APIENTRY* kglBindVertexArray)(
+inline void (K_APIENTRY* glBindVertexArray)(
 	GLuint array) = nullptr;
 
 //Creates and initializes a buffer object's data store
-static inline void (K_APIENTRY* kglBufferData)(
+inline void (K_APIENTRY* glBufferData)(
 	GLenum target,
 	GLsizeiptr size,
 	const void* data,
 	GLenum usage) = nullptr;
 
 //Deletes one or more named buffer objects
-static inline void (K_APIENTRY* kglDeleteBuffers)(
+inline void (K_APIENTRY* glDeleteBuffers)(
 	GLsizei n,
 	const GLuint* buffers) = nullptr;
 
 //Deletes one or more named vertex array objects
-static inline void (K_APIENTRY* kglDeleteVertexArrays)(
+inline void (K_APIENTRY* glDeleteVertexArrays)(
 	GLsizei n,
 	const GLuint* arrays) = nullptr;
 
 //Draws non-indexed primitives from array data
-static inline void (K_APIENTRY* kglDrawArrays)(
+inline void (K_APIENTRY* glDrawArrays)(
 	GLenum mode,
 	GLint first,
 	GLsizei count) = nullptr;
 
 //Draws indexed primitives using array data and element indices
-static inline void (K_APIENTRY* kglDrawElements)(
+inline void (K_APIENTRY* glDrawElements)(
 	GLenum mode,
 	GLsizei count,
 	GLenum type,
 	const void* indices) = nullptr;
 
 //Enables a generic vertex attribute array
-static inline void (K_APIENTRY* kglEnableVertexAttribArray)(
+inline void (K_APIENTRY* glEnableVertexAttribArray)(
 	GLuint index) = nullptr;
 
 //Generates buffer object names
-static inline void (K_APIENTRY* kglGenBuffers)(
+inline void (K_APIENTRY* glGenBuffers)(
 	GLsizei n,
 	GLuint* buffers) = nullptr;
 
 //Generates vertex array object names
-static inline void (K_APIENTRY* kglGenVertexArrays)(
+inline void (K_APIENTRY* glGenVertexArrays)(
 	GLsizei n,
 	GLuint* arrays) = nullptr;
 
 //Retrieves parameter values for a vertex attribute array
-static inline void (K_APIENTRY* kglGetVertexAttribiv)(
+inline void (K_APIENTRY* glGetVertexAttribiv)(
 	GLuint index,
 	GLenum pname,
 	GLint* params) = nullptr;
 
 //Retrieves a pointer to a vertex attribute array parameter
-static inline void (K_APIENTRY* kglGetVertexAttribPointerv)(
+inline void (K_APIENTRY* glGetVertexAttribPointerv)(
 	GLuint index,
 	GLenum pname,
 	void** pointer) = nullptr;
 
 //Defines an array of generic vertex attribute data
-static inline void (K_APIENTRY* kglVertexAttribPointer)(
+inline void (K_APIENTRY* glVertexAttribPointer)(
 	GLuint index,
 	GLint size,
 	GLenum type,
@@ -229,36 +229,36 @@ static inline void (K_APIENTRY* kglVertexAttribPointer)(
 //
 
 //Attaches a shader object to a program
-static inline void (K_APIENTRY* kglAttachShader)(
+inline void (K_APIENTRY* glAttachShader)(
 	GLuint program,
 	GLuint shader) = nullptr;
 
 //Compiles a shader object
-static inline void (K_APIENTRY* kglCompileShader)(
+inline void (K_APIENTRY* glCompileShader)(
 	GLuint shader) = nullptr;
 
 //Creates a new shader program object
-static inline GLuint(K_APIENTRY* kglCreateProgram)(
+inline GLuint(K_APIENTRY* glCreateProgram)(
 	void) = nullptr;
 
 //Creates a shader object of the specified type
-static inline GLuint(K_APIENTRY* kglCreateShader)(
+inline GLuint(K_APIENTRY* glCreateShader)(
 	GLenum type) = nullptr;
 
 //Deletes a shader object
-static inline void (K_APIENTRY* kglDeleteShader)(
+inline void (K_APIENTRY* glDeleteShader)(
 	GLuint shader) = nullptr;
 
 //Deletes a program object
-static inline void (K_APIENTRY* kglDeleteProgram)(
+inline void (K_APIENTRY* glDeleteProgram)(
 	GLuint program) = nullptr;
 
 //Detaches a shader object from a program
-static inline void (K_APIENTRY* kglDetachShader)(
+inline void (K_APIENTRY* glDetachShader)(
 	GLuint shader) = nullptr;
 
 //Retrieves information about an active attribute variable
-static inline void (K_APIENTRY* kglGetActiveAttrib)(
+inline void (K_APIENTRY* glGetActiveAttrib)(
 	GLuint program,
 	GLuint index,
 	GLsizei bufSize,
@@ -268,57 +268,57 @@ static inline void (K_APIENTRY* kglGetActiveAttrib)(
 	char* name) = nullptr;
 
 //Returns the attribute location within a shader program
-static inline GLint(K_APIENTRY* kglGetAttribLocation)(
+inline GLint(K_APIENTRY* glGetAttribLocation)(
 	GLuint program,
 	const char* name) = nullptr;
 
 //Retrieves a parameter from a program object
-static inline void (K_APIENTRY* kglGetProgramiv)(
+inline void (K_APIENTRY* glGetProgramiv)(
 	GLuint program,
 	GLenum pname,
 	GLint* params) = nullptr;
 
 //Returns the information log for a program object
-static inline void (K_APIENTRY* kglGetProgramInfoLog)(
+inline void (K_APIENTRY* glGetProgramInfoLog)(
 	GLuint program,
 	GLsizei bufSize,
 	GLsizei* length,
 	char* infoLog) = nullptr;
 
 //Retrieves a parameter from a shader object
-static inline void (K_APIENTRY* kglGetShaderiv)(
+inline void (K_APIENTRY* glGetShaderiv)(
 	GLuint shader,
 	GLenum pname,
 	GLint* params) = nullptr;
 
 //Returns the information log for a shader object
-static inline void (K_APIENTRY* kglGetShaderInfoLog)(
+inline void (K_APIENTRY* glGetShaderInfoLog)(
 	GLuint shader,
 	GLsizei bufSize,
 	GLsizei* length,
 	char* infoLog) = nullptr;
 
 //Links a program object
-static inline void (K_APIENTRY* kglLinkProgram)(
+inline void (K_APIENTRY* glLinkProgram)(
 	GLuint program) = nullptr;
 
 //Sets the source code for a shader
-static inline void (K_APIENTRY* kglShaderSource)(
+inline void (K_APIENTRY* glShaderSource)(
 	GLuint shader,
 	GLsizei count,
 	const char* const* string,
 	const GLint* length) = nullptr;
 
 //Activates a shader program for rendering
-static inline void (K_APIENTRY* kglUseProgram)(
+inline void (K_APIENTRY* glUseProgram)(
 	GLuint program) = nullptr;
 
 //Validates a program object to see if it's executable
-static inline void (K_APIENTRY* kglValidateProgram)(
+inline void (K_APIENTRY* glValidateProgram)(
 	GLuint program) = nullptr;
 
 //Returns whether a given program name is a valid program object
-static inline GLboolean(K_APIENTRY* kglIsProgram)(
+inline GLboolean(K_APIENTRY* glIsProgram)(
 	GLuint program) = nullptr;
 
 //
@@ -326,47 +326,47 @@ static inline GLboolean(K_APIENTRY* kglIsProgram)(
 //
 
 //Retrieves the location of a uniform variable within a shader program
-static inline GLint(K_APIENTRY* kglGetUniformLocation)(
+inline GLint(K_APIENTRY* glGetUniformLocation)(
 	GLuint program,
 	const char* name) = nullptr;
 
 //Sets a single float uniform value
-static inline void (K_APIENTRY* kglUniform1f)(
+inline void (K_APIENTRY* glUniform1f)(
 	GLint location,
 	float v0) = nullptr;
 
 //Sets a single integer uniform value
-static inline void (K_APIENTRY* kglUniform1i)(
+inline void (K_APIENTRY* glUniform1i)(
 	GLint location,
 	GLint v0) = nullptr;
 
 //Sets a vec2 uniform (2 float components)
-static inline void (K_APIENTRY* kglUniform2f)(
+inline void (K_APIENTRY* glUniform2f)(
 	GLint location,
 	float v0,
 	float v1) = nullptr;
 
 //Sets a vec2 uniform from an array of values
-static inline void (K_APIENTRY* kglUniform2fv)(
+inline void (K_APIENTRY* glUniform2fv)(
 	GLint location,
 	GLsizei count,
 	const float* value) = nullptr;
 
 //Sets a vec3 uniform (3 float components)
-static inline void (K_APIENTRY* kglUniform3f)(
+inline void (K_APIENTRY* glUniform3f)(
 	GLint location,
 	float v0,
 	float v1,
 	float v2) = nullptr;
 
 //Sets a vec3 uniform from an array of values
-static inline void (K_APIENTRY* kglUniform3fv)(
+inline void (K_APIENTRY* glUniform3fv)(
 	GLint location,
 	GLsizei count,
 	const float* value) = nullptr;
 
 //Sets a vec4 uniform (4 float components)
-static inline void (K_APIENTRY* kglUniform4f)(
+inline void (K_APIENTRY* glUniform4f)(
 	GLint location,
 	float v0,
 	float v1,
@@ -374,27 +374,27 @@ static inline void (K_APIENTRY* kglUniform4f)(
 	float v3) = nullptr;
 
 //Sets a vec4 uniform from an array of values
-static inline void (K_APIENTRY* kglUniform4fv)(
+inline void (K_APIENTRY* glUniform4fv)(
 	GLint location,
 	GLsizei count,
 	const float* value) = nullptr;
 
 //Sets a 2×2 matrix uniform from an array of floats
-static inline void (K_APIENTRY* kglUniformMatrix2fv)(
+inline void (K_APIENTRY* glUniformMatrix2fv)(
 	GLint location,
 	GLsizei count,
 	GLboolean transpose,
 	const float* value) = nullptr;
 
 //Sets a 3×3 matrix uniform from an array of floats
-static inline void (K_APIENTRY* kglUniformMatrix3fv)(
+inline void (K_APIENTRY* glUniformMatrix3fv)(
 	GLint location,
 	GLsizei count,
 	GLboolean transpose,
 	const float* value) = nullptr;
 
 //Sets a 4×4 matrix uniform from an array of floats
-static inline void (K_APIENTRY* kglUniformMatrix4fv)(
+inline void (K_APIENTRY* glUniformMatrix4fv)(
 	GLint location,
 	GLsizei count,
 	GLboolean transpose,
@@ -405,30 +405,30 @@ static inline void (K_APIENTRY* kglUniformMatrix4fv)(
 //
 
 //Binds a named texture to a texturing target
-static inline void (K_APIENTRY* kglBindTexture)(
+inline void (K_APIENTRY* glBindTexture)(
 	GLenum target,
 	GLuint texture) = nullptr;
 
 //Activates the specified texture unit
-static inline void (K_APIENTRY* kglActiveTexture)(
+inline void (K_APIENTRY* glActiveTexture)(
 	GLenum texture) = nullptr;
 
 //Deletes one or more named textures
-static inline void (K_APIENTRY* kglDeleteTextures)(
+inline void (K_APIENTRY* glDeleteTextures)(
 	GLsizei n,
 	const GLuint* textures) = nullptr;
 
 //Generates mipmaps for the currently bound texture
-static inline void (K_APIENTRY* kglGenerateMipmap)(
+inline void (K_APIENTRY* glGenerateMipmap)(
 	GLenum target) = nullptr;
 
 //Generates texture object names
-static inline void (K_APIENTRY* kglGenTextures)(
+inline void (K_APIENTRY* glGenTextures)(
 	GLsizei n,
 	GLuint* textures) = nullptr;
 
 //Specifies a two-dimensional texture image
-static inline void (K_APIENTRY* kglTexImage2D)(
+inline void (K_APIENTRY* glTexImage2D)(
 	GLenum target,
 	GLint level,
 	GLint internalFormat,
@@ -440,13 +440,13 @@ static inline void (K_APIENTRY* kglTexImage2D)(
 	const void* data) = nullptr;
 
 //Sets texture parameters for the currently bound texture
-static inline void (K_APIENTRY* kglTexParameteri)(
+inline void (K_APIENTRY* glTexParameteri)(
 	GLenum target,
 	GLenum pname,
 	GLint param) = nullptr;
 
 //Specifies a subregion of an existing 2D texture image
-static inline void (K_APIENTRY* kglTexSubImage2D)(
+inline void (K_APIENTRY* glTexSubImage2D)(
 	GLenum target,
 	GLint level,
 	GLint xoffset,
@@ -462,28 +462,28 @@ static inline void (K_APIENTRY* kglTexSubImage2D)(
 //
 
 //Binds a renderbuffer to the renderbuffer target
-static inline void (K_APIENTRY* kglBindRenderbuffer)(
+inline void (K_APIENTRY* glBindRenderbuffer)(
 	GLenum target,
 	GLuint renderbuffer) = nullptr;
 
 //Binds a framebuffer to a framebuffer target
-static inline void (K_APIENTRY* kglBindFramebuffer)(
+inline void (K_APIENTRY* glBindFramebuffer)(
 	GLenum target,
 	GLuint framebuffer) = nullptr;
 
 //Checks the completeness status of a framebuffer
-static inline GLenum(K_APIENTRY* kglCheckFramebufferStatus)(
+inline GLenum(K_APIENTRY* glCheckFramebufferStatus)(
 	GLenum target) = nullptr;
 
 //Attaches a renderbuffer to a framebuffer attachment point
-static inline void (K_APIENTRY* kglFramebufferRenderbuffer)(
+inline void (K_APIENTRY* glFramebufferRenderbuffer)(
 	GLenum target,
 	GLenum attachment,
 	GLenum renderbuffertarget,
 	GLuint renderbuffer) = nullptr;
 
 //Attaches a 2D texture image to a framebuffer attachment point
-static inline void (K_APIENTRY* kglFramebufferTexture2D)(
+inline void (K_APIENTRY* glFramebufferTexture2D)(
 	GLenum target,
 	GLenum attachment,
 	GLenum textarget,
@@ -491,17 +491,17 @@ static inline void (K_APIENTRY* kglFramebufferTexture2D)(
 	GLint level) = nullptr;
 
 //Generates renderbuffer object names
-static inline void (K_APIENTRY* kglGenRenderbuffers)(
+inline void (K_APIENTRY* glGenRenderbuffers)(
 	GLsizei n,
 	GLuint* renderbuffers) = nullptr;
 
 //Generates framebuffer object names
-static inline void (K_APIENTRY* kglGenFramebuffers)(
+inline void (K_APIENTRY* glGenFramebuffers)(
 	GLsizei n,
 	GLuint* framebuffers) = nullptr;
 
 //Establishes data storage format and dimensions for a renderbuffer
-static inline void (K_APIENTRY* kglRenderbufferStorage)(
+inline void (K_APIENTRY* glRenderbufferStorage)(
 	GLenum target,
 	GLenum internalformat,
 	GLsizei width,
@@ -512,35 +512,35 @@ static inline void (K_APIENTRY* kglRenderbufferStorage)(
 //
 
 //Clears buffers to preset values
-static inline void (K_APIENTRY* kglClear)(
+inline void (K_APIENTRY* glClear)(
 	GLbitfield mask) = nullptr;
 
 //Specifies the clear color for color buffers
-static inline void (K_APIENTRY* kglClearColor)(
+inline void (K_APIENTRY* glClearColor)(
 	float red,
 	float green,
 	float blue,
 	float alpha) = nullptr;
 
 //Disables a specific OpenGL capability
-static inline void (K_APIENTRY* kglDisable)(
+inline void (K_APIENTRY* glDisable)(
 	GLenum cap) = nullptr;
 
 //Returns the last error flag raised
-static inline GLenum(K_APIENTRY* kglGetError)(
+inline GLenum(K_APIENTRY* glGetError)(
 	void) = nullptr;
 
 //Retrieves integer-valued parameters
-static inline void (K_APIENTRY* kglGetIntegerv)(
+inline void (K_APIENTRY* glGetIntegerv)(
 	GLenum pname,
 	GLint* data) = nullptr;
 
 //Returns a string describing the current GL connection
-static inline const GLubyte* (K_APIENTRY* kglGetString)(
+inline const GLubyte* (K_APIENTRY* glGetString)(
 	GLenum name) = nullptr;
 
 //Sets the viewport transformation dimensions
-static inline void (K_APIENTRY* kglViewport)(
+inline void (K_APIENTRY* glViewport)(
 	GLint x,
 	GLint y,
 	GLsizei width,

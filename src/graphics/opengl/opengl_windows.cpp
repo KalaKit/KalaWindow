@@ -213,6 +213,8 @@ namespace KalaWindow::Graphics
 
 		wglMakeCurrent(hdc, reinterpret_cast<HGLRC>(window.openglData.hglrc));
 
+		OpenGLCore::InitializeAllFunctions();
+
 		if (!IsCorrectVersion())
 		{
 			Logger::Print(
@@ -229,14 +231,12 @@ namespace KalaWindow::Graphics
 		}
 
 		Logger::Print(
-			"OpenGL version: " + string(reinterpret_cast<const char*>(kglGetString(GL_VERSION))),
+			"OpenGL version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
 			"OPENGL_WINDOWS",
 			LogType::LOG_SUCCESS);
 
-		OpenGLCore::InitializeAllFunctions();
-
 		//and finally set opengl viewport size
-		kglViewport(
+		glViewport(
 			0, 
 			0, 
 			targetWindow->GetSize().x,
@@ -254,7 +254,7 @@ namespace KalaWindow::Graphics
 
 	bool Renderer_OpenGL::IsCorrectVersion()
 	{
-		const char* versionStr = reinterpret_cast<const char*>(kglGetString(GL_VERSION));
+		const char* versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 		if (!versionStr) return false;
 
 		int major = 0;
