@@ -3,13 +3,11 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
-
 #pragma once
 
 #include <unordered_map>
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::Vulkan
 {
     using std::unordered_map;
 
@@ -553,5 +551,3 @@ namespace KalaWindow::Graphics
         { VulkanDeviceExtensions::V_DE_ext_pci_bus_info,                        "VK_EXT_pci_bus_info" }
     };
 }
-
-#endif //KALAWINDOW_SUPPORT_VULKAN

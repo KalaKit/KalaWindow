@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
-
 #pragma once
 
 #include <vector>
@@ -13,7 +11,7 @@
 #include "graphics/window.hpp"
 #include "graphics/vulkan/enums_vulkan.hpp"
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::Vulkan
 {
 	using std::vector;
 	using std::function;
@@ -122,5 +120,3 @@ namespace KalaWindow::Graphics
 		static inline vector<VulkanDeviceExtensions> enabledDeviceExtensions{};
 	};
 }
-
-#endif //KALAWINDOW_SUPPORT_VULKAN

@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
-
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -27,8 +25,8 @@ using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::TimeFormat;
 using KalaWindow::Core::DateFormat;
-using KalaWindow::Graphics::ShaderType;
-using KalaWindow::Graphics::Shader_OpenGL;
+using KalaWindow::Graphics::OpenGL::ShaderType;
+using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 
 using std::string;
 using std::to_string;
@@ -136,7 +134,7 @@ static bool InitShader(
     return true;
 }
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::OpenGL
 {
     Shader_OpenGL* Shader_OpenGL::CreateShader(
         const string& shaderName,
@@ -811,5 +809,3 @@ static bool CheckCompileErrors(GLuint shader, const string& type)
 
     return true;
 }
-
-#endif //KALAWINDOW_SUPPORT_OPENGL

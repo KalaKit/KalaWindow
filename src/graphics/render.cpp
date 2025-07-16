@@ -18,13 +18,11 @@
 
 #include <string>
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
 #include "graphics/opengl/opengl.hpp"
 using KalaWindow::Graphics::Renderer_OpenGL;
-#elif KALAWINDOW_SUPPORT_VULKAN
+
 #include "graphics/vulkan/vulkan.hpp"
 using KalaWindow::Graphics::Renderer_Vulkan;
-#endif //KALAWINDOW_SUPPORT_VULKAN
 
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Logger;
@@ -93,9 +91,7 @@ namespace KalaWindow::Graphics
 			Window::DeleteWindow(winPtr);
 		}
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
 		Renderer_Vulkan::Shutdown();
-#endif //KALAWINDOW_SUPPORT_VULKAN
 
 		try
 		{

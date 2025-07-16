@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
-
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -466,5 +464,3 @@ namespace KalaWindow::Graphics
         }
 	}
 }
-
-#endif //KALAWINDOW_SUPPORT_VULKAN

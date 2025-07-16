@@ -5,7 +5,6 @@
 
 #pragma once
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
 #ifdef _WIN32
 
 #include <cstdint>
@@ -38,4 +37,3 @@ inline BOOL(WINAPI* wglSwapIntervalEXT)(
     int interval) = nullptr;
 
 #endif //_WIN32
-#endif //KALAWINDOW_SUPPORT_OPENGL

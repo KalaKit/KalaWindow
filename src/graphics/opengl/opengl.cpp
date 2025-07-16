@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
-
 #ifdef _WIN32
 #include <windows.h>
 #elif __linux__
@@ -30,7 +28,7 @@ using KalaWindow::Core::LogType;
 //Used in window.hpp
 static VSyncState vsyncState = VSyncState::VSYNC_ON;
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::OpenGL
 {
 	const char* Renderer_OpenGL::GetGLErrorString(unsigned int err)
 	{
@@ -121,5 +119,3 @@ namespace KalaWindow::Graphics
 		}
 	}
 }
-
-#endif //KALAWINDOW_SUPPORT_OPENGL

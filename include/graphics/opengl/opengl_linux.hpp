@@ -5,7 +5,6 @@
 
 #pragma once
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
 #ifdef __linux__
 
 #define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
@@ -14,4 +13,3 @@
 #define GLX_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
 
 #endif //__linux__
-#endif //KALAWINDOW_SUPPORT_OPENGL

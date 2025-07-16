@@ -33,17 +33,15 @@ using std::filesystem::directory_iterator;
 unordered_map<GlyphType, Glyph> templateGlyphs = {};
 vector<unique_ptr<Glyph>> placedGlyphs = {};
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
 static bool InitializeGlyphs_OpenGL(Window* window);
 static unique_ptr<Glyph> PlaceGlyph_OpenGL(Window* window);
 static bool RenderGlyphs_OpenGL(Window* window);
 static void ClearGlyphs_OpenGL(Window* window);
-#elif KALAWINDOW_SUPPORT_VULKAN
+
 static bool InitializeGlyphs_Vulkan(Window* window);
 static unique_ptr<Glyph> PlaceGlyph_Vulkan(Window* window);
 static bool RenderGlyphs_Vulkan(Window* window);
 static void ClearGlyphs_Vulkan(Window* window);
-#endif
 
 static GlyphType CharToGlyphEnum(const char& c);
 
@@ -86,11 +84,10 @@ namespace KalaWindow::Graphics
 
         bool initSuccess = false;
         string failReason{};
-#ifdef KALAWINDOW_SUPPORT_OPENGL
+
         initSuccess = InitializeGlyphs_OpenGL(window);
-#elif KALAWINDOW_SUPPORT_VULKAN
         initSuccess = InitializeGlyphs_Vulkan(window);
-#endif
+
         if (!initSuccess) return false;
 
         Logger::Print(
@@ -136,11 +133,10 @@ namespace KalaWindow::Graphics
 
             unique_ptr<Glyph> newGlyph{};
             string failReason{};
-#ifdef KALAWINDOW_SUPPORT_OPENGL
+
             newGlyph = PlaceGlyph_OpenGL(window);
-#elif KALAWINDOW_SUPPORT_VULKAN
             newGlyph = PlaceGlyph_Vulkan(window);
-#endif
+
             if (newGlyph == nullptr) continue;
 
             validGlyphs.push_back(move(newGlyph));
@@ -167,13 +163,11 @@ namespace KalaWindow::Graphics
 
         bool placeSuccess = false;
         string failReason{};
-#ifdef KALAWINDOW_SUPPORT_OPENGL
+
         failReason = "OpenGL";
         newGlyph = PlaceGlyph_OpenGL(window);
-#elif KALAWINDOW_SUPPORT_VULKAN
         failReason = "Vulkan";
         newGlyph = PlaceGlyph_Vulkan(window);
-#endif
 
         if (newGlyph == nullptr) return nullptr;
 
@@ -194,23 +188,20 @@ namespace KalaWindow::Graphics
 
         bool renderSuccess = false;
         string failReason{};
-#ifdef KALAWINDOW_SUPPORT_OPENGL
+
         failReason = "OpenGL";
         renderSuccess = RenderGlyphs_OpenGL(window);
-#elif KALAWINDOW_SUPPORT_VULKAN
         failReason = "Vulkan";
         renderSuccess = RenderGlyphs_Vulkan(window);
-#endif
+
         return renderSuccess;
     }
 
     void GlyphSystem::ClearGlyphs(Window* window)
     {
-#ifdef KALAWINDOW_SUPPORT_OPENGL
         ClearGlyphs_OpenGL(window);
-#elif KALAWINDOW_SUPPORT_VULKAN
         ClearGlyphs_Vulkan(window);
-#endif
+
         placedGlyphs.clear();
 
         Logger::Print(
@@ -220,47 +211,40 @@ namespace KalaWindow::Graphics
     }
 }
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
+
 bool InitializeGlyphs_OpenGL(Window* window)
 {
     return true;
 }
-
 unique_ptr<Glyph> PlaceGlyph_OpenGL(Window* window)
 {
     return nullptr;
 }
-
 bool RenderGlyphs_OpenGL(Window* window)
 {
     return true;
 }
-
 void ClearGlyphs_OpenGL(Window* window)
 {
 
 }
-#elif KALAWINDOW_SUPPORT_VULKAN
+
 bool InitializeGlyphs_Vulkan(Window* window)
 {
     return true;
 }
-
 unique_ptr<Glyph> PlaceGlyph_Vulkan(Window* window)
 {
     return nullptr;
 }
-
 bool RenderGlyphs_Vulkan(Window* window)
 {
     return true;
 }
-
 void ClearGlyphs_Vulkan(Window* window)
 {
 
 }
-#endif //KALAWINDOW_SUPPORT_VULKAN
 
 GlyphType CharToGlyphEnum(const char& c)
 {

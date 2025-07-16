@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
-
 #include <unordered_map>
 #include <string_view>
 #include <string>
@@ -306,5 +304,3 @@ namespace KalaWindow::Graphics::OpenGL
 		return nullptr;
 	}
 }
-
-#endif //KALAWINDOW_SUPPORT_OPENGL

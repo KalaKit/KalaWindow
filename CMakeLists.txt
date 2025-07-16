@@ -11,47 +11,28 @@ if (MSVC)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif()
 
-# === Platform Check ===
-if (NOT WIN32)
-    message(FATAL_ERROR "[KALAWINDOW] Vulkan/OpenGL renderer currently supports only Windows.")
-endif()
-
-# === Renderer Selection ===
-if (NOT DEFINED KALAWINDOW_RENDERER)
-    message(FATAL_ERROR "[KALAWINDOW] You must define -DKALAWINDOW_RENDERER=opengl or vulkan")
-endif()
-
-string(TOLOWER "${KALAWINDOW_RENDERER}" KALAWINDOW_RENDERER)
-message(STATUS "[KALAWINDOW] Selected renderer: ${KALAWINDOW_RENDERER}")
-
-set(ENABLE_OPENGL FALSE)
-set(ENABLE_VULKAN FALSE)
-
-if(KALAWINDOW_RENDERER STREQUAL "opengl")
-    set(ENABLE_OPENGL TRUE)
-elseif(KALAWINDOW_RENDERER STREQUAL "vulkan")
-    set(ENABLE_VULKAN TRUE)
+# Platform Detection
+if (WIN32)
+    message(STATUS "[KALAWINDOW] Platform = Windows")
+elseif(UNIX)
+    find_package(X11 REQUIRED)
+    message(STATUS "[KALAWINDOW] Platform = Linux")
 else()
-    message(FATAL_ERROR "[KALAWINDOW] Invalid renderer: '${KALAWINDOW_RENDERER}'. Must be 'vulkan' or 'opengl'.")
+    message(FATAL_ERROR "[KALAWINDOW] Unsupported platform. Must be Windows or Linux.")
 endif()
 
-# === Dependencies ===
-if(ENABLE_VULKAN)
-    find_package(Vulkan REQUIRED)
-endif()
+# Dependencies
+find_package(OpenGL REQUIRED)
+find_package(Vulkan REQUIRED)
 
-if(ENABLE_OPENGL)
-    find_package(OpenGL REQUIRED)
-endif()
-
-# === Paths ===
+# Paths
 set(WINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(WINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
-# === Source Files ===
+# Source Files
 set(WINDOW_SRC_FILES)
 
-file(GLOB BASE_SRC CONFIGURE_DEPENDS
+file(GLOB WINDOW_SRC CONFIGURE_DEPENDS
     ${WINDOW_SRC_DIR}/*.cpp
     ${WINDOW_SRC_DIR}/core/*.cpp
     ${WINDOW_SRC_DIR}/graphics/*.cpp
@@ -59,24 +40,12 @@ file(GLOB BASE_SRC CONFIGURE_DEPENDS
 	${WINDOW_SRC_DIR}/graphics/vulkan/*.cpp
     ${WINDOW_SRC_DIR}/windows/*.cpp
     ${WINDOW_SRC_DIR}/linux/*.cpp
+	${WINDOW_SRC_DIR}/opengl/*.cpp
+	${WINDOW_SRC_DIR}/vulkan/*.cpp
 )
-list(APPEND WINDOW_SRC_FILES ${BASE_SRC})
+list(APPEND WINDOW_SRC_FILES ${WINDOW_SRC})
 
-if(ENABLE_OPENGL)
-    file(GLOB OPENGL_SRC CONFIGURE_DEPENDS
-        ${WINDOW_SRC_DIR}/opengl/*.cpp
-    )
-    list(APPEND WINDOW_SRC_FILES ${OPENGL_SRC})
-endif()
-
-if(ENABLE_VULKAN)
-    file(GLOB VULKAN_SRC CONFIGURE_DEPENDS
-        ${WINDOW_SRC_DIR}/vulkan/*.cpp
-    )
-    list(APPEND WINDOW_SRC_FILES ${VULKAN_SRC})
-endif()
-
-# === SHARED LIBRARY (.dll) ===
+# SHARED LIBRARY (.dll)
 add_library(KalaWindow SHARED ${WINDOW_SRC_FILES})
 
 # Enable C++ exception handling semantics for MSVC
@@ -86,7 +55,7 @@ endif()
 
 # Set output name with renderer suffix and debug postfix
 set_target_properties(KalaWindow PROPERTIES
-    OUTPUT_NAME "KalaWindow_${KALAWINDOW_RENDERER}$<$<CONFIG:Debug>:D>"
+    OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>"
 )
 
 file(GLOB_RECURSE HEADERS
@@ -102,20 +71,8 @@ target_compile_definitions(KalaWindow PRIVATE
     NOMINMAX
 )
 
-# === Compile Definitions Per Renderer ===
-if(ENABLE_OPENGL)
-    target_compile_definitions(KalaWindow PRIVATE KALAWINDOW_SUPPORT_OPENGL=1)
-endif()
-
-if(ENABLE_VULKAN)
-    target_compile_definitions(KalaWindow PRIVATE KALAWINDOW_SUPPORT_VULKAN=1)
-endif()
-
-# === Link Libraries Per Renderer ===
-if(ENABLE_VULKAN)
-    target_link_libraries(KalaWindow PRIVATE Vulkan::Vulkan)
-endif()
-
-if(ENABLE_OPENGL)
-    target_link_libraries(KalaWindow PRIVATE OpenGL::GL opengl32)
-endif()
+# Link Libraries
+target_link_libraries(KalaWindow PRIVATE 
+	OpenGL::GL 
+	opengl32
+	Vulkan::Vulkan)

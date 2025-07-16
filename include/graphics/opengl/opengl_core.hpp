@@ -5,8 +5,6 @@
 
 #pragma once
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
-
 #include <cstdint>
 #include <cstddef>
 
@@ -82,7 +80,6 @@ inline constexpr GLenum GL_NAME_LENGTH        = 0x92F9; //Length of active resou
 inline constexpr GLenum GL_PROGRAM_INPUT      = 0x92E3; //Program input interface
 inline constexpr GLenum GL_PROGRAM_OUTPUT     = 0x92E4; //Program output interface
 inline constexpr GLenum GL_TYPE               = 0x92FA; //Type of resource
-
 
 //Uniform usage
 
@@ -564,5 +561,3 @@ namespace KalaWindow::Graphics::OpenGL
 		static void* GetGLProcAddress(const char* name);
 	};
 }
-
-#endif //KALAWINDOW_SUPPORT_OPENGL

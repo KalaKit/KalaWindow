@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
-
 #include <Windows.h>
 #include <string>
 #include <sstream>
@@ -61,7 +59,7 @@ static void ForceClose(
 	}
 }
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::OpenGL
 {
 	bool Renderer_OpenGL::Initialize(
 		Window* targetWindow)
@@ -270,5 +268,3 @@ namespace KalaWindow::Graphics
 			&& minor >= 3);
 	}
 }
-
-#endif //KALAWINDOW_SUPPORT_OPENGL

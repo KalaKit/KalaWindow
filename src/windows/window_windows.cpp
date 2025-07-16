@@ -9,10 +9,8 @@
 #include <ShlObj.h>
 #include <algorithm>
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
 #include <vulkan/vulkan.h>
 #include "graphics/vulkan/vulkan.hpp"
-#endif //KALAWINDOW_SUPPORT_VULKAN
 
 #include "graphics/window.hpp"
 #include "windows/messageloop.hpp"
@@ -398,7 +396,6 @@ namespace KalaWindow::Graphics
 
 		GlyphSystem::ClearGlyphs(window);
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
 		if (win.openglData.hglrc)
 		{
 			wglMakeCurrent(nullptr, nullptr);
@@ -414,9 +411,9 @@ namespace KalaWindow::Graphics
 			win.openglData.hdc = NULL;
 		}
 		if (win.wndProc) win.wndProc = NULL;
-#elif KALAWINDOW_SUPPORT_VULKAN
+
 		Renderer_Vulkan::DestroyWindowData(window);
-#endif //KALAWINDOW_SUPPORT_VULKAN
+
 		if (win.hwnd)
 		{
 			DestroyWindow(winRef);

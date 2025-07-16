@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_OPENGL
-
 #pragma once
 
 #include <memory>
@@ -12,7 +10,7 @@
 #include "core/platform.hpp"
 #include "graphics/window.hpp"
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::OpenGL
 {
 	using std::unique_ptr;
 
@@ -39,5 +37,3 @@ namespace KalaWindow::Graphics
 		static bool IsCorrectVersion();
 	};
 }
-
-#endif //KALAWINDOW_SUPPORT_OPENGL

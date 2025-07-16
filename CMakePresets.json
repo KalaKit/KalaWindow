@@ -20,50 +20,24 @@
       }
     },
     {
-      "name": "debug_opengl",
+      "name": "debug",
       "inherits": "windows-base",
-      "binaryDir": "${sourceDir}/debug_opengl",
+      "binaryDir": "${sourceDir}/debug",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "KALAWINDOW_RENDERER": "opengl",
-		"CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_OPENGL"
+        "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "debug_vulkan",
+      "name": "release",
       "inherits": "windows-base",
-      "binaryDir": "${sourceDir}/debug_vulkan",
+      "binaryDir": "${sourceDir}/release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Debug",
-        "KALAWINDOW_RENDERER": "vulkan",
-		"CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_VULKAN"
-      }
-    },
-    {
-      "name": "release_opengl",
-      "inherits": "windows-base",
-      "binaryDir": "${sourceDir}/release_opengl",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "KALAWINDOW_RENDERER": "opengl",
-		"CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_OPENGL"
-      }
-    },
-    {
-      "name": "release_vulkan",
-      "inherits": "windows-base",
-      "binaryDir": "${sourceDir}/release_vulkan",
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "Release",
-        "KALAWINDOW_RENDERER": "vulkan",
-		"CMAKE_CXX_FLAGS": "-DKALAWINDOW_SUPPORT_VULKAN"
+        "CMAKE_BUILD_TYPE": "Release"
       }
     }
   ],
   "buildPresets": [
-    { "name": "debug_opengl", "configurePreset": "debug_opengl" },
-    { "name": "debug_vulkan", "configurePreset": "debug_vulkan" },
-    { "name": "release_opengl", "configurePreset": "release_opengl" },
-    { "name": "release_vulkan", "configurePreset": "release_vulkan" }
+    { "name": "debug", "configurePreset": "debug" },
+    { "name": "release", "configurePreset": "release" }
   ]
 }

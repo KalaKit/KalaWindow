@@ -3,8 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
-
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
@@ -1542,5 +1540,3 @@ static int RatePhysicalDevice(
 
 	return score;
 }
-
-#endif //KALAWINDOW_SUPPORT_VULKAN

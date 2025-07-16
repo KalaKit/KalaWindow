@@ -3,12 +3,10 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef KALAWINDOW_SUPPORT_VULKAN
-
 #include "core/platform.hpp"
 #include "graphics/window.hpp"
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::Vulkan
 {
     using KalaWindow::Graphics::Window;
 
@@ -22,5 +20,3 @@ namespace KalaWindow::Graphics
         static void DestroySwapchain(Window* window);
     };
 }
-
-#endif //KALAWINDOW_SUPPORT_VULKAN
