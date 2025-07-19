@@ -93,8 +93,8 @@ static bool InitShader(
     if (code.empty())
     {
         ForceClose(
-            "Vulkan error",
-            "[Shader_Vulkan] Failed to open " + shaderType + " shader file: " + shaderPath);
+            "Vulkan error [Shader_Vulkan]",
+            "Failed to open " + shaderType + " shader file: " + shaderPath);
         return false;
     }
 
@@ -110,8 +110,8 @@ static bool InitShader(
         &shaderModule) != VK_SUCCESS)
     {
         ForceClose(
-            "Vulkan error",
-            "[Shader_Vulkan] Failed to create " + shaderType + " shader module for shader file: " + shaderPath);
+            "Vulkan error [Shader_Vulkan]",
+            "Failed to create " + shaderType + " shader module for shader file: " + shaderPath);
         return false;
     }
 
@@ -306,8 +306,8 @@ namespace KalaWindow::Graphics::Vulkan
             &newLayout) != VK_SUCCESS)
         {
             ForceClose(
-                "Vulkan error",
-                "[Shader_Vulkan] Failed to create pipeline layout!");
+                "Vulkan error [Shader_Vulkan]",
+                "Failed to create pipeline layout!");
             return nullptr;
         }
         shaderPtr->layout = FromVar<VkPipelineLayout>(newLayout);
@@ -335,8 +335,8 @@ namespace KalaWindow::Graphics::Vulkan
             &newPipeline) != VK_SUCCESS)
         {
             ForceClose(
-                "Vulkan error",
-                "[Shader_Vulkan] Failed to create graphics pipeline!");
+                "Vulkan error [Shader_Vulkan]",
+                "Failed to create graphics pipeline!");
             return nullptr;
         }
         shaderPtr->pipeline = FromVar<VkPipeline>(newPipeline);

@@ -760,11 +760,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 	void Renderer_Vulkan::DestroySyncObjects(Window* window)
 	{
-		if (!isVulkanInitialized)
-		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "destroy sync objects");
-			return;
-		}
+		if (!isVulkanInitialized) return;
 
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = window->GetVulkanStruct();

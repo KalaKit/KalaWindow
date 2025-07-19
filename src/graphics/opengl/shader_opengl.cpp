@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <vector>
 
 #include "graphics/window.hpp"
 #include "graphics/opengl/shader_opengl.hpp"
@@ -35,6 +36,7 @@ using std::stringstream;
 using std::make_unique;
 using std::filesystem::exists;
 using std::filesystem::path;
+using std::vector;
 
 static bool CheckCompileErrors(GLuint shader, const string& type);
 
@@ -79,8 +81,8 @@ static bool InitShader(
     if (!shaderFile.is_open())
     {
         ForceClose(
-            "OpenGL error",
-            "[Shader_OpenGL] Failed to open " + shaderType + " shader file: " + shaderPath);
+            "OpenGL error [Shader_OpenGL]",
+            "Failed to open " + shaderType + " shader file: " + path(shaderPath).filename().string());
         return false;
     }
 
@@ -125,8 +127,8 @@ static bool InitShader(
         glDeleteShader(shaderID);
 
         ForceClose(
-            "OpenGL error",
-            "[Shader_OpenGL] Failed to compile " + shaderType + " shader '" + shaderPath + "'!");
+            "OpenGL error [Shader_OpenGL]",
+            "Failed to compile " + shaderType + " shader '" + shaderPath + "'!");
 
         return false;
     }
@@ -197,7 +199,7 @@ namespace KalaWindow::Graphics::OpenGL
             {
                 Logger::Print(
                     "Shader '" + shaderName + "' with type '"
-                    + shaderType + "' has an invalid path '" + stage.shaderPath + "'!",
+                    + shaderType + "' has an invalid path '" + path(stage.shaderPath).filename().string() + "'!",
                     "SHADER_OPENGL",
                     LogType::LOG_ERROR,
                     2);
@@ -354,23 +356,31 @@ namespace KalaWindow::Graphics::OpenGL
                     LogType::LOG_ERROR,
                     2);
             }
+            else
+            {
+                Logger::Print(
+                    "Shader linking failed, but GL_INFO_LOG_LENGTH was 0 (no error message).",
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+            }
 
             if (!geomShaderExists)
             {
                 ForceClose(
-                    "OpenGL error",
-                    "[Shader_OpenGL] Failed to link vertex shader '" +
-                    newVertStage.shaderPath + "' and fragment shader '" +
-                    newFragStage.shaderPath + "' to program!");
+                    "OpenGL error [Shader_OpenGL]",
+                    "Failed to link vertex shader '" +
+                    path(newVertStage.shaderPath).filename().string() + "' and fragment shader '" +
+                    path(newFragStage.shaderPath).filename().string() + "' to program!");
             }
             else
             {
                 ForceClose(
-                    "OpenGL error",
-                    "[Shader_OpenGL] Failed to link vertex shader '" +
-                    newVertStage.shaderPath + "', fragment shader '" +
-                    newFragStage.shaderPath + "' and geometry shader '" +
-                    newGeomStage.shaderPath + "' to program!");
+                    "OpenGL error [Shader_OpenGL]",
+                    "Failed to link vertex shader '" +
+                    path(newVertStage.shaderPath).filename().string() + "', fragment shader '" +
+                    path(newFragStage.shaderPath).filename().string() + "' and geometry shader '" +
+                    path(newGeomStage.shaderPath).filename().string() + "' to program!");
             }
 
             return nullptr;
@@ -414,15 +424,15 @@ namespace KalaWindow::Graphics::OpenGL
                 string logStr(log.begin(), log.end());
 
                 ForceClose(
-                    "OpenGL error",
-                    "[Shader_OpenGL] Shader program validation failed:\n" + logStr);
+                    "OpenGL error [Shader_OpenGL]",
+                    "Shader program validation failed:\n" + logStr);
 
                 return nullptr;
             }
 
             ForceClose(
-                "OpenGL error",
-                "[Shader_OpenGL] Shader program validation failed!");
+                "OpenGL error [Shader_OpenGL]",
+                "Shader program validation failed!");
 
             return nullptr;
         }
@@ -771,36 +781,96 @@ namespace KalaWindow::Graphics::OpenGL
 static bool CheckCompileErrors(GLuint shader, const string& type)
 {
     GLint success = 0;
-    char infoLog[1024];
+    GLint logLength = 0;
 
-    if (type != "PROGRAM")
+    if (type == "PROGRAM")
     {
-        glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+        glGetProgramiv(
+            shader,
+            GL_LINK_STATUS,
+            &success);
+        glGetProgramiv(
+            shader,
+            GL_INFO_LOG_LENGTH,
+            &logLength);
         if (!success)
         {
-            glGetShaderInfoLog(shader, 1024, nullptr, infoLog);
+            if (logLength > 0)
+            {
+                vector<char> infoLog(logLength);
+                glGetProgramInfoLog(
+                    shader,
+                    logLength,
+                    nullptr,
+                    infoLog.data());
 
-            Logger::Print(
-                "Shader compilation failed (" + type + "):\n" + infoLog,
-                "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
+                Logger::Print(
+                    "Shader linking failed (" + type + "):\n" + string(infoLog.data()),
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+            }
+            else
+            {
+                Logger::Print(
+                    "Shader linking failed (" + type + "), but no log was returned.",
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+            }
             return false;
+        }
+        else
+        {
+            Logger::Print(
+                "Shader linking succeeded (" + type + ")",
+                "SHADER_OPENGL",
+                LogType::LOG_SUCCESS);
         }
     }
     else
     {
-        glGetProgramiv(shader, GL_LINK_STATUS, &success);
+        glGetShaderiv(
+            shader,
+            GL_COMPILE_STATUS,
+            &success);
+        glGetShaderiv(
+            shader,
+            GL_INFO_LOG_LENGTH,
+            &logLength);
         if (!success)
         {
-            glGetProgramInfoLog(shader, 1024, nullptr, infoLog);
+            if (logLength > 0)
+            {
+                vector<char> infoLog(logLength);
+                glGetShaderInfoLog(
+                    shader,
+                    logLength,
+                    nullptr,
+                    infoLog.data());
 
-            Logger::Print(
-                "Program linking failed:\n" + string(infoLog),
-                "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
+                Logger::Print(
+                    "Shader compilation failed (" + type + "):\n" + string(infoLog.data()),
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+            }
+            else
+            {
+                Logger::Print(
+                    "Shader compilation failed (" + type + "), but no log was returned.",
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+            }
             return false;
+        }
+        else
+        {
+            Logger::Print(
+                "Shader compilation succeeded (" + type + ")",
+                "SHADER_OPENGL",
+                LogType::LOG_SUCCESS);
         }
     }
 
