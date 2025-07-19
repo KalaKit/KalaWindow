@@ -63,58 +63,58 @@ namespace KalaWindow::Graphics
 
 	struct Window_OpenGLData
 	{
-		uintptr_t hglrc;      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
-		uintptr_t hdc;        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
-		uintptr_t glxContext; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
-		unsigned int lastProgramID = 0;
+		uintptr_t hglrc{};      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
+		uintptr_t hdc{};        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
+		uintptr_t glxContext{}; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
+		unsigned int lastProgramID{};
 	};
 	struct Window_VulkanData
 	{
 		//Core surface & swapchain handles
 
-		uintptr_t surface;   //VkSurfaceKHR
-		uintptr_t swapchain; //VkSwapchainKHR
+		uintptr_t surface{};   //VkSurfaceKHR
+		uintptr_t swapchain{}; //VkSwapchainKHR
 
 		//Swapchain image metadata
 
-		uint32_t swapchainImageFormat;  //VkFormat
-		uint32_t swapchainExtentWidth;  //VkExtent2D
-		uint32_t swapchainExtentHeight; //VkExtent2D
+		uint32_t swapchainImageFormat{};  //VkFormat
+		uint32_t swapchainExtentWidth{};  //VkExtent2D
+		uint32_t swapchainExtentHeight{}; //VkExtent2D
 
 		//Swapchain image views and framebuffers
 
-		vector<uintptr_t>  images;       //VkImage
-		vector<uintptr_t>  imageViews;   //VkImageView
-		vector<uintptr_t>  framebuffers; //VkFramebuffer
+		vector<uintptr_t>  images{};       //VkImage
+		vector<uintptr_t>  imageViews{};   //VkImageView
+		vector<uintptr_t>  framebuffers{}; //VkFramebuffer
 
 		//Synchronization primitives, one set per swapchain image
 
-		vector<uintptr_t>  imageAvailableSemaphores; //VkSemaphore
-		vector<uintptr_t>  renderFinishedSemaphores; //VkSemaphore
-		vector<uintptr_t>  inFlightFences;           //VkFence
-		vector<uintptr_t>  imagesInFlight;           //VkFence
+		vector<uintptr_t>  imageAvailableSemaphores{}; //VkSemaphore
+		vector<uintptr_t>  renderFinishedSemaphores{}; //VkSemaphore
+		vector<uintptr_t>  inFlightFences{};           //VkFence
+		vector<uintptr_t>  imagesInFlight{};           //VkFence
 
 		//Command buffers & pool used for recording into those framebuffers
 
-		vector<uintptr_t>  commandBuffers; //VkCommandBuffer
-		uintptr_t commandPool;             //VkCommandPool
+		vector<uintptr_t>  commandBuffers{}; //VkCommandBuffer
+		uintptr_t commandPool{};             //VkCommandPool
 
 		//The render pass used when drawing into these framebuffers
 
-		uintptr_t renderPass; //VkRenderPass
+		uintptr_t renderPass{}; //VkRenderPass
 	};
 
 	struct WindowStruct_Windows
 	{
-		uintptr_t hwnd;
-		uintptr_t hInstance;
-		uintptr_t wndProc;   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
+		uintptr_t hwnd{};
+		uintptr_t hInstance{};
+		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
 	};
 	struct WindowStruct_X11
 	{
-		uintptr_t display;
-		uintptr_t window;
-		uintptr_t visual;
+		uintptr_t display{};
+		uintptr_t window{};
+		uintptr_t visual{};
 	};
 
 	class KALAWINDOW_API Window
@@ -228,9 +228,9 @@ namespace KalaWindow::Graphics
 
 		//core variables
 
-		string title;        //The title of this window
-		unsigned int ID;     //The ID of this window
-		kvec2 size;          //The width and height of this window
+		string title{};        //The title of this window
+		unsigned int ID{};     //The ID of this window
+		kvec2 size{};          //The width and height of this window
 
 		//platform-specific variables
 
@@ -239,10 +239,10 @@ namespace KalaWindow::Graphics
 
 		//vendor-specific variables
 
-		Window_OpenGLData openglData; //The OpenGL data of this window
-		Window_VulkanData vulkanData; //The Vulkan data of this window
+		Window_OpenGLData openglData{}; //The OpenGL data of this window
+		Window_VulkanData vulkanData{}; //The Vulkan data of this window
 
-		function<void()> resizeCallback;
+		function<void()> resizeCallback{};
 
 		//KalaWindow will dynamically update window idle state
 		void UpdateIdleState();

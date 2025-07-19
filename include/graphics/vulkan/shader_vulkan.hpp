@@ -248,12 +248,12 @@ namespace KalaWindow::Graphics::Vulkan
 		//Destroys this created shader and its data
 		void DestroyShader();
 	private:
-		string name;
+		string name{};
 
-		uintptr_t pipeline;            //vkpipeline
-		uintptr_t layout;              //vkpipelinelayout
-		uintptr_t descriptorSetLayout; //vkdescriptorsetlayout
+		uintptr_t pipeline{};            //vkpipeline
+		uintptr_t layout{};              //vkpipelinelayout
+		uintptr_t descriptorSetLayout{}; //vkdescriptorsetlayout
 
-		vector<ShaderStage> shaders;
+		vector<ShaderStage> shaders{};
 	};
 }

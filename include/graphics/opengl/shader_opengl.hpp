@@ -218,10 +218,10 @@ namespace KalaWindow::Graphics::OpenGL
 		//Destroys this created shader and its data
 		void DestroyShader();
 	private:
-		string name;
+		string name{};
 
-		unsigned int programID;
+		unsigned int programID{};
 
-		vector<ShaderStage> shaders;
+		vector<ShaderStage> shaders{};
 	};
 }
