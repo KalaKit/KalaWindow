@@ -23,6 +23,13 @@ namespace KalaWindow::Graphics::Vulkan
 		VK_FRAME_ERROR          //Unexpected error - recreate needed
 	};
 
+	enum VSyncState
+	{
+		VSYNC_ON,              //Framerate is capped to monitor refresh rate.
+		VSYNC_OFF,             //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
+		VSYNC_TRIPLE_BUFFERING //Low latency, no screen tearing. Does not exist in OpenGL, will default to 'ON'!
+	};
+
 	class KALAWINDOW_API Renderer_Vulkan
 	{
 	public:
@@ -30,6 +37,11 @@ namespace KalaWindow::Graphics::Vulkan
 		static uintptr_t GetInstance() { return instance; }
 		static uintptr_t GetDevice() { return device; }
 		static uintptr_t GetPhysicalDevice() { return physicalDevice; }
+
+		//Checks if vsync is enabled or not.
+		static VSyncState GetVSyncState();
+		//Allows to set vsync true or false.
+		static void SetVSyncState(VSyncState vsyncState);
 
 		//
 		// INITIALIZE PHASE

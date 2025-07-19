@@ -27,7 +27,7 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::PopupResult;
-using KalaWindow::Graphics::VSyncState;
+using KalaWindow::Graphics::Vulkan::VSyncState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::TimeFormat;
@@ -72,7 +72,7 @@ static bool IsValidHandle(
 	return true;
 }
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::Vulkan
 {
 	void Extensions_Vulkan::CreateVulkanSurface(Window* targetWindow)
 	{
@@ -83,7 +83,7 @@ namespace KalaWindow::Graphics
 		}
 
 		WindowStruct_Windows& winData = targetWindow->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
+		Window_VulkanData& vData = targetWindow->GetVulkanStruct();
 
 #ifdef _WIN32
 		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
@@ -135,7 +135,7 @@ namespace KalaWindow::Graphics
 		VkPhysicalDevice pDev = ToVar<VkPhysicalDevice>(Renderer_Vulkan::GetPhysicalDevice());
 
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
+		Window_VulkanData& vData = window->GetVulkanStruct();
 
 		//surface capabilities
 
@@ -359,7 +359,7 @@ namespace KalaWindow::Graphics
 	void Extensions_Vulkan::DestroySwapchain(Window* window)
 	{
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = winData.vulkanData;
+		Window_VulkanData& vData = window->GetVulkanStruct();
 
 		if (Renderer_Vulkan::GetDevice() != NULL)
 		{
@@ -400,12 +400,13 @@ namespace KalaWindow::Graphics
 	// EXTERNAL
 	//
 
-	VSyncState Window::GetVSyncState() { return vsyncState; }
-	void Window::SetVSyncState(VSyncState newVSyncState)
+	VSyncState Renderer_Vulkan::GetVSyncState() { return vsyncState; }
+	void Renderer_Vulkan::SetVSyncState(VSyncState newVSyncState)
 	{
 		vsyncState = newVSyncState;
 
-		Renderer_Vulkan::HardReset(this);
+		Window* window = Window::windows.front();
+		Renderer_Vulkan::HardReset(window);
 	}
 }
 

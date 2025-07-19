@@ -64,11 +64,13 @@ namespace KalaWindow::Graphics::OpenGL
 	bool Renderer_OpenGL::Initialize(
 		Window* targetWindow)
 	{
-		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-		HWND windowRef = ToVar<HWND>(window.hwnd);
+		WindowStruct_Windows wData = targetWindow->GetWindow_Windows();
+		Window_OpenGLData oData{};
+		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
 		HDC hdc = GetDC(windowRef);
-		window.openglData.hdc = FromVar<HDC>(hdc);
+		oData.hdc = FromVar<HDC>(hdc);
+		targetWindow->SetOpenGLStruct(oData);
 
 		//
 		// CREATE A DUMMY CONTEXT TO LOAD WGL EXTENSIONS
@@ -183,11 +185,11 @@ namespace KalaWindow::Graphics::OpenGL
 			0
 		};
 
-		window.openglData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(
+		oData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(
 			hdc, 
 			0, 
 			attribs));
-		if (!window.openglData.hglrc)
+		if (!oData.hglrc)
 		{
 			Logger::Print(
 				"Failed to create OpenGL 3.3 context!",
@@ -209,7 +211,7 @@ namespace KalaWindow::Graphics::OpenGL
 		wglMakeCurrent(nullptr, nullptr);
 		wglDeleteContext(dummyRC);
 
-		wglMakeCurrent(hdc, reinterpret_cast<HGLRC>(window.openglData.hglrc));
+		wglMakeCurrent(hdc, reinterpret_cast<HGLRC>(oData.hglrc));
 
 		OpenGLCore::InitializeAllFunctions();
 
@@ -245,8 +247,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 	void Renderer_OpenGL::SwapOpenGLBuffers(Window* targetWindow)
 	{
-		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
-		HDC hdc = ToVar<HDC>(window.openglData.hdc);
+		Window_OpenGLData& oData = targetWindow->GetOpenGLStruct();
+		HDC hdc = ToVar<HDC>(oData.hdc);
 		SwapBuffers(hdc);
 	}
 

@@ -14,10 +14,10 @@
 
 #include "graphics/window.hpp"
 #include "windows/messageloop.hpp"
-#include "graphics/glyph.hpp"
 #include "core/input.hpp"
 #include "core/log.hpp"
 
+using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Logger;
@@ -139,16 +139,11 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		Window_OpenGLData oData{};
-		Window_VulkanData vData{};
-
 		WindowStruct_Windows newWindowStruct =
 		{
 			.hwnd = FromVar<HWND>(newHwnd),
 			.hInstance = FromVar<HINSTANCE>(newHInstance),
-			.wndProc = FromVar<WNDPROC>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC)),
-			.openglData = oData,
-			.vulkanData = vData
+			.wndProc = FromVar<WNDPROC>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
 		newWindow->SetWindow_Windows(newWindowStruct);
 
@@ -394,21 +389,21 @@ namespace KalaWindow::Graphics
 		HWND winRef = ToVar<HWND>(win.hwnd);
 		ShowWindow(winRef, SW_HIDE);
 
-		GlyphSystem::ClearGlyphs(window);
+		Window_OpenGLData& openGLData = window->GetOpenGLStruct();
 
-		if (win.openglData.hglrc)
+		if (openGLData.hglrc)
 		{
 			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(ToVar<HGLRC>(win.openglData.hglrc));
-			win.openglData.hglrc = NULL;
+			wglDeleteContext(ToVar<HGLRC>(openGLData.hglrc));
+			openGLData.hglrc = NULL;
 		}
 		if (win.wndProc) win.wndProc = NULL;
-		if (win.openglData.hdc)
+		if (openGLData.hdc)
 		{
 			ReleaseDC(
 				ToVar<HWND>(win.hwnd),
-				ToVar<HDC>(win.openglData.hdc));
-			win.openglData.hdc = NULL;
+				ToVar<HDC>(openGLData.hdc));
+			openGLData.hdc = NULL;
 		}
 		if (win.wndProc) win.wndProc = NULL;
 

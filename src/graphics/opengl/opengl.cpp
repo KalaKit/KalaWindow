@@ -20,7 +20,7 @@
 #endif
 
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::VSyncState;
+using KalaWindow::Graphics::OpenGL::VSyncState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 
@@ -50,8 +50,8 @@ namespace KalaWindow::Graphics::OpenGL
 	bool Renderer_OpenGL::IsContextValid(Window* targetWindow)
 	{
 #ifdef _WIN32
-		WindowStruct_Windows& win = targetWindow->GetWindow_Windows();
-		HGLRC hglrc = ToVar<HGLRC>(win.openglData.hglrc);
+		Window_OpenGLData& oData = targetWindow->GetOpenGLStruct();
+		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
 
 		HGLRC current = wglGetCurrentContext();
 		if (current == nullptr)
@@ -80,12 +80,8 @@ namespace KalaWindow::Graphics::OpenGL
 		return true;
 	}
 
-	//
-	// EXTERNAL
-	//
-
-	VSyncState Window::GetVSyncState() { return vsyncState; }
-	void Window::SetVSyncState(VSyncState newVSyncState)
+	VSyncState Renderer_OpenGL::GetVSyncState() { return vsyncState; }
+	void Renderer_OpenGL::SetVSyncState(VSyncState newVSyncState)
 	{
 		vsyncState = newVSyncState;
 
@@ -95,18 +91,9 @@ namespace KalaWindow::Graphics::OpenGL
 			{
 				wglSwapIntervalEXT(1);
 			}
-			else if (newVSyncState == VSyncState::VSYNC_OFF)
-			{
-				wglSwapIntervalEXT(0);
-			}
 			else
 			{
-				Logger::Print(
-					"Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on OpenGL! Falling back to 'ON'.",
-					"OPENGL",
-					LogType::LOG_WARNING,
-					2);
-				wglSwapIntervalEXT(1);
+				wglSwapIntervalEXT(0);
 			}
 		}
 		else

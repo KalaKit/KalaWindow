@@ -3,30 +3,26 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include <functional>
-
-#include "graphics/render.hpp"
-#include "graphics/window.hpp"
-#include "core/input.hpp"
-#include "core/log.hpp"
-
 #ifdef _WIN32
 #include <Windows.h>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 #endif //_WIN32
-
+#include <functional>
 #include <string>
 
+#include "graphics/render.hpp"
+#include "graphics/window.hpp"
+#include "core/input.hpp"
+#include "core/log.hpp"
 #include "graphics/opengl/opengl.hpp"
-using KalaWindow::Graphics::Renderer_OpenGL;
-
 #include "graphics/vulkan/vulkan.hpp"
-using KalaWindow::Graphics::Renderer_Vulkan;
 
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
+using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 
 using std::exit;
 using std::terminate;

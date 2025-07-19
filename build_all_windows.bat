@@ -6,10 +6,8 @@ set "PROJECT_ROOT=%~dp0"
 cd "%PROJECT_ROOT%"
 
 :: Remove old build folders
-if exist "debug_opengl" rmdir /S /Q "debug_opengl"
-if exist "debug_vulkan" rmdir /S /Q "debug_vulkan"
-if exist "release_opengl" rmdir /S /Q "release_opengl"
-if exist "release_vulkan" rmdir /S /Q "release_vulkan"
+if exist "debug" rmdir /S /Q "debug"
+if exist "release" rmdir /S /Q "release"
 
 :: =====================================
 :: [MSVC Setup] Ensure cl.exe is available for Ninja
@@ -31,10 +29,8 @@ if exist "%VS_MAIN%" (
 :: ================================
 :: Run builds
 :: ================================
-call :BuildWithPreset debug_opengl Debug
-call :BuildWithPreset debug_vulkan Debug
-call :BuildWithPreset release_opengl Release
-call :BuildWithPreset release_vulkan Release
+call :BuildWithPreset debug Debug
+call :BuildWithPreset release Release
 
 echo =====================================
 echo [SUCCESS] Finished building and installing KalaWindow!

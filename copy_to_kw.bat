@@ -20,12 +20,12 @@ mkdir "%RELEASE_TARGET%"
 
 set "INCLUDE_ORIGIN=include"
 
-set "DEBUG_DLL=debug_opengl\KalaWindowD.dll"
-set "DEBUG_LIB=debug_opengl\KalaWindowD.lib"
-set "DEBUG_PDB=debug_opengl\KalaWindowD.pdb"
+set "DEBUG_DLL=debug\KalaWindowD.dll"
+set "DEBUG_LIB=debug\KalaWindowD.lib"
+set "DEBUG_PDB=debug\KalaWindowD.pdb"
 
-set "RELEASE_DLL=release_opengl\KalaWindow.dll"
-set "RELEASE_LIB=release_opengl\KalaWindow.lib"
+set "RELEASE_DLL=release\KalaWindow.dll"
+set "RELEASE_LIB=release\KalaWindow.lib"
 
 if not exist "%INCLUDE_ORIGIN%" (
 	echo WARNING: Cannot copy 'include origin' because it does not exist!

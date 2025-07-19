@@ -61,13 +61,6 @@ namespace KalaWindow::Graphics
 		FILE_FOLDER       //Can select any folder
 	};
 
-	enum VSyncState
-	{
-		VSYNC_ON,              //Framerate is capped to monitor refresh rate.
-		VSYNC_OFF,             //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
-		VSYNC_TRIPLE_BUFFERING //Low latency, no screen tearing. Does not exist in OpenGL, will default to 'ON'!
-	};
-
 	struct Window_OpenGLData
 	{
 		uintptr_t hglrc;      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
@@ -116,17 +109,12 @@ namespace KalaWindow::Graphics
 		uintptr_t hwnd;
 		uintptr_t hInstance;
 		uintptr_t wndProc;   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
-		Window_OpenGLData openglData;
-		Window_VulkanData vulkanData;
-
 	};
 	struct WindowStruct_X11
 	{
 		uintptr_t display;
 		uintptr_t window;
 		uintptr_t visual;
-		Window_OpenGLData openglData;
-		Window_VulkanData vulkanData;
 	};
 
 	class KALAWINDOW_API Window
@@ -160,6 +148,18 @@ namespace KalaWindow::Graphics
 			window_x11 = newWindowStruct;
 		}
 
+		Window_OpenGLData& GetOpenGLStruct() { return openglData; }
+		void SetOpenGLStruct(Window_OpenGLData newOpenGLData)
+		{
+			openglData = newOpenGLData;
+		}
+
+		Window_VulkanData& GetVulkanStruct() { return vulkanData; }
+		void SetVulkanStruct(Window_VulkanData newVulkanData)
+		{
+			vulkanData = newVulkanData;
+		}
+
 		const string& GetTitle() const { return title; }
 		void SetTitle(const string& newTitle);
 
@@ -169,13 +169,6 @@ namespace KalaWindow::Graphics
 
 		kvec2 GetPosition();
 		void SetPosition(kvec2 newPos);
-
-		//Checks if vsync is enabled or not.
-		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
-		VSyncState GetVSyncState();
-		//Allows to set vsync true or false.
-		//Managed internally in extensions_vulkan.cpp and opengl.cpp.
-		void SetVSyncState(VSyncState vsyncState);
 
 		kvec2 GetMaxSize() const { return maxSize; }
 		void SetMaxSize(const kvec2& newMaxSize) { maxSize = newMaxSize; }
@@ -243,6 +236,11 @@ namespace KalaWindow::Graphics
 
 		WindowStruct_Windows window_windows{}; //The windows data of this window
 		WindowStruct_X11 window_x11{};         //The X11 data of this window
+
+		//vendor-specific variables
+
+		Window_OpenGLData openglData; //The OpenGL data of this window
+		Window_VulkanData vulkanData; //The Vulkan data of this window
 
 		function<void()> resizeCallback;
 

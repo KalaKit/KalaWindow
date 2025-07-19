@@ -26,8 +26,8 @@ using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::TimeFormat;
 using KalaWindow::Core::DateFormat;
-using KalaWindow::Graphics::ShaderType;
-using KalaWindow::Graphics::Shader_Vulkan;
+using KalaWindow::Graphics::Vulkan::ShaderType;
+using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 
 using std::vector;
 using std::string;
@@ -136,7 +136,7 @@ static bool InitShader(
     return true;
 }
 
-namespace KalaWindow::Graphics
+namespace KalaWindow::Graphics::Vulkan
 {
 	Shader_Vulkan* Shader_Vulkan::CreateShader(
 		const string& shaderName,
@@ -225,7 +225,7 @@ namespace KalaWindow::Graphics
 
         Window* window = Window::windows.front();
         WindowStruct_Windows& wData = window->GetWindow_Windows();
-        Window_VulkanData& vData = wData.vulkanData;
+        Window_VulkanData& vData = window->GetVulkanStruct();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
         vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos{};
@@ -433,7 +433,7 @@ namespace KalaWindow::Graphics
 	{
         Window* window = Window::windows.front();
         WindowStruct_Windows& wData = window->GetWindow_Windows();
-        Window_VulkanData& vData = wData.vulkanData;
+        Window_VulkanData& vData = window->GetVulkanStruct();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
 

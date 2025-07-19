@@ -14,6 +14,12 @@ namespace KalaWindow::Graphics::OpenGL
 {
 	using std::unique_ptr;
 
+	enum VSyncState
+	{
+		VSYNC_ON, //Framerate is capped to monitor refresh rate.
+		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
+	};
+
 	class KALAWINDOW_API Renderer_OpenGL
 	{
 	public:
@@ -30,6 +36,11 @@ namespace KalaWindow::Graphics::OpenGL
 		/// Call at the end of your render loop.
 		/// </summary>
 		static void SwapOpenGLBuffers(Window* targetWindow);
+
+		//Checks if vsync is enabled or not.
+		VSyncState GetVSyncState();
+		//Allows to set vsync true or false.
+		void SetVSyncState(VSyncState vsyncState);
 	private:
 		/// <summary>
 		/// Checks whether user has OpenGL 3.3 or higher.

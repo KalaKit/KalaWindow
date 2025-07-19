@@ -487,12 +487,8 @@ namespace KalaWindow::Graphics::OpenGL
 
     bool Shader_OpenGL::Bind(Window* window) const
     {
-#ifdef _WIN32
-        auto& oglData = window->GetWindow_Windows().openglData;
-#elif __linux__
-        auto& oglData = window->GetWindow_X11().openglData;
-#endif
-        unsigned int& lastProgramID = oglData.lastProgramID;
+        Window_OpenGLData& oData = window->GetOpenGLStruct();
+        unsigned int& lastProgramID = oData.lastProgramID;
         unsigned int ID = this->programID;
 
         if (ID == 0)
@@ -599,6 +595,7 @@ namespace KalaWindow::Graphics::OpenGL
 #endif
 
         lastProgramID = ID;
+        oData.lastProgramID = lastProgramID;
 
         return true;
     }
