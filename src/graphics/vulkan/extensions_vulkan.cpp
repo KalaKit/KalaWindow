@@ -17,11 +17,9 @@
 
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/vulkan/vulkan.hpp"
-#include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
 
-using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::PopupAction;
@@ -83,7 +81,7 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		WindowStruct_Windows& winData = targetWindow->GetWindow_Windows();
-		Window_VulkanData& vData = targetWindow->GetVulkanStruct();
+		Window_VulkanData vData{};
 
 #ifdef _WIN32
 		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
@@ -112,6 +110,8 @@ namespace KalaWindow::Graphics::Vulkan
 #elif __linux__
 		//TODO: ADD LINUX SUPPORT
 #endif
+
+		targetWindow->SetVulkanStruct(vData);
 	}
 
 	bool Extensions_Vulkan::CreateSwapchain(Window* window)
@@ -432,7 +432,7 @@ static void ForceClose(
 		PopupType::POPUP_TYPE_ERROR)
 		== PopupResult::POPUP_RESULT_OK)
 	{
-		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }
 void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)

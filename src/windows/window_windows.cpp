@@ -10,9 +10,12 @@
 #pragma comment(lib, "winmm.lib")
 #include <ShlObj.h>
 #include <algorithm>
+#include <functional>
 
 #include <vulkan/vulkan.h>
 #include "graphics/vulkan/vulkan.hpp"
+#include "graphics/opengl/opengl.hpp"
+#include "graphics/opengl/shader_opengl.hpp"
 
 #include "graphics/window.hpp"
 #include "windows/messageloop.hpp"
@@ -20,6 +23,8 @@
 #include "core/log.hpp"
 
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
+using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
+using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
@@ -30,8 +35,11 @@ using std::make_unique;
 using std::move;
 using std::to_string;
 using std::find_if;
+using std::function;
+using std::exception;
 
 static bool enabledBeginPeriod = false;
+static function<void()> userRegularShutdown;
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
@@ -92,7 +100,7 @@ namespace KalaWindow::Graphics
 				PopupType::POPUP_TYPE_ERROR)
 				== PopupResult::POPUP_RESULT_OK)
 			{
-				Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+				Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 			}
 
 			return nullptr;
@@ -149,7 +157,7 @@ namespace KalaWindow::Graphics
 				PopupType::POPUP_TYPE_ERROR)
 				== PopupResult::POPUP_RESULT_OK)
 			{
-				Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+				Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 			}
 
 			return nullptr;
@@ -437,6 +445,87 @@ namespace KalaWindow::Graphics
 			win.hwnd = NULL;
 		}
 		win.hInstance = NULL;
+	}
+
+	void Window::SetUserShutdownFunction(function<void()> regularShutdown)
+	{
+		userRegularShutdown = regularShutdown;
+	}
+
+	void Window::Shutdown(
+		ShutdownState state,
+		bool useWindowShutdown,
+		bool userEarlyShutdown,
+		function<void()> userShutdown)
+	{
+		try
+		{
+			if (userRegularShutdown) userRegularShutdown();
+		}
+		catch (const exception& e)
+		{
+			Logger::Print(
+				"User-provided regular shutdown condition failed! Reason: " + string(e.what()),
+				"RENDER",
+				LogType::LOG_ERROR,
+				2);
+		}
+
+		try
+		{
+			if (userEarlyShutdown && userShutdown) userShutdown();
+		}
+		catch (const exception& e)
+		{
+			Logger::Print(
+				"User-provided early shutdown condition failed! Reason: " + string(e.what()),
+				"RENDER",
+				LogType::LOG_ERROR,
+				2);
+		}
+
+		Window::windows.clear();
+
+		if (Renderer_Vulkan::IsVulkanInitialized()) Renderer_Vulkan::Shutdown();
+		if (Renderer_OpenGL::IsInitialized()) Shader_OpenGL::createdShaders.clear();
+
+		try
+		{
+			if (!userEarlyShutdown && userShutdown) userShutdown();
+		}
+		catch (const exception& e)
+		{
+			Logger::Print(
+				"User-provided early shutdown condition failed! Reason: " + string(e.what()),
+				"RENDER",
+				LogType::LOG_ERROR,
+				2);
+		}
+
+#ifdef _WIN32
+		timeEndPeriod(1);
+#endif //_WIN32
+
+		Logger::Print(
+			"KalaWindow shutting down with state = " + to_string(static_cast<int>(state)),
+			"RENDER",
+			LogType::LOG_SUCCESS);
+
+		if (useWindowShutdown)
+		{
+			switch (state)
+			{
+			case ShutdownState::SHUTDOWN_CLEAN:
+				exit(0);
+				break;
+			case ShutdownState::SHUTDOWN_FAILURE:
+				terminate();
+				break;
+			case ShutdownState::SHUTDOWN_CRITICAL:
+				abort();
+				break;
+			}
+		}
 	}
 }
 

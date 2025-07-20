@@ -21,7 +21,6 @@
 #include "graphics/opengl/opengl_linux.hpp"
 #endif
 
-using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::PopupAction;
@@ -184,6 +183,6 @@ void ForceClose(
 		PopupType::POPUP_TYPE_ERROR)
 		== PopupResult::POPUP_RESULT_OK)
 	{
-		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }

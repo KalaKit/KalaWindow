@@ -279,7 +279,7 @@ namespace KalaWindow::Graphics::OpenGL
 			PopupType::POPUP_TYPE_ERROR)
 			== PopupResult::POPUP_RESULT_OK)
 		{
-			Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+			Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 		}
 		return nullptr;
 	}

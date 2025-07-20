@@ -24,7 +24,6 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/vulkan/shader_vulkan.hpp"
-#include "graphics/render.hpp"
 #include "core/log.hpp"
 
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
@@ -34,7 +33,6 @@ using KalaWindow::Graphics::Vulkan::VulkanDeviceExtensions;
 using KalaWindow::Graphics::Vulkan::Extensions_Vulkan;
 using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::PopupResult;
@@ -569,8 +567,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData vData{};
+		Window_VulkanData vData = window->GetVulkanStruct();
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1463,7 +1460,7 @@ static void ForceClose(
 		PopupType::POPUP_TYPE_ERROR)
 		== PopupResult::POPUP_RESULT_OK)
 	{
-		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }
 

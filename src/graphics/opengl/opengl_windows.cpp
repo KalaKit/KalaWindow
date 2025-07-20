@@ -11,12 +11,10 @@
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_core.hpp"
-#include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
 #include "graphics/opengl/opengl_win.hpp"
 
-using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::PopupAction;
@@ -234,7 +232,7 @@ void ForceClose(
 		PopupType::POPUP_TYPE_ERROR)
 		== PopupResult::POPUP_RESULT_OK)
 	{
-		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }
 

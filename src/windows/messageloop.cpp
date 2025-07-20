@@ -19,21 +19,21 @@
 #endif
 
 #include "windows/messageloop.hpp"
-#include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/input.hpp"
 #include "core/log.hpp"
 
 #include "graphics/opengl/opengl_core.hpp"
+#include "graphics/opengl/opengl.hpp"
 
 using KalaWindow::Core::MessageLoop;
-using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowStruct_Windows;
+using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::MouseButton;
-using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::Key;
@@ -262,6 +262,17 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 
 static bool ProcessMessage(const MSG& msg, Window* window)
 {
+	if (window == nullptr)
+	{
+		Logger::Print(
+			"Cannot use 'ProcessMessage' because window is nullptr!",
+			"MESSAGELOOP",
+			LogType::LOG_ERROR,
+			2);
+
+		return false;
+	}
+
 	/*
 	if (msg.message == 0)
 	{
@@ -628,6 +639,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		PAINTSTRUCT ps;
 		BeginPaint(hwnd, &ps);
 		EndPaint(hwnd, &ps);
+
 		return true;
 	}
 
@@ -640,7 +652,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		int width = LOWORD(msg.lParam);
 		int height = HIWORD(msg.lParam);
 
-		glViewport(0, 0, width, height);
+		if (Renderer_OpenGL::IsInitialized()) glViewport(0, 0, width, height);
 
 		/*
 		Logger::Print(
@@ -649,8 +661,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			LogType::LOG_DEBUG);
 		*/
 
-		function<void()> callback = window->GetResizeCallback();
-		if (callback) callback();
+		if (window->GetResizeCallback() != nullptr)
+		{
+			window->GetResizeCallback();
+		}
 
 		return true;
 	}
@@ -690,7 +704,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	//user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
-		Render::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+		Window::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		return true;
 
 	//window was destroyed - tell the system to exit
