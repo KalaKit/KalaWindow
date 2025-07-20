@@ -378,6 +378,47 @@ namespace KalaWindow::Graphics::Vulkan
 			static_cast<uint32_t>(instanceExtensions.size());
 		instanceCreateInfo.ppEnabledExtensionNames = instanceExtensions.data();
 
+#ifdef _DEBUG
+		bool debugLayerEnabled = find(
+			enabledLayers.begin(),
+			enabledLayers.end(),
+			VulkanLayers::V_IL_khronos_validation) != enabledLayers.end();
+		bool debugExtensionEnabled = find(
+			enabledInstanceExtensions.begin(),
+			enabledInstanceExtensions.end(),
+			VulkanInstanceExtensions::V_IE_ext_debug_utils) != enabledInstanceExtensions.end();
+
+		if (debugLayerEnabled
+			&& debugExtensionEnabled)
+		{
+			Logger::Print(
+				"Enabled verbose Vulkan error checking.",
+				"SHADER_VULKAN",
+				LogType::LOG_DEBUG);
+
+			VkDebugUtilsMessengerCreateInfoEXT dbgCI{};
+			dbgCI.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+			dbgCI.messageSeverity =
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+			dbgCI.messageType =
+				VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+				VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+			dbgCI.pfnUserCallback = [](auto /*severity*/, auto /*types*/,
+				const VkDebugUtilsMessengerCallbackDataEXT* d, void*)
+				{
+					Logger::Print(
+						"\n[VULKAN_VALIDATION] " + string(d->pMessage) + "\n",
+						"SHADER_VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return VK_FALSE;
+				};
+
+			instanceCreateInfo.pNext = &dbgCI;
+		}
+#endif
+
 		VkInstance newInstance = VK_NULL_HANDLE;
 
 		if (vkCreateInstance(

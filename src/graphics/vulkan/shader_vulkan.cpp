@@ -1,4 +1,4 @@
-//Copyright(C) 2025 Lost Empire Entertainment
+﻿//Copyright(C) 2025 Lost Empire Entertainment
 //This program comes with ABSOLUTELY NO WARRANTY.
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
@@ -7,6 +7,9 @@
 #include <string>
 #include <filesystem>
 #include <fstream>
+#include <format>
+#include <sstream>
+#include <cassert>
 
 #include <vulkan/vulkan.h>
 
@@ -29,25 +32,77 @@ using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 
 using std::vector;
 using std::string;
+using std::to_string;
 using std::ifstream;
 using std::ios;
 using std::make_unique;
+using std::filesystem::path;
 using std::filesystem::exists;
+using std::streamsize;
+using std::format;
+using std::stringstream;
 
 static void ForceClose(
     const string& title,
     const string& reason);
 
-static vector<char> ReadFileBinary(const string& filePath)
+static vector<uint32_t> ReadFileBinary(const string& filePath)
 {
     ifstream file(filePath, ios::ate | ios::binary);
     if (!file.is_open()) return {};
 
-    size_t size = file.tellg();
-    vector<char> buffer(size);
+    streamsize size = file.tellg();
+    string fileName = path(filePath).filename().string();
+
+    if (size == 0)
+    {
+        ForceClose(
+            "Vulkan error [shader_vulkan]",
+            "Shader '" + fileName + "' is empty or unreadable!");
+
+        return {};
+    }
+    if (size % 4 != 0)
+    {
+        ForceClose(
+            "Vulkan error [shader_vulkan]",
+            "Shader '" + fileName + "' is not aligned to 4 bytes!");
+
+        return {};
+    }
+
+    vector<uint32_t> buffer(size / 4);
     file.seekg(0);
-    file.read(buffer.data(), size);
+    file.read(reinterpret_cast<char*>(buffer.data()), size);
     file.close();
+
+    if (buffer.empty())
+    {
+        ForceClose(
+            "Vulkan error [shader_vulkan]",
+            "Shader '" + fileName + "' is empty after read!");
+
+        return {};
+    }
+    if (buffer.size() >= 4)
+    {
+        auto msg = format
+        (
+            "SPV magic    = {:#010x}\n"
+            "version      = {:#010x}\n"
+            "generator    = {:#010x}\n"
+            "id bound     = {}\n",
+            buffer[0], //0x07230203
+            buffer[1], //version
+            buffer[2], //generator
+            buffer[3]  //bound
+        );
+
+        Logger::Print(
+            "\nShader '" + fileName + "' data:\n" + msg,
+            "SHADER_VULKAN",
+            LogType::LOG_DEBUG);
+    }
 
     return buffer;
 }
@@ -67,24 +122,42 @@ static bool InitShader(
         LogType::LOG_INFO);
 
     auto code = ReadFileBinary(shaderPath);
-    if (code.empty())
-    {
-        ForceClose(
-            "Vulkan error [shader_vulkan]",
-            "Failed to open " + shaderType + " shader file: " + shaderPath);
-        return false;
-    }
 
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = code.size();
-    createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+    createInfo.codeSize = code.size() * sizeof(uint32_t);
+    createInfo.pCode = code.data();
 
-    if (vkCreateShaderModule(
+    auto ptrHex = format("{:#x}", reinterpret_cast<uintptr_t>(createInfo.pCode));
+    auto sizeDec = to_string(createInfo.codeSize);
+    auto result = format("pCode ptr = {}, codeSize = {}", ptrHex, sizeDec);
+
+    string fileName = path(shaderPath).filename().string();
+
+    Logger::Print(
+        "\nShader '" + fileName + "' values:\n" + result,
+        "SHADER_VULKAN",
+        LogType::LOG_DEBUG);
+
+    VkResult res = vkCreateShaderModule(
         device,
         &createInfo,
         nullptr,
-        &shaderModule) != VK_SUCCESS)
+        &shaderModule);
+
+    auto resHex = format(
+        "{:#x}",
+        static_cast<int>(res));
+    auto moduleHex = format(
+        "{:#x}",
+        reinterpret_cast<uintptr_t>(shaderModule));
+
+    Logger::Print(
+        "vkCreateShaderModule: " + to_string(res) + " (" + resHex + "), module = " + moduleHex,
+        "SHADER_VULKAN",
+        LogType::LOG_DEBUG);
+
+    if (res != VK_SUCCESS)
     {
         ForceClose(
             "Vulkan error [shader_vulkan]",
@@ -205,6 +278,14 @@ namespace KalaWindow::Graphics::Vulkan
         Window_VulkanData& vData = newWindow->GetVulkanStruct();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
+        if (device == VK_NULL_HANDLE)
+        {
+            ForceClose(
+                "Vulkan error [shader_vulkan]",
+                "Failed to initialize shader " + shaderName + " because device was invalid!\n");
+            return nullptr;
+        }
+
         vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos{};
 
         //
