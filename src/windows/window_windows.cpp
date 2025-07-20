@@ -6,6 +6,8 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <mmsystem.h>
+#pragma comment(lib, "winmm.lib")
 #include <ShlObj.h>
 #include <algorithm>
 
@@ -29,6 +31,8 @@ using std::move;
 using std::to_string;
 using std::find_if;
 
+static bool enabledBeginPeriod = false;
+
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
 
@@ -40,6 +44,14 @@ namespace KalaWindow::Graphics
 		const string& title,
 		kvec2 size)
 	{
+#ifdef _WIN32
+		if (!enabledBeginPeriod)
+		{
+			timeBeginPeriod(1);
+			enabledBeginPeriod = true;
+		}
+#endif //_WIN32
+
 		unsigned int windowID = nextWindowID++;
 		unique_ptr<Window> newWindow = make_unique<Window>(
 			title,
@@ -150,9 +162,6 @@ namespace KalaWindow::Graphics
 			.wndProc = FromVar<WNDPROC>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
 		newWindow->SetWindow_Windows(newWindowStruct);
-
-		ShowWindow(newHwnd, SW_SHOW);
-		UpdateWindow(newHwnd);
 
 		newWindow->SetInitializedState(true);
 
@@ -294,6 +303,32 @@ namespace KalaWindow::Graphics
 		return IsWindowVisible(hwnd) == TRUE;
 	}
 
+	void Window::SetWindowState(WindowState state)
+	{
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
+		switch (state)
+		{
+		case WindowState::WINDOW_NORMAL:
+			ShowWindow(hwnd, SW_SHOWNORMAL);
+			break;
+		case WindowState::WINDOW_MAXIMIZE:
+			ShowWindow(hwnd, SW_MAXIMIZE);
+			break;
+		case WindowState::WINDOW_MINIMIZE:
+			ShowWindow(hwnd, SW_MINIMIZE);
+			break;
+		case WindowState::WINDOW_HIDE:
+			ShowWindow(hwnd, SW_HIDE);
+			break;
+		case WindowState::WINDOW_SHOWNOACTIVATE:
+			ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+			break;
+		}
+
+		UpdateWindow(hwnd);
+	}
+
 	PopupResult Window::CreatePopup(
 		const string& title,
 		const string& message,
@@ -375,7 +410,7 @@ namespace KalaWindow::Graphics
 	{
 		WindowStruct_Windows& win = GetWindow_Windows();
 		HWND winRef = ToVar<HWND>(win.hwnd);
-		ShowWindow(winRef, SW_HIDE);
+		SetWindowState(WindowState::WINDOW_HIDE);
 
 		Window_OpenGLData& openGLData = GetOpenGLStruct();
 

@@ -42,27 +42,7 @@ static VSyncState vsyncState = VSyncState::VSYNC_ON;
 
 static void ForceClose(
 	const string& title,
-	const string& reason)
-{
-	Logger::Print(
-		reason,
-		"OPENGL",
-		LogType::LOG_ERROR,
-		2,
-		TimeFormat::TIME_NONE,
-		DateFormat::DATE_NONE);
-
-	Window* mainWindow = Window::windows.front();
-	if (mainWindow->CreatePopup(
-		title,
-		reason,
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR)
-		== PopupResult::POPUP_RESULT_OK)
-	{
-		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-	}
-}
+	const string& reason);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -89,7 +69,7 @@ namespace KalaWindow::Graphics::OpenGL
 #ifdef _WIN32
 		if (oData.hdc == 0)
 		{
-			string title = "OpenGL error [OPENGL]";
+			string title = "OpenGL error [OpenGL]";
 			string reason = "Failed to get HDC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
 			ForceClose(title, reason);
 			return;
@@ -98,7 +78,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (oData.hglrc == 0)
 		{
-			string title = "OpenGL error [OPENGL]";
+			string title = "OpenGL error [OpenGL]";
 			string reason = "Failed to get HGLRC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
 			ForceClose(title, reason);
 			return;
@@ -124,7 +104,7 @@ namespace KalaWindow::Graphics::OpenGL
 #ifdef _WIN32
 		if (oData.hglrc == 0)
 		{
-			string title = "OpenGL error [OPENGL]";
+			string title = "OpenGL error [OpenGL]";
 			string reason = "Failed to get HGLRC for window '" + targetWindow->GetTitle() + "' during 'IsContextValid' stage!";
 			ForceClose(title, reason);
 			return false;
@@ -181,5 +161,29 @@ namespace KalaWindow::Graphics::OpenGL
 				LogType::LOG_ERROR,
 				2);
 		}
+	}
+}
+
+void ForceClose(
+	const string& title,
+	const string& reason)
+{
+	Logger::Print(
+		reason,
+		"OPENGL",
+		LogType::LOG_ERROR,
+		2,
+		TimeFormat::TIME_NONE,
+		DateFormat::DATE_NONE);
+
+	Window* mainWindow = Window::windows.front();
+	if (mainWindow->CreatePopup(
+		title,
+		reason,
+		PopupAction::POPUP_ACTION_OK,
+		PopupType::POPUP_TYPE_ERROR)
+		== PopupResult::POPUP_RESULT_OK)
+	{
+		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }

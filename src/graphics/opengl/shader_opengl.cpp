@@ -61,7 +61,7 @@ static bool InitShader(
     if (!shaderFile.is_open())
     {
         ForceClose(
-            "OpenGL error [Shader_OpenGL]",
+            "OpenGL error [shader_opengl]",
             "Failed to open " + shaderType + " shader file: " + path(shaderPath).filename().string());
         return false;
     }
@@ -112,7 +112,7 @@ static bool InitShader(
         glDeleteShader(shaderID);
 
         ForceClose(
-            "OpenGL error [Shader_OpenGL]",
+            "OpenGL error [shader_opengl]",
             "Failed to compile " + shaderType + " shader '" + shaderPath + "'!");
 
         return false;
@@ -373,7 +373,7 @@ namespace KalaWindow::Graphics::OpenGL
             if (!geomShaderExists)
             {
                 ForceClose(
-                    "OpenGL error [Shader_OpenGL]",
+                    "OpenGL error [shader_opengl]",
                     "Failed to link vertex shader '" +
                     path(newVertStage.shaderPath).filename().string() + "' and fragment shader '" +
                     path(newFragStage.shaderPath).filename().string() + "' to program!");
@@ -381,7 +381,7 @@ namespace KalaWindow::Graphics::OpenGL
             else
             {
                 ForceClose(
-                    "OpenGL error [Shader_OpenGL]",
+                    "OpenGL error [shader_opengl]",
                     "Failed to link vertex shader '" +
                     path(newVertStage.shaderPath).filename().string() + "', fragment shader '" +
                     path(newFragStage.shaderPath).filename().string() + "' and geometry shader '" +
@@ -435,14 +435,14 @@ namespace KalaWindow::Graphics::OpenGL
                 string logStr(log.begin(), log.end());
 
                 ForceClose(
-                    "OpenGL error [Shader_OpenGL]",
+                    "OpenGL error [shader_opengl]",
                     "Shader program validation failed:\n" + logStr);
 
                 return nullptr;
             }
 
             ForceClose(
-                "OpenGL error [Shader_OpenGL]",
+                "OpenGL error [shader_opengl]",
                 "Shader program validation failed!");
 
             return nullptr;

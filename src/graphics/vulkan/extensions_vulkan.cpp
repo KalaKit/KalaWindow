@@ -63,7 +63,7 @@ static bool IsValidHandle(
 		|| handle == UINTPTR_MAX)
 	{
 		ForceClose(
-			"Vulkan critical error",
+			"Vulkan critical error [extensions_vulkan]",
 			"[ " + originFunction + " ]"
 			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!",
 			ShutdownState::SHUTDOWN_CRITICAL);
@@ -104,7 +104,7 @@ namespace KalaWindow::Graphics::Vulkan
 			&surface) != VK_SUCCESS)
 		{
 			ForceClose(
-				"Vulkan error",
+				"Vulkan error [extensions_vulkan]",
 				"Failed to create Win32 Vulkan surface!");
 		}
 
@@ -440,14 +440,14 @@ void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
 	if (fct == ForceCloseType::FC_VO)
 	{
 		ForceClose(
-			"Vulkan error",
+			"Vulkan error [extensions_vulkan]",
 			"Cannot " + targetMsg + " because Volk failed to initialize!");
 	}
 
 	else if (fct == ForceCloseType::FC_VU)
 	{
 		ForceClose(
-			"Vulkan error",
+			"Vulkan error [extensions_vulkan]",
 			"Cannot " + targetMsg + " because Vulkan is not initialized!");
 	}
 }

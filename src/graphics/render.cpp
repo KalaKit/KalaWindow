@@ -37,15 +37,6 @@ static function<void()> userRegularShutdown;
 
 namespace KalaWindow::Graphics
 {
-	bool Render::Initialize()
-	{
-#ifdef _WIN32
-		timeBeginPeriod(1);
-#endif //_WIN32
-
-		return true;
-	}
-
 	void Render::SetUserShutdownFunction(function<void()> regularShutdown)
 	{
 		userRegularShutdown = regularShutdown;

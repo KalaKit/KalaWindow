@@ -20,6 +20,16 @@ namespace KalaWindow::Graphics
 	using std::vector;
 	using std::function;
 
+	//Supported states the window can go to
+	enum class WindowState
+	{
+		WINDOW_NORMAL,        //Show the window with default size and position
+		WINDOW_MAXIMIZE,      //Maximize window to full monitor size
+		WINDOW_MINIMIZE,      //Minimize window to taskbar
+		WINDOW_HIDE,          //Hide the window, including from taskbar
+		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it
+	};
+
 	//Buttons shown on the popup
 	enum class PopupAction
 	{
@@ -190,6 +200,8 @@ namespace KalaWindow::Graphics
 		bool IsMinimized() const;
 		//Returns false if this window is not rendered but also not minimized
 		bool IsVisible() const;
+		//Can assign the window state to one of the supported types
+		void SetWindowState(WindowState state);
 
 		//Gets the state of idle handling. If true, then this window is
 		//allowed to have reduced performance when idle to save on resources.

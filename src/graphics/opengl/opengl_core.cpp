@@ -268,7 +268,7 @@ namespace KalaWindow::Graphics::OpenGL
 				LogType::LOG_ERROR);
 		}
 
-		string title = "OpenGL error [OpenGL_Core]";
+		string title = "OpenGL error [opengl_core]";
 		string reason = "Failed to find function '" + string(name) + "'!";
 
 		Window* mainWindow = Window::windows.front();

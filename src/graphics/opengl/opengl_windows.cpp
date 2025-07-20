@@ -69,7 +69,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (pixelFormat == 0)
 		{
 			ForceClose(
-				"OpenGL error",
+				"OpenGL initialization error [opengl_windows]",
 				"ChoosePixelFormat failed!");
 
 			return false;
@@ -82,7 +82,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
 			ForceClose(
-				"OpenGL error",
+				"OpenGL initialization error [opengl_windows]",
 				"SetPixelFormat failed!");
 
 			return false;
@@ -97,7 +97,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (describeResult == 0)
 		{
 			ForceClose(
-				"OpenGL error",
+				"OpenGL initialization error [opengl_windows]",
 				"DescribePixelFormat failed!");
 
 			return false;
@@ -151,7 +151,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!oData.hglrc)
 		{
 			ForceClose(
-				"OpenGL error",
+				"OpenGL initialization error [opengl_windows]",
 				"Failed to create OpenGL 3.3 context!");
 
 			return false;
@@ -172,7 +172,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!IsCorrectVersion())
 		{
 			ForceClose(
-				"OpenGL error",
+				"OpenGL initialization error [opengl_windows]",
 				"OpenGL 3.3 or higher is required!");
 
 			return false;
