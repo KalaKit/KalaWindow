@@ -38,8 +38,7 @@ using std::filesystem::exists;
 
 static void ForceClose(
     const string& title,
-    const string& reason,
-    ShutdownState state = ShutdownState::SHUTDOWN_FAILURE)
+    const string& reason)
 {
     Logger::Print(
         reason,

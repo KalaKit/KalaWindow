@@ -18,22 +18,22 @@ using std::uintptr_t;
 #define WGL_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
 
 //Creates an OpenGL rendering context with specific attributes (version, profile)
-inline HGLRC(WINAPI* wglCreateContextAttribsARB)(
+KALAWINDOW_API extern HGLRC(WINAPI* wglCreateContextAttribsARB)(
 	HDC hDC,
 	HGLRC hShareContext,
-	const int* attribList) = nullptr;
+	const int* attribList);
 
 //Chooses a pixel format that matches specified attributes
-inline BOOL(WINAPI* wglChoosePixelFormatARB)(
+KALAWINDOW_API extern BOOL(WINAPI* wglChoosePixelFormatARB)(
     HDC hDC,
     const int* attribIList,
     const FLOAT* attribFList,
     UINT maxFormats,
     int* formats,
-    UINT* numFormats) = nullptr;
+    UINT* numFormats);
 
 //Sets the swap interval for buffer swaps (vsync control)
-inline BOOL(WINAPI* wglSwapIntervalEXT)(
-    int interval) = nullptr;
+KALAWINDOW_API extern BOOL(WINAPI* wglSwapIntervalEXT)(
+    int interval);
 
 #endif //_WIN32

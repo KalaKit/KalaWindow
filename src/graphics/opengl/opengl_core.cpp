@@ -6,8 +6,10 @@
 #include <unordered_map>
 #include <string_view>
 #include <string>
+#include <format>
 
 #include "graphics/opengl/opengl_core.hpp"
+#include "graphics/window.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -20,10 +22,12 @@
 
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Graphics::Window;
 
 using std::unordered_map;
 using std::string_view;
 using std::string;
+using std::format;
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -157,24 +161,29 @@ namespace KalaWindow::Graphics::OpenGL
 			if (string(entry.name).find("wgl") != string::npos) continue;
 
 			void* ptr = getProc(entry.name);
-			if (ptr)
-			{
-				*entry.pointer = ptr;
-				functionRegistry[entry.name] = ptr;
+			*entry.pointer = ptr
+				? ptr
+				: GetTrapForType(entry.trapType, entry.name);
 
-				Logger::Print(
-					string("Initialized function '") + entry.name + "'!",
-					"OPENGL_CORE",
-					LogType::LOG_DEBUG);
-			}
-			else
+			if (ptr == nullptr)
 			{
-				*entry.pointer = GetTrapForType(entry.trapType, entry.name);
 				Logger::Print(
 					string("Function '") + entry.name + "' is not available!",
 					"OPENGL_CORE",
-					LogType::LOG_WARNING);
+					LogType::LOG_ERROR);
+				continue;
 			}
+
+			functionRegistry[entry.name] = ptr;
+
+			string formatStr = format(
+				"{:#x}",
+				reinterpret_cast<uintptr_t>(ptr));
+
+			Logger::Print(
+				string("Initialized function '") + entry.name + "' with hex value '" + formatStr + "'!",
+				"OPENGL_CORE",
+				LogType::LOG_DEBUG);
 		}
 	}
 
@@ -185,24 +194,30 @@ namespace KalaWindow::Graphics::OpenGL
 			if (strcmp(entry.name, name) == 0)
 			{
 				void* ptr = getProc(name);
-				if (ptr)
-				{
-					*entry.pointer = ptr;
-					functionRegistry[name] = ptr;
+				*entry.pointer = ptr
+					? ptr
+					: GetTrapForType(entry.trapType, entry.name);
 
-					Logger::Print(
-						string("Initialized function '") + entry.name + "'!",
-						"OPENGL_CORE",
-						LogType::LOG_DEBUG);
-				}
-				else
+				if (ptr == nullptr)
 				{
-					*entry.pointer = GetTrapForType(entry.trapType, entry.name);
 					Logger::Print(
 						string("Function '") + entry.name + "' is not available!",
 						"OPENGL_CORE",
 						LogType::LOG_WARNING);
+					break;
 				}
+
+				functionRegistry[name] = ptr;
+
+				string formatStr = format(
+					"{:#x}",
+					reinterpret_cast<uintptr_t>(ptr));
+
+				Logger::Print(
+					string("Initialized function '") + entry.name + "' with hex value '" + formatStr + "'!",
+					"OPENGL_CORE",
+					LogType::LOG_DEBUG);
+
 				break;
 			}
 		}
@@ -218,7 +233,55 @@ namespace KalaWindow::Graphics::OpenGL
 #ifdef _WIN32
 	void* OpenGLCore::GetGLProcAddress(const char* name)
 	{
-		return reinterpret_cast<void*>(wglGetProcAddress(name));
+		void* p = reinterpret_cast<void*>(wglGetProcAddress(name));
+
+		auto IsBadFunction = [](void* p) 
+		{
+		return 
+			p == nullptr
+			|| p == reinterpret_cast<void*>(1)
+			|| p == reinterpret_cast<void*>(2)
+			|| p == reinterpret_cast<void*>(3)
+			|| p == reinterpret_cast<void*>(-1);
+		};
+		if (!IsBadFunction(p))
+		{
+			return p;
+		}
+
+		Logger::Print(
+			"Function " + string(name) + " was nullptr, trying to look for it from opengl32.dll",
+			"OPENGL_CORE",
+			LogType::LOG_WARNING);
+
+		static HMODULE module = LoadLibraryA("opengl32.dll");
+		if (module)
+		{
+			p = reinterpret_cast<void*>(GetProcAddress(module, name));
+			if (!IsBadFunction(p)) return p;
+		}
+		else
+		{
+			Logger::Print(
+				"Failed to load module 'opengl32.dll'!",
+				"OPENGL_CORE",
+				LogType::LOG_ERROR);
+		}
+
+		string title = "OpenGL error [OpenGL_Core]";
+		string reason = "Failed to find function '" + string(name) + "'!";
+
+		Window* mainWindow = Window::windows.front();
+		if (mainWindow->CreatePopup(
+			title,
+			reason,
+			PopupAction::POPUP_ACTION_OK,
+			PopupType::POPUP_TYPE_ERROR)
+			== PopupResult::POPUP_RESULT_OK)
+		{
+			Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+		}
+		return nullptr;
 	}
 #elif __linux__
 	void* OpenGLCore::GetGLProcAddress(const char* name)

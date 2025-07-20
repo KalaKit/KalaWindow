@@ -42,8 +42,7 @@ static bool CheckCompileErrors(GLuint shader, const string& type);
 
 static void ForceClose(
     const string& title,
-    const string& reason,
-    ShutdownState state = ShutdownState::SHUTDOWN_FAILURE)
+    const string& reason)
 {
     Logger::Print(
         reason,
@@ -68,6 +67,7 @@ static void ForceClose(
 static bool InitShader(
     ShaderType type,
     const string& shaderPath,
+    unsigned int& programID,
     unsigned int& shaderID)
 {
     string shaderType = Shader_OpenGL::GetShaderTypeName(type);
@@ -123,7 +123,12 @@ static bool InitShader(
 
     if (!CheckCompileErrors(shaderID, capitalShaderName))
     {
-        glDetachShader(shaderID);
+        if (programID != 0)
+        {
+            glDetachShader(
+                programID,
+                shaderID);
+        }
         glDeleteShader(shaderID);
 
         ForceClose(
@@ -245,6 +250,7 @@ namespace KalaWindow::Graphics::OpenGL
             if (!InitShader(
                 ShaderType::Shader_Vertex,
                 newVertStage.shaderPath,
+                shaderPtr->programID,
                 newVertStage.shaderID))
             {
                 return nullptr;
@@ -267,6 +273,7 @@ namespace KalaWindow::Graphics::OpenGL
             if (!InitShader(
                 ShaderType::Shader_Fragment,
                 newFragStage.shaderPath,
+                shaderPtr->programID,
                 newFragStage.shaderID))
             {
                 return nullptr;
@@ -289,6 +296,7 @@ namespace KalaWindow::Graphics::OpenGL
             if (!InitShader(
                 ShaderType::Shader_Geometry,
                 newGeomStage.shaderPath,
+                shaderPtr->programID,
                 newGeomStage.shaderID))
             {
                 return nullptr;
@@ -323,15 +331,21 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (success != GL_TRUE)
         {
-            glDetachShader(newVertStage.shaderID);
+            glDetachShader(
+                shaderPtr->programID,
+                newVertStage.shaderID);
             glDeleteShader(newVertStage.shaderID);
 
-            glDetachShader(newFragStage.shaderID);
+            glDetachShader(
+                shaderPtr->programID,
+                newFragStage.shaderID);
             glDeleteShader(newFragStage.shaderID);
 
             if (geomShaderExists)
             {
-                glDetachShader(newGeomStage.shaderID);
+                glDetachShader(
+                    shaderPtr->programID,
+                    newGeomStage.shaderID);
                 glDeleteShader(newGeomStage.shaderID);
             }
 
@@ -395,15 +409,21 @@ namespace KalaWindow::Graphics::OpenGL
             &validated);
         if (validated != GL_TRUE)
         {
-            glDetachShader(newVertStage.shaderID);
+            glDetachShader(
+                shaderPtr->programID,
+                newVertStage.shaderID);
             glDeleteShader(newVertStage.shaderID);
 
-            glDetachShader(newFragStage.shaderID);
+            glDetachShader(
+                shaderPtr->programID,
+                newFragStage.shaderID);
             glDeleteShader(newFragStage.shaderID);
 
             if (geomShaderExists)
             {
-                glDetachShader(newGeomStage.shaderID);
+                glDetachShader(
+                    shaderPtr->programID,
+                    newGeomStage.shaderID);
                 glDeleteShader(newGeomStage.shaderID);
             }
 
@@ -441,15 +461,21 @@ namespace KalaWindow::Graphics::OpenGL
         bool isProgramValid = valid == GL_TRUE;
         if (!isProgramValid)
         {
-            glDetachShader(newVertStage.shaderID);
+            glDetachShader(
+                shaderPtr->programID,
+                newVertStage.shaderID);
             glDeleteShader(newVertStage.shaderID);
 
-            glDetachShader(newFragStage.shaderID);
+            glDetachShader(
+                shaderPtr->programID,
+                newFragStage.shaderID);
             glDeleteShader(newFragStage.shaderID);
 
             if (geomShaderExists)
             {
-                glDetachShader(newGeomStage.shaderID);
+                glDetachShader(
+                    shaderPtr->programID,
+                    newGeomStage.shaderID);
                 glDeleteShader(newGeomStage.shaderID);
             }
 
@@ -473,15 +499,21 @@ namespace KalaWindow::Graphics::OpenGL
         // CLEANUP
         //
 
-        glDetachShader(newVertStage.shaderID);
+        glDetachShader(
+            shaderPtr->programID,
+            newVertStage.shaderID);
         glDeleteShader(newVertStage.shaderID);
 
-        glDetachShader(newFragStage.shaderID);
+        glDetachShader(
+            shaderPtr->programID,
+            newFragStage.shaderID);
         glDeleteShader(newFragStage.shaderID);
 
         if (geomShaderExists)
         {
-            glDetachShader(newGeomStage.shaderID);
+            glDetachShader(
+                shaderPtr->programID,
+                newGeomStage.shaderID);
             glDeleteShader(newGeomStage.shaderID);
         }
 
@@ -511,6 +543,7 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
+        Renderer_OpenGL::MakeContextCurrent(window);
         if (!Renderer_OpenGL::IsContextValid(window))
         {
             Logger::Print(
@@ -762,7 +795,13 @@ namespace KalaWindow::Graphics::OpenGL
             {
                 if (shaderStage.shaderID != 0)
                 {
-                    glDetachShader(shaderStage.shaderID);
+                    unsigned int programID = GetProgramID();
+                    if (programID != 0)
+                    {
+                        glDetachShader(
+                            programID,
+                            shaderStage.shaderID);
+                    }
                     glDeleteShader(shaderStage.shaderID);
                     shaderStage.shaderID = 0;
                 }

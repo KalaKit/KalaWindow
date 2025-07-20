@@ -30,6 +30,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		static const char* GetGLErrorString(unsigned int err);
 
+		static void MakeContextCurrent(Window* window);
 		static bool IsContextValid(Window* window);
 
 		/// <summary>
@@ -38,9 +39,9 @@ namespace KalaWindow::Graphics::OpenGL
 		static void SwapOpenGLBuffers(Window* targetWindow);
 
 		//Checks if vsync is enabled or not.
-		VSyncState GetVSyncState();
+		static VSyncState GetVSyncState();
 		//Allows to set vsync true or false.
-		void SetVSyncState(VSyncState vsyncState);
+		static void SetVSyncState(VSyncState vsyncState);
 	private:
 		/// <summary>
 		/// Checks whether user has OpenGL 3.3 or higher.

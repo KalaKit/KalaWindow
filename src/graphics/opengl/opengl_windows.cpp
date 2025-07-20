@@ -3,6 +3,8 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+#ifdef _WIN32
+
 #include <Windows.h>
 #include <string>
 #include <sstream>
@@ -12,11 +14,7 @@
 #include "graphics/render.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
-#ifdef _WIN32
 #include "graphics/opengl/opengl_win.hpp"
-#elif __linux__
-#include "graphics/opengl/opengl_linux.hpp"
-#endif
 
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::ShutdownState;
@@ -36,8 +34,7 @@ using std::stringstream;
 
 static void ForceClose(
 	const string& title,
-	const string& reason,
-	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE)
+	const string& reason)
 {
 	Logger::Print(
 		reason,
@@ -70,7 +67,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 		HDC hdc = GetDC(windowRef);
 		oData.hdc = FromVar<HDC>(hdc);
-		targetWindow->SetOpenGLStruct(oData);
 
 		//
 		// CREATE A DUMMY CONTEXT TO LOAD WGL EXTENSIONS
@@ -91,12 +87,6 @@ namespace KalaWindow::Graphics::OpenGL
 		int pixelFormat = ChoosePixelFormat(hdc, &pfd);
 		if (pixelFormat == 0)
 		{
-			Logger::Print(
-				"ChoosePixelFormat failed!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
 			ForceClose(
 				"OpenGL error",
 				"ChoosePixelFormat failed!");
@@ -110,12 +100,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
-			Logger::Print(
-				"SetPixelFormat failed!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
 			ForceClose(
 				"OpenGL error",
 				"SetPixelFormat failed!");
@@ -131,12 +115,6 @@ namespace KalaWindow::Graphics::OpenGL
 		int describeResult = DescribePixelFormat(hdc, pixelFormat, sizeof(actualPFD), &actualPFD);
 		if (describeResult == 0)
 		{
-			Logger::Print(
-				"DescribePixelFormat failed!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
 			ForceClose(
 				"OpenGL error",
 				"DescribePixelFormat failed!");
@@ -191,12 +169,6 @@ namespace KalaWindow::Graphics::OpenGL
 			attribs));
 		if (!oData.hglrc)
 		{
-			Logger::Print(
-				"Failed to create OpenGL 3.3 context!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
 			ForceClose(
 				"OpenGL error",
 				"Failed to create OpenGL 3.3 context!");
@@ -211,18 +183,13 @@ namespace KalaWindow::Graphics::OpenGL
 		wglMakeCurrent(nullptr, nullptr);
 		wglDeleteContext(dummyRC);
 
-		wglMakeCurrent(hdc, reinterpret_cast<HGLRC>(oData.hglrc));
+		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
+		wglMakeCurrent(hdc, hglrc);
 
 		OpenGLCore::InitializeAllFunctions();
 
 		if (!IsCorrectVersion())
 		{
-			Logger::Print(
-				"OpenGL 3.3 or higher is required!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
 			ForceClose(
 				"OpenGL error",
 				"OpenGL 3.3 or higher is required!");
@@ -230,17 +197,19 @@ namespace KalaWindow::Graphics::OpenGL
 			return false;
 		}
 
-		Logger::Print(
-			"OpenGL version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
-			"OPENGL_WINDOWS",
-			LogType::LOG_SUCCESS);
-
 		//and finally set opengl viewport size
 		glViewport(
 			0, 
 			0, 
 			targetWindow->GetSize().x,
 			targetWindow->GetSize().y);
+
+		targetWindow->SetOpenGLStruct(oData);
+
+		Logger::Print(
+			"Initialized OpenGL with version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
+			"OPENGL_WINDOWS",
+			LogType::LOG_SUCCESS);
 
 		return true;
 	}
@@ -270,3 +239,5 @@ namespace KalaWindow::Graphics::OpenGL
 			&& minor >= 3);
 	}
 }
+
+#endif //_WIN32
