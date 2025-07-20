@@ -484,10 +484,10 @@ namespace KalaWindow::Graphics
 				2);
 		}
 
-		Window::windows.clear();
-
 		if (Renderer_Vulkan::IsVulkanInitialized()) Renderer_Vulkan::Shutdown();
 		if (Renderer_OpenGL::IsInitialized()) Shader_OpenGL::createdShaders.clear();
+
+		Window::windows.clear();
 
 		try
 		{

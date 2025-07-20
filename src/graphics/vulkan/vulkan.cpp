@@ -1384,6 +1384,23 @@ namespace KalaWindow::Graphics::Vulkan
 		DestroySyncObjects(window);
 		Extensions_Vulkan::DestroySwapchain(window);
 
+		if (!vData.commandBuffers.empty())
+		{
+			vector<VkCommandBuffer> realCBs(vData.commandBuffers.size());
+			for (size_t i = 0; i < vData.commandBuffers.size(); ++i)
+			{
+				realCBs[i] = ToVar<VkCommandBuffer>(vData.commandBuffers[i]);
+			}
+
+			vkFreeCommandBuffers(
+				ToVar<VkDevice>(device),
+				ToVar<VkCommandPool>(vData.commandPool),
+				static_cast<uint32_t>(realCBs.size()),
+				realCBs.data());
+
+			vData.commandBuffers.clear();
+		}
+
 		if (vData.commandPool
 			&& device)
 		{
