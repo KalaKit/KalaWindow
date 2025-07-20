@@ -38,7 +38,6 @@ using GLushort = uint16_t;
 inline constexpr GLenum GL_VENDOR   = 0x1F00; //String identifying the vendor
 inline constexpr GLenum GL_RENDERER = 0x1F01; //String identifying the renderer
 inline constexpr GLenum GL_VERSION  = 0x1F02; //String describing the OpenGL version
-inline constexpr GLenum GL_EXTENSIONS = 0x1F03; //Space-separated list of supported extensions (deprecated in 3.0+)
 
 //For glGetStringi (OpenGL 3.0+)
 

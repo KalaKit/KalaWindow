@@ -38,27 +38,7 @@ using std::filesystem::exists;
 
 static void ForceClose(
     const string& title,
-    const string& reason)
-{
-    Logger::Print(
-        reason,
-        "SHADER_VULKAN",
-        LogType::LOG_ERROR,
-        2,
-        TimeFormat::TIME_NONE,
-        DateFormat::DATE_NONE);
-
-    Window* mainWindow = Window::windows.front();
-    if (mainWindow->CreatePopup(
-        title,
-        reason,
-        PopupAction::POPUP_ACTION_OK,
-        PopupType::POPUP_TYPE_ERROR)
-        == PopupResult::POPUP_RESULT_OK)
-    {
-        Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-    }
-}
+    const string& reason);
 
 static vector<char> ReadFileBinary(const string& filePath)
 {
@@ -139,7 +119,8 @@ namespace KalaWindow::Graphics::Vulkan
 {
 	Shader_Vulkan* Shader_Vulkan::CreateShader(
 		const string& shaderName,
-		const vector<ShaderStage>& shaderStages)
+		const vector<ShaderStage>& shaderStages,
+        Window* newWindow)
 	{
         unique_ptr<Shader_Vulkan> newShader = make_unique<Shader_Vulkan>();
         Shader_Vulkan* shaderPtr = newShader.get();
@@ -222,9 +203,8 @@ namespace KalaWindow::Graphics::Vulkan
         bool vertShaderExists = !newVertStage.shaderPath.empty();
         bool fragShaderExists = !newFragStage.shaderPath.empty();
 
-        Window* window = Window::windows.front();
-        WindowStruct_Windows& wData = window->GetWindow_Windows();
-        Window_VulkanData& vData = window->GetVulkanStruct();
+        WindowStruct_Windows& wData = newWindow->GetWindow_Windows();
+        Window_VulkanData& vData = newWindow->GetVulkanStruct();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
         vector<VkPipelineShaderStageCreateInfo> shaderStageCreateInfos{};
@@ -354,6 +334,7 @@ namespace KalaWindow::Graphics::Vulkan
         if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
 
         newShader->name = shaderName;
+        newShader->targetWindow = newWindow;
         createdShaders[shaderName] = move(newShader);
 
         return shaderPtr;
@@ -382,12 +363,10 @@ namespace KalaWindow::Graphics::Vulkan
 		return true;
 	}
 
-	void Shader_Vulkan::HotReload(Shader_Vulkan* shader)
+	void Shader_Vulkan::HotReload()
 	{
-        string shaderName = shader->name;
-
         //back up old data
-        vector<ShaderStage> oldShaders = shader->GetAllShaders();
+        vector<ShaderStage> oldShaders = GetAllShaders();
 
         //attepmt to recreate
 
@@ -403,36 +382,34 @@ namespace KalaWindow::Graphics::Vulkan
         }
 
         auto reloadedShader = Shader_Vulkan::CreateShader(
-            shaderName,
-            stagesToReload);
+            name,
+            stagesToReload,
+            targetWindow);
         if (!reloadedShader)
         {
             Logger::Print(
-                "Hot reload failed for shader '" + shaderName + "'! Keeping old version.",
+                "Hot reload failed for shader '" + name + "'! Keeping old version.",
                 "SHADER_VULKAN",
                 LogType::LOG_ERROR,
                 2);
             return;
         }
 
-        shader->DestroyShader();
-
-        shader->shaders = reloadedShader->shaders;
-        shader->pipeline = reloadedShader->pipeline;
-        shader->layout = reloadedShader->layout;
-        shader->descriptorSetLayout = reloadedShader->descriptorSetLayout;
+        shaders = reloadedShader->shaders;
+        pipeline = reloadedShader->pipeline;
+        layout = reloadedShader->layout;
+        descriptorSetLayout = reloadedShader->descriptorSetLayout;
 
         Logger::Print(
-            "Shader '" + shaderName + "' was hot reloaded!",
+            "Shader '" + name + "' was hot reloaded!",
             "SHADER_OPENGL",
             LogType::LOG_SUCCESS);
 	}
 
-	void Shader_Vulkan::DestroyShader()
+	Shader_Vulkan::~Shader_Vulkan()
 	{
-        Window* window = Window::windows.front();
-        WindowStruct_Windows& wData = window->GetWindow_Windows();
-        Window_VulkanData& vData = window->GetVulkanStruct();
+        WindowStruct_Windows& wData = targetWindow->GetWindow_Windows();
+        Window_VulkanData& vData = targetWindow->GetVulkanStruct();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
 
@@ -462,4 +439,28 @@ namespace KalaWindow::Graphics::Vulkan
             }
         }
 	}
+}
+
+void ForceClose(
+    const string& title,
+    const string& reason)
+{
+    Logger::Print(
+        reason,
+        "SHADER_VULKAN",
+        LogType::LOG_ERROR,
+        2,
+        TimeFormat::TIME_NONE,
+        DateFormat::DATE_NONE);
+
+    Window* mainWindow = Window::windows.front();
+    if (mainWindow->CreatePopup(
+        title,
+        reason,
+        PopupAction::POPUP_ACTION_OK,
+        PopupType::POPUP_TYPE_ERROR)
+        == PopupResult::POPUP_RESULT_OK)
+    {
+        Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+    }
 }

@@ -87,7 +87,7 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		Window_OpenGLData& oData = window->GetOpenGLStruct();
 #ifdef _WIN32
-		if (oData.hdc == NULL)
+		if (oData.hdc == 0)
 		{
 			string title = "OpenGL error [OPENGL]";
 			string reason = "Failed to get HDC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
@@ -96,7 +96,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 		HDC hdc = ToVar<HDC>(oData.hdc);
 
-		if (oData.hglrc == NULL)
+		if (oData.hglrc == 0)
 		{
 			string title = "OpenGL error [OPENGL]";
 			string reason = "Failed to get HGLRC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
@@ -122,7 +122,7 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		Window_OpenGLData& oData = targetWindow->GetOpenGLStruct();
 #ifdef _WIN32
-		if (oData.hglrc == NULL)
+		if (oData.hglrc == 0)
 		{
 			string title = "OpenGL error [OPENGL]";
 			string reason = "Failed to get HGLRC for window '" + targetWindow->GetTitle() + "' during 'IsContextValid' stage!";

@@ -30,8 +30,6 @@ using std::is_pointer_v;
 // DECLARE PLATFORM VARIABLES
 //
 
-typedef void* kwindow;
-
 struct kvec2 { float x, y; };
 struct kvec3 { float x, y, z; };
 struct kvec4 { float x, y, z, w; };

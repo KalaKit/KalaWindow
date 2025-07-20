@@ -44,7 +44,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		static Shader_OpenGL* CreateShader(
 			const string& shaderName,
-			const vector<ShaderStage>& shaderStages);
+			const vector<ShaderStage>& shaderStages,
+			Window* targetWindow);
 
 		static string GetShaderTypeName(ShaderType type)
 		{
@@ -88,6 +89,8 @@ namespace KalaWindow::Graphics::OpenGL
 			}
 			name = newName;
 		}
+
+		Window* GetTargetWindow() { return targetWindow; }
 
 		unsigned int GetProgramID() { return programID; }
 
@@ -199,7 +202,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return false;
 		}
 
-		bool Bind(Window* window) const;
+		bool Bind() const;
 
 		void HotReload();
 
@@ -216,9 +219,11 @@ namespace KalaWindow::Graphics::OpenGL
 		void SetMat4(unsigned int programID, const string& name, const kmat4& mat) const;
 
 		//Destroys this created shader and its data
-		void DestroyShader();
+		~Shader_OpenGL();
 	private:
 		string name{};
+
+		Window* targetWindow{};
 
 		unsigned int programID{};
 

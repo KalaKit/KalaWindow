@@ -28,6 +28,8 @@ namespace KalaWindow::Graphics::OpenGL
 		/// </summary>
 		static bool Initialize(Window* targetWindow);
 
+		static bool IsInitialized() { return isInitialized; }
+
 		static const char* GetGLErrorString(unsigned int err);
 
 		static void MakeContextCurrent(Window* window);
@@ -43,9 +45,6 @@ namespace KalaWindow::Graphics::OpenGL
 		//Allows to set vsync true or false.
 		static void SetVSyncState(VSyncState vsyncState);
 	private:
-		/// <summary>
-		/// Checks whether user has OpenGL 3.3 or higher.
-		/// </summary>
-		static bool IsCorrectVersion();
+		static inline bool isInitialized{};
 	};
 }

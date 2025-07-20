@@ -117,7 +117,7 @@ namespace KalaWindow::Graphics::Vulkan
 	bool Extensions_Vulkan::CreateSwapchain(Window* window)
 	{
 		if (!Renderer_Vulkan::IsVulkanInitialized()
-			|| Renderer_Vulkan::GetInstance() == NULL)
+			|| Renderer_Vulkan::GetInstance() == 0)
 		{
 			ForceCloseMsg(ForceCloseType::FC_VU, "create swapchain");
 			return false;
@@ -401,11 +401,12 @@ namespace KalaWindow::Graphics::Vulkan
 	//
 
 	VSyncState Renderer_Vulkan::GetVSyncState() { return vsyncState; }
-	void Renderer_Vulkan::SetVSyncState(VSyncState newVSyncState)
+	void Renderer_Vulkan::SetVSyncState(
+		VSyncState newVSyncState,
+		Window* window)
 	{
 		vsyncState = newVSyncState;
 
-		Window* window = Window::windows.front();
 		Renderer_Vulkan::HardReset(window);
 	}
 }

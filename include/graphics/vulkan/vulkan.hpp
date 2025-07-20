@@ -41,7 +41,9 @@ namespace KalaWindow::Graphics::Vulkan
 		//Checks if vsync is enabled or not.
 		static VSyncState GetVSyncState();
 		//Allows to set vsync true or false.
-		static void SetVSyncState(VSyncState vsyncState);
+		static void SetVSyncState(
+			VSyncState vsyncState,
+			Window* window);
 
 		//
 		// INITIALIZE PHASE

@@ -23,6 +23,7 @@
 
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/vulkan/extensions_vulkan.hpp"
+#include "graphics/vulkan/shader_vulkan.hpp"
 #include "graphics/render.hpp"
 #include "core/log.hpp"
 
@@ -31,6 +32,7 @@ using KalaWindow::Graphics::Vulkan::VulkanLayers;
 using KalaWindow::Graphics::Vulkan::VulkanInstanceExtensions;
 using KalaWindow::Graphics::Vulkan::VulkanDeviceExtensions;
 using KalaWindow::Graphics::Vulkan::Extensions_Vulkan;
+using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Render;
 using KalaWindow::Graphics::PopupAction;
@@ -63,9 +65,6 @@ static void ForceClose(
 	const string& title, 
 	const string& reason,
 	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE);
-static void ForceCloseMsg(
-	ForceCloseType ct,
-	const string& targetMsg);
 
 static bool IsValidHandle(
 	uintptr_t handle,
@@ -166,14 +165,17 @@ namespace KalaWindow::Graphics::Vulkan
 
 	bool Renderer_Vulkan::EnableLayer(VulkanLayers layer)
 	{
+		const char* name = ToString(layer);
+
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			ForceCloseMsg(ForceCloseType::FC_VO, "enable layer");
+			Logger::Print(
+				"Cannot enable layer '" + string(name) + "' because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR);
 			return false;
 		}
-
-		const char* name = ToString(layer);
 
 		if (find(
 			enabledLayers.begin(),
@@ -217,14 +219,18 @@ namespace KalaWindow::Graphics::Vulkan
 
 	bool Renderer_Vulkan::EnableInstanceExtension(VulkanInstanceExtensions ext)
 	{
+		const char* name = ToString(ext);
+
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			ForceCloseMsg(ForceCloseType::FC_VO, "enable instance extension");
+			Logger::Print(
+				"Cannot enable instance extension '" + string(name) + "' because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
-
-		const char* name = ToString(ext);
 
 		if (find(
 			enabledInstanceExtensions.begin(),
@@ -273,18 +279,13 @@ namespace KalaWindow::Graphics::Vulkan
 
 	bool Renderer_Vulkan::EnableDeviceExtension(VulkanDeviceExtensions ext)
 	{
+		const char* name = ToString(ext);
+
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			ForceCloseMsg(ForceCloseType::FC_VO, "enable device extension");
-			return false;
-		}
-
-		const char* name = ToString(ext);
-		if (!name)
-		{
 			Logger::Print(
-				"Can not enable extension (unknown enum value)",
+				"Cannot enable device extension '" + string(name) + "' because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
 				2);
@@ -339,7 +340,11 @@ namespace KalaWindow::Graphics::Vulkan
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			ForceCloseMsg(ForceCloseType::FC_VO, "initialize Vulkan");
+			Logger::Print(
+				"Cannot initialize Vulkan because Volk is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -548,7 +553,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "create command pool");
+			Logger::Print(
+				"Cannot create command pool because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -592,7 +601,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "create command buffer");
+			Logger::Print(
+				"Cannot create command buffer because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -666,7 +679,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "create sync objects");
+			Logger::Print(
+				"Cannot create sync objects because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -760,8 +777,6 @@ namespace KalaWindow::Graphics::Vulkan
 
 	void Renderer_Vulkan::DestroySyncObjects(Window* window)
 	{
-		if (!isVulkanInitialized) return;
-
 		WindowStruct_Windows& winData = window->GetWindow_Windows();
 		Window_VulkanData& vData = window->GetVulkanStruct();
 
@@ -801,7 +816,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "begin frame");
+			Logger::Print(
+				"Cannot begin frame because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return FrameResult::VK_FRAME_ERROR;
 		}
 
@@ -896,7 +915,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "record command buffer");
+			Logger::Print(
+				"Cannot record command buffer because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -1003,7 +1026,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "submit frame");
+			Logger::Print(
+				"Cannot submit frame because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -1065,7 +1092,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "present frame");
+			Logger::Print(
+				"Cannot present frame because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return FrameResult::VK_FRAME_ERROR;
 		}
 
@@ -1117,7 +1148,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "hard reset");
+			Logger::Print(
+				"Cannot hard reset because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return;
 		}
 
@@ -1195,7 +1230,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "create render pass");
+			Logger::Print(
+				"Cannot create render pass because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -1279,7 +1318,11 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			ForceCloseMsg(ForceCloseType::FC_VU, "create framebuffers");
+			Logger::Print(
+				"Cannot create framebuffers because Vulkan is not initialized!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 
@@ -1379,6 +1422,8 @@ namespace KalaWindow::Graphics::Vulkan
 			DestroyWindowData(win);
 		}
 
+		Shader_Vulkan::createdShaders.clear();
+
 		if (device)
 		{
 			vkDestroyDevice(ToVar<VkDevice>(device), nullptr);
@@ -1419,22 +1464,6 @@ static void ForceClose(
 		== PopupResult::POPUP_RESULT_OK)
 	{
 		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-	}
-}
-void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
-{
-	if (fct == ForceCloseType::FC_VO)
-	{
-		ForceClose(
-			"Vulkan error",
-			"Cannot " + targetMsg + " because Volk failed to initialize!");
-	}
-
-	else if (fct == ForceCloseType::FC_VU)
-	{
-		ForceClose(
-			"Vulkan error",
-			"Cannot " + targetMsg + " because Vulkan is not initialized!");
 	}
 }
 

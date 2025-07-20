@@ -136,17 +136,19 @@ namespace KalaWindow::Graphics
 			size(size) {
 		}
 
+#ifdef _WIN32
 		WindowStruct_Windows& GetWindow_Windows() { return window_windows; }
 		void SetWindow_Windows(WindowStruct_Windows newWindowStruct)
 		{
 			window_windows = newWindowStruct;
 		}
-
+#elif __linux__
 		WindowStruct_X11& GetWindow_X11() { return window_x11; }
 		void SetWindow_X11(WindowStruct_X11 newWindowStruct)
 		{
 			window_x11 = newWindowStruct;
 		}
+#endif
 
 		Window_OpenGLData& GetOpenGLStruct() { return openglData; }
 		void SetOpenGLStruct(Window_OpenGLData newOpenGLData)
@@ -189,7 +191,14 @@ namespace KalaWindow::Graphics
 		//Returns false if this window is not rendered but also not minimized
 		bool IsVisible() const;
 
-		//Returns true if window is idle
+		//Gets the state of idle handling. If true, then this window is
+		//allowed to have reduced performance when idle to save on resources.
+		bool AllowIdleHandling() const { return allowIdleHandling; }
+		//Sets the state of idle handling. If true, then this window is
+		//allowed to have reduced performance when idle to save on resources.
+		void SetAllowIdleHandling(bool newAllowIdleHandling) { allowIdleHandling = newAllowIdleHandling; }
+
+		//Returns true if window is idle - not focused, minimized or not visible.
 		bool IsIdle() const { return isIdle; }
 
 		PopupResult CreatePopup(
@@ -216,10 +225,11 @@ namespace KalaWindow::Graphics
 
 		static void Update(Window* targetWindow);
 
-		static void DeleteWindow(Window* window);
+		~Window();
 	private:
 		bool isInitialized = false;          //Cannot use this window if it is not yet initialized
 		bool isWindowFocusRequired = true;   //If false, then this window will not update unless selected.
+		bool allowIdleHandling = true;       //If true, then this window is allowed to have reduced performance when idle to save on resources.
 		bool isIdle = false;                 //If true, then this window will call drastically less updates.
 
 		kvec2 maxSize = kvec2{ 7680, 4320 }; //The maximum size this window can become
@@ -234,8 +244,11 @@ namespace KalaWindow::Graphics
 
 		//platform-specific variables
 
+#ifdef _WIN32
 		WindowStruct_Windows window_windows{}; //The windows data of this window
+#elif __linux__
 		WindowStruct_X11 window_x11{};         //The X11 data of this window
+#endif
 
 		//vendor-specific variables
 
@@ -243,8 +256,5 @@ namespace KalaWindow::Graphics
 		Window_VulkanData vulkanData{}; //The Vulkan data of this window
 
 		function<void()> resizeCallback{};
-
-		//KalaWindow will dynamically update window idle state
-		void UpdateIdleState();
 	};
 }

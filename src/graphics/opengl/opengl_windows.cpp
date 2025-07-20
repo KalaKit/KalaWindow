@@ -32,34 +32,15 @@ using std::string;
 using std::to_string;
 using std::stringstream;
 
+static bool IsCorrectVersion();
+
 static void ForceClose(
 	const string& title,
-	const string& reason)
-{
-	Logger::Print(
-		reason,
-		"OPENGL_WINDOWS",
-		LogType::LOG_ERROR,
-		2,
-		TimeFormat::TIME_NONE,
-		DateFormat::DATE_NONE);
-
-	Window* mainWindow = Window::windows.front();
-	if (mainWindow->CreatePopup(
-		title,
-		reason,
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR)
-		== PopupResult::POPUP_RESULT_OK)
-	{
-		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-	}
-}
+	const string& reason);
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	bool Renderer_OpenGL::Initialize(
-		Window* targetWindow)
+	bool Renderer_OpenGL::Initialize(Window* targetWindow)
 	{
 		WindowStruct_Windows wData = targetWindow->GetWindow_Windows();
 		Window_OpenGLData oData{};
@@ -211,33 +192,68 @@ namespace KalaWindow::Graphics::OpenGL
 			"OPENGL_WINDOWS",
 			LogType::LOG_SUCCESS);
 
+		isInitialized = true;
+
 		return true;
 	}
 
 	void Renderer_OpenGL::SwapOpenGLBuffers(Window* targetWindow)
 	{
+		if (!IsInitialized())
+		{
+			Logger::Print(
+				"Cannot swap opengl buffers because OpenGL is not initialized!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_DEBUG);
+			return;
+		}
+
 		Window_OpenGLData& oData = targetWindow->GetOpenGLStruct();
 		HDC hdc = ToVar<HDC>(oData.hdc);
 		SwapBuffers(hdc);
 	}
+}
 
-	bool Renderer_OpenGL::IsCorrectVersion()
+void ForceClose(
+	const string& title,
+	const string& reason)
+{
+	Logger::Print(
+		reason,
+		"OPENGL_WINDOWS",
+		LogType::LOG_ERROR,
+		2,
+		TimeFormat::TIME_NONE,
+		DateFormat::DATE_NONE);
+
+	Window* mainWindow = Window::windows.front();
+	if (mainWindow->CreatePopup(
+		title,
+		reason,
+		PopupAction::POPUP_ACTION_OK,
+		PopupType::POPUP_TYPE_ERROR)
+		== PopupResult::POPUP_RESULT_OK)
 	{
-		const char* versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-		if (!versionStr) return false;
-
-		int major = 0;
-		int minor = 0;
-		if (sscanf_s(versionStr, "%d.%d", &major, &minor) != 2)
-		{
-			return false;
-		}
-
-		return
-			(major > 3)
-			|| (major == 3
-			&& minor >= 3);
+		Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
+}
+
+bool IsCorrectVersion()
+{
+	const char* versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	if (!versionStr) return false;
+
+	int major = 0;
+	int minor = 0;
+	if (sscanf_s(versionStr, "%d.%d", &major, &minor) != 2)
+	{
+		return false;
+	}
+
+	return
+		(major > 3)
+		|| (major == 3
+		&& minor >= 3);
 }
 
 #endif //_WIN32

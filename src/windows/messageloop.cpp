@@ -649,8 +649,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			LogType::LOG_DEBUG);
 		*/
 
-		Window* mainWindow = Window::windows.front();
-		function<void()> callback = mainWindow->GetResizeCallback();
+		function<void()> callback = window->GetResizeCallback();
 		if (callback) callback();
 
 		return true;

@@ -18,6 +18,7 @@
 #include "core/log.hpp"
 
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
+using KalaWindow::Graphics::Window;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Logger;
@@ -27,6 +28,9 @@ using std::make_unique;
 using std::move;
 using std::to_string;
 using std::find_if;
+
+//KalaWindow will dynamically update window idle state
+static void UpdateIdleState(Window* window, bool& isIdle);
 
 namespace KalaWindow::Graphics
 {
@@ -188,15 +192,15 @@ namespace KalaWindow::Graphics
 
 	void Window::SetTitle(const string& newTitle)
 	{
-		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
 		SetWindowTextA(window, newTitle.c_str());
 
-		this->title = newTitle;
+		title = newTitle;
 	}
 
 	kvec2 Window::GetSize()
 	{
-		WindowStruct_Windows& winData = this->GetWindow_Windows();
+		WindowStruct_Windows& winData = GetWindow_Windows();
 		HWND hwnd = ToVar<HWND>(winData.hwnd);
 
 		UINT dpi = GetDpiForWindow(hwnd);
@@ -221,7 +225,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetSize(kvec2 newSize)
 	{
-		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
 
 		SetWindowPos(
 			window,
@@ -233,12 +237,12 @@ namespace KalaWindow::Graphics
 			SWP_NOMOVE
 			| SWP_NOZORDER);
 
-		this->size = newSize;
+		size = newSize;
 	}
 
 	kvec2 Window::GetPosition()
 	{
-		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
 
 		RECT rect{};
 		if (GetWindowRect(window, &rect))
@@ -255,7 +259,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetPosition(kvec2 newPosition)
 	{
-		HWND window = ToVar<HWND>(this->GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
 
 		SetWindowPos(
 			window,
@@ -348,7 +352,9 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		targetWindow->UpdateIdleState();
+		UpdateIdleState(
+			targetWindow,
+			targetWindow->isIdle);
 
 		MSG msg;
 		
@@ -365,31 +371,13 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::UpdateIdleState()
+	Window::~Window()
 	{
-		isIdle =
-			!IsFocused()
-			|| IsMinimized()
-			|| !IsVisible();
-	}
-
-	void Window::DeleteWindow(Window* window)
-	{
-		if (window == nullptr)
-		{
-			Logger::Print(
-				"Cannot destroy window because it is nullptr!",
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-			return;
-		}
-
-		WindowStruct_Windows& win = window->GetWindow_Windows();
+		WindowStruct_Windows& win = GetWindow_Windows();
 		HWND winRef = ToVar<HWND>(win.hwnd);
 		ShowWindow(winRef, SW_HIDE);
 
-		Window_OpenGLData& openGLData = window->GetOpenGLStruct();
+		Window_OpenGLData& openGLData = GetOpenGLStruct();
 
 		if (openGLData.hglrc)
 		{
@@ -405,9 +393,8 @@ namespace KalaWindow::Graphics
 				ToVar<HDC>(openGLData.hdc));
 			openGLData.hdc = NULL;
 		}
-		if (win.wndProc) win.wndProc = NULL;
 
-		Renderer_Vulkan::DestroyWindowData(window);
+		Renderer_Vulkan::DestroyWindowData(this);
 
 		if (win.hwnd)
 		{
@@ -415,16 +402,15 @@ namespace KalaWindow::Graphics
 			win.hwnd = NULL;
 		}
 		win.hInstance = NULL;
-
-		for (size_t i = 0; i < Window::windows.size(); ++i)
-		{
-			if (Window::windows[i] == window)
-			{
-				Window::windows.erase(Window::windows.begin() + i);
-				break;
-			}
-		}
 	}
+}
+
+void UpdateIdleState(Window* window, bool& isIdle)
+{
+	isIdle =
+		!window->IsFocused()
+		|| window->IsMinimized()
+		|| !window->IsVisible();
 }
 
 #endif //_WIN32

@@ -16,12 +16,14 @@
 #include "core/input.hpp"
 #include "core/log.hpp"
 #include "graphics/opengl/opengl.hpp"
+#include "graphics/opengl/shader_opengl.hpp"
 #include "graphics/vulkan/vulkan.hpp"
 
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
+using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 
 using std::exit;
@@ -81,13 +83,10 @@ namespace KalaWindow::Graphics
 				2);
 		}
 
-		for (const auto& window : Window::windows)
-		{
-			Window* winPtr = window;
-			Window::DeleteWindow(winPtr);
-		}
+		Window::windows.clear();
 
-		Renderer_Vulkan::Shutdown();
+		if (Renderer_Vulkan::IsVulkanInitialized()) Renderer_Vulkan::Shutdown();
+		if (Renderer_OpenGL::IsInitialized()) Shader_OpenGL::createdShaders.clear();
 
 		try
 		{

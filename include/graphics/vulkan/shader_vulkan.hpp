@@ -18,6 +18,7 @@ namespace KalaWindow::Graphics::Vulkan
 {
 	using KalaWindow::Core::Logger;
 	using KalaWindow::Core::LogType;
+	using KalaWindow::Graphics::Window;
 
 	using std::string;
 	using std::unique_ptr;
@@ -59,7 +60,8 @@ namespace KalaWindow::Graphics::Vulkan
 
 		static Shader_Vulkan* CreateShader(
 			const string& shaderName,
-			const vector<ShaderStage>& shaderStages);
+			const vector<ShaderStage>& shaderStages,
+			Window* targetWindow);
 
 		static string GetShaderTypeName(ShaderType type)
 		{
@@ -126,6 +128,8 @@ namespace KalaWindow::Graphics::Vulkan
 			}
 			name = newName;
 		}
+
+		Window* GetTargetWindow() { return targetWindow; }
 
 		unsigned int GetPipeline() { return pipeline; }
 		unsigned int GetLayout() { return layout; }
@@ -243,12 +247,14 @@ namespace KalaWindow::Graphics::Vulkan
 		//Uses vkcommandbuffer internally.
 		bool Bind(uintptr_t commandBuffer) const;
 
-		static void HotReload(Shader_Vulkan* shader);
+		void HotReload();
 
 		//Destroys this created shader and its data
-		void DestroyShader();
+		~Shader_Vulkan();
 	private:
 		string name{};
+
+		Window* targetWindow{};
 
 		uintptr_t pipeline{};            //vkpipeline
 		uintptr_t layout{};              //vkpipelinelayout

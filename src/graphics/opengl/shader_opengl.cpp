@@ -38,31 +38,11 @@ using std::filesystem::exists;
 using std::filesystem::path;
 using std::vector;
 
-static bool CheckCompileErrors(GLuint shader, const string& type);
-
 static void ForceClose(
     const string& title,
-    const string& reason)
-{
-    Logger::Print(
-        reason,
-        "SHADER_OPENGL",
-        LogType::LOG_ERROR,
-        2,
-        TimeFormat::TIME_NONE,
-        DateFormat::DATE_NONE);
+    const string& reason);
 
-    Window* mainWindow = Window::windows.front();
-    if (mainWindow->CreatePopup(
-        title,
-        reason,
-        PopupAction::POPUP_ACTION_OK,
-        PopupType::POPUP_TYPE_ERROR)
-        == PopupResult::POPUP_RESULT_OK)
-    {
-        Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-    }
-}
+static bool CheckCompileErrors(GLuint shader, const string& type);
 
 static bool InitShader(
     ShaderType type,
@@ -145,8 +125,19 @@ namespace KalaWindow::Graphics::OpenGL
 {
     Shader_OpenGL* Shader_OpenGL::CreateShader(
         const string& shaderName,
-        const vector<ShaderStage>& shaderStages)
+        const vector<ShaderStage>& shaderStages,
+        Window* newWindow)
     {
+        if (!Renderer_OpenGL::IsInitialized())
+        {
+            Logger::Print(
+                "Cannot create shader '" + shaderName + "' because OpenGL is not initialized!",
+                "SHADER_OPENGL",
+                LogType::LOG_ERROR,
+                2);
+            return nullptr;
+        }
+
         unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
         Shader_OpenGL* shaderPtr = newShader.get();
         ShaderStage newVertStage{};
@@ -522,16 +513,38 @@ namespace KalaWindow::Graphics::OpenGL
         if (geomShaderExists) shaderPtr->shaders.push_back(newGeomStage);
 
         newShader->name = shaderName;
+        newShader->targetWindow = newWindow;
         createdShaders[shaderName] = move(newShader);
 
         return shaderPtr;
     }
 
-    bool Shader_OpenGL::Bind(Window* window) const
+    bool Shader_OpenGL::Bind() const
     {
-        Window_OpenGLData& oData = window->GetOpenGLStruct();
+        if (!Renderer_OpenGL::IsInitialized())
+        {
+            Logger::Print(
+                "Cannot bind shader '" + name + "' because OpenGL is not initialized!",
+                "SHADER_OPENGL",
+                LogType::LOG_ERROR,
+                2);
+            return false;
+        }
+
+        if (targetWindow == nullptr)
+        {
+            Logger::Print(
+                "Cannot bind shader '" + name + "' because the window reference is invalid!",
+                "SHADER_OPENGL",
+                LogType::LOG_ERROR,
+                2);
+            return false;
+        }
+
+        Window_OpenGLData& oData = targetWindow->GetOpenGLStruct();
+
         unsigned int& lastProgramID = oData.lastProgramID;
-        unsigned int ID = this->programID;
+        unsigned int ID = programID;
 
         if (ID == 0)
         {
@@ -543,8 +556,8 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        Renderer_OpenGL::MakeContextCurrent(window);
-        if (!Renderer_OpenGL::IsContextValid(window))
+        Renderer_OpenGL::MakeContextCurrent(targetWindow);
+        if (!Renderer_OpenGL::IsContextValid(targetWindow))
         {
             Logger::Print(
                 "OpenGL shader bind failed! OpenGL context is invalid.",
@@ -645,6 +658,16 @@ namespace KalaWindow::Graphics::OpenGL
 
     void Shader_OpenGL::HotReload()
     {
+        if (!Renderer_OpenGL::IsInitialized())
+        {
+            Logger::Print(
+                "Cannot hot reload shader '" + name + "' because OpenGL is not initialized!",
+                "SHADER_OPENGL",
+                LogType::LOG_ERROR,
+                2);
+            return;
+        }
+
         string shaderName = name;
 
         //back up old data
@@ -665,7 +688,8 @@ namespace KalaWindow::Graphics::OpenGL
 
         auto reloadedShader = Shader_OpenGL::CreateShader(
             shaderName,
-            stagesToReload);
+            stagesToReload,
+            targetWindow);
         if (!reloadedShader)
         {
             Logger::Print(
@@ -787,9 +811,9 @@ namespace KalaWindow::Graphics::OpenGL
             &mat.columns[0].x);
     }
 
-    void Shader_OpenGL::DestroyShader()
+    Shader_OpenGL::~Shader_OpenGL()
     {
-        for (auto& shaderData : this->GetAllShaders())
+        for (auto& shaderData : GetAllShaders())
         {
             for (auto& shaderStage : shaders)
             {
@@ -813,11 +837,34 @@ namespace KalaWindow::Graphics::OpenGL
             }
         }
         shaders.clear();
-        createdShaders.erase(this->name);
     }
 }
 
-static bool CheckCompileErrors(GLuint shader, const string& type)
+void ForceClose(
+    const string& title,
+    const string& reason)
+{
+    Logger::Print(
+        reason,
+        "SHADER_OPENGL",
+        LogType::LOG_ERROR,
+        2,
+        TimeFormat::TIME_NONE,
+        DateFormat::DATE_NONE);
+
+    Window* mainWindow = Window::windows.front();
+    if (mainWindow->CreatePopup(
+        title,
+        reason,
+        PopupAction::POPUP_ACTION_OK,
+        PopupType::POPUP_TYPE_ERROR)
+        == PopupResult::POPUP_RESULT_OK)
+    {
+        Render::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
+    }
+}
+
+bool CheckCompileErrors(GLuint shader, const string& type)
 {
     GLint success = 0;
     GLint logLength = 0;
