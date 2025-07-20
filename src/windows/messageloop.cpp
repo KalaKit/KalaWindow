@@ -661,10 +661,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			LogType::LOG_DEBUG);
 		*/
 
-		if (window->GetResizeCallback() != nullptr)
-		{
-			window->GetResizeCallback();
-		}
+		function<void()> callback = window->GetResizeCallback();
+		if (callback) callback();
 
 		return true;
 	}
