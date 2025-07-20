@@ -10,7 +10,7 @@
 
 KalaWindow is a lightweight C++ 20 library for Windows and Linux (x11 only, wayland not supported) that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 or Vulkan 1.2 context depending on which binary you choose. The OpenGL binary also uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes [KalaCrashHandler](https://github.com/KalaKit/KalaCrashHandler) for handy crash reports. All the API code is completely OS-agnostic so the exact same code works on both Windows and Linux.
 
-> Wayland support has been deprecated due to nasty restrictions with the update loop. Only X11 will be supported.
+> KalaWindow will not support anything older than OpenGL 3.3 or Vulkan 1.2, and anything newer than OpenGL 3.3, but Vulkan support might update in the future if there is enough demand and features.
 
 ---
 
@@ -35,28 +35,31 @@ This table lists the **earliest supported CPU and GPU models** from AMD, NVIDIA,
 - OpenGL 3.3
 - Vulkan 1.2
 
-All targets assume **64-bit systems with Windows 10+ or Debian 11+**.  
+All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**.  
 Older OS versions *may* work but are **untested and unsupported**.
 Some Vulkan extensions, like those related to *Raytracing* may require newer hardware, consult the [official Vulkan Specifications](https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html) for additional details.
 
 ## AMD
 
-| Feature        | First Supported CPU (x64)     | First Supported GPU             | Minimum Driver Version              |
-|----------------|-------------------------------|----------------------------------|-------------------------------------|
-| OpenGL 3.3     | AMD Athlon II X2 240          | Radeon HD 5770 (Evergreen)       | Catalyst 10.3+ / Mesa 7.9+          |
-| Vulkan 1.2     | AMD FX-6300 / Ryzen 1200      | Radeon RX 460 (GCN 4.0)          | AMDVLK 2020.Q1.1 / Mesa 20.0+       |
-
+| Feature | Type           | First Supported GPU              | Minimum Driver Version         |
+|---------|----------------|----------------------------------|--------------------------------|
+| OpenGL  | Integrated APU | Radeon HD 6550D (Sumo)           | Catalyst 11.6+    / Mesa 8.0+  |
+| OpenGL  | Discrete GPU   | Radeon HD 5000 series            | Catalyst 10.6+    / Mesa 10.1+ |
+| Vulkan  | Integrated APU | Radeon Vega 8                    | AMDVLK 2020.Q1.1  / Mesa 20.0+ |
+| Vulkan  | Discrete GPU   | Radeon HD 7000 series (GCN 1.0+) | Adrenalin 21.6.1+ / RADV 20.0+ |
 
 ## NVIDIA
 
-| Feature        | First Supported CPU (x64)     | First Supported GPU             | Minimum Driver Version              |
-|----------------|-------------------------------|----------------------------------|-------------------------------------|
-| OpenGL 3.3     | Intel Core 2 Duo E8400        | GeForce GTX 460 (Fermi)          | NVIDIA 258.96+ / 260.xx+            |
-| Vulkan 1.2     | Intel Core i5-2400            | GeForce GTX 950 (Maxwell 2.0)    | NVIDIA 441.28+                      |
+| Feature | Type         | First Supported GPU | Minimum Driver Version             |
+|---------|--------------|---------------------|------------------------------------|
+| OpenGL  | Discrete GPU | GeForce 8 series    | GeForce/ION 260.89+                |
+| Vulkan  | Discrete GPU | GeForce 600 series  | GeForce 441.99 beta (R440 series)+ |
 
 ## Intel
 
-| Feature        | First Supported CPU (x64)     | First Supported GPU             | Minimum Driver Version              |
-|----------------|-------------------------------|----------------------------------|-------------------------------------|
-| OpenGL 3.3     | Intel Core i3-3110M           | HD Graphics 4000 (Gen7)          | Intel 8.15.10.2696+ / Mesa 10.0     |
-| Vulkan 1.2     | Intel Core i5-6200U           | HD Graphics 520 (Gen9 Skylake)   | ANV / Mesa 20.0+                    |
+| Feature | Type           | First Supported GPU           | Minimum Driver Version       |
+|---------|----------------|-------------------------------|------------------------------|
+| OpenGL  | Integrated GPU | HD Graphics 4000 (Ivy Bridge) | 8.15.10.2622+   / Mesa 10.0+ |
+| OpenGL  | Discrete GPU   | Iris Xe MAX Graphics (DG1)    | 31.0.101.3616+  / Mesa 20.0+ |
+| Vulkan  | Integrated GPU | UHD Graphics 610 (Pentium)    | 26.20.100.7755+ / Mesa 20.0+ |
+| Vulkan  | Discrete GPU   | Iris Xe MAX Graphics (DG1)    | 27.20.100.8845+ / Mesa 20.0+ |
