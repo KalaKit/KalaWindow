@@ -9,6 +9,7 @@
 #include <memory>
 #include <unordered_map>
 #include <vector>
+#include <functional>
 
 #include "core/platform.hpp"
 #include "core/log.hpp"
@@ -24,6 +25,7 @@ namespace KalaWindow::Graphics::Vulkan
 	using std::unique_ptr;
 	using std::unordered_map;
 	using std::vector;
+	using std::function;
 
 	enum class ShaderType
 	{
@@ -128,6 +130,11 @@ namespace KalaWindow::Graphics::Vulkan
 			}
 			name = newName;
 		}
+
+		//Assign new draw commands to be used right after Bind.
+		void SetDrawCommands(function<void()> newDrawCommands) { drawCommands = newDrawCommands; }
+		//Get the currently assigned draw commands.
+		function<void()> GetDrawCommands() { return drawCommands; }
 
 		Window* GetTargetWindow() { return targetWindow; }
 
@@ -244,8 +251,10 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		//Binds the shader pipeline for use in the command buffer.
-		//Uses vkcommandbuffer internally.
-		bool Bind(uintptr_t commandBuffer) const;
+		//Do not call manually! Already handled via RecordCommandBuffer.
+		bool Bind(
+			uintptr_t commandBuffer,
+			Window* window) const;
 
 		void HotReload();
 
@@ -253,8 +262,8 @@ namespace KalaWindow::Graphics::Vulkan
 		~Shader_Vulkan();
 	private:
 		string name{};
-
-		Window* targetWindow{};
+		function<void()> drawCommands{}; //The commands relative to this shader that are called inside bind
+		Window* targetWindow{};          //The window this shader is attached to
 
 		uintptr_t pipeline{};            //vkpipeline
 		uintptr_t layout{};              //vkpipelinelayout

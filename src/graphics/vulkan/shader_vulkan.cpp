@@ -10,8 +10,11 @@
 #include <format>
 #include <sstream>
 #include <cassert>
+#include <stdexcept>
 
-#include <vulkan/vulkan.h>
+#define VK_NO_PROTOTYPES
+#include <Volk/volk.h>
+//#include <vulkan/vulkan.h>
 
 #include "graphics/vulkan/shader_vulkan.hpp"
 #include "graphics/vulkan/vulkan.hpp"
@@ -41,6 +44,7 @@ using std::filesystem::exists;
 using std::streamsize;
 using std::format;
 using std::stringstream;
+using std::exception;
 
 static void ForceClose(
     const string& title,
@@ -274,7 +278,6 @@ namespace KalaWindow::Graphics::Vulkan
         bool vertShaderExists = !newVertStage.shaderPath.empty();
         bool fragShaderExists = !newFragStage.shaderPath.empty();
 
-        WindowStruct_Windows& wData = newWindow->GetWindow_Windows();
         Window_VulkanData& vData = newWindow->GetVulkanStruct();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
@@ -371,6 +374,67 @@ namespace KalaWindow::Graphics::Vulkan
         shaderPtr->layout = FromVar<VkPipelineLayout>(newLayout);
 
         //
+        // DYNAMIC VIEWPORT & SCISSOR
+        //
+
+        VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
+        vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInputInfo.vertexBindingDescriptionCount = 0;
+        vertexInputInfo.vertexAttributeDescriptionCount = 0;
+
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
+        inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+        inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
+
+        VkPipelineViewportStateCreateInfo viewportState{};
+        viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewportState.viewportCount = 1;
+        viewportState.pViewports = nullptr;
+        viewportState.scissorCount = 1;
+        viewportState.pScissors = nullptr;
+
+        VkPipelineRasterizationStateCreateInfo rasterizer{};
+        rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        rasterizer.depthClampEnable = VK_FALSE;
+        rasterizer.rasterizerDiscardEnable = VK_FALSE;
+        rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+        rasterizer.lineWidth = 1.0f;
+        rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+        rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        rasterizer.depthBiasEnable = VK_FALSE;
+
+        VkPipelineMultisampleStateCreateInfo multisampling{};
+        multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        multisampling.sampleShadingEnable = VK_FALSE;
+        multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        colorBlendAttachment.colorWriteMask =
+            VK_COLOR_COMPONENT_R_BIT
+            | VK_COLOR_COMPONENT_G_BIT
+            | VK_COLOR_COMPONENT_B_BIT
+            | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_FALSE;
+
+        VkPipelineColorBlendStateCreateInfo colorBlending{};
+        colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        colorBlending.logicOpEnable = VK_FALSE;
+        colorBlending.attachmentCount = 1;
+        colorBlending.pAttachments = &colorBlendAttachment;
+
+        VkDynamicState dynamicStates[] =
+        {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR
+        };
+
+        VkPipelineDynamicStateCreateInfo dynamicState{};
+        dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        dynamicState.dynamicStateCount = 2;
+        dynamicState.pDynamicStates = dynamicStates;
+
+        //
         // CREATE GRAPHICS PIPELINE
         //
 
@@ -381,6 +445,13 @@ namespace KalaWindow::Graphics::Vulkan
         pipelineInfo.layout = ToVar<VkPipelineLayout>(shaderPtr->layout);
         pipelineInfo.renderPass = ToVar<VkRenderPass>(vData.renderPass);
         pipelineInfo.subpass = 0;
+        pipelineInfo.pVertexInputState = &vertexInputInfo;
+        pipelineInfo.pInputAssemblyState = &inputAssemblyInfo;
+        pipelineInfo.pViewportState = &viewportState;
+        pipelineInfo.pRasterizationState = &rasterizer;
+        pipelineInfo.pMultisampleState = &multisampling;
+        pipelineInfo.pColorBlendState = &colorBlending;
+        pipelineInfo.pDynamicState = &dynamicState;
         //TODO: add more?
 
         VkPipeline newPipeline = VK_NULL_HANDLE;
@@ -419,7 +490,9 @@ namespace KalaWindow::Graphics::Vulkan
         return shaderPtr;
 	}
 
-	bool Shader_Vulkan::Bind(uintptr_t commandBuffer) const
+	bool Shader_Vulkan::Bind(
+        uintptr_t commandBuffer,
+        Window* window) const
 	{
         if (pipeline == 0)
         {
@@ -431,6 +504,8 @@ namespace KalaWindow::Graphics::Vulkan
             return false;
         }
 
+        Window_VulkanData& vData = window->GetVulkanStruct();
+
         VkCommandBuffer cmd = ToVar<VkCommandBuffer>(commandBuffer);
         VkPipeline boundPipeline = ToVar<VkPipeline>(pipeline);
 
@@ -438,6 +513,62 @@ namespace KalaWindow::Graphics::Vulkan
             cmd,
             VK_PIPELINE_BIND_POINT_GRAPHICS,
             boundPipeline);
+
+        VkExtent2D currentExtent =
+        {
+            vData.swapchainExtentWidth,
+            vData.swapchainExtentHeight
+        };
+
+        VkViewport vp
+        {
+            0.0f,
+            0.0f,
+            float(currentExtent.width),
+            float(currentExtent.height),
+            0.0f,
+            1.0f
+        };
+
+        vkCmdSetViewport(
+            cmd,
+            0,
+            1,
+            &vp);
+
+        VkRect2D sc{ { 0, 0 }, currentExtent };
+        vkCmdSetScissor(
+            cmd,
+            0,
+            1,
+            &sc);
+
+        try
+        {
+            if (drawCommands)
+            {
+                Logger::Print(
+                    "User draw commands start.",
+                    "VULKAN",
+                    LogType::LOG_DEBUG);
+
+                drawCommands();
+
+                Logger::Print(
+                    "User draw commands end.",
+                    "VULKAN",
+                    LogType::LOG_DEBUG);
+            }
+        }
+        catch (const exception& e)
+        {
+            Logger::Print(
+                "Error during DrawCommands: " + string(e.what()),
+                "VULKAN",
+                LogType::LOG_ERROR,
+                2);
+            return false;
+        }
 
 		return true;
 	}

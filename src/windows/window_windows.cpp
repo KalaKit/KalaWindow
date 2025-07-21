@@ -12,7 +12,10 @@
 #include <algorithm>
 #include <functional>
 
-#include <vulkan/vulkan.h>
+#define VK_NO_PROTOTYPES
+#include <Volk/volk.h>
+//#include <vulkan/vulkan.h>
+
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/shader_opengl.hpp"

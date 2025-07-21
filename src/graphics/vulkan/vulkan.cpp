@@ -16,7 +16,6 @@
 #include <X11/Xlib.h> 
 #endif
 
-#include <stdexcept>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -51,7 +50,6 @@ using std::vector;
 using std::unordered_map;
 using std::pair;
 using std::uintptr_t;
-using std::exception;
 
 enum class ForceCloseType
 {
@@ -155,8 +153,6 @@ static bool InitVolk()
 
 namespace KalaWindow::Graphics::Vulkan
 {
-	function<void()> Renderer_Vulkan::DrawCommands = nullptr;
-
 	//
 	// INITIALIZE PHASE
 	//
@@ -1017,30 +1013,11 @@ namespace KalaWindow::Graphics::Vulkan
 			&renderPassInfo,
 			VK_SUBPASS_CONTENTS_INLINE);
 
-		try
+		for (auto& [name, shaderPtr] : Shader_Vulkan::createdShaders)
 		{
-			if (DrawCommands)
-			{
-				Logger::Print(
-					"User draw commands start.",
-					"VULKAN",
-					LogType::LOG_DEBUG);
-
-				DrawCommands();
-
-				Logger::Print(
-					"User draw commands end.",
-					"VULKAN",
-					LogType::LOG_ERROR);
-			}
-		}
-		catch (const exception& e)
-		{
-			Logger::Print(
-				"Error during DrawCommands: " + string(e.what()),
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
+			shaderPtr->Bind(
+				reinterpret_cast<uintptr_t>(cmd),
+				window);
 		}
 
 		vkCmdEndRenderPass(cmd);
