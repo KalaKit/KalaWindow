@@ -404,7 +404,8 @@ namespace KalaWindow::Graphics
 
 		MSG msg;
 		
-		if (targetWindow->IsIdle()
+		if (targetWindow->IsFocusRequired()
+			&& targetWindow->IsIdle()
 			&& !PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) 
 		{
 			WaitMessage();
@@ -458,31 +459,22 @@ namespace KalaWindow::Graphics
 	void Window::Shutdown(
 		ShutdownState state,
 		bool useWindowShutdown,
-		bool userEarlyShutdown,
 		function<void()> userShutdown)
 	{
 		try
 		{
+			Logger::Print(
+				"Attempting to run user provided regular shutdown function...",
+				"WINDOW",
+				LogType::LOG_DEBUG);
+
 			if (userRegularShutdown) userRegularShutdown();
 		}
 		catch (const exception& e)
 		{
 			Logger::Print(
 				"User-provided regular shutdown condition failed! Reason: " + string(e.what()),
-				"RENDER",
-				LogType::LOG_ERROR,
-				2);
-		}
-
-		try
-		{
-			if (userEarlyShutdown && userShutdown) userShutdown();
-		}
-		catch (const exception& e)
-		{
-			Logger::Print(
-				"User-provided early shutdown condition failed! Reason: " + string(e.what()),
-				"RENDER",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 		}
@@ -492,26 +484,26 @@ namespace KalaWindow::Graphics
 
 		Window::windows.clear();
 
-		try
-		{
-			if (!userEarlyShutdown && userShutdown) userShutdown();
-		}
-		catch (const exception& e)
-		{
-			Logger::Print(
-				"User-provided early shutdown condition failed! Reason: " + string(e.what()),
-				"RENDER",
-				LogType::LOG_ERROR,
-				2);
-		}
-
 #ifdef _WIN32
 		timeEndPeriod(1);
 #endif //_WIN32
 
+		try
+		{
+			if (!useWindowShutdown && userShutdown) userShutdown();
+		}
+		catch (const exception& e)
+		{
+			Logger::Print(
+				"User-provided post-render shutdown condition failed! Reason: " + string(e.what()),
+				"WINDOW",
+				LogType::LOG_ERROR,
+				2);
+		}
+
 		Logger::Print(
 			"KalaWindow shutting down with state = " + to_string(static_cast<int>(state)),
-			"RENDER",
+			"WINDOW",
 			LogType::LOG_SUCCESS);
 
 		if (useWindowShutdown)

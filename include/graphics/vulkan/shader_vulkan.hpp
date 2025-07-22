@@ -60,6 +60,18 @@ namespace KalaWindow::Graphics::Vulkan
 	public:
 		static inline unordered_map<string, unique_ptr<Shader_Vulkan>> createdShaders{};
 
+		//Compiles raw .vert, .frag etc shader files into .spv shader files,
+		//should be called BEFORE CreateShader or else CreateShader will not work if spv shaders are missing.
+		//  - compiles if no spv files exist of the same name
+		//  - compiles if spv files exist but original files are newer
+		//  - compiles if forceCompile bool is set to true
+		static bool CompileShader(
+			const vector<string>& originShaderPaths,
+			const vector<string>& targetShaderPaths,
+			bool forceCompile = false);
+
+		//Uses previously compiled .spv shader files to create the shader structure
+		//required for Vulkan to draw stuff on screen
 		static Shader_Vulkan* CreateShader(
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages,

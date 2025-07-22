@@ -41,10 +41,16 @@ using std::ios;
 using std::make_unique;
 using std::filesystem::path;
 using std::filesystem::exists;
+using std::filesystem::last_write_time;
+using std::filesystem::remove;
 using std::streamsize;
 using std::format;
 using std::stringstream;
 using std::exception;
+using std::system;
+using std::error_code;
+
+static bool glslangValidatorExists = false;
 
 static void ForceClose(
     const string& title,
@@ -190,8 +196,153 @@ static bool InitShader(
     return true;
 }
 
+static bool ValidatorExists()
+{
+#ifdef _WIN32
+    string whereCommand = "cmd /C where glslangValidator";
+#elif __linux__
+    string whereCommand = "which glslangValidator >/dev/null 2>&1";
+#endif
+
+    Logger::Print(
+        "Searching for glslangValidator...",
+        "SHADER_VULKAN",
+        LogType::LOG_DEBUG);
+
+    bool result = system(whereCommand.c_str()) == 0;
+
+    glslangValidatorExists = result;
+    return result;
+}
+
+static bool CompileToSPV(
+    const string& origin,
+    const string& target)
+{
+    string originName = path(origin).filename().string();
+    string targetName = path(target).filename().string();
+
+    Logger::Print(
+        "Starting to compile shader file '" + originName + "' into '" + targetName + "'.",
+        "SHADER_VULKAN",
+        LogType::LOG_DEBUG);
+
+#ifdef _WIN32
+    string glslCommand = "cmd /C glslangValidator -V --target-env vulkan1.2 -o \"" + target + "\" \"" + origin + "\" >nul";
+#elif __linux__
+    string glslCommand = "glslangValidator -V --target-env vulkan1.2 -o \"" + target + "\" \"" + origin + "\" >/dev/null";
+#endif
+
+    if (!glslangValidatorExists
+        && !ValidatorExists())
+    {
+        string title = "Vulkan error [shader_vulkan]";
+        string reason = "Failed to compile to spv because glslangValidator was not found! You probably didn't install the Vulkan SDK.";
+
+        ForceClose(title, reason);
+
+        return false;
+    }
+
+    int glslResult = system(glslCommand.c_str());
+    if (glslResult != 0)
+    {
+        string title = "Vulkan error [shader_vulkan]";
+        string reason = "Failed to compile shader '" + originName + "' to spv!";
+
+        ForceClose(title, reason);
+
+        return false;
+    }
+
+    Logger::Print(
+        "Compiled '" + originName + "' into '" + targetName + "'!",
+        "SHADER_VULKAN",
+        LogType::LOG_SUCCESS);
+
+    return true;
+}
+
 namespace KalaWindow::Graphics::Vulkan
 {
+    bool Shader_Vulkan::CompileShader(
+        const vector<string>& originShaderPaths,
+        const vector<string>& targetShaderPaths,
+        bool forceCompile)
+    {
+        if (originShaderPaths.size() != targetShaderPaths.size())
+        {
+            Logger::Print(
+                "Origin shader paths count does not match target shader paths count!",
+                "SHADER_VULKAN",
+                LogType::LOG_ERROR,
+                2);
+
+            return false;
+        }
+
+        for (size_t i = 0; i < originShaderPaths.size(); ++i)
+        {
+            string src = originShaderPaths[i];
+            string spv = targetShaderPaths[i];
+
+            string originName = path(src).filename().string();
+
+            bool shouldCompile = forceCompile;
+
+            bool upToDate = false;
+            if (!shouldCompile)
+            {
+                if (!exists(spv)) shouldCompile = true;
+                else
+                {
+                    auto srcTime = last_write_time(src);
+                    auto spvTime = last_write_time(spv);
+                    upToDate = srcTime > spvTime;
+                    if (!upToDate) shouldCompile = true;
+                }
+            }
+
+            if (upToDate)
+            {
+                Logger::Print(
+                    "Skipped compiling shader file '" + originName + "' because it is already up to date.",
+                    "SHADER_VULKAN",
+                    LogType::LOG_DEBUG);
+
+                continue;
+            }
+
+            if (shouldCompile)
+            {
+                if (exists(spv))
+                {
+                    error_code ec{};
+                    if (!remove(spv, ec))
+                    {
+                        string title = "Vulkan error [shader_vulkan]";
+                        string reason = "Failed to remove existing spv file '" + originName + "'! Reason: " + ec.message();
+
+                        ForceClose(title, reason);
+                        return false;
+                    }
+                    else
+                    {
+                        Logger::Print(
+                            "Removed existing spv file '" + originName + "' before compilation.",
+                            "SHADER_VULKAN",
+                            LogType::LOG_DEBUG);
+                    }
+                }
+
+                bool success = CompileToSPV(src, spv);
+                if (!success) return false;
+            }
+        }
+
+        return true;
+    }
+
 	Shader_Vulkan* Shader_Vulkan::CreateShader(
 		const string& shaderName,
 		const vector<ShaderStage>& shaderStages,
@@ -249,7 +400,8 @@ namespace KalaWindow::Graphics::Vulkan
                     2);
                 return nullptr;
             }
-            else if (!exists(stage.shaderPath))
+
+            if (!exists(stage.shaderPath))
             {
                 Logger::Print(
                     "Shader '" + shaderName + "' with type '"
@@ -259,19 +411,17 @@ namespace KalaWindow::Graphics::Vulkan
                     2);
                 return nullptr;
             }
-            else
+            
+            switch (stage.shaderType)
             {
-                switch (stage.shaderType)
-                {
-                case ShaderType::Shader_Vertex:
-                    newVertStage.shaderPath = stage.shaderPath;
-                    newVertStage.shaderType = stage.shaderType;
-                    break;
-                case ShaderType::Shader_Fragment:
-                    newFragStage.shaderPath = stage.shaderPath;
-                    newFragStage.shaderType = stage.shaderType;
-                    break;
-                }
+            case ShaderType::Shader_Vertex:
+                newVertStage.shaderPath = stage.shaderPath;
+                newVertStage.shaderType = stage.shaderType;
+                break;
+            case ShaderType::Shader_Fragment:
+                newFragStage.shaderPath = stage.shaderPath;
+                newFragStage.shaderType = stage.shaderType;
+                break;
             }
         }
 

@@ -14,5 +14,5 @@
 - moved all initialization inside KalaWindow::Initialize
 
 0.3:
-- support for linux (x11)
-- major cleanup and project structure improvements
+- project rewritten to better support platform-agnostic and vendor-agnostic headers
+- added vulkan 1.2 support

@@ -209,13 +209,6 @@ namespace KalaWindow::Graphics
 		//Can assign the window state to one of the supported types
 		void SetWindowState(WindowState state);
 
-		//Gets the state of idle handling. If true, then this window is
-		//allowed to have reduced performance when idle to save on resources.
-		bool AllowIdleHandling() const { return allowIdleHandling; }
-		//Sets the state of idle handling. If true, then this window is
-		//allowed to have reduced performance when idle to save on resources.
-		void SetAllowIdleHandling(bool newAllowIdleHandling) { allowIdleHandling = newAllowIdleHandling; }
-
 		//Returns true if window is idle - not focused, minimized or not visible.
 		bool IsIdle() const { return isIdle; }
 
@@ -259,26 +252,21 @@ namespace KalaWindow::Graphics
 		/// </param>
 		/// <param name="useWindowShutdown">
 		///		If false, then KalaWindow ShutdownState and its actions are ignored
-		///		and user must provide their own setup.
-		/// </param>
-		/// <param name="userEarlyShutdown">
-		///		If true, then user-provided shutdown function userShutdown
-		///		is called before the windows and the renderer are destroyed,
-		///		otherwise userShutdown is called after them.
+		///		and user must provide their own setup that is called after all windows and the render pipeline are destroyed.
 		/// </param>
 		/// <param name="userShutdown">
-		///		The function user can optionally pass to KalaWindow shutdown procedure.
+		///		The function user can optionally pass to KalaWindow shutdown procedure,
+		///     called dynamically either before window and render pipeline shutdown
+		///     if useWindowShutdown is true, otherwise it is called after.
 		/// </param>
 		static void Shutdown(
 			ShutdownState state,
 			bool useWindowShutdown = true,
-			bool userEarlyShutdown = false,
 			function<void()> userShutdown = nullptr);
 	private:
 		bool isInitialized = false;          //Cannot use this window if it is not yet initialized
-		bool isWindowFocusRequired = true;   //If false, then this window will not update unless selected.
-		bool allowIdleHandling = true;       //If true, then this window is allowed to have reduced performance when idle to save on resources.
-		bool isIdle = false;                 //If true, then this window will call drastically less updates.
+		bool isWindowFocusRequired = true;   //If true, then this window will not update unless selected.
+		bool isIdle = false;                 //Toggled dynamically by isfocused, isminimized and isvisible checks.
 
 		kvec2 maxSize = kvec2{ 7680, 4320 }; //The maximum size this window can become
 		kvec2 minSize = kvec2{ 400, 300 };   //The minimum size this window can become

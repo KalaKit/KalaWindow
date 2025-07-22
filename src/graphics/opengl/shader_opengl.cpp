@@ -189,7 +189,8 @@ namespace KalaWindow::Graphics::OpenGL
                     2);
                 return nullptr;
             }
-            else if (!exists(stage.shaderPath))
+
+            if (!exists(stage.shaderPath))
             {
                 Logger::Print(
                     "Shader '" + shaderName + "' with type '"
@@ -199,23 +200,21 @@ namespace KalaWindow::Graphics::OpenGL
                     2);
                 return nullptr;
             }
-            else
+            
+            switch (stage.shaderType)
             {
-                switch (stage.shaderType)
-                {
-                case ShaderType::Shader_Vertex:
-                    newVertStage.shaderPath = stage.shaderPath;
-                    newVertStage.shaderType = stage.shaderType;
-                    break;
-                case ShaderType::Shader_Fragment:
-                    newFragStage.shaderPath = stage.shaderPath;
-                    newFragStage.shaderType = stage.shaderType;
-                    break;
-                case ShaderType::Shader_Geometry:
-                    newGeomStage.shaderPath = stage.shaderPath;
-                    newGeomStage.shaderType = stage.shaderType;
-                    break;
-                }
+            case ShaderType::Shader_Vertex:
+                newVertStage.shaderPath = stage.shaderPath;
+                newVertStage.shaderType = stage.shaderType;
+                break;
+            case ShaderType::Shader_Fragment:
+                newFragStage.shaderPath = stage.shaderPath;
+                newFragStage.shaderType = stage.shaderType;
+                break;
+            case ShaderType::Shader_Geometry:
+                newGeomStage.shaderPath = stage.shaderPath;
+                newGeomStage.shaderType = stage.shaderType;
+                break;
             }
         }
 
