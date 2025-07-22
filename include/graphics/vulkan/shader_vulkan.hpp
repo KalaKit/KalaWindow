@@ -10,6 +10,7 @@
 #include <unordered_map>
 #include <vector>
 #include <functional>
+#include <variant>
 
 #include "core/platform.hpp"
 #include "core/log.hpp"
@@ -26,6 +27,21 @@ namespace KalaWindow::Graphics::Vulkan
 	using std::unordered_map;
 	using std::vector;
 	using std::function;
+	using std::variant;
+
+	//Variable type allowed to be used in 'SetPushConstant'
+	using PushConstantValue = variant
+	<
+		bool,
+		int32_t,
+		float,
+		kvec2,
+		kvec3,
+		kvec4,
+		kmat2,
+		kmat3,
+		kmat4
+	>;
 
 	enum class ShaderType
 	{
@@ -269,6 +285,15 @@ namespace KalaWindow::Graphics::Vulkan
 			Window* window) const;
 
 		void HotReload();
+
+		//Send a small, fast piece of data that you can send directly to
+		//shaders without creating or updating a buffer.
+		void SetPushConstant(
+			uintptr_t cmdBuffer,
+			uintptr_t layout,
+			uint32_t stageFlags,
+			uint32_t offset,
+			const PushConstantValue& value);
 
 		//Destroys this created shader and its data
 		~Shader_Vulkan();

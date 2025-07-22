@@ -71,6 +71,11 @@ namespace KalaWindow::Graphics::Vulkan
 		static bool CreateSyncObjects(Window* window);
 		static void DestroySyncObjects(Window* window);
 
+		//Initializes core shader variables that are reused across each shader.
+		//Must be called at the END of your Vulkan initialization system
+		//and BEFORE CreateShader or CompileShader is called
+		static bool InitializeShaderSystem(Window* window);
+
 		//
 		// RUNTIME LOOP PHASE
 		//
@@ -119,10 +124,12 @@ namespace KalaWindow::Graphics::Vulkan
 
 		static void Shutdown();
 	private:
-		static inline bool isVulkanInitialized;
-		static inline uintptr_t instance;
-		static inline uintptr_t device;
-		static inline uintptr_t physicalDevice;
+		static inline bool isVulkanInitialized{};
+		static inline bool isVulkanShaderSystemInitialized{};
+
+		static inline uintptr_t instance{};
+		static inline uintptr_t device{};
+		static inline uintptr_t physicalDevice{};
 
 		static inline vector<VulkanLayers> enabledLayers{};
 		static inline vector<VulkanInstanceExtensions> enabledInstanceExtensions{};

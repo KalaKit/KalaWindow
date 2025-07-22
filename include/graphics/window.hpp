@@ -119,6 +119,28 @@ namespace KalaWindow::Graphics
 
 		uintptr_t renderPass{}; //VkRenderPass
 	};
+	struct Window_VulkanShaderData
+	{
+		//Vertex input and primitive assembly state
+
+		uintptr_t vertexInputInfo{};   //VkPipelineVertexInputStateCreateInfo
+		uintptr_t inputAssemblyInfo{}; //VkPipelineInputAssemblyStateCreateInfo
+
+		//Viewport and scissor state (dynamic)
+		
+		uintptr_t viewportState{}; //VkPipelineViewportStateCreateInfo
+		uintptr_t dynamicState{};  //VkPipelineDynamicStateCreateInfo
+
+		//Rasterization and multisampling
+
+		uintptr_t rasterizer{};    //VkPipelineRasterizationStateCreateInfo
+		uintptr_t multisampling{}; //VkPipelineMultisampleStateCreateInfo
+
+		//Color blend state for framebuffer output
+
+		uintptr_t colorBlendAttachment{}; //VkPipelineColorBlendAttachmentState
+		uintptr_t colorBlending{};        //VkPipelineColorBlendStateCreateInfo
+	};
 
 	struct WindowStruct_Windows
 	{
@@ -186,6 +208,12 @@ namespace KalaWindow::Graphics
 		void SetVulkanStruct(Window_VulkanData newVulkanData)
 		{
 			vulkanData = newVulkanData;
+		}
+
+		Window_VulkanShaderData& GetVulkanShaderStruct() { return vulkanShaderData; }
+		void SetVulkanShaderStruct(Window_VulkanShaderData newVulkanShaderData)
+		{
+			vulkanShaderData = newVulkanShaderData;
 		}
 
 		const string& GetTitle() const { return title; }
@@ -302,7 +330,9 @@ namespace KalaWindow::Graphics
 		//vendor-specific variables
 
 		Window_OpenGLData openglData{}; //The OpenGL data of this window
-		Window_VulkanData vulkanData{}; //The Vulkan data of this window
+
+		Window_VulkanData vulkanData{};             //The Vulkan data of this window
+		Window_VulkanShaderData vulkanShaderData{}; //The Vulkan shader data of this window
 
 		function<void()> resizeCallback{};
 	};
