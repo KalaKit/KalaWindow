@@ -22,12 +22,24 @@
 
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::TimeFormat;
+using KalaWindow::Core::DateFormat;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Graphics::PopupAction;
+using KalaWindow::Graphics::PopupResult;
+using KalaWindow::Graphics::PopupType;
 
 using std::unordered_map;
 using std::string_view;
 using std::string;
 using std::format;
+
+HMODULE module{};
+
+static void ForceClose(
+	const string& title,
+	const string& reason);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -156,6 +168,18 @@ namespace KalaWindow::Graphics::OpenGL
 
 	void OpenGLCore::InitializeAllFunctions()
 	{
+		if (!module)
+		{
+			module = ToVar<HMODULE>(Window::GetOpenGLLib());
+
+			if (!module)
+			{
+				ForceClose(
+					"OpenGL error [opengl_core]",
+					"Failed to get module 'opengl32.dll' because it was invalid!");
+			}
+		}
+
 		for (const auto& entry : functionTable)
 		{
 			if (string(entry.name).find("wgl") != string::npos) continue;
@@ -189,6 +213,18 @@ namespace KalaWindow::Graphics::OpenGL
 
 	void OpenGLCore::InitializeFunction(const char* name)
 	{
+		if (!module)
+		{
+			module = ToVar<HMODULE>(Window::GetOpenGLLib());
+
+			if (!module)
+			{
+				ForceClose(
+					"OpenGL error [opengl_core]",
+					"Failed to get module 'opengl32.dll' because it was invalid!");
+			}
+		}
+
 		for (const auto& entry : functionTable)
 		{
 			if (strcmp(entry.name, name) == 0)
@@ -254,19 +290,8 @@ namespace KalaWindow::Graphics::OpenGL
 			"OPENGL_CORE",
 			LogType::LOG_WARNING);
 
-		static HMODULE module = LoadLibraryA("opengl32.dll");
-		if (module)
-		{
-			p = reinterpret_cast<void*>(GetProcAddress(module, name));
-			if (!IsBadFunction(p)) return p;
-		}
-		else
-		{
-			Logger::Print(
-				"Failed to load module 'opengl32.dll'!",
-				"OPENGL_CORE",
-				LogType::LOG_ERROR);
-		}
+		p = reinterpret_cast<void*>(GetProcAddress(module, name));
+		if (!IsBadFunction(p)) return p;
 
 		string title = "OpenGL error [opengl_core]";
 		string reason = "Failed to find function '" + string(name) + "'!";
@@ -365,5 +390,29 @@ namespace KalaWindow::Graphics::OpenGL
 		case TrapType::Pointer: return reinterpret_cast<void*>(&FunctionNotLoadedPointerTrap);
 		}
 		return nullptr;
+	}
+}
+
+void ForceClose(
+	const string& title,
+	const string& reason)
+{
+	Logger::Print(
+		reason,
+		"OPENGL_WINDOWS",
+		LogType::LOG_ERROR,
+		2,
+		TimeFormat::TIME_NONE,
+		DateFormat::DATE_NONE);
+
+	Window* mainWindow = Window::windows.front();
+	if (mainWindow->CreatePopup(
+		title,
+		reason,
+		PopupAction::POPUP_ACTION_OK,
+		PopupType::POPUP_TYPE_ERROR)
+		== PopupResult::POPUP_RESULT_OK)
+	{
+		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }

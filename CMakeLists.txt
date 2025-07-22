@@ -22,7 +22,7 @@ else()
 endif()
 
 # Dependencies
-find_package(OpenGL REQUIRED)
+# find_package(OpenGL REQUIRED)
 find_package(Vulkan REQUIRED)
 
 # Paths
@@ -71,8 +71,9 @@ target_compile_definitions(KalaWindow PRIVATE
     NOMINMAX
 )
 
-# Link Libraries
-target_link_libraries(KalaWindow PRIVATE 
-	OpenGL::GL 
-	opengl32
-	Vulkan::Vulkan)
+# Link libraries
+target_link_libraries(KalaWindow PRIVATE
+	Vulkan::Vulkan
+	opengl32)
+	#OpenGL::GL
+	#Vulkan::Vulkan)

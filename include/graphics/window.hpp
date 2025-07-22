@@ -143,6 +143,16 @@ namespace KalaWindow::Graphics
 			const string& title,
 			kvec2 size);
 
+		//Get the handle to opengl32.dll
+		static uintptr_t GetOpenGLLib() { return openglLib; }
+		//Set the handle to opengl32.dll
+		static void SetOpenGLLib(uintptr_t newOpenglLib) { openglLib = newOpenglLib; }
+
+		//Get the handle to vulkan-1.dll
+		static uintptr_t GetVulkanLib() { return vulkanLib; }
+		//Set the handle to vulkan-1.dll
+		static void SetVulkanLib(uintptr_t newVulkanLib) { vulkanLib = newVulkanLib; }
+
 		Window(
 			string title,
 			unsigned int ID,
@@ -264,6 +274,9 @@ namespace KalaWindow::Graphics
 			bool useWindowShutdown = true,
 			function<void()> userShutdown = nullptr);
 	private:
+		static inline uintptr_t openglLib{}; //The handle to opengl32.dll
+		static inline uintptr_t vulkanLib{}; //The handle to vulkan-1.dll
+
 		bool isInitialized = false;          //Cannot use this window if it is not yet initialized
 		bool isWindowFocusRequired = true;   //If true, then this window will not update unless selected.
 		bool isIdle = false;                 //Toggled dynamically by isfocused, isminimized and isvisible checks.

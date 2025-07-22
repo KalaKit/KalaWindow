@@ -40,6 +40,15 @@ namespace KalaWindow::Graphics::OpenGL
 {
 	bool Renderer_OpenGL::Initialize(Window* targetWindow)
 	{
+		HMODULE module = LoadLibraryA("opengl32.dll");
+		if (!module)
+		{
+			ForceClose(
+				"OpenGL initialization error [opengl_windows]",
+				"Failed to load module 'opengl32.dll'!");
+		}
+		Window::SetOpenGLLib(FromVar<HMODULE>(module));
+
 		WindowStruct_Windows wData = targetWindow->GetWindow_Windows();
 		Window_OpenGLData oData{};
 		HWND windowRef = ToVar<HWND>(wData.hwnd);
