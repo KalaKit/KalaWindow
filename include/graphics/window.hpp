@@ -142,34 +142,98 @@ namespace KalaWindow::Graphics
 	//VkPipelineViewportStateCreateInfo
 	struct VulkanData_ViewportState
 	{
-		//VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
 		uint32_t sType{};
 		//???
-		uint32_t topology{};
-		//VkBool32, usually VK_FALSE
-		uint32_t primitiveRestartEnable{};
+		uintptr_t pNext{};
+		//VkPipelineViewportStateCreateFlags
+		uint32_t flags{};
+		//???
+		uint32_t viewportCount{};
+		//VkViewport, struct to VD_VS_Viewports
+		VD_VS_Viewports pViewports{};
+		//???
+		uint32_t scissorCount{};
+		//VkRect2D, struct to VD_VS_Scissors
+		VD_VS_Scissors pScissors{};
+	};
+	//VkViewport, contents of pViewports in VulkanData_ViewportState
+	struct VD_VS_Viewports
+	{
+		//???
+		float x{};
+		//???
+		float y{};
+		//???
+		float width{};
+		//???
+		float height{};
+		//???
+		float minDepth{};
+		//???
+		float maxDepth{};
+	};
+	//VkRect2D, contents of pScissors in VulkanData_ViewportState
+	struct VD_VS_Scissors
+	{
+		//VkOffset2D, struct of VD_VS_VkOffset2D
+		VD_VS_VkOffset2D offset{};
+		//VkExtent2D, struct of VD_VS_VkRect2D
+		VD_VS_VkExtent2D extent{};
+	};
+	//VkOffset2D, contents of offset in VD_VS_VkRect2D
+	struct VD_VS_VkOffset2D
+	{
+		//???
+		int32_t x{};
+		//???
+		int32_t y{};
+	};
+	//VkExtent2D, contents of extent in VD_VS_VkRect2D
+	struct VD_VS_VkExtent2D
+	{
+		//???
+		uint32_t width{};
+		//???
+		uint32_t height{};
 	};
 
 	//VkPipelineDynamicStateCreateInfo
 	struct VulkanData_DynamicState
 	{
-		//VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
 		uint32_t sType{};
+		//???
+		uintptr_t pNext{};
+		//VkPipelineDynamicStateCreateFlags
+		uint32_t flags{};
 		//count of pDynamicStates
 		uint32_t dynamicStateCount{};
-		//vector of each dynamic state
+		//vector of VkDynamicState enums
 		vector<uint32_t> pDynamicStates{};
 	};
 
 	//VkPipelineMultisampleStateCreateInfo
 	struct VulkanData_MultisampleState
 	{
-		//VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
 		uint32_t sType{};
+		//???
+		uintptr_t pNext{};
+		//VkPipelineMultisampleStateCreateFlags
+		uint32_t flags{};
+		//VkSampleCountFlagBits enum
+		uint32_t rasterizationSamples{};
 		//VkBool32, usually VK_FALSE
 		uint32_t sampleShadingEnable{};
 		//???
-		uint32_t rasterizationSamples{};
+		float minSampleShading{};
+		//VkSampleMask
+		uint32_t pSampleMask{};
+		//VkBool32
+		uint32_t alphaToCoverageEnable{};
+		//VkBool32
+		uint32_t alphaToOneEnable{};
 	};
 
 	class KALAWINDOW_API Window

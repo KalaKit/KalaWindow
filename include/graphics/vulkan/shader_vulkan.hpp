@@ -83,11 +83,11 @@ namespace KalaWindow::Graphics::Vulkan
 		uint32_t flags{};
 		//number of bindings
 		uint32_t vertexBindingDescriptionCount{};
-		//binding data
+		//VkVertexInputBindingDescription, struct to VD_VII_BindingDescriptions
 		vector<VD_VII_BindingDescriptions> pVertexBindingDescriptions{};
 		//number of attributes
 		uint32_t vertexAttributeDescriptionCount{}; 
-		//attribute data
+		//VkVertexInputAttributeDescription, struct to VD_VII_AttributeDescriptions
 		vector<VD_VII_AttributeDescriptions> pVertexAttributeDescriptions{};
 	};
 	//Contents of pVertexBindingDescriptions in VulkanData_VertexInputState
@@ -97,7 +97,7 @@ namespace KalaWindow::Graphics::Vulkan
 		uint32_t binding{};
 		//each vertex size in bytes
 		uint32_t stride{};
-		//0 (VK_VERTEX_INPUT_RATE_VERTEX) or 1 (_INSTANCE)
+		//VkVertexInputRate, 0 (VK_VERTEX_INPUT_RATE_VERTEX) or 1 (_INSTANCE)
 		uint32_t inputRate{};
 	};
 	//Contents of pVertexAttributeDescriptions in VulkanData_VertexInputState
@@ -174,13 +174,12 @@ namespace KalaWindow::Graphics::Vulkan
 		uint32_t logicOp{};
 		//???
 		uint32_t attachmentCount{};
-		//VkPipelineColorBlendAttachmentState pointer
+		//VkPipelineColorBlendAttachmentState, struct to VD_CBS_Attachments
 		VD_CBS_Attachments pAttachments{};
 		//???
 		float blendConstants[4];
 	};
-	//Contents of pAttachments in VulkanData_ColorBlendState
-	//VkPipelineColorBlendAttachmentState
+	//VkPipelineColorBlendAttachmentState, contents of pAttachments in VulkanData_ColorBlendState
 	struct VD_CBS_Attachments
 	{
 		//VkBool32, usually VK_FALSE
@@ -219,13 +218,12 @@ namespace KalaWindow::Graphics::Vulkan
 		uint32_t depthBoundsTestEnable{};
 		//VkBool32
 		uint32_t stencilTestEnable{};
-		//VkStencilOpState struct
+		//VkStencilOpState, struct to VD_DSS_Front
 		VD_DSS_Front front{};
-		//VkStencilOpState struct
+		//VkStencilOpState, struct to VD_DSS_Back
 		VD_DSS_Back back{};
 	};
-	//Contents of front in VulkanData_DepthStencilState
-	//VkStencilOpState
+	//VkStencilOpState, contents of front in VulkanData_DepthStencilState
 	struct VD_DSS_Front
 	{
 		//VkStencilOp enum
@@ -243,8 +241,7 @@ namespace KalaWindow::Graphics::Vulkan
 		//???
 		uint32_t reference{};
 	};
-	//Contents of back in VulkanData_DepthStencilState
-	//VkStencilOpState
+	//VkStencilOpState, contents of back in VulkanData_DepthStencilState
 	struct VD_DSS_Back
 	{
 		//VkStencilOp enum
