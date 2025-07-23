@@ -139,38 +139,36 @@ namespace KalaWindow::Graphics
 		uintptr_t renderPass{}; //VkRenderPass
 	};
 
-	//VkPipelineViewportStateCreateInfo
-	struct VulkanData_ViewportState
+	//VkOffset2D, contents of offset in VD_VS_VkRect2D
+	struct VD_VS_VkOffset2D
 	{
-		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
-		uint32_t sType{};
-		//???
-		uintptr_t pNext{};
-		//VkPipelineViewportStateCreateFlags
-		uint32_t flags{};
-		//???
-		uint32_t viewportCount{};
-		//VkViewport, struct to VD_VS_Viewports
-		VD_VS_Viewports pViewports{};
-		//???
-		uint32_t scissorCount{};
-		//VkRect2D, struct to VD_VS_Scissors
-		VD_VS_Scissors pScissors{};
+		//Horizontal pixel offset, usually 0
+		int32_t x{};
+		//Vertical pixel offset, usually 0
+		int32_t y{};
+	};
+	//VkExtent2D, contents of extent in VD_VS_VkRect2D
+	struct VD_VS_VkExtent2D
+	{
+		//Width in pixels, usually matches framebuffer width
+		uint32_t width{};
+		//Height in pixels, usually matches framebuffer height
+		uint32_t height{};
 	};
 	//VkViewport, contents of pViewports in VulkanData_ViewportState
 	struct VD_VS_Viewports
 	{
-		//???
+		//x-coordinate of top-left corner, usually 0.0f
 		float x{};
-		//???
+		//y-coordinate of top-left corner, usually 0.0f
 		float y{};
-		//???
+		//Viewport width, usually matches swapchain width
 		float width{};
-		//???
+		//Viewport height, usually matches swapchain height
 		float height{};
-		//???
+		//Minimum depth value, usually 0.0f
 		float minDepth{};
-		//???
+		//Maximum depth value, usually 1.0f
 		float maxDepth{};
 	};
 	//VkRect2D, contents of pScissors in VulkanData_ViewportState
@@ -181,21 +179,23 @@ namespace KalaWindow::Graphics
 		//VkExtent2D, struct of VD_VS_VkRect2D
 		VD_VS_VkExtent2D extent{};
 	};
-	//VkOffset2D, contents of offset in VD_VS_VkRect2D
-	struct VD_VS_VkOffset2D
+	//VkPipelineViewportStateCreateInfo
+	struct VulkanData_ViewportState
 	{
-		//???
-		int32_t x{};
-		//???
-		int32_t y{};
-	};
-	//VkExtent2D, contents of extent in VD_VS_VkRect2D
-	struct VD_VS_VkExtent2D
-	{
-		//???
-		uint32_t width{};
-		//???
-		uint32_t height{};
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
+		uint32_t sType{};
+		//Extension-specific structure, usually NULL
+		uintptr_t pNext{};
+		//VkPipelineViewportStateCreateFlags, usually 0
+		uint32_t flags{};
+		//Number of viewports, usually 1
+		uint32_t viewportCount{};
+		//VkViewport, struct to VD_VS_Viewports
+		VD_VS_Viewports pViewports{};
+		//Number of scissors, usually 1
+		uint32_t scissorCount{};
+		//VkRect2D, struct to VD_VS_Scissors
+		VD_VS_Scissors pScissors{};
 	};
 
 	//VkPipelineDynamicStateCreateInfo
@@ -203,11 +203,11 @@ namespace KalaWindow::Graphics
 	{
 		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
 		uint32_t sType{};
-		//???
+		//Extension-specific structure, usually NULL
 		uintptr_t pNext{};
-		//VkPipelineDynamicStateCreateFlags
+		//VkPipelineDynamicStateCreateFlags, usually 0
 		uint32_t flags{};
-		//count of pDynamicStates
+		//count of pDynamicStates, usually 2 (viewport and scissor)
 		uint32_t dynamicStateCount{};
 		//vector of VkDynamicState enums
 		vector<uint32_t> pDynamicStates{};
@@ -218,21 +218,21 @@ namespace KalaWindow::Graphics
 	{
 		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
 		uint32_t sType{};
-		//???
+		//Extension-specific structure, usually NULL
 		uintptr_t pNext{};
-		//VkPipelineMultisampleStateCreateFlags
+		//VkPipelineMultisampleStateCreateFlags, usually 0
 		uint32_t flags{};
-		//VkSampleCountFlagBits enum
+		//VkSampleCountFlagBits enum, usually VK_SAMPLE_COUNT_1_BIT
 		uint32_t rasterizationSamples{};
 		//VkBool32, usually VK_FALSE
 		uint32_t sampleShadingEnable{};
-		//???
+		//Minimum sample shading value (clamped to [0,1]), usually 0.0f
 		float minSampleShading{};
-		//VkSampleMask
+		//VkSampleMask, usually 0 or NULL
 		uint32_t pSampleMask{};
-		//VkBool32
+		//VkBool32, usually VK_FALSE
 		uint32_t alphaToCoverageEnable{};
-		//VkBool32
+		//VkBool32. usually VK_FALSE
 		uint32_t alphaToOneEnable{};
 	};
 
@@ -291,10 +291,22 @@ namespace KalaWindow::Graphics
 			vulkanData = newVulkanData;
 		}
 
-		Window_VulkanShaderData& GetVulkanShaderStruct() { return vulkanShaderData; }
-		void SetVulkanShaderStruct(Window_VulkanShaderData newVulkanShaderData)
+		VulkanData_ViewportState& GetVulkanViewportStruct() { return vulkan_vs_struct; }
+		void SetVulkanViewportStruct(VulkanData_ViewportState vulkan_new_vs_struct)
 		{
-			vulkanShaderData = newVulkanShaderData;
+			vulkan_vs_struct = vulkan_new_vs_struct;
+		}
+
+		VulkanData_DynamicState& GetVulkanDynamicStruct() { return vulkan_ds_struct; }
+		void SetVulkanDynamicStruct(VulkanData_DynamicState vulkan_new_ds_struct)
+		{
+			vulkan_ds_struct = vulkan_new_ds_struct;
+		}
+
+		VulkanData_MultisampleState& GetVulkanMultisampleStruct() { return vulkan_ms_struct; }
+		void SetVulkanMultisampleStruct(VulkanData_MultisampleState vulkan_new_ms_struct)
+		{
+			vulkan_ms_struct = vulkan_new_ms_struct;
 		}
 
 		const string& GetTitle() const { return title; }
@@ -412,8 +424,10 @@ namespace KalaWindow::Graphics
 
 		OpenGLData openglData{}; //The OpenGL data of this window
 
-		VulkanData_Core vulkanData{}; //The general Vulkan data of this window
-		Window_VulkanShaderData vulkanShaderData{}; //The Vulkan shader data of this window
+		VulkanData_Core vulkanData{}; //The core Vulkan data of this window
+		VulkanData_ViewportState vulkan_vs_struct{}; //Vulkan viewport state struct
+		VulkanData_DynamicState vulkan_ds_struct{}; //Vulkan dynamic state struct
+		VulkanData_MultisampleState vulkan_ms_struct{}; //Vulkan multisample state struct
 
 		function<void()> resizeCallback{};
 	};

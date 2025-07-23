@@ -61,7 +61,10 @@ namespace KalaWindow::Graphics::Vulkan
 		//Initializes core shader variables that are reused across each shader.
 		//Must be called at the END of your Vulkan initialization system
 		//and BEFORE CreateShader or CompileShader is called
-		static bool InitializeShaderSystem(Window* window);
+		static bool InitializeShaderSystem(
+			VulkanData_ViewportState& vsStruct,
+			VulkanData_DynamicState& dsStruct,
+			VulkanData_MultisampleState& msStruct);
 
 		//
 		// RUNTIME LOOP

@@ -817,17 +817,11 @@ namespace KalaWindow::Graphics::Vulkan
 		return true;
 	}
 
-	bool Renderer_Vulkan::InitializeShaderSystem(Window* window)
+	bool Renderer_Vulkan::InitializeShaderSystem(
+		VulkanData_ViewportState& vsStruct,
+		VulkanData_DynamicState& dsStruct,
+		VulkanData_MultisampleState& msStruct)
 	{
-		VulkanData_VertexInputInfo vData_1
-		{
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-			.pNext = NULL,
-			.flags = 0,
-			.vertexBindingDescriptionCount = 0,
-			.vertexAttributeDescriptionCount = 0
-		};
-
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexInputInfo.vertexBindingDescriptionCount = 0;
@@ -893,17 +887,6 @@ namespace KalaWindow::Graphics::Vulkan
 		uintptr_t VKmultisampling = FromVar(&multisampling);
 		uintptr_t VKcolorBlendAttachment = FromVar(&colorBlendAttachment);
 		uintptr_t VKcolorBlending = FromVar(&colorBlending);
-
-		vShaderData.vertexInputInfo = VKvertexInputInfo;
-		vShaderData.inputAssemblyInfo = VKinputAssemblyInfo;
-		vShaderData.viewportState = VKviewportState;
-		vShaderData.dynamicState = VKdynamicState;
-		vShaderData.rasterizer = VKrasterizer;
-		vShaderData.multisampling = VKmultisampling;
-		vShaderData.colorBlendAttachment = VKcolorBlendAttachment;
-		vShaderData.colorBlending = VKcolorBlending;
-
-		window->SetVulkanShaderStruct(vShaderData);
 
 		return true;
 	}

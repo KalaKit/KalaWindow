@@ -535,6 +535,7 @@ namespace KalaWindow::Graphics::Vulkan
         pipelineInfo.renderPass = ToVar<VkRenderPass>(vData.renderPass);
         pipelineInfo.subpass = 0;
 
+        /*
         Window_VulkanShaderData& vShaderData = targetWindow->GetVulkanShaderStruct();
 
         pipelineInfo.pVertexInputState = ToVar<VkPipelineVertexInputStateCreateInfo*>(vShaderData.vertexInputInfo);
@@ -544,6 +545,7 @@ namespace KalaWindow::Graphics::Vulkan
         pipelineInfo.pRasterizationState = ToVar<VkPipelineRasterizationStateCreateInfo*>(vShaderData.rasterizer);
         pipelineInfo.pMultisampleState = ToVar<VkPipelineMultisampleStateCreateInfo*>(vShaderData.multisampling);
         pipelineInfo.pColorBlendState = ToVar<VkPipelineColorBlendStateCreateInfo*>(vShaderData.colorBlending);
+        */
 
         VkPipeline newPipeline = VK_NULL_HANDLE;
         if (vkCreateGraphicsPipelines(
@@ -708,7 +710,7 @@ namespace KalaWindow::Graphics::Vulkan
         uint32_t offset,
         const PushConstantValue& value)
     {
-
+        //TODO: finish this + update the opengl version to this system as well
     }
 
 	Shader_Vulkan::~Shader_Vulkan()
