@@ -818,9 +818,9 @@ namespace KalaWindow::Graphics::Vulkan
 	}
 
 	bool Renderer_Vulkan::InitializeShaderSystem(
-		VulkanData_ViewportState& vsStruct,
-		VulkanData_DynamicState& dsStruct,
-		VulkanData_MultisampleState& msStruct)
+		const VulkanData_ViewportState& vsStruct,
+		const VulkanData_DynamicState& dsStruct,
+		const VulkanData_MultisampleState& msStruct)
 	{
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

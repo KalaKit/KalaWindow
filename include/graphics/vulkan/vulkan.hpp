@@ -62,9 +62,9 @@ namespace KalaWindow::Graphics::Vulkan
 		//Must be called at the END of your Vulkan initialization system
 		//and BEFORE CreateShader or CompileShader is called
 		static bool InitializeShaderSystem(
-			VulkanData_ViewportState& vsStruct,
-			VulkanData_DynamicState& dsStruct,
-			VulkanData_MultisampleState& msStruct);
+			const VulkanData_ViewportState& vsStruct,
+			const VulkanData_DynamicState& dsStruct,
+			const VulkanData_MultisampleState& msStruct);
 
 		//
 		// RUNTIME LOOP

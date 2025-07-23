@@ -143,9 +143,9 @@ namespace KalaWindow::Graphics
 	struct VD_VS_VkOffset2D
 	{
 		//Horizontal pixel offset, usually 0
-		int32_t x{};
+		int32_t x = 0;
 		//Vertical pixel offset, usually 0
-		int32_t y{};
+		int32_t y = 0;
 	};
 	//VkExtent2D, contents of extent in VD_VS_VkRect2D
 	struct VD_VS_VkExtent2D
@@ -159,17 +159,17 @@ namespace KalaWindow::Graphics
 	struct VD_VS_Viewports
 	{
 		//x-coordinate of top-left corner, usually 0.0f
-		float x{};
+		float x = 0.0f;
 		//y-coordinate of top-left corner, usually 0.0f
-		float y{};
+		float y = 0.0f;
 		//Viewport width, usually matches swapchain width
 		float width{};
 		//Viewport height, usually matches swapchain height
 		float height{};
 		//Minimum depth value, usually 0.0f
-		float minDepth{};
+		float minDepth = 0.0f;
 		//Maximum depth value, usually 1.0f
-		float maxDepth{};
+		float maxDepth = 0.0f;
 	};
 	//VkRect2D, contents of pScissors in VulkanData_ViewportState
 	struct VD_VS_Scissors
@@ -183,17 +183,17 @@ namespace KalaWindow::Graphics
 	struct VulkanData_ViewportState
 	{
 		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
-		uint32_t sType{};
+		uint32_t sType = 20;
 		//Extension-specific structure, usually NULL
-		uintptr_t pNext{};
+		uintptr_t pNext = NULL;
 		//VkPipelineViewportStateCreateFlags, usually 0
-		uint32_t flags{};
+		uint32_t flags = 0;
 		//Number of viewports, usually 1
-		uint32_t viewportCount{};
+		uint32_t viewportCount = 1;
 		//VkViewport, struct to VD_VS_Viewports
 		VD_VS_Viewports pViewports{};
 		//Number of scissors, usually 1
-		uint32_t scissorCount{};
+		uint32_t scissorCount = 1;
 		//VkRect2D, struct to VD_VS_Scissors
 		VD_VS_Scissors pScissors{};
 	};
@@ -202,13 +202,13 @@ namespace KalaWindow::Graphics
 	struct VulkanData_DynamicState
 	{
 		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
-		uint32_t sType{};
+		uint32_t sType = 27;
 		//Extension-specific structure, usually NULL
-		uintptr_t pNext{};
+		uintptr_t pNext = NULL;
 		//VkPipelineDynamicStateCreateFlags, usually 0
-		uint32_t flags{};
+		uint32_t flags = 0;
 		//count of pDynamicStates, usually 2 (viewport and scissor)
-		uint32_t dynamicStateCount{};
+		uint32_t dynamicStateCount = 0;
 		//vector of VkDynamicState enums
 		vector<uint32_t> pDynamicStates{};
 	};
@@ -217,23 +217,23 @@ namespace KalaWindow::Graphics
 	struct VulkanData_MultisampleState
 	{
 		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
-		uint32_t sType{};
+		uint32_t sType = 24;
 		//Extension-specific structure, usually NULL
-		uintptr_t pNext{};
+		uintptr_t pNext = NULL;
 		//VkPipelineMultisampleStateCreateFlags, usually 0
-		uint32_t flags{};
+		uint32_t flags = 0;
 		//VkSampleCountFlagBits enum, usually VK_SAMPLE_COUNT_1_BIT
-		uint32_t rasterizationSamples{};
+		uint32_t rasterizationSamples = 0x00000001;
 		//VkBool32, usually VK_FALSE
-		uint32_t sampleShadingEnable{};
+		uint32_t sampleShadingEnable = 0U;
 		//Minimum sample shading value (clamped to [0,1]), usually 0.0f
-		float minSampleShading{};
-		//VkSampleMask, usually 0 or NULL
-		uint32_t pSampleMask{};
+		float minSampleShading = 0.0f;
+		//VkSampleMask, usually 0
+		uint32_t pSampleMask = 0;
 		//VkBool32, usually VK_FALSE
-		uint32_t alphaToCoverageEnable{};
+		uint32_t alphaToCoverageEnable = 0U;
 		//VkBool32. usually VK_FALSE
-		uint32_t alphaToOneEnable{};
+		uint32_t alphaToOneEnable = 0U;
 	};
 
 	class KALAWINDOW_API Window
