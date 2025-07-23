@@ -75,84 +75,206 @@ namespace KalaWindow::Graphics::Vulkan
 	//VkPipelineVertexInputStateCreateInfo
 	struct VulkanData_VertexInputState
 	{
-		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
-		uintptr_t pNext{};                          //always nullptr
-		uint32_t flags{};                           //always 0 unless using extensions
-		uint32_t vertexBindingDescriptionCount{};   //number of bindings
-		vector<VD_VII_BindingDescriptions> pVertexBindingDescriptions{};     //binding data
-		uint32_t vertexAttributeDescriptionCount{}; //number of attributes
-		vector<VD_VII_AttributeDescriptions> pVertexAttributeDescriptions{}; //attribute data
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+		uint32_t sType{};
+		//always nullptr
+		uintptr_t pNext{};
+		//VkPipelineVertexInputStateCreateFlags, 0 unless using extensions
+		uint32_t flags{};
+		//number of bindings
+		uint32_t vertexBindingDescriptionCount{};
+		//binding data
+		vector<VD_VII_BindingDescriptions> pVertexBindingDescriptions{};
+		//number of attributes
+		uint32_t vertexAttributeDescriptionCount{}; 
+		//attribute data
+		vector<VD_VII_AttributeDescriptions> pVertexAttributeDescriptions{};
 	};
 	//Contents of pVertexBindingDescriptions in VulkanData_VertexInputState
 	struct VD_VII_BindingDescriptions
 	{
-		uint32_t binding{};   //binding index - mostly 0
-		uint32_t stride{};    //each vertex size in bytes
-		uint32_t inputRate{}; //0 (VK_VERTEX_INPUT_RATE_VERTEX) or 1 (_INSTANCE)
+		//binding index - mostly 0
+		uint32_t binding{};
+		//each vertex size in bytes
+		uint32_t stride{};
+		//0 (VK_VERTEX_INPUT_RATE_VERTEX) or 1 (_INSTANCE)
+		uint32_t inputRate{};
 	};
 	//Contents of pVertexAttributeDescriptions in VulkanData_VertexInputState
 	struct VD_VII_AttributeDescriptions
 	{
-		uint32_t location{}; //location in shader
-		uint32_t binding{};  //binding index of this attribute
-		uint32_t format{};   //VkFormat
-		uint32_t offset{};   //vertex struct byte offset
+		//location in shader
+		uint32_t location{};
+		//binding index of this attribute
+		uint32_t binding{};
+		//VkFormat
+		uint32_t format{};
+		//vertex struct byte offset
+		uint32_t offset{};
 	};
 
 	//VkPipelineInputAssemblyStateCreateInfo
 	struct VulkanData_InputAssemblyState
 	{
-		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
-		uint32_t vertexBindingDescriptionCount{};
-		uint32_t vertexAttributeDescriptionCount{};
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+		uint32_t sType{};
+		//???
+		uintptr_t pNext{};
+		//VkPipelineInputAssemblyStateCreateFlags
+		uint32_t flags{};
+		//VkPrimitiveTopology enum
+		uint32_t topology{};
+		//VkBool32
+		uint32_t primitiveRestartEnable{};
 	};
 
 	//VkPipelineRasterizationStateCreateInfo
 	struct VulkanData_RasterizationState
 	{
-		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO
-		uint32_t depthClampEnable{};        //usually VK_FALSE
-		uint32_t rasterizerDiscardEnable{}; //usually VK_FALSE
-		uint32_t polygonMode{};             //???
-		float lineWidth{};                  //usually 1.0f
-		uint32_t cullMode{};                //???
-		uint32_t frontFace{};               //???
-		uint32_t depthBiasEnable{};         //usually VK_FALSE
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO
+		uint32_t sType{};
+		//???
+		uintptr_t pNext{};
+		//VkPipelineRasterizationStateCreateFlags
+		uint32_t flags{};
+		//VkBool32, usually VK_FALSE
+		uint32_t depthClampEnable{};
+		//VkBool32, usually VK_FALSE
+		uint32_t rasterizerDiscardEnable{};
+		//VkPolygonMode enum
+		uint32_t polygonMode{};
+		//VkCullModeFlags
+		uint32_t cullMode{};
+		//VkFrontFace enum
+		uint32_t frontFace{};
+		//VkBool32, usually VK_FALSE
+		uint32_t depthBiasEnable{};
+		//???
+		float depthBiasConstantFactor{};
+		//???
+		float depthBiasClamp{};
+		//???
+		float depthBiasSlopeFactor{};
+		//usually 1.0f
+		float lineWidth{};
 	};
 
 	//VkPipelineColorBlendStateCreateInfo
 	struct VulkanData_ColorBlendState
 	{
-		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO
-		uint32_t logicOpEnable{};          //usually VK_FALSE
-		uint32_t attachmentCount{};        //???
-		VD_CBS_Attachments pAttachments{}; //???
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO
+		uint32_t sType{};
+		//???
+		uintptr_t pNext{};
+		//VkPipelineColorBlendStateCreateFlags
+		uint32_t flags{};
+		//VkBool32, usually VK_FALSE
+		uint32_t logicOpEnable{};
+		//VkLogicOp enum
+		uint32_t logicOp{};
+		//???
+		uint32_t attachmentCount{};
+		//VkPipelineColorBlendAttachmentState pointer
+		VD_CBS_Attachments pAttachments{};
+		//???
+		float blendConstants[4];
 	};
 	//Contents of pAttachments in VulkanData_ColorBlendState
+	//VkPipelineColorBlendAttachmentState
 	struct VD_CBS_Attachments
 	{
-
+		//VkBool32, usually VK_FALSE
+		uint32_t blendEnable{};
+		//VkBlendFactor enum
+		uint32_t srcColorBlendFactor{};
+		//VkBlendFactor enum
+		uint32_t dstColorBlendFactor{};
+		//VkBlendOp enum
+		uint32_t colorBlendOp{};
+		//VkBlendFactor enum
+		uint32_t srcAlphaBlendFactor{};
+		//VkBlendFactor enum
+		uint32_t dstAlphaBlendFactor{};
+		//VkColorComponentFlags
+		vector<uint32_t> colorWriteMask{};
 	};
 
-	//VkPipelineColorBlendAttachmentState
-	struct VulkanData_ColorBlendAttachmentState
-	{
-		vector<uint32_t> colorWriteMask{}; //???
-		uint32_t blendEnable{};            //usually VK_FALSE
-	};
-
-	//VkPipelineColorBlendAttachmentState
+	//VkPipelineDepthStencilStateCreateInfo
 	//Defines how depth testing and stencil testing works.
 	struct VulkanData_DepthStencilState
 	{
-
+		//VkStructureType
+		uint32_t sType{};
+		//???
+		uintptr_t pNext{};
+		//VkPipelineDepthStencilStateCreateFlags
+		uint32_t flags{};
+		//VkBool32
+		uint32_t depthTestEnable{};
+		//VkBool32
+		uint32_t depthWriteEnable{};
+		//VkCompareOp enum
+		uint32_t depthCompareOp{};
+		//VkBool32
+		uint32_t depthBoundsTestEnable{};
+		//VkBool32
+		uint32_t stencilTestEnable{};
+		//VkStencilOpState struct
+		VD_DSS_Front front{};
+		//VkStencilOpState struct
+		VD_DSS_Back back{};
+	};
+	//Contents of front in VulkanData_DepthStencilState
+	//VkStencilOpState
+	struct VD_DSS_Front
+	{
+		//VkStencilOp enum
+		uint32_t failOp{};
+		//VkStencilOp enum
+		uint32_t passOp{};
+		//VkStencilOp enum
+		uint32_t depthFailOp{};
+		//VkStencilOp enum
+		uint32_t CompareOp{};
+		//???
+		uint32_t compareMask{};
+		//???
+		uint32_t writeMask{};
+		//???
+		uint32_t reference{};
+	};
+	//Contents of back in VulkanData_DepthStencilState
+	//VkStencilOpState
+	struct VD_DSS_Back
+	{
+		//VkStencilOp enum
+		uint32_t failOp{};
+		//VkStencilOp enum
+		uint32_t passOp{};
+		//VkStencilOp enum
+		uint32_t depthFailOp{};
+		//VkStencilOp enum
+		uint32_t CompareOp{};
+		//???
+		uint32_t compareMask{};
+		//???
+		uint32_t writeMask{};
+		//???
+		uint32_t reference{};
 	};
 
 	//VkPipelineColorBlendAttachmentState
 	//Only used if 'Shader_TessControl' and 'Shader_TessEvaluation' shaders are also used
 	struct VulkanData_TesselationState
 	{
-
+		//VkStructureType
+		uint32_t sType{};
+		//???
+		uintptr_t pNext{};
+		//VkPipelineTessellationStateCreateFlags
+		uint32_t flags{};
+		//???
+		uint32_t patchControlPoints{};
 	};
 
 	class KALAWINDOW_API Shader_Vulkan

@@ -142,25 +142,34 @@ namespace KalaWindow::Graphics
 	//VkPipelineViewportStateCreateInfo
 	struct VulkanData_ViewportState
 	{
-		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
-		uint32_t topology{};               //???
-		uint32_t primitiveRestartEnable{}; //mostly VK_FALSE
+		//VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
+		uint32_t sType{};
+		//???
+		uint32_t topology{};
+		//VkBool32, usually VK_FALSE
+		uint32_t primitiveRestartEnable{};
 	};
 
 	//VkPipelineDynamicStateCreateInfo
 	struct VulkanData_DynamicState
 	{
-		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
-		uint32_t dynamicStateCount{}; //count of pDynamicStates
-		vector<uint32_t> pDynamicStates{}; //vector of each dynamic state
+		//VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
+		uint32_t sType{};
+		//count of pDynamicStates
+		uint32_t dynamicStateCount{};
+		//vector of each dynamic state
+		vector<uint32_t> pDynamicStates{};
 	};
 
 	//VkPipelineMultisampleStateCreateInfo
 	struct VulkanData_MultisampleState
 	{
-		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
-		uint32_t sampleShadingEnable{}; //usually VK_FALSE
-		uint32_t rasterizationSamples{} //???
+		//VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
+		uint32_t sType{};
+		//VkBool32, usually VK_FALSE
+		uint32_t sampleShadingEnable{};
+		//???
+		uint32_t rasterizationSamples{};
 	};
 
 	class KALAWINDOW_API Window
