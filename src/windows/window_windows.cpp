@@ -168,9 +168,9 @@ namespace KalaWindow::Graphics
 
 		WindowStruct_Windows newWindowStruct =
 		{
-			.hwnd = FromVar<HWND>(newHwnd),
-			.hInstance = FromVar<HINSTANCE>(newHInstance),
-			.wndProc = FromVar<WNDPROC>((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
+			.hwnd = FromVar(newHwnd),
+			.hInstance = FromVar(newHInstance),
+			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
 		newWindow->SetWindow_Windows(newWindowStruct);
 

@@ -466,7 +466,7 @@ namespace KalaWindow::Graphics::Vulkan
                 return nullptr;
             }
             shaderStageCreateInfos.push_back(vertShaderStageInfo);
-            newVertStage.shaderModule = FromVar<VkShaderModule>(vertModule);
+            newVertStage.shaderModule = FromVar(vertModule);
         }
 
         //
@@ -497,7 +497,7 @@ namespace KalaWindow::Graphics::Vulkan
                 return nullptr;
             }
             shaderStageCreateInfos.push_back(fragShaderStageInfo);
-            newFragStage.shaderModule = FromVar<VkShaderModule>(fragModule);
+            newFragStage.shaderModule = FromVar(fragModule);
         }
 
         //
@@ -521,7 +521,7 @@ namespace KalaWindow::Graphics::Vulkan
                 "Failed to create pipeline layout!");
             return nullptr;
         }
-        shaderPtr->layout = FromVar<VkPipelineLayout>(newLayout);
+        shaderPtr->layout = FromVar(newLayout);
 
         //
         // CREATE GRAPHICS PIPELINE
@@ -537,13 +537,13 @@ namespace KalaWindow::Graphics::Vulkan
 
         Window_VulkanShaderData& vShaderData = targetWindow->GetVulkanShaderStruct();
 
-        pipelineInfo.pVertexInputState = &ToVar<VkPipelineVertexInputStateCreateInfo>(vShaderData.vertexInputInfo);
-        pipelineInfo.pInputAssemblyState = &ToVar<VkPipelineInputAssemblyStateCreateInfo>(vShaderData.inputAssemblyInfo);
-        pipelineInfo.pViewportState = &ToVar<VkPipelineViewportStateCreateInfo>(vShaderData.viewportState);
-        pipelineInfo.pDynamicState = &ToVar<VkPipelineDynamicStateCreateInfo>(vShaderData.dynamicState);
-        pipelineInfo.pRasterizationState = &ToVar<VkPipelineRasterizationStateCreateInfo>(vShaderData.rasterizer);
-        pipelineInfo.pMultisampleState = &ToVar<VkPipelineMultisampleStateCreateInfo>(vShaderData.multisampling);
-        pipelineInfo.pColorBlendState = &ToVar<VkPipelineColorBlendStateCreateInfo>(vShaderData.colorBlending);
+        pipelineInfo.pVertexInputState = ToVar<VkPipelineVertexInputStateCreateInfo*>(vShaderData.vertexInputInfo);
+        pipelineInfo.pInputAssemblyState = ToVar<VkPipelineInputAssemblyStateCreateInfo*>(vShaderData.inputAssemblyInfo);
+        pipelineInfo.pViewportState = ToVar<VkPipelineViewportStateCreateInfo*>(vShaderData.viewportState);
+        pipelineInfo.pDynamicState = ToVar<VkPipelineDynamicStateCreateInfo*>(vShaderData.dynamicState);
+        pipelineInfo.pRasterizationState = ToVar<VkPipelineRasterizationStateCreateInfo*>(vShaderData.rasterizer);
+        pipelineInfo.pMultisampleState = ToVar<VkPipelineMultisampleStateCreateInfo*>(vShaderData.multisampling);
+        pipelineInfo.pColorBlendState = ToVar<VkPipelineColorBlendStateCreateInfo*>(vShaderData.colorBlending);
 
         //TODO: add more?
 
@@ -561,7 +561,7 @@ namespace KalaWindow::Graphics::Vulkan
                 "Failed to create graphics pipeline!");
             return nullptr;
         }
-        shaderPtr->pipeline = FromVar<VkPipeline>(newPipeline);
+        shaderPtr->pipeline = FromVar(newPipeline);
 
         //
         // CREATE DESCRIPTOR LAYOUT
@@ -708,6 +708,16 @@ namespace KalaWindow::Graphics::Vulkan
             "SHADER_OPENGL",
             LogType::LOG_SUCCESS);
 	}
+
+    void Shader_Vulkan::SetPushConstant(
+        uintptr_t cmdBuffer,
+        uintptr_t layout,
+        uint32_t stageFlags,
+        uint32_t offset,
+        const PushConstantValue& value)
+    {
+
+    }
 
 	Shader_Vulkan::~Shader_Vulkan()
 	{

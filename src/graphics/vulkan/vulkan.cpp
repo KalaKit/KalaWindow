@@ -445,7 +445,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		instance = FromVar<VkInstance>(newInstance);
+		instance = FromVar(newInstance);
 
 		vector<VkPhysicalDevice> devices(gpuCount);
 		vkEnumeratePhysicalDevices(
@@ -492,7 +492,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		physicalDevice = FromVar<VkPhysicalDevice>(bestDevice);
+		physicalDevice = FromVar(bestDevice);
 
 		vector<const char*> deviceExtensions{};
 		for (const auto& ext : delayedExt)
@@ -574,7 +574,7 @@ namespace KalaWindow::Graphics::Vulkan
 			0,
 			&graphicsQueue);
 
-		device = FromVar<VkDevice>(newDevice);
+		device = FromVar(newDevice);
 
 		isVulkanInitialized = true;
 		Logger::Print("Initialized Vulkan!",
@@ -625,7 +625,7 @@ namespace KalaWindow::Graphics::Vulkan
 				2);
 			return false;
 		}
-		vData.commandPool = FromVar<VkCommandPool>(realPool);
+		vData.commandPool = FromVar(realPool);
 		window->SetVulkanStruct(vData);
 
 		return true;
@@ -695,7 +695,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 		for (uint32_t i = 0; i < allocInfo.commandBufferCount; ++i)
 		{
-			uintptr_t handle = FromVar<VkCommandBuffer>(tempCB[i]);
+			uintptr_t handle = FromVar(tempCB[i]);
 			if (!IsValidHandle(
 				handle, 
 				"commandBuffer[" + to_string(i) + "]", 
@@ -780,9 +780,9 @@ namespace KalaWindow::Graphics::Vulkan
 			}
 
 			vData.imageAvailableSemaphores[i] = 
-				FromVar<VkSemaphore>(realAvailableSemaphore);
+				FromVar(realAvailableSemaphore);
 			vData.inFlightFences[i] = 
-				FromVar<VkFence>(realFence);
+				FromVar(realFence);
 		}
 
 		for (size_t i = 0; i < imgCount; ++i)
@@ -803,7 +803,7 @@ namespace KalaWindow::Graphics::Vulkan
 				return false;
 			}
 			vData.renderFinishedSemaphores[i] = 
-				FromVar<VkSemaphore>(realFinishedSemaphore);
+				FromVar(realFinishedSemaphore);
 		}
 
 		return true;
@@ -901,16 +901,27 @@ namespace KalaWindow::Graphics::Vulkan
 		dynamicState.dynamicStateCount = 2;
 		dynamicState.pDynamicStates = dynamicStates;
 
-		vShaderData.vertexInputInfo = FromVar<VkPipelineVertexInputStateCreateInfo>(vertexInputInfo);
-		vShaderData.inputAssemblyInfo = FromVar<VkPipelineInputAssemblyStateCreateInfo>(inputAssemblyInfo);
-		vShaderData.viewportState = FromVar<VkPipelineViewportStateCreateInfo>(viewportState);
-		vShaderData.dynamicState = FromVar<VkPipelineDynamicStateCreateInfo>(dynamicState);
-		vShaderData.rasterizer = FromVar<VkPipelineRasterizationStateCreateInfo>(rasterizer);
-		vShaderData.multisampling = FromVar<VkPipelineMultisampleStateCreateInfo>(multisampling);
-		vShaderData.colorBlendAttachment = FromVar<VkPipelineColorBlendAttachmentState>(colorBlendAttachment);
-		vShaderData.colorBlending = FromVar<VkPipelineColorBlendStateCreateInfo>(colorBlending);
+		uintptr_t VKvertexInputInfo = FromVar(&vertexInputInfo);
+		uintptr_t VKinputAssemblyInfo = FromVar(&inputAssemblyInfo);
+		uintptr_t VKviewportState = FromVar(&viewportState);
+		uintptr_t VKdynamicState = FromVar(&dynamicState);
+		uintptr_t VKrasterizer = FromVar(&rasterizer);
+		uintptr_t VKmultisampling = FromVar(&multisampling);
+		uintptr_t VKcolorBlendAttachment = FromVar(&colorBlendAttachment);
+		uintptr_t VKcolorBlending = FromVar(&colorBlending);
+
+		vShaderData.vertexInputInfo = VKvertexInputInfo;
+		vShaderData.inputAssemblyInfo = VKinputAssemblyInfo;
+		vShaderData.viewportState = VKviewportState;
+		vShaderData.dynamicState = VKdynamicState;
+		vShaderData.rasterizer = VKrasterizer;
+		vShaderData.multisampling = VKmultisampling;
+		vShaderData.colorBlendAttachment = VKcolorBlendAttachment;
+		vShaderData.colorBlending = VKcolorBlending;
 
 		window->SetVulkanShaderStruct(vShaderData);
+
+		return true;
 	}
 
 	//
@@ -1123,7 +1134,7 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkQueue>(graphicsQueue),
+			FromVar(graphicsQueue),
 			"graphicsQueue",
 			"SubmitFrame"))
 		{
@@ -1189,7 +1200,7 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkQueue>(graphicsQueue),
+			FromVar(graphicsQueue),
 			"graphicsQueue",
 			"PresentFrame"))
 		{
@@ -1335,7 +1346,7 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		if (!IsValidHandle(
-			FromVar<VkQueue>(graphicsQueue),
+			FromVar(graphicsQueue),
 			"graphicsQueue",
 			"CreateRenderPass"))
 		{
@@ -1397,7 +1408,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		vData.renderPass = FromVar<VkRenderPass>(realRP);
+		vData.renderPass = FromVar(realRP);
 
 		return true;
 	}
@@ -1455,7 +1466,7 @@ namespace KalaWindow::Graphics::Vulkan
 				return false;
 			}
 
-			vData.framebuffers[i] = FromVar<VkFramebuffer>(realFB);
+			vData.framebuffers[i] = FromVar(realFB);
 		}
 
 		return true;

@@ -47,14 +47,14 @@ namespace KalaWindow::Graphics::OpenGL
 				"OpenGL initialization error [opengl_windows]",
 				"Failed to load module 'opengl32.dll'!");
 		}
-		Window::SetOpenGLLib(FromVar<HMODULE>(module));
+		Window::SetOpenGLLib(FromVar(module));
 
 		WindowStruct_Windows wData = targetWindow->GetWindow_Windows();
 		Window_OpenGLData oData{};
 		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
 		HDC hdc = GetDC(windowRef);
-		oData.hdc = FromVar<HDC>(hdc);
+		oData.hdc = FromVar(hdc);
 
 		//
 		// CREATE A DUMMY CONTEXT TO LOAD WGL EXTENSIONS
@@ -151,7 +151,7 @@ namespace KalaWindow::Graphics::OpenGL
 			0
 		};
 
-		oData.hglrc = FromVar<HGLRC>(wglCreateContextAttribsARB(
+		oData.hglrc = FromVar(wglCreateContextAttribsARB(
 			hdc, 
 			0, 
 			attribs));

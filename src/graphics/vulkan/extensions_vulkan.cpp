@@ -106,7 +106,7 @@ namespace KalaWindow::Graphics::Vulkan
 				"Failed to create Win32 Vulkan surface!");
 		}
 
-		vData.surface = FromVar<VkSurfaceKHR>(surface);
+		vData.surface = FromVar(surface);
 #elif __linux__
 		//TODO: ADD LINUX SUPPORT
 #endif
@@ -282,7 +282,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		vData.swapchain = FromVar<VkSwapchainKHR>(realSC);
+		vData.swapchain = FromVar(realSC);
 
 		//get swapchain images
 
@@ -303,7 +303,7 @@ namespace KalaWindow::Graphics::Vulkan
 		vData.images.resize(count);
 		for (uint32_t i = 0; i < count; ++i)
 		{
-			vData.images[i] = FromVar<VkImage>(tempImages[i]);
+			vData.images[i] = FromVar(tempImages[i]);
 		}
 
 		vData.imagesInFlight.assign(count, FromVar<VkFence>(VK_NULL_HANDLE));
@@ -346,7 +346,7 @@ namespace KalaWindow::Graphics::Vulkan
 				return false;
 			}
 
-			vData.imageViews[i] = FromVar<VkImageView>(realIV);
+			vData.imageViews[i] = FromVar(realIV);
 		}
 
 		Logger::Print(
