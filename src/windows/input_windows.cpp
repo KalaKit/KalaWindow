@@ -11,7 +11,7 @@
 #include "core/input.hpp"
 #include "core/log.hpp"
 
-using KalaWindow::Graphics::WindowStruct_Windows;
+using KalaWindow::Graphics::WindowData;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 
@@ -33,7 +33,7 @@ namespace KalaWindow::Core
 		// MOUSE RAW INPUT
 		//
 
-		WindowStruct_Windows& win = window->GetWindow_Windows();
+		WindowData& win = window->GetWindowData();
 		HWND winRef = ToVar<HWND>(win.hwnd);
 
 		RAWINPUTDEVICE rid{};
@@ -67,7 +67,7 @@ namespace KalaWindow::Core
 
 		if (isLocked)
 		{
-			WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
+			WindowData& window = targetWindow->GetWindowData();
 			HWND windowRef = ToVar<HWND>(window.hwnd);
 
 			RECT rect{};

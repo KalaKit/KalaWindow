@@ -45,6 +45,8 @@ static void ForceClose(
 
 namespace KalaWindow::Graphics::OpenGL
 {
+	//TODO: move content from opengl_windows.cpp here so that this is the true origin of opengl initialization
+
 	const char* Renderer_OpenGL::GetGLErrorString(unsigned int err)
 	{
 		GLenum glErr = static_cast<GLenum>(err);
@@ -64,7 +66,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 	void Renderer_OpenGL::MakeContextCurrent(Window* window)
 	{
-		Window_OpenGLData& oData = window->GetOpenGLStruct();
+		OpenGLData& oData = window->GetOpenGLData();
 #ifdef _WIN32
 		if (oData.hdc == 0)
 		{
@@ -99,7 +101,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 	bool Renderer_OpenGL::IsContextValid(Window* targetWindow)
 	{
-		Window_OpenGLData& oData = targetWindow->GetOpenGLStruct();
+		OpenGLData& oData = targetWindow->GetOpenGLData();
 #ifdef _WIN32
 		if (oData.hglrc == 0)
 		{

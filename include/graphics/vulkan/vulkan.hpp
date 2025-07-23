@@ -15,14 +15,14 @@ namespace KalaWindow::Graphics::Vulkan
 {
 	using std::vector;
 
-	enum class FrameResult
+	enum class UpdateResult
 	{
-		VK_FRAME_OK,            //Vulkan frame is fine, proceed with rendering
-		VK_FRAME_RESIZE_NEEDED, //Swapchain is out of date or suboptimal - recreate needed
-		VK_FRAME_ERROR          //Unexpected error - recreate needed
+		RESULT_OK,    //Render loop frame ran correctly
+		RESULT_ERROR, //Something bad happened, program should force close
+		RESULT_RESIZE //Resize is needed, but otherwise everything is fine
 	};
 
-	enum VSyncState
+	enum class VSyncState
 	{
 		VSYNC_ON,              //Framerate is capped to monitor refresh rate.
 		VSYNC_OFF,             //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
@@ -32,20 +32,8 @@ namespace KalaWindow::Graphics::Vulkan
 	class KALAWINDOW_API Renderer_Vulkan
 	{
 	public:
-		static bool IsVulkanInitialized() { return isVulkanInitialized; }
-		static uintptr_t GetInstance() { return instance; }
-		static uintptr_t GetDevice() { return device; }
-		static uintptr_t GetPhysicalDevice() { return physicalDevice; }
-
-		//Checks if vsync is enabled or not.
-		static VSyncState GetVSyncState();
-		//Allows to set vsync true or false.
-		static void SetVSyncState(
-			VSyncState vsyncState,
-			Window* window);
-
 		//
-		// INITIALIZE PHASE
+		// INITIALIZATION
 		//
 
 		//Enable selected vulkan layer
@@ -69,7 +57,6 @@ namespace KalaWindow::Graphics::Vulkan
 
 		//Creates new semaphores and fences per window
 		static bool CreateSyncObjects(Window* window);
-		static void DestroySyncObjects(Window* window);
 
 		//Initializes core shader variables that are reused across each shader.
 		//Must be called at the END of your Vulkan initialization system
@@ -77,40 +64,37 @@ namespace KalaWindow::Graphics::Vulkan
 		static bool InitializeShaderSystem(Window* window);
 
 		//
-		// RUNTIME LOOP PHASE
+		// RUNTIME LOOP
 		//
 
-		//Aquires the next available image from the swapchain so the GPU can render it
-		static FrameResult BeginFrame(
-			Window* window,
-			uint32_t& imageIndex);
+		//The single point of entry for all Vulkan updates.
+		//Calls the following systems internally:
+		//  - BeginFrame
+		//  - RecordCommandBuffer
+		//  - SubmitFrame
+		//  - PresentFrame
+		static UpdateResult Update(Window* window);
 
-		//Records drawing commands into a VkCommandBuffer
-		static bool RecordCommandBuffer(
-			Window* window,
-			uint32_t imageIndex);
+		//
+		// REUSABLES
+		//
 
-		//Submits your command buffer to the graphics queue
-		static bool SubmitFrame(
-			Window* window,
-			uint32_t imageIndex);
+		static bool IsVulkanInitialized() { return isVulkanInitialized; }
+		static uintptr_t GetInstance() { return instance; }
+		static uintptr_t GetDevice() { return device; }
+		static uintptr_t GetPhysicalDevice() { return physicalDevice; }
 
-		//Presents rendered image to the screen via the swapchain
-		static FrameResult PresentFrame(
-			Window* window,
-			uint32_t imageIndex);
+		//Checks if vsync is enabled or not.
+		static VSyncState GetVSyncState();
+		//Allows to set vsync true or false.
+		static void SetVSyncState(
+			VSyncState vsyncState,
+			Window* window);
 
 		//Stall the GPU, destroy and recreate
 		//the swapchain and all its dependent resources
 		//(render pass, framebuffers, semaphores/fences, and command buffers)
 		static void HardReset(Window* window);
-
-		//Ensures all window-related data is cleared
-		static void DestroyWindowData(Window* window);
-
-		//
-		// REMAKE PHASE
-		//
 
 		//Creates the render pass for drawing
 		static bool CreateRenderPass(Window* window);
@@ -121,6 +105,15 @@ namespace KalaWindow::Graphics::Vulkan
 		static const vector<VulkanLayers> GetEnabledLayers() { return enabledLayers; }
 		static const vector<VulkanInstanceExtensions> GetEnabledInstanceExtensions() { return enabledInstanceExtensions; }
 		static const vector<VulkanDeviceExtensions> GetEnabledDeviceExtensions() { return enabledDeviceExtensions; }
+
+		//
+		// CLEANUP
+		//
+
+		static void DestroySyncObjects(Window* window);
+
+		//Ensures all window-related data is cleared
+		static void DestroyWindowData(Window* window);
 
 		static void Shutdown();
 	private:

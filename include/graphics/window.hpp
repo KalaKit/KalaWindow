@@ -77,14 +77,33 @@ namespace KalaWindow::Graphics
 		FILE_FOLDER       //Can select any folder
 	};
 
-	struct Window_OpenGLData
+#ifdef _WIN32
+	struct WindowData
+	{
+		uintptr_t hwnd{};
+		uintptr_t hInstance{};
+		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
+	};
+#elif __linux__
+	struct WindowData
+	{
+		uintptr_t display{};
+		uintptr_t window{};
+		uintptr_t visual{};
+	};
+#endif
+
+	//OpenGL data reusable across this window context
+	struct OpenGLData
 	{
 		uintptr_t hglrc{};      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
 		uintptr_t hdc{};        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
 		uintptr_t glxContext{}; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
 		unsigned int lastProgramID{};
 	};
-	struct Window_VulkanData
+
+	//Vulkan data reusable across this window context
+	struct VulkanData_Core
 	{
 		//Core surface & swapchain handles
 
@@ -119,40 +138,29 @@ namespace KalaWindow::Graphics
 
 		uintptr_t renderPass{}; //VkRenderPass
 	};
-	struct Window_VulkanShaderData
+
+	//VkPipelineViewportStateCreateInfo
+	struct VulkanData_ViewportState
 	{
-		//Vertex input and primitive assembly state
-
-		uintptr_t vertexInputInfo{};   //VkPipelineVertexInputStateCreateInfo
-		uintptr_t inputAssemblyInfo{}; //VkPipelineInputAssemblyStateCreateInfo
-
-		//Viewport and scissor state (dynamic)
-		
-		uintptr_t viewportState{}; //VkPipelineViewportStateCreateInfo
-		uintptr_t dynamicState{};  //VkPipelineDynamicStateCreateInfo
-
-		//Rasterization and multisampling
-
-		uintptr_t rasterizer{};    //VkPipelineRasterizationStateCreateInfo
-		uintptr_t multisampling{}; //VkPipelineMultisampleStateCreateInfo
-
-		//Color blend state for framebuffer output
-
-		uintptr_t colorBlendAttachment{}; //VkPipelineColorBlendAttachmentState
-		uintptr_t colorBlending{};        //VkPipelineColorBlendStateCreateInfo
+		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
+		uint32_t topology{};               //???
+		uint32_t primitiveRestartEnable{}; //mostly VK_FALSE
 	};
 
-	struct WindowStruct_Windows
+	//VkPipelineDynamicStateCreateInfo
+	struct VulkanData_DynamicState
 	{
-		uintptr_t hwnd{};
-		uintptr_t hInstance{};
-		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
+		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
+		uint32_t dynamicStateCount{}; //count of pDynamicStates
+		vector<uint32_t> pDynamicStates{}; //vector of each dynamic state
 	};
-	struct WindowStruct_X11
+
+	//VkPipelineMultisampleStateCreateInfo
+	struct VulkanData_MultisampleState
 	{
-		uintptr_t display{};
-		uintptr_t window{};
-		uintptr_t visual{};
+		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
+		uint32_t sampleShadingEnable{}; //usually VK_FALSE
+		uint32_t rasterizationSamples{} //???
 	};
 
 	class KALAWINDOW_API Window
@@ -185,27 +193,27 @@ namespace KalaWindow::Graphics
 		}
 
 #ifdef _WIN32
-		WindowStruct_Windows& GetWindow_Windows() { return window_windows; }
-		void SetWindow_Windows(WindowStruct_Windows newWindowStruct)
+		WindowData& GetWindowData() { return window_windows; }
+		void SetWindowData(WindowData newWindowStruct)
 		{
 			window_windows = newWindowStruct;
 		}
 #elif __linux__
-		WindowStruct_X11& GetWindow_X11() { return window_x11; }
-		void SetWindow_X11(WindowStruct_X11 newWindowStruct)
+		WindowData& GetWindowData() { return window_x11; }
+		void SetWindowData(WindowData newWindowStruct)
 		{
 			window_x11 = newWindowStruct;
 		}
 #endif
 
-		Window_OpenGLData& GetOpenGLStruct() { return openglData; }
-		void SetOpenGLStruct(Window_OpenGLData newOpenGLData)
+		OpenGLData& GetOpenGLData() { return openglData; }
+		void SetOpenGLData(OpenGLData newOpenGLData)
 		{
 			openglData = newOpenGLData;
 		}
 
-		Window_VulkanData& GetVulkanStruct() { return vulkanData; }
-		void SetVulkanStruct(Window_VulkanData newVulkanData)
+		VulkanData_Core& GetVulkanCoreData() { return vulkanData; }
+		void SetVulkanCoreData(VulkanData_Core newVulkanData)
 		{
 			vulkanData = newVulkanData;
 		}
@@ -322,16 +330,16 @@ namespace KalaWindow::Graphics
 		//platform-specific variables
 
 #ifdef _WIN32
-		WindowStruct_Windows window_windows{}; //The windows data of this window
+		WindowData window_windows{}; //The windows data of this window
 #elif __linux__
-		WindowStruct_X11 window_x11{};         //The X11 data of this window
+		WindowData window_x11{};         //The X11 data of this window
 #endif
 
 		//vendor-specific variables
 
-		Window_OpenGLData openglData{}; //The OpenGL data of this window
+		OpenGLData openglData{}; //The OpenGL data of this window
 
-		Window_VulkanData vulkanData{};             //The Vulkan data of this window
+		VulkanData_Core vulkanData{}; //The general Vulkan data of this window
 		Window_VulkanShaderData vulkanShaderData{}; //The Vulkan shader data of this window
 
 		function<void()> resizeCallback{};

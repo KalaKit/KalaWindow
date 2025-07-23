@@ -166,13 +166,13 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		WindowStruct_Windows newWindowStruct =
+		WindowData newWindowStruct =
 		{
 			.hwnd = FromVar(newHwnd),
 			.hInstance = FromVar(newHInstance),
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
-		newWindow->SetWindow_Windows(newWindowStruct);
+		newWindow->SetWindowData(newWindowStruct);
 
 		newWindow->SetInitializedState(true);
 
@@ -212,7 +212,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetTitle(const string& newTitle)
 	{
-		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 		SetWindowTextA(window, newTitle.c_str());
 
 		title = newTitle;
@@ -220,7 +220,7 @@ namespace KalaWindow::Graphics
 
 	kvec2 Window::GetSize()
 	{
-		WindowStruct_Windows& winData = GetWindow_Windows();
+		WindowData& winData = GetWindowData();
 		HWND hwnd = ToVar<HWND>(winData.hwnd);
 
 		UINT dpi = GetDpiForWindow(hwnd);
@@ -245,7 +245,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetSize(kvec2 newSize)
 	{
-		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
 		SetWindowPos(
 			window,
@@ -262,7 +262,7 @@ namespace KalaWindow::Graphics
 
 	kvec2 Window::GetPosition()
 	{
-		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
 		RECT rect{};
 		if (GetWindowRect(window, &rect))
@@ -279,7 +279,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetPosition(kvec2 newPosition)
 	{
-		HWND window = ToVar<HWND>(GetWindow_Windows().hwnd);
+		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
 		SetWindowPos(
 			window,
@@ -420,11 +420,11 @@ namespace KalaWindow::Graphics
 
 	Window::~Window()
 	{
-		WindowStruct_Windows& win = GetWindow_Windows();
+		WindowData& win = GetWindowData();
 		HWND winRef = ToVar<HWND>(win.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
-		Window_OpenGLData& openGLData = GetOpenGLStruct();
+		OpenGLData& openGLData = GetOpenGLData();
 
 		if (openGLData.hglrc)
 		{

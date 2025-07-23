@@ -28,7 +28,7 @@
 
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::WindowStruct_Windows;
+using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using KalaWindow::Core::Input;
@@ -203,7 +203,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	{
 		if (!windowPtr) continue;
 
-		WindowStruct_Windows& data = windowPtr->GetWindow_Windows();
+		WindowData& data = windowPtr->GetWindowData();
 		if (ToVar<HWND>(data.hwnd) == hwnd)
 		{
 			window = windowPtr;
@@ -633,7 +633,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_PAINT:
 	{
-		WindowStruct_Windows& win = window->GetWindow_Windows();
+		WindowData& win = window->GetWindowData();
 		HWND hwnd = ToVar<HWND>(win.hwnd);
 		
 		PAINTSTRUCT ps;
@@ -668,7 +668,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 	case WM_SIZING:
 	{
-		HWND windowRef = ToVar<HWND>(window->GetWindow_Windows().hwnd);
+		HWND windowRef = ToVar<HWND>(window->GetWindowData().hwnd);
 
 		if (window->IsInitialized())
 		{
@@ -683,7 +683,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_GETMINMAXINFO:
 	{
-		HWND windowRef = ToVar<HWND>(window->GetWindow_Windows().hwnd);
+		HWND windowRef = ToVar<HWND>(window->GetWindowData().hwnd);
 
 		MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(msg.lParam);
 

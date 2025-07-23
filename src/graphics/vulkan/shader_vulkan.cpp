@@ -428,7 +428,7 @@ namespace KalaWindow::Graphics::Vulkan
         bool vertShaderExists = !newVertStage.shaderPath.empty();
         bool fragShaderExists = !newFragStage.shaderPath.empty();
 
-        Window_VulkanData& vData = targetWindow->GetVulkanStruct();
+        VulkanData_Core& vData = targetWindow->GetVulkanCoreData();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
         if (device == VK_NULL_HANDLE)
@@ -545,8 +545,6 @@ namespace KalaWindow::Graphics::Vulkan
         pipelineInfo.pMultisampleState = ToVar<VkPipelineMultisampleStateCreateInfo*>(vShaderData.multisampling);
         pipelineInfo.pColorBlendState = ToVar<VkPipelineColorBlendStateCreateInfo*>(vShaderData.colorBlending);
 
-        //TODO: add more?
-
         VkPipeline newPipeline = VK_NULL_HANDLE;
         if (vkCreateGraphicsPipelines(
             device,
@@ -562,12 +560,6 @@ namespace KalaWindow::Graphics::Vulkan
             return nullptr;
         }
         shaderPtr->pipeline = FromVar(newPipeline);
-
-        //
-        // CREATE DESCRIPTOR LAYOUT
-        //
-
-        //TODO: add as optional?
 
         //
         // CLEANUP
@@ -597,7 +589,7 @@ namespace KalaWindow::Graphics::Vulkan
             return false;
         }
 
-        Window_VulkanData& vData = window->GetVulkanStruct();
+        VulkanData_Core& vData = window->GetVulkanCoreData();
 
         VkCommandBuffer cmd = ToVar<VkCommandBuffer>(commandBuffer);
         VkPipeline boundPipeline = ToVar<VkPipeline>(pipeline);
@@ -671,7 +663,7 @@ namespace KalaWindow::Graphics::Vulkan
         //back up old data
         vector<ShaderStage> oldShaders = GetAllShaders();
 
-        //attepmt to recreate
+        //attempt to recreate
 
         vector<ShaderStage> stagesToReload{};
         for (const auto& stage : oldShaders)
@@ -721,8 +713,8 @@ namespace KalaWindow::Graphics::Vulkan
 
 	Shader_Vulkan::~Shader_Vulkan()
 	{
-        WindowStruct_Windows& wData = targetWindow->GetWindow_Windows();
-        Window_VulkanData& vData = targetWindow->GetVulkanStruct();
+        WindowData& wData = targetWindow->GetWindowData();
+        VulkanData_Core& vData = targetWindow->GetVulkanCoreData();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
 

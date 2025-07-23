@@ -49,8 +49,8 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 		Window::SetOpenGLLib(FromVar(module));
 
-		WindowStruct_Windows wData = targetWindow->GetWindow_Windows();
-		Window_OpenGLData oData{};
+		WindowData wData = targetWindow->GetWindowData();
+		OpenGLData oData{};
 		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
 		HDC hdc = GetDC(windowRef);
@@ -192,7 +192,7 @@ namespace KalaWindow::Graphics::OpenGL
 			targetWindow->GetSize().x,
 			targetWindow->GetSize().y);
 
-		targetWindow->SetOpenGLStruct(oData);
+		targetWindow->SetOpenGLData(oData);
 
 		Logger::Print(
 			"Initialized OpenGL with version: " + string(reinterpret_cast<const char*>(glGetString(GL_VERSION))),
@@ -215,7 +215,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		Window_OpenGLData& oData = targetWindow->GetOpenGLStruct();
+		OpenGLData& oData = targetWindow->GetOpenGLData();
 		HDC hdc = ToVar<HDC>(oData.hdc);
 		SwapBuffers(hdc);
 	}

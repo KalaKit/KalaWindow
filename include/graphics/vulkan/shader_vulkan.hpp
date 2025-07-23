@@ -64,11 +64,95 @@ namespace KalaWindow::Graphics::Vulkan
 		Shader_Mesh          //VK_SHADER_STAGE_MESH_BIT_EXT
 	};
 
+	//Data related to each individual shader file in this shader context
 	struct ShaderStage
 	{
 		ShaderType shaderType;
 		string shaderPath;
 		uintptr_t shaderModule;
+	};
+
+	//VkPipelineVertexInputStateCreateInfo
+	struct VulkanData_VertexInputState
+	{
+		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+		uintptr_t pNext{};                          //always nullptr
+		uint32_t flags{};                           //always 0 unless using extensions
+		uint32_t vertexBindingDescriptionCount{};   //number of bindings
+		vector<VD_VII_BindingDescriptions> pVertexBindingDescriptions{};     //binding data
+		uint32_t vertexAttributeDescriptionCount{}; //number of attributes
+		vector<VD_VII_AttributeDescriptions> pVertexAttributeDescriptions{}; //attribute data
+	};
+	//Contents of pVertexBindingDescriptions in VulkanData_VertexInputState
+	struct VD_VII_BindingDescriptions
+	{
+		uint32_t binding{};   //binding index - mostly 0
+		uint32_t stride{};    //each vertex size in bytes
+		uint32_t inputRate{}; //0 (VK_VERTEX_INPUT_RATE_VERTEX) or 1 (_INSTANCE)
+	};
+	//Contents of pVertexAttributeDescriptions in VulkanData_VertexInputState
+	struct VD_VII_AttributeDescriptions
+	{
+		uint32_t location{}; //location in shader
+		uint32_t binding{};  //binding index of this attribute
+		uint32_t format{};   //VkFormat
+		uint32_t offset{};   //vertex struct byte offset
+	};
+
+	//VkPipelineInputAssemblyStateCreateInfo
+	struct VulkanData_InputAssemblyState
+	{
+		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+		uint32_t vertexBindingDescriptionCount{};
+		uint32_t vertexAttributeDescriptionCount{};
+	};
+
+	//VkPipelineRasterizationStateCreateInfo
+	struct VulkanData_RasterizationState
+	{
+		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO
+		uint32_t depthClampEnable{};        //usually VK_FALSE
+		uint32_t rasterizerDiscardEnable{}; //usually VK_FALSE
+		uint32_t polygonMode{};             //???
+		float lineWidth{};                  //usually 1.0f
+		uint32_t cullMode{};                //???
+		uint32_t frontFace{};               //???
+		uint32_t depthBiasEnable{};         //usually VK_FALSE
+	};
+
+	//VkPipelineColorBlendStateCreateInfo
+	struct VulkanData_ColorBlendState
+	{
+		uint32_t sType{}; //always VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO
+		uint32_t logicOpEnable{};          //usually VK_FALSE
+		uint32_t attachmentCount{};        //???
+		VD_CBS_Attachments pAttachments{}; //???
+	};
+	//Contents of pAttachments in VulkanData_ColorBlendState
+	struct VD_CBS_Attachments
+	{
+
+	};
+
+	//VkPipelineColorBlendAttachmentState
+	struct VulkanData_ColorBlendAttachmentState
+	{
+		vector<uint32_t> colorWriteMask{}; //???
+		uint32_t blendEnable{};            //usually VK_FALSE
+	};
+
+	//VkPipelineColorBlendAttachmentState
+	//Defines how depth testing and stencil testing works.
+	struct VulkanData_DepthStencilState
+	{
+
+	};
+
+	//VkPipelineColorBlendAttachmentState
+	//Only used if 'Shader_TessControl' and 'Shader_TessEvaluation' shaders are also used
+	struct VulkanData_TesselationState
+	{
+
 	};
 
 	class KALAWINDOW_API Shader_Vulkan

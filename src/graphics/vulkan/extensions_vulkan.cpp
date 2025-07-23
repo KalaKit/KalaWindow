@@ -80,11 +80,11 @@ namespace KalaWindow::Graphics::Vulkan
 			return;
 		}
 
-		WindowStruct_Windows& winData = targetWindow->GetWindow_Windows();
-		Window_VulkanData vData{};
+		WindowData& winData = targetWindow->GetWindowData();
+		VulkanData_Core vData{};
 
 #ifdef _WIN32
-		WindowStruct_Windows& window = targetWindow->GetWindow_Windows();
+		WindowData& window = targetWindow->GetWindowData();
 		HWND windowRef = ToVar<HWND>(window.hwnd);
 		HINSTANCE windowIns = ToVar<HINSTANCE>(window.hInstance);
 
@@ -111,7 +111,7 @@ namespace KalaWindow::Graphics::Vulkan
 		//TODO: ADD LINUX SUPPORT
 #endif
 
-		targetWindow->SetVulkanStruct(vData);
+		targetWindow->SetVulkanCoreData(vData);
 	}
 
 	bool Extensions_Vulkan::CreateSwapchain(Window* window)
@@ -134,15 +134,15 @@ namespace KalaWindow::Graphics::Vulkan
 		VkDevice dev = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
 		VkPhysicalDevice pDev = ToVar<VkPhysicalDevice>(Renderer_Vulkan::GetPhysicalDevice());
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		//surface capabilities
 
 #ifdef _WIN32
-		WindowStruct_Windows& win = window->GetWindow_Windows();
+		WindowData& win = window->GetWindowData();
 #elif __linux__
-		WindowStruct_X11& win = window->GetWindow_X11();
+		WindowData& win = window->GetWindowData();
 #endif
 		VkSurfaceKHR surfacePtr = ToVar<VkSurfaceKHR>(vData.surface);
 
@@ -358,8 +358,8 @@ namespace KalaWindow::Graphics::Vulkan
 
 	void Extensions_Vulkan::DestroySwapchain(Window* window)
 	{
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		if (Renderer_Vulkan::GetDevice() != NULL)
 		{

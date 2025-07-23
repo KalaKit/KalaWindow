@@ -32,6 +32,7 @@ using KalaWindow::Graphics::Vulkan::VulkanDeviceExtensions;
 using KalaWindow::Graphics::Vulkan::Extensions_Vulkan;
 using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::VulkanData_Core;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::PopupResult;
@@ -57,10 +58,31 @@ enum class ForceCloseType
 	FC_VU  //is vulkan initialized
 };
 
+enum class FrameResult
+{
+	VK_FRAME_OK,            //Vulkan frame is fine, proceed with rendering
+	VK_FRAME_RESIZE_NEEDED, //Swapchain is out of date or suboptimal - recreate needed
+	VK_FRAME_ERROR          //Unexpected error - recreate needed
+};
+
+static bool isVolkInitialized = false;
+
+static VkQueue graphicsQueue = VK_NULL_HANDLE;
+static uint32_t graphicsQueueFamilyIndex = 0;
+
+static uint32_t MAX_FRAMES = 0;
+static uint32_t currentFrame = 0;
+
+static vector<VulkanDeviceExtensions> delayedExt{};
+
 static void ForceClose(
 	const string& title, 
 	const string& reason,
 	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE);
+
+static const char* ToString(VulkanLayers layer);
+static const char* ToString(VulkanInstanceExtensions ext);
+static const char* ToString(VulkanDeviceExtensions ext);
 
 static bool IsValidHandle(
 	uintptr_t handle,
@@ -119,22 +141,9 @@ static bool IsValidIndex(
 	return true;
 }
 
-static const char* ToString(VulkanLayers layer);
-static const char* ToString(VulkanInstanceExtensions ext);
-static const char* ToString(VulkanDeviceExtensions ext);
 static int RatePhysicalDevice(
 	VkPhysicalDevice device,
 	string& failReason);
-
-static bool isVolkInitialized = false;
-
-static VkQueue graphicsQueue = VK_NULL_HANDLE;
-static uint32_t graphicsQueueFamilyIndex = 0;
-
-static uint32_t MAX_FRAMES = 0;
-static uint32_t currentFrame = 0;
-
-static vector<VulkanDeviceExtensions> delayedExt{};
 
 static bool InitVolk()
 {
@@ -154,7 +163,7 @@ static bool InitVolk()
 namespace KalaWindow::Graphics::Vulkan
 {
 	//
-	// INITIALIZE PHASE
+	// INITIALIZATION
 	//
 
 	bool Renderer_Vulkan::EnableLayer(VulkanLayers layer)
@@ -604,7 +613,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		Window_VulkanData vData = window->GetVulkanStruct();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -626,7 +635,6 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 		vData.commandPool = FromVar(realPool);
-		window->SetVulkanStruct(vData);
 
 		return true;
 	}
@@ -651,8 +659,8 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		if (!IsValidIndex(
 			0,
@@ -729,8 +737,8 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		if (!IsValidIndex(
 			0,
@@ -809,40 +817,16 @@ namespace KalaWindow::Graphics::Vulkan
 		return true;
 	}
 
-	void Renderer_Vulkan::DestroySyncObjects(Window* window)
-	{
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
-
-		if (device)
-		{
-			VkDevice d = ToVar<VkDevice>(device);
-
-			vkDeviceWaitIdle(d);
-
-			for (auto s : vData.imageAvailableSemaphores)
-			{
-				vkDestroySemaphore(d, ToVar<VkSemaphore>(s), nullptr);
-			}
-			for (auto s : vData.renderFinishedSemaphores)
-			{
-				vkDestroySemaphore(d, ToVar<VkSemaphore>(s), nullptr);
-			}
-			for (auto f : vData.inFlightFences)
-			{
-				vkDestroyFence(d, ToVar<VkFence>(f), nullptr);
-			}
-		}
-
-		vData.imageAvailableSemaphores.clear();
-		vData.renderFinishedSemaphores.clear();
-		vData.inFlightFences.clear();
-		vData.imagesInFlight.clear();
-	}
-
 	bool Renderer_Vulkan::InitializeShaderSystem(Window* window)
 	{
-		Window_VulkanShaderData vShaderData{};
+		VulkanData_VertexInputInfo vData_1
+		{
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+			.pNext = NULL,
+			.flags = 0,
+			.vertexBindingDescriptionCount = 0,
+			.vertexAttributeDescriptionCount = 0
+		};
 
 		VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
 		vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -925,323 +909,335 @@ namespace KalaWindow::Graphics::Vulkan
 	}
 
 	//
-	// RUNTIME LOOP PHASE
+	// RUNTIME LOOP
 	//
 
-	FrameResult Renderer_Vulkan::BeginFrame(
-		Window* window,
-		uint32_t& imageIndex)
+	UpdateResult Renderer_Vulkan::Update(Window* window)
 	{
-		if (!isVulkanInitialized)
-		{
-			Logger::Print(
-				"Cannot begin frame because Vulkan is not initialized!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return FrameResult::VK_FRAME_ERROR;
-		}
+		uint32_t imageIndex = 0;
 
-		if (!IsValidHandle(
-			device,
-			"device",
-			"BeginFrame"))
-		{
-			return FrameResult::VK_FRAME_ERROR;
-		}
-
-		VkDevice d = ToVar<VkDevice>(device);
-
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
-		{
-			VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
-
-			VkResult waitResult = vkWaitForFences(
-				d,
-				1,
-				&fence,
-				VK_TRUE,
-				UINT64_MAX);
-
-			vkResetFences(
-				d,
-				1,
-				&fence);
-		}
-
-		uint32_t nextImage = UINT32_MAX;
-
-		VkSemaphore sem = 
-			ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame]);
-
-		VkResult result = vkAcquireNextImageKHR(
-			d,
-			ToVar<VkSwapchainKHR>(vData.swapchain),
-			UINT64_MAX,
-			sem,
-			VK_NULL_HANDLE,
-			&nextImage);
-
-		if (result == VK_SUCCESS)
-		{
-			if (!IsValidIndex(
-				nextImage,
-				vData.images,
-				"nextImage",
-				"BeginFrame"))
+		auto BeginFrame = [](Window* window, uint32_t& imageIndex) -> FrameResult
 			{
-				return FrameResult::VK_FRAME_ERROR;
-			}
+				if (!Renderer_Vulkan::IsVulkanInitialized())
+				{
+					Logger::Print(
+						"Cannot begin frame because Vulkan is not initialized!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return FrameResult::VK_FRAME_ERROR;
+				}
 
-			imageIndex = nextImage;
+				uintptr_t device = Renderer_Vulkan::GetDevice();
+				if (!IsValidHandle(
+					device,
+					"device",
+					"BeginFrame"))
+				{
+					return FrameResult::VK_FRAME_ERROR;
+				}
 
-			VkFence inFlight = ToVar<VkFence>(vData.imagesInFlight[imageIndex]);
-			if (inFlight != VK_NULL_HANDLE
-				&& inFlight != ToVar<VkFence>(vData.inFlightFences[currentFrame]))
-			{
-				vkWaitForFences(
+				VkDevice d = ToVar<VkDevice>(device);
+
+				VulkanData_Core& vData = window->GetVulkanCoreData();
+				{
+					VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
+
+					VkResult waitResult = vkWaitForFences(
+						d,
+						1,
+						&fence,
+						VK_TRUE,
+						UINT64_MAX);
+
+					vkResetFences(
+						d,
+						1,
+						&fence);
+				}
+
+				uint32_t nextImage = UINT32_MAX;
+
+				VkSemaphore sem =
+					ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame]);
+
+				VkResult result = vkAcquireNextImageKHR(
 					d,
+					ToVar<VkSwapchainKHR>(vData.swapchain),
+					UINT64_MAX,
+					sem,
+					VK_NULL_HANDLE,
+					&nextImage);
+
+				if (result == VK_SUCCESS)
+				{
+					if (!IsValidIndex(
+						nextImage,
+						vData.images,
+						"nextImage",
+						"BeginFrame"))
+					{
+						return FrameResult::VK_FRAME_ERROR;
+					}
+
+					imageIndex = nextImage;
+
+					VkFence inFlight = ToVar<VkFence>(vData.imagesInFlight[imageIndex]);
+					if (inFlight != VK_NULL_HANDLE
+						&& inFlight != ToVar<VkFence>(vData.inFlightFences[currentFrame]))
+					{
+						vkWaitForFences(
+							d,
+							1,
+							&inFlight,
+							VK_TRUE,
+							UINT64_MAX);
+					}
+
+					vData.imagesInFlight[imageIndex] = vData.inFlightFences[currentFrame];
+
+					return FrameResult::VK_FRAME_OK;
+				}
+
+				if (result == VK_SUBOPTIMAL_KHR
+					|| result == VK_ERROR_OUT_OF_DATE_KHR)
+				{
+					return FrameResult::VK_FRAME_RESIZE_NEEDED;
+				}
+
+				Logger::Print(
+					"vkAquireNextImageKHR failed with error: " + result,
+					"VULKAN",
+					LogType::LOG_ERROR,
+					2);
+				return FrameResult::VK_FRAME_ERROR;
+			};
+
+		auto RecordCommandBuffer = [](Window* window, uint32_t imageIndex) -> bool
+			{
+				if (!Renderer_Vulkan::IsVulkanInitialized())
+				{
+					Logger::Print(
+						"Cannot record command buffer because Vulkan is not initialized!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return false;
+				}
+
+				VulkanData_Core& vData = window->GetVulkanCoreData();
+
+				VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
+
+				if (!IsValidIndex(
+					currentFrame,
+					vData.commandBuffers,
+					"imageIndex",
+					"RecordCommandBuffer"))
+				{
+					return false;
+				}
+				VkCommandBuffer cmd = ToVar<VkCommandBuffer>(vData.commandBuffers[currentFrame]);
+
+				VkCommandBufferBeginInfo beginInfo{};
+				beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+				beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+				if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS)
+				{
+					Logger::Print(
+						"Failed to reset command buffer before recording!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return false;
+				}
+
+				if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
+				{
+					Logger::Print(
+						"Failed to begin recording command buffer!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return false;
+				}
+
+				VkClearValue clearColor = { {{ 0.0f, 0.0f, 0.0f, 1.0f }} };
+
+				VkRenderPassBeginInfo renderPassInfo{};
+				renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+				renderPassInfo.renderPass = ToVar<VkRenderPass>(vData.renderPass);
+				renderPassInfo.framebuffer = ToVar<VkFramebuffer>(vData.framebuffers[imageIndex]);
+				renderPassInfo.renderArea.offset = { 0, 0 };
+				renderPassInfo.renderArea.extent.width = vData.swapchainExtentWidth;
+				renderPassInfo.renderArea.extent.height = vData.swapchainExtentHeight;
+				renderPassInfo.clearValueCount = 1;
+				renderPassInfo.pClearValues = &clearColor;
+
+				vkCmdBeginRenderPass(
+					cmd,
+					&renderPassInfo,
+					VK_SUBPASS_CONTENTS_INLINE);
+
+				for (auto& [name, shaderPtr] : Shader_Vulkan::createdShaders)
+				{
+					shaderPtr->Bind(
+						reinterpret_cast<uintptr_t>(cmd),
+						window);
+				}
+
+				vkCmdEndRenderPass(cmd);
+
+				if (vkEndCommandBuffer(cmd) != VK_SUCCESS)
+				{
+					Logger::Print(
+						"Failed to record command buffer!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return false;
+				}
+
+				return true;
+			};
+
+		auto SubmitFrame = [](Window* window, uint32_t imageIndex) -> bool
+			{
+				if (!Renderer_Vulkan::IsVulkanInitialized())
+				{
+					Logger::Print(
+						"Cannot submit frame because Vulkan is not initialized!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return false;
+				}
+
+				if (!IsValidHandle(
+					FromVar(graphicsQueue),
+					"graphicsQueue",
+					"SubmitFrame"))
+				{
+					return false;
+				}
+
+				VulkanData_Core& vData = window->GetVulkanCoreData();
+
+				VkSubmitInfo submitInfo{};
+				submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+				VkSemaphore waitSemaphores[] =
+				{
+					ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame])
+				};
+				VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+				submitInfo.waitSemaphoreCount = 1;
+				submitInfo.pWaitSemaphores = waitSemaphores;
+				submitInfo.pWaitDstStageMask = waitStages;
+
+				submitInfo.commandBufferCount = 1;
+
+				VkCommandBuffer realCB = ToVar<VkCommandBuffer>(vData.commandBuffers[currentFrame]);
+				submitInfo.pCommandBuffers = &realCB;
+
+				VkSemaphore signalSemaphores[] =
+				{
+					ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex])
+				};
+				submitInfo.signalSemaphoreCount = 1;
+				submitInfo.pSignalSemaphores = signalSemaphores;
+
+				if (vkQueueSubmit(
+					graphicsQueue,
 					1,
-					&inFlight,
-					VK_TRUE,
-					UINT64_MAX);
-			}
+					&submitInfo,
+					ToVar<VkFence>(vData.inFlightFences[currentFrame])) != VK_SUCCESS)
+				{
+					Logger::Print(
+						"Failed to submit frame!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return false;
+				}
 
-			vData.imagesInFlight[imageIndex] = vData.inFlightFences[currentFrame];
+				return true;
+			};
 
-			return FrameResult::VK_FRAME_OK;
-		}
+		auto PresentFrame = [](Window* window, uint32_t imageIndex) -> FrameResult
+			{
+				if (!Renderer_Vulkan::IsVulkanInitialized())
+				{
+					Logger::Print(
+						"Cannot present frame because Vulkan is not initialized!",
+						"VULKAN",
+						LogType::LOG_ERROR,
+						2);
+					return FrameResult::VK_FRAME_ERROR;
+				}
 
-		if (result == VK_SUBOPTIMAL_KHR
-			|| result == VK_ERROR_OUT_OF_DATE_KHR)
-		{
-			return FrameResult::VK_FRAME_RESIZE_NEEDED;
-		}
+				if (!IsValidHandle(
+					FromVar(graphicsQueue),
+					"graphicsQueue",
+					"PresentFrame"))
+				{
+					return FrameResult::VK_FRAME_ERROR;
+				}
 
-		Logger::Print(
-			"vkAquireNextImageKHR failed with error: " + result,
-			"VULKAN",
-			LogType::LOG_ERROR,
-			2);
-		return FrameResult::VK_FRAME_ERROR;
+				VulkanData_Core& vData = window->GetVulkanCoreData();
+
+				VkSemaphore realFinishedSemaphore =
+					ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex]);
+				VkSwapchainKHR realSwapchain =
+					ToVar<VkSwapchainKHR>(vData.swapchain);
+
+				VkPresentInfoKHR presentInfo{};
+				presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+				presentInfo.waitSemaphoreCount = 1;
+				presentInfo.pWaitSemaphores = &realFinishedSemaphore;
+				presentInfo.swapchainCount = 1;
+				presentInfo.pSwapchains = &realSwapchain;
+				presentInfo.pImageIndices = &imageIndex;
+
+				VkResult result = vkQueuePresentKHR(graphicsQueue, &presentInfo);
+
+				currentFrame = (currentFrame + 1) % MAX_FRAMES;
+
+				if (result == VK_SUCCESS) return FrameResult::VK_FRAME_OK;
+
+				if (result == VK_SUBOPTIMAL_KHR
+					|| result == VK_ERROR_OUT_OF_DATE_KHR)
+				{
+					return FrameResult::VK_FRAME_RESIZE_NEEDED;
+				}
+
+				Logger::Print(
+					"vkQueuePresentKHR failed with error: " + result,
+					"VULKAN",
+					LogType::LOG_ERROR,
+					2);
+				return FrameResult::VK_FRAME_ERROR;
+			};
+
+		FrameResult beginFrameResult = BeginFrame(window, imageIndex);
+		if (beginFrameResult == FrameResult::VK_FRAME_ERROR) return UpdateResult::RESULT_ERROR;
+		if (beginFrameResult == FrameResult::VK_FRAME_RESIZE_NEEDED) return UpdateResult::RESULT_RESIZE;
+
+		if (!RecordCommandBuffer(window, imageIndex)) return UpdateResult::RESULT_ERROR;
+
+		if (!SubmitFrame(window, imageIndex)) return UpdateResult::RESULT_ERROR;
+
+		FrameResult presentFrameResult = PresentFrame(window, imageIndex);
+		if (presentFrameResult == FrameResult::VK_FRAME_ERROR) return UpdateResult::RESULT_ERROR;
+		if (presentFrameResult == FrameResult::VK_FRAME_RESIZE_NEEDED) return UpdateResult::RESULT_RESIZE;
+
+		return UpdateResult::RESULT_OK;
 	}
 
-	bool Renderer_Vulkan::RecordCommandBuffer(
-		Window* window,
-		uint32_t imageIndex)
-	{
-		if (!isVulkanInitialized)
-		{
-			Logger::Print(
-				"Cannot record command buffer because Vulkan is not initialized!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return false;
-		}
-
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
-
-		VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
-
-		if (!IsValidIndex(
-			currentFrame,
-			vData.commandBuffers,
-			"imageIndex",
-			"RecordCommandBuffer"))
-		{
-			return false;
-		}
-		VkCommandBuffer cmd = ToVar<VkCommandBuffer>(vData.commandBuffers[currentFrame]);
-
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-
-		if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS)
-		{
-			Logger::Print(
-				"Failed to reset command buffer before recording!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return false;
-		}
-
-		if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
-		{
-			Logger::Print(
-				"Failed to begin recording command buffer!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return false;
-		}
-
-		VkClearValue clearColor = { {{ 0.0f, 0.0f, 0.0f, 1.0f }} };
-
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = ToVar<VkRenderPass>(vData.renderPass);
-		renderPassInfo.framebuffer = ToVar<VkFramebuffer>(vData.framebuffers[imageIndex]);
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent.width = vData.swapchainExtentWidth;
-		renderPassInfo.renderArea.extent.height = vData.swapchainExtentHeight;
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
-
-		vkCmdBeginRenderPass(
-			cmd,
-			&renderPassInfo,
-			VK_SUBPASS_CONTENTS_INLINE);
-
-		for (auto& [name, shaderPtr] : Shader_Vulkan::createdShaders)
-		{
-			shaderPtr->Bind(
-				reinterpret_cast<uintptr_t>(cmd),
-				window);
-		}
-
-		vkCmdEndRenderPass(cmd);
-
-		if (vkEndCommandBuffer(cmd) != VK_SUCCESS)
-		{
-			Logger::Print(
-				"Failed to record command buffer!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return false;
-		}
-
-		return true;
-	}
-
-	bool Renderer_Vulkan::SubmitFrame(
-		Window* window,
-		uint32_t imageIndex)
-	{
-		if (!isVulkanInitialized)
-		{
-			Logger::Print(
-				"Cannot submit frame because Vulkan is not initialized!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return false;
-		}
-
-		if (!IsValidHandle(
-			FromVar(graphicsQueue),
-			"graphicsQueue",
-			"SubmitFrame"))
-		{
-			return false;
-		}
-
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
-
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = 
-		{ 
-			ToVar<VkSemaphore>(vData.imageAvailableSemaphores[currentFrame])
-		};
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-
-		submitInfo.commandBufferCount = 1;
-
-		VkCommandBuffer realCB = ToVar<VkCommandBuffer>(vData.commandBuffers[currentFrame]);
-		submitInfo.pCommandBuffers = &realCB;
-
-		VkSemaphore signalSemaphores[] = 
-		{ 
-			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex])
-		};
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
-
-		if (vkQueueSubmit(
-			graphicsQueue,
-			1,
-			&submitInfo,
-			ToVar<VkFence>(vData.inFlightFences[currentFrame])) != VK_SUCCESS)
-		{
-			Logger::Print(
-				"Failed to submit frame!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return false;
-		}
-
-		return true;
-	}
-
-	FrameResult Renderer_Vulkan::PresentFrame(
-		Window* window,
-		uint32_t imageIndex)
-	{
-		if (!isVulkanInitialized)
-		{
-			Logger::Print(
-				"Cannot present frame because Vulkan is not initialized!",
-				"VULKAN",
-				LogType::LOG_ERROR,
-				2);
-			return FrameResult::VK_FRAME_ERROR;
-		}
-
-		if (!IsValidHandle(
-			FromVar(graphicsQueue),
-			"graphicsQueue",
-			"PresentFrame"))
-		{
-			return FrameResult::VK_FRAME_ERROR;
-		}
-
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
-
-		VkSemaphore realFinishedSemaphore = 
-			ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex]);
-		VkSwapchainKHR realSwapchain = 
-			ToVar<VkSwapchainKHR>(vData.swapchain);
-
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &realFinishedSemaphore;
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = &realSwapchain;
-		presentInfo.pImageIndices = &imageIndex;
-
-		VkResult result = vkQueuePresentKHR(graphicsQueue, &presentInfo);
-
-		currentFrame = (currentFrame + 1) % MAX_FRAMES;
-
-		if (result == VK_SUCCESS) return FrameResult::VK_FRAME_OK;
-
-		if (result == VK_SUBOPTIMAL_KHR
-			|| result == VK_ERROR_OUT_OF_DATE_KHR)
-		{
-			return FrameResult::VK_FRAME_RESIZE_NEEDED;
-		}
-
-		Logger::Print(
-			"vkQueuePresentKHR failed with error: " + result,
-			"VULKAN",
-			LogType::LOG_ERROR,
-			2);
-		return FrameResult::VK_FRAME_ERROR;
-	}
+	//
+	// REUSABLES
+	//
 
 	void Renderer_Vulkan::HardReset(Window* window)
 	{
@@ -1263,8 +1259,8 @@ namespace KalaWindow::Graphics::Vulkan
 			return;
 		}
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
@@ -1321,10 +1317,6 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 	}
 
-	//
-	// REMAKE PHASE
-	//
-
 	bool Renderer_Vulkan::CreateRenderPass(Window* window)
 	{
 		if (!isVulkanInitialized)
@@ -1353,8 +1345,8 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = static_cast<VkFormat>(vData.swapchainImageFormat);
@@ -1433,8 +1425,8 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		vData.framebuffers.resize(vData.imageViews.size());
 
@@ -1473,15 +1465,46 @@ namespace KalaWindow::Graphics::Vulkan
 	}
 
 	//
-	// REUSABLES
+	// CLEANUP
 	//
+
+	void Renderer_Vulkan::DestroySyncObjects(Window* window)
+	{
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
+
+		if (device)
+		{
+			VkDevice d = ToVar<VkDevice>(device);
+
+			vkDeviceWaitIdle(d);
+
+			for (auto s : vData.imageAvailableSemaphores)
+			{
+				vkDestroySemaphore(d, ToVar<VkSemaphore>(s), nullptr);
+			}
+			for (auto s : vData.renderFinishedSemaphores)
+			{
+				vkDestroySemaphore(d, ToVar<VkSemaphore>(s), nullptr);
+			}
+			for (auto f : vData.inFlightFences)
+			{
+				vkDestroyFence(d, ToVar<VkFence>(f), nullptr);
+			}
+		}
+
+		vData.imageAvailableSemaphores.clear();
+		vData.renderFinishedSemaphores.clear();
+		vData.inFlightFences.clear();
+		vData.imagesInFlight.clear();
+	}
 
 	void Renderer_Vulkan::DestroyWindowData(Window* window)
 	{
 		if (device) vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
-		WindowStruct_Windows& winData = window->GetWindow_Windows();
-		Window_VulkanData& vData = window->GetVulkanStruct();
+		WindowData& winData = window->GetWindowData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		DestroySyncObjects(window);
 		Extensions_Vulkan::DestroySwapchain(window);
