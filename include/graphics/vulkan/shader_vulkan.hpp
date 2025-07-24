@@ -97,18 +97,8 @@ namespace KalaWindow::Graphics::Vulkan
 	//VkPipelineVertexInputStateCreateInfo
 	struct VulkanData_VertexInputState
 	{
-		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
-		uint32_t sType{};
-		//Extension-specific structure, usually NULL
-		uintptr_t pNext = NULL;
-		//VkPipelineVertexInputStateCreateFlags, usually 0
-		uint32_t flags = 0;
-		//Number of bindings, usually 1
-		uint32_t vertexBindingDescriptionCount = 1;
 		//VkVertexInputBindingDescription, struct to VD_VII_BindingDescriptions
 		vector<VD_VII_BindingDescriptions> pVertexBindingDescriptions{};
-		//Number of attributes, usually equal to number of per-vertex elements (position, normal, etc)
-		uint32_t vertexAttributeDescriptionCount{}; 
 		//VkVertexInputAttributeDescription, struct to VD_VII_AttributeDescriptions
 		vector<VD_VII_AttributeDescriptions> pVertexAttributeDescriptions{};
 	};
@@ -116,8 +106,8 @@ namespace KalaWindow::Graphics::Vulkan
 	//VkPipelineInputAssemblyStateCreateInfo
 	struct VulkanData_InputAssemblyState
 	{
-		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
-		uint32_t sType = 19;
+		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
+		uint32_t sType = 20;
 		//Extension-specific structure, usually NULL
 		uintptr_t pNext = NULL;
 		//VkPipelineInputAssemblyStateCreateFlags, usually 0

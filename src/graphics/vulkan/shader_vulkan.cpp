@@ -34,16 +34,32 @@ using KalaWindow::Graphics::Vulkan::ShaderType;
 using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 
 using KalaWindow::Graphics::Vulkan::VulkanData_VertexInputState;
+using KalaWindow::Graphics::Vulkan::VD_VII_BindingDescriptions;
+using KalaWindow::Graphics::Vulkan::VD_VII_AttributeDescriptions;
+
 using KalaWindow::Graphics::Vulkan::VulkanData_InputAssemblyState;
+
 using KalaWindow::Graphics::Vulkan::VulkanData_RasterizationState;
+
 using KalaWindow::Graphics::Vulkan::VulkanData_ColorBlendState;
 using KalaWindow::Graphics::Vulkan::VD_CBS_Attachments;
+
 using KalaWindow::Graphics::Vulkan::VulkanData_DepthStencilState;
+using KalaWindow::Graphics::Vulkan::VD_DSS_FrontBack;
+
 using KalaWindow::Graphics::Vulkan::VulkanData_TesselationState;
+
 using KalaWindow::Graphics::Vulkan::VulkanShaderData;
 using KalaWindow::Graphics::VulkanShaderWindowData;
+
 using KalaWindow::Graphics::VulkanData_ViewportState;
+using KalaWindow::Graphics::VD_VS_Scissors;
+using KalaWindow::Graphics::VD_VS_Viewports;
+using KalaWindow::Graphics::VD_VS_VkExtent2D;
+using KalaWindow::Graphics::VD_VS_VkOffset2D;
+
 using KalaWindow::Graphics::VulkanData_DynamicState;
+
 using KalaWindow::Graphics::VulkanData_MultisampleState;
 
 using std::vector;
@@ -829,10 +845,26 @@ VulkanShaderVKData InitVulkanShaderData(VulkanShaderData userData)
 {
     VulkanShaderVKData data{};
 
-    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
-    vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    vertexInputInfo.vertexBindingDescriptionCount = 0;
-    vertexInputInfo.vertexAttributeDescriptionCount = 0;
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo
+    {
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+        .pNext = NULL,
+        .flags = 0,
+        .vertexBindingDescriptionCount = static_cast<uint32_t>(
+            userData.userVertexInputState.pVertexBindingDescriptions.size()),
+        .pVertexBindingDescriptions =
+            userData.userVertexInputState.pVertexBindingDescriptions.empty()
+            ? nullptr
+            : reinterpret_cast<const VkVertexInputBindingDescription*>(
+                userData.userVertexInputState.pVertexBindingDescriptions.data()),
+        .vertexAttributeDescriptionCount = static_cast<uint32_t>(
+            userData.userVertexInputState.pVertexAttributeDescriptions.size()),
+        .pVertexAttributeDescriptions =
+            userData.userVertexInputState.pVertexAttributeDescriptions.empty()
+            ? nullptr
+            : reinterpret_cast<const VkVertexInputAttributeDescription*>(
+                userData.userVertexInputState.pVertexAttributeDescriptions.data())
+    };
 
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo{};
     inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
