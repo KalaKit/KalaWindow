@@ -266,6 +266,16 @@ namespace KalaWindow::Graphics::Vulkan
 		uint32_t patchControlPoints = 3;
 	};
 
+	//Shader-level shader data passed by the user in its original format
+	struct VulkanShaderData
+	{
+		VulkanData_VertexInputState userVertexInputState{};
+		VulkanData_InputAssemblyState userInputAssemblyState{};
+		VulkanData_RasterizationState userRasterizationState{};
+		VD_CBS_Attachments userColorBlendAttachmentState{};
+		VulkanData_ColorBlendState userColorBlendState{};
+	};
+
 	class KALAWINDOW_API Shader_Vulkan
 	{
 	public:
@@ -286,7 +296,8 @@ namespace KalaWindow::Graphics::Vulkan
 		static Shader_Vulkan* CreateShader(
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages,
-			Window* targetWindow);
+			Window* targetWindow,
+			VulkanShaderData userData);
 
 		static string GetShaderTypeName(ShaderType type)
 		{
@@ -361,40 +372,10 @@ namespace KalaWindow::Graphics::Vulkan
 
 		Window* GetTargetWindow() { return targetWindow; }
 
-		VulkanData_VertexInputState& GetVulkanVertexInputStruct() { return vulkan_vi_struct; }
-		void SetVulkanVertexInputStruct(VulkanData_VertexInputState vulkan_new_vi_struct)
+		VulkanShaderData& GetVulkanShaderUserStruct() { return vulkanShaderData; }
+		void SetVulkanShaderUserStruct(VulkanShaderData newVulkanShaderData)
 		{
-			vulkan_vi_struct = vulkan_new_vi_struct;
-		}
-
-		VulkanData_InputAssemblyState& GetVulkanInputAssemblyStruct() { return vulkan_ia_struct; }
-		void SetVulkanInputAssemblyStruct(VulkanData_InputAssemblyState vulkan_new_ia_struct)
-		{
-			vulkan_ia_struct = vulkan_new_ia_struct;
-		}
-
-		VulkanData_RasterizationState& GetVulkanRasterizationStruct() { return vulkan_r_struct; }
-		void SetVulkanRasterizationStruct(VulkanData_RasterizationState vulkan_new_r_struct)
-		{
-			vulkan_r_struct = vulkan_new_r_struct;
-		}
-
-		VulkanData_ColorBlendState& GetVulkanColorBlendStruct() { return vulkan_cb_struct; }
-		void SetVulkanColorBlendStruct(VulkanData_ColorBlendState vulkan_new_cb_struct)
-		{
-			vulkan_cb_struct = vulkan_new_cb_struct;
-		}
-
-		VulkanData_DepthStencilState& GetVulkanDepthStencilStruct() { return vulkan_ds_struct; }
-		void SetVulkanDepthStencilStruct(VulkanData_DepthStencilState vulkan_new_ds_struct)
-		{
-			vulkan_ds_struct = vulkan_new_ds_struct;
-		}
-
-		VulkanData_TesselationState& GetVulkanTesselationStruct() { return vulkan_t_struct; }
-		void SetVulkanTesselationStruct(VulkanData_TesselationState vulkan_new_t_struct)
-		{
-			vulkan_t_struct = vulkan_new_t_struct;
+			vulkanShaderData = newVulkanShaderData;
 		}
 
 		unsigned int GetPipeline() const { return pipeline; }
@@ -533,12 +514,7 @@ namespace KalaWindow::Graphics::Vulkan
 		function<void()> drawCommands{}; //The commands relative to this shader that are called inside bind
 		Window* targetWindow{};          //The window this shader is attached to
 
-		VulkanData_VertexInputState vulkan_vi_struct{};
-		VulkanData_InputAssemblyState vulkan_ia_struct{};
-		VulkanData_RasterizationState vulkan_r_struct{};
-		VulkanData_ColorBlendState vulkan_cb_struct{};
-		VulkanData_DepthStencilState vulkan_ds_struct{};
-		VulkanData_TesselationState vulkan_t_struct{};
+		VulkanShaderData vulkanShaderData{}; //Shader-level VkPipeline data
 
 		uintptr_t pipeline{};            //vkpipeline
 		uintptr_t layout{};              //vkpipelinelayout

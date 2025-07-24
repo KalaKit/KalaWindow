@@ -35,6 +35,9 @@ using KalaWindow::Graphics::OpenGL::VSyncState;
 using std::string;
 using std::to_string;
 
+//TODO: separate global init from window init
+//TODO: move content from opengl_windows.cpp here so that this is the true origin of opengl initialization
+
 //If off, then all framerate is uncapped.
 //Used in window.hpp
 static VSyncState vsyncState = VSyncState::VSYNC_ON;
@@ -45,8 +48,6 @@ static void ForceClose(
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	//TODO: move content from opengl_windows.cpp here so that this is the true origin of opengl initialization
-
 	const char* Renderer_OpenGL::GetGLErrorString(unsigned int err)
 	{
 		GLenum glErr = static_cast<GLenum>(err);

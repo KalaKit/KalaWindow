@@ -236,6 +236,14 @@ namespace KalaWindow::Graphics
 		uint32_t alphaToOneEnable = 0U;
 	};
 
+	//Window-level shader data passed by the user in its original format
+	struct VulkanShaderWindowData
+	{
+		VulkanData_ViewportState viewportState{};
+		VulkanData_DynamicState dynamicState{};
+		VulkanData_MultisampleState multisampleState{};
+	};
+
 	class KALAWINDOW_API Window
 	{
 	public:
@@ -285,28 +293,16 @@ namespace KalaWindow::Graphics
 			openglData = newOpenGLData;
 		}
 
-		VulkanData_Core& GetVulkanCoreData() { return vulkanData; }
-		void SetVulkanCoreData(VulkanData_Core newVulkanData)
+		VulkanData_Core& GetVulkanCoreData() { return vulkanCoreData; }
+		void SetVulkanCoreData(VulkanData_Core newVulkanCoreData)
 		{
-			vulkanData = newVulkanData;
+			vulkanCoreData = newVulkanCoreData;
 		}
 
-		VulkanData_ViewportState& GetVulkanViewportStruct() { return vulkan_vs_struct; }
-		void SetVulkanViewportStruct(VulkanData_ViewportState vulkan_new_vs_struct)
+		VulkanShaderWindowData& GetVulkanShaderWindowStruct() { return vulkanShaderWindowData; }
+		void SetVulkanShaderWindowStruct(VulkanShaderWindowData newVulkanShaderWindowData)
 		{
-			vulkan_vs_struct = vulkan_new_vs_struct;
-		}
-
-		VulkanData_DynamicState& GetVulkanDynamicStruct() { return vulkan_ds_struct; }
-		void SetVulkanDynamicStruct(VulkanData_DynamicState vulkan_new_ds_struct)
-		{
-			vulkan_ds_struct = vulkan_new_ds_struct;
-		}
-
-		VulkanData_MultisampleState& GetVulkanMultisampleStruct() { return vulkan_ms_struct; }
-		void SetVulkanMultisampleStruct(VulkanData_MultisampleState vulkan_new_ms_struct)
-		{
-			vulkan_ms_struct = vulkan_new_ms_struct;
+			vulkanShaderWindowData = newVulkanShaderWindowData;
 		}
 
 		const string& GetTitle() const { return title; }
@@ -424,10 +420,8 @@ namespace KalaWindow::Graphics
 
 		OpenGLData openglData{}; //The OpenGL data of this window
 
-		VulkanData_Core vulkanData{}; //The core Vulkan data of this window
-		VulkanData_ViewportState vulkan_vs_struct{}; //Vulkan viewport state struct
-		VulkanData_DynamicState vulkan_ds_struct{}; //Vulkan dynamic state struct
-		VulkanData_MultisampleState vulkan_ms_struct{}; //Vulkan multisample state struct
+		VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
+		VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
 
 		function<void()> resizeCallback{};
 	};
