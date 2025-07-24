@@ -3,6 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+/*
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
@@ -411,7 +412,7 @@ namespace KalaWindow::Graphics::Vulkan
 			dbgCI.messageType =
 				VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
 				VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-			dbgCI.pfnUserCallback = [](auto /*severity*/, auto /*types*/,
+			dbgCI.pfnUserCallback = [](auto severity, auto types,
 				const VkDebugUtilsMessengerCallbackDataEXT* d, void*)
 				{
 					Logger::Print(
@@ -1624,3 +1625,4 @@ static int RatePhysicalDevice(
 
 	return score;
 }
+*/

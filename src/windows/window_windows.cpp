@@ -12,11 +12,11 @@
 #include <algorithm>
 #include <functional>
 
-#define VK_NO_PROTOTYPES
-#include <Volk/volk.h>
+//#define VK_NO_PROTOTYPES
+//#include <Volk/volk.h>
 //#include <vulkan/vulkan.h>
 
-#include "graphics/vulkan/vulkan.hpp"
+//#include "graphics/vulkan/vulkan.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/shader_opengl.hpp"
 
@@ -25,7 +25,7 @@
 #include "core/input.hpp"
 #include "core/log.hpp"
 
-using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
+//using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 using KalaWindow::Graphics::Window;
@@ -441,7 +441,7 @@ namespace KalaWindow::Graphics
 			openGLData.hdc = NULL;
 		}
 
-		Renderer_Vulkan::DestroyWindowData(this);
+		//Renderer_Vulkan::DestroyWindowData(this);
 
 		if (win.hwnd)
 		{
@@ -479,7 +479,7 @@ namespace KalaWindow::Graphics
 				2);
 		}
 
-		if (Renderer_Vulkan::IsVulkanInitialized()) Renderer_Vulkan::Shutdown();
+		//if (Renderer_Vulkan::IsVulkanInitialized()) Renderer_Vulkan::Shutdown();
 		if (Renderer_OpenGL::IsInitialized()) Shader_OpenGL::createdShaders.clear();
 
 		Window::windows.clear();

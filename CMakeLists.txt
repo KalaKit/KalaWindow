@@ -23,7 +23,7 @@ endif()
 
 # Dependencies
 # find_package(OpenGL REQUIRED)
-find_package(Vulkan REQUIRED)
+# find_package(Vulkan REQUIRED)
 
 # Paths
 set(WINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
@@ -37,11 +37,11 @@ file(GLOB WINDOW_SRC CONFIGURE_DEPENDS
     ${WINDOW_SRC_DIR}/core/*.cpp
     ${WINDOW_SRC_DIR}/graphics/*.cpp
 	${WINDOW_SRC_DIR}/graphics/opengl/*.cpp
-	${WINDOW_SRC_DIR}/graphics/vulkan/*.cpp
+	#${WINDOW_SRC_DIR}/graphics/vulkan/*.cpp
     ${WINDOW_SRC_DIR}/windows/*.cpp
     ${WINDOW_SRC_DIR}/linux/*.cpp
 	${WINDOW_SRC_DIR}/opengl/*.cpp
-	${WINDOW_SRC_DIR}/vulkan/*.cpp
+	#${WINDOW_SRC_DIR}/vulkan/*.cpp
 )
 list(APPEND WINDOW_SRC_FILES ${WINDOW_SRC})
 
@@ -73,7 +73,7 @@ target_compile_definitions(KalaWindow PRIVATE
 
 # Link libraries
 target_link_libraries(KalaWindow PRIVATE
-	Vulkan::Vulkan
+	#Vulkan::Vulkan
 	opengl32)
 	#OpenGL::GL
 	#Vulkan::Vulkan)

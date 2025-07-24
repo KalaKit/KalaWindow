@@ -3,6 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+#pragma once
+
+/*
 #include "core/platform.hpp"
 #include "graphics/window.hpp"
 
@@ -20,3 +23,4 @@ namespace KalaWindow::Graphics::Vulkan
         static void DestroySwapchain(Window* window);
     };
 }
+*/

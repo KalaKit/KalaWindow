@@ -5,6 +5,7 @@
 
 #pragma once
 
+/*
 #include <string>
 #include <memory>
 #include <unordered_map>
@@ -513,3 +514,4 @@ namespace KalaWindow::Graphics::Vulkan
 		vector<ShaderStage> shaders{};
 	};
 }
+*/

@@ -102,6 +102,7 @@ namespace KalaWindow::Graphics
 		unsigned int lastProgramID{};
 	};
 
+	/*
 	//Vulkan data reusable across this window context
 	struct VulkanData_Core
 	{
@@ -243,6 +244,7 @@ namespace KalaWindow::Graphics
 		VulkanData_DynamicState dynamicState{};
 		VulkanData_MultisampleState multisampleState{};
 	};
+	*/
 
 	class KALAWINDOW_API Window
 	{
@@ -259,10 +261,12 @@ namespace KalaWindow::Graphics
 		//Set the handle to opengl32.dll
 		static void SetOpenGLLib(uintptr_t newOpenglLib) { openglLib = newOpenglLib; }
 
+		/*
 		//Get the handle to vulkan-1.dll
 		static uintptr_t GetVulkanLib() { return vulkanLib; }
 		//Set the handle to vulkan-1.dll
 		static void SetVulkanLib(uintptr_t newVulkanLib) { vulkanLib = newVulkanLib; }
+		*/
 
 		Window(
 			string title,
@@ -293,6 +297,7 @@ namespace KalaWindow::Graphics
 			openglData = newOpenGLData;
 		}
 
+		/*
 		VulkanData_Core& GetVulkanCoreData() { return vulkanCoreData; }
 		void SetVulkanCoreData(VulkanData_Core newVulkanCoreData)
 		{
@@ -304,6 +309,7 @@ namespace KalaWindow::Graphics
 		{
 			vulkanShaderWindowData = newVulkanShaderWindowData;
 		}
+		*/
 
 		const string& GetTitle() const { return title; }
 		void SetTitle(const string& newTitle);
@@ -420,8 +426,8 @@ namespace KalaWindow::Graphics
 
 		OpenGLData openglData{}; //The OpenGL data of this window
 
-		VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
-		VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
+		//VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
+		//VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
 
 		function<void()> resizeCallback{};
 	};

@@ -2,9 +2,9 @@
 
 cd /d "%~dp0"
 
-set "INCLUDE_TARGET=..\KalaTestProject\_external_shared\KalaWindow\include"
-set "DEBUG_TARGET=..\KalaTestProject\_external_shared\KalaWindow\debug"
-set "RELEASE_TARGET=..\KalaTestProject\_external_shared\KalaWindow\release"
+set "INCLUDE_TARGET=..\circuit_game\_external_shared\KalaWindow\include"
+set "DEBUG_TARGET=..\circuit_game\_external_shared\KalaWindow\debug"
+set "RELEASE_TARGET=..\circuit_game\_external_shared\KalaWindow\release"
 
 if exist "%INCLUDE_TARGET%" (
 	rmdir /S /Q "%INCLUDE_TARGET%"
