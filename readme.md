@@ -8,9 +8,9 @@
 
 > Due to ongoing rewriting of the project Linux support is currently not available. It will be added back before full 0.3 rewrite. 
 
-KalaWindow is a lightweight C++ 20 library for Windows and Linux (x11/wayland) that is used for rendering the window your program will be ran inside of which creates its own OpenGL 3.3 or Vulkan 1.2 context depending on which binary you choose. The OpenGL binary also uses a custom OpenGL function loader system. KalaWindow also has built in input support and includes [KalaCrashHandler](https://github.com/KalaKit/KalaCrashHandler) for handy crash reports. All the API code is completely OS-agnostic so the exact same code works on both Windows and Linux.
+**KalaWindow** is a C++20 multimedia framework library for **Windows** and **Linux** (X11/Wayland), built for native desktop applications ranging from full-featured game engines to lightweight graphical tools. It provides **multi-window support**, **input handling**, and a unified interface to the **native message loop** on each platform. Crash reporting is integrated via [**KalaCrashHandler**](https://github.com/KalaKit/KalaCrashHandler), and the API is fully **OS-agnostic** and **vendor-neutral** — no platform-specific or graphics API headers are included in its public interface, keeping user code clean and portable.
 
-> KalaWindow will not support anything older than OpenGL 3.3 or Vulkan 1.2, and anything newer than OpenGL 3.3, but Vulkan support might update in the future if there is enough demand and features.
+KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and **Vulkan 1.2**, bundled in a single binary. Each backend features a simple **shader system** (compilation, binding, cleanup), along with utilities for **initialization** and **GPU resource management**. This gives you everything needed to plug rendering directly into your application's logic without boilerplate, whether you're building a game engine or a desktop tool.
 
 ---
 
