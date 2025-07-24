@@ -254,7 +254,7 @@ namespace KalaWindow::Graphics
 
 		static unique_ptr<Window> Initialize(
 			const string& title,
-			kvec2 size);
+			vec2 size);
 
 		//Get the handle to opengl32.dll
 		static uintptr_t GetOpenGLLib() { return openglLib; }
@@ -271,11 +271,10 @@ namespace KalaWindow::Graphics
 		Window(
 			string title,
 			unsigned int ID,
-			kvec2 size) :
+			vec2 size) :
 			title(title),
 			ID(ID),
-			size(size) {
-		}
+			size(size) {}
 
 #ifdef _WIN32
 		WindowData& GetWindowData() { return window_windows; }
@@ -315,17 +314,17 @@ namespace KalaWindow::Graphics
 		void SetTitle(const string& newTitle);
 
 		//Returns dpi-accurate framebuffer size.
-		kvec2 GetSize();
-		void SetSize(kvec2 newSize);
+		vec2 GetSize();
+		void SetSize(vec2 newSize);
 
-		kvec2 GetPosition();
-		void SetPosition(kvec2 newPos);
+		vec2 GetPosition();
+		void SetPosition(vec2 newPos);
 
-		kvec2 GetMaxSize() const { return maxSize; }
-		void SetMaxSize(const kvec2& newMaxSize) { maxSize = newMaxSize; }
+		vec2 GetMaxSize() const { return maxSize; }
+		void SetMaxSize(const vec2& newMaxSize) { maxSize = newMaxSize; }
 
-		kvec2 GetMinSize() const { return minSize; }
-		void SetMinSize(const kvec2& newMinSize) { minSize = newMinSize; }
+		vec2 GetMinSize() const { return minSize; }
+		void SetMinSize(const vec2& newMinSize) { minSize = newMinSize; }
 
 		bool IsInitialized() const { return isInitialized; }
 		void SetInitializedState(bool newInitialized) { isInitialized = newInitialized; }
@@ -404,15 +403,15 @@ namespace KalaWindow::Graphics
 		bool isWindowFocusRequired = true;   //If true, then this window will not update unless selected.
 		bool isIdle = false;                 //Toggled dynamically by isfocused, isminimized and isvisible checks.
 
-		kvec2 maxSize = kvec2{ 7680, 4320 }; //The maximum size this window can become
-		kvec2 minSize = kvec2{ 400, 300 };   //The minimum size this window can become
+		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
+		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become
 		RedrawCallback OnRedraw{};           //Called whenever the window needs to be redrawn
 
 		//core variables
 
 		string title{};        //The title of this window
 		unsigned int ID{};     //The ID of this window
-		kvec2 size{};          //The width and height of this window
+		vec2 size{};          //The width and height of this window
 
 		//platform-specific variables
 

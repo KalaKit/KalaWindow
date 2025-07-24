@@ -28,6 +28,7 @@ endif()
 # Paths
 set(WINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
 set(WINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(EXT_SHARED_DIR "${CMAKE_SOURCE_DIR}/_external_shared")
 
 # Source Files
 set(WINDOW_SRC_FILES)
@@ -58,12 +59,14 @@ set_target_properties(KalaWindow PROPERTIES
     OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>"
 )
 
-file(GLOB_RECURSE HEADERS
-	configure_depends
+file(GLOB_RECURSE HEADERS configure_depends
 	"${CMAKE_SOURCE_DIR}/include/*.hpp"
 )
 target_sources(KalaWindow PRIVATE ${HEADERS})
-target_include_directories(KalaWindow PRIVATE ${WINDOW_INCLUDE_DIR})
+target_include_directories(KalaWindow PRIVATE 
+	${WINDOW_INCLUDE_DIR}
+	"${EXT_SHARED_DIR}"
+)
 
 target_compile_definitions(KalaWindow PRIVATE
     KALAWINDOW_DLL_EXPORT

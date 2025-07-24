@@ -144,34 +144,35 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (shaderName.empty())
         {
-            Logger::Print(
-                "Cannot create a shader with no name!",
-                "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
+            string title = "OpenGL error [shader_opengl]";
+            string reason = "Cannot create a shader with no name!";
+
+            ForceClose(title, reason);
+
             return nullptr;
         }
         for (const auto& [key, _] : createdShaders)
         {
             if (key == shaderName)
             {
-                Logger::Print(
-                    "Cannot create a shader with the name '" + shaderName 
-                    + "' because a shader with that name already exists!",
-                    "SHADER_OPENGL",
-                    LogType::LOG_ERROR,
-                    2);
+                string title = "OpenGL error [shader_opengl]";
+                string reason = 
+                    "Cannot create a shader with the name '" + shaderName
+                    + "' because a shader with that name already exists!";
+
+                ForceClose(title, reason);
+
                 return nullptr;
             }
         }
 
         if (shaderStages.empty())
         {
-            Logger::Print(
-                "Cannot create a shader with no stages!",
-                "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
+            string title = "OpenGL error [shader_opengl]";
+            string reason = "Cannot create a shader with no stages!";
+
+            ForceClose(title, reason);
+
             return nullptr;
         }
 
@@ -181,23 +182,25 @@ namespace KalaWindow::Graphics::OpenGL
 
             if (stage.shaderPath.empty())
             {
-                Logger::Print(
+                string title = "OpenGL error [shader_opengl]";
+                string reason =
                     "Shader '" + shaderName + "' with type '"
-                    + shaderType + "' has no assigned path!",
-                    "SHADER_OPENGL",
-                    LogType::LOG_ERROR,
-                    2);
+                    + shaderType + "' has no assigned path!";
+
+                ForceClose(title, reason);
+
                 return nullptr;
             }
 
             if (!exists(stage.shaderPath))
             {
-                Logger::Print(
+                string title = "OpenGL error [shader_opengl]";
+                string reason = 
                     "Shader '" + shaderName + "' with type '"
-                    + shaderType + "' has an invalid path '" + path(stage.shaderPath).filename().string() + "'!",
-                    "SHADER_OPENGL",
-                    LogType::LOG_ERROR,
-                    2);
+                    + shaderType + "' has an invalid path '" + path(stage.shaderPath).filename().string() + "'!";
+
+                ForceClose(title, reason);
+
                 return nullptr;
             }
             
@@ -467,11 +470,10 @@ namespace KalaWindow::Graphics::OpenGL
                 glDeleteShader(newGeomStage.shaderID);
             }
 
-            Logger::Print(
-                "Shader program ID " + to_string(shaderPtr->programID) + " is not valid!",
-                "SHADER_OPENGL",
-                LogType::LOG_ERROR,
-                2);
+            string title = "OpenGL error [shader_opengl]";
+            string reason = "Shader program ID " + to_string(shaderPtr->programID) + " is not valid!";
+
+            ForceClose(title, reason);
 
             return nullptr;
         }
@@ -740,7 +742,7 @@ namespace KalaWindow::Graphics::OpenGL
     void Shader_OpenGL::SetVec2(
         unsigned int programID,
         const string& name, 
-        const kvec2& value) const
+        const vec2& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform2fv(
@@ -751,7 +753,7 @@ namespace KalaWindow::Graphics::OpenGL
     void Shader_OpenGL::SetVec3(
         unsigned int programID,
         const string& name, 
-        const kvec3& value) const
+        const vec3& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform3fv(
@@ -762,7 +764,7 @@ namespace KalaWindow::Graphics::OpenGL
     void Shader_OpenGL::SetVec4(
         unsigned int programID,
         const string& name, 
-        const kvec4& value) const
+        const vec4& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform4fv(
@@ -774,38 +776,38 @@ namespace KalaWindow::Graphics::OpenGL
     void Shader_OpenGL::SetMat2(
         unsigned int programID,
         const string& name, 
-        const kmat2& mat) const
+        const mat2& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix2fv(
             loc, 
             1, 
             GL_FALSE, 
-            &mat.columns[0].x);
+            &mat[0].x);
     }
     void Shader_OpenGL::SetMat3(
         unsigned int programID,
         const string& name, 
-        const kmat3& mat) const
+        const mat3& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix3fv(
             loc, 
             1, 
             GL_FALSE, 
-            &mat.columns[0].x);
+            &mat[0].x);
     }
     void Shader_OpenGL::SetMat4(
         unsigned int programID,
         const string& name, 
-        const kmat4& mat) const
+        const mat4& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix4fv(
             loc, 
             1, 
             GL_FALSE, 
-            &mat.columns[0].x);
+            &mat[0].x);
     }
 
     Shader_OpenGL::~Shader_OpenGL()

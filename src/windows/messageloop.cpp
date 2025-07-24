@@ -338,16 +338,16 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_MOUSEMOVE:
 	{
-		kvec2 newPos =
+		vec2 newPos =
 		{
 			float(GET_X_LPARAM(msg.lParam)),
 			float(GET_Y_LPARAM(msg.lParam))
 		};
 
 		//get the old position *before* updating
-		kvec2 oldPos = Input::GetMousePosition();
+		vec2 oldPos = Input::GetMousePosition();
 
-		kvec2 delta = {
+		vec2 delta = {
 			newPos.x - oldPos.x,
 			newPos.y - oldPos.y
 		};
@@ -598,7 +598,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			//sets raw mouse movement
 			if (mouse.usFlags == MOUSE_MOVE_RELATIVE)
 			{
-				kvec2 newMouseRawDelta = Input::GetRawMouseDelta();
+				vec2 newMouseRawDelta = Input::GetRawMouseDelta();
 
 				newMouseRawDelta.x += mouse.lLastX;
 				newMouseRawDelta.y += mouse.lLastY;

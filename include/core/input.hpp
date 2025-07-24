@@ -250,41 +250,41 @@ namespace KalaWindow::Core
 		}
 
 		//Get current mouse position in window coordinates
-		static kvec2 GetMousePosition()
+		static vec2 GetMousePosition()
 		{
 			return mousePos;
 		}
-		static void SetMousePosition(kvec2 newMousePos)
+		static void SetMousePosition(vec2 newMousePos)
 		{
 			mousePos = newMousePos;
 		}
 
 		//Get mouse delta movement since last frame
-		static kvec2 GetMouseDelta()
+		static vec2 GetMouseDelta()
 		{
-			kvec2 currMouseDelta = mouseDelta;
+			vec2 currMouseDelta = mouseDelta;
 
 			//reset after retrieval for per-frame delta behavior
-			mouseDelta = kvec2{ 0.0f, 0.0f };
+			mouseDelta = vec2{ 0.0f, 0.0f };
 
 			return currMouseDelta;
 		}
-		static void SetMouseDelta(kvec2 newMouseDelta)
+		static void SetMouseDelta(vec2 newMouseDelta)
 		{
 			mouseDelta = newMouseDelta;
 		}
 
 		//Get mouse raw delta movement since last frame
-		static kvec2 GetRawMouseDelta()
+		static vec2 GetRawMouseDelta()
 		{
-			kvec2 currMouseDelta = rawMouseDelta;
+			vec2 currMouseDelta = rawMouseDelta;
 
 			//reset after retrieval for per-frame delta behavior
-			rawMouseDelta = kvec2{ 0.0f, 0.0f };
+			rawMouseDelta = vec2{ 0.0f, 0.0f };
 
 			return currMouseDelta;
 		}
-		static void SetRawMouseDelta(kvec2 newRawMouseDelta)
+		static void SetRawMouseDelta(vec2 newRawMouseDelta)
 		{
 			rawMouseDelta = newRawMouseDelta;
 		}
@@ -376,9 +376,9 @@ namespace KalaWindow::Core
 		static inline bool isMouseVisible = true;
 		static inline bool isMouseLocked = false;
 
-		static inline kvec2 mousePos = kvec2{ 0.0f, 0.0f };
-		static inline kvec2 mouseDelta = kvec2 { 0.0f, 0.0f };
-		static inline kvec2 rawMouseDelta = kvec2{ 0.0f, 0.0f };
+		static inline vec2 mousePos = vec2{ 0.0f, 0.0f };
+		static inline vec2 mouseDelta = vec2 { 0.0f, 0.0f };
+		static inline vec2 rawMouseDelta = vec2{ 0.0f, 0.0f };
 
 		static inline float mouseWheelDelta = 0.0f;
 	};

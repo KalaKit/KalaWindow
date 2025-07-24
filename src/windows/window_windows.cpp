@@ -53,7 +53,7 @@ namespace KalaWindow::Graphics
 
 	unique_ptr<Window> Window::Initialize(
 		const string& title,
-		kvec2 size)
+		vec2 size)
 	{
 #ifdef _WIN32
 		if (!enabledBeginPeriod)
@@ -218,7 +218,7 @@ namespace KalaWindow::Graphics
 		title = newTitle;
 	}
 
-	kvec2 Window::GetSize()
+	vec2 Window::GetSize()
 	{
 		WindowData& winData = GetWindowData();
 		HWND hwnd = ToVar<HWND>(winData.hwnd);
@@ -236,14 +236,14 @@ namespace KalaWindow::Graphics
 			dpi,
 			96);
 
-		return kvec2
+		return vec2
 		{
 			static_cast<float>(width),
 			static_cast<float>(height)
 		};
 	}
 
-	void Window::SetSize(kvec2 newSize)
+	void Window::SetSize(vec2 newSize)
 	{
 		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
@@ -260,24 +260,24 @@ namespace KalaWindow::Graphics
 		size = newSize;
 	}
 
-	kvec2 Window::GetPosition()
+	vec2 Window::GetPosition()
 	{
 		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
 		RECT rect{};
 		if (GetWindowRect(window, &rect))
 		{
-			return kvec2
+			return vec2
 			{ 
 				static_cast<float>(rect.left),
 				static_cast<float>(rect.top)
 			};
 		}
 
-		return kvec2{ 0, 0 };
+		return vec2{ 0, 0 };
 	}
 
-	void Window::SetPosition(kvec2 newPosition)
+	void Window::SetPosition(vec2 newPosition)
 	{
 		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 

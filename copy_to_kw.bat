@@ -7,7 +7,9 @@ set "DEBUG_TARGET=..\circuit_game\_external_shared\KalaWindow\debug"
 set "RELEASE_TARGET=..\circuit_game\_external_shared\KalaWindow\release"
 
 if exist "%INCLUDE_TARGET%" (
-	rmdir /S /Q "%INCLUDE_TARGET%"
+	rmdir /S /Q "%INCLUDE_TARGET%\core"
+	rmdir /S /Q "%INCLUDE_TARGET%\graphics"
+	rmdir /S /Q "%INCLUDE_TARGET%\windows"
 )
 if exist "%DEBUG_TARGET%" (
 	rmdir /S /Q "%DEBUG_TARGET%"
@@ -19,6 +21,7 @@ if exist "%RELEASE_TARGET%" (
 mkdir "%RELEASE_TARGET%"
 
 set "INCLUDE_ORIGIN=include"
+set "GLM_ORIGIN=_external_shared\glm"
 
 set "DEBUG_DLL=debug\KalaWindowD.dll"
 set "DEBUG_LIB=debug\KalaWindowD.lib"
@@ -31,6 +34,16 @@ if not exist "%INCLUDE_ORIGIN%" (
 	echo WARNING: Cannot copy 'include origin' because it does not exist!
 ) else (
 	xcopy "%INCLUDE_ORIGIN%" "%INCLUDE_TARGET%" /E /H /Y /I
+)
+
+if not exist "%GLM_ORIGIN%" (
+	echo WARNING: Cannot copy 'glm origin' because it does not exist!
+) else (
+	if exist "%INCLUDE_TARGET%\glm" (
+		echo Skipping copying glm files because they already exist!
+	) else (
+		xcopy "%GLM_ORIGIN%" "%INCLUDE_TARGET%/glm" /E /H /Y /I
+	)
 )
 
 call :SafeCopy "%DEBUG_DLL%" "%DEBUG_TARGET%" "debug dll"

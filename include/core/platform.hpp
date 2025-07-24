@@ -8,8 +8,16 @@
 #include <cstdint>
 #include <type_traits>
 
+#include "glm/glm.hpp"
+
 using std::is_pointer_v;
 using std::is_integral_v;
+using glm::vec2;
+using glm::vec3;
+using glm::vec4;
+using glm::mat2;
+using glm::mat3;
+using glm::mat4;
 
 //
 // DLL EXPORT/IMPORT MACRO
@@ -26,18 +34,6 @@ using std::is_integral_v;
 #else
 #define KALAWINDOW_API
 #endif
-
-//
-// DECLARE PLATFORM VARIABLES
-//
-
-struct kvec2 { float x, y; };
-struct kvec3 { float x, y, z; };
-struct kvec4 { float x, y, z, w; };
-
-struct kmat2 { kvec2 columns[2]; };
-struct kmat3 { kvec3 columns[3]; };
-struct kmat4 { kvec4 columns[4]; };
 
 //
 // CONVERT TO PLATFORM-AGNOSTIC VARIABLES AND BACK

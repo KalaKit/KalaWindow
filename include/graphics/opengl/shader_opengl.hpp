@@ -210,13 +210,13 @@ namespace KalaWindow::Graphics::OpenGL
 		void SetInt(unsigned int programID, const string& name, int value) const;
 		void SetFloat(unsigned int programID, const string& name, float value) const;
 
-		void SetVec2(unsigned int programID, const string& name, const kvec2& value) const;
-		void SetVec3(unsigned int programID, const string& name, const kvec3& value) const;
-		void SetVec4(unsigned int programID, const string& name, const kvec4& value) const;
+		void SetVec2(unsigned int programID, const string& name, const vec2& value) const;
+		void SetVec3(unsigned int programID, const string& name, const vec3& value) const;
+		void SetVec4(unsigned int programID, const string& name, const vec4& value) const;
 
-		void SetMat2(unsigned int programID, const string& name, const kmat2& mat) const;
-		void SetMat3(unsigned int programID, const string& name, const kmat3& mat) const;
-		void SetMat4(unsigned int programID, const string& name, const kmat4& mat) const;
+		void SetMat2(unsigned int programID, const string& name, const mat2& mat) const;
+		void SetMat3(unsigned int programID, const string& name, const mat3& mat) const;
+		void SetMat4(unsigned int programID, const string& name, const mat4& mat) const;
 
 		//Destroys this created shader and its data
 		~Shader_OpenGL();
