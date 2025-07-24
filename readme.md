@@ -6,7 +6,7 @@
 
 ![Logo](logo.png)
 
-> Due to ongoing rewriting of the project Linux support is currently not available. It will be added back before full 0.3 rewrite. 
+> Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in 0.4 for both X11 and Wayland. 
 
 **KalaWindow** is a C++20 multimedia framework library for **Windows** and **Linux** (X11/Wayland), built for native desktop applications ranging from full-featured game engines to lightweight graphical tools. It provides **multi-window support**, **input handling**, and a unified interface to the **native message loop** on each platform. Crash reporting is integrated via [**KalaCrashHandler**](https://github.com/KalaKit/KalaCrashHandler), and the API is fully **OS-agnostic** and **vendor-neutral** — no platform-specific or graphics API headers are included in its public interface, keeping user code clean and portable.
 
