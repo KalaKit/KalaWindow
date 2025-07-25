@@ -836,12 +836,24 @@ ShaderCheckResult IsShaderValid(
 
         string shaderFileName = path(stage.shaderPath).filename().string();
 
+        //shader file path must exist
+
+        if (!exists(stage.shaderPath))
+        {
+            string title = "OpenGL error [shader_opengl]";
+            string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' does not exist!";
+
+            ForceClose(title, reason);
+
+            return ShaderCheckResult::RESULT_INVALID;
+        }
+
         //shader file path must have extension
 
         if (!path(stage.shaderPath).has_extension())
         {
             string title = "OpenGL error [shader_opengl]";
-            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has no extension. You must use .vert, .frag or .geom";
+            string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has no extension. You must use .vert, .frag or .geom";
 
             ForceClose(title, reason);
 
@@ -860,7 +872,7 @@ ShaderCheckResult IsShaderValid(
         if (!isExtensionValid)
         {
             string title = "OpenGL error [texture]";
-            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has an invalid extension '" + thisExtension + "'. Only .vert, .frag and .geom are allowed!";
+            string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has an invalid extension '" + thisExtension + "'. Only .vert, .frag and .geom are allowed!";
 
             ForceClose(title, reason);
 
@@ -873,7 +885,7 @@ ShaderCheckResult IsShaderValid(
             && thisExtension != ".vert")
         {
             string title = "OpenGL error [texture]";
-            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Vertex'. Type and extension must always match!";
+            string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Vertex'. Type and extension must always match!";
 
             ForceClose(title, reason);
 
@@ -886,7 +898,7 @@ ShaderCheckResult IsShaderValid(
             && thisExtension != ".frag")
         {
             string title = "OpenGL error [texture]";
-            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Fragment'. Type and extension must always match!";
+            string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Fragment'. Type and extension must always match!";
 
             ForceClose(title, reason);
 
@@ -899,7 +911,7 @@ ShaderCheckResult IsShaderValid(
             && thisExtension != ".geom")
         {
             string title = "OpenGL error [texture]";
-            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Geometry'. Type and extension must always match!";
+            string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Geometry'. Type and extension must always match!";
 
             ForceClose(title, reason);
 
