@@ -3,7 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-/*
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
@@ -452,4 +451,3 @@ void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
 			"Cannot " + targetMsg + " because Vulkan is not initialized!");
 	}
 }
-*/

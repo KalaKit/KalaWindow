@@ -5,7 +5,6 @@
 
 #pragma once
 
-/*
 #include <unordered_map>
 
 namespace KalaWindow::Graphics::Vulkan
@@ -552,4 +551,3 @@ namespace KalaWindow::Graphics::Vulkan
         { VulkanDeviceExtensions::V_DE_ext_pci_bus_info,                        "VK_EXT_pci_bus_info" }
     };
 }
-*/

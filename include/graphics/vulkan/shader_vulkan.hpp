@@ -5,7 +5,6 @@
 
 #pragma once
 
-/*
 #include <string>
 #include <memory>
 #include <unordered_map>
@@ -36,12 +35,12 @@ namespace KalaWindow::Graphics::Vulkan
 		bool,
 		int32_t,
 		float,
-		kvec2,
-		kvec3,
-		kvec4,
-		kmat2,
-		kmat3,
-		kmat4
+		vec2,
+		vec3,
+		vec4,
+		mat2,
+		mat3,
+		mat4
 	>;
 
 	enum class ShaderType
@@ -514,4 +513,3 @@ namespace KalaWindow::Graphics::Vulkan
 		vector<ShaderStage> shaders{};
 	};
 }
-*/

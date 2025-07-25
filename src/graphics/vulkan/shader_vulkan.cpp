@@ -3,7 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-/*
+
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -928,4 +928,3 @@ VulkanShaderWindowVKData InitVulkanShaderWindowData(VulkanShaderWindowData windo
 
     return vkData;
 }
-*/

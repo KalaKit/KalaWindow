@@ -5,7 +5,6 @@
 
 #pragma once
 
-/*
 #include "core/platform.hpp"
 #include "graphics/window.hpp"
 
@@ -23,4 +22,3 @@ namespace KalaWindow::Graphics::Vulkan
         static void DestroySwapchain(Window* window);
     };
 }
-*/
