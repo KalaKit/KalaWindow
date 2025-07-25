@@ -49,6 +49,7 @@ static bool InitShader(
     unsigned int& shaderID)
 {
     string shaderType = Shader_OpenGL::GetShaderTypeName(type);
+    string shaderName = path(shaderPath).filename().string();
 
     Logger::Print(
         "Loading " + shaderType + " shader: " + shaderPath,
@@ -60,7 +61,7 @@ static bool InitShader(
     {
         ForceClose(
             "OpenGL error [shader_opengl]",
-            "Failed to open " + shaderType + " shader file: " + path(shaderPath).filename().string());
+            "Failed to open " + shaderType + " shader file '" + shaderName + "'!");
         return false;
     }
 
@@ -111,7 +112,7 @@ static bool InitShader(
 
         ForceClose(
             "OpenGL error [shader_opengl]",
-            "Failed to compile " + shaderType + " shader '" + shaderPath + "'!");
+            "Failed to compile " + shaderType + " shader '" + shaderName + "'!");
 
         return false;
     }
@@ -179,6 +180,7 @@ namespace KalaWindow::Graphics::OpenGL
         for (const auto& stage : shaderStages)
         {
             string shaderType = GetShaderTypeName(stage.shaderType);
+            string shaderPathName = path(stage.shaderPath).filename().string();
 
             if (stage.shaderPath.empty())
             {
@@ -197,7 +199,7 @@ namespace KalaWindow::Graphics::OpenGL
                 string title = "OpenGL error [shader_opengl]";
                 string reason = 
                     "Shader '" + shaderName + "' with type '"
-                    + shaderType + "' has an invalid path '" + path(stage.shaderPath).filename().string() + "'!";
+                    + shaderType + "' has an invalid path '" + shaderPathName + "'!";
 
                 ForceClose(title, reason);
 
@@ -322,6 +324,10 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (success != GL_TRUE)
         {
+            string vertShaderPathName = path(newVertStage.shaderPath).filename().string();
+            string fragShaderPathName = path(newFragStage.shaderPath).filename().string();
+            string geomShaderPathName = path(newGeomStage.shaderPath).filename().string();
+
             glDetachShader(
                 shaderPtr->programID,
                 newVertStage.shaderID);
@@ -375,17 +381,17 @@ namespace KalaWindow::Graphics::OpenGL
                 ForceClose(
                     "OpenGL error [shader_opengl]",
                     "Failed to link vertex shader '" +
-                    path(newVertStage.shaderPath).filename().string() + "' and fragment shader '" +
-                    path(newFragStage.shaderPath).filename().string() + "' to program!");
+                    vertShaderPathName + "' and fragment shader '" +
+                    fragShaderPathName + "' to program!");
             }
             else
             {
                 ForceClose(
                     "OpenGL error [shader_opengl]",
                     "Failed to link vertex shader '" +
-                    path(newVertStage.shaderPath).filename().string() + "', fragment shader '" +
-                    path(newFragStage.shaderPath).filename().string() + "' and geometry shader '" +
-                    path(newGeomStage.shaderPath).filename().string() + "' to program!");
+                    vertShaderPathName + "', fragment shader '" +
+                    fragShaderPathName + "' and geometry shader '" +
+                    geomShaderPathName + "' to program!");
             }
 
             return nullptr;
@@ -436,14 +442,14 @@ namespace KalaWindow::Graphics::OpenGL
 
                 ForceClose(
                     "OpenGL error [shader_opengl]",
-                    "Shader program validation failed:\n" + logStr);
+                    "Shader program validation failed for shader '" + shaderName + "'! Reason:\n" + logStr);
 
                 return nullptr;
             }
 
             ForceClose(
                 "OpenGL error [shader_opengl]",
-                "Shader program validation failed!");
+                "Shader program validation failed for shader '" + shaderName + "'! No log info was provided.");
 
             return nullptr;
         }
@@ -471,7 +477,7 @@ namespace KalaWindow::Graphics::OpenGL
             }
 
             string title = "OpenGL error [shader_opengl]";
-            string reason = "Shader program ID " + to_string(shaderPtr->programID) + " is not valid!";
+            string reason = "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + shaderName + "' is not valid!";
 
             ForceClose(title, reason);
 
@@ -480,7 +486,7 @@ namespace KalaWindow::Graphics::OpenGL
         else
         {
             Logger::Print(
-                "Shader program ID " + to_string(shaderPtr->programID) + " is valid!",
+                "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + shaderName + "' is valid!",
                 "SHADER_OPENGL",
                 LogType::LOG_SUCCESS);
         }
