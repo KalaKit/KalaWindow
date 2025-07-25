@@ -24,8 +24,9 @@ using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::TimeFormat;
 using KalaWindow::Core::DateFormat;
-using KalaWindow::Graphics::OpenGL::ShaderType;
 using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
+using KalaWindow::Graphics::OpenGL::ShaderType;
+using KalaWindow::Graphics::OpenGL::ShaderStage;
 
 using std::string;
 using std::to_string;
@@ -36,9 +37,20 @@ using std::filesystem::exists;
 using std::filesystem::path;
 using std::vector;
 
+enum class ShaderCheckResult
+{
+    RESULT_OK,
+    RESULT_INVALID,
+    RESULT_ALREADY_EXISTS
+};
+
 static void ForceClose(
     const string& title,
     const string& reason);
+
+static ShaderCheckResult IsShaderValid(
+    const string& shaderName,
+    const vector<ShaderStage>& shaderStages);
 
 static bool CheckCompileErrors(GLuint shader, const string& type);
 
@@ -46,79 +58,7 @@ static bool InitShader(
     ShaderType type,
     const string& shaderPath,
     unsigned int& programID,
-    unsigned int& shaderID)
-{
-    string shaderType = Shader_OpenGL::GetShaderTypeName(type);
-    string shaderName = path(shaderPath).filename().string();
-
-    Logger::Print(
-        "Loading " + shaderType + " shader: " + shaderPath,
-        "SHADER_OPENGL",
-        LogType::LOG_INFO);
-
-    ifstream shaderFile(shaderPath);
-    if (!shaderFile.is_open())
-    {
-        ForceClose(
-            "OpenGL error [shader_opengl]",
-            "Failed to open " + shaderType + " shader file '" + shaderName + "'!");
-        return false;
-    }
-
-    stringstream shaderStream{};
-    shaderStream << shaderFile.rdbuf();
-    const string shaderCodeString = shaderStream.str();
-    const char* shaderCodeChar = shaderCodeString.c_str();
-
-    GLenum shaderEnum{};
-    switch (type)
-    {
-    case ShaderType::Shader_Vertex:
-        shaderEnum = GL_VERTEX_SHADER; break;
-    case ShaderType::Shader_Fragment:
-        shaderEnum = GL_FRAGMENT_SHADER; break;
-    case ShaderType::Shader_Geometry:
-        shaderEnum = GL_GEOMETRY_SHADER; break;
-    }
-
-    shaderID = glCreateShader(shaderEnum);
-    glShaderSource(
-        shaderID,
-        1,
-        &shaderCodeChar,
-        nullptr);
-    glCompileShader(shaderID);
-
-    string capitalShaderName{};
-    switch (type)
-    {
-    case ShaderType::Shader_Vertex:
-        capitalShaderName = "VERTEX"; break;
-    case ShaderType::Shader_Fragment:
-        capitalShaderName = "FRAGMENT"; break;
-    case ShaderType::Shader_Geometry:
-        capitalShaderName = "GEOMETRY"; break;
-    }
-
-    if (!CheckCompileErrors(shaderID, capitalShaderName))
-    {
-        if (programID != 0)
-        {
-            glDetachShader(
-                programID,
-                shaderID);
-        }
-        glDeleteShader(shaderID);
-
-        ForceClose(
-            "OpenGL error [shader_opengl]",
-            "Failed to compile " + shaderType + " shader '" + shaderName + "'!");
-
-        return false;
-    }
-
-    return true;
-}
+    unsigned int& shaderID);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -137,45 +77,21 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
+        ShaderCheckResult result = IsShaderValid(
+            shaderName,
+            shaderStages);
+
+        if (result == ShaderCheckResult::RESULT_INVALID) return nullptr;
+        else if (result == ShaderCheckResult::RESULT_ALREADY_EXISTS)
+        {
+            return createdShaders[shaderName].get();
+        }
+
         unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
         Shader_OpenGL* shaderPtr = newShader.get();
         ShaderStage newVertStage{};
         ShaderStage newFragStage{};
         ShaderStage newGeomStage{};
-
-        if (shaderName.empty())
-        {
-            string title = "OpenGL error [shader_opengl]";
-            string reason = "Cannot create a shader with no name!";
-
-            ForceClose(title, reason);
-
-            return nullptr;
-        }
-        for (const auto& [key, _] : createdShaders)
-        {
-            if (key == shaderName)
-            {
-                string title = "OpenGL error [shader_opengl]";
-                string reason = 
-                    "Cannot create a shader with the name '" + shaderName
-                    + "' because a shader with that name already exists!";
-
-                ForceClose(title, reason);
-
-                return nullptr;
-            }
-        }
-
-        if (shaderStages.empty())
-        {
-            string title = "OpenGL error [shader_opengl]";
-            string reason = "Cannot create a shader with no stages!";
-
-            ForceClose(title, reason);
-
-            return nullptr;
-        }
 
         for (const auto& stage : shaderStages)
         {
@@ -869,6 +785,150 @@ void ForceClose(
     }
 }
 
+ShaderCheckResult IsShaderValid(
+    const string& shaderName,
+    const vector<ShaderStage>& shaderStages)
+{
+    //shader name must be assigned
+
+    if (shaderName.empty())
+    {
+        string title = "OpenGL error [shader_opengl]";
+        string reason = "Cannot load a shader with no name!";
+
+        ForceClose(title, reason);
+
+        return ShaderCheckResult::RESULT_INVALID;
+    }
+
+    //shader stages must not be empty
+
+    if (shaderStages.empty())
+    {
+        string title = "OpenGL error [shader_opengl]";
+        string reason = "Cannot load a shader with no stages!";
+
+        ForceClose(title, reason);
+
+        return ShaderCheckResult::RESULT_INVALID;
+    }
+
+    vector<string> validExtensions =
+    {
+        ".vert",
+        ".frag",
+        ".geom"
+    };
+
+    for (const auto& stage : shaderStages)
+    {
+        //shader file path must not be empty
+
+        if (stage.shaderPath.empty())
+        {
+            string title = "OpenGL error [shader_opengl]";
+            string reason = "Cannot load shader '" + shaderName + "' with no file paths!";
+
+            ForceClose(title, reason);
+
+            return ShaderCheckResult::RESULT_INVALID;
+        }
+
+        string shaderFileName = path(stage.shaderPath).filename().string();
+
+        //shader file path must have extension
+
+        if (!path(stage.shaderPath).has_extension())
+        {
+            string title = "OpenGL error [shader_opengl]";
+            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has no extension. You must use .vert, .frag or .geom";
+
+            ForceClose(title, reason);
+
+            return ShaderCheckResult::RESULT_INVALID;
+        }
+
+        string thisExtension = path(stage.shaderPath).extension().string();
+        bool isExtensionValid =
+            find(validExtensions.begin(),
+                validExtensions.end(),
+                thisExtension)
+            != validExtensions.end();
+
+        //extension must be .vert, .frag or .geom
+
+        if (!isExtensionValid)
+        {
+            string title = "OpenGL error [texture]";
+            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has an invalid extension '" + thisExtension + "'. Only .vert, .frag and .geom are allowed!";
+
+            ForceClose(title, reason);
+
+            return ShaderCheckResult::RESULT_INVALID;
+        }
+
+        //vert type must match extension
+
+        if (stage.shaderType == ShaderType::Shader_Vertex
+            && thisExtension != ".vert")
+        {
+            string title = "OpenGL error [texture]";
+            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Vertex'. Type and extension must always match!";
+
+            ForceClose(title, reason);
+
+            return ShaderCheckResult::RESULT_INVALID;
+        }
+
+        //frag type must match extension
+
+        if (stage.shaderType == ShaderType::Shader_Fragment
+            && thisExtension != ".frag")
+        {
+            string title = "OpenGL error [texture]";
+            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Fragment'. Type and extension must always match!";
+
+            ForceClose(title, reason);
+
+            return ShaderCheckResult::RESULT_INVALID;
+        }
+
+        //geom type must match extension
+
+        if (stage.shaderType == ShaderType::Shader_Geometry
+            && thisExtension != ".geom")
+        {
+            string title = "OpenGL error [texture]";
+            string reason = "Shader '" + shaderName + "' file '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Geometry'. Type and extension must always match!";
+
+            ForceClose(title, reason);
+
+            return ShaderCheckResult::RESULT_INVALID;
+        }
+    }
+
+    //pass existing one if shader with same name already exists
+
+    for (const auto& [key, _] : Shader_OpenGL::createdShaders)
+    {
+        if (key == shaderName)
+        {
+            string reason =
+                "Shader '" + shaderName + "' already exists!";
+
+            Logger::Print(
+                reason,
+                "SHADER_OPENGL",
+                LogType::LOG_ERROR,
+                2);
+
+            return ShaderCheckResult::RESULT_ALREADY_EXISTS;
+        }
+    }
+
+    return ShaderCheckResult::RESULT_OK;
+}
+
 bool CheckCompileErrors(GLuint shader, const string& type)
 {
     GLint success = 0;
@@ -963,6 +1023,84 @@ bool CheckCompileErrors(GLuint shader, const string& type)
                 "SHADER_OPENGL",
                 LogType::LOG_SUCCESS);
         }
+    }
+
+    return true;
+}
+
+bool InitShader(
+    ShaderType type,
+    const string& shaderPath,
+    unsigned int& programID,
+    unsigned int& shaderID)
+{
+    string shaderType = Shader_OpenGL::GetShaderTypeName(type);
+    string shaderName = path(shaderPath).filename().string();
+
+    Logger::Print(
+        "Loading " + shaderType + " shader: " + shaderPath,
+        "SHADER_OPENGL",
+        LogType::LOG_INFO);
+
+    ifstream shaderFile(shaderPath);
+    if (!shaderFile.is_open())
+    {
+        ForceClose(
+            "OpenGL error [shader_opengl]",
+            "Failed to open " + shaderType + " shader file '" + shaderName + "'!");
+        return false;
+    }
+
+    stringstream shaderStream{};
+    shaderStream << shaderFile.rdbuf();
+    const string shaderCodeString = shaderStream.str();
+    const char* shaderCodeChar = shaderCodeString.c_str();
+
+    GLenum shaderEnum{};
+    switch (type)
+    {
+    case ShaderType::Shader_Vertex:
+        shaderEnum = GL_VERTEX_SHADER; break;
+    case ShaderType::Shader_Fragment:
+        shaderEnum = GL_FRAGMENT_SHADER; break;
+    case ShaderType::Shader_Geometry:
+        shaderEnum = GL_GEOMETRY_SHADER; break;
+    }
+
+    shaderID = glCreateShader(shaderEnum);
+    glShaderSource(
+        shaderID,
+        1,
+        &shaderCodeChar,
+        nullptr);
+    glCompileShader(shaderID);
+
+    string capitalShaderName{};
+    switch (type)
+    {
+    case ShaderType::Shader_Vertex:
+        capitalShaderName = "VERTEX"; break;
+    case ShaderType::Shader_Fragment:
+        capitalShaderName = "FRAGMENT"; break;
+    case ShaderType::Shader_Geometry:
+        capitalShaderName = "GEOMETRY"; break;
+    }
+
+    if (!CheckCompileErrors(shaderID, capitalShaderName))
+    {
+        if (programID != 0)
+        {
+            glDetachShader(
+                programID,
+                shaderID);
+        }
+        glDeleteShader(shaderID);
+
+        ForceClose(
+            "OpenGL error [shader_opengl]",
+            "Failed to compile " + shaderType + " shader '" + shaderName + "'!");
+
+        return false;
     }
 
     return true;
