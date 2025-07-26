@@ -24,13 +24,15 @@ using std::stringstream;
 
 namespace KalaWindow::Core
 {
-	string Logger::GetTime(TimeFormat timeFormat)
+	const string& Logger::GetTime(TimeFormat timeFormat)
 	{
+		static string result{};
+
 		if (timeFormat == TimeFormat::TIME_NONE
 			|| (timeFormat == TimeFormat::TIME_DEFAULT
 			&& defaultTimeFormat == TimeFormat::TIME_NONE))
 		{
-			return "";
+			return result;
 		}
 		if (timeFormat == TimeFormat::TIME_DEFAULT)
 		{
@@ -73,16 +75,19 @@ namespace KalaWindow::Core
 			break;
 		}
 
-		return ss.str();
+		result = ss.str();
+		return result;
 	}
 
-	string Logger::GetDate(DateFormat dateFormat)
+	const string& Logger::GetDate(DateFormat dateFormat)
 	{
+		static string result{};
+
 		if (dateFormat == DateFormat::DATE_NONE
 			|| (dateFormat == DateFormat::DATE_DEFAULT
 			&& defaultDateFormat == DateFormat::DATE_NONE))
 		{
-			return "";
+			return result;
 		}
 		if (dateFormat == DateFormat::DATE_DEFAULT)
 		{
@@ -91,6 +96,7 @@ namespace KalaWindow::Core
 
 		auto now = system_clock::now();
 		auto in_time_t = system_clock::to_time_t(now);
+
 		stringstream ss{};
 
 		switch (dateFormat)
@@ -118,8 +124,9 @@ namespace KalaWindow::Core
 			ss << put_time(localtime(&in_time_t), "%B-%d-%Y");
 			break;
 		}
+		result = ss.str();
 
-		return ss.str();
+		return result;
 	}
 
 	void Logger::Print(
@@ -222,5 +229,31 @@ namespace KalaWindow::Core
 			cout << fullMessage;
 			break;
 		}
+	}
+
+	void Logger::Print(const string& message)
+	{
+		if (message.empty())
+		{
+			Print(
+				"Cannot write a log message with no message!",
+				"LOG",
+				LogType::LOG_ERROR,
+				2);
+			return;
+		}
+
+		string safeMessage = message;
+		if (message.length() > 1000)
+		{
+			Print(
+				"Log message length is too long! Message was cut off after 1000 characters.",
+				"LOG",
+				LogType::LOG_DEBUG);
+			safeMessage = safeMessage.substr(0, 997) + "...";
+		}
+
+		
+		cout << safeMessage;
 	}
 }

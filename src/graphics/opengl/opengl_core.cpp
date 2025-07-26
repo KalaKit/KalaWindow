@@ -19,16 +19,12 @@
 #endif
 
 #include "core/log.hpp"
+#include "core/core.hpp"
 
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
-using KalaWindow::Core::TimeFormat;
-using KalaWindow::Core::DateFormat;
+using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::ShutdownState;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupResult;
-using KalaWindow::Graphics::PopupType;
 
 using std::unordered_map;
 using std::string_view;
@@ -36,10 +32,6 @@ using std::string;
 using std::format;
 
 HMODULE module{};
-
-static void ForceClose(
-	const string& title,
-	const string& reason);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -174,7 +166,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			if (!module)
 			{
-				ForceClose(
+				KalaWindowCore::ForceClose(
 					"OpenGL error [opengl_core]",
 					"Failed to get module 'opengl32.dll' because it was invalid!");
 			}
@@ -219,7 +211,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			if (!module)
 			{
-				ForceClose(
+				KalaWindowCore::ForceClose(
 					"OpenGL error [opengl_core]",
 					"Failed to get module 'opengl32.dll' because it was invalid!");
 			}
@@ -296,16 +288,7 @@ namespace KalaWindow::Graphics::OpenGL
 		string title = "OpenGL error [opengl_core]";
 		string reason = "Failed to find function '" + string(name) + "'!";
 
-		Window* mainWindow = Window::windows.front();
-		if (mainWindow->CreatePopup(
-			title,
-			reason,
-			PopupAction::POPUP_ACTION_OK,
-			PopupType::POPUP_TYPE_ERROR)
-			== PopupResult::POPUP_RESULT_OK)
-		{
-			Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-		}
+		KalaWindowCore::ForceClose(title, reason);
 		return nullptr;
 	}
 #elif __linux__
@@ -390,29 +373,5 @@ namespace KalaWindow::Graphics::OpenGL
 		case TrapType::Pointer: return reinterpret_cast<void*>(&FunctionNotLoadedPointerTrap);
 		}
 		return nullptr;
-	}
-}
-
-void ForceClose(
-	const string& title,
-	const string& reason)
-{
-	Logger::Print(
-		reason,
-		"OPENGL_WINDOWS",
-		LogType::LOG_ERROR,
-		2,
-		TimeFormat::TIME_NONE,
-		DateFormat::DATE_NONE);
-
-	Window* mainWindow = Window::windows.front();
-	if (mainWindow->CreatePopup(
-		title,
-		reason,
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR)
-		== PopupResult::POPUP_RESULT_OK)
-	{
-		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }

@@ -67,7 +67,7 @@ namespace KalaWindow::Core
 
 		if (isLocked)
 		{
-			WindowData& window = targetWindow->GetWindowData();
+			const WindowData& window = targetWindow->GetWindowData();
 			HWND windowRef = ToVar<HWND>(window.hwnd);
 
 			RECT rect{};

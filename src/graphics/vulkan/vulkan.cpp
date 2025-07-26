@@ -24,6 +24,7 @@
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/vulkan/shader_vulkan.hpp"
 #include "core/log.hpp"
+#include "core/core.hpp"
 
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Vulkan::VulkanLayers;
@@ -33,17 +34,12 @@ using KalaWindow::Graphics::Vulkan::Extensions_Vulkan;
 using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::VulkanData_Core;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupType;
-using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::Vulkan::vulkanLayerInfo;
 using KalaWindow::Graphics::Vulkan::vulkanInstanceExtensionsInfo;
 using KalaWindow::Graphics::Vulkan::vulkanDeviceExtensionsInfo;
-using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
-using KalaWindow::Core::TimeFormat;
-using KalaWindow::Core::DateFormat;
+using KalaWindow::Core::KalaWindowCore;
 
 using std::string;
 using std::to_string;
@@ -77,11 +73,6 @@ static uint32_t currentFrame = 0;
 
 static vector<VulkanDeviceExtensions> delayedExt{};
 
-static void ForceClose(
-	const string& title, 
-	const string& reason,
-	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE);
-
 static const char* ToString(VulkanLayers layer);
 static const char* ToString(VulkanInstanceExtensions ext);
 static const char* ToString(VulkanDeviceExtensions ext);
@@ -94,11 +85,10 @@ static bool IsValidHandle(
 	if (handle == 0
 		|| handle == UINTPTR_MAX)
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan critical error [vulkan]",
 			"[ " + originFunction + " ]"
-			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!",
-			ShutdownState::SHUTDOWN_CRITICAL);
+			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!");
 		return false;
 	}
 	return true;
@@ -113,31 +103,28 @@ static bool IsValidIndex(
 {
 	if (targetVector.empty())
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan critical error [vulkan]",
 			"[ " + originFunction + " ]"
-			"\nVector for variable '" + variableName + "' is empty!",
-			ShutdownState::SHUTDOWN_CRITICAL);
+			"\nVector for variable '" + variableName + "' is empty!");
 		return false;
 	}
 
 	if (index == UINT32_MAX)
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan critical error [vulkan]",
 			"[ " + originFunction + " ]"
-			"\nVariable '" + variableName + "' value '" + to_string(index) + "' is invalid!",
-			ShutdownState::SHUTDOWN_CRITICAL);
+			"\nVariable '" + variableName + "' value '" + to_string(index) + "' is invalid!");
 		return false;
 	}
 	if (index >= targetVector.size())
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan critical error [vulkan]",
 			"[ " + originFunction + " ]"
 			"\nVariable '" + variableName + "' value '" + to_string(index) + "' is out of range!"
-			" Size was '" + to_string(targetVector.size()) + "'.",
-			ShutdownState::SHUTDOWN_CRITICAL);
+			" Size was '" + to_string(targetVector.size()) + "'.");
 		return false;
 	}
 	return true;
@@ -153,7 +140,7 @@ static bool InitVolk()
 
 	if (volkInitialize() != VK_SUCCESS)
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan initialization error [Vulkan]",
 			"Volk initialization failed!");
 		return false;
@@ -335,7 +322,7 @@ namespace KalaWindow::Graphics::Vulkan
 		if (max_frames < 2
 			|| max_frames > 3)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan initialization error [vulkan]",
 				"Cannot initialize Vulkan because max_frames was not set to 2 or 3!");
 			return false;
@@ -433,7 +420,7 @@ namespace KalaWindow::Graphics::Vulkan
 			nullptr,
 			&newInstance) != VK_SUCCESS)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan initialization error [vulkan]",
 				"Failed to create Vulkan instance!");
 			return false;
@@ -450,7 +437,7 @@ namespace KalaWindow::Graphics::Vulkan
 			nullptr);
 		if (gpuCount == 0)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan initialization error [vulkan]",
 				"No Vulkan-compatible physical devices found!");
 			return false;
@@ -497,7 +484,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 		if (bestDevice == VK_NULL_HANDLE)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan initialization error [vulkan]",
 				"No suitable physical GPU found!");
 			return false;
@@ -538,7 +525,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 		if (!found)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan initialization error [vulkan]",
 				"No graphics-capable queue family found!");
 			return false;
@@ -572,7 +559,7 @@ namespace KalaWindow::Graphics::Vulkan
 			nullptr,
 			&newDevice) != VK_SUCCESS)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan initialization error [vulkan]",
 				"Failed to create logical device!");
 			return false;
@@ -615,7 +602,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		VulkanData_Core vData = window->GetVulkanCoreData();
+		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -1193,7 +1180,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 		if (!Extensions_Vulkan::CreateSwapchain(window))
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan error [vulkan]",
 				"Hard reset failed because of CreateSwapchain!");
 			return;
@@ -1201,35 +1188,35 @@ namespace KalaWindow::Graphics::Vulkan
 
 		if (!CreateRenderPass(window))
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan error [vulkan]",
 				"Hard reset failed because of CreateRenderPass!");
 			return;
 		}
 		if (!CreateFramebuffers(window))
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan error [vulkan]",
 				"Hard reset failed because of CreateFramebuffers!");
 			return;
 		}
 		if (!CreateCommandPool(window))
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan error [vulkan]",
 				"Hard reset failed because of CreateCommandPool!");
 			return;
 		}
 		if (!CreateCommandBuffer(window))
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan error [vulkan]",
 				"Hard reset failed because of CreateCommandBuffer!");
 			return;
 		}
 		if (!CreateSyncObjects(window))
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan error [vulkan]",
 				"Hard reset failed because of CreateSyncObjects!");
 			return;
@@ -1474,7 +1461,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (device) vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
-		for (const auto& window : Window::windows)
+		for (const auto& window : Window::runtimeWindows)
 		{
 			Window* win = window;
 			DestroyWindowData(win);
@@ -1497,31 +1484,6 @@ namespace KalaWindow::Graphics::Vulkan
 		enabledLayers.clear();
 		enabledInstanceExtensions.clear();
 		enabledDeviceExtensions.clear();
-	}
-}
-
-static void ForceClose(
-	const string& title,
-	const string& reason,
-	ShutdownState state)
-{
-	Logger::Print(
-		reason,
-		"VULKAN",
-		LogType::LOG_ERROR,
-		2,
-		TimeFormat::TIME_NONE,
-		DateFormat::DATE_NONE);
-
-	Window* mainWindow = Window::windows.front();
-	if (mainWindow->CreatePopup(
-		title,
-		reason,
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR)
-		== PopupResult::POPUP_RESULT_OK)
-	{
-		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }
 

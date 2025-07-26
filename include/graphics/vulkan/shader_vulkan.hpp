@@ -327,7 +327,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return "";
 		}
 
-		const string& GetName() { return name; }
+		const string& GetName() const { return name; }
 		void SetName(const string& newName)
 		{
 			if (newName.empty())
@@ -356,14 +356,12 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		//Assign new draw commands to be used right after Bind.
-		void SetDrawCommands(function<void()> newDrawCommands) { drawCommands = newDrawCommands; }
-		//Get the currently assigned draw commands.
-		function<void()> GetDrawCommands() { return drawCommands; }
+		void SetDrawCommands(const function<void()>& newDrawCommands) { drawCommands = newDrawCommands; }
 
 		Window* GetTargetWindow() { return targetWindow; }
 
 		VulkanShaderData& GetVulkanShaderUserStruct() { return vulkanShaderData; }
-		void SetVulkanShaderUserStruct(VulkanShaderData newVulkanShaderData)
+		void SetVulkanShaderUserStruct(const VulkanShaderData& newVulkanShaderData)
 		{
 			vulkanShaderData = newVulkanShaderData;
 		}
@@ -372,7 +370,7 @@ namespace KalaWindow::Graphics::Vulkan
 		unsigned int GetLayout() const { return layout; }
 		unsigned int GetDescriptorSetLayout() const { return descriptorSetLayout; }
 
-		vector<ShaderStage> GetAllShaders() { return shaders; }
+		const vector<ShaderStage>& GetAllShaders() { return shaders; }
 
 		void SetShaderPath(
 			const string& path,

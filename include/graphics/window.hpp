@@ -9,6 +9,7 @@
 #include <memory>
 #include <vector>
 #include <functional>
+#include <unordered_map>
 
 #include "core/platform.hpp"
 
@@ -18,13 +19,7 @@ namespace KalaWindow::Graphics
 	using std::unique_ptr;
 	using std::vector;
 	using std::function;
-
-	enum class ShutdownState
-	{
-		SHUTDOWN_CLEAN,   //Regular exit (exit)
-		SHUTDOWN_FAILURE, //Problem detected, controlled shutdown (terminate)
-		SHUTDOWN_CRITICAL //Catastrophic/forced shutdown, worst case scenario (abort)
-	};
+	using std::unordered_map;
 
 	//Supported states the window can go to
 	enum class WindowState
@@ -34,36 +29,6 @@ namespace KalaWindow::Graphics
 		WINDOW_MINIMIZE,      //Minimize window to taskbar
 		WINDOW_HIDE,          //Hide the window, including from taskbar
 		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it
-	};
-
-	//Buttons shown on the popup
-	enum class PopupAction
-	{
-		POPUP_ACTION_OK,            // OK button only
-		POPUP_ACTION_OK_CANCEL,     // OK and Cancel buttons
-		POPUP_ACTION_YES_NO,        // Yes and No buttons
-		POPUP_ACTION_YES_NO_CANCEL, // Yes, No, and Cancel buttons
-		POPUP_ACTION_RETRY_CANCEL   // Retry and Cancel buttons
-	};
-
-	//Icon shown on the popup
-	enum class PopupType
-	{
-		POPUP_TYPE_INFO,    // Info icon (blue 'i')
-		POPUP_TYPE_WARNING, // Warning icon (yellow triangle)
-		POPUP_TYPE_ERROR,   // Error icon (red X)
-		POPUP_TYPE_QUESTION // Question icon (used for confirmations)
-	};
-
-	//User response from the popup
-	enum class PopupResult
-	{
-		POPUP_RESULT_NONE,   //No response or unknown
-		POPUP_RESULT_OK,     //User clicked OK
-		POPUP_RESULT_CANCEL, //User clicked Cancel
-		POPUP_RESULT_YES,    //User clicked Yes
-		POPUP_RESULT_NO,     //User clicked No
-		POPUP_RESULT_RETRY   //User clicked Retry
 	};
 
 	enum class FileType
@@ -248,11 +213,21 @@ namespace KalaWindow::Graphics
 	{
 	public:
 		//All created windows are stored here.
-		static inline vector<Window*> windows{};
+		static inline unordered_map<string, unique_ptr<Window>> createdWindows{};
 
-		static unique_ptr<Window> Initialize(
+		static inline vector<Window*> runtimeWindows{};
+
+		static Window* Initialize(
 			const string& title,
 			vec2 size);
+
+		Window(
+			string title,
+			unsigned int ID,
+			vec2 size) :
+			title(title),
+			ID(ID),
+			size(size) {}
 
 		//Get the handle to opengl32.dll
 		static uintptr_t GetOpenGLLib() { return openglLib; }
@@ -264,42 +239,34 @@ namespace KalaWindow::Graphics
 		//Set the handle to vulkan-1.dll
 		static void SetVulkanLib(uintptr_t newVulkanLib) { vulkanLib = newVulkanLib; }
 
-		Window(
-			string title,
-			unsigned int ID,
-			vec2 size) :
-			title(title),
-			ID(ID),
-			size(size) {}
-
 #ifdef _WIN32
 		WindowData& GetWindowData() { return window_windows; }
-		void SetWindowData(WindowData newWindowStruct)
+		void SetWindowData(const WindowData& newWindowStruct)
 		{
 			window_windows = newWindowStruct;
 		}
 #elif __linux__
 		WindowData& GetWindowData() { return window_x11; }
-		void SetWindowData(WindowData newWindowStruct)
+		void SetWindowData(const WindowData& newWindowStruct)
 		{
 			window_x11 = newWindowStruct;
 		}
 #endif
 
 		OpenGLData& GetOpenGLData() { return openglData; }
-		void SetOpenGLData(OpenGLData newOpenGLData)
+		void SetOpenGLData(const OpenGLData& newOpenGLData)
 		{
 			openglData = newOpenGLData;
 		}
 
 		VulkanData_Core& GetVulkanCoreData() { return vulkanCoreData; }
-		void SetVulkanCoreData(VulkanData_Core newVulkanCoreData)
+		void SetVulkanCoreData(const VulkanData_Core& newVulkanCoreData)
 		{
 			vulkanCoreData = newVulkanCoreData;
 		}
 
 		VulkanShaderWindowData& GetVulkanShaderWindowStruct() { return vulkanShaderWindowData; }
-		void SetVulkanShaderWindowStruct(VulkanShaderWindowData newVulkanShaderWindowData)
+		void SetVulkanShaderWindowStruct(const VulkanShaderWindowData& newVulkanShaderWindowData)
 		{
 			vulkanShaderWindowData = newVulkanShaderWindowData;
 		}
@@ -338,57 +305,18 @@ namespace KalaWindow::Graphics
 		//Returns true if window is idle - not focused, minimized or not visible.
 		bool IsIdle() const { return isIdle; }
 
-		PopupResult CreatePopup(
-			const string& title,
-			const string& message,
-			PopupAction action,
-			PopupType type);
+		void TriggerResize() const { if (resizeCallback) resizeCallback(); }
+		void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
 
-		void SetResizeCallback(function<void()> callback)
-		{
-			resizeCallback = callback;
-		}
-		function<void()> GetResizeCallback()
-		{
-			return resizeCallback;
-		}
+		void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
+		void SetRedrawCallback(const function<void()>& callback) { resizeCallback = callback; }
 
-		using RedrawCallback = void(*)();
-		void SetRedrawCallback(RedrawCallback callback) { OnRedraw = callback; }
-		void TriggerRedraw() const { if (OnRedraw) OnRedraw(); }
-
-		static Window* FindWindowByName(const string& targetName);
-		static Window* FindWindowByID(unsigned int targetID);
-
-		static void Update(Window* targetWindow);
+		void Update();
 
 		~Window();
 
-		//Intended to be used for regular shutdown conditions, if program exited
-		//with no errors and so on. Called at shutdown stage before any
-		//windows or the render pipeline are destroyed.
-		static void SetUserShutdownFunction(function<void()> regularShutdown);
-
-		/// <summary>
-		/// Handles the shutdown conditions of KalaWindow.
-		/// </summary>
-		/// <param name="state">
-		///		Targets either regular exit, terminate or abort
-		///		based on ShutdownState enum.
-		/// </param>
-		/// <param name="useWindowShutdown">
-		///		If false, then KalaWindow ShutdownState and its actions are ignored
-		///		and user must provide their own setup that is called after all windows and the render pipeline are destroyed.
-		/// </param>
-		/// <param name="userShutdown">
-		///		The function user can optionally pass to KalaWindow shutdown procedure,
-		///     called dynamically either before window and render pipeline shutdown
-		///     if useWindowShutdown is true, otherwise it is called after.
-		/// </param>
-		static void Shutdown(
-			ShutdownState state,
-			bool useWindowShutdown = true,
-			function<void()> userShutdown = nullptr);
+		static Window* FindWindowByName(const string& targetName);
+		static Window* FindWindowByID(unsigned int targetID);
 	private:
 		static inline uintptr_t openglLib{}; //The handle to opengl32.dll
 		static inline uintptr_t vulkanLib{}; //The handle to vulkan-1.dll
@@ -399,7 +327,6 @@ namespace KalaWindow::Graphics
 
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
 		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become
-		RedrawCallback OnRedraw{};           //Called whenever the window needs to be redrawn
 
 		//core variables
 
@@ -422,6 +349,7 @@ namespace KalaWindow::Graphics
 		VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
 		VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
 
-		function<void()> resizeCallback{};
+		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
+		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 	};
 }

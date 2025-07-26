@@ -19,8 +19,6 @@ using glm::mat2;
 using glm::mat3;
 using glm::mat4;
 
-//TODO: ADD LOG FORCE-CLOSE TEMPLATE HERE???
-
 //
 // DLL EXPORT/IMPORT MACRO
 //

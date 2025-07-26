@@ -105,9 +105,9 @@ namespace KalaWindow::Graphics::Vulkan
 		//Creates framebuffers from swapchain image views
 		static bool CreateFramebuffers(Window* window);
 
-		static const vector<VulkanLayers> GetEnabledLayers() { return enabledLayers; }
-		static const vector<VulkanInstanceExtensions> GetEnabledInstanceExtensions() { return enabledInstanceExtensions; }
-		static const vector<VulkanDeviceExtensions> GetEnabledDeviceExtensions() { return enabledDeviceExtensions; }
+		static const vector<VulkanLayers>& GetEnabledLayers() { return enabledLayers; }
+		static const vector<VulkanInstanceExtensions>& GetEnabledInstanceExtensions() { return enabledInstanceExtensions; }
+		static const vector<VulkanDeviceExtensions>& GetEnabledDeviceExtensions() { return enabledDeviceExtensions; }
 
 		//
 		// CLEANUP

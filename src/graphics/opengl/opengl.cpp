@@ -15,22 +15,18 @@
 #include "graphics/opengl/opengl_core.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
+#include "core/core.hpp"
 #ifdef _WIN32
 #include "graphics/opengl/opengl_win.hpp"
 #elif __linux__
 #include "graphics/opengl/opengl_linux.hpp"
 #endif
 
-using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupType;
-using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
-using KalaWindow::Core::TimeFormat;
-using KalaWindow::Core::DateFormat;
 using KalaWindow::Graphics::OpenGL::VSyncState;
+using KalaWindow::Core::KalaWindowCore;
 
 using std::string;
 using std::to_string;
@@ -41,10 +37,6 @@ using std::to_string;
 //If off, then all framerate is uncapped.
 //Used in window.hpp
 static VSyncState vsyncState = VSyncState::VSYNC_ON;
-
-static void ForceClose(
-	const string& title,
-	const string& reason);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -67,13 +59,13 @@ namespace KalaWindow::Graphics::OpenGL
 
 	void Renderer_OpenGL::MakeContextCurrent(Window* window)
 	{
-		OpenGLData& oData = window->GetOpenGLData();
+		const OpenGLData& oData = window->GetOpenGLData();
 #ifdef _WIN32
 		if (oData.hdc == 0)
 		{
 			string title = "OpenGL error [OpenGL]";
 			string reason = "Failed to get HDC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
-			ForceClose(title, reason);
+			KalaWindowCore::ForceClose(title, reason);
 			return;
 		}
 		HDC hdc = ToVar<HDC>(oData.hdc);
@@ -82,7 +74,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			string title = "OpenGL error [OpenGL]";
 			string reason = "Failed to get HGLRC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
-			ForceClose(title, reason);
+			KalaWindowCore::ForceClose(title, reason);
 			return;
 		}
 		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
@@ -102,13 +94,13 @@ namespace KalaWindow::Graphics::OpenGL
 
 	bool Renderer_OpenGL::IsContextValid(Window* targetWindow)
 	{
-		OpenGLData& oData = targetWindow->GetOpenGLData();
+		const OpenGLData& oData = targetWindow->GetOpenGLData();
 #ifdef _WIN32
 		if (oData.hglrc == 0)
 		{
 			string title = "OpenGL error [OpenGL]";
 			string reason = "Failed to get HGLRC for window '" + targetWindow->GetTitle() + "' during 'IsContextValid' stage!";
-			ForceClose(title, reason);
+			KalaWindowCore::ForceClose(title, reason);
 			return false;
 		}
 		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
@@ -163,29 +155,5 @@ namespace KalaWindow::Graphics::OpenGL
 				LogType::LOG_ERROR,
 				2);
 		}
-	}
-}
-
-void ForceClose(
-	const string& title,
-	const string& reason)
-{
-	Logger::Print(
-		reason,
-		"OPENGL",
-		LogType::LOG_ERROR,
-		2,
-		TimeFormat::TIME_NONE,
-		DateFormat::DATE_NONE);
-
-	Window* mainWindow = Window::windows.front();
-	if (mainWindow->CreatePopup(
-		title,
-		reason,
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR)
-		== PopupResult::POPUP_RESULT_OK)
-	{
-		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }

@@ -103,9 +103,9 @@ namespace KalaWindow::Core
 		}
 
 		//Returns current time in chosen or default format.
-		static string GetTime(TimeFormat time = TimeFormat::TIME_DEFAULT);
+		static const string& GetTime(TimeFormat time = TimeFormat::TIME_DEFAULT);
 		//Returns current date in chosen or default format.
-		static string GetDate(DateFormat date = DateFormat::DATE_DEFAULT);
+		static const string& GetDate(DateFormat date = DateFormat::DATE_DEFAULT);
 
 		//Prints a log message to the console using
 		//cout, clog or cerr depending on the log type.
@@ -124,6 +124,10 @@ namespace KalaWindow::Core
 			unsigned int indentation = 0,
 			TimeFormat timeFormat = TimeFormat::TIME_DEFAULT,
 			DateFormat dateFormat = DateFormat::DATE_DEFAULT);
+
+		//Overload for the core print function.
+		//This one simply prints the message to cout with a newline at the end.
+		static void Print(const string& message);
 	private:
 		static inline TimeFormat defaultTimeFormat = TimeFormat::TIME_HMS_MS;
 		static inline DateFormat defaultDateFormat = DateFormat::DATE_NONE;

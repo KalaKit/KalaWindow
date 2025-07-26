@@ -19,17 +19,13 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
+#include "core/core.hpp"
 
-using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupType;
-using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::Vulkan::VSyncState;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
-using KalaWindow::Core::TimeFormat;
-using KalaWindow::Core::DateFormat;
 
 using std::string;
 using std::to_string;
@@ -44,10 +40,6 @@ enum class ForceCloseType
 	FC_VU  //is vulkan initialized
 };
 
-static void ForceClose(
-	const string& title,
-	const string& reason,
-	ShutdownState state = ShutdownState::SHUTDOWN_FAILURE);
 static void ForceCloseMsg(
 	ForceCloseType ct,
 	const string& targetMsg);
@@ -60,11 +52,10 @@ static bool IsValidHandle(
 	if (handle == 0
 		|| handle == UINTPTR_MAX)
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan critical error [extensions_vulkan]",
 			"[ " + originFunction + " ]"
-			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!",
-			ShutdownState::SHUTDOWN_CRITICAL);
+			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!");
 		return false;
 	}
 	return true;
@@ -80,7 +71,6 @@ namespace KalaWindow::Graphics::Vulkan
 			return;
 		}
 
-		WindowData& winData = targetWindow->GetWindowData();
 		VulkanData_Core vData{};
 
 #ifdef _WIN32
@@ -101,7 +91,7 @@ namespace KalaWindow::Graphics::Vulkan
 			nullptr,
 			&surface) != VK_SUCCESS)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"Vulkan error [extensions_vulkan]",
 				"Failed to create Win32 Vulkan surface!");
 		}
@@ -134,7 +124,6 @@ namespace KalaWindow::Graphics::Vulkan
 		VkDevice dev = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
 		VkPhysicalDevice pDev = ToVar<VkPhysicalDevice>(Renderer_Vulkan::GetPhysicalDevice());
 
-		WindowData& winData = window->GetWindowData();
 		VulkanData_Core& vData = window->GetVulkanCoreData();
 
 		//surface capabilities
@@ -411,42 +400,18 @@ namespace KalaWindow::Graphics::Vulkan
 	}
 }
 
-static void ForceClose(
-	const string& title,
-	const string& reason,
-	ShutdownState state)
-{
-	Logger::Print(
-		reason,
-		"EXTENSIONS_VULKAN",
-		LogType::LOG_ERROR,
-		2,
-		TimeFormat::TIME_NONE,
-		DateFormat::DATE_NONE);
-
-	Window* mainWindow = Window::windows.front();
-	if (mainWindow->CreatePopup(
-		title,
-		reason,
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR)
-		== PopupResult::POPUP_RESULT_OK)
-	{
-		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-	}
-}
 void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
 {
 	if (fct == ForceCloseType::FC_VO)
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan error [extensions_vulkan]",
 			"Cannot " + targetMsg + " because Volk failed to initialize!");
 	}
 
 	else if (fct == ForceCloseType::FC_VU)
 	{
-		ForceClose(
+		KalaWindowCore::ForceClose(
 			"Vulkan error [extensions_vulkan]",
 			"Cannot " + targetMsg + " because Vulkan is not initialized!");
 	}

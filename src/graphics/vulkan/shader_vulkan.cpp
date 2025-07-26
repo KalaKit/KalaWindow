@@ -21,16 +21,12 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/window.hpp"
 #include "core/log.hpp"
+#include "core/core.hpp"
 
-using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupType;
-using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
-using KalaWindow::Core::TimeFormat;
-using KalaWindow::Core::DateFormat;
+using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Vulkan::ShaderType;
 using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 
@@ -99,10 +95,6 @@ struct VulkanShaderVKData
     VkPipelineColorBlendAttachmentState* colorBlendAttachmentState{};
     VkPipelineColorBlendStateCreateInfo* colorBlendState{};
 };
-
-static void ForceClose(
-    const string& title,
-    const string& reason);
 
 static vector<uint32_t> ReadFileBinary(const string& filePath);
 
@@ -182,7 +174,7 @@ namespace KalaWindow::Graphics::Vulkan
                         string title = "Vulkan error [shader_vulkan]";
                         string reason = "Failed to remove existing spv file '" + originName + "'! Reason: " + ec.message();
 
-                        ForceClose(title, reason);
+                        KalaWindowCore::ForceClose(title, reason);
                         return false;
                     }
                     else
@@ -293,7 +285,7 @@ namespace KalaWindow::Graphics::Vulkan
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
         if (device == VK_NULL_HANDLE)
         {
-            ForceClose(
+            KalaWindowCore::ForceClose(
                 "Vulkan error [shader_vulkan]",
                 "Failed to initialize shader " + shaderName + " because device was invalid!\n");
             return nullptr;
@@ -376,7 +368,7 @@ namespace KalaWindow::Graphics::Vulkan
             nullptr,
             &newLayout) != VK_SUCCESS)
         {
-            ForceClose(
+            KalaWindowCore::ForceClose(
                 "Vulkan error [shader_vulkan]",
                 "Failed to create pipeline layout!");
             return nullptr;
@@ -417,7 +409,7 @@ namespace KalaWindow::Graphics::Vulkan
             nullptr,
             &newPipeline) != VK_SUCCESS)
         {
-            ForceClose(
+            KalaWindowCore::ForceClose(
                 "Vulkan error [shader_vulkan]",
                 "Failed to create graphics pipeline!");
             return nullptr;
@@ -611,30 +603,6 @@ namespace KalaWindow::Graphics::Vulkan
 	}
 }
 
-void ForceClose(
-    const string& title,
-    const string& reason)
-{
-    Logger::Print(
-        reason,
-        "SHADER_VULKAN",
-        LogType::LOG_ERROR,
-        2,
-        TimeFormat::TIME_NONE,
-        DateFormat::DATE_NONE);
-
-    Window* mainWindow = Window::windows.front();
-    if (mainWindow->CreatePopup(
-        title,
-        reason,
-        PopupAction::POPUP_ACTION_OK,
-        PopupType::POPUP_TYPE_ERROR)
-        == PopupResult::POPUP_RESULT_OK)
-    {
-        Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
-    }
-}
-
 vector<uint32_t> ReadFileBinary(const string& filePath)
 {
     ifstream file(filePath, ios::ate | ios::binary);
@@ -645,7 +613,7 @@ vector<uint32_t> ReadFileBinary(const string& filePath)
 
     if (size == 0)
     {
-        ForceClose(
+        KalaWindowCore::ForceClose(
             "Vulkan error [shader_vulkan]",
             "Shader '" + fileName + "' is empty or unreadable!");
 
@@ -653,7 +621,7 @@ vector<uint32_t> ReadFileBinary(const string& filePath)
     }
     if (size % 4 != 0)
     {
-        ForceClose(
+        KalaWindowCore::ForceClose(
             "Vulkan error [shader_vulkan]",
             "Shader '" + fileName + "' is not aligned to 4 bytes!");
 
@@ -667,7 +635,7 @@ vector<uint32_t> ReadFileBinary(const string& filePath)
 
     if (buffer.empty())
     {
-        ForceClose(
+        KalaWindowCore::ForceClose(
             "Vulkan error [shader_vulkan]",
             "Shader '" + fileName + "' is empty after read!");
 
@@ -748,7 +716,7 @@ bool InitShader(
 
     if (res != VK_SUCCESS)
     {
-        ForceClose(
+        KalaWindowCore::ForceClose(
             "Vulkan error [shader_vulkan]",
             "Failed to create " + shaderType + " shader module for shader file: " + shaderPath);
         return false;
@@ -818,7 +786,7 @@ bool CompileToSPV(
         string title = "Vulkan error [shader_vulkan]";
         string reason = "Failed to compile to spv because glslangValidator was not found! You probably didn't install the Vulkan SDK.";
 
-        ForceClose(title, reason);
+        KalaWindowCore::ForceClose(title, reason);
 
         return false;
     }
@@ -829,7 +797,7 @@ bool CompileToSPV(
         string title = "Vulkan error [shader_vulkan]";
         string reason = "Failed to compile shader '" + originName + "' to spv!";
 
-        ForceClose(title, reason);
+        KalaWindowCore::ForceClose(title, reason);
 
         return false;
     }

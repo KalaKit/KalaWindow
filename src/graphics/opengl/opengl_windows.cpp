@@ -14,27 +14,19 @@
 #include "graphics/window.hpp"
 #include "core/log.hpp"
 #include "graphics/opengl/opengl_win.hpp"
+#include "core/core.hpp"
 
-using KalaWindow::Graphics::ShutdownState;
+using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupType;
-using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::OpenGL::OpenGLCore;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
-using KalaWindow::Core::TimeFormat;
-using KalaWindow::Core::DateFormat;
 
 using std::string;
 using std::to_string;
 using std::stringstream;
 
 static bool IsCorrectVersion();
-
-static void ForceClose(
-	const string& title,
-	const string& reason);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -43,13 +35,13 @@ namespace KalaWindow::Graphics::OpenGL
 		HMODULE module = LoadLibraryA("opengl32.dll");
 		if (!module)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"OpenGL initialization error [opengl_windows]",
 				"Failed to load module 'opengl32.dll'!");
 		}
 		Window::SetOpenGLLib(FromVar(module));
 
-		WindowData wData = targetWindow->GetWindowData();
+		WindowData& wData = targetWindow->GetWindowData();
 		OpenGLData oData{};
 		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
@@ -75,7 +67,7 @@ namespace KalaWindow::Graphics::OpenGL
 		int pixelFormat = ChoosePixelFormat(hdc, &pfd);
 		if (pixelFormat == 0)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"OpenGL initialization error [opengl_windows]",
 				"ChoosePixelFormat failed!");
 
@@ -88,7 +80,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"OpenGL initialization error [opengl_windows]",
 				"SetPixelFormat failed!");
 
@@ -103,7 +95,7 @@ namespace KalaWindow::Graphics::OpenGL
 		int describeResult = DescribePixelFormat(hdc, pixelFormat, sizeof(actualPFD), &actualPFD);
 		if (describeResult == 0)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"OpenGL initialization error [opengl_windows]",
 				"DescribePixelFormat failed!");
 
@@ -157,7 +149,7 @@ namespace KalaWindow::Graphics::OpenGL
 			attribs));
 		if (!oData.hglrc)
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"OpenGL initialization error [opengl_windows]",
 				"Failed to create OpenGL 3.3 context!");
 
@@ -178,7 +170,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (!IsCorrectVersion())
 		{
-			ForceClose(
+			KalaWindowCore::ForceClose(
 				"OpenGL initialization error [opengl_windows]",
 				"OpenGL 3.3 or higher is required!");
 
@@ -218,30 +210,6 @@ namespace KalaWindow::Graphics::OpenGL
 		OpenGLData& oData = targetWindow->GetOpenGLData();
 		HDC hdc = ToVar<HDC>(oData.hdc);
 		SwapBuffers(hdc);
-	}
-}
-
-void ForceClose(
-	const string& title,
-	const string& reason)
-{
-	Logger::Print(
-		reason,
-		"OPENGL_WINDOWS",
-		LogType::LOG_ERROR,
-		2,
-		TimeFormat::TIME_NONE,
-		DateFormat::DATE_NONE);
-
-	Window* mainWindow = Window::windows.front();
-	if (mainWindow->CreatePopup(
-		title,
-		reason,
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR)
-		== PopupResult::POPUP_RESULT_OK)
-	{
-		Window::Shutdown(ShutdownState::SHUTDOWN_FAILURE);
 	}
 }
 

@@ -22,6 +22,7 @@
 #include "graphics/window.hpp"
 #include "core/input.hpp"
 #include "core/log.hpp"
+#include "core/core.hpp"
 
 #include "graphics/opengl/opengl_core.hpp"
 #include "graphics/opengl/opengl.hpp"
@@ -29,7 +30,6 @@
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::ShutdownState;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Key;
@@ -37,6 +37,8 @@ using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::Key;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::ShutdownState;
 
 using std::string;
 using std::to_string;
@@ -199,7 +201,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	LPARAM lParam)
 {
 	Window* window{};
-	for (auto& windowPtr : Window::windows)
+	for (auto& windowPtr : Window::runtimeWindows)
 	{
 		if (!windowPtr) continue;
 
@@ -661,8 +663,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			LogType::LOG_DEBUG);
 		*/
 
-		function<void()> callback = window->GetResizeCallback();
-		if (callback) callback();
+		window->TriggerResize();
 
 		return true;
 	}
@@ -702,7 +703,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	//user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
-		Window::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+		KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		return true;
 
 	//window was destroyed - tell the system to exit

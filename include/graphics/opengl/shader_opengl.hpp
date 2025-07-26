@@ -62,7 +62,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return "";
 		}
 
-		const string& GetName() { return name; }
+		const string& GetName() const { return name; }
 		void SetName(const string& newName)
 		{
 			if (newName.empty())
@@ -90,11 +90,11 @@ namespace KalaWindow::Graphics::OpenGL
 			name = newName;
 		}
 
-		Window* GetTargetWindow() { return targetWindow; }
+		Window* GetTargetWindow() const { return targetWindow; }
 
-		unsigned int GetProgramID() { return programID; }
+		unsigned int GetProgramID() const { return programID; }
 
-		vector<ShaderStage> GetAllShaders() { return shaders; }
+		vector<ShaderStage> GetAllShaders() const { return shaders; }
 
 		void SetShaderPath(
 			const string& path,
@@ -120,7 +120,7 @@ namespace KalaWindow::Graphics::OpenGL
 			}
 		}
 
-		unsigned int GetShaderID(ShaderType type)
+		unsigned int GetShaderID(ShaderType type) const
 		{
 			for (const auto& stage : shaders)
 			{
@@ -139,7 +139,7 @@ namespace KalaWindow::Graphics::OpenGL
 				2);
 			return 0;
 		}
-		string GetShaderPath(ShaderType type)
+		string GetShaderPath(ShaderType type) const
 		{
 			for (const auto& stage : shaders)
 			{
