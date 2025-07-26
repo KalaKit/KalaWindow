@@ -254,6 +254,6 @@ namespace KalaWindow::Core
 		}
 
 		
-		cout << safeMessage;
+		cout << safeMessage << "\n";
 	}
 }
