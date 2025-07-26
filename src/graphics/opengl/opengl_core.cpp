@@ -167,7 +167,7 @@ namespace KalaWindow::Graphics::OpenGL
 			if (!module)
 			{
 				KalaWindowCore::ForceClose(
-					"OpenGL error [opengl_core]",
+					"OpenGL Core Error",
 					"Failed to get module 'opengl32.dll' because it was invalid!");
 			}
 		}
@@ -212,7 +212,7 @@ namespace KalaWindow::Graphics::OpenGL
 			if (!module)
 			{
 				KalaWindowCore::ForceClose(
-					"OpenGL error [opengl_core]",
+					"OpenGL Core Error",
 					"Failed to get module 'opengl32.dll' because it was invalid!");
 			}
 		}
@@ -285,7 +285,7 @@ namespace KalaWindow::Graphics::OpenGL
 		p = reinterpret_cast<void*>(GetProcAddress(module, name));
 		if (!IsBadFunction(p)) return p;
 
-		string title = "OpenGL error [opengl_core]";
+		string title = "OpenGL Core Error";
 		string reason = "Failed to find function '" + string(name) + "'!";
 
 		KalaWindowCore::ForceClose(title, reason);

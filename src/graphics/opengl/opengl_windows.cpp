@@ -36,7 +36,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!module)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL initialization error [opengl_windows]",
+				"OpenGL Window Error",
 				"Failed to load module 'opengl32.dll'!");
 		}
 		Window::SetOpenGLLib(FromVar(module));
@@ -68,7 +68,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (pixelFormat == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL initialization error [opengl_windows]",
+				"OpenGL Window Error",
 				"ChoosePixelFormat failed!");
 
 			return false;
@@ -81,7 +81,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL initialization error [opengl_windows]",
+				"OpenGL Window Error",
 				"SetPixelFormat failed!");
 
 			return false;
@@ -96,7 +96,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (describeResult == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL initialization error [opengl_windows]",
+				"OpenGL Window Error",
 				"DescribePixelFormat failed!");
 
 			return false;
@@ -150,7 +150,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!oData.hglrc)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL initialization error [opengl_windows]",
+				"OpenGL Window Error",
 				"Failed to create OpenGL 3.3 context!");
 
 			return false;
@@ -171,7 +171,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!IsCorrectVersion())
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL initialization error [opengl_windows]",
+				"OpenGL Window Error",
 				"OpenGL 3.3 or higher is required!");
 
 			return false;

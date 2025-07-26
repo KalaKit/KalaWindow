@@ -53,7 +53,7 @@ static bool IsValidHandle(
 		|| handle == UINTPTR_MAX)
 	{
 		KalaWindowCore::ForceClose(
-			"Vulkan critical error [extensions_vulkan]",
+			"Vulkan Extensions Error",
 			"[ " + originFunction + " ]"
 			"\nVariable '" + variableName + "' value '" + to_string(handle) + "' is invalid!");
 		return false;
@@ -92,7 +92,7 @@ namespace KalaWindow::Graphics::Vulkan
 			&surface) != VK_SUCCESS)
 		{
 			KalaWindowCore::ForceClose(
-				"Vulkan error [extensions_vulkan]",
+				"Vulkan Extensions Error",
 				"Failed to create Win32 Vulkan surface!");
 		}
 
@@ -263,11 +263,9 @@ namespace KalaWindow::Graphics::Vulkan
 			nullptr,
 			&realSC) != VK_SUCCESS)
 		{
-			Logger::Print(
-				"Failed to create Vulkan swapchain!",
-				"EXTENSIONS_VULKAN",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"Vulkan Extensions Error",
+				"Failed to create Vulkan swapchain!");
 			return false;
 		}
 
@@ -405,14 +403,14 @@ void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
 	if (fct == ForceCloseType::FC_VO)
 	{
 		KalaWindowCore::ForceClose(
-			"Vulkan error [extensions_vulkan]",
+			"Vulkan Extensions Error",
 			"Cannot " + targetMsg + " because Volk failed to initialize!");
 	}
 
 	else if (fct == ForceCloseType::FC_VU)
 	{
 		KalaWindowCore::ForceClose(
-			"Vulkan error [extensions_vulkan]",
+			"Vulkan Extensions Error",
 			"Cannot " + targetMsg + " because Vulkan is not initialized!");
 	}
 }

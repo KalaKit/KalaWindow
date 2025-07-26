@@ -171,7 +171,7 @@ namespace KalaWindow::Graphics::Vulkan
                     error_code ec{};
                     if (!remove(spv, ec))
                     {
-                        string title = "Vulkan error [shader_vulkan]";
+                        string title = "Vulkan Shader Error";
                         string reason = "Failed to remove existing spv file '" + originName + "'! Reason: " + ec.message();
 
                         KalaWindowCore::ForceClose(title, reason);
@@ -286,7 +286,7 @@ namespace KalaWindow::Graphics::Vulkan
         if (device == VK_NULL_HANDLE)
         {
             KalaWindowCore::ForceClose(
-                "Vulkan error [shader_vulkan]",
+                "Vulkan Shader Error",
                 "Failed to initialize shader " + shaderName + " because device was invalid!\n");
             return nullptr;
         }
@@ -369,7 +369,7 @@ namespace KalaWindow::Graphics::Vulkan
             &newLayout) != VK_SUCCESS)
         {
             KalaWindowCore::ForceClose(
-                "Vulkan error [shader_vulkan]",
+                "Vulkan Shader Error",
                 "Failed to create pipeline layout!");
             return nullptr;
         }
@@ -410,7 +410,7 @@ namespace KalaWindow::Graphics::Vulkan
             &newPipeline) != VK_SUCCESS)
         {
             KalaWindowCore::ForceClose(
-                "Vulkan error [shader_vulkan]",
+                "Vulkan Shader Error",
                 "Failed to create graphics pipeline!");
             return nullptr;
         }
@@ -614,7 +614,7 @@ vector<uint32_t> ReadFileBinary(const string& filePath)
     if (size == 0)
     {
         KalaWindowCore::ForceClose(
-            "Vulkan error [shader_vulkan]",
+            "Vulkan Shader Error",
             "Shader '" + fileName + "' is empty or unreadable!");
 
         return {};
@@ -622,7 +622,7 @@ vector<uint32_t> ReadFileBinary(const string& filePath)
     if (size % 4 != 0)
     {
         KalaWindowCore::ForceClose(
-            "Vulkan error [shader_vulkan]",
+            "Vulkan Shader Error",
             "Shader '" + fileName + "' is not aligned to 4 bytes!");
 
         return {};
@@ -636,7 +636,7 @@ vector<uint32_t> ReadFileBinary(const string& filePath)
     if (buffer.empty())
     {
         KalaWindowCore::ForceClose(
-            "Vulkan error [shader_vulkan]",
+            "Vulkan Shader Error",
             "Shader '" + fileName + "' is empty after read!");
 
         return {};
@@ -717,7 +717,7 @@ bool InitShader(
     if (res != VK_SUCCESS)
     {
         KalaWindowCore::ForceClose(
-            "Vulkan error [shader_vulkan]",
+            "Vulkan Shader Error",
             "Failed to create " + shaderType + " shader module for shader file: " + shaderPath);
         return false;
     }
@@ -783,7 +783,7 @@ bool CompileToSPV(
     if (!glslangValidatorExists
         && !ValidatorExists())
     {
-        string title = "Vulkan error [shader_vulkan]";
+        string title = "Vulkan Shader Error";
         string reason = "Failed to compile to spv because glslangValidator was not found! You probably didn't install the Vulkan SDK.";
 
         KalaWindowCore::ForceClose(title, reason);
@@ -794,7 +794,7 @@ bool CompileToSPV(
     int glslResult = system(glslCommand.c_str());
     if (glslResult != 0)
     {
-        string title = "Vulkan error [shader_vulkan]";
+        string title = "Vulkan Shader Error";
         string reason = "Failed to compile shader '" + originName + "' to spv!";
 
         KalaWindowCore::ForceClose(title, reason);

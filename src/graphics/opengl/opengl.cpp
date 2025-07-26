@@ -63,7 +63,7 @@ namespace KalaWindow::Graphics::OpenGL
 #ifdef _WIN32
 		if (oData.hdc == 0)
 		{
-			string title = "OpenGL error [OpenGL]";
+			string title = "OpenGL Error";
 			string reason = "Failed to get HDC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
 			KalaWindowCore::ForceClose(title, reason);
 			return;
@@ -72,7 +72,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (oData.hglrc == 0)
 		{
-			string title = "OpenGL error [OpenGL]";
+			string title = "OpenGL Error";
 			string reason = "Failed to get HGLRC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
 			KalaWindowCore::ForceClose(title, reason);
 			return;
@@ -82,10 +82,9 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!wglMakeCurrent(hdc, hglrc))
 		{
 			DWORD err = GetLastError();
-			Logger::Print(
-				"wglMakeCurrent failed with error: " + to_string(err),
-				"OPENGL",
-				LogType::LOG_ERROR);
+			KalaWindowCore::ForceClose(
+				"OpenGL Error",
+				"wglMakeCurrent failed with error: " + to_string(err));
 		}
 #elif __linux__
 		//TODO: ADD LINUX EQUIVALENT
@@ -98,7 +97,7 @@ namespace KalaWindow::Graphics::OpenGL
 #ifdef _WIN32
 		if (oData.hglrc == 0)
 		{
-			string title = "OpenGL error [OpenGL]";
+			string title = "OpenGL Error";
 			string reason = "Failed to get HGLRC for window '" + targetWindow->GetTitle() + "' during 'IsContextValid' stage!";
 			KalaWindowCore::ForceClose(title, reason);
 			return false;
@@ -108,21 +107,17 @@ namespace KalaWindow::Graphics::OpenGL
 		HGLRC current = wglGetCurrentContext();
 		if (current == nullptr)
 		{
-			Logger::Print(
-				"Current OpenGL context is null!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"OpenGL Error",
+				"Current OpenGL context is null!");
 			return false;
 		}
 
 		if (current != hglrc)
 		{
-			Logger::Print(
-				"Current OpenGL context does not match stored context!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"OpenGL Error",
+				"Current OpenGL context does not match stored context!");
 			return false;
 		}
 #elif __linux__

@@ -84,7 +84,7 @@ namespace KalaWindow::Core
 	{
 		Logger::Print(
 			reason,
-			"OPENGL",
+			"FORCE CLOSE",
 			LogType::LOG_ERROR,
 			2,
 			TimeFormat::TIME_NONE,

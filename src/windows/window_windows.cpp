@@ -88,11 +88,10 @@ namespace KalaWindow::Graphics
 			{
 				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
 			}
-			Logger::Print(
-				message,
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
+
+			KalaWindowCore::ForceClose(
+				"Window Error",
+				message);
 
 			string title = "Window error";
 
@@ -135,11 +134,9 @@ namespace KalaWindow::Graphics
 				+ ": "
 				+ (errorMsg ? errorMsg : "Unknown");
 
-			Logger::Print(
-				message,
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"Window Error",
+				message);
 
 			if (errorMsg) LocalFree(errorMsg);
 
