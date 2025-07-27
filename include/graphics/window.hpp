@@ -15,6 +15,9 @@
 
 namespace KalaWindow::Graphics
 {
+	//TODO: CREATE AN INTERNAL FRAMEBUFFER SYSTEM WHERE THE INTERNAL FRAMEBUFFER RESOLUTION ALWAYS MATCHES
+	//USER RESOLUTION WHILE WINDOW RESOLUTION SCALES DYNAMICALLY
+
 	using std::string;
 	using std::unique_ptr;
 	using std::vector;
@@ -309,7 +312,7 @@ namespace KalaWindow::Graphics
 		void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
 
 		void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
-		void SetRedrawCallback(const function<void()>& callback) { resizeCallback = callback; }
+		void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
 		void Update();
 
@@ -349,7 +352,7 @@ namespace KalaWindow::Graphics
 		VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
 		VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
 
-		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
+		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
 	};
 }

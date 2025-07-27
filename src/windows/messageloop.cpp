@@ -671,10 +671,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		HWND windowRef = ToVar<HWND>(window->GetWindowData().hwnd);
 
-		if (window->IsInitialized())
-		{
-			window->TriggerRedraw();
-		}
+		window->TriggerRedraw();
 		return true;
 	}
 
