@@ -18,6 +18,8 @@
 
 namespace KalaWindow::Graphics::Vulkan
 {
+	//TODO: FIGURE OUT A BETTER ALTERNATIVE TO LARGE VULKAN STRUCTS
+
 	using KalaWindow::Core::Logger;
 	using KalaWindow::Core::LogType;
 	using KalaWindow::Graphics::Window;
@@ -287,44 +289,46 @@ namespace KalaWindow::Graphics::Vulkan
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages,
 			Window* targetWindow,
-			VulkanShaderData userData);
+			const VulkanShaderData& userData);
 
-		static string GetShaderTypeName(ShaderType type)
+		static const string& GetShaderTypeName(ShaderType type)
 		{
+			static string result{};
+
 			switch (type)
 			{
 			case ShaderType::Shader_Vertex:
-				return "vertex";
+				result = "vertex";
 			case ShaderType::Shader_Fragment:
-				return "fragment";
+				result = "fragment";
 			case ShaderType::Shader_Geometry:
-				return "geometry";
+				result = "geometry";
 			case ShaderType::Shader_Compute:
-				return "compute";
+				result = "compute";
 			case ShaderType::Shader_TessControl:
-				return "tesselation control";
+				result = "tesselation control";
 			case ShaderType::Shader_TessEvaluation:
-				return "tesselation evaluation";
+				result = "tesselation evaluation";
 
 			case ShaderType::Shader_RayGen:
-				return "raygen";
+				result = "raygen";
 			case ShaderType::Shader_AnyHit:
-				return "any hit";
+				result = "any hit";
 			case ShaderType::Shader_ClosestHit:
-				return "closest hit";
+				result = "closest hit";
 			case ShaderType::Shader_Miss:
-				return "miss";
+				result = "miss";
 			case ShaderType::Shader_Intersection:
-				return "intersection";
+				result = "intersection";
 			case ShaderType::Shader_Callable:
-				return "callable";
+				result = "callable";
 			case ShaderType::Shader_Task:
-				return "task";
+				result = "task";
 			case ShaderType::Shader_Mesh:
-				return "mesh";
+				result = "mesh";
 			}
 
-			return "";
+			return result;
 		}
 
 		const string& GetName() const { return name; }
@@ -360,7 +364,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 		Window* GetTargetWindow() { return targetWindow; }
 
-		VulkanShaderData& GetVulkanShaderUserStruct() { return vulkanShaderData; }
+		const VulkanShaderData& GetVulkanShaderUserStruct() const { return vulkanShaderData; }
 		void SetVulkanShaderUserStruct(const VulkanShaderData& newVulkanShaderData)
 		{
 			vulkanShaderData = newVulkanShaderData;
@@ -415,8 +419,10 @@ namespace KalaWindow::Graphics::Vulkan
 				2);
 			return 0;
 		}
-		string GetShaderPath(ShaderType type)
+		const string& GetShaderPath(ShaderType type) const
 		{
+			static string result{};
+
 			for (const auto& stage : shaders)
 			{
 				if (stage.shaderType == type)
@@ -433,7 +439,7 @@ namespace KalaWindow::Graphics::Vulkan
 				"SHADER_VULKAN",
 				LogType::LOG_ERROR,
 				2);
-			return "";
+			return result;
 		}
 
 		//Returns true if this shader is loaded

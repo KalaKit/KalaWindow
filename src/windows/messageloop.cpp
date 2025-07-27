@@ -205,7 +205,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	{
 		if (!windowPtr) continue;
 
-		WindowData& data = windowPtr->GetWindowData();
+		const WindowData& data = windowPtr->GetWindowData();
 		if (ToVar<HWND>(data.hwnd) == hwnd)
 		{
 			window = windowPtr;
@@ -635,7 +635,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_PAINT:
 	{
-		WindowData& win = window->GetWindowData();
+		const WindowData& win = window->GetWindowData();
 		HWND hwnd = ToVar<HWND>(win.hwnd);
 		
 		PAINTSTRUCT ps;

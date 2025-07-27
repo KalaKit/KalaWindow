@@ -200,9 +200,9 @@ namespace KalaWindow::Graphics
 		title = newTitle;
 	}
 
-	vec2 Window::GetSize()
+	vec2 Window::GetSize() const
 	{
-		WindowData& winData = GetWindowData();
+		const WindowData& winData = GetWindowData();
 		HWND hwnd = ToVar<HWND>(winData.hwnd);
 
 		UINT dpi = GetDpiForWindow(hwnd);
@@ -242,7 +242,7 @@ namespace KalaWindow::Graphics
 		size = newSize;
 	}
 
-	vec2 Window::GetPosition()
+	vec2 Window::GetPosition() const
 	{
 		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
@@ -259,7 +259,7 @@ namespace KalaWindow::Graphics
 		return vec2{ 0, 0 };
 	}
 
-	void Window::SetPosition(vec2 newPosition)
+	void Window::SetPosition(vec2 newPosition) const
 	{
 		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
@@ -296,7 +296,7 @@ namespace KalaWindow::Graphics
 		return IsWindowVisible(hwnd) == TRUE;
 	}
 
-	void Window::SetWindowState(WindowState state)
+	void Window::SetWindowState(WindowState state) const
 	{
 		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
@@ -358,11 +358,11 @@ namespace KalaWindow::Graphics
 
 	Window::~Window()
 	{
-		WindowData& win = GetWindowData();
+		WindowData win = GetWindowData();
 		HWND winRef = ToVar<HWND>(win.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
-		OpenGLData& openGLData = GetOpenGLData();
+		OpenGLData openGLData = GetOpenGLData();
 
 		if (openGLData.hglrc)
 		{

@@ -74,7 +74,7 @@ namespace KalaWindow::Graphics::Vulkan
 		VulkanData_Core vData{};
 
 #ifdef _WIN32
-		WindowData& window = targetWindow->GetWindowData();
+		const WindowData& window = targetWindow->GetWindowData();
 		HWND windowRef = ToVar<HWND>(window.hwnd);
 		HINSTANCE windowIns = ToVar<HINSTANCE>(window.hInstance);
 
@@ -124,15 +124,10 @@ namespace KalaWindow::Graphics::Vulkan
 		VkDevice dev = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
 		VkPhysicalDevice pDev = ToVar<VkPhysicalDevice>(Renderer_Vulkan::GetPhysicalDevice());
 
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		//surface capabilities
 
-#ifdef _WIN32
-		WindowData& win = window->GetWindowData();
-#elif __linux__
-		WindowData& win = window->GetWindowData();
-#endif
 		VkSurfaceKHR surfacePtr = ToVar<VkSurfaceKHR>(vData.surface);
 
 		VkSurfaceCapabilitiesKHR capabilities{};
@@ -345,8 +340,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 	void Extensions_Vulkan::DestroySwapchain(Window* window)
 	{
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		if (Renderer_Vulkan::GetDevice() != NULL)
 		{

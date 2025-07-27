@@ -198,7 +198,7 @@ namespace KalaWindow::Graphics::Vulkan
 		const string& shaderName,
 		const vector<ShaderStage>& shaderStages,
         Window* targetWindow,
-        VulkanShaderData shaderData)
+        const VulkanShaderData& shaderData)
 	{
         unique_ptr<Shader_Vulkan> newShader = make_unique<Shader_Vulkan>();
         Shader_Vulkan* shaderPtr = newShader.get();
@@ -280,7 +280,7 @@ namespace KalaWindow::Graphics::Vulkan
         bool vertShaderExists = !newVertStage.shaderPath.empty();
         bool fragShaderExists = !newFragStage.shaderPath.empty();
 
-        VulkanData_Core& vData = targetWindow->GetVulkanCoreData();
+        VulkanData_Core vData = targetWindow->GetVulkanCoreData();
 
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
         if (device == VK_NULL_HANDLE)
@@ -389,7 +389,7 @@ namespace KalaWindow::Graphics::Vulkan
 
         VulkanShaderVKData userShaderVKData = InitVulkanShaderData(shaderData);
 
-        VulkanShaderWindowData& vkWinData = targetWindow->GetVulkanShaderWindowStruct();
+        const VulkanShaderWindowData& vkWinData = targetWindow->GetVulkanShaderWindowStruct();
         VulkanShaderWindowVKData userShaderWindowVKData = InitVulkanShaderWindowData(vkWinData);
 
         pipelineInfo.pVertexInputState = userShaderVKData.vertexInputState;
@@ -444,7 +444,7 @@ namespace KalaWindow::Graphics::Vulkan
             return false;
         }
 
-        VulkanData_Core& vData = window->GetVulkanCoreData();
+        VulkanData_Core vData = window->GetVulkanCoreData();
 
         VkCommandBuffer cmd = ToVar<VkCommandBuffer>(commandBuffer);
         VkPipeline boundPipeline = ToVar<VkPipeline>(pipeline);
@@ -531,7 +531,7 @@ namespace KalaWindow::Graphics::Vulkan
                 });
         }
 
-        VulkanShaderData& thisShaderData = GetVulkanShaderUserStruct();
+        VulkanShaderData thisShaderData = GetVulkanShaderUserStruct();
         auto reloadedShader = Shader_Vulkan::CreateShader(
             name,
             stagesToReload,
@@ -570,9 +570,6 @@ namespace KalaWindow::Graphics::Vulkan
 
 	Shader_Vulkan::~Shader_Vulkan()
 	{
-        WindowData& wData = targetWindow->GetWindowData();
-        VulkanData_Core& vData = targetWindow->GetVulkanCoreData();
-
         VkDevice device = ToVar<VkDevice>(Renderer_Vulkan::GetDevice());
 
         if (pipeline)

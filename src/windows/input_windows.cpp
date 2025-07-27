@@ -33,7 +33,7 @@ namespace KalaWindow::Core
 		// MOUSE RAW INPUT
 		//
 
-		WindowData& win = window->GetWindowData();
+		const WindowData& win = window->GetWindowData();
 		HWND winRef = ToVar<HWND>(win.hwnd);
 
 		RAWINPUTDEVICE rid{};

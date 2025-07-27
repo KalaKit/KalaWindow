@@ -450,7 +450,7 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        OpenGLData& oData = targetWindow->GetOpenGLData();
+        OpenGLData oData = targetWindow->GetOpenGLData();
 
         unsigned int& lastProgramID = oData.lastProgramID;
         unsigned int ID = programID;

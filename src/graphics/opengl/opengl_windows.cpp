@@ -41,7 +41,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 		Window::SetOpenGLLib(FromVar(module));
 
-		WindowData& wData = targetWindow->GetWindowData();
+		const WindowData& wData = targetWindow->GetWindowData();
 		OpenGLData oData{};
 		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
@@ -207,7 +207,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		OpenGLData& oData = targetWindow->GetOpenGLData();
+		const OpenGLData& oData = targetWindow->GetOpenGLData();
 		HDC hdc = ToVar<HDC>(oData.hdc);
 		SwapBuffers(hdc);
 	}

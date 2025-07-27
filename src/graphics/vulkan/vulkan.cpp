@@ -157,6 +157,8 @@ namespace KalaWindow::Graphics::Vulkan
 
 	bool Renderer_Vulkan::EnableLayer(VulkanLayers layer)
 	{
+		//TODO: CHECK IF ALLOWED LAYERS LIST IS ALSO COMPARED TO THIS
+
 		const char* name = ToString(layer);
 
 		if (!isVolkInitialized
@@ -211,6 +213,8 @@ namespace KalaWindow::Graphics::Vulkan
 
 	bool Renderer_Vulkan::EnableInstanceExtension(VulkanInstanceExtensions ext)
 	{
+		//TODO: CHECK IF ALLOWED EXTENSIONS LIST IS ALSO COMPARED TO THIS
+
 		const char* name = ToString(ext);
 
 		if (!isVolkInitialized
@@ -271,6 +275,8 @@ namespace KalaWindow::Graphics::Vulkan
 
 	bool Renderer_Vulkan::EnableDeviceExtension(VulkanDeviceExtensions ext)
 	{
+		//TODO: CHECK IF ALLOWED EXTENSIONS LIST IS ALSO COMPARED TO THIS
+
 		const char* name = ToString(ext);
 
 		if (!isVolkInitialized
@@ -602,7 +608,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -648,8 +654,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		if (!IsValidIndex(
 			0,
@@ -726,8 +731,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		if (!IsValidIndex(
 			0,
@@ -845,7 +849,8 @@ namespace KalaWindow::Graphics::Vulkan
 
 				VkDevice d = ToVar<VkDevice>(device);
 
-				VulkanData_Core& vData = window->GetVulkanCoreData();
+				VulkanData_Core vData = window->GetVulkanCoreData();
+
 				{
 					VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
 
@@ -929,7 +934,7 @@ namespace KalaWindow::Graphics::Vulkan
 					return false;
 				}
 
-				VulkanData_Core& vData = window->GetVulkanCoreData();
+				const VulkanData_Core& vData = window->GetVulkanCoreData();
 
 				VkFence fence = ToVar<VkFence>(vData.inFlightFences[currentFrame]);
 
@@ -1026,7 +1031,7 @@ namespace KalaWindow::Graphics::Vulkan
 					return false;
 				}
 
-				VulkanData_Core& vData = window->GetVulkanCoreData();
+				const VulkanData_Core& vData = window->GetVulkanCoreData();
 
 				VkSubmitInfo submitInfo{};
 				submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -1089,7 +1094,7 @@ namespace KalaWindow::Graphics::Vulkan
 					return FrameResult::VK_FRAME_ERROR;
 				}
 
-				VulkanData_Core& vData = window->GetVulkanCoreData();
+				const VulkanData_Core& vData = window->GetVulkanCoreData();
 
 				VkSemaphore realFinishedSemaphore =
 					ToVar<VkSemaphore>(vData.renderFinishedSemaphores[imageIndex]);
@@ -1161,8 +1166,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return;
 		}
 
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
@@ -1247,8 +1251,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		VkAttachmentDescription colorAttachment{};
 		colorAttachment.format = static_cast<VkFormat>(vData.swapchainImageFormat);
@@ -1327,8 +1330,7 @@ namespace KalaWindow::Graphics::Vulkan
 			return false;
 		}
 
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		vData.framebuffers.resize(vData.imageViews.size());
 
@@ -1372,8 +1374,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 	void Renderer_Vulkan::DestroySyncObjects(Window* window)
 	{
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		if (device)
 		{
@@ -1405,8 +1406,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (device) vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
-		WindowData& winData = window->GetWindowData();
-		VulkanData_Core& vData = window->GetVulkanCoreData();
+		VulkanData_Core vData = window->GetVulkanCoreData();
 
 		DestroySyncObjects(window);
 		Extensions_Vulkan::DestroySwapchain(window);

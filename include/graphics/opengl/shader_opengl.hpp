@@ -94,7 +94,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		unsigned int GetProgramID() const { return programID; }
 
-		vector<ShaderStage> GetAllShaders() const { return shaders; }
+		const vector<ShaderStage>& GetAllShaders() const { return shaders; }
 
 		void SetShaderPath(
 			const string& path,
@@ -139,8 +139,10 @@ namespace KalaWindow::Graphics::OpenGL
 				2);
 			return 0;
 		}
-		string GetShaderPath(ShaderType type) const
+		const string& GetShaderPath(ShaderType type) const
 		{
+			static string shaderPath{};
+
 			for (const auto& stage : shaders)
 			{
 				if (stage.shaderType == type)
@@ -157,7 +159,7 @@ namespace KalaWindow::Graphics::OpenGL
 				"SHADER_OPENGL",
 				LogType::LOG_ERROR,
 				2);
-			return "";
+			return shaderPath;
 		}
 
 		//Returns true if this shader is loaded
