@@ -158,7 +158,7 @@ namespace KalaWindow::Graphics
 		TextureFormat GetFormat() const { return format; }
 		TextureUsage GetUsage() const { return usage; }
 
-		virtual ~Texture() = 0;
+		virtual ~Texture() {};
 	private:
 		string name{};
 		string path{};

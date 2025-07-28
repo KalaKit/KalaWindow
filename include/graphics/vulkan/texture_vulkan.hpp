@@ -1,0 +1,37 @@
+//Copyright(C) 2025 Lost Empire Entertainment
+//This program comes with ABSOLUTELY NO WARRANTY.
+//This is free software, and you are welcome to redistribute it under certain conditions.
+//Read LICENSE.md for more information.
+
+#pragma once
+
+#include "graphics/texture.hpp"
+
+namespace KalaWindow::Graphics::Vulkan
+{
+	class Texture_Vulkan : public Texture
+	{
+	public:
+		virtual Texture* LoadTexture(
+			const string& name,
+			const string& path,
+			TextureType type,
+			TextureFormat format,
+			TextureUsage usage,
+			vec2 size = vec2(0),
+			u16 depth = 1,
+			u8 mipMapLevels = 1) override {};
+
+		virtual void HotReload() override {};
+
+		uintptr_t GetImage() const { return image; }
+		uintptr_t Getview() const { return view; }
+		uintptr_t GetSampler() const { return sampler; }
+
+		~Texture_Vulkan() override {};
+	private:
+		uintptr_t image{};   //VkImage
+		uintptr_t view{};    //VkImageView
+		uintptr_t sampler{}; //VkSampler
+	};
+}
