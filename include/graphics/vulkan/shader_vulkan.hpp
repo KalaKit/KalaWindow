@@ -273,6 +273,9 @@ namespace KalaWindow::Graphics::Vulkan
 	public:
 		static inline unordered_map<string, unique_ptr<Shader_Vulkan>> createdShaders{};
 
+		//TODO: ENSURE RUNTIME SHADERS ARE CORRECTLY USED AND WE DONT ABUSE CREATEDSHADERS MAP
+		static inline vector<Shader_Vulkan*> runtimeShaders{};
+
 		//Compiles raw .vert, .frag etc shader files into .spv shader files,
 		//should be called BEFORE CreateShader or else CreateShader will not work if spv shaders are missing.
 		//  - compiles if no spv files exist of the same name

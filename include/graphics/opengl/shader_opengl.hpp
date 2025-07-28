@@ -42,6 +42,9 @@ namespace KalaWindow::Graphics::OpenGL
 	public:
 		static inline unordered_map<string, unique_ptr<Shader_OpenGL>> createdShaders{};
 
+		//TODO: ENSURE RUNTIME SHADERS ARE CORRECTLY USED AND WE DONT ABUSE CREATEDSHADERS MAP
+		static inline vector<Shader_OpenGL*> runtimeShaders{};
+
 		static Shader_OpenGL* CreateShader(
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages,
