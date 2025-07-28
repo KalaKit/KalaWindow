@@ -11,6 +11,19 @@
 #endif
 
 //
+// DEBUGGING
+//
+
+//Set OpenGL debug callback
+void (K_APIENTRY* glDebugMessageCallback)(
+	GLDEBUGPROC callback,
+	const void* userParam);
+
+//Enable an OpenGL capability
+void (K_APIENTRY* glEnable)(
+	GLenum cap);
+
+//
 // GEOMETRY
 //
 

@@ -7,9 +7,11 @@
 #include <string_view>
 #include <string>
 #include <format>
+#include <sstream>
 
 #include "graphics/opengl/opengl_core.hpp"
 #include "graphics/window.hpp"
+#include "core/log.hpp"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -25,13 +27,103 @@ using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Core::Logger;
+using KalaWindow::Core::LogType;
 
 using std::unordered_map;
 using std::string_view;
 using std::string;
+using std::to_string;
 using std::format;
+using std::stringstream;
 
 HMODULE module{};
+
+void DebugCallback(
+	GLenum source,
+	GLenum type,
+	GLuint id,
+	GLenum severity,
+	GLsizei length,
+	const char* message,
+	const void* userParam)
+{
+	auto GetSourceStr = [](GLenum source)
+		{
+			switch (source)
+			{
+			default:return "UNKNOWN";
+
+			case GL_DEBUG_SOURCE_API:
+				return "API";
+			case GL_DEBUG_SOURCE_WINDOW_SYSTEM:
+				return "WINDOW_SYSTEM";
+			case GL_DEBUG_SOURCE_SHADER_COMPILER:
+				return "SHADER_COMPILER";
+			case GL_DEBUG_SOURCE_THIRD_PARTY:
+				return "THIRD_PARTY";
+			case GL_DEBUG_SOURCE_APPLICATION:
+				return "APPLICATION";
+			case GL_DEBUG_SOURCE_OTHER:
+				return "OTHER";
+			}
+		};
+
+	auto GetTypeStr = [](GLenum type)
+		{
+			switch (type)
+			{
+			default: return "UNKNOWN";
+			case GL_DEBUG_TYPE_ERROR:
+				return "ERROR";
+			case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+				return "DEPRECATED";
+			case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+				return "UNDEFINED";
+			case GL_DEBUG_TYPE_PORTABILITY:
+				return "PORTABILITY";
+			case GL_DEBUG_TYPE_PERFORMANCE:
+				return "PERFORMANCE";
+			case GL_DEBUG_TYPE_MARKER:
+				return "MARKER";
+			case GL_DEBUG_TYPE_PUSH_GROUP:
+				return "PUSH_GROUP";
+			case GL_DEBUG_TYPE_POP_GROUP:
+				return "POP_GROUP";
+			case GL_DEBUG_TYPE_OTHER:
+				return "OTHER";
+			}
+		};
+
+	auto GetSeverityStr = [](GLenum severity)
+		{
+			switch (severity)
+			{
+			default: return "UNKNOWN";
+
+			case GL_DEBUG_SEVERITY_HIGH:
+				return "HIGH";
+			case GL_DEBUG_SEVERITY_MEDIUM:
+				return "MEDIUM";
+			case GL_DEBUG_SEVERITY_LOW:
+				return "LOW";
+			case GL_DEBUG_SEVERITY_NOTIFICATION:
+				return "NOTIFICATION";
+			}
+		};
+
+	stringstream ss{};
+	ss << "\nSource: " << GetSourceStr(source)
+		<< "\nType: " << GetTypeStr(type)
+		<< "\nSeverity: " << GetSeverityStr(severity)
+		<< "\nID: " << to_string(id)
+		<< "\nMessage: " << message << "\n";
+
+	Logger::Print(
+		ss.str(),
+		"OPENGL DEBUG MESSAGE",
+		LogType::LOG_DEBUG);
+}
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -65,6 +157,11 @@ namespace KalaWindow::Graphics::OpenGL
 
 	static FunctionEntry functionTable[] =
 	{
+		//debugging
+
+		FN_ENTRY(glDebugMessageCallback,  TrapType::Void),
+		FN_ENTRY(glEnable,                TrapType::Void),
+
 		//geometry
 
 		FN_ENTRY(glBindBuffer,            TrapType::Void),
