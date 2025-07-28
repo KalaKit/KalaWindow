@@ -25,6 +25,7 @@
 #include "graphics/vulkan/shader_vulkan.hpp"
 #include "core/log.hpp"
 #include "core/core.hpp"
+#include "core/containers.hpp"
 
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Vulkan::VulkanLayers;
@@ -989,7 +990,7 @@ namespace KalaWindow::Graphics::Vulkan
 					&renderPassInfo,
 					VK_SUBPASS_CONTENTS_INLINE);
 
-				for (auto& [name, shaderPtr] : Shader_Vulkan::createdShaders)
+				for (auto& [name, shaderPtr] : createdVulkanShaders)
 				{
 					shaderPtr->Bind(
 						reinterpret_cast<uintptr_t>(cmd),
@@ -1457,13 +1458,13 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (device) vkDeviceWaitIdle(ToVar<VkDevice>(device));
 
-		for (const auto& window : Window::runtimeWindows)
+		for (const auto& window : runtimeWindows)
 		{
 			Window* win = window;
 			DestroyWindowData(win);
 		}
 
-		Shader_Vulkan::createdShaders.clear();
+		createdVulkanShaders.clear();
 
 		if (device)
 		{

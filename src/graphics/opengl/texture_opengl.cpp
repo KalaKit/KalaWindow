@@ -17,6 +17,7 @@
 #include "graphics/opengl/opengl_core.hpp"
 #include "core/core.hpp"
 #include "core/log.hpp"
+#include "core/containers.hpp"
 
 using KalaWindow::Graphics::Texture;
 using KalaWindow::Core::KalaWindowCore;
@@ -70,7 +71,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (result == TextureCheckResult::RESULT_INVALID) return nullptr;
 		else if (result == TextureCheckResult::RESULT_ALREADY_EXISTS)
 		{
-			return Texture::createdOpenGLTextures[name].get();
+			return createdOpenGLTextures[name].get();
 		}
 
 		Logger::Print(
@@ -141,10 +142,10 @@ namespace KalaWindow::Graphics::OpenGL
 			"TEXTURE",
 			LogType::LOG_SUCCESS);
 
-		Texture::createdOpenGLTextures[name] = move(tex);
-		Texture::runtimeOpenGLTextures.push_back(Texture::createdOpenGLTextures[name].get());
+		createdOpenGLTextures[name] = move(tex);
+		runtimeOpenGLTextures.push_back(createdOpenGLTextures[name].get());
 
-		return Texture::createdOpenGLTextures[name].get();
+		return createdOpenGLTextures[name].get();
 	}
 
 	void Texture_OpenGL::HotReload()
@@ -233,7 +234,7 @@ TextureCheckResult IsValidTexture(
 
 	//pass existing texture if one with the same name or path already exists
 
-	for (const auto& [key, value] : Texture::createdOpenGLTextures)
+	for (const auto& [key, value] : createdOpenGLTextures)
 	{
 		if (key == textureName)
 		{

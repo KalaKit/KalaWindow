@@ -5,11 +5,12 @@
 
 #pragma once
 
+#include "core/platform.hpp"
 #include "graphics/texture.hpp"
 
 namespace KalaWindow::Graphics::Vulkan
 {
-	class Texture_Vulkan : public Texture
+	class KALAWINDOW_API Texture_Vulkan : public Texture
 	{
 	public:
 		virtual Texture* LoadTexture(

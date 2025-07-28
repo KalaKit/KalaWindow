@@ -16,6 +16,7 @@
 #include "graphics/vulkan/texture_vulkan.hpp"
 #include "core/core.hpp"
 #include "core/log.hpp"
+#include "core/containers.hpp"
 
 using KalaWindow::Graphics::Texture;
 using KalaWindow::Core::KalaWindowCore;
@@ -151,7 +152,7 @@ TextureCheckResult IsValidTexture(
 
 	//pass existing texture if one with the same name or path already exists
 
-	for (const auto& [key, value] : Texture::createdVulkanTextures)
+	for (const auto& [key, value] : createdVulkanTextures)
 	{
 		if (key == textureName)
 		{

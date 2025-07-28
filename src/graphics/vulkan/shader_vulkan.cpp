@@ -12,6 +12,7 @@
 #include <sstream>
 #include <cassert>
 #include <stdexcept>
+#include <memory>
 
 #define VK_NO_PROTOTYPES
 #include <Volk/volk.h>
@@ -22,6 +23,7 @@
 #include "graphics/window.hpp"
 #include "core/log.hpp"
 #include "core/core.hpp"
+#include "core/containers.hpp"
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::Logger;
@@ -75,6 +77,7 @@ using std::stringstream;
 using std::exception;
 using std::system;
 using std::error_code;
+using std::unique_ptr;
 
 static bool glslangValidatorExists = false;
 
@@ -116,6 +119,33 @@ static VulkanShaderWindowVKData InitVulkanShaderWindowData(VulkanShaderWindowDat
 
 namespace KalaWindow::Graphics::Vulkan
 {
+    void Shader_Vulkan::SetName(const string& newName)
+    {
+        if (newName.empty())
+        {
+            Logger::Print(
+                "Cannot set shader name to empty name!",
+                "SHADER_VULKAN",
+                LogType::LOG_ERROR,
+                2);
+            return;
+        }
+        for (const auto& createdShader : createdVulkanShaders)
+        {
+            string thisName = createdShader.first.c_str();
+            if (newName == thisName)
+            {
+                Logger::Print(
+                    "Cannot set shader name to already existing shader name '" + thisName + "'!",
+                    "SHADER_VULKAN",
+                    LogType::LOG_ERROR,
+                    2);
+                return;
+            }
+        }
+        name = newName;
+    }
+
     bool Shader_Vulkan::CompileShader(
         const vector<string>& originShaderPaths,
         const vector<string>& targetShaderPaths,
@@ -215,7 +245,7 @@ namespace KalaWindow::Graphics::Vulkan
                 2);
             return nullptr;
         }
-        for (const auto& [key, _] : createdShaders)
+        for (const auto& [key, _] : createdVulkanShaders)
         {
             if (key == shaderName)
             {
@@ -426,7 +456,8 @@ namespace KalaWindow::Graphics::Vulkan
 
         newShader->name = shaderName;
         newShader->targetWindow = targetWindow;
-        createdShaders[shaderName] = move(newShader);
+        createdVulkanShaders[shaderName] = move(newShader);
+        runtimeVulkanShaders.push_back(shaderPtr);
 
         return shaderPtr;
 	}

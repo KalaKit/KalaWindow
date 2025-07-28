@@ -19,6 +19,7 @@
 #include "graphics/opengl/shader_opengl.hpp"
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/texture.hpp"
+#include "core/containers.hpp"
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
@@ -133,18 +134,18 @@ namespace KalaWindow::Core
 				2);
 		}
 
-		Texture::createdOpenGLTextures.clear();
-		Texture::createdVulkanTextures.clear();
+		createdOpenGLTextures.clear();
+		createdVulkanTextures.clear();
 		if (Renderer_Vulkan::IsVulkanInitialized())
 		{
 			Renderer_Vulkan::Shutdown();
 		}
 		if (Renderer_OpenGL::IsInitialized())
 		{
-			Shader_OpenGL::createdShaders.clear();
+			createdOpenGLShaders.clear();
 		}
 
-		Window::createdWindows.clear();
+		createdWindows.clear();
 
 #ifdef _WIN32
 		timeEndPeriod(1);

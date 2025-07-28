@@ -24,6 +24,7 @@
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "core/log.hpp"
+#include "core/containers.hpp"
 
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;

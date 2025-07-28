@@ -23,6 +23,7 @@
 #include "core/input.hpp"
 #include "core/log.hpp"
 #include "core/core.hpp"
+#include "core/containers.hpp"
 
 #include "graphics/opengl/opengl_core.hpp"
 #include "graphics/opengl/opengl.hpp"
@@ -201,7 +202,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	LPARAM lParam)
 {
 	Window* window{};
-	for (auto& windowPtr : Window::runtimeWindows)
+	for (auto& windowPtr : runtimeWindows)
 	{
 		if (!windowPtr) continue;
 

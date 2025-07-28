@@ -6,9 +6,6 @@
 #pragma once
 
 #include <string>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 #include <functional>
 #include <variant>
 
@@ -25,9 +22,6 @@ namespace KalaWindow::Graphics::Vulkan
 	using KalaWindow::Graphics::Window;
 
 	using std::string;
-	using std::unique_ptr;
-	using std::unordered_map;
-	using std::vector;
 	using std::function;
 	using std::variant;
 
@@ -271,11 +265,6 @@ namespace KalaWindow::Graphics::Vulkan
 	class KALAWINDOW_API Shader_Vulkan
 	{
 	public:
-		static inline unordered_map<string, unique_ptr<Shader_Vulkan>> createdShaders{};
-
-		//TODO: ENSURE RUNTIME SHADERS ARE CORRECTLY USED AND WE DONT ABUSE CREATEDSHADERS MAP
-		static inline vector<Shader_Vulkan*> runtimeShaders{};
-
 		//Compiles raw .vert, .frag etc shader files into .spv shader files,
 		//should be called BEFORE CreateShader or else CreateShader will not work if spv shaders are missing.
 		//  - compiles if no spv files exist of the same name
@@ -348,32 +337,7 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		const string& GetName() const { return name; }
-		void SetName(const string& newName)
-		{
-			if (newName.empty())
-			{
-				Logger::Print(
-					"Cannot set shader name to empty name!",
-					"SHADER_VULKAN",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
-			for (const auto& createdShader : createdShaders)
-			{
-				string thisName = createdShader.first.c_str();
-				if (newName == thisName)
-				{
-					Logger::Print(
-						"Cannot set shader name to already existing shader name '" + thisName + "'!",
-						"SHADER_VULKAN",
-						LogType::LOG_ERROR,
-						2);
-					return;
-				}
-			}
-			name = newName;
-		}
+		void SetName(const string& newName);
 
 		//Assign new draw commands to be used right after Bind.
 		void SetDrawCommands(const function<void()>& newDrawCommands) { drawCommands = newDrawCommands; }

@@ -6,10 +6,8 @@
 #pragma once
 
 #include <string>
-#include <memory>
-#include <vector>
 #include <functional>
-#include <unordered_map>
+#include <vector>
 
 #include "core/platform.hpp"
 
@@ -19,10 +17,8 @@ namespace KalaWindow::Graphics
 	//USER RESOLUTION WHILE WINDOW RESOLUTION SCALES DYNAMICALLY
 
 	using std::string;
-	using std::unique_ptr;
-	using std::vector;
 	using std::function;
-	using std::unordered_map;
+	using std::vector;
 
 	//Supported states the window can go to
 	enum class WindowState
@@ -215,11 +211,6 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Window
 	{
 	public:
-		//All created windows are stored here.
-		static inline unordered_map<string, unique_ptr<Window>> createdWindows{};
-
-		static inline vector<Window*> runtimeWindows{};
-
 		static Window* Initialize(
 			const string& title,
 			vec2 size);

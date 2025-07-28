@@ -6,9 +6,6 @@
 #pragma once
 
 #include <string>
-#include <memory>
-#include <unordered_map>
-#include <vector>
 
 #include "core/platform.hpp"
 #include "core/log.hpp"
@@ -20,8 +17,6 @@ namespace KalaWindow::Graphics::OpenGL
 	using KalaWindow::Core::LogType;
 
 	using std::string;
-	using std::unordered_map;
-	using std::vector;
 
 	enum class ShaderType
 	{
@@ -40,11 +35,6 @@ namespace KalaWindow::Graphics::OpenGL
 	class KALAWINDOW_API Shader_OpenGL
 	{
 	public:
-		static inline unordered_map<string, unique_ptr<Shader_OpenGL>> createdShaders{};
-
-		//TODO: ENSURE RUNTIME SHADERS ARE CORRECTLY USED AND WE DONT ABUSE CREATEDSHADERS MAP
-		static inline vector<Shader_OpenGL*> runtimeShaders{};
-
 		static Shader_OpenGL* CreateShader(
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages,
@@ -66,32 +56,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		const string& GetName() const { return name; }
-		void SetName(const string& newName)
-		{
-			if (newName.empty())
-			{
-				Logger::Print(
-					"Cannot set shader name to empty name!",
-					"SHADER_OPENGL",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
-			for (const auto& createdShader : createdShaders)
-			{
-				string thisName = createdShader.first.c_str();
-				if (newName == thisName)
-				{
-					Logger::Print(
-						"Cannot set shader name to already existing shader name '" + thisName + "'!",
-						"SHADER_OPENGL",
-						LogType::LOG_ERROR,
-						2);
-					return;
-				}
-			}
-			name = newName;
-		}
+		void SetName(const string& newName);
 
 		Window* GetTargetWindow() const { return targetWindow; }
 

@@ -15,6 +15,7 @@
 #include "graphics/opengl/opengl_core.hpp"
 #include "core/log.hpp"
 #include "core/core.hpp"
+#include "core/containers.hpp"
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::Logger;
@@ -54,6 +55,33 @@ static bool InitShader(
 
 namespace KalaWindow::Graphics::OpenGL
 {
+    void Shader_OpenGL::SetName(const string& newName)
+    {
+        if (newName.empty())
+        {
+            Logger::Print(
+                "Cannot set shader name to empty name!",
+                "SHADER_OPENGL",
+                LogType::LOG_ERROR,
+                2);
+            return;
+        }
+        for (const auto& createdShader : createdOpenGLShaders)
+        {
+            string thisName = createdShader.first.c_str();
+            if (newName == thisName)
+            {
+                Logger::Print(
+                    "Cannot set shader name to already existing shader name '" + thisName + "'!",
+                    "SHADER_OPENGL",
+                    LogType::LOG_ERROR,
+                    2);
+                return;
+            }
+        }
+        name = newName;
+    }
+
     Shader_OpenGL* Shader_OpenGL::CreateShader(
         const string& shaderName,
         const vector<ShaderStage>& shaderStages,
@@ -76,7 +104,7 @@ namespace KalaWindow::Graphics::OpenGL
         if (result == ShaderCheckResult::RESULT_INVALID) return nullptr;
         else if (result == ShaderCheckResult::RESULT_ALREADY_EXISTS)
         {
-            return createdShaders[shaderName].get();
+            return createdOpenGLShaders[shaderName].get();
         }
 
         unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
@@ -423,7 +451,8 @@ namespace KalaWindow::Graphics::OpenGL
 
         newShader->name = shaderName;
         newShader->targetWindow = newWindow;
-        createdShaders[shaderName] = move(newShader);
+        createdOpenGLShaders[shaderName] = move(newShader);
+        runtimeOpenGLShaders.push_back(shaderPtr);
 
         return shaderPtr;
     }
@@ -885,7 +914,7 @@ ShaderCheckResult IsShaderValid(
 
     //pass existing one if shader with same name already exists
 
-    for (const auto& [key, _] : Shader_OpenGL::createdShaders)
+    for (const auto& [key, _] : createdOpenGLShaders)
     {
         if (key == shaderName)
         {

@@ -5,11 +5,12 @@
 
 #pragma once
 
+#include "core/platform.hpp"
 #include "graphics/texture.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	class Texture_OpenGL : public Texture
+	class KALAWINDOW_API Texture_OpenGL : public Texture
 	{
 	public:
 		virtual Texture* LoadTexture(
