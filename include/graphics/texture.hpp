@@ -12,11 +12,15 @@
 
 #include "core/platform.hpp"
 #include "core/log.hpp"
+#include "graphics/opengl/texture_opengl.hpp"
+#include "graphics/vulkan/texture_vulkan.hpp"
 
 namespace KalaWindow::Graphics
 {
 	using KalaWindow::Core::Logger;
 	using KalaWindow::Core::LogType;
+	using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
+	using KalaWindow::Graphics::Vulkan::Texture_Vulkan;
 
 	using std::string;
 	using std::unordered_map;
@@ -90,9 +94,11 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Texture
 	{
 	public:
-		static inline unordered_map<string, unique_ptr<Texture>> createdTextures{};
+		static inline unordered_map<string, unique_ptr<Texture_OpenGL>> createdOpenGLTextures{};
+		static inline unordered_map<string, unique_ptr<Texture_Vulkan>> createdVulkanTextures{};
 
-		static inline vector<Texture*> runtimeTextures{};
+		static inline vector<Texture_OpenGL*> runtimeOpenGLTextures{};
+		static inline vector<Texture_Vulkan*> runtimeVulkanTextures{};
  
 		//Load a texture from the chosen path.
 		//Leaving size as vec2(0) will get the default texture size in its file

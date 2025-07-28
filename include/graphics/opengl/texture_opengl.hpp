@@ -20,13 +20,14 @@ namespace KalaWindow::Graphics::OpenGL
 			TextureUsage usage,
 			vec2 size = vec2(0),
 			u16 depth = 1,
-			u8 mipMapLevels = 1) override {};
+			u8 mipMapLevels = 1) override;
 
-		virtual void HotReload() override {};
+		virtual void HotReload() override;
 
 		u32 GetID() const { return id; }
+		void SetID(u32 newID) { id = newID; }
 
-		~Texture_OpenGL() override {};
+		~Texture_OpenGL() override;
 	private:
 		u32 id = 0;
 	};

@@ -133,7 +133,8 @@ namespace KalaWindow::Core
 				2);
 		}
 
-		Texture::createdTextures.clear();
+		Texture::createdOpenGLTextures.clear();
+		Texture::createdVulkanTextures.clear();
 		if (Renderer_Vulkan::IsVulkanInitialized())
 		{
 			Renderer_Vulkan::Shutdown();

@@ -20,15 +20,15 @@ namespace KalaWindow::Graphics::Vulkan
 			TextureUsage usage,
 			vec2 size = vec2(0),
 			u16 depth = 1,
-			u8 mipMapLevels = 1) override {};
+			u8 mipMapLevels = 1) override;
 
-		virtual void HotReload() override {};
+		virtual void HotReload() override;
 
 		uintptr_t GetImage() const { return image; }
 		uintptr_t Getview() const { return view; }
 		uintptr_t GetSampler() const { return sampler; }
 
-		~Texture_Vulkan() override {};
+		~Texture_Vulkan() override;
 	private:
 		uintptr_t image{};   //VkImage
 		uintptr_t view{};    //VkImageView
