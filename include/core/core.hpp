@@ -12,6 +12,8 @@
 
 namespace KalaWindow::Core
 {
+	//TODO: INTEGRATE KALACRASHHANDLER NATIVELY WITH KALAWINDOW
+
 	using std::string;
 	using std::function;
 
