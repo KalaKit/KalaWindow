@@ -135,10 +135,6 @@ namespace KalaWindow::Graphics
 				+ ": "
 				+ (errorMsg ? errorMsg : "Unknown");
 
-			KalaWindowCore::ForceClose(
-				"Window Error",
-				message);
-
 			if (errorMsg) LocalFree(errorMsg);
 
 			string title = "Window error";
