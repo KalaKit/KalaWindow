@@ -96,7 +96,7 @@ struct VulkanShaderVKData
     VkPipelineColorBlendStateCreateInfo* colorBlendState{};
 };
 
-static vector<uint32_t> ReadFileBinary(const string& filePath);
+static vector<u32> ReadFileBinary(const string& filePath);
 
 static bool InitShader(
     ShaderType type,
@@ -147,6 +147,7 @@ namespace KalaWindow::Graphics::Vulkan
                 if (!exists(spv)) shouldCompile = true;
                 else
                 {
+                    //TODO: INVESTIGATE IF THIS IS ACTUALLY CORRECTLY COMPARING LAST WRITE TIME
                     auto srcTime = last_write_time(src);
                     auto spvTime = last_write_time(spv);
                     upToDate = srcTime > spvTime;
@@ -381,7 +382,7 @@ namespace KalaWindow::Graphics::Vulkan
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = static_cast<uint32_t>(shaderStageCreateInfos.size());
+        pipelineInfo.stageCount = static_cast<u32>(shaderStageCreateInfos.size());
         pipelineInfo.pStages = shaderStageCreateInfos.data();
         pipelineInfo.layout = ToVar<VkPipelineLayout>(shaderPtr->layout);
         pipelineInfo.renderPass = ToVar<VkRenderPass>(vData.renderPass);
@@ -464,8 +465,8 @@ namespace KalaWindow::Graphics::Vulkan
         {
             0.0f,
             0.0f,
-            float(currentExtent.width),
-            float(currentExtent.height),
+            f32(currentExtent.width),
+            f32(currentExtent.height),
             0.0f,
             1.0f
         };
@@ -561,8 +562,8 @@ namespace KalaWindow::Graphics::Vulkan
     void Shader_Vulkan::SetPushConstant(
         uintptr_t cmdBuffer,
         uintptr_t layout,
-        uint32_t stageFlags,
-        uint32_t offset,
+        u32 stageFlags,
+        u32 offset,
         const PushConstantValue& value)
     {
         //TODO: finish this + update the opengl version to this system as well
@@ -600,7 +601,7 @@ namespace KalaWindow::Graphics::Vulkan
 	}
 }
 
-vector<uint32_t> ReadFileBinary(const string& filePath)
+vector<u32> ReadFileBinary(const string& filePath)
 {
     ifstream file(filePath, ios::ate | ios::binary);
     if (!file.is_open()) return {};
@@ -625,7 +626,7 @@ vector<uint32_t> ReadFileBinary(const string& filePath)
         return {};
     }
 
-    vector<uint32_t> buffer(size / 4);
+    vector<u32> buffer(size / 4);
     file.seekg(0);
     file.read(reinterpret_cast<char*>(buffer.data()), size);
     file.close();
@@ -679,7 +680,7 @@ bool InitShader(
 
     VkShaderModuleCreateInfo createInfo{};
     createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    createInfo.codeSize = code.size() * sizeof(uint32_t);
+    createInfo.codeSize = code.size() * sizeof(u32);
     createInfo.pCode = code.data();
 
     auto ptrHex = format("{:#x}", reinterpret_cast<uintptr_t>(createInfo.pCode));
@@ -701,7 +702,7 @@ bool InitShader(
 
     auto resHex = format(
         "{:#x}",
-        static_cast<int>(res));
+        static_cast<i32>(res));
     auto moduleHex = format(
         "{:#x}",
         reinterpret_cast<uintptr_t>(shaderModule));
@@ -788,7 +789,7 @@ bool CompileToSPV(
         return false;
     }
 
-    int glslResult = system(glslCommand.c_str());
+    i32 glslResult = system(glslCommand.c_str());
     if (glslResult != 0)
     {
         string title = "Vulkan Shader Error";
@@ -816,14 +817,14 @@ VulkanShaderVKData InitVulkanShaderData(VulkanShaderData userData)
         .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
         .pNext = NULL,
         .flags = 0,
-        .vertexBindingDescriptionCount = static_cast<uint32_t>(
+        .vertexBindingDescriptionCount = static_cast<u32>(
             userData.userVertexInputState.pVertexBindingDescriptions.size()),
         .pVertexBindingDescriptions =
             userData.userVertexInputState.pVertexBindingDescriptions.empty()
             ? nullptr
             : reinterpret_cast<const VkVertexInputBindingDescription*>(
                 userData.userVertexInputState.pVertexBindingDescriptions.data()),
-        .vertexAttributeDescriptionCount = static_cast<uint32_t>(
+        .vertexAttributeDescriptionCount = static_cast<u32>(
             userData.userVertexInputState.pVertexAttributeDescriptions.size()),
         .pVertexAttributeDescriptions =
             userData.userVertexInputState.pVertexAttributeDescriptions.empty()

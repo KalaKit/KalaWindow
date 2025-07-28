@@ -44,13 +44,13 @@ static ShaderCheckResult IsShaderValid(
     const string& shaderName,
     const vector<ShaderStage>& shaderStages);
 
-static bool CheckCompileErrors(GLuint shader, const string& type);
+static bool CheckCompileErrors(u32 shader, const string& type);
 
 static bool InitShader(
     ShaderType type,
     const string& shaderPath,
-    unsigned int& programID,
-    unsigned int& shaderID);
+    u32& programID,
+    u32& shaderID);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -224,7 +224,7 @@ namespace KalaWindow::Graphics::OpenGL
         }
         glLinkProgram(shaderPtr->programID);
 
-        GLint success = 0;
+        i32 success = 0;
         glGetProgramiv(
             shaderPtr->programID, 
             GL_LINK_STATUS, 
@@ -254,7 +254,7 @@ namespace KalaWindow::Graphics::OpenGL
                 glDeleteShader(newGeomStage.shaderID);
             }
 
-            GLint logLength = 0;
+            i32 logLength = 0;
             glGetProgramiv(
                 shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
@@ -303,7 +303,7 @@ namespace KalaWindow::Graphics::OpenGL
 
         //validate the shader program before using it
         glValidateProgram(shaderPtr->programID);
-        GLint validated = 0;
+        i32 validated = 0;
         glGetProgramiv(
             shaderPtr->programID, 
             GL_VALIDATE_STATUS, 
@@ -328,7 +328,7 @@ namespace KalaWindow::Graphics::OpenGL
                 glDeleteShader(newGeomStage.shaderID);
             }
 
-            GLint logLength = 0;
+            i32 logLength = 0;
             glGetProgramiv(
                 shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
@@ -358,7 +358,7 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        GLint valid = glIsProgram(shaderPtr->programID);
+        i32 valid = glIsProgram(shaderPtr->programID);
         bool isProgramValid = valid == GL_TRUE;
         if (!isProgramValid)
         {
@@ -452,8 +452,8 @@ namespace KalaWindow::Graphics::OpenGL
 
         OpenGLData oData = targetWindow->GetOpenGLData();
 
-        unsigned int& lastProgramID = oData.lastProgramID;
-        unsigned int ID = programID;
+        u32& lastProgramID = oData.lastProgramID;
+        u32 ID = programID;
 
         if (ID == 0)
         {
@@ -484,7 +484,7 @@ namespace KalaWindow::Graphics::OpenGL
             "SHADER_OPENGL",
             LogType::LOG_DEBUG);
 
-        GLint linked = 0;
+        i32 linked = 0;
         glGetProgramiv(
             ID,
             GL_LINK_STATUS,
@@ -497,7 +497,7 @@ namespace KalaWindow::Graphics::OpenGL
                 LogType::LOG_DEBUG);
         }
 
-        GLint validated = 0;
+        i32 validated = 0;
         glGetProgramiv(
             ID,
             GL_VALIDATE_STATUS,
@@ -523,12 +523,12 @@ namespace KalaWindow::Graphics::OpenGL
 
 #ifdef _DEBUG
         GLenum err = glGetError();
-        GLint activeProgram = 0;
+        i32 activeProgram = 0;
         glGetIntegerv(
             GL_CURRENT_PROGRAM,
             &activeProgram);
 
-        bool programMisMatch = activeProgram != (GLint)ID;
+        bool programMisMatch = activeProgram != (i32)ID;
         bool hasError = err != GL_NO_ERROR;
 
         if (programMisMatch
@@ -536,7 +536,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             if (hasError)
             {
-                unsigned int errInt = static_cast<unsigned int>(err);
+                u32 errInt = static_cast<u32>(err);
                 const char* errorMsg = Renderer_OpenGL::GetGLErrorString(errInt);
 
                 Logger::Print(
@@ -546,7 +546,7 @@ namespace KalaWindow::Graphics::OpenGL
                     2);
             }
 
-            if (activeProgram != (GLint)ID)
+            if (activeProgram != (i32)ID)
             {
                 Logger::Print(
                     "OpenGL shader bind failed! Program ID not bound after glUseProgram." +
@@ -619,19 +619,19 @@ namespace KalaWindow::Graphics::OpenGL
     }
 
     void Shader_OpenGL::SetBool(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
         bool value) const
     {
         glUniform1i(glGetUniformLocation(
             programID, 
             name.c_str()), 
-            (int)value);
+            (i32)value);
     }
     void Shader_OpenGL::SetInt(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
-        int value) const
+        i32 value) const
     {
         glUniform1i(glGetUniformLocation(
             programID, 
@@ -639,9 +639,9 @@ namespace KalaWindow::Graphics::OpenGL
             value);
     }
     void Shader_OpenGL::SetFloat(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
-        float value) const
+        f32 value) const
     {
         glUniform1f(glGetUniformLocation(
             programID, 
@@ -650,7 +650,7 @@ namespace KalaWindow::Graphics::OpenGL
     }
 
     void Shader_OpenGL::SetVec2(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
         const vec2& value) const
     {
@@ -661,7 +661,7 @@ namespace KalaWindow::Graphics::OpenGL
             &value.x);
     }
     void Shader_OpenGL::SetVec3(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
         const vec3& value) const
     {
@@ -672,7 +672,7 @@ namespace KalaWindow::Graphics::OpenGL
             &value.x);
     }
     void Shader_OpenGL::SetVec4(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
         const vec4& value) const
     {
@@ -684,7 +684,7 @@ namespace KalaWindow::Graphics::OpenGL
     }
 
     void Shader_OpenGL::SetMat2(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
         const mat2& mat) const
     {
@@ -696,7 +696,7 @@ namespace KalaWindow::Graphics::OpenGL
             &mat[0].x);
     }
     void Shader_OpenGL::SetMat3(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
         const mat3& mat) const
     {
@@ -708,7 +708,7 @@ namespace KalaWindow::Graphics::OpenGL
             &mat[0].x);
     }
     void Shader_OpenGL::SetMat4(
-        unsigned int programID,
+        u32 programID,
         const string& name, 
         const mat4& mat) const
     {
@@ -728,7 +728,7 @@ namespace KalaWindow::Graphics::OpenGL
             {
                 if (shaderStage.shaderID != 0)
                 {
-                    unsigned int programID = GetProgramID();
+                    u32 programID = GetProgramID();
                     if (programID != 0)
                     {
                         glDetachShader(
@@ -905,10 +905,10 @@ ShaderCheckResult IsShaderValid(
     return ShaderCheckResult::RESULT_OK;
 }
 
-bool CheckCompileErrors(GLuint shader, const string& type)
+bool CheckCompileErrors(u32 shader, const string& type)
 {
-    GLint success = 0;
-    GLint logLength = 0;
+    i32 success = 0;
+    i32 logLength = 0;
 
     if (type == "PROGRAM")
     {
@@ -999,8 +999,8 @@ bool CheckCompileErrors(GLuint shader, const string& type)
 bool InitShader(
     ShaderType type,
     const string& shaderPath,
-    unsigned int& programID,
-    unsigned int& shaderID)
+    u32& programID,
+    u32& shaderID)
 {
     string shaderType = Shader_OpenGL::GetShaderTypeName(type);
     string shaderName = path(shaderPath).filename().string();

@@ -20,6 +20,23 @@ using glm::mat3;
 using glm::mat4;
 
 //
+// DEFINE SHORTHANDS FOR SAFE MATH VARIABLES
+//
+
+using u8 = uint8_t;   //8-bit unsigned int (0 - 255)
+using u16 = uint16_t; //16-bit unsigned int (0 - 65,535)
+using u32 = uint32_t; //32-bit unsigned int (0 - 4,294,967,295)
+using u64 = uint64_t; //64-bit unsigned int (0 - 18 quintillion)
+
+using i8 = int8_t;    //8-bit int (-128 - 127)
+using i16 = int16_t;  //16-bit int (-32,768 - 32,767)
+using i32 = int32_t;  //32-bit int (-2,147,483,648 - 2,147,483,647)
+using i64 = int64_t;  //64-bit int (-9 quintillion to 9 quintillion)
+
+using f32 = float;    //32-bit float (~7 decimal precision)
+using f64 = double;   //64-bit float (~15 decimal precision)
+
+//
 // DLL EXPORT/IMPORT MACRO
 //
 
