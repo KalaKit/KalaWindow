@@ -117,22 +117,37 @@ inline constexpr GLboolean GL_FALSE = 0; //Boolean false (as GLboolean)
 
 //Texture usage
 
-inline constexpr GLenum GL_CLAMP_TO_EDGE      = 0x812F; //Texture clamp mode
-inline constexpr GLenum GL_TEXTURE_2D         = 0x0DE1; //2D texture target
-inline constexpr GLenum GL_TEXTURE_BASE_LEVEL = 0x813C; //Lowest mipmap level
-inline constexpr GLenum GL_TEXTURE_MAX_LEVEL  = 0x813D; //Highest mipmap level
-inline constexpr GLenum GL_RGB                = 0x1907; //RGB format
-inline constexpr GLenum GL_RGBA               = 0x1908; //RGBA format
-inline constexpr GLenum GL_NEAREST            = 0x2600; //Nearest-neighbor filtering
-inline constexpr GLenum GL_LINEAR             = 0x2601; //Linear filtering
-inline constexpr GLenum GL_TEXTURE_MAG_FILTER = 0x2800; //Texture magnification filter
-inline constexpr GLenum GL_TEXTURE_MIN_FILTER = 0x2801; //Texture minification filter
-inline constexpr GLenum GL_TEXTURE_WRAP_S     = 0x2802; //Horizontal texture wrapping mode
-inline constexpr GLenum GL_TEXTURE_WRAP_T     = 0x2803; //Vertical texture wrapping mode
-inline constexpr GLenum GL_REPEAT             = 0x2901; //Repeat wrapping mode
-inline constexpr GLenum GL_TEXTURE0           = 0x84C0; //First multitexture unit
-inline constexpr GLenum GL_TEXTURE1           = 0x84C1; //Second multitexture unit
-inline constexpr GLenum GL_TEXTURE2           = 0x84C2; //Third multitexture unit
+inline constexpr GLenum GL_CLAMP_TO_EDGE          = 0x812F; //Texture clamp mode
+inline constexpr GLenum GL_CLAMP_TO_BORDER        = 0x812D; //Clamp with border color
+inline constexpr GLenum GL_TEXTURE_2D             = 0x0DE1; //2D texture target
+inline constexpr GLenum GL_TEXTURE_BASE_LEVEL     = 0x813C; //Lowest mipmap level
+inline constexpr GLenum GL_TEXTURE_MAX_LEVEL      = 0x813D; //Highest mipmap level
+inline constexpr GLenum GL_RED                    = 0x1903; //Red (single-channel) format
+inline constexpr GLenum GL_RG                     = 0x8227; //Red-Green (two-channel) format
+inline constexpr GLenum GL_RGB                    = 0x1907; //RGB format
+inline constexpr GLenum GL_RGBA                   = 0x1908; //RGBA format
+inline constexpr GLenum GL_SRGB                   = 0x8C40; //sRGB format (gamma-corrected)
+inline constexpr GLenum GL_SRGB_ALPHA             = 0x8C42; //sRGB + Alpha format
+inline constexpr GLenum GL_DEPTH_COMPONENT        = 0x1902; //Depth texture format
+inline constexpr GLenum GL_DEPTH_STENCIL          = 0x84F9; //Depth + stencil texture format
+inline constexpr GLenum GL_NEAREST                = 0x2600; //Nearest-neighbor filtering
+inline constexpr GLenum GL_LINEAR                 = 0x2601; //Linear filtering
+inline constexpr GLenum GL_NEAREST_MIPMAP_NEAREST = 0x2700; //Nearest mipmap (nearest texel)
+inline constexpr GLenum GL_LINEAR_MIPMAP_NEAREST  = 0x2701; //Linear mipmap (nearest texel)
+inline constexpr GLenum GL_NEAREST_MIPMAP_LINEAR  = 0x2702; //Nearest mipmap (linear texel)
+inline constexpr GLenum GL_LINEAR_MIPMAP_LINEAR   = 0x2703; //Linear mipmap (linear texel)
+inline constexpr GLenum GL_TEXTURE_MAG_FILTER     = 0x2800; //Texture magnification filter
+inline constexpr GLenum GL_TEXTURE_MIN_FILTER     = 0x2801; //Texture minification filter
+inline constexpr GLenum GL_TEXTURE_WRAP_S         = 0x2802; //Horizontal texture wrapping mode
+inline constexpr GLenum GL_TEXTURE_WRAP_T         = 0x2803; //Vertical texture wrapping mode
+inline constexpr GLenum GL_REPEAT                 = 0x2901; //Repeat wrapping mode
+inline constexpr GLenum GL_MIRRORED_REPEAT        = 0x8370; //Mirrored repeat wrapping mode
+inline constexpr GLenum GL_TEXTURE0               = 0x84C0; //First multitexture unit
+inline constexpr GLenum GL_TEXTURE1               = 0x84C1; //Second multitexture unit
+inline constexpr GLenum GL_TEXTURE2               = 0x84C2; //Third multitexture unit
+inline constexpr GLenum GL_UNPACK_ALIGNMENT       = 0x0CF5; //Pixel unpack alignment
+inline constexpr GLenum GL_PACK_ALIGNMENT         = 0x0D05; //Pixel pack alignment
+
 
 //Buffer targets
 

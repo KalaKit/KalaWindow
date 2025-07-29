@@ -119,11 +119,34 @@ namespace KalaWindow::Graphics::OpenGL
 			&nrChannels,
 			0);
 
-		if (!data)
+		GLenum formatGL{};
+		if (nrChannels == 1) formatGL = GL_RED;
+		else if (nrChannels == 3) formatGL = GL_RGB;
+		else if (nrChannels == 4) formatGL = GL_RGBA;
+		else
 		{
 			KalaWindowCore::ForceClose(
 				"Texture error",
-				"Failed to load texture '" + path + "'!");
+				"Unsupported channel count '" + to_string(nrChannels) + "'!");
+
+			return nullptr;
+		}
+
+		if (width <= 0
+			|| height <= 0)
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Failed to load texture '" + path + "' because width or height is not above 0!");
+
+			return nullptr;
+		}
+
+		if (data == nullptr)
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Failed to load texture '" + path + "' because stbi data is nullptr!");
 
 			return nullptr;
 		}
@@ -131,13 +154,15 @@ namespace KalaWindow::Graphics::OpenGL
 		glTexImage2D(
 			GL_TEXTURE_2D,
 			0,
-			GL_RGBA,
+			formatGL,
 			width,
 			height,
 			0,
-			GL_RGBA,
+			formatGL,
 			GL_UNSIGNED_BYTE,
 			data);
+
+		stbi_image_free(data);
 
 		u32 newID = globalID++;
 		unique_ptr<Texture_OpenGL> newTexture = make_unique<Texture_OpenGL>();
