@@ -133,6 +133,9 @@ namespace KalaWindow::Graphics
 			path = newPath;
 		}
 
+		u32 GetID() const { return ID; }
+		void SetID(u32 newID) { ID = newID; }
+
 		vec2 GetSize() const { return size; }
 		u16 GetDepth() const { return depth; }
 		u8 GetMipMapLevels() const { return mipMapLevels; }
@@ -152,6 +155,7 @@ namespace KalaWindow::Graphics
 	private:
 		string name{};
 		string path{};
+		u32 ID{};
 
 		vec2 size{};
 		u16 depth = 1;

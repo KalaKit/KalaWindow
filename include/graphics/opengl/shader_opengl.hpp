@@ -58,6 +58,9 @@ namespace KalaWindow::Graphics::OpenGL
 		const string& GetName() const { return name; }
 		void SetName(const string& newName);
 
+		u32 GetID() const { return ID; }
+		void SetID(u32 newID) { ID = newID; }
+
 		Window* GetTargetWindow() const { return targetWindow; }
 
 		u32 GetProgramID() const { return programID; }
@@ -192,6 +195,7 @@ namespace KalaWindow::Graphics::OpenGL
 		~Shader_OpenGL();
 	private:
 		string name{};
+		u32 ID{};
 
 		Window* targetWindow{};
 

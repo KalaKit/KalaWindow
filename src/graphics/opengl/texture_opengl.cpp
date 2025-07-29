@@ -71,7 +71,10 @@ namespace KalaWindow::Graphics::OpenGL
 		if (result == TextureCheckResult::RESULT_INVALID) return nullptr;
 		else if (result == TextureCheckResult::RESULT_ALREADY_EXISTS)
 		{
-			return createdOpenGLTextures[name].get();
+			for (const auto& [key, value] : createdOpenGLTextures)
+			{
+				if (value->GetName() == name) return value.get();
+			}
 		}
 
 		Logger::Print(
@@ -133,19 +136,23 @@ namespace KalaWindow::Graphics::OpenGL
 			GL_UNSIGNED_BYTE,
 			data);
 
-		unique_ptr<Texture_OpenGL> tex = make_unique<Texture_OpenGL>();
-		tex->SetID(newTextureID);
-		tex->SetPath(path);
+		u32 newID = globalID++;
+		unique_ptr<Texture_OpenGL> newTexture = make_unique<Texture_OpenGL>();
+		Texture_OpenGL* texturePtr = newTexture.get();
+
+		newTexture->SetOpenGLID(newTextureID);
+		newTexture->SetPath(path);
+		newTexture->SetID(newID);
+
+		createdOpenGLTextures[newID] = move(newTexture);
+		runtimeOpenGLTextures.push_back(texturePtr);
 
 		Logger::Print(
-			"Loaded texture '" + path + "'!",
+			"Loaded texture '" + name + "'!",
 			"TEXTURE",
 			LogType::LOG_SUCCESS);
 
-		createdOpenGLTextures[name] = move(tex);
-		runtimeOpenGLTextures.push_back(createdOpenGLTextures[name].get());
-
-		return createdOpenGLTextures[name].get();
+		return texturePtr;
 	}
 
 	void Texture_OpenGL::HotReload()
@@ -234,9 +241,9 @@ TextureCheckResult IsValidTexture(
 
 	//pass existing texture if one with the same name or path already exists
 
-	for (const auto& [key, value] : createdOpenGLTextures)
+	for (const auto& [_, value] : createdOpenGLTextures)
 	{
-		if (key == textureName)
+		if (value->GetName() == textureName)
 		{
 			Logger::Print(
 				"Texture '" + textureName + "' already exists!",

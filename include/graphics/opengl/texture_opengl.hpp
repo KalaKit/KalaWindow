@@ -25,11 +25,11 @@ namespace KalaWindow::Graphics::OpenGL
 
 		virtual void HotReload() override;
 
-		u32 GetID() const { return id; }
-		void SetID(u32 newID) { id = newID; }
+		u32 GetOpenGLID() const { return openGLID; }
+		void SetOpenGLID(u32 newID) { openGLID = newID; }
 
 		~Texture_OpenGL() override;
 	private:
-		u32 id = 0;
+		u32 openGLID{};
 	};
 }

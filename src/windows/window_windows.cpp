@@ -50,8 +50,6 @@ static void UpdateIdleState(Window* window, bool& isIdle);
 
 namespace KalaWindow::Graphics
 {
-	static unsigned int nextWindowID = 0;
-
 	Window* Window::Initialize(
 		const string& title,
 		vec2 size)
@@ -63,12 +61,6 @@ namespace KalaWindow::Graphics
 			enabledBeginPeriod = true;
 		}
 #endif //_WIN32
-
-		unsigned int windowID = nextWindowID++;
-		unique_ptr<Window> newWindow = make_unique<Window>(
-			title,
-			windowID,
-			size);
 
 		HINSTANCE newHInstance = GetModuleHandle(nullptr);
 
@@ -90,13 +82,10 @@ namespace KalaWindow::Graphics
 				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
 			}
 
+			string errorTitle = "Window error";
 			KalaWindowCore::ForceClose(
-				"Window Error",
+				errorTitle,
 				message);
-
-			string title = "Window error";
-
-			KalaWindowCore::ForceClose(title, message);
 
 			return nullptr;
 		}
@@ -137,9 +126,10 @@ namespace KalaWindow::Graphics
 
 			if (errorMsg) LocalFree(errorMsg);
 
-			string title = "Window error";
-
-			KalaWindowCore::ForceClose(title, message);
+			string errorTitle = "Window error";
+			KalaWindowCore::ForceClose(
+				errorTitle,
+				message);
 
 			return nullptr;
 		}
@@ -150,14 +140,27 @@ namespace KalaWindow::Graphics
 			.hInstance = FromVar(newHInstance),
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
+
+		u32 newID = globalID++;
+		unique_ptr<Window> newWindow = make_unique<Window>();
+		Window* windowPtr = newWindow.get();
+		
+		newWindow->SetTitle(title);
+		newWindow->SetID(newID);
+		newWindow->SetSize(size);
 		newWindow->SetWindowData(newWindowStruct);
 
 		newWindow->SetInitializedState(true);
 
-		createdWindows[title] = move(newWindow);
-		runtimeWindows.push_back(createdWindows[title].get());
+		createdWindows[newID] = move(newWindow);
+		runtimeWindows.push_back(windowPtr);
 
-		return createdWindows[title].get();
+		Logger::Print(
+			"Created window '" + title + "'!",
+			"WINDOW_WINDOWS",
+			LogType::LOG_SUCCESS);
+
+		return windowPtr;
 	}
 
 	Window* Window::FindWindowByName(const string& targetName)

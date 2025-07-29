@@ -215,14 +215,6 @@ namespace KalaWindow::Graphics
 			const string& title,
 			vec2 size);
 
-		Window(
-			string title,
-			unsigned int ID,
-			vec2 size) :
-			title(title),
-			ID(ID),
-			size(size) {}
-
 		//Get the handle to opengl32.dll
 		static uintptr_t GetOpenGLLib() { return openglLib; }
 		//Set the handle to opengl32.dll
@@ -267,6 +259,9 @@ namespace KalaWindow::Graphics
 
 		const string& GetTitle() const { return title; }
 		void SetTitle(const string& newTitle);
+
+		u32 GetID() const { return ID; }
+		void SetID(u32 newID) { ID = newID; }
 
 		//Returns dpi-accurate framebuffer size.
 		vec2 GetSize() const;

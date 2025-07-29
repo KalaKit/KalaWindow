@@ -31,13 +31,17 @@ using std::unique_ptr;
 // INIT STAGE UNORDERED MAPS
 //
 
-static inline unordered_map<string, unique_ptr<Window>> createdWindows{};
+//Keeps track of highest ID to ensure each window,
+//shader and texture gets a unique ID in their map
+static inline u32 globalID = 0;
 
-static inline unordered_map<string, unique_ptr<Texture_OpenGL>> createdOpenGLTextures{};
-static inline unordered_map<string, unique_ptr<Shader_OpenGL>> createdOpenGLShaders{};
+static inline unordered_map<u32, unique_ptr<Window>> createdWindows{};
 
-static inline unordered_map<string, unique_ptr<Texture_Vulkan>> createdVulkanTextures{};
-static inline unordered_map<string, unique_ptr<Shader_Vulkan>> createdVulkanShaders{};
+static inline unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures{};
+static inline unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders{};
+
+static inline unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures{};
+static inline unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders{};
 
 //
 // RUNTIME STAGE VECTORS

@@ -68,7 +68,7 @@ namespace KalaWindow::Graphics::OpenGL
         }
         for (const auto& createdShader : createdOpenGLShaders)
         {
-            string thisName = createdShader.first.c_str();
+            string thisName = createdShader.second->GetName();
             if (newName == thisName)
             {
                 Logger::Print(
@@ -104,11 +104,15 @@ namespace KalaWindow::Graphics::OpenGL
         if (result == ShaderCheckResult::RESULT_INVALID) return nullptr;
         else if (result == ShaderCheckResult::RESULT_ALREADY_EXISTS)
         {
-            return createdOpenGLShaders[shaderName].get();
+            for (const auto& [key, value] : createdOpenGLShaders)
+            {
+                if (value->GetName() == shaderName) return value.get();
+            }
         }
 
         unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
         Shader_OpenGL* shaderPtr = newShader.get();
+
         ShaderStage newVertStage{};
         ShaderStage newFragStage{};
         ShaderStage newGeomStage{};
@@ -449,9 +453,12 @@ namespace KalaWindow::Graphics::OpenGL
         if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
         if (geomShaderExists) shaderPtr->shaders.push_back(newGeomStage);
 
+        u32 newID = globalID++;
         newShader->name = shaderName;
+        newShader->ID = newID;
         newShader->targetWindow = newWindow;
-        createdOpenGLShaders[shaderName] = move(newShader);
+
+        createdOpenGLShaders[newID] = move(newShader);
         runtimeOpenGLShaders.push_back(shaderPtr);
 
         return shaderPtr;
@@ -914,9 +921,9 @@ ShaderCheckResult IsShaderValid(
 
     //pass existing one if shader with same name already exists
 
-    for (const auto& [key, _] : createdOpenGLShaders)
+    for (const auto& [_, value] : createdOpenGLShaders)
     {
-        if (key == shaderName)
+        if (value->GetName() == shaderName)
         {
             string reason =
                 "Shader '" + shaderName + "' already exists!";

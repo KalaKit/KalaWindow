@@ -132,7 +132,7 @@ namespace KalaWindow::Graphics::Vulkan
         }
         for (const auto& createdShader : createdVulkanShaders)
         {
-            string thisName = createdShader.first.c_str();
+            string thisName = createdShader.second->GetName();
             if (newName == thisName)
             {
                 Logger::Print(
@@ -245,9 +245,9 @@ namespace KalaWindow::Graphics::Vulkan
                 2);
             return nullptr;
         }
-        for (const auto& [key, _] : createdVulkanShaders)
+        for (const auto& [_, value] : createdVulkanShaders)
         {
-            if (key == shaderName)
+            if (value->GetName() == shaderName)
             {
                 Logger::Print(
                     "Cannot create a shader with the name '" + shaderName
@@ -454,9 +454,12 @@ namespace KalaWindow::Graphics::Vulkan
         if (vertShaderExists) shaderPtr->shaders.push_back(newVertStage);
         if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
 
+        u32 newID = globalID++;
         newShader->name = shaderName;
+        newShader->ID = newID;
         newShader->targetWindow = targetWindow;
-        createdVulkanShaders[shaderName] = move(newShader);
+
+        createdVulkanShaders[newID] = move(newShader);
         runtimeVulkanShaders.push_back(shaderPtr);
 
         return shaderPtr;

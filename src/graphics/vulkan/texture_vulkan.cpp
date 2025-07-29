@@ -152,9 +152,9 @@ TextureCheckResult IsValidTexture(
 
 	//pass existing texture if one with the same name or path already exists
 
-	for (const auto& [key, value] : createdVulkanTextures)
+	for (const auto& [_, value] : createdVulkanTextures)
 	{
-		if (key == textureName)
+		if (value->GetName() == textureName)
 		{
 			Logger::Print(
 				"Texture '" + textureName + "' already exists!",

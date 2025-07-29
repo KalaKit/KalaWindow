@@ -339,6 +339,9 @@ namespace KalaWindow::Graphics::Vulkan
 		const string& GetName() const { return name; }
 		void SetName(const string& newName);
 
+		u32 GetID() const { return ID; }
+		void SetID(u32 newID) { ID = newID; }
+
 		//Assign new draw commands to be used right after Bind.
 		void SetDrawCommands(const function<void()>& newDrawCommands) { drawCommands = newDrawCommands; }
 
@@ -485,6 +488,7 @@ namespace KalaWindow::Graphics::Vulkan
 		~Shader_Vulkan();
 	private:
 		string name{};
+		u32 ID{};
 		function<void()> drawCommands{}; //The commands relative to this shader that are called inside bind
 		Window* targetWindow{};          //The window this shader is attached to
 
