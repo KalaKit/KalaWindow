@@ -22,6 +22,7 @@ using KalaWindow::Graphics::Texture;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::createdVulkanTextures;
 
 using std::string;
 using std::unordered_map;
@@ -52,7 +53,7 @@ namespace KalaWindow::Graphics::Vulkan
 {
 	//TODO: NEEDS INTERNAL TOVKFORMAT AND TOVKUSAGE
 
-	Texture* Texture_Vulkan::LoadTexture(
+	Texture_Vulkan* Texture_Vulkan::LoadTexture(
 		const string& name,
 		const string& path,
 		TextureType type,

@@ -84,18 +84,6 @@ namespace KalaWindow::Graphics
 	class KALAWINDOW_API Texture
 	{
 	public:
-		//Load a texture from the chosen path.
-		//Leaving size as vec2(0) will get the default texture size in its file
-		virtual Texture* LoadTexture(
-			const string& name,
-			const string& path,
-			TextureType type,
-			TextureFormat format,
-			TextureUsage usage,
-			vec2 size = vec2(0),
-			u16 depth = 1,
-			u8 mipMapLevels = 1) = 0;
-
 		//Rebinds the texture
 		virtual void HotReload() = 0;
 

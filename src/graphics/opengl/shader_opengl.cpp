@@ -24,6 +24,9 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 using KalaWindow::Graphics::OpenGL::ShaderType;
 using KalaWindow::Graphics::OpenGL::ShaderStage;
+using KalaWindow::Core::globalID;
+using KalaWindow::Core::createdOpenGLShaders;
+using KalaWindow::Core::runtimeOpenGLShaders;
 
 using std::string;
 using std::to_string;

@@ -31,6 +31,9 @@ using KalaWindow::Core::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Vulkan::ShaderType;
 using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
+using KalaWindow::Core::globalID;
+using KalaWindow::Core::createdVulkanShaders;
+using KalaWindow::Core::runtimeVulkanShaders;
 
 using KalaWindow::Graphics::Vulkan::VulkanData_VertexInputState;
 using KalaWindow::Graphics::Vulkan::VD_VII_BindingDescriptions;

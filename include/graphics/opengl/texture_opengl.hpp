@@ -13,7 +13,7 @@ namespace KalaWindow::Graphics::OpenGL
 	class KALAWINDOW_API Texture_OpenGL : public Texture
 	{
 	public:
-		virtual Texture* LoadTexture(
+		static Texture_OpenGL* LoadTexture(
 			const string& name,
 			const string& path,
 			TextureType type,
@@ -21,7 +21,7 @@ namespace KalaWindow::Graphics::OpenGL
 			TextureUsage usage,
 			vec2 size = vec2(0),
 			u16 depth = 1,
-			u8 mipMapLevels = 1) override;
+			u8 mipMapLevels = 1);
 
 		virtual void HotReload() override;
 

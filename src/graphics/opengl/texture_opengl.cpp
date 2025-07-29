@@ -23,6 +23,9 @@ using KalaWindow::Graphics::Texture;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::globalID;
+using KalaWindow::Core::createdOpenGLTextures;
+using KalaWindow::Core::runtimeOpenGLTextures;
 
 using std::string;
 using std::unordered_map;
@@ -54,7 +57,7 @@ namespace KalaWindow::Graphics::OpenGL
 {
 	//TODO: NEEDS INTERNAL TOGLFORMAT
 
-	Texture* Texture_OpenGL::LoadTexture(
+	Texture_OpenGL* Texture_OpenGL::LoadTexture(
 		const string& name,
 		const string& path,
 		TextureType type,

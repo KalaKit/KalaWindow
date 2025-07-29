@@ -40,6 +40,7 @@ using KalaWindow::Core::LogType;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
+using KalaWindow::Core::runtimeWindows;
 
 using std::string;
 using std::to_string;

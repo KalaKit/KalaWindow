@@ -41,6 +41,8 @@ using KalaWindow::Graphics::Vulkan::vulkanDeviceExtensionsInfo;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::createdVulkanShaders;
+using KalaWindow::Core::runtimeWindows;
 
 using std::string;
 using std::to_string;

@@ -11,6 +11,7 @@
 #include <ShlObj.h>
 #include <algorithm>
 #include <functional>
+#include <memory>
 
 //#define VK_NO_PROTOTYPES
 //#include <Volk/volk.h>
@@ -35,6 +36,9 @@ using KalaWindow::Core::Input;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Logger;
 using KalaWindow::Core::LogType;
+using KalaWindow::Core::globalID;
+using KalaWindow::Core::createdWindows;
+using KalaWindow::Core::runtimeWindows;
 
 using std::make_unique;
 using std::move;
@@ -42,6 +46,7 @@ using std::to_string;
 using std::find_if;
 using std::function;
 using std::exception;
+using std::unique_ptr;
 
 static bool enabledBeginPeriod = false;
 
