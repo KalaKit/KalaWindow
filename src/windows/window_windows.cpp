@@ -59,6 +59,11 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size)
 	{
+		Logger::Print(
+			"Creating window '" + title + "'.",
+			"WINDOW_WINDOWS",
+			LogType::LOG_DEBUG);
+
 #ifdef _WIN32
 		if (!enabledBeginPeriod)
 		{
@@ -392,9 +397,12 @@ namespace KalaWindow::Graphics
 			win.hwnd = NULL;
 		}
 		win.hInstance = NULL;
-	}
 
-	
+		Logger::Print(
+			"Destroyed window '" + GetTitle() + "'!",
+			"WINDOW_WINDOWS",
+			LogType::LOG_SUCCESS);
+	}
 }
 
 void UpdateIdleState(Window* window, bool& isIdle)

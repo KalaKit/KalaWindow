@@ -28,6 +28,7 @@ using KalaWindow::Core::createdOpenGLTextures;
 using KalaWindow::Core::runtimeOpenGLTextures;
 
 using std::string;
+using std::to_string;
 using std::unordered_map;
 using std::unique_ptr;
 using std::make_unique;
@@ -82,8 +83,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Logger::Print(
 			"Loading texture '" + name + "'.",
-			"TEXTURE",
-			LogType::LOG_INFO);
+			"TEXTURE_OPENGL",
+			LogType::LOG_DEBUG);
 
 		unsigned int newTextureID{};
 		glGenTextures(1, &newTextureID);
@@ -169,6 +170,7 @@ namespace KalaWindow::Graphics::OpenGL
 		Texture_OpenGL* texturePtr = newTexture.get();
 
 		newTexture->SetOpenGLID(newTextureID);
+		newTexture->SetName(name);
 		newTexture->SetPath(path);
 		newTexture->SetID(newID);
 
@@ -191,6 +193,11 @@ namespace KalaWindow::Graphics::OpenGL
 	Texture_OpenGL::~Texture_OpenGL()
 	{
 		//TODO: DEFINE
+
+		Logger::Print(
+			"Destroyed texture '" + GetName() + "'!",
+			"TEXTURE_OPENGL",
+			LogType::LOG_SUCCESS);
 	}
 }
 

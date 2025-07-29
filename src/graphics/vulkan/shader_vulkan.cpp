@@ -272,6 +272,11 @@ namespace KalaWindow::Graphics::Vulkan
             return nullptr;
         }
 
+        Logger::Print(
+            "Creating shader '" + shaderName + "'.",
+            "SHADER_VULKAN",
+            LogType::LOG_DEBUG);
+
         for (const auto& stage : shaderStages)
         {
             string shaderType = GetShaderTypeName(stage.shaderType);
@@ -635,6 +640,11 @@ namespace KalaWindow::Graphics::Vulkan
                     nullptr);
             }
         }
+
+        Logger::Print(
+            "Destroyed shader '" + GetName() + "'!",
+            "SHADER_VULKAN",
+            LogType::LOG_SUCCESS);
 	}
 }
 

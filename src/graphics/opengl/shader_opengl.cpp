@@ -113,6 +113,11 @@ namespace KalaWindow::Graphics::OpenGL
             }
         }
 
+        Logger::Print(
+            "Creating shader '" + shaderName + "'.",
+            "SHADER_OPENGL",
+            LogType::LOG_DEBUG);
+
         unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
         Shader_OpenGL* shaderPtr = newShader.get();
 
@@ -518,10 +523,12 @@ namespace KalaWindow::Graphics::OpenGL
         if (ID == lastProgramID) return true;
 
 #ifdef _DEBUG
+        /*
         Logger::Print(
             "glUseProgram(" + to_string(ID) + ")",
             "SHADER_OPENGL",
             LogType::LOG_DEBUG);
+        */
 
         i32 linked = 0;
         glGetProgramiv(
@@ -785,6 +792,11 @@ namespace KalaWindow::Graphics::OpenGL
             }
         }
         shaders.clear();
+
+        Logger::Print(
+            "Destroyed shader '" + GetName() + "'!",
+            "SHADER_OPENGL",
+            LogType::LOG_SUCCESS);
     }
 }
 

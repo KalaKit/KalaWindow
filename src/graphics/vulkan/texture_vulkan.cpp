@@ -64,6 +64,12 @@ namespace KalaWindow::Graphics::Vulkan
 		u8 mipMapLevels)
 	{
 		//TODO: DEFINE
+
+		Logger::Print(
+			"Loading texture '" + name + "'.",
+			"TEXTURE_VULKAN",
+			LogType::LOG_DEBUG);
+
 		return nullptr;
 	}
 
@@ -75,6 +81,11 @@ namespace KalaWindow::Graphics::Vulkan
 	Texture_Vulkan::~Texture_Vulkan()
 	{
 		//TODO: DEFINE
+
+		Logger::Print(
+			"Destroyed texture '" + GetName() + "'!",
+			"TEXTURE_VULKAN",
+			LogType::LOG_SUCCESS);
 	}
 }
 
