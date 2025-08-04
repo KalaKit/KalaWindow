@@ -702,6 +702,11 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	//user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
+	
+	//TODO: DO NOT SHUT DOWN APPLICATION HERE, INSTEAD CHECK IF ANY WINDOWS
+	//WITH 'KEEPALIVE' FLAG EXIST IF A WINDOW WAS DESTROYED
+	//AND IF NONE EXIST, THEN CALL SHUTDOWN AT WM_DESTROY
+	
 		KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		return true;
 
