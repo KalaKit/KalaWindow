@@ -30,36 +30,35 @@ Follow the [example project](https://github.com/KalaKit/KalaTestProject) to see 
 
 # Minimum GPU, CPU, and Driver Requirements (by Feature and Vendor)
 
-This table lists the **earliest supported CPU and GPU models** from AMD, NVIDIA, and Intel for:
+The following tables list the oldest known hardware that should, in theory, run this framework at the API level. These configurations are not tested and may not offer usable performance. They represent the technical minimum for compatibility, not a performance recommendation.
 
-- OpenGL 3.3
-- Vulkan 1.2
+All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**. Older OS versions may work but are **untested**.
 
-All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**.  
-Older OS versions *may* work but are **untested and unsupported**.
-Some Vulkan extensions, like those related to *Raytracing* may require newer hardware, consult the [official Vulkan Specifications](https://registry.khronos.org/vulkan/specs/latest/html/vkspec.html) for additional details.
+## OpenGL 3.3
 
-## AMD
+| Intel CPU           | AMD CPU            | GPU Type        | GPU Name/Series               | Min Driver Version                |
+|---------------------|--------------------|-----------------|--------------------------------|------------------------------------|
+| Pentium 4 520       | A8-3850            | Integrated APU  | Radeon HD 6550D (Sumo)         | Catalyst 11.6+ / Mesa 8.0+         |
+| Pentium 4 520       | Athlon 64 3000+    | Discrete GPU    | Radeon HD 5000 series *1        | Catalyst 10.6+ / Mesa 10.1+        |
+| Pentium 4 520       | Athlon 64 3000+    | Discrete GPU    | GeForce 8 series *1             | GeForce/ION 260.89+                |
+| Core i3-3217U       | FX-4100            | Integrated GPU  | HD Graphics 4000 (Ivy Bridge)  | 8.15.10.2622+ / Mesa 10.0+         |
+| Core i3-10100       | Ryzen 3 3200G      | Discrete GPU    | Iris Xe MAX Graphics (DG1)     | 31.0.101.3616+ / Mesa 20.0+        |
 
-| Feature | Type           | First Supported GPU              | Minimum Driver Version         |
-|---------|----------------|----------------------------------|--------------------------------|
-| OpenGL  | Integrated APU | Radeon HD 6550D (Sumo)           | Catalyst 11.6+    / Mesa 8.0+  |
-| OpenGL  | Discrete GPU   | Radeon HD 5000 series            | Catalyst 10.6+    / Mesa 10.1+ |
-| Vulkan  | Integrated APU | Radeon Vega 8                    | AMDVLK 2020.Q1.1  / Mesa 20.0+ |
-| Vulkan  | Discrete GPU   | Radeon HD 7000 series (GCN 1.0+) | Adrenalin 21.6.1+ / RADV 20.0+ |
+---
 
-## NVIDIA
+## Vulkan 1.2
 
-| Feature | Type         | First Supported GPU | Minimum Driver Version             |
-|---------|--------------|---------------------|------------------------------------|
-| OpenGL  | Discrete GPU | GeForce 8 series    | GeForce/ION 260.89+                |
-| Vulkan  | Discrete GPU | GeForce 600 series  | GeForce 441.99 beta (R440 series)+ |
+| Intel CPU           | AMD CPU            | GPU Type        | GPU Name/Series               | Min Driver Version                |
+|---------------------|--------------------|-----------------|--------------------------------|------------------------------------|
+| Core i3-2100        | Ryzen 3 2200U      | Integrated APU  | Radeon Vega 8                  | AMDVLK 2020.Q1.1 / Mesa 20.0+      |
+| Core i3-2100        | FX-4300            | Discrete GPU    | Radeon HD 7000 series (GCN 1.0+)| Adrenalin 21.6.1+ / RADV 20.0+     |
+| Core 2 Duo E4300    | Athlon 64 X2 3800+ | Discrete GPU    | GeForce 600 series             | GeForce 441.99 beta (R440 series)+ |
+| Pentium Gold G5400  | Ryzen 3 2200G      | Integrated GPU  | UHD Graphics 610 (Pentium)     | 26.20.100.7755+ / Mesa 20.0+       |
+| Core i3-10100       | Ryzen 3 3200G      | Discrete GPU    | Iris Xe MAX Graphics (DG1)     | 27.20.100.8845+ / Mesa 20.0+       |
 
-## Intel
+---
 
-| Feature | Type           | First Supported GPU           | Minimum Driver Version       |
-|---------|----------------|-------------------------------|------------------------------|
-| OpenGL  | Integrated GPU | HD Graphics 4000 (Ivy Bridge) | 8.15.10.2622+   / Mesa 10.0+ |
-| OpenGL  | Discrete GPU   | Iris Xe MAX Graphics (DG1)    | 31.0.101.3616+  / Mesa 20.0+ |
-| Vulkan  | Integrated GPU | UHD Graphics 610 (Pentium)    | 26.20.100.7755+ / Mesa 20.0+ |
-| Vulkan  | Discrete GPU   | Iris Xe MAX Graphics (DG1)    | 27.20.100.8845+ / Mesa 20.0+ |
+**Notes:**  
+*1 – Also available as AGP variants; earliest CPUs: Intel Pentium 4 2.4 GHz / AMD Athlon 64 2800+  
+     NVIDIA AGP min driver: 340.52  
+     AMD AGP min driver: Catalyst 13.9 (legacy)
