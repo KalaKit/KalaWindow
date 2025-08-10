@@ -369,6 +369,7 @@ namespace KalaWindow::Graphics::Vulkan
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "KalaWindow";
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		//TODO: UPGRADE TO VK 1.3
 		appInfo.apiVersion = VK_API_VERSION_1_2;
 
 		VkInstanceCreateInfo instanceCreateInfo{};
