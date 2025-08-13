@@ -32,6 +32,8 @@ namespace KalaWindow::Graphics
 		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it
 	};
 
+	//TODO: ADD FILE EXPLORER FUNCTION
+
 	enum class FileType
 	{
 		FILE_ANY,         //Can select any file type
