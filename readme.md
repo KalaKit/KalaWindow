@@ -6,9 +6,9 @@
 
 ![Logo](logo.png)
 
-> Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in 0.4 for both X11 and Wayland. 
+> Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in 0.4 for both X11 and Wayland. Vulkan code exists in the codebase but is not fully functional until 0.4 releases too, you should stick to OpenGL only in 0.3.
 
-**KalaWindow** is a C++20 multimedia framework library for **Windows** and **Linux** (X11/Wayland), built for native desktop applications ranging from full-featured game engines to lightweight graphical tools. It provides **multi-window support**, **input handling**, and a unified interface to the **native message loop** on each platform. Crash reporting is integrated via [**KalaCrashHandler**](https://github.com/KalaKit/KalaCrashHandler), and the API is fully **OS-agnostic** and **vendor-neutral** — no platform-specific or graphics API headers are included in its public interface, keeping user code clean and portable.
+**KalaWindow** is a C++20 multimedia framework library for **Windows** and **Linux** (X11/Wayland), built for native desktop applications ranging from lightweight tools to full-featured game engines. It provides **multi-window support**, **input handling** and a unified interface to the **native message loop** on each platform. The API is fully **OS-agnostic** and **vendor-neutral** — no platform-specific or graphics API headers are included in its public interface, keeping user code clean and portable.
 
 KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and **Vulkan 1.2**, bundled in a single binary. Each backend features a simple **shader system** (compilation, binding, cleanup), along with utilities for **initialization** and **GPU resource management**. This gives you everything needed to plug rendering directly into your application's logic without boilerplate, whether you're building a game engine or a desktop tool.
 
@@ -24,7 +24,7 @@ KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and *
 
 > Read Linux_prerequisites.txt
 
-Follow the [example project](https://github.com/KalaKit/KalaTestProject) to see how to set up and use this library in a real-world example for both Windows and Linux.
+Follow the [example project](https://github.com/lost-empire-entertainment/circuit-chan) to see how to set up and use this library in a real-world game example for Windows.
 
 ---
 
