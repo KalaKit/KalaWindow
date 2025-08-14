@@ -283,6 +283,8 @@ namespace KalaWindow::Graphics
 		bool IsInitialized() const { return isInitialized; }
 		void SetInitializedState(bool newInitialized) { isInitialized = newInitialized; }
 
+		//If true, then this window is gonna go idle and reduces cpu and gpu
+		//cycles by waiting for messageloop messages before updating the exe.
 		bool IsFocusRequired() const { return isWindowFocusRequired; }
 		void SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
 
