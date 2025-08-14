@@ -59,13 +59,33 @@ namespace KalaWindow::Core
 		else while (ShowCursor(FALSE) >= 0);              //decrement until hidden
 	}
 
-	void Input::SetMouseLockState(
-		bool isLocked,
-		Window* targetWindow)
+	void Input::SetMouseLockState(bool newState)
+	{
+		isMouseLocked = newState;
+		if (!isMouseLocked)
+		{
+			ClipCursor(nullptr);
+		}
+	}
+
+	void Input::EndFrameUpdate(Window* targetWindow)
 	{
 		if (!isInitialized) return;
 
-		if (isLocked)
+		fill(keyPressed.begin(), keyPressed.end(), false);
+		fill(keyReleased.begin(), keyReleased.end(), false);
+		fill(mousePressed.begin(), mousePressed.end(), false);
+		fill(mouseReleased.begin(), mouseReleased.end(), false);
+		fill(mouseDoubleClicked.begin(), mouseDoubleClicked.end(), false);
+
+		if (!keepMouseDelta)
+		{
+			mouseDelta = { 0, 0 };
+			rawMouseDelta = { 0, 0 };
+			mouseWheelDelta = 0;
+		}
+
+		if (isMouseLocked)
 		{
 			const WindowData& window = targetWindow->GetWindowData();
 			HWND windowRef = ToVar<HWND>(window.hwnd);
@@ -73,24 +93,21 @@ namespace KalaWindow::Core
 			RECT rect{};
 			GetClientRect(windowRef, &rect);
 
-			POINT center{};
-			center.x = (rect.right - rect.left) / 2;
-			center.y = (rect.bottom - rect.top) / 2;
+			POINT center{
+				(rect.right - rect.left) / 2,
+				(rect.bottom - rect.top) / 2
+			};
 
 			ClientToScreen(windowRef, &center);
-			SetCursorPos(center.x, center.y);
 
-			RECT clipRect{};
-			GetClientRect(windowRef, &clipRect);
-			MapWindowPoints(windowRef, nullptr, reinterpret_cast<POINT*>(&clipRect), 2);
-			ClipCursor(&clipRect);
+			POINT pos;
+			GetCursorPos(&pos);
 
-			isMouseLocked = true;
-		}
-		else
-		{
-			ClipCursor(nullptr);
-			isMouseLocked = false;
+			if (pos.x != center.x
+				|| pos.y != center.y)
+			{
+				SetCursorPos(center.x, center.y);
+			}
 		}
 	}
 }

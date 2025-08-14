@@ -322,26 +322,14 @@ namespace KalaWindow::Core
 		static bool IsMouseLocked() { return isMouseLocked; }
 		//Allows to set the lock state of the cursor, if true 
 		//then the cursor is locked to the center of the window.
-		static void SetMouseLockState(
-			bool isLocked,
-			Window* window);
+		static void SetMouseLockState(bool newState);
+
+		//If true, then mouse delta, raw delta and scroll delta wont be reset per frame.
+		static bool GetKeepMouseDeltaState() { return keepMouseDelta; }
+		static void SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
 
 		//Call at end of frame to reset pressed/released states
-		static void EndFrameUpdate()
-		{
-			fill(keyPressed.begin(), keyPressed.end(), false);
-			fill(keyReleased.begin(), keyReleased.end(), false);
-			fill(mousePressed.begin(), mousePressed.end(), false);
-			fill(mouseReleased.begin(), mouseReleased.end(), false);
-			fill(mouseDoubleClicked.begin(), mouseDoubleClicked.end(), false);
-
-			if (!IsMouseDragging())
-			{
-				mouseDelta = { 0, 0 };
-				rawMouseDelta = { 0, 0 };
-				mouseWheelDelta = 0;
-			}
-		}
+		static void EndFrameUpdate(Window* window);
 	private:
 		static inline array<
 			bool, 
@@ -375,6 +363,7 @@ namespace KalaWindow::Core
 
 		static inline bool isMouseVisible = true;
 		static inline bool isMouseLocked = false;
+		static inline bool keepMouseDelta = false;
 
 		static inline vec2 mousePos = vec2{ 0.0f, 0.0f };
 		static inline vec2 mouseDelta = vec2 { 0.0f, 0.0f };
