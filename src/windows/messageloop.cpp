@@ -348,10 +348,11 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			float(GET_Y_LPARAM(msg.lParam))
 		};
 
-		//get the old position *before* updating
+		//get the old position before updating
 		vec2 oldPos = Input::GetMousePosition();
 
-		vec2 delta = {
+		vec2 delta = 
+		{
 			newPos.x - oldPos.x,
 			newPos.y - oldPos.y
 		};
