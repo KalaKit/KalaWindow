@@ -314,25 +314,26 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_KEYDOWN:
 	{
 		Key key = TranslateVirtualKey(msg.wParam);
-		Input::SetKeyState(key, true);
 
 		Logger::Print(
 			"Windows detected keyboard key down: " + to_string(static_cast<int>(key)),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
+
+		Input::SetKeyState(key, true);
 		return false;
 	}
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
 		Key key = TranslateVirtualKey(msg.wParam);
-		Input::SetKeyState(key, false);
 
 		Logger::Print(
 			"Windows detected keyboard key up: " + to_string(static_cast<int>(key)),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
-			
+
+		Input::SetKeyState(key, false);
 		return false;
 	}
 

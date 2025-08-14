@@ -152,7 +152,17 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(key);
 
-			keyPressed[index] = isDown && !keyDown[index];
+			if (isDown 
+				&& !keyDown[index])
+			{
+				keyPressed[index] = true;
+			}
+			if (!isDown 
+				&& keyDown[index])
+			{
+				keyReleased[index] = true;
+			}
+
 			keyDown[index] = isDown;
 		}
 		static void SetMouseButtonState(MouseButton button, bool isDown)
@@ -161,7 +171,17 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(button);
 
-			mousePressed[index] = isDown && !mouseDown[index];
+			if (isDown
+				&& !mouseDown[index])
+			{
+				mousePressed[index] = true;
+			}
+			if (!isDown
+				&& mouseDown[index])
+			{
+				mouseReleased[index] = true;
+			}
+
 			mouseDown[index] = isDown;
 		}
 		static void SetMouseButtonDoubleClickState(MouseButton button, bool isDown)
@@ -170,7 +190,7 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(button);
 
-			mouseDoubleClicked[index] = isDown && !mouseDown[index];
+			mouseDoubleClicked[index] = isDown;
 		}
 
 		//Is the key currently held down?
@@ -189,9 +209,7 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(key);
 
-			bool result = keyPressed[index];
-			keyPressed[index] = false;
-			return result;
+			return keyPressed[index];
 		}
 		//Was the key just released this frame?
 		static bool IsKeyReleased(Key key)
@@ -200,9 +218,7 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(key);
 
-			bool result = keyReleased[index];
-			keyReleased[index] = false;
-			return result;
+			return keyReleased[index];
 		}
 
 		//Is the mouse button currently held down?
@@ -221,9 +237,7 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(button);
 
-			bool result = mousePressed[index];
-			mousePressed[index] = false;
-			return result;
+			return mousePressed[index];
 		}
 		//Was the mouse button just released this frame?
 		static bool IsMouseReleased(MouseButton button)
@@ -232,9 +246,7 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(button);
 
-			bool result = mouseReleased[index];
-			mouseReleased[index] = false;
-			return result;
+			return mouseReleased[index];
 		}
 
 		//Was the mouse button just double-clicked this frame?
@@ -244,9 +256,7 @@ namespace KalaWindow::Core
 
 			size_t index = static_cast<size_t>(button);
 
-			bool result = mouseDoubleClicked[index];
-			mouseDoubleClicked[index] = false;
-			return result;
+			return mouseDoubleClicked[index];
 		}
 
 		//Get current mouse position in window coordinates
