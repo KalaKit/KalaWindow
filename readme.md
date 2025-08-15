@@ -28,16 +28,16 @@ Follow the [example project](https://github.com/lost-empire-entertainment/circui
 
 ---
 
-# External libraries used by KalaWindow
+# External libraries
 
 These libraries are used by KalaWindow for various purposes, their licenses are included in their folder inside '_external_shared/*' and KalaWindow license does not apply to them.
 
-| Library   | Use case                                             | Repository |
-|-----------|------------------------------------------------------|------------|
-| GLM       | Math library for vectors, matrices, and 3D graphics. | [GLM](https://github.com/icaven/glm) |
-| stb_image | Loads image files like PNG and JPEG into memory.     | [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) |
-| ImGui     | Creates debug and editor user interfaces.            | [ImGui](https://github.com/ocornut/imgui) |
-| MiniAudio | Plays and records audio on multiple platforms.       | [MiniAudio](https://github.com/mackron/miniaudio) |
+| Library                                                              | Use case                                             |
+|----------------------------------------------------------------------|------------------------------------------------------|
+| [GLM](https://github.com/icaven/glm)                                 | Math library for vectors, matrices, and 3D graphics. |
+| [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) | Loads image files like PNG and JPEG into memory.     |
+| [ImGui](https://github.com/ocornut/imgui)                            | Creates debug and editor user interfaces.            |
+| [MiniAudio](https://github.com/mackron/miniaudio)                    | Plays and records audio on multiple platforms.       |
 
 ---
 
