@@ -2,33 +2,9 @@
 
 cd /d "%~dp0"
 
-:: =====================================
-:: Clear old junk
-:: =====================================
-
-set "INCLUDE_TARGET=..\circuit_game\_external_shared\KalaWindow\include"
+set "EXTERNAL_TARGET=..\circuit_game\_external_shared"
 set "DEBUG_TARGET=..\circuit_game\_external_shared\KalaWindow\debug"
 set "RELEASE_TARGET=..\circuit_game\_external_shared\KalaWindow\release"
-
-if exist "%INCLUDE_TARGET%" (
-	rmdir /S /Q "%INCLUDE_TARGET%\core"
-	rmdir /S /Q "%INCLUDE_TARGET%\graphics"
-	rmdir /S /Q "%INCLUDE_TARGET%\windows"
-)
-
-if exist "%DEBUG_TARGET%" (
-	rmdir /S /Q "%DEBUG_TARGET%"
-)
-mkdir "%DEBUG_TARGET%"
-
-if exist "%RELEASE_TARGET%" (
-	rmdir /S /Q "%RELEASE_TARGET%"
-)
-mkdir "%RELEASE_TARGET%"
-
-:: =====================================
-:: Copy new files
-:: =====================================
 
 set "INCLUDE_ORIGIN=include"
 set "GLM_ORIGIN=_external_shared\glm"
@@ -43,13 +19,21 @@ set "DEBUG_PDB=debug\KalaWindowD.pdb"
 set "RELEASE_DLL=release\KalaWindow.dll"
 set "RELEASE_LIB=release\KalaWindow.lib"
 
-::Include target is always overwritten
-call :CopyFolder "%INCLUDE_ORIGIN%" "%INCLUDE_TARGET%" "include origin" "yes"
+set "README_FILE=README.md"
+set "LICENSE_FILE=LICENSE.md"
+set "CHANGES_FILE=CHANGES.txt"
 
-call :CopyFolder "%GLM_ORIGIN%" "%INCLUDE_TARGET%\glm" "glm"
-call :CopyFolder "%STB_IMAGE_ORIGIN%" "%INCLUDE_TARGET%\stb_image" "stb_image"
-call :CopyFolder "%IMGUI_ORIGIN%" "%INCLUDE_TARGET%\imgui" "imgui"
-call :CopyFolder "%MINIAUDIO_ORIGIN%" "%INCLUDE_TARGET%\miniaudio" "miniaudio"
+:: =====================================
+:: Copy new files
+:: =====================================
+
+::Include target is always overwritten
+call :CopyFolder "%INCLUDE_ORIGIN%" "%EXTERNAL_TARGET%\KalaWindow\include" "include origin" "yes"
+
+call :CopyFolder "%GLM_ORIGIN%" "%EXTERNAL_TARGET%\glm" "glm"
+call :CopyFolder "%STB_IMAGE_ORIGIN%" "%EXTERNAL_TARGET%\stb_image" "stb_image"
+call :CopyFolder "%IMGUI_ORIGIN%" "%EXTERNAL_TARGET%\imgui" "imgui"
+call :CopyFolder "%MINIAUDIO_ORIGIN%" "%EXTERNAL_TARGET%\miniaudio" "miniaudio"
 
 call :CopyFile "%DEBUG_DLL%" "%DEBUG_TARGET%" "debug dll" "yes"
 call :CopyFile "%DEBUG_LIB%" "%DEBUG_TARGET%" "debug lib" "yes"
@@ -57,6 +41,10 @@ call :CopyFile "%DEBUG_PDB%" "%DEBUG_TARGET%" "debug pdb" "yes"
 
 call :CopyFile "%RELEASE_DLL%" "%RELEASE_TARGET%" "release dll" "yes"
 call :CopyFile "%RELEASE_LIB%" "%RELEASE_TARGET%" "release lib" "yes"
+
+call :CopyFile "%README_FILE%" "%EXTERNAL_TARGET%\KalaWindow" "readme file" "yes"
+call :CopyFile "%LICENSE_FILE%" "%EXTERNAL_TARGET%\KalaWindow" "license file" "yes"
+call :CopyFile "%CHANGES_FILE%" "%EXTERNAL_TARGET%\KalaWindow" "changes file" "yes"
 
 goto :Done
 

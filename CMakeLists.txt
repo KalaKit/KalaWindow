@@ -85,3 +85,14 @@ target_link_libraries(KalaWindow PRIVATE
 	opengl32)
 	#OpenGL::GL
 	#Vulkan::Vulkan)
+	
+# Copy docs
+set(COPY_TARGETS README.md LICENSE.md CHANGES.txt)
+foreach(FILE ${COPY_TARGETS})
+add_custom_command(TARGET KalaWindow POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:KalaWindow>/${FILE}"
+    COMMAND ${CMAKE_COMMAND} -E copy
+		"${CMAKE_SOURCE_DIR}/${FILE}"
+		"$<TARGET_FILE_DIR:KalaWindow>/${FILE}"
+)
+endforeach()
