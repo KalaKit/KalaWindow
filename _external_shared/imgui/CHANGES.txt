@@ -1,0 +1,15 @@
+The following files were changed to work with KalaWindow CMakeLists.txt:
+
+- imgui_impl_win32.cpp
+- imgui_impl_opengl3.cpp
+- imgui_impl_vulkan.cpp
+
+- imgui_impl_win32.h
+- imgui_impl_opengl3.h
+- imgui_impl_vulkan.h
+
+Change:
+
+replaced '#include "imgui.h"' with '#include "../imgui.h"'
+
+Note: imgui_demo.cpp and all files in backends except the ones that were listed above in the modified list were also removed because they are not necessary for imgui to function for KalaWindow intended purposes

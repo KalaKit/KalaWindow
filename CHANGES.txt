@@ -15,4 +15,19 @@
 
 0.3:
 - project rewritten to better support platform-agnostic and vendor-agnostic headers
-- added vulkan 1.2 support
+- added miniaudio + wrapper
+- added imgui + wrapper
+
+==========================================================
+UPCOMING CHANGES
+==========================================================
+
+0.4:
+- full vulkan 1.3 support
+- linux support for x11 and wayland
+
+0.5:
+- custom ui solution
+- custom text renderer
+
+0.6 to 0.9 are beta builds and will mostly focus on cleanup, documentation and bugfixes, 1.0 is full release
