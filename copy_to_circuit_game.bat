@@ -2,6 +2,10 @@
 
 cd /d "%~dp0"
 
+:: =====================================
+:: Clear old junk
+:: =====================================
+
 set "INCLUDE_TARGET=..\circuit_game\_external_shared\KalaWindow\include"
 set "DEBUG_TARGET=..\circuit_game\_external_shared\KalaWindow\debug"
 set "RELEASE_TARGET=..\circuit_game\_external_shared\KalaWindow\release"
@@ -21,6 +25,10 @@ if exist "%RELEASE_TARGET%" (
 	rmdir /S /Q "%RELEASE_TARGET%"
 )
 mkdir "%RELEASE_TARGET%"
+
+:: =====================================
+:: Copy new files
+:: =====================================
 
 set "INCLUDE_ORIGIN=include"
 set "GLM_ORIGIN=_external_shared\glm"
@@ -52,7 +60,10 @@ call :CopyFile "%RELEASE_LIB%" "%RELEASE_TARGET%" "release lib" "yes"
 
 goto :Done
 
-::%1 = origin folder path, %2 = target folder path, %3 = title, %4 = overwrite (yes or no)
+:: =====================================
+:: Copy and optionally overwrite a folder
+:: %1 = origin folder path, %2 = target folder path, %3 = title, %4 = overwrite (yes or no)
+:: =====================================
 :CopyFolder
 if not exist "%~1" (
 	echo WARNING: Cannot copy '%~3' because it does not exist!
@@ -72,7 +83,10 @@ if not exist "%~1" (
 
 exit /b
 
-::%1 = origin file path, %2 = target file path, %3 = title, %4 = overwrite (yes or no)
+:: =====================================
+:: Copy and optionally overwrite a file
+:: %1 = origin file path, %2 = target file path, %3 = title, %4 = overwrite (yes or no)
+:: =====================================
 :CopyFile
 if not exist "%~1" (
 	echo WARNING: Cannot copy '%~3' because it does not exist!

@@ -40,8 +40,8 @@ pause
 exit /b 0
 
 :: ================================
-:: Function: Build with a given preset
-:: Args: %1 = preset name, %2 = config
+:: Build with a given preset
+:: %1 = preset name, %2 = config
 :: ================================
 :BuildWithPreset
 if "%~1"=="" (
