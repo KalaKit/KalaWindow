@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "core/platform.hpp"
+#include "core/audio.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/texture_opengl.hpp"
 #include "graphics/opengl/shader_opengl.hpp"
@@ -19,6 +20,7 @@
 
 namespace KalaWindow::Core
 {
+	using KalaWindow::Core::AudioTrack;
 	using KalaWindow::Graphics::Window;
 	using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
 	using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
@@ -39,6 +41,8 @@ namespace KalaWindow::Core
 	//
 
 	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Window>> createdWindows;
+
+	extern KALAWINDOW_API unordered_map<u32, unique_ptr<AudioTrack>> createdAudioTracks;
 
 	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures;
 	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders;

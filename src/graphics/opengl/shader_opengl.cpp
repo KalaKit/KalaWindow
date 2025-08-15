@@ -469,6 +469,11 @@ namespace KalaWindow::Graphics::OpenGL
         createdOpenGLShaders[newID] = move(newShader);
         runtimeOpenGLShaders.push_back(shaderPtr);
 
+        Logger::Print(
+            "Created OpenGL shader '" + shaderName + "' with ID '" + to_string(newID) + "'!",
+            "TEXTURE",
+            LogType::LOG_SUCCESS);
+
         return shaderPtr;
     }
 

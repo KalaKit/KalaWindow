@@ -166,7 +166,7 @@ namespace KalaWindow::Graphics
 		runtimeWindows.push_back(windowPtr);
 
 		Logger::Print(
-			"Created window '" + title + "'!",
+			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
 			"WINDOW_WINDOWS",
 			LogType::LOG_SUCCESS);
 

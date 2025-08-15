@@ -470,6 +470,11 @@ namespace KalaWindow::Graphics::Vulkan
         createdVulkanShaders[newID] = move(newShader);
         runtimeVulkanShaders.push_back(shaderPtr);
 
+        Logger::Print(
+            "Created Vulkan shader '" + shaderName + "' with ID '" + to_string(newID) + "'!",
+            "TEXTURE",
+            LogType::LOG_SUCCESS);
+
         return shaderPtr;
 	}
 

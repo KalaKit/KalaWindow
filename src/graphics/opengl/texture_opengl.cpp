@@ -178,7 +178,7 @@ namespace KalaWindow::Graphics::OpenGL
 		runtimeOpenGLTextures.push_back(texturePtr);
 
 		Logger::Print(
-			"Loaded texture '" + name + "'!",
+			"Loaded OpenGL texture '" + name + "' with ID '" + to_string(newID) + "'!",
 			"TEXTURE",
 			LogType::LOG_SUCCESS);
 

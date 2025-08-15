@@ -65,10 +65,12 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		//TODO: DEFINE
 
+		/*
 		Logger::Print(
-			"Loading texture '" + name + "'.",
-			"TEXTURE_VULKAN",
-			LogType::LOG_DEBUG);
+			"Loaded Vulkan texture '" + name + "' with ID '" + to_string(newID) + "'!",
+			"TEXTURE",
+			LogType::LOG_SUCCESS);
+		*/
 
 		return nullptr;
 	}
