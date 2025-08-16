@@ -34,7 +34,7 @@ namespace KalaWindow::Core
 
 	//Keeps track of highest ID to ensure each window,
 	//shader and texture gets a unique ID in their map
-	static inline u32 globalID;
+	extern KALAWINDOW_API u32 globalID;
 
 	//
 	// INIT STAGE UNORDERED MAPS

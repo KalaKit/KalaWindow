@@ -5,10 +5,6 @@ setlocal
 set "PROJECT_ROOT=%~dp0"
 cd "%PROJECT_ROOT%"
 
-:: Remove old build folders
-if exist "debug" rmdir /S /Q "debug"
-if exist "release" rmdir /S /Q "release"
-
 :: =====================================
 :: [MSVC Setup] Ensure cl.exe is available for Ninja
 :: =====================================

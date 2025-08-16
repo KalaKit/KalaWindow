@@ -461,7 +461,7 @@ namespace KalaWindow::Graphics::OpenGL
         if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
         if (geomShaderExists) shaderPtr->shaders.push_back(newGeomStage);
 
-        u32 newID = globalID++;
+        u32 newID = ++globalID;
         newShader->name = shaderName;
         newShader->ID = newID;
         newShader->targetWindow = newWindow;

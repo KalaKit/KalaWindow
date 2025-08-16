@@ -160,6 +160,12 @@ namespace KalaWindow::Core
 		if (!CheckInitState("shut down MiniAudio")) return;
 		isInitialized = false;
 
+		for (const auto& [_, sound] : soundMap)
+		{
+			ma_sound_uninit(sound.get());
+		}
+		soundMap.clear();
+
 		createdAudioTracks.clear(); //also clear all created audio files
 
 		ma_engine_uninit(&engine);
@@ -213,8 +219,8 @@ namespace KalaWindow::Core
 		if (!hasSupportedExtension)
 		{
 			PrintErrorMessage(
-				"Cannot import audio track '" + name + "' because its extenion '" + extension + "' is unsupported!"
-				"You must use .wav, .flac, .mp3 or .ogg only.");
+				"Cannot import audio track '" + name + "' because its extenion '" 
+				+ extension + "' is unsupported! You must use .wav, .flac, .mp3 or .ogg only.");
 
 			return nullptr;
 		}
@@ -235,7 +241,7 @@ namespace KalaWindow::Core
 			return nullptr;
 		}
 
-		u32 newID = globalID++;
+		u32 newID = ++globalID;
 
 		soundMap[newID] = move(sound);
 
@@ -1068,17 +1074,17 @@ namespace KalaWindow::Core
 
 	AudioTrack::~AudioTrack()
 	{
-		ma_sound* sound = soundMap.find(ID)->second.get();
-		if (sound == nullptr) return;
+		auto it = soundMap.find(ID);
+		if (it != soundMap.end())
+		{
+			ma_sound_uninit(it->second.get());
+			soundMap.erase(it);
 
-		ma_sound_uninit(sound);
-
-		soundMap.erase(soundMap.find(ID));
-
-		Logger::Print(
-			"Destroyed audio track '" + name + "'!",
-			"AUDIO",
-			LogType::LOG_SUCCESS);
+			Logger::Print(
+				"Destroyed audio track '" + name + "'!",
+				"AUDIO",
+				LogType::LOG_SUCCESS);
+		}
 	}
 }
 

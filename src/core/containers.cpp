@@ -7,6 +7,8 @@
 
 namespace KalaWindow::Core
 {
+	u32 globalID{};
+
 	//
 	// INIT STAGE UNORDERED MAPS
 	//

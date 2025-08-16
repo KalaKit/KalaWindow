@@ -462,7 +462,7 @@ namespace KalaWindow::Graphics::Vulkan
         if (vertShaderExists) shaderPtr->shaders.push_back(newVertStage);
         if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
 
-        u32 newID = globalID++;
+        u32 newID = ++globalID;
         newShader->name = shaderName;
         newShader->ID = newID;
         newShader->targetWindow = targetWindow;

@@ -151,7 +151,7 @@ namespace KalaWindow::Graphics
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
 
-		u32 newID = globalID++;
+		u32 newID = ++globalID;
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
 		

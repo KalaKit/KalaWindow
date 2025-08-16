@@ -165,7 +165,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		stbi_image_free(data);
 
-		u32 newID = globalID++;
+		u32 newID = ++globalID;
 		unique_ptr<Texture_OpenGL> newTexture = make_unique<Texture_OpenGL>();
 		Texture_OpenGL* texturePtr = newTexture.get();
 
