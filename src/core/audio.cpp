@@ -320,8 +320,6 @@ namespace KalaWindow::Core
 
 	void AudioTrack::Play() const
 	{
-		Logger::Print("Attempting to play audio track '" + name + "' whose ID is '" + to_string(ID) + "'...");
-
 		ma_sound* sound = CommonChecker(
 			"play audio track '" + name + "'",
 			ID);
