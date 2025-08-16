@@ -240,12 +240,17 @@ namespace KalaWindow::Core
 
 			return nullptr;
 		}
+		ma_sound_set_volume(sound.get(), 1.0f);
+		ma_sound_set_pitch(sound.get(), 1.0f);
 
 		u32 newID = ++globalID;
 
 		soundMap[newID] = move(sound);
 
 		unique_ptr<AudioTrack> newTrack = make_unique<AudioTrack>();
+		newTrack->name = name;
+		newTrack->filePath = filePath;
+		newTrack->ID = newID;
 
 		createdAudioTracks[newID] = move(newTrack);
 
@@ -259,7 +264,11 @@ namespace KalaWindow::Core
 
 	void AudioTrack::SetName(const string& newName)
 	{
-		if (!CheckInitState("set audio track name to '" + name + "'")) return;
+		ma_sound* sound = CommonChecker(
+			"set audio track name to '" + name + "'",
+			ID);
+
+		if (sound == nullptr) return;
 
 		string oldName = name;
 
@@ -311,6 +320,8 @@ namespace KalaWindow::Core
 
 	void AudioTrack::Play() const
 	{
+		Logger::Print("Attempting to play audio track '" + name + "' whose ID is '" + to_string(ID) + "'...");
+
 		ma_sound* sound = CommonChecker(
 			"play audio track '" + name + "'",
 			ID);
@@ -1094,19 +1105,13 @@ ma_sound* CommonChecker(
 {
 	if (!CheckInitState(message)) return nullptr;
 
-	ma_sound* sound{};
 	auto it = soundMap.find(ID);
-	if (it != soundMap.end()) sound = it->second.get();
+	if (it != soundMap.end()) return it->second.get();
 
-	if (sound == nullptr)
-	{
-		PrintErrorMessage(
-			"Cannot " + message + " because the audio pointer was not found in internal MiniAudio sound map!");
+	PrintErrorMessage(
+		"Cannot " + message + " because the audio pointer ID '" + to_string(ID) + "' was not found in internal MiniAudio sound map!");
 
-		return nullptr;
-	}
-
-	return sound;
+	return nullptr;
 }
 bool CheckInitState(const string& targetAction)
 {
