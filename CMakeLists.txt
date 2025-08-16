@@ -47,7 +47,6 @@ file(GLOB WINDOW_SRC CONFIGURE_DEPENDS
 	#External stuff
 	${EXT_SHARED_DIR}/imgui/*.cpp
 	${EXT_SHARED_DIR}/imgui/backends/*.cpp
-	${EXT_SHARED_DIR}/miniaudio/*.c
 )
 list(APPEND WINDOW_SRC_FILES ${WINDOW_SRC})
 
@@ -70,7 +69,7 @@ file(GLOB_RECURSE HEADERS configure_depends
 target_sources(KalaWindow PRIVATE ${HEADERS})
 target_include_directories(KalaWindow PRIVATE 
 	${WINDOW_INCLUDE_DIR}
-	"${EXT_SHARED_DIR}"
+	${EXT_SHARED_DIR}
 )
 
 target_compile_definitions(KalaWindow PRIVATE

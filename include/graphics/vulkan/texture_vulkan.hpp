@@ -29,6 +29,7 @@ namespace KalaWindow::Graphics::Vulkan
 		uintptr_t Getview() const { return view; }
 		uintptr_t GetSampler() const { return sampler; }
 
+		//Note: Do not destroy manually, erase from containers.hpp instead
 		~Texture_Vulkan() override;
 	private:
 		uintptr_t image{};   //VkImage

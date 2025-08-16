@@ -139,6 +139,7 @@ namespace KalaWindow::Graphics
 		TextureFormat GetFormat() const { return format; }
 		TextureUsage GetUsage() const { return usage; }
 
+		//Note: Do not destroy manually, erase from containers.hpp instead
 		virtual ~Texture() {};
 	private:
 		string name{};

@@ -67,30 +67,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 		const vector<ShaderStage>& GetAllShaders() const { return shaders; }
 
-		void SetShaderPath(
-			const string& path,
-			ShaderType type)
-		{
-			if (path.empty())
-			{
-				Logger::Print(
-					"Cannot set shader path to empty path!",
-					"SHADER_OPENGL",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
-
-			for (auto& stage : shaders)
-			{
-				if (stage.shaderType == type)
-				{
-					stage.shaderPath = path;
-					break;
-				}
-			}
-		}
-
 		u32 GetShaderID(ShaderType type) const
 		{
 			for (const auto& stage : shaders)
@@ -191,7 +167,7 @@ namespace KalaWindow::Graphics::OpenGL
 		void SetMat3(u32 programID, const string& name, const mat3& mat) const;
 		void SetMat4(u32 programID, const string& name, const mat4& mat) const;
 
-		//Destroys this created shader and its data
+		//Note: Do not destroy manually, erase from containers.hpp instead
 		~Shader_OpenGL();
 	private:
 		string name{};

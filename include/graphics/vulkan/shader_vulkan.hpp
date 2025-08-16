@@ -359,30 +359,6 @@ namespace KalaWindow::Graphics::Vulkan
 
 		const vector<ShaderStage>& GetAllShaders() { return shaders; }
 
-		void SetShaderPath(
-			const string& path,
-			ShaderType type)
-		{
-			if (path.empty())
-			{
-				Logger::Print(
-					"Cannot set shader path to empty path!",
-					"SHADER_VULKAN",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
-
-			for (auto& stage : shaders)
-			{
-				if (stage.shaderType == type)
-				{
-					stage.shaderPath = path;
-					break;
-				}
-			}
-		}
-
 		u32 GetShaderModule(ShaderType type)
 		{
 			for (const auto& stage : shaders)
@@ -484,7 +460,7 @@ namespace KalaWindow::Graphics::Vulkan
 			u32 offset,
 			const PushConstantValue& value);
 
-		//Destroys this created shader and its data
+		//Note: Do not destroy manually, erase from containers.hpp instead
 		~Shader_Vulkan();
 	private:
 		string name{};
