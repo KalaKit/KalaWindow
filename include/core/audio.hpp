@@ -75,7 +75,7 @@ namespace KalaWindow::Core
 	{
 	public:
 		//Initialize Miniaudio
-		static void Initialize();
+		static bool Initialize();
 		static bool IsInitialized() { return isInitialized; }
 
 		//Runtime function to update the global listener position

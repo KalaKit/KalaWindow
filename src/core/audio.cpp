@@ -57,7 +57,7 @@ namespace KalaWindow::Core
 	// AUDIO CORE
 	//
 
-	void Audio::Initialize()
+	bool Audio::Initialize()
 	{
 		if (isInitialized)
 		{
@@ -67,7 +67,7 @@ namespace KalaWindow::Core
 				LogType::LOG_ERROR,
 				2);
 
-			return;
+			return false;
 		}
 
 		if (ma_engine_init(NULL, &engine) != MA_SUCCESS)
@@ -76,7 +76,7 @@ namespace KalaWindow::Core
 				"Audio error",
 				"Failed to initialize MiniAudio!");
 
-			return;
+			return false;
 		}
 
 		Logger::Print(
@@ -85,6 +85,8 @@ namespace KalaWindow::Core
 			LogType::LOG_SUCCESS);
 
 		isInitialized = true;
+
+		return true;
 	}
 
 	void Audio::SetListenerPosition(const AudioListener& listener)
