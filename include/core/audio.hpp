@@ -57,6 +57,16 @@ namespace KalaWindow::Core
 		PanMode_Pan      //Maintains constant perceived loudness when moving between channels
 	};
 
+	//Controls how a sound's position is interpreted when spatialization is enabled
+	enum class Positioning
+	{
+		//Position is relative to the listener
+		Positioning_Relative,
+
+		//Position is absolute in world space
+		Positioning_Absolute
+	};
+
 	//
 	// AUDIO CORE
 	//
@@ -128,6 +138,16 @@ namespace KalaWindow::Core
 		void SetVolume(f32 newVolume) const;
 		f32 GetVolume() const;
 
+		//Set the minimum final volume that this audio track can drop to, 
+		//even after attenuation. Clamped internally from 0.0f to MaxGain - 0.1f
+		void SetMinGain(f32 newMinGain) const;
+		f32 GetMinGain() const;
+
+		//Set the maximum final volume that this audio track can rise to, 
+		//even after boosts. Clamped internally from MinGain + 0.1f to 5.0f, but recommended up to 1.0
+		void SetMaxGain(f32 newMaxGain) const;
+		f32 GetMaxGain() const;
+
 		//Set the minimum distance at which this audio track is heard at full volume.
 		//Clamped internally from 0.0f to MaxRange - 0.1f
 		void SetMinRange(f32 newMinRange) const;
@@ -137,6 +157,14 @@ namespace KalaWindow::Core
 		//Clamped internally from MinRange + 0.1f to 1000.0f
 		void SetMaxRange(f32 newMaxRange) const;
 		f32 GetMaxRange() const;
+
+		//Toggle whether this sound is affected by spatial audio effects or not
+		void SetSpatializationState(bool newState) const;
+		bool GetSpatializationState() const;
+
+		//Controls how a sound's position is interpreted when spatialization is enabled
+		void SetPositioningState(Positioning pos) const;
+		Positioning GetPositioningState() const;
 
 		//Set the pitch of this audio track.
 		//Clamped internally from 0.0f to 5.0f, but recommended up to 1.0
@@ -151,11 +179,6 @@ namespace KalaWindow::Core
 		//Clamped internally from -1.0f to 1.0f
 		void SetPan(f32 pan) const;
 		f32 GetPan() const;
-
-		//Set the 3D state of this audio track. If true, then this audio track
-		//plays dynamically on right or left side depending on listener and player position
-		void Set3DState(bool newState) const;
-		bool Is3D() const;
 
 		//Set audio playback position
 		void SetPlayerPosition(const vec3& pos) const;

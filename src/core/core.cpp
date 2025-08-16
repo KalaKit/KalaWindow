@@ -20,6 +20,7 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/texture.hpp"
 #include "core/containers.hpp"
+#include "core/audio.hpp"
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
@@ -116,6 +117,13 @@ namespace KalaWindow::Core
 		bool useWindowShutdown,
 		const function<void()>& userShutdown)
 	{
+		//skip all cleanup if a critical error was detected, we have no time to waste with cleanup here
+		if (state == ShutdownState::SHUTDOWN_CRITICAL)
+		{
+			abort();
+			return;
+		}
+
 		try
 		{
 			Logger::Print(
@@ -132,6 +140,11 @@ namespace KalaWindow::Core
 				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
+		}
+
+		if (Audio::IsInitialized())
+		{
+			Audio::Shutdown();
 		}
 
 		createdOpenGLTextures.clear();
@@ -169,20 +182,6 @@ namespace KalaWindow::Core
 			"WINDOW",
 			LogType::LOG_SUCCESS);
 
-		if (useWindowShutdown)
-		{
-			switch (state)
-			{
-			case ShutdownState::SHUTDOWN_CLEAN:
-				exit(0);
-				break;
-			case ShutdownState::SHUTDOWN_FAILURE:
-				terminate();
-				break;
-			case ShutdownState::SHUTDOWN_CRITICAL:
-				abort();
-				break;
-			}
-		}
+		if (useWindowShutdown) exit(0);
 	}
 }

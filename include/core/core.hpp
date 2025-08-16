@@ -50,7 +50,6 @@ namespace KalaWindow::Core
 	enum class ShutdownState
 	{
 		SHUTDOWN_CLEAN,   //Regular exit (exit)
-		SHUTDOWN_FAILURE, //Problem detected, controlled shutdown (terminate)
 		SHUTDOWN_CRITICAL //Catastrophic/forced shutdown, worst case scenario (abort)
 	};
 

@@ -181,7 +181,7 @@ namespace KalaWindow::Core
 		if (!exists(filePath))
 		{
 			PrintErrorMessage(
-				"Cannot import audio track '" + name 
+				"Cannot import audio track '" + name
 				+ "' because its file path '" + filePath + "' does not exist!");
 
 			return nullptr;
@@ -191,7 +191,7 @@ namespace KalaWindow::Core
 			|| !is_regular_file(filePath))
 		{
 			PrintErrorMessage(
-				"Cannot import audio track '" + name 
+				"Cannot import audio track '" + name
 				+ "' because its file path '" + filePath + "' type is unsupported!");
 
 			return nullptr;
@@ -499,6 +499,62 @@ namespace KalaWindow::Core
 		return ma_sound_get_volume(sound);
 	}
 
+	void AudioTrack::SetMinGain(f32 newMinGain) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio track '" + name + "' min gain",
+			ID);
+
+		if (sound == nullptr) return;
+
+		f32 clamped = clamp(newMinGain, 0.0f, GetMaxGain() - 0.1f);
+
+		ma_sound_set_min_gain(sound, clamped);
+
+		Logger::Print(
+			"Set audio track '" + name + "' min gain to '" + to_string(clamped) + "'!",
+			"AUDIO",
+			LogType::LOG_DEBUG);
+	}
+	f32 AudioTrack::GetMinGain() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio track '" + name + "' min gain",
+			ID);
+
+		if (sound == nullptr) return 0;
+
+		return ma_sound_get_min_gain(sound);
+	}
+
+	void AudioTrack::SetMaxGain(f32 newMaxGain) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio track '" + name + "' max gain",
+			ID);
+
+		if (sound == nullptr) return;
+
+		f32 clamped = clamp(newMaxGain, GetMinGain() + 0.1f, 5.0f);
+
+		ma_sound_set_max_gain(sound, clamped);
+
+		Logger::Print(
+			"Set audio track '" + name + "' max gain to '" + to_string(clamped) + "'!",
+			"AUDIO",
+			LogType::LOG_DEBUG);
+	}
+	f32 AudioTrack::GetMaxGain() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio track '" + name + "' max gain",
+			ID);
+
+		if (sound == nullptr) return 0;
+
+		return ma_sound_get_max_gain(sound);
+	}
+
 	void AudioTrack::SetMinRange(f32 newMinRange) const
 	{
 		ma_sound* sound = CommonChecker(
@@ -553,6 +609,89 @@ namespace KalaWindow::Core
 		if (sound == nullptr) return 0;
 
 		return ma_sound_get_max_distance(sound);
+	}
+
+	void AudioTrack::SetSpatializationState(bool state) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio track '" + name + "' spatialization state",
+			ID);
+
+		if (sound == nullptr) return;
+
+		if (state)
+		{
+			Logger::Print(
+				"Set audio track '" + name + "' spatialization state to 'true'!",
+				"AUDIO",
+				LogType::LOG_DEBUG);
+
+			ma_sound_set_spatialization_enabled(sound, true);
+		}
+		else
+		{
+			Logger::Print(
+				"Set audio track '" + name + "' spatialization state to 'false'!",
+				"AUDIO",
+				LogType::LOG_DEBUG);
+
+			ma_sound_set_spatialization_enabled(sound, false);
+		}
+	}
+	bool AudioTrack::GetSpatializationState() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio track '" + name + "' spatialization state",
+			ID);
+
+		if (sound == nullptr) return false;
+
+		return ma_sound_is_spatialization_enabled(sound);
+	}
+
+	void AudioTrack::SetPositioningState(Positioning pos) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio track '" + name + "' positioning state",
+			ID);
+
+		if (sound == nullptr) return;
+
+		switch (pos)
+		{
+		case Positioning::Positioning_Relative:
+
+			Logger::Print(
+				"Set audio track '" + name + "' positioning state to 'relative'!",
+				"AUDIO",
+				LogType::LOG_DEBUG);
+
+			ma_sound_set_positioning(sound, ma_positioning_relative);
+			break;
+		
+		case Positioning::Positioning_Absolute:
+
+			Logger::Print(
+				"Set audio track '" + name + "' positioning state to 'absolute'!",
+				"AUDIO",
+				LogType::LOG_DEBUG);
+
+			ma_sound_set_positioning(sound, ma_positioning_absolute);
+			break;
+		}
+	}
+	Positioning AudioTrack::GetPositioningState() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio track '" + name + "' positioning state",
+			ID);
+
+		if (sound == nullptr) return Positioning::Positioning_Relative;
+
+		ma_positioning state = ma_sound_get_positioning(sound);
+		return state == ma_positioning_relative
+			? Positioning::Positioning_Relative
+			: Positioning::Positioning_Absolute;
 	}
 
 	void AudioTrack::SetPitch(f32 newPitch) const
@@ -653,47 +792,6 @@ namespace KalaWindow::Core
 		return mode == ma_pan_mode_balance 
 			? PanMode::PanMode_Balance 
 			: PanMode::PanMode_Pan;
-	}
-
-	void AudioTrack::Set3DState(bool newState) const
-	{
-		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' 3D state",
-			ID);
-
-		if (sound == nullptr) return;
-
-		if (newState)
-		{
-			Logger::Print(
-				"Set audio track '" + name + "' 3D state to 'relative'!",
-				"AUDIO",
-				LogType::LOG_DEBUG);
-
-			ma_sound_set_positioning(sound, ma_positioning_relative);
-		}
-		else
-		{
-			Logger::Print(
-				"Set audio track '" + name + "' 3D state to 'absolute'!",
-				"AUDIO",
-				LogType::LOG_DEBUG);
-
-			ma_sound_set_positioning(sound, ma_positioning_absolute);
-		}
-	}
-	bool AudioTrack::Is3D() const
-	{
-		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' 3D state",
-			ID);
-
-		if (sound == nullptr) return false;
-
-		ma_positioning state = ma_sound_get_positioning(sound);
-		return state == ma_positioning_relative
-			? true
-			: false;
 	}
 
 	void AudioTrack::SetPlayerPosition(const vec3& pos) const
