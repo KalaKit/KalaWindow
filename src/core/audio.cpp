@@ -1003,10 +1003,11 @@ namespace KalaWindow::Core
 
 		ma_attenuation_model model = ma_sound_get_attenuation_model(sound);
 
-		if (model == ma_attenuation_model_none)             return AttenuationModel::Attenuation_None;
-		else if (model == ma_attenuation_model_inverse)     return AttenuationModel::Attenuation_Inverse;
+		if (model == ma_attenuation_model_inverse)     return AttenuationModel::Attenuation_Inverse;
 		else if (model == ma_attenuation_model_linear)      return AttenuationModel::Attenuation_Linear;
 		else if (model == ma_attenuation_model_exponential) return AttenuationModel::Attenuation_Exponential;
+
+		return AttenuationModel::Attenuation_None;
 	}
 
 	void AudioTrack::SetRolloff(f32 newRolloffFactor) const
