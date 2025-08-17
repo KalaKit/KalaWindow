@@ -1,0 +1,50 @@
+#include <winres.h>
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+ PRODUCTVERSION @PROJECT_VERSION_MAJOR@,@PROJECT_VERSION_MINOR@,@PROJECT_VERSION_PATCH@,0
+ FILEFLAGSMASK 0x3fL //Allow to use all 6 FILEFLAGS types
+ 
+ //0x01L - Debug build
+ //0x02L - PreRelease build
+ //0x20L - Special branch build
+ //0x00L - Clean Release build
+ FILEFLAGS @FILEFLAGS@L
+ 
+ //Windows 32-bit/64-bit DLL/exe, running on NT-class systems
+ FILEOS 0x40004L  
+ 
+ //0x1L - executable, 0x2 - dynamic-link library
+ FILETYPE @FILETYPE@L
+ 
+ //Usually 0x0L unless FILETYPE is a driver or font
+ FILESUBTYPE @FILESUBTYPE@L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "040904b0" //US English + Unicode
+        BEGIN
+			//Public fields
+			VALUE "FileDescription",  "@FILE_DESCRIPTION@"
+			VALUE "FileVersion",      "@FILE_VERSION@"
+			VALUE "ProductName",      "@PRODUCT_NAME@"
+			VALUE "ProductVersion",   "@PRODUCT_VERSION@"
+			VALUE "CompanyName",      "@COMPANY_NAME@"
+			VALUE "LegalCopyright",   "@LEGAL_COPYRIGHT@"
+			VALUE "LegalTrademarks",  "@LEGAL_TRADEMARKS@"
+			VALUE "OriginalFilename", "@ORIGINAL_FILENAME@"
+			
+			//Private fields
+			VALUE "InternalName",     "@INTERNAL_NAME@"
+			VALUE "Comments",         "@COMMENTS@"
+			VALUE "PrivateBuild",     "@PRIVATE_BUILD@"
+			VALUE "SpecialBuild",     "@SPECIAL_BUILD@"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+		//Defines language and codepage so that
+		//Windows knows how to display the strings correctly
+        VALUE "Translation", 0x0409, 1200
+    END
+END
