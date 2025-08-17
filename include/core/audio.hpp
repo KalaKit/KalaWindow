@@ -78,6 +78,11 @@ namespace KalaWindow::Core
 		static bool Initialize();
 		static bool IsInitialized() { return isInitialized; }
 
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//SetPlayerPosition, SetListenerPosition will dump their debug logs into the console.
+		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
 		//Runtime function to update the global listener position
 		static void SetListenerPosition(const AudioListener& listener);
 		static AudioListener GetListenerPosition();
@@ -86,6 +91,7 @@ namespace KalaWindow::Core
 		static void Shutdown();
 	private:
 		static inline bool isInitialized;
+		static inline bool isVerboseLoggingEnabled;
 	};
 
 	//
