@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.29.2)
 
-project(KalaWindow VERSION 1.0.0 LANGUAGES C CXX)
+project(KalaWindow VERSION 0.3 LANGUAGES C CXX)
+
+# Adds a '_' prefix in front of the created binary files if set to TRUE
+set(KALA_PRERELEASE TRUE)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -58,9 +61,21 @@ if (MSVC)
     target_compile_options(KalaWindow PRIVATE /EHsc)
 endif()
 
+# Get prefix
+set(KALA_PREFIX "")
+if (KALA_PRERELEASE)
+	set(KALA_PREFIX "_")
+endif()
+	
+# Get version
+set(KALA_VERSION "${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR}")
+	
+# Get suffix
+set(KALA_SUFFIX "$<$<CONFIG:Debug>:d>")
+
 # Set output name with renderer suffix and debug postfix
 set_target_properties(KalaWindow PROPERTIES
-    OUTPUT_NAME "KalaWindow$<$<CONFIG:Debug>:D>"
+	OUTPUT_NAME "${KALA_PREFIX}KWnd${KALA_VERSION}${KALA_SUFFIX}"
 )
 
 file(GLOB_RECURSE HEADERS configure_depends

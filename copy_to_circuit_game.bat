@@ -12,12 +12,12 @@ set "STB_IMAGE_ORIGIN=_external_shared\stb_image"
 set "IMGUI_ORIGIN=_external_shared\imgui"
 set "MINIAUDIO_ORIGIN=_external_shared\miniaudio"
 
-set "DEBUG_DLL=debug\KalaWindowD.dll"
-set "DEBUG_LIB=debug\KalaWindowD.lib"
-set "DEBUG_PDB=debug\KalaWindowD.pdb"
+set "DEBUG_DLL=debug\_KWnd03d.dll"
+set "DEBUG_LIB=debug\_KWnd03d.lib"
+set "DEBUG_PDB=debug\_KWnd03d.pdb"
 
-set "RELEASE_DLL=release\KalaWindow.dll"
-set "RELEASE_LIB=release\KalaWindow.lib"
+set "RELEASE_DLL=release\_KWnd03.dll"
+set "RELEASE_LIB=release\_KWnd03.lib"
 
 set "README_FILE=README.md"
 set "LICENSE_FILE=LICENSE.md"
