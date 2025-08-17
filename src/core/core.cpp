@@ -28,6 +28,8 @@ using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Texture;
 
+using std::abort;
+using std::quick_exit;
 using std::function;
 using std::exception;
 using std::to_string;
@@ -117,11 +119,15 @@ namespace KalaWindow::Core
 		bool useWindowShutdown,
 		const function<void()>& userShutdown)
 	{
-		//skip all cleanup if a critical error was detected, we have no time to waste with cleanup here
 		if (state == ShutdownState::SHUTDOWN_CRITICAL)
 		{
-			abort();
-			return;
+#ifdef _DEBUG
+			//skip all cleanup if a critical error was detected, we have no time to waste with cleanup here
+			abort();  
+#else
+			//clean, user-friendly exit in release
+			quick_exit(EXIT_FAILURE);  
+#endif
 		}
 
 		try
