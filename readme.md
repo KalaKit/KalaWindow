@@ -58,7 +58,7 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 
 ### On Windows
 
-> Read Windows_prerequisites.txt and use Windows_prerequisites.zip
+> Read `Windows_prerequisites.txt` and use `Windows_prerequisites.zip`
 
 ### On Linux
 
@@ -66,11 +66,11 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 
 ## How to build from source
 
-The compiled binaries will be placed to /release and /debug relative to the build stage
+The compiled executable and its files will be placed to `/release` and `/debug` in the root folder relative to the build stage
 
 ### On Windows
 
-> Run 'build_windows.bat'
+> Run `build_windows.bat`
 
 ### On Linux
 
@@ -82,7 +82,7 @@ Follow the [example project](https://github.com/lost-empire-entertainment/circui
 
 ## External libraries
 
-These libraries are used by KalaWindow for various purposes, their licenses are included in their folder inside '_external_shared/*' and KalaWindow license does not apply to them.
+These libraries are used by KalaWindow for various purposes, their licenses are included in their folder inside `_external_shared/*` and KalaWindow license does not apply to them.
 
 | Library                                                              | Use case                                             |
 |----------------------------------------------------------------------|------------------------------------------------------|
