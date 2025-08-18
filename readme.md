@@ -66,7 +66,7 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 
 ## How to build from source
 
-The compiled executable and its files will be placed to /release and /debug relative to the build stage
+The compiled binaries will be placed to /release and /debug relative to the build stage
 
 ### On Windows
 
