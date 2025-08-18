@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.29.2)
 
-project(KalaWindow VERSION 0.3.0.0 LANGUAGES C CXX)
+set(KALAWINDOW_VERSION "KalaWindow 0.3 Alpha")
+set(KALAWINDOW_VERSION_NUMBER 0.3.0.0)
+
+project("KalaWindow" VERSION ${KALAWINDOW_VERSION_NUMBER} LANGUAGES C CXX)
 
 # Adds a '_' prefix in front of the created binary files if set to TRUE
 set(KALA_PRERELEASE TRUE)
@@ -112,6 +115,11 @@ target_link_libraries(KalaWindow PRIVATE
 	opengl32)
 	#OpenGL::GL
 	#Vulkan::Vulkan)
+	
+# Expose version string
+add_compile_definitions(
+	KALAWINDOW_VERSION="${KALAWINDOW_VERSION}"
+)
 	
 # Set Windows Details tab data
 if (WIN32)
