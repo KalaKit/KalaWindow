@@ -62,7 +62,7 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 
 ## On Linux
 
-> Read Linux_prerequisites.txt
+> Not ready, coming soon
 
 Follow the [example project](https://github.com/lost-empire-entertainment/circuit-chan) to see how to set up and use this library in a real-world game example for Windows.
 
