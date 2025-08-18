@@ -14,11 +14,11 @@ KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and *
 
 ---
 
-# KalaWindow Library Naming Scheme
+## KalaWindow Library Naming Scheme
 
 KalaWindow distributes prebuilt binaries with human-readable names so you can always tell which version and build configuration you are using. KWnd is the official shorthand for KalaWindow.
 
-## Versioning
+### Versioning
 
 - XX = major + minor version
 	- 03 = v0.3
@@ -32,7 +32,7 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 	- Once a version is considered stable, the underscore is removed.
 	- Prerelease builds are often unstable and should never be used in production.
 
-## Windows examples
+### Windows examples
 
 | Filename pattern | Meaning                |
 |------------------|------------------------|
@@ -42,7 +42,7 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 | KWndXXd.lib      | Debug import library   |
 | _KWndXX.dll      | In development DLL     |
 
-## Linux examples
+### Linux examples
 
 | Filename pattern | Meaning                      |
 |------------------|------------------------------|
@@ -54,13 +54,25 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 
 ---
 
-# Prerequisites (when compiling from source code)
+## Prerequisites for building from source
 
-## On Windows
+### On Windows
 
 > Read Windows_prerequisites.txt and use Windows_prerequisites.zip
 
-## On Linux
+### On Linux
+
+> Not ready, coming soon
+
+## How to build from source
+
+The compiled executable and its files will be placed to /release and /debug relative to the build stage
+
+### On Windows
+
+> Run 'build_windows.bat'
+
+### On Linux
 
 > Not ready, coming soon
 
@@ -68,7 +80,7 @@ Follow the [example project](https://github.com/lost-empire-entertainment/circui
 
 ---
 
-# External libraries
+## External libraries
 
 These libraries are used by KalaWindow for various purposes, their licenses are included in their folder inside '_external_shared/*' and KalaWindow license does not apply to them.
 
@@ -83,13 +95,13 @@ These libraries are used by KalaWindow for various purposes, their licenses are 
 
 ---
 
-# Minimum GPU, CPU, and Driver Requirements (by Feature and Vendor)
+## Minimum GPU, CPU, and Driver Requirements (by Feature and Vendor)
 
 The following tables list the oldest known hardware that should, in theory, run this framework at the API level. These configurations are not tested and may not offer usable performance. They represent the technical minimum for compatibility, not a performance recommendation.
 
 All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**. Older OS versions may work but are **untested**.
 
-## OpenGL 3.3
+### OpenGL 3.3
 
 | Intel CPU           | AMD CPU            | GPU Type        | GPU Name/Series               | Min Driver Version                |
 |---------------------|--------------------|-----------------|--------------------------------|------------------------------------|
@@ -101,7 +113,7 @@ All targets assume **64-bit systems with Windows 10/11 or Linux distro from the 
 
 ---
 
-## Vulkan 1.2
+### Vulkan 1.2
 
 | Intel CPU           | AMD CPU            | GPU Type        | GPU Name/Series               | Min Driver Version                |
 |---------------------|--------------------|-----------------|--------------------------------|------------------------------------|
