@@ -6,17 +6,133 @@
 #include <sstream>
 
 #include "KalaHeaders/logging.hpp"
+#include "KalaHeaders/core_types.hpp"
 
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "core/core.hpp"
+#include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
+
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::GlobalHandle;
+using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::string;
 using std::to_string;
 using std::ostringstream;
 
-static void VerifyFunctions();
+struct FunctionCheck
+{
+    const char* name;
+    const void* ptr;
+};
+
+FunctionCheck checks[] =
+{
+    //
+    // DEBUGGING
+    //
+
+    { "glDebugMessageCallback", glDebugMessageCallback },
+    { "glEnable",               glEnable },
+
+    //
+    // GEOMETRY
+    //
+
+    { "glBindBuffer",              glBindBuffer },
+    { "glBindVertexArray",         glBindVertexArray },
+    { "glBufferData",              glBufferData },
+    { "glDeleteBuffers",           glDeleteBuffers },
+    { "glDeleteVertexArrays",      glDeleteVertexArrays },
+    { "glDrawArrays",              glDrawArrays },
+    { "glDrawElements",            glDrawElements },
+    { "glEnableVertexAttribArray", glEnableVertexAttribArray },
+    { "glGenBuffers",              glGenBuffers },
+    { "glGenVertexArrays",         glGenVertexArrays },
+    { "glGetVertexAttribiv",       glGetVertexAttribiv },
+    { "glGetVertexAttribPointerv", glGetVertexAttribPointerv },
+    { "glVertexAttribPointer",     glVertexAttribPointer },
+
+    //
+    // SHADERS
+    //
+
+    { "glAttachShader",      glAttachShader },
+    { "glCompileShader",     glCompileShader },
+    { "glCreateProgram",     glCreateProgram },
+    { "glCreateShader",      glCreateShader },
+    { "glDeleteShader",      glDeleteShader },
+    { "glDeleteProgram",     glDeleteProgram },
+    { "glDetachShader",      glDetachShader },
+    { "glGetActiveAttrib",   glGetActiveAttrib },
+    { "glGetAttribLocation", glGetAttribLocation },
+    { "glGetProgramiv",      glGetProgramiv },
+    { "glGetProgramInfoLog", glGetProgramInfoLog },
+    { "glGetShaderiv",       glGetShaderiv },
+    { "glGetShaderInfoLog",  glGetShaderInfoLog },
+    { "glLinkProgram",       glLinkProgram },
+    { "glShaderSource",      glShaderSource },
+    { "glUseProgram",        glUseProgram },
+    { "glValidateProgram",   glValidateProgram },
+    { "glIsProgram",         glIsProgram },
+
+    //
+    // UNIFORMS
+    //
+
+    { "glGetUniformLocation", glGetUniformLocation },
+    { "glUniform1f",          glUniform1f },
+    { "glUniform1i",          glUniform1i },
+    { "glUniform2f",          glUniform2f },
+    { "glUniform2fv",         glUniform2fv },
+    { "glUniform3f",          glUniform3f },
+    { "glUniform3fv",         glUniform3fv },
+    { "glUniform4f",          glUniform4f },
+    { "glUniform4fv",         glUniform4fv },
+    { "glUniformMatrix2fv",   glUniformMatrix2fv },
+    { "glUniformMatrix3fv",   glUniformMatrix3fv },
+    { "glUniformMatrix4fv",   glUniformMatrix4fv },
+
+    //
+    // TEXTURES
+    //
+
+    { "glBindTexture",    glBindTexture },
+    { "glActiveTexture",  glActiveTexture },
+    { "glDeleteTextures", glDeleteTextures },
+    { "glGenerateMipmap", glGenerateMipmap },
+    { "glGenTextures",    glGenTextures },
+    { "glTexImage2D",     glTexImage2D },
+    { "glTexParameteri",  glTexParameteri },
+    { "glTexSubImage2D",  glTexSubImage2D },
+
+    //
+    // FRAMEBUFFERS AND RENDERBUFFERS
+    //
+
+    { "glBindRenderbuffer",        glBindRenderbuffer },
+    { "glBindFramebuffer",         glBindFramebuffer },
+    { "glCheckFramebufferStatus",  glCheckFramebufferStatus },
+    { "glFramebufferRenderbuffer", glFramebufferRenderbuffer },
+    { "glFramebufferTexture2D",    glFramebufferTexture2D },
+    { "glGenRenderbuffers",        glGenRenderbuffers },
+    { "glGenFramebuffers",         glGenFramebuffers },
+    { "glRenderbufferStorage",     glRenderbufferStorage },
+
+    //
+    // FRAME AND RENDER STATE
+    //
+
+    { "glClear",       glClear },
+    { "glClearColor",  glClearColor },
+    { "glDisable",     glDisable },
+    { "glGetError",    glGetError },
+    { "glGetIntegerv", glGetIntegerv },
+    { "glGetString",   glGetString },
+    { "glViewport",    glViewport }
+};
 
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
@@ -185,7 +301,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLGETSTRINGPROC    glGetString    = nullptr;
     PFNGLVIEWPORTPROC     glViewport     = nullptr;
 
-	void OpenGL_Functions_Core::LoadFunctions()
+	void OpenGL_Functions_Core::LoadAllFunctions()
 	{
         //
         // DEBUGGING
@@ -289,134 +405,62 @@ namespace KalaWindow::Graphics::OpenGLFunctions
         glGetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(wglGetProcAddress("glGetIntegerv"));
         glGetString   = reinterpret_cast<PFNGLGETSTRINGPROC>  (wglGetProcAddress("glGetString"));
         glViewport    = reinterpret_cast<PFNGLVIEWPORTPROC>   (wglGetProcAddress("glViewport"));
+
+        for (auto& check : checks)
+        {
+            if (!check.ptr)
+            {
+                KalaWindowCore::ForceClose(
+                    "OpenGL Core function error",
+                    "Failed to load function '" + string(check.name) + "'");
+            }
+        }
 	}
-}
 
-void VerifyFunctions()
-{
-    using KalaWindow::Core::KalaWindowCore;
-
-    using namespace KalaWindow::Graphics::OpenGLFunctions;
-
-    struct FunctionCheck
+    void OpenGL_Functions_Core::LoadFunction(void** target, const char* name)
     {
-        const char* name;
-        const void* ptr;
-    };
+        //check if already loaded
+        auto it = std::find_if(
+            loadedFunctions.begin(),
+            loadedFunctions.end(),
+            [name](const GLFunction& rec) { return rec.name == name; });
 
-    FunctionCheck checks[] =
-    {
-        //
-        // DEBUGGING
-        //
+        //already loaded - return existing one
+        if (it != loadedFunctions.end())
+        {
+            *target = it->ptr;
+            return;
+        }
 
-        { "glDebugMessageCallback", glDebugMessageCallback },
-        { "glEnable",               glEnable },
+        //try to load
+#ifdef _WIN32
+        *target = reinterpret_cast<void*>(wglGetProcAddress(name));
+        if (!*target)
+        {
+            HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
+            *target = reinterpret_cast<void*>(GetProcAddress(module, name));
+        }
+#elif __linux__
+        * target = reinterpret_cast<T>(glXGetProcAddress(
+            reinterpret_cast<const GLubyte*>(name)));
+        if (!*target)
+        {
+            void* module = ToVar<void*>(GlobalHandle::GetOpenGLHandle());
+            *target = reinterpret_cast<void*>(GetProcAddress(module, name));
+        }
+#endif
 
-        //
-        // GEOMETRY
-        //
-
-        { "glBindBuffer",              glBindBuffer },
-        { "glBindVertexArray",         glBindVertexArray },
-        { "glBufferData",              glBufferData },
-        { "glDeleteBuffers",           glDeleteBuffers },
-        { "glDeleteVertexArrays",      glDeleteVertexArrays },
-        { "glDrawArrays",              glDrawArrays },
-        { "glDrawElements",            glDrawElements },
-        { "glEnableVertexAttribArray", glEnableVertexAttribArray },
-        { "glGenBuffers",              glGenBuffers },
-        { "glGenVertexArrays",         glGenVertexArrays },
-        { "glGetVertexAttribiv",       glGetVertexAttribiv },
-        { "glGetVertexAttribPointerv", glGetVertexAttribPointerv },
-        { "glVertexAttribPointer",     glVertexAttribPointer },
-
-        //
-        // SHADERS
-        //
-
-        { "glAttachShader",      glAttachShader },
-        { "glCompileShader",     glCompileShader },
-        { "glCreateProgram",     glCreateProgram },
-        { "glCreateShader",      glCreateShader },
-        { "glDeleteShader",      glDeleteShader },
-        { "glDeleteProgram",     glDeleteProgram },
-        { "glDetachShader",      glDetachShader },
-        { "glGetActiveAttrib",   glGetActiveAttrib },
-        { "glGetAttribLocation", glGetAttribLocation },
-        { "glGetProgramiv",      glGetProgramiv },
-        { "glGetProgramInfoLog", glGetProgramInfoLog },
-        { "glGetShaderiv",       glGetShaderiv },
-        { "glGetShaderInfoLog",  glGetShaderInfoLog },
-        { "glLinkProgram",       glLinkProgram },
-        { "glShaderSource",      glShaderSource },
-        { "glUseProgram",        glUseProgram },
-        { "glValidateProgram",   glValidateProgram },
-        { "glIsProgram",         glIsProgram },
-
-        //
-        // UNIFORMS
-        //
-
-        { "glGetUniformLocation", glGetUniformLocation },
-        { "glUniform1f",          glUniform1f },
-        { "glUniform1i",          glUniform1i },
-        { "glUniform2f",          glUniform2f },
-        { "glUniform2fv",         glUniform2fv },
-        { "glUniform3f",          glUniform3f },
-        { "glUniform3fv",         glUniform3fv },
-        { "glUniform4f",          glUniform4f },
-        { "glUniform4fv",         glUniform4fv },
-        { "glUniformMatrix2fv",   glUniformMatrix2fv },
-        { "glUniformMatrix3fv",   glUniformMatrix3fv },
-        { "glUniformMatrix4fv",   glUniformMatrix4fv },
-
-        //
-        // TEXTURES
-        //
-
-        { "glBindTexture",    glBindTexture },
-        { "glActiveTexture",  glActiveTexture },
-        { "glDeleteTextures", glDeleteTextures },
-        { "glGenerateMipmap", glGenerateMipmap },
-        { "glGenTextures",    glGenTextures },
-        { "glTexImage2D",     glTexImage2D },
-        { "glTexParameteri",  glTexParameteri },
-        { "glTexSubImage2D",  glTexSubImage2D },
-
-        //
-        // FRAMEBUFFERS AND RENDERBUFFERS
-        //
-
-        { "glBindRenderbuffer",        glBindRenderbuffer },
-        { "glBindFramebuffer",         glBindFramebuffer },
-        { "glCheckFramebufferStatus",  glCheckFramebufferStatus },
-        { "glFramebufferRenderbuffer", glFramebufferRenderbuffer },
-        { "glFramebufferTexture2D",    glFramebufferTexture2D },
-        { "glGenRenderbuffers",        glGenRenderbuffers },
-        { "glGenFramebuffers",         glGenFramebuffers },
-        { "glRenderbufferStorage",     glRenderbufferStorage },
-
-        //
-        // FRAME AND RENDER STATE
-        //
-
-        { "glClear",       glClear },
-        { "glClearColor",  glClearColor },
-        { "glDisable",     glDisable },
-        { "glGetError",    glGetError },
-        { "glGetIntegerv", glGetIntegerv },
-        { "glGetString",   glGetString },
-        { "glViewport",    glViewport }
-    };
-
-    for (auto& check : checks)
-    {
-        if (!check.ptr)
+        if (!*target)
         {
             KalaWindowCore::ForceClose(
-                "OpenGL Core Function error",
-                "Failed to load function '" + string(check.name) + "'");
+                "OpenGL Core function error",
+                "Failed to load OpenGL error '" + string(name) + "'!");
         }
+
+        loadedFunctions.push_back(
+            {
+                name,
+                *target
+            });
     }
 }

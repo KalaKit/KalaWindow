@@ -7,7 +7,9 @@
 
 #include <memory>
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
@@ -20,7 +22,7 @@ namespace KalaWindow::Graphics::OpenGL
 		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
 	};
 
-	class KALAWINDOW_API Renderer_OpenGL
+	class LIB_API Renderer_OpenGL
 	{
 	public:
 		/// <summary>

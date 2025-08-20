@@ -14,7 +14,12 @@ namespace KalaWindow::Core
 	public:
 		static void InitOpenGLHandle();
 
-		static uintptr_t GetOpenGLHandle() { return openGL32; }
+		static uintptr_t GetOpenGLHandle()
+		{
+			if (openGL32 == NULL) InitOpenGLHandle();
+
+			return openGL32;
+		}
 	private:
 		static inline uintptr_t openGL32{};
 	};
