@@ -21,22 +21,23 @@
 #include "windows/messageloop.hpp"
 #include "graphics/window.hpp"
 #include "core/input.hpp"
-#include "core/log.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
 
-#include "graphics/opengl/opengl_core.hpp"
+#include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
+using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::MouseButton;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
@@ -237,7 +238,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 		if (result == 16) resultValue = "bottom left corner";
 		if (result == 17) resultValue = "bottom right corner";
 
-		Logger::Print(
+		Log::Print(
 			"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -268,7 +269,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 {
 	if (window == nullptr)
 	{
-		Logger::Print(
+		Log::Print(
 			"Cannot use 'ProcessMessage' because window is nullptr!",
 			"MESSAGELOOP",
 			LogType::LOG_ERROR,
@@ -280,7 +281,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	/*
 	if (msg.message == 0)
 	{
-		Logger::Print(
+		Log::Print(
 			"Received empty or WM_NULL message.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -297,7 +298,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			<< ", pt: (" << msg.pt.x << ", " << msg.pt.y << ")" << "\n"
 			<< " }";
 
-		Logger::Print(
+		Log::Print(
 			"Got message: " + ss.str(),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -315,7 +316,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Key key = TranslateVirtualKey(msg.wParam);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected keyboard key down: " + to_string(static_cast<int>(key)),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -328,7 +329,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Key key = TranslateVirtualKey(msg.wParam);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected keyboard key up: " + to_string(static_cast<int>(key)),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -390,7 +391,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonDoubleClickState(MouseButton::Left, true);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected left mouse key double click.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -400,7 +401,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonDoubleClickState(MouseButton::Right, true);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected right mouse key double click.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -410,7 +411,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonDoubleClickState(MouseButton::Right, true);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected middle mouse key double click.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -423,7 +424,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonDoubleClickState(MouseButton::X1, true);
 
-			Logger::Print(
+			Log::Print(
 				"Windows detected x1 mouse key double click.",
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
@@ -432,7 +433,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonDoubleClickState(MouseButton::X2, true);
 
-			Logger::Print(
+			Log::Print(
 				"Windows detected x2 mouse key double click.",
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
@@ -448,7 +449,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Left, true);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected left mouse key down.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -458,7 +459,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Left, false);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected left mouse key up.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -469,7 +470,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Right, true);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected right mouse key down.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -479,7 +480,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Right, false);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected right mouse key up.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -490,7 +491,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Middle, true);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected middle mouse key down.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -500,7 +501,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Middle, false);
 
-		Logger::Print(
+		Log::Print(
 			"Windows detected middle mouse key up.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -514,7 +515,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonState(MouseButton::X1, true);
 
-			Logger::Print(
+			Log::Print(
 				"Windows detected x1 mouse key down.",
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
@@ -523,7 +524,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonState(MouseButton::X2, true);
 
-			Logger::Print(
+			Log::Print(
 				"Windows detected x2 mouse key down.",
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
@@ -537,7 +538,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonState(MouseButton::X1, false);
 
-			Logger::Print(
+			Log::Print(
 				"Windows detected x1 mouse key up.",
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
@@ -546,7 +547,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonState(MouseButton::X2, false);
 
-			Logger::Print(
+			Log::Print(
 				"Windows detected x2 mouse key up.",
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
@@ -661,7 +662,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Renderer_OpenGL::IsInitialized()) glViewport(0, 0, width, height);
 
 		/*
-		Logger::Print(
+		Log::Print(
 			"New resolution: " + to_string(width) + ", " + to_string(height),
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
@@ -714,7 +715,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	//window was destroyed - tell the system to exit
 	case WM_DESTROY:
-		Logger::Print(
+		Log::Print(
 			"Window is destroyed.",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);

@@ -3,6 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+/*
 #define VK_NO_PROTOTYPES
 #include <Volk/volk.h>
 
@@ -15,13 +16,13 @@
 #include "graphics/texture.hpp"
 #include "graphics/vulkan/texture_vulkan.hpp"
 #include "core/core.hpp"
-#include "core/log.hpp"
 #include "core/containers.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::Texture;
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Core::createdVulkanTextures;
 
 using std::string;
@@ -65,12 +66,10 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		//TODO: DEFINE
 
-		/*
-		Logger::Print(
-			"Loaded Vulkan texture '" + name + "' with ID '" + to_string(newID) + "'!",
-			"TEXTURE",
-			LogType::LOG_SUCCESS);
-		*/
+		//Log::Print(
+		//	"Loaded Vulkan texture '" + name + "' with ID '" + to_string(newID) + "'!",
+		//	"TEXTURE",
+		//	LogType::LOG_SUCCESS);
 
 		return nullptr;
 	}
@@ -84,7 +83,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		//TODO: DEFINE
 
-		Logger::Print(
+		Log::Print(
 			"Destroyed texture '" + GetName() + "'!",
 			"TEXTURE_VULKAN",
 			LogType::LOG_SUCCESS);
@@ -170,7 +169,7 @@ TextureCheckResult IsValidTexture(
 	{
 		if (value->GetName() == textureName)
 		{
-			Logger::Print(
+			Log::Print(
 				"Texture '" + textureName + "' already exists!",
 				"TEXTURE_OPENGL",
 				LogType::LOG_ERROR,
@@ -181,7 +180,7 @@ TextureCheckResult IsValidTexture(
 
 		if (value->GetPath() == texturePath)
 		{
-			Logger::Print(
+			Log::Print(
 				"Texture '" + textureName + "' with path '" + texturePathName + "' has already been loaded!",
 				"TEXTURE_OPENGL",
 				LogType::LOG_ERROR,
@@ -193,3 +192,4 @@ TextureCheckResult IsValidTexture(
 
 	return TextureCheckResult::RESULT_OK;
 }
+*/

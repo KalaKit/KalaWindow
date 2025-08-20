@@ -20,13 +20,13 @@ using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::string;
 
-struct FunctionCheck
+struct WinFunctionCheck
 {
     const char* name;
     const void* ptr;
 };
 
-FunctionCheck checks[] =
+WinFunctionCheck checks[] =
 {
     { "wglCreateContextAttribsARB", wglCreateContextAttribsARB },
     { "wglChoosePixelFormatARB",    wglChoosePixelFormatARB },
@@ -39,7 +39,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	PFNWGLCHOOSEPIXELFORMATARBPROC    wglChoosePixelFormatARB    = nullptr;
 	PFNWGLSWAPINTERVALEXTPROC         wglSwapIntervalEXT         = nullptr;
 
-	void OpenGL_Functions_Windows::LoadAllFunctions()
+	void OpenGL_Functions_Windows::LoadAllWinFunctions()
 	{
         wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(wglGetProcAddress("wglCreateContextAttribsARB"));
         wglChoosePixelFormatARB =    reinterpret_cast<PFNWGLCHOOSEPIXELFORMATARBPROC>   (wglGetProcAddress("wglChoosePixelFormatARB"));
@@ -56,16 +56,16 @@ namespace KalaWindow::Graphics::OpenGLFunctions
         }
 	}
 
-    void OpenGL_Functions_Windows::LoadFunction(void** target, const char* name)
+    void OpenGL_Functions_Windows::LoadWinFunction(void** target, const char* name)
     {
         //check if already loaded
-        auto it = std::find_if(
-            loadedFunctions.begin(),
-            loadedFunctions.end(),
-            [name](const GLFunction& rec) { return rec.name == name; });
+        auto it = find_if(
+            loadedWinFunctions.begin(),
+            loadedWinFunctions.end(),
+            [name](const WinGLFunction& rec) { return rec.name == name; });
 
         //already loaded - return existing one
-        if (it != loadedFunctions.end())
+        if (it != loadedWinFunctions.end())
         {
             *target = it->ptr;
             return;
@@ -86,7 +86,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
                 "Failed to load OpenGL error '" + string(name) + "'!");
         }
 
-        loadedFunctions.push_back(
+        loadedWinFunctions.push_back(
             {
                 name,
                 *target

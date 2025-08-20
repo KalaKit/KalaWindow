@@ -8,12 +8,14 @@
 #include <Windows.h>
 #include <unordered_map>
 
+#include "KalaHeaders/logging.hpp"
+
 #include "core/input.hpp"
-#include "core/log.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 
 namespace KalaWindow::Core
 {
@@ -21,7 +23,7 @@ namespace KalaWindow::Core
 	{
 		if (isInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Input is already initialized!",
 				"INPUT",
 				LogType::LOG_ERROR,

@@ -3,7 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-
+/*
 #include <vector>
 #include <string>
 #include <filesystem>
@@ -21,13 +21,13 @@
 #include "graphics/vulkan/shader_vulkan.hpp"
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/window.hpp"
-#include "core/log.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
 
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
+
 using KalaWindow::Graphics::Window;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Vulkan::ShaderType;
 using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
@@ -126,7 +126,7 @@ namespace KalaWindow::Graphics::Vulkan
     {
         if (newName.empty())
         {
-            Logger::Print(
+            Log::Print(
                 "Cannot set shader name to empty name!",
                 "SHADER_VULKAN",
                 LogType::LOG_ERROR,
@@ -138,7 +138,7 @@ namespace KalaWindow::Graphics::Vulkan
             string thisName = createdShader.second->GetName();
             if (newName == thisName)
             {
-                Logger::Print(
+                Log::Print(
                     "Cannot set shader name to already existing shader name '" + thisName + "'!",
                     "SHADER_VULKAN",
                     LogType::LOG_ERROR,
@@ -156,7 +156,7 @@ namespace KalaWindow::Graphics::Vulkan
     {
         if (originShaderPaths.size() != targetShaderPaths.size())
         {
-            Logger::Print(
+            Log::Print(
                 "Origin shader paths count does not match target shader paths count!",
                 "SHADER_VULKAN",
                 LogType::LOG_ERROR,
@@ -190,7 +190,7 @@ namespace KalaWindow::Graphics::Vulkan
 
             if (upToDate)
             {
-                Logger::Print(
+                Log::Print(
                     "Skipped compiling shader file '" + originName + "' because it is already up to date.",
                     "SHADER_VULKAN",
                     LogType::LOG_DEBUG);
@@ -213,7 +213,7 @@ namespace KalaWindow::Graphics::Vulkan
                     }
                     else
                     {
-                        Logger::Print(
+                        Log::Print(
                             "Removed existing spv file '" + originName + "' before compilation.",
                             "SHADER_VULKAN",
                             LogType::LOG_DEBUG);
@@ -241,7 +241,7 @@ namespace KalaWindow::Graphics::Vulkan
 
         if (shaderName.empty())
         {
-            Logger::Print(
+            Log::Print(
                 "Cannot create a shader with no name!",
                 "SHADER_VULKAN",
                 LogType::LOG_ERROR,
@@ -252,7 +252,7 @@ namespace KalaWindow::Graphics::Vulkan
         {
             if (value->GetName() == shaderName)
             {
-                Logger::Print(
+                Log::Print(
                     "Cannot create a shader with the name '" + shaderName
                     + "' because a shader with that name already exists!",
                     "SHADER_VULKAN",
@@ -264,7 +264,7 @@ namespace KalaWindow::Graphics::Vulkan
 
         if (shaderStages.empty())
         {
-            Logger::Print(
+            Log::Print(
                 "Cannot create a shader with no stages!",
                 "SHADER_VULKAN",
                 LogType::LOG_ERROR,
@@ -272,7 +272,7 @@ namespace KalaWindow::Graphics::Vulkan
             return nullptr;
         }
 
-        Logger::Print(
+        Log::Print(
             "Creating shader '" + shaderName + "'.",
             "SHADER_VULKAN",
             LogType::LOG_DEBUG);
@@ -283,7 +283,7 @@ namespace KalaWindow::Graphics::Vulkan
 
             if (stage.shaderPath.empty())
             {
-                Logger::Print(
+                Log::Print(
                     "Shader '" + shaderName + "' with type '"
                     + shaderType + "' has no assigned path!",
                     "SHADER_VULKAN",
@@ -294,7 +294,7 @@ namespace KalaWindow::Graphics::Vulkan
 
             if (!exists(stage.shaderPath))
             {
-                Logger::Print(
+                Log::Print(
                     "Shader '" + shaderName + "' with type '"
                     + shaderType + "' has an invalid path '" + stage.shaderPath + "'!",
                     "SHADER_VULKAN",
@@ -340,7 +340,7 @@ namespace KalaWindow::Graphics::Vulkan
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         if (!vertShaderExists)
         {
-            Logger::Print(
+            Log::Print(
                 "Skipped loading vertex shader because it was not assigned as a shader stage.",
                 "SHADER_VULKAN",
                 LogType::LOG_INFO);
@@ -370,7 +370,7 @@ namespace KalaWindow::Graphics::Vulkan
         {
             if (!vertShaderExists)
             {
-                Logger::Print(
+                Log::Print(
                     "Skipped loading vertex shader because it was not assigned as a shader stage.",
                     "SHADER_VULKAN",
                     LogType::LOG_INFO);
@@ -470,7 +470,7 @@ namespace KalaWindow::Graphics::Vulkan
         createdVulkanShaders[newID] = move(newShader);
         runtimeVulkanShaders.push_back(shaderPtr);
 
-        Logger::Print(
+        Log::Print(
             "Created Vulkan shader '" + shaderName + "' with ID '" + to_string(newID) + "'!",
             "TEXTURE",
             LogType::LOG_SUCCESS);
@@ -484,7 +484,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
         if (pipeline == 0)
         {
-            Logger::Print(
+            Log::Print(
                 "Cannot bind Vulkan shader because pipeline handle is null!",
                 "SHADER_VULKAN",
                 LogType::LOG_ERROR,
@@ -535,14 +535,14 @@ namespace KalaWindow::Graphics::Vulkan
         {
             if (drawCommands)
             {
-                Logger::Print(
+                Log::Print(
                     "User draw commands start.",
                     "VULKAN",
                     LogType::LOG_DEBUG);
 
                 drawCommands();
 
-                Logger::Print(
+                Log::Print(
                     "User draw commands end.",
                     "VULKAN",
                     LogType::LOG_DEBUG);
@@ -550,7 +550,7 @@ namespace KalaWindow::Graphics::Vulkan
         }
         catch (const exception& e)
         {
-            Logger::Print(
+            Log::Print(
                 "Error during DrawCommands: " + string(e.what()),
                 "VULKAN",
                 LogType::LOG_ERROR,
@@ -587,7 +587,7 @@ namespace KalaWindow::Graphics::Vulkan
             thisShaderData);
         if (!reloadedShader)
         {
-            Logger::Print(
+            Log::Print(
                 "Hot reload failed for shader '" + name + "'! Keeping old version.",
                 "SHADER_VULKAN",
                 LogType::LOG_ERROR,
@@ -600,7 +600,7 @@ namespace KalaWindow::Graphics::Vulkan
         layout = reloadedShader->layout;
         descriptorSetLayout = reloadedShader->descriptorSetLayout;
 
-        Logger::Print(
+        Log::Print(
             "Shader '" + name + "' was hot reloaded!",
             "SHADER_OPENGL",
             LogType::LOG_SUCCESS);
@@ -646,7 +646,7 @@ namespace KalaWindow::Graphics::Vulkan
             }
         }
 
-        Logger::Print(
+        Log::Print(
             "Destroyed shader '" + GetName() + "'!",
             "SHADER_VULKAN",
             LogType::LOG_SUCCESS);
@@ -705,7 +705,7 @@ vector<u32> ReadFileBinary(const string& filePath)
             buffer[3]  //bound
         );
 
-        Logger::Print(
+        Log::Print(
             "\nShader '" + fileName + "' data:\n" + msg,
             "SHADER_VULKAN",
             LogType::LOG_DEBUG);
@@ -723,7 +723,7 @@ bool InitShader(
 {
     string shaderType = Shader_Vulkan::GetShaderTypeName(type);
 
-    Logger::Print(
+    Log::Print(
         "Loading " + shaderType + " shader: " + shaderPath,
         "SHADER_VULKAN",
         LogType::LOG_INFO);
@@ -741,7 +741,7 @@ bool InitShader(
 
     string fileName = path(shaderPath).filename().string();
 
-    Logger::Print(
+    Log::Print(
         "\nShader '" + fileName + "' values:\n" + result,
         "SHADER_VULKAN",
         LogType::LOG_DEBUG);
@@ -759,7 +759,7 @@ bool InitShader(
         "{:#x}",
         reinterpret_cast<uintptr_t>(shaderModule));
 
-    Logger::Print(
+    Log::Print(
         "vkCreateShaderModule: " + to_string(res) + " (" + resHex + "), module = " + moduleHex,
         "SHADER_VULKAN",
         LogType::LOG_DEBUG);
@@ -785,7 +785,7 @@ bool InitShader(
     shaderStageInfo.module = shaderModule;
     shaderStageInfo.pName = "main";
 
-    Logger::Print(
+    Log::Print(
         "Created module for " + shaderType + " shader!",
         "SHADER_VULKAN",
         LogType::LOG_SUCCESS);
@@ -801,7 +801,7 @@ bool ValidatorExists()
     string whereCommand = "which glslangValidator >/dev/null 2>&1";
 #endif
 
-    Logger::Print(
+    Log::Print(
         "Searching for glslangValidator...",
         "SHADER_VULKAN",
         LogType::LOG_DEBUG);
@@ -819,7 +819,7 @@ bool CompileToSPV(
     string originName = path(origin).filename().string();
     string targetName = path(target).filename().string();
 
-    Logger::Print(
+    Log::Print(
         "Starting to compile shader file '" + originName + "' into '" + targetName + "'.",
         "SHADER_VULKAN",
         LogType::LOG_DEBUG);
@@ -852,7 +852,7 @@ bool CompileToSPV(
         return false;
     }
 
-    Logger::Print(
+    Log::Print(
         "Compiled '" + originName + "' into '" + targetName + "'!",
         "SHADER_VULKAN",
         LogType::LOG_SUCCESS);
@@ -946,3 +946,4 @@ VulkanShaderWindowVKData InitVulkanShaderWindowData(VulkanShaderWindowData windo
 
     return vkData;
 }
+*/

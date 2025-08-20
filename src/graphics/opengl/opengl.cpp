@@ -11,21 +11,24 @@
 
 #include <string>
 
+#include "KalaHeaders/logging.hpp"
+
 #include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/opengl_core.hpp"
+#include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/window.hpp"
-#include "core/log.hpp"
 #include "core/core.hpp"
 #ifdef _WIN32
-#include "graphics/opengl/opengl_win.hpp"
+#include "graphics/opengl/opengl_functions_win.hpp"
 #elif __linux__
-#include "graphics/opengl/opengl_linux.hpp"
+#include "graphics/opengl/opengl_functions_linux.hpp"
 #endif
 
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
+
 using KalaWindow::Graphics::Window;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Graphics::OpenGL::VSyncState;
+using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::KalaWindowCore;
 
 using std::string;
@@ -144,7 +147,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 		else
 		{
-			Logger::Print(
+			Log::Print(
 				"wglSwapIntervalEXT not supported! VSync setting ignored.",
 				"OPENGL",
 				LogType::LOG_ERROR,

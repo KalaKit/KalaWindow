@@ -8,6 +8,7 @@
 #ifdef __linux__
 
 #include <vector>
+#include <string>
 
 #include "KalaHeaders/api.hpp"
 #include "OpenGL/glxext.h" //Linux-only OpenGL extension header
@@ -15,8 +16,9 @@
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::vector;
+	using std::string;
 
-	struct GLFunction
+	struct LinuxGLFunction
 	{
 		string name;
 		void* ptr;
@@ -28,12 +30,12 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 	public:
 		//Load all OpenGL general functions that are provided
-		static void LoadAllFunctions();
+		static void LoadAllLinuxFunctions();
 
 		//Load a specific function, this won't be loaded again with LoadAllFunctions
-		static void LoadFunction(void** target, const char* name);
+		static void LoadLinuxFunction(void** target, const char* name);
 	private:
-		static inline vector<GLFunction> loadedFunctions{};
+		static inline vector<LinuxGLFunction> loadedLinuxFunctions{};
 	};
 }
 

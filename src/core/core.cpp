@@ -13,7 +13,6 @@
 #include <functional>
 
 #include "core/core.hpp"
-#include "core/log.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/shader_opengl.hpp"
@@ -22,10 +21,15 @@
 #include "core/containers.hpp"
 #include "core/audio.hpp"
 
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
+using KalaHeaders::TimeFormat;
+using KalaHeaders::DateFormat;
+
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
-using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
+//using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Texture;
 
 using std::abort;
@@ -90,7 +94,7 @@ namespace KalaWindow::Core
 		const string& title,
 		const string& reason)
 	{
-		Logger::Print(
+		Log::Print(
 			reason,
 			"FORCE CLOSE",
 			LogType::LOG_ERROR,
@@ -132,7 +136,7 @@ namespace KalaWindow::Core
 
 		try
 		{
-			Logger::Print(
+			Log::Print(
 				"Attempting to run user provided regular shutdown function...",
 				"WINDOW",
 				LogType::LOG_DEBUG);
@@ -141,7 +145,7 @@ namespace KalaWindow::Core
 		}
 		catch (const exception& e)
 		{
-			Logger::Print(
+			Log::Print(
 				"User-provided regular shutdown condition failed! Reason: " + string(e.what()),
 				"WINDOW",
 				LogType::LOG_ERROR,
@@ -154,15 +158,18 @@ namespace KalaWindow::Core
 		}
 
 		createdOpenGLTextures.clear();
+		if (Renderer_OpenGL::IsInitialized())
+		{
+			createdOpenGLShaders.clear();
+		}
+
+		/*
 		createdVulkanTextures.clear();
 		if (Renderer_Vulkan::IsVulkanInitialized())
 		{
 			Renderer_Vulkan::Shutdown();
 		}
-		if (Renderer_OpenGL::IsInitialized())
-		{
-			createdOpenGLShaders.clear();
-		}
+		*/
 
 		createdWindows.clear();
 
@@ -176,14 +183,14 @@ namespace KalaWindow::Core
 		}
 		catch (const exception& e)
 		{
-			Logger::Print(
+			Log::Print(
 				"User-provided post-render shutdown condition failed! Reason: " + string(e.what()),
 				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 		}
 
-		Logger::Print(
+		Log::Print(
 			"KalaWindow shutting down with state = " + to_string(static_cast<int>(state)),
 			"WINDOW",
 			LogType::LOG_SUCCESS);

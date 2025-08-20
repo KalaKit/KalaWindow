@@ -8,6 +8,7 @@
 #ifdef _WIN32
 
 #include <vector>
+#include <string>
 
 #include "KalaHeaders/api.hpp"
 #include "OpenGL/wglext.h" //Windows-only OpenGL extension header
@@ -15,8 +16,9 @@
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
 	using std::vector;
+	using std::string;
 
-	struct GLFunction
+	struct WinGLFunction
 	{
 		string name;
 		void* ptr;
@@ -35,12 +37,12 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	{
 	public:
 		//Load all OpenGL Windows functions that are provided
-		static void LoadAllFunctions();
+		static void LoadAllWinFunctions();
 
 		//Load a specific function, this won't be loaded again with LoadAllFunctions
-		static void LoadFunction(void** target, const char* name);
+		static void LoadWinFunction(void** target, const char* name);
 	private:
-		static inline vector<GLFunction> loadedFunctions{};
+		static inline vector<WinGLFunction> loadedWinFunctions{};
 	};
 }
 

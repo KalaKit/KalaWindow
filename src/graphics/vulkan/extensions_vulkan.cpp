@@ -3,6 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+/*
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
@@ -15,17 +16,19 @@
 #endif
 #include <string>
 
+#include "KalaHeaders/logging.hpp"
+
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/window.hpp"
-#include "core/log.hpp"
 #include "core/core.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Vulkan::VSyncState;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 
 using std::string;
 using std::to_string;
@@ -161,7 +164,7 @@ namespace KalaWindow::Graphics::Vulkan
 			&presentCount,
 			nullptr) != VK_SUCCESS)
 		{
-			Logger::Print(
+			Log::Print(
 				"Failed to query Vulkan present mode count!",
 				"EXTENSIONS_VULKAN",
 				LogType::LOG_ERROR,
@@ -176,7 +179,7 @@ namespace KalaWindow::Graphics::Vulkan
 			&presentCount,
 			modes.data()) != VK_SUCCESS)
 		{
-			Logger::Print(
+			Log::Print(
 				"Failed to query Vulkan present modes!",
 				"EXTENSIONS_VULKAN",
 				LogType::LOG_ERROR,
@@ -207,7 +210,7 @@ namespace KalaWindow::Graphics::Vulkan
 			}
 			else
 			{
-				Logger::Print(
+				Log::Print(
 					"Cannot set vsync to 'OFF' because it is not supported on this device! Falling back to 'ON'.",
 					"EXTENSIONS_VULKAN",
 					LogType::LOG_ERROR,
@@ -221,7 +224,7 @@ namespace KalaWindow::Graphics::Vulkan
 			}
 			else
 			{
-				Logger::Print(
+				Log::Print(
 					"Cannot set vsync to 'TRIPLE BUFFERING' because it is not supported on this device! Falling back to 'ON'.",
 					"EXTENSIONS_VULKAN",
 					LogType::LOG_ERROR,
@@ -320,7 +323,7 @@ namespace KalaWindow::Graphics::Vulkan
 				nullptr,
 				&realIV) != VK_SUCCESS)
 			{
-				Logger::Print(
+				Log::Print(
 					"Failed to create image view for swapchain image " + i,
 					"EXTENSIONS_VULKAN",
 					LogType::LOG_ERROR,
@@ -331,7 +334,7 @@ namespace KalaWindow::Graphics::Vulkan
 			vData.imageViews[i] = FromVar(realIV);
 		}
 
-		Logger::Print(
+		Log::Print(
 			"Successfully created Vulkan swapchain and released resources!",
 			"EXTENSIONS_VULKAN",
 			LogType::LOG_SUCCESS);
@@ -408,3 +411,4 @@ void ForceCloseMsg(ForceCloseType fct, const string& targetMsg)
 			"Cannot " + targetMsg + " because Vulkan is not initialized!");
 	}
 }
+*/

@@ -13,13 +13,13 @@
 #include "miniaudio/miniaudio.h"
 
 #include "core/audio.hpp"
-#include "core/log.hpp"
 #include "core/containers.hpp"
 #include "core/core.hpp"
 
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
+
 using KalaWindow::Core::Audio;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Core::KalaWindowCore;
 
 using std::unordered_map;
@@ -71,7 +71,7 @@ namespace KalaWindow::Core
 	{
 		if (isInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot initialize MiniAudio because it is already initialized!",
 				"AUDIO",
 				LogType::LOG_ERROR,
@@ -89,7 +89,7 @@ namespace KalaWindow::Core
 			return false;
 		}
 
-		Logger::Print(
+		Log::Print(
 			"Initialized MiniAudio!",
 			"AUDIO",
 			LogType::LOG_SUCCESS);
@@ -140,7 +140,7 @@ namespace KalaWindow::Core
 
 		if (isVerboseLoggingEnabled)
 		{
-			Logger::Print(
+			Log::Print(
 				"Set audio listener position to '"
 				+ to_string(listener.pos.x) + ", " + to_string(listener.pos.y) + ", " + to_string(listener.pos.z)
 				+ ", audio listener direction to '"
@@ -183,7 +183,7 @@ namespace KalaWindow::Core
 
 		ma_engine_uninit(&engine);
 
-		Logger::Print(
+		Log::Print(
 			"Shut down MiniAudio!",
 			"AUDIO",
 			LogType::LOG_SUCCESS);
@@ -267,7 +267,7 @@ namespace KalaWindow::Core
 
 		createdAudioTracks[newID] = move(newTrack);
 
-		Logger::Print(
+		Log::Print(
 			"Imported audio file '" + name + "' with ID '" + to_string(newID) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_SUCCESS);
@@ -325,7 +325,7 @@ namespace KalaWindow::Core
 
 		name = newName;
 
-		Logger::Print(
+		Log::Print(
 			"Changed audio track old name '" + oldName + "' to new name '" + name + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -345,7 +345,7 @@ namespace KalaWindow::Core
 		//start playing sound
 		ma_sound_start(sound);
 
-		Logger::Print(
+		Log::Print(
 			"Started playing audio track '" + name + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -383,7 +383,7 @@ namespace KalaWindow::Core
 
 		ma_sound_seek_to_pcm_frame(sound, frames);
 
-		Logger::Print(
+		Log::Print(
 			"Set playback position for audio track '" + name + "' to '" + to_string(newPosition) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -421,7 +421,7 @@ namespace KalaWindow::Core
 		//pause song without resetting back to beginning
 		ma_sound_stop(sound);
 
-		Logger::Print(
+		Log::Print(
 			"Paused audio track '" + name + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -437,7 +437,7 @@ namespace KalaWindow::Core
 		//start playing sound but continue where we last left off
 		ma_sound_start(sound);
 
-		Logger::Print(
+		Log::Print(
 			"Continuing playing audio track '" + name + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -454,7 +454,7 @@ namespace KalaWindow::Core
 		ma_sound_set_looping(sound, newState);
 
 		string state = newState ? "true" : "false";
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' loop state to '" + state + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -483,7 +483,7 @@ namespace KalaWindow::Core
 		//reset the audio position to the start, so the next play starts fresh
 		ma_sound_seek_to_pcm_frame(sound, 0);
 
-		Logger::Print(
+		Log::Print(
 			"Stopped playing audio track '" + name + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -513,7 +513,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_volume(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' volume to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -541,7 +541,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_min_gain(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' min gain to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -569,7 +569,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_max_gain(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' max gain to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -597,7 +597,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_min_distance(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' min range to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -625,7 +625,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_max_distance(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' max range to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -651,7 +651,7 @@ namespace KalaWindow::Core
 
 		if (state)
 		{
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' spatialization state to 'true'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -660,7 +660,7 @@ namespace KalaWindow::Core
 		}
 		else
 		{
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' spatialization state to 'false'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -691,7 +691,7 @@ namespace KalaWindow::Core
 		{
 		case Positioning::Positioning_Relative:
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' positioning state to 'relative'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -701,7 +701,7 @@ namespace KalaWindow::Core
 		
 		case Positioning::Positioning_Absolute:
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' positioning state to 'absolute'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -736,7 +736,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_pitch(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' pitch to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -764,7 +764,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_pan(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' pan to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -793,7 +793,7 @@ namespace KalaWindow::Core
 		case PanMode::PanMode_Balance:
 			ma_sound_set_pan_mode(sound, ma_pan_mode_balance);
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' pan mode to 'balance'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -802,7 +802,7 @@ namespace KalaWindow::Core
 		case PanMode::PanMode_Pan:
 			ma_sound_set_pan_mode(sound, ma_pan_mode_pan);
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' pan mode to 'pan'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -846,7 +846,7 @@ namespace KalaWindow::Core
 
 		if (Audio::IsVerboseLoggingEnabled())
 		{
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' position to '"
 				+ to_string(pos.x) + ", " + to_string(pos.y) + ", " + to_string(pos.z) + "'!",
 				"AUDIOTRACK_VERBOSE",
@@ -888,7 +888,7 @@ namespace KalaWindow::Core
 
 		if (Audio::IsVerboseLoggingEnabled())
 		{
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' velocity to '"
 				+ to_string(vel.x) + ", " + to_string(vel.y) + ", " + to_string(vel.z) + "'!",
 				"AUDIOTRACK_VERBOSE",
@@ -942,7 +942,7 @@ namespace KalaWindow::Core
 
 		if (Audio::IsVerboseLoggingEnabled())
 		{
-			Logger::Print(
+			Log::Print(
 				"Set audio player cone direction to '"
 				+ to_string(cone.front.x) + ", " + to_string(cone.front.y) + ", " + to_string(cone.front.z) + "', "
 				+ "cone inner angle to '" + to_string(innerAngleClamped) + "', "
@@ -995,7 +995,7 @@ namespace KalaWindow::Core
 		case AttenuationModel::Attenuation_None:
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_none);
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' attenuation mode to 'none'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -1004,7 +1004,7 @@ namespace KalaWindow::Core
 		case AttenuationModel::Attenuation_Inverse:
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_inverse);
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' attenuation mode to 'inverse'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -1013,7 +1013,7 @@ namespace KalaWindow::Core
 		case AttenuationModel::Attenuation_Linear:
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_linear);
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' attenuation mode to 'linear'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -1022,7 +1022,7 @@ namespace KalaWindow::Core
 		case AttenuationModel::Attenuation_Exponential:
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_exponential);
 
-			Logger::Print(
+			Log::Print(
 				"Set audio track '" + name + "' attenuation mode to 'exponential'!",
 				"AUDIOTRACK",
 				LogType::LOG_DEBUG);
@@ -1059,7 +1059,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_rolloff(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' rolloff factor to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -1087,7 +1087,7 @@ namespace KalaWindow::Core
 
 		ma_sound_set_doppler_factor(sound, clamped);
 
-		Logger::Print(
+		Log::Print(
 			"Set audio track '" + name + "' doppler factor to '" + to_string(clamped) + "'!",
 			"AUDIOTRACK",
 			LogType::LOG_DEBUG);
@@ -1111,7 +1111,7 @@ namespace KalaWindow::Core
 			ma_sound_uninit(it->second.get());
 			soundMap.erase(it);
 
-			Logger::Print(
+			Log::Print(
 				"Destroyed audio track '" + name + "'!",
 				"AUDIOTRACK",
 				LogType::LOG_SUCCESS);
@@ -1170,7 +1170,7 @@ void PrintErrorMessage(
 {
 	string type = originatesFromAudio ? "AUDIO" : "AUDIOTRACK";
 
-	Logger::Print(
+	Log::Print(
 		message,
 		type,
 		LogType::LOG_ERROR,
@@ -1182,7 +1182,7 @@ void PrintWarningMessage(
 {
 	string type = originatesFromAudio ? "AUDIO" : "AUDIOTRACK";
 
-	Logger::Print(
+	Log::Print(
 		message,
 		type,
 		LogType::LOG_WARNING,

@@ -26,8 +26,8 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::Window;
 	using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
 	using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
-	using KalaWindow::Graphics::Vulkan::Texture_Vulkan;
-	using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
+	//using KalaWindow::Graphics::Vulkan::Texture_Vulkan;
+	//using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 
 	using std::string;
 	using std::unordered_map;
@@ -49,8 +49,8 @@ namespace KalaWindow::Core
 	LIB_API extern unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders;
 
-	LIB_API extern unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures;
-	LIB_API extern unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders;
+	//LIB_API extern unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures;
+	//LIB_API extern unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders;
 
 	//
 	// RUNTIME STAGE VECTORS
@@ -61,6 +61,6 @@ namespace KalaWindow::Core
 	LIB_API extern vector<Texture_OpenGL*> runtimeOpenGLTextures;
 	LIB_API extern vector<Shader_OpenGL*> runtimeOpenGLShaders;
 
-	LIB_API extern vector<Texture_Vulkan*> runtimeVulkanTextures;
-	LIB_API extern vector<Shader_Vulkan*> runtimeVulkanShaders;
+	//LIB_API extern vector<Texture_Vulkan*> runtimeVulkanTextures;
+	//LIB_API extern vector<Shader_Vulkan*> runtimeVulkanShaders;
 }

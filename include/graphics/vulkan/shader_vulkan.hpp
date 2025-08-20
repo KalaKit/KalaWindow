@@ -5,6 +5,7 @@
 
 #pragma once
 
+/*
 #include <string>
 #include <functional>
 #include <variant>
@@ -480,3 +481,4 @@ namespace KalaWindow::Graphics::Vulkan
 		vector<ShaderStage> shaders{};
 	};
 }
+*/

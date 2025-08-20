@@ -14,15 +14,16 @@
 
 #include "graphics/texture.hpp"
 #include "graphics/opengl/texture_opengl.hpp"
-#include "graphics/opengl/opengl_core.hpp"
+#include "graphics/opengl/opengl_functions_core.hpp"
 #include "core/core.hpp"
-#include "core/log.hpp"
 #include "core/containers.hpp"
 
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
+
 using KalaWindow::Graphics::Texture;
+using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Core::globalID;
 using KalaWindow::Core::createdOpenGLTextures;
 using KalaWindow::Core::runtimeOpenGLTextures;
@@ -81,7 +82,7 @@ namespace KalaWindow::Graphics::OpenGL
 			}
 		}
 
-		Logger::Print(
+		Log::Print(
 			"Loading texture '" + name + "'.",
 			"TEXTURE_OPENGL",
 			LogType::LOG_DEBUG);
@@ -177,7 +178,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		Logger::Print(
+		Log::Print(
 			"Loaded OpenGL texture '" + name + "' with ID '" + to_string(newID) + "'!",
 			"TEXTURE",
 			LogType::LOG_SUCCESS);
@@ -194,7 +195,7 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		//TODO: DEFINE
 
-		Logger::Print(
+		Log::Print(
 			"Destroyed texture '" + GetName() + "'!",
 			"TEXTURE_OPENGL",
 			LogType::LOG_SUCCESS);
@@ -280,7 +281,7 @@ TextureCheckResult IsValidTexture(
 	{
 		if (value->GetName() == textureName)
 		{
-			Logger::Print(
+			Log::Print(
 				"Texture '" + textureName + "' already exists!",
 				"TEXTURE_OPENGL",
 				LogType::LOG_ERROR,
@@ -291,7 +292,7 @@ TextureCheckResult IsValidTexture(
 
 		if (value->GetPath() == texturePath)
 		{
-			Logger::Print(
+			Log::Print(
 				"Texture '" + textureName + "' with path '" + texturePathName + "' has already been loaded!",
 				"TEXTURE_OPENGL",
 				LogType::LOG_ERROR,

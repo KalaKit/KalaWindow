@@ -5,6 +5,7 @@
 
 #pragma once
 
+/*
 #include "KalaHeaders/api.hpp"
 #include "KalaHeaders/core_types.hpp"
 
@@ -40,3 +41,4 @@ namespace KalaWindow::Graphics::Vulkan
 		uintptr_t sampler{}; //VkSampler
 	};
 }
+*/

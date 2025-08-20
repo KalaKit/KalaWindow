@@ -125,13 +125,13 @@ namespace KalaWindow::Graphics::OpenGL
 		// INITIALIZE WGL EXTENSIONS
 		//
 
-		OpenGL_Functions_Windows::LoadFunction(
+		OpenGL_Functions_Windows::LoadWinFunction(
 			reinterpret_cast<void**>(&wglCreateContextAttribsARB),
 			"wglCreateContextAttribsARB");
-		OpenGL_Functions_Windows::LoadFunction(
+		OpenGL_Functions_Windows::LoadWinFunction(
 			reinterpret_cast<void**>(&wglChoosePixelFormatARB),
 			"wglChoosePixelFormatARB");
-		OpenGL_Functions_Windows::LoadFunction(
+		OpenGL_Functions_Windows::LoadWinFunction(
 			reinterpret_cast<void**>(&wglSwapIntervalEXT),
 			"wglSwapIntervalEXT");
 
@@ -170,7 +170,7 @@ namespace KalaWindow::Graphics::OpenGL
 		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
 		wglMakeCurrent(hdc, hglrc);
 
-		OpenGL_Functions_Core::LoadAllFunctions();
+		OpenGL_Functions_Core::LoadAllCoreFunctions();
 
 		if (!IsCorrectVersion())
 		{

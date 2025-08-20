@@ -5,6 +5,7 @@
 
 #pragma once
 
+/*
 #include <vector>
 
 #include "KalaHeaders/api.hpp"
@@ -134,3 +135,4 @@ namespace KalaWindow::Graphics::Vulkan
 		static inline vector<VulkanDeviceExtensions> enabledDeviceExtensions{};
 	};
 }
+*/

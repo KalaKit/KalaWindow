@@ -6,6 +6,7 @@
 #pragma once
 
 #include <vector>
+#include <string>
 
 #include "KalaHeaders/api.hpp"
 #include "KalaHeaders/core_types.hpp"
@@ -15,8 +16,9 @@
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
 	using std::vector;
+	using std::string;
 
-	struct GLFunction
+	struct CoreGLFunction
 	{
 		string name;
 		void* ptr;
@@ -277,11 +279,11 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	{
 	public:
 		//Load all OpenGL general functions that are provided
-		static void LoadAllFunctions();
+		static void LoadAllCoreFunctions();
 
 		//Load a specific function, this won't be loaded again with LoadAllFunctions
-		static void LoadFunction(void** target, const char* name);
+		static void LoadCoreFunction(void** target, const char* name);
 	private:
-		static inline vector<GLFunction> loadedFunctions{};
+		static inline vector<CoreGLFunction> loadedCoreFunctions{};
 	};
 }

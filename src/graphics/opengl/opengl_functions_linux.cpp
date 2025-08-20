@@ -19,20 +19,20 @@ using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::string;
 
-struct FunctionCheck
+struct LinuxFunctionCheck
 {
     const char* name;
     const void* ptr;
 };
 
-FunctionCheck checks[] =
+LinuxFunctionCheck checks[] =
 {
     //add functions here...
 };
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	void OpenGL_Functions_Linux::LoadAllFunctions()
+	void OpenGL_Functions_Linux::LoadAllLinuxFunctions()
 	{
         //add functions here...
 
@@ -47,16 +47,16 @@ namespace KalaWindow::Graphics::OpenGL
         }
 	}
 
-	void OpenGL_Functions_Linux::LoadFunction(void** target, const char* name)
+	void OpenGL_Functions_Linux::LoadLinuxFunction(void** target, const char* name)
 	{
         //check if already loaded
-        auto it = std::find_if(
-            loadedFunctions.begin(),
-            loadedFunctions.end(),
-            [name](const GLFunction& rec) { return rec.name == name; });
+        auto it = find_if(
+            loadedLinuxFunctions.begin(),
+            loadedLinuxFunctions.end(),
+            [name](const LinuxGLFunction& rec) { return rec.name == name; });
 
         //already loaded - return existing one
-        if (it != loadedFunctions.end())
+        if (it != loadedLinuxFunctions.end())
         {
             *target = it->ptr;
             return;
@@ -78,7 +78,7 @@ namespace KalaWindow::Graphics::OpenGL
                 "Failed to load OpenGL error '" + string(name) + "'!");
         }
 
-        loadedFunctions.push_back(
+        loadedLinuxFunctions.push_back(
             {
                 name,
                 *target

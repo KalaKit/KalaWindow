@@ -24,8 +24,10 @@
 #include "windows/messageloop.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
-#include "core/log.hpp"
 #include "core/containers.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
@@ -34,8 +36,6 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Core::globalID;
 using KalaWindow::Core::createdWindows;
 using KalaWindow::Core::runtimeWindows;
@@ -59,7 +59,7 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size)
 	{
-		Logger::Print(
+		Log::Print(
 			"Creating window '" + title + "'.",
 			"WINDOW_WINDOWS",
 			LogType::LOG_DEBUG);
@@ -165,7 +165,7 @@ namespace KalaWindow::Graphics
 		createdWindows[newID] = move(newWindow);
 		runtimeWindows.push_back(windowPtr);
 
-		Logger::Print(
+		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
 			"WINDOW_WINDOWS",
 			LogType::LOG_SUCCESS);
@@ -336,7 +336,7 @@ namespace KalaWindow::Graphics
 	{
 		if (!isInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot run loop because window '" +
 				title +
 				"' has not been initialized!",
@@ -398,7 +398,7 @@ namespace KalaWindow::Graphics
 		}
 		win.hInstance = NULL;
 
-		Logger::Print(
+		Log::Print(
 			"Destroyed window '" + GetTitle() + "'!",
 			"WINDOW_WINDOWS",
 			LogType::LOG_SUCCESS);

@@ -11,6 +11,7 @@ set "GLM_ORIGIN=_external_shared\glm"
 set "STB_IMAGE_ORIGIN=_external_shared\stb_image"
 set "IMGUI_ORIGIN=_external_shared\imgui"
 set "MINIAUDIO_ORIGIN=_external_shared\miniaudio"
+set "OPENGL_ORIGIN=_external_shared\OpenGL"
 
 set "DEBUG_DLL=debug\_KWnd03d.dll"
 set "DEBUG_LIB=debug\_KWnd03d.lib"
@@ -34,6 +35,8 @@ call :CopyFolder "%GLM_ORIGIN%" "%EXTERNAL_TARGET%\glm" "glm"
 call :CopyFolder "%STB_IMAGE_ORIGIN%" "%EXTERNAL_TARGET%\stb_image" "stb_image"
 call :CopyFolder "%IMGUI_ORIGIN%" "%EXTERNAL_TARGET%\imgui" "imgui"
 call :CopyFolder "%MINIAUDIO_ORIGIN%" "%EXTERNAL_TARGET%\miniaudio" "miniaudio"
+
+call :CopyFolder "%OPENGL_ORIGIN%" "%EXTERNAL_TARGET%\OpenGL" "OpenGL"
 
 call :CopyFile "%DEBUG_DLL%" "%DEBUG_TARGET%" "debug dll" "yes"
 call :CopyFile "%DEBUG_LIB%" "%DEBUG_TARGET%" "debug lib" "yes"

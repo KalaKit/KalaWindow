@@ -3,6 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+/*
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif __linux__
@@ -23,9 +24,11 @@
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/vulkan/shader_vulkan.hpp"
-#include "core/log.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Vulkan::VulkanLayers;
@@ -38,8 +41,6 @@ using KalaWindow::Graphics::VulkanData_Core;
 using KalaWindow::Graphics::Vulkan::vulkanLayerInfo;
 using KalaWindow::Graphics::Vulkan::vulkanInstanceExtensionsInfo;
 using KalaWindow::Graphics::Vulkan::vulkanDeviceExtensionsInfo;
-using KalaWindow::Core::Logger;
-using KalaWindow::Core::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::createdVulkanShaders;
 using KalaWindow::Core::runtimeWindows;
@@ -167,7 +168,7 @@ namespace KalaWindow::Graphics::Vulkan
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot enable layer '" + string(name) + "' because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR);
@@ -179,7 +180,7 @@ namespace KalaWindow::Graphics::Vulkan
 			enabledLayers.end(),
 			layer) != enabledLayers.end())
 		{
-			Logger::Print(
+			Log::Print(
 				"Can not enable layer '" + string(name) + "' because it is already enabled!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -198,7 +199,7 @@ namespace KalaWindow::Graphics::Vulkan
 			{
 				enabledLayers.push_back(layer);
 
-				Logger::Print(
+				Log::Print(
 					"Enabled layer '" + string(name) + "'!",
 					"VULKAN",
 					LogType::LOG_SUCCESS);
@@ -206,7 +207,7 @@ namespace KalaWindow::Graphics::Vulkan
 			}
 		}
 
-		Logger::Print(
+		Log::Print(
 			"Can not enable layer '" + string(name) + "' because it is not supported on this system!",
 			"VULKAN",
 			LogType::LOG_ERROR,
@@ -223,7 +224,7 @@ namespace KalaWindow::Graphics::Vulkan
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot enable instance extension '" + string(name) + "' because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -236,7 +237,7 @@ namespace KalaWindow::Graphics::Vulkan
 			enabledInstanceExtensions.end(),
 			ext) != enabledInstanceExtensions.end())
 		{
-			Logger::Print(
+			Log::Print(
 				"Can not enable instance extension '" + string(name) + "' because it is already enabled!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -260,7 +261,7 @@ namespace KalaWindow::Graphics::Vulkan
 			if (strcmp(e.extensionName, name) == 0)
 			{
 				enabledInstanceExtensions.push_back(ext);
-				Logger::Print(
+				Log::Print(
 					"Enabled instance extension '" + string(name) + "'!",
 					"VULKAN",
 					LogType::LOG_SUCCESS);
@@ -268,7 +269,7 @@ namespace KalaWindow::Graphics::Vulkan
 			}
 		}
 
-		Logger::Print(
+		Log::Print(
 			"Instance extension '" + string(name) + "' not supported on this system!",
 			"VULKAN",
 			LogType::LOG_ERROR,
@@ -285,7 +286,7 @@ namespace KalaWindow::Graphics::Vulkan
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot enable device extension '" + string(name) + "' because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -298,7 +299,7 @@ namespace KalaWindow::Graphics::Vulkan
 			enabledDeviceExtensions.end(),
 			ext) != enabledDeviceExtensions.end())
 		{
-			Logger::Print(
+			Log::Print(
 				"Can not enable device extension '" + string(name) + "' because it is already enabled!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -310,7 +311,7 @@ namespace KalaWindow::Graphics::Vulkan
 			delayedExt.end(),
 			ext) != delayedExt.end())
 		{
-			Logger::Print(
+			Log::Print(
 				"Can not enable device extension '" + string(name) + "' because it is already assigned as a delayed extension!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -319,7 +320,7 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		delayedExt.push_back(ext);
-		Logger::Print(
+		Log::Print(
 			"Queued device extension '" + string(name) + "' for delayed enable.",
 			"VULKAN",
 			LogType::LOG_INFO);
@@ -341,7 +342,7 @@ namespace KalaWindow::Graphics::Vulkan
 		if (!isVolkInitialized
 			&& !InitVolk())
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot initialize Vulkan because Volk is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -395,7 +396,7 @@ namespace KalaWindow::Graphics::Vulkan
 		if (debugLayerEnabled
 			&& debugExtensionEnabled)
 		{
-			Logger::Print(
+			Log::Print(
 				"Enabled verbose Vulkan error checking.",
 				"SHADER_VULKAN",
 				LogType::LOG_DEBUG);
@@ -411,7 +412,7 @@ namespace KalaWindow::Graphics::Vulkan
 			dbgCI.pfnUserCallback = [](auto severity, auto types,
 				const VkDebugUtilsMessengerCallbackDataEXT* d, void*)
 				{
-					Logger::Print(
+					Log::Print(
 						"\n[VULKAN_VALIDATION] " + string(d->pMessage) + "\n",
 						"SHADER_VULKAN",
 						LogType::LOG_ERROR,
@@ -476,7 +477,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 			if (!failReason.empty())
 			{
-				Logger::Print(
+				Log::Print(
 					"Device '" +
 					string(props.deviceName) +
 					"' was not picked because: " 
@@ -585,7 +586,7 @@ namespace KalaWindow::Graphics::Vulkan
 		device = FromVar(newDevice);
 
 		isVulkanInitialized = true;
-		Logger::Print("Initialized Vulkan!",
+		Log::Print("Initialized Vulkan!",
 			"VULKAN",
 			LogType::LOG_SUCCESS);
 
@@ -596,7 +597,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot create command pool because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -626,7 +627,7 @@ namespace KalaWindow::Graphics::Vulkan
 			nullptr,
 			&realPool) != VK_SUCCESS)
 		{
-			Logger::Print(
+			Log::Print(
 				"Failed to create Vulkan command pool!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -642,7 +643,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot create command buffer because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -691,7 +692,7 @@ namespace KalaWindow::Graphics::Vulkan
 			&allocInfo,
 			tempCB.data()) != VK_SUCCESS)
 		{
-			Logger::Print(
+			Log::Print(
 				"Failed to allocate command buffers!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -719,7 +720,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot create sync objects because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -775,7 +776,7 @@ namespace KalaWindow::Graphics::Vulkan
 					&realFence)
 				!= VK_SUCCESS)
 			{
-				Logger::Print(
+				Log::Print(
 					"Failed to create per-frame sync objects for frame " + i,
 					"VULKAN",
 					LogType::LOG_ERROR,
@@ -799,7 +800,7 @@ namespace KalaWindow::Graphics::Vulkan
 				nullptr,
 				&realFinishedSemaphore) != VK_SUCCESS)
 			{
-				Logger::Print(
+				Log::Print(
 					"Failed to create render-finished semaphore for image" + i,
 					"VULKAN",
 					LogType::LOG_ERROR,
@@ -834,7 +835,7 @@ namespace KalaWindow::Graphics::Vulkan
 			{
 				if (!Renderer_Vulkan::IsVulkanInitialized())
 				{
-					Logger::Print(
+					Log::Print(
 						"Cannot begin frame because Vulkan is not initialized!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -930,7 +931,7 @@ namespace KalaWindow::Graphics::Vulkan
 			{
 				if (!Renderer_Vulkan::IsVulkanInitialized())
 				{
-					Logger::Print(
+					Log::Print(
 						"Cannot record command buffer because Vulkan is not initialized!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -958,7 +959,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 				if (vkResetCommandBuffer(cmd, 0) != VK_SUCCESS)
 				{
-					Logger::Print(
+					Log::Print(
 						"Failed to reset command buffer before recording!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -968,7 +969,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 				if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS)
 				{
-					Logger::Print(
+					Log::Print(
 						"Failed to begin recording command buffer!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -1004,7 +1005,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 				if (vkEndCommandBuffer(cmd) != VK_SUCCESS)
 				{
-					Logger::Print(
+					Log::Print(
 						"Failed to record command buffer!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -1019,7 +1020,7 @@ namespace KalaWindow::Graphics::Vulkan
 			{
 				if (!Renderer_Vulkan::IsVulkanInitialized())
 				{
-					Logger::Print(
+					Log::Print(
 						"Cannot submit frame because Vulkan is not initialized!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -1067,7 +1068,7 @@ namespace KalaWindow::Graphics::Vulkan
 					&submitInfo,
 					ToVar<VkFence>(vData.inFlightFences[currentFrame])) != VK_SUCCESS)
 				{
-					Logger::Print(
+					Log::Print(
 						"Failed to submit frame!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -1082,7 +1083,7 @@ namespace KalaWindow::Graphics::Vulkan
 			{
 				if (!Renderer_Vulkan::IsVulkanInitialized())
 				{
-					Logger::Print(
+					Log::Print(
 						"Cannot present frame because Vulkan is not initialized!",
 						"VULKAN",
 						LogType::LOG_ERROR,
@@ -1154,7 +1155,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot hard reset because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -1231,7 +1232,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot create render pass because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -1301,7 +1302,7 @@ namespace KalaWindow::Graphics::Vulkan
 			nullptr,
 			&realRP) != VK_SUCCESS)
 		{
-			Logger::Print(
+			Log::Print(
 				"Failed to create Vulkan render pass!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -1318,7 +1319,7 @@ namespace KalaWindow::Graphics::Vulkan
 	{
 		if (!isVulkanInitialized)
 		{
-			Logger::Print(
+			Log::Print(
 				"Cannot create framebuffers because Vulkan is not initialized!",
 				"VULKAN",
 				LogType::LOG_ERROR,
@@ -1358,7 +1359,7 @@ namespace KalaWindow::Graphics::Vulkan
 				nullptr,
 				&realFB) != VK_SUCCESS)
 			{
-				Logger::Print(
+				Log::Print(
 					"Failed to create framebuffer for image " + i,
 					"VULKAN",
 					LogType::LOG_ERROR,
@@ -1586,3 +1587,4 @@ static int RatePhysicalDevice(
 
 	return score;
 }
+*/

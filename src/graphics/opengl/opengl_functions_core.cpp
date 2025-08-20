@@ -22,13 +22,13 @@ using std::string;
 using std::to_string;
 using std::ostringstream;
 
-struct FunctionCheck
+struct CoreFunctionCheck
 {
     const char* name;
     const void* ptr;
 };
 
-FunctionCheck checks[] =
+CoreFunctionCheck checks[] =
 {
     //
     // DEBUGGING
@@ -301,7 +301,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLGETSTRINGPROC    glGetString    = nullptr;
     PFNGLVIEWPORTPROC     glViewport     = nullptr;
 
-	void OpenGL_Functions_Core::LoadAllFunctions()
+	void OpenGL_Functions_Core::LoadAllCoreFunctions()
 	{
         //
         // DEBUGGING
@@ -417,16 +417,16 @@ namespace KalaWindow::Graphics::OpenGLFunctions
         }
 	}
 
-    void OpenGL_Functions_Core::LoadFunction(void** target, const char* name)
+    void OpenGL_Functions_Core::LoadCoreFunction(void** target, const char* name)
     {
         //check if already loaded
-        auto it = std::find_if(
-            loadedFunctions.begin(),
-            loadedFunctions.end(),
-            [name](const GLFunction& rec) { return rec.name == name; });
+        auto it = find_if(
+            loadedCoreFunctions.begin(),
+            loadedCoreFunctions.end(),
+            [name](const CoreGLFunction& rec) { return rec.name == name; });
 
         //already loaded - return existing one
-        if (it != loadedFunctions.end())
+        if (it != loadedCoreFunctions.end())
         {
             *target = it->ptr;
             return;
@@ -457,7 +457,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
                 "Failed to load OpenGL error '" + string(name) + "'!");
         }
 
-        loadedFunctions.push_back(
+        loadedCoreFunctions.push_back(
             {
                 name,
                 *target
