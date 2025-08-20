@@ -3,13 +3,16 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#pragma once
-
 #ifdef __linux__
 
-#define GLX_CONTEXT_MAJOR_VERSION_ARB 0x2091
-#define GLX_CONTEXT_MINOR_VERSION_ARB 0x2092
-#define GLX_CONTEXT_PROFILE_MASK_ARB 0x9126
-#define GLX_CONTEXT_CORE_PROFILE_BIT_ARB 0x00000001
+#include "graphics/opengl/opengl_functions_linux.hpp"
 
-#endif //__linux__
+namespace KalaWindow::Graphics::OpenGL
+{
+	void OpenGL_Functions_Linux::LoadFunctions()
+	{
+
+	}
+}
+
+#endif //#ifdef __linux__
