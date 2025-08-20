@@ -5,12 +5,23 @@
 
 #pragma once
 
+#include <vector>
+
 #include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
 #include "OpenGL/glcorearb.h" //core opengl
 #include "OpenGL/glext.h"     //extension tokens, enums and extra function pointers
 
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
+	using std::vector;
+
+	struct GLFunction
+	{
+		string name;
+		void* ptr;
+	};
+
 	//
 	// DEBUGGING
 	//
@@ -266,6 +277,11 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	{
 	public:
 		//Load all OpenGL general functions that are provided
-		static void LoadFunctions();
+		static void LoadAllFunctions();
+
+		//Load a specific function, this won't be loaded again with LoadAllFunctions
+		static void LoadFunction(void** target, const char* name);
+	private:
+		static inline vector<GLFunction> loadedFunctions{};
 	};
 }
