@@ -90,6 +90,8 @@ These libraries are used by KalaWindow for various purposes, their licenses are 
 | [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) | Loads image files like PNG and JPEG into memory.     |
 | [ImGui](https://github.com/ocornut/imgui)                            | Creates debug and editor user interfaces.            |
 | [MiniAudio](https://github.com/mackron/miniaudio)                    | Plays and records audio on multiple platforms.       |
+| [OpenGL headers](https://github.com/KhronosGroup/OpenGL-Registry)    | Headers used for OpenGL functionality                |
+| [Vulkan tools and headers](https://www.lunarg.com/vulkan-sdk/)       | Tools and headers used for Vulkan functionality      |
 
 > **Note:** The ImGui docking branch was used instead of the main branch to enable dockable windows.
 

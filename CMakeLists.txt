@@ -37,8 +37,8 @@ else()
 endif()
 
 # Dependencies
-# find_package(OpenGL REQUIRED)
-find_package(Vulkan REQUIRED)
+find_package(OpenGL REQUIRED)
+# find_package(Vulkan REQUIRED)
 
 # Paths
 set(WINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
@@ -104,17 +104,15 @@ target_include_directories(KalaWindow PRIVATE
 )
 
 target_compile_definitions(KalaWindow PRIVATE
-    KALAWINDOW_DLL_EXPORT
+    LIB_EXPORT
     WIN32_LEAN_AND_MEAN
     NOMINMAX
 )
 
 # Link libraries
 target_link_libraries(KalaWindow PRIVATE
-	Vulkan::Vulkan
-	opengl32)
-	#OpenGL::GL
-	#Vulkan::Vulkan)
+	OpenGL::GL
+	${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib)
 	
 # Expose version string
 add_compile_definitions(
