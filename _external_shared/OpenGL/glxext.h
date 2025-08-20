@@ -26,6 +26,8 @@ extern "C" {
  * Extensions removed: _nomatch_^
  */
 
+#include "glcorearb.h"
+
 #ifndef GLX_VERSION_1_3
 #define GLX_VERSION_1_3 1
 typedef XID GLXContextID;

@@ -9,16 +9,19 @@
 #include <functional>
 #include <variant>
 
-#include "core/platform.hpp"
-#include "core/log.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/logging.hpp"
+
+#include "core/glm_global.hpp"
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics::Vulkan
 {
 	//TODO: FIGURE OUT A BETTER ALTERNATIVE TO LARGE VULKAN STRUCTS
 
-	using KalaWindow::Core::Logger;
-	using KalaWindow::Core::LogType;
+	using KalaHeaders::Log;
+	using KalaHeaders::LogType;
 	using KalaWindow::Graphics::Window;
 
 	using std::string;
@@ -262,7 +265,7 @@ namespace KalaWindow::Graphics::Vulkan
 		VulkanData_ColorBlendState userColorBlendState{};
 	};
 
-	class KALAWINDOW_API Shader_Vulkan
+	class LIB_API Shader_Vulkan
 	{
 	public:
 		//Compiles raw .vert, .frag etc shader files into .spv shader files,
@@ -371,7 +374,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 			string typeStr = GetShaderTypeName(type);
 
-			Logger::Print(
+			Log::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning module 0.",
 				"SHADER_VULKAN",
 				LogType::LOG_ERROR,
@@ -393,7 +396,7 @@ namespace KalaWindow::Graphics::Vulkan
 
 			string typeStr = GetShaderTypeName(type);
 
-			Logger::Print(
+			Log::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning empty path.",
 				"SHADER_VULKAN",
 				LogType::LOG_ERROR,

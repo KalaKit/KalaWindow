@@ -7,11 +7,11 @@
 
 #pragma once
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
 
 namespace KalaWindow::Core
 {
-	class KALAWINDOW_API MessageLoop
+	class LIB_API MessageLoop
 	{
 	public:
 		static void* WindowProcCallback();

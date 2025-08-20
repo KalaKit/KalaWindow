@@ -7,7 +7,9 @@
 
 #include <array>
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Core
@@ -139,7 +141,7 @@ namespace KalaWindow::Core
 		MouseButtonCount
 	};
 
-	class KALAWINDOW_API Input
+	class LIB_API Input
 	{
 	public:
 		static inline bool isInitialized = false;

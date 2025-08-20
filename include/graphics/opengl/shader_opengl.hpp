@@ -7,14 +7,16 @@
 
 #include <string>
 
-#include "core/platform.hpp"
-#include "core/log.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/logging.hpp"
+
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	using KalaWindow::Core::Logger;
-	using KalaWindow::Core::LogType;
+	using KalaHeaders::Log;
+	using KalaHeaders::LogType;
 
 	using std::string;
 
@@ -32,7 +34,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u32 shaderID;
 	};
 
-	class KALAWINDOW_API Shader_OpenGL
+	class LIB_API Shader_OpenGL
 	{
 	public:
 		static Shader_OpenGL* CreateShader(
@@ -79,7 +81,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			string typeStr = GetShaderTypeName(type);
 
-			Logger::Print(
+			Log::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning ID 0.",
 				"SHADER_OPENGL",
 				LogType::LOG_ERROR,
@@ -101,7 +103,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			string typeStr = GetShaderTypeName(type);
 
-			Logger::Print(
+			Log::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning empty path.",
 				"SHADER_OPENGL",
 				LogType::LOG_ERROR,

@@ -8,7 +8,10 @@
 #include <string>
 #include <filesystem>
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+
+#include "glm_global.hpp"
 
 namespace KalaWindow::Core
 {
@@ -71,7 +74,7 @@ namespace KalaWindow::Core
 	// AUDIO CORE
 	//
 
-	class KALAWINDOW_API Audio
+	class LIB_API Audio
 	{
 	public:
 		//Initialize Miniaudio
@@ -98,7 +101,7 @@ namespace KalaWindow::Core
 	// EACH INDIVIDUAL IMPORTED AUDIO FILE
 	//
 
-	class KALAWINDOW_API AudioTrack
+	class LIB_API AudioTrack
 	{
 	public:
 		//Import a new audio track

@@ -9,7 +9,10 @@
 #include <functional>
 #include <vector>
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+
+#include "core/glm_global.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -212,7 +215,7 @@ namespace KalaWindow::Graphics
 		VulkanData_MultisampleState multisampleState{};
 	};
 
-	class KALAWINDOW_API Window
+	class LIB_API Window
 	{
 	public:
 		static Window* Initialize(

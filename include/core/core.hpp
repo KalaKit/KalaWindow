@@ -8,7 +8,7 @@
 #include <string>
 #include <functional>
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
 
 namespace KalaWindow::Core
 {
@@ -53,7 +53,7 @@ namespace KalaWindow::Core
 		SHUTDOWN_CRITICAL //Catastrophic/forced shutdown, worst case scenario (abort)
 	};
 
-	class KALAWINDOW_API KalaWindowCore
+	class LIB_API KalaWindowCore
 	{
 	public:
 		//Display any kind of a popup on screen for info that should be shown immediately.

@@ -5,14 +5,15 @@
 
 #pragma once
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
+
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics::Vulkan
 {
     using KalaWindow::Graphics::Window;
 
-    class KALAWINDOW_API Extensions_Vulkan
+    class LIB_API Extensions_Vulkan
     {
     public:
         //Attach Vulkan to window

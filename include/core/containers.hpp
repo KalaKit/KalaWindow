@@ -10,7 +10,9 @@
 #include <vector>
 #include <memory>
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+
 #include "core/audio.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/texture_opengl.hpp"
@@ -34,31 +36,31 @@ namespace KalaWindow::Core
 
 	//Keeps track of highest ID to ensure each window,
 	//shader and texture gets a unique ID in their map
-	extern KALAWINDOW_API u32 globalID;
+	LIB_API extern u32 globalID;
 
 	//
 	// INIT STAGE UNORDERED MAPS
 	//
 
-	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Window>> createdWindows;
+	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
 
-	extern KALAWINDOW_API unordered_map<u32, unique_ptr<AudioTrack>> createdAudioTracks;
+	LIB_API extern unordered_map<u32, unique_ptr<AudioTrack>> createdAudioTracks;
 
-	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures;
-	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders;
+	LIB_API extern unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures;
+	LIB_API extern unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders;
 
-	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures;
-	extern KALAWINDOW_API unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders;
+	LIB_API extern unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures;
+	LIB_API extern unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders;
 
 	//
 	// RUNTIME STAGE VECTORS
 	//
 
-	extern KALAWINDOW_API vector<Window*> runtimeWindows;
+	LIB_API extern vector<Window*> runtimeWindows;
 
-	extern KALAWINDOW_API vector<Texture_OpenGL*> runtimeOpenGLTextures;
-	extern KALAWINDOW_API vector<Shader_OpenGL*> runtimeOpenGLShaders;
+	LIB_API extern vector<Texture_OpenGL*> runtimeOpenGLTextures;
+	LIB_API extern vector<Shader_OpenGL*> runtimeOpenGLShaders;
 
-	extern KALAWINDOW_API vector<Texture_Vulkan*> runtimeVulkanTextures;
-	extern KALAWINDOW_API vector<Shader_Vulkan*> runtimeVulkanShaders;
+	LIB_API extern vector<Texture_Vulkan*> runtimeVulkanTextures;
+	LIB_API extern vector<Shader_Vulkan*> runtimeVulkanShaders;
 }

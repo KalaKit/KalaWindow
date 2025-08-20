@@ -7,7 +7,9 @@
 
 #include <vector>
 
-#include "core/platform.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+
 #include "graphics/window.hpp"
 #include "graphics/vulkan/enums_vulkan.hpp"
 
@@ -29,7 +31,7 @@ namespace KalaWindow::Graphics::Vulkan
 		VSYNC_TRIPLE_BUFFERING //Low latency, no screen tearing. Does not exist in OpenGL, will default to 'ON'!
 	};
 
-	class KALAWINDOW_API Renderer_Vulkan
+	class LIB_API Renderer_Vulkan
 	{
 	public:
 		//

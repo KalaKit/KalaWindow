@@ -7,13 +7,16 @@
 
 #include <string>
 
-#include "core/platform.hpp"
-#include "core/log.hpp"
+#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/logging.hpp"
+
+#include "core/glm_global.hpp"
 
 namespace KalaWindow::Graphics
 {
-	using KalaWindow::Core::Logger;
-	using KalaWindow::Core::LogType;
+	using KalaHeaders::Log;
+	using KalaHeaders::LogType;
 
 	using std::string;
 
@@ -81,7 +84,7 @@ namespace KalaWindow::Graphics
 		Usage_TransferDst   //Copy destination
 	};
 
-	class KALAWINDOW_API Texture
+	class LIB_API Texture
 	{
 	public:
 		//Rebinds the texture
@@ -93,7 +96,7 @@ namespace KalaWindow::Graphics
 			if (newName.empty()
 				|| newName.size() > 100)
 			{
-				Logger::Print(
+				Log::Print(
 					"Texture name is empty or too big! Must be between 1 and 100 characters.",
 					"TEXTURE",
 					LogType::LOG_ERROR,
@@ -110,7 +113,7 @@ namespace KalaWindow::Graphics
 			if (newPath.empty()
 				|| newPath.size() > 1000)
 			{
-				Logger::Print(
+				Log::Print(
 					"Texture path is empty or too big! Must be between 1 and 1000 characters.",
 					"TEXTURE",
 					LogType::LOG_ERROR,

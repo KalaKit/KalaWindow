@@ -7,3 +7,9 @@ file: glcorearb.h
 file: glext.h
 	old:  <KHR/khrplatform.h>
 	new:  #include "OpenGL/KHR/khrplatform.h"
+	
+file: wglext.h
+	added: #include "glcorearb.h"
+	
+file: glxect.h
+	added: #include "glcorearb.h"
