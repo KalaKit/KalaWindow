@@ -1,0 +1,9 @@
+changes
+
+file: glcorearb.h
+	old:  <KHR/khrplatform.h>
+	new:  #include "OpenGL/KHR/khrplatform.h"
+	
+file: glext.h
+	old:  <KHR/khrplatform.h>
+	new:  #include "OpenGL/KHR/khrplatform.h"
