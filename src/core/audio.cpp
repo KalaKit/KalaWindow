@@ -45,8 +45,6 @@ static bool CheckInitState(
 	const string& targetAction,
 	bool originatesFromAudio = false);
 
-static bool CheckListenerID(u32 ID);
-
 static ma_sound* CommonChecker(
 	const string& message,
 	u32 ID);
@@ -134,7 +132,9 @@ namespace KalaWindow::Core
 		}
 		playerMap.clear();
 
-		createdAudioPlayers.clear(); //also clear all created audio players
+		//also clear all created and runtime audio players
+		runtimeAudioPlayers.clear();
+		createdAudioPlayers.clear();
 
 		ma_engine_uninit(&engine);
 
@@ -154,8 +154,6 @@ namespace KalaWindow::Core
 	{
 		if (!CheckInitState("set listener mute state", true)) return;
 
-		if (!CheckListenerID(ID)) return;
-
 		ma_engine_listener_set_enabled(
 			&engine,
 			ID,
@@ -165,14 +163,12 @@ namespace KalaWindow::Core
 
 		Log::Print(
 			"Set audio player '" + to_string(ID) + "' mute state to '" + stateStr + "'!",
-			"AUDIO_PLAYER",
+			"AUDIO_LISTENER",
 			LogType::LOG_DEBUG);
 	}
 	bool AudioListener::IsMuted(u32 ID)
 	{
 		if (!CheckInitState("get listener mute state", true)) return false;
-
-		if (!CheckListenerID(ID)) return false;
 
 		return ma_engine_listener_is_enabled(
 			&engine,
@@ -184,8 +180,6 @@ namespace KalaWindow::Core
 		u32 ID)
 	{
 		if (!CheckInitState("set listener position", true)) return;
-
-		if (!CheckListenerID(ID)) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(pos.x, "listener x position", true);
@@ -213,8 +207,6 @@ namespace KalaWindow::Core
 	{
 		if (!CheckInitState("get listener position", true)) return vec3();
 
-		if (!CheckListenerID(ID)) return vec3();
-
 		ma_vec3f pos = ma_engine_listener_get_position(
 			&engine,
 			ID);
@@ -227,8 +219,6 @@ namespace KalaWindow::Core
 		u32 ID)
 	{
 		if (!CheckInitState("set listener up", true)) return;
-
-		if (!CheckListenerID(ID)) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(up.x, "listener x up", true);
@@ -256,8 +246,6 @@ namespace KalaWindow::Core
 	{
 		if (!CheckInitState("get listener up", true)) return vec3();
 
-		if (!CheckListenerID(ID)) return vec3();
-
 		ma_vec3f up = ma_engine_listener_get_world_up(
 			&engine,
 			ID);
@@ -270,8 +258,6 @@ namespace KalaWindow::Core
 		u32 ID)
 	{
 		if (!CheckInitState("set listener velocity", true)) return;
-
-		if (!CheckListenerID(ID)) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(vel.x, "listener x velocity");
@@ -299,8 +285,6 @@ namespace KalaWindow::Core
 	{
 		if (!CheckInitState("get listener velocity", true)) return vec3();
 
-		if (!CheckListenerID(ID)) return vec3();
-
 		ma_vec3f pos = ma_engine_listener_get_velocity(
 			&engine,
 			ID);
@@ -313,8 +297,6 @@ namespace KalaWindow::Core
 		u32 ID)
 	{
 		if (!CheckInitState("set listener direction", true)) return;
-
-		if (!CheckListenerID(ID)) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(dir.x, "listener cone x direction");
@@ -342,8 +324,6 @@ namespace KalaWindow::Core
 	{
 		if (!CheckInitState("get listener direction", true)) return vec3();
 
-		if (!CheckListenerID(ID)) return vec3();
-
 		ma_vec3f front = ma_engine_listener_get_direction(
 			&engine,
 			ID);
@@ -356,8 +336,6 @@ namespace KalaWindow::Core
 		u32 ID)
 	{
 		if (!CheckInitState("set listener cone data", true)) return;
-
-		if (!CheckListenerID(ID)) return;
 
 		f32 innerAngleClamped = clamp(cone.innerConeAngle, 0.0f, 359.99f);
 		f32 outerAngleClamped = clamp(cone.outerConeAngle, 0.0f, 359.99f);
@@ -387,8 +365,6 @@ namespace KalaWindow::Core
 		AudioCone cone{};
 
 		if (!CheckInitState("get listener cone data", true)) return cone;
-
-		if (!CheckListenerID(ID)) return cone;
 
 		ma_vec3f front = ma_engine_listener_get_direction(
 			&engine,
@@ -1380,27 +1356,6 @@ bool CheckInitState(
 		PrintErrorMessage(
 			"Cannot " + targetAction + " because MiniAudio is not initialized!",
 			originatesFromAudio);
-
-		return false;
-	}
-
-	return true;
-}
-
-bool CheckListenerID(u32 ID)
-{
-	if (ID == 0)
-	{
-		PrintErrorMessage(
-			"Listener ID " + to_string(ID) + " is too low! It must be atleast 1.");
-
-		return false;
-	}
-
-	if (ID > 4)
-	{
-		PrintErrorMessage(
-			"Listener ID " + to_string(ID) + " is too high! It must be below 4.");
 
 		return false;
 	}
