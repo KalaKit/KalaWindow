@@ -5,6 +5,7 @@
 
 #ifdef __linux__
 
+#include <vector>
 #include <string>
 
 #include "KalaHeaders/core_types.hpp"
@@ -17,7 +18,16 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
+using std::vector;
 using std::string;
+
+struct LinuxGLFunction
+{
+    string name;
+    void* ptr;
+};
+
+static inline vector<LinuxGLFunction> loadedLinuxFunctions{};
 
 struct LinuxFunctionCheck
 {

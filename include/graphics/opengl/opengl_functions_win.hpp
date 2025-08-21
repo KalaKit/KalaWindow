@@ -7,23 +7,11 @@
 
 #ifdef _WIN32
 
-#include <vector>
-#include <string>
-
 #include "KalaHeaders/api.hpp"
 #include "OpenGL/wglext.h" //Windows-only OpenGL extension header
 
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
-	using std::vector;
-	using std::string;
-
-	struct WinGLFunction
-	{
-		string name;
-		void* ptr;
-	};
-
 	//Creates an OpenGL rendering context with specific attributes (version, profile)
 	extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 
@@ -41,8 +29,6 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 
 		//Load a specific function, this won't be loaded again with LoadAllFunctions
 		static void LoadWinFunction(void** target, const char* name);
-	private:
-		static inline vector<WinGLFunction> loadedWinFunctions{};
 	};
 }
 

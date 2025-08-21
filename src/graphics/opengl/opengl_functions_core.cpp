@@ -4,6 +4,8 @@
 //Read LICENSE.md for more information.
 
 #include <sstream>
+#include <vector>
+#include <string>
 
 #include "KalaHeaders/logging.hpp"
 #include "KalaHeaders/core_types.hpp"
@@ -18,9 +20,18 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
+using std::vector;
 using std::string;
 using std::to_string;
 using std::ostringstream;
+
+struct CoreGLFunction
+{
+    string name;
+    void* ptr;
+};
+
+static inline vector<CoreGLFunction> loadedCoreFunctions{};
 
 struct CoreFunctionCheck
 {

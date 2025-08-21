@@ -6,6 +6,7 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <vector>
 #include <string>
 
 #include "KalaHeaders/core_types.hpp"
@@ -18,7 +19,16 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
+using std::vector;
 using std::string;
+
+struct WinGLFunction
+{
+    string name;
+    void* ptr;
+};
+
+static inline vector<WinGLFunction> loadedWinFunctions{};
 
 struct WinFunctionCheck
 {
