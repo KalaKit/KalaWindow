@@ -49,17 +49,10 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 
 	void OpenGL_Functions_Windows::LoadAllWinFunctions()
 	{
-        /*
-        for (auto& check : checks)
+        for (const auto& func : functions)
         {
-            if (!check.ptr)
-            {
-                KalaWindowCore::ForceClose(
-                    "OpenGL Windows function error",
-                    "Failed to load function '" + string(check.name) + "'");
-            }
+            LoadWinFunction(func.name);
         }
-        */
 	}
 
     void OpenGL_Functions_Windows::LoadWinFunction(const char* name)
@@ -107,6 +100,11 @@ namespace KalaWindow::Graphics::OpenGLFunctions
         ptr = reinterpret_cast<void*>(wglGetProcAddress(name));
         if (!ptr)
         {
+            Log::Print(
+                "Failed to load function '" + string(name) + "'! Trying again with handle.",
+                "OPENGL WIN FUNCTION",
+                LogType::LOG_DEBUG);
+
             HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
             ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
@@ -126,6 +124,11 @@ namespace KalaWindow::Graphics::OpenGLFunctions
                 entry->name,
                 entry->target
             });
+
+        Log::Print(
+            "Loaded '" + string(name) + "'!",
+            "OPENGL WIN FUNCTION",
+            LogType::LOG_DEBUG);
     }
 }
 

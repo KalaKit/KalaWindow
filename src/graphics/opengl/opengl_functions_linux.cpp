@@ -42,19 +42,10 @@ namespace KalaWindow::Graphics::OpenGL
 {
 	void OpenGL_Functions_Linux::LoadAllLinuxFunctions()
 	{
-        //add functions here...
-
-        /*
-        for (auto& check : checks)
+        for (const auto& func : functions)
         {
-            if (!check.ptr)
-            {
-                KalaWindowCore::ForceClose(
-                    "OpenGL Linux function error",
-                    "Failed to load function '" + string(check.name) + "'");
-            }
+            LoadLinuxFunction(func.name);
         }
-        */
 	}
 
 	void OpenGL_Functions_Linux::LoadLinuxFunction(const char* name)
@@ -103,6 +94,11 @@ namespace KalaWindow::Graphics::OpenGL
             reinterpret_cast<const GLubyte*>(name)));
         if (!ptr)
         {
+            Log::Print(
+                "Failed to load function '" + string(name) + "'! Trying again with handle.",
+                "OPENGL LINUX FUNCTION",
+                LogType::LOG_DEBUG);
+
             void* module = ToVar<void*>(GlobalHandle::GetOpenGLHandle());
             ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
@@ -122,6 +118,11 @@ namespace KalaWindow::Graphics::OpenGL
                 entry->name,
                 entry->target
             });
+
+        Log::Print(
+            "Loaded '" + string(name) + "'!",
+            "OPENGL LINUX FUNCTION",
+            LogType::LOG_DEBUG);
 	}
 }
 
