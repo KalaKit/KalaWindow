@@ -309,6 +309,7 @@ namespace KalaWindow::Graphics
 		void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
 		void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
+		//Draws the window, handles messages for active frame
 		void Update();
 
 		//Do not destroy manually, erase from containers.hpp instead
