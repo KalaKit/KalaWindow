@@ -39,11 +39,13 @@ static vector<string> supportedExtensions =
 };
 
 static ma_engine engine{};
-unordered_map<u32, unique_ptr<ma_sound>> soundMap{};
+unordered_map<u32, unique_ptr<ma_sound>> playerMap{};
 
 static bool CheckInitState(
 	const string& targetAction,
 	bool originatesFromAudio = false);
+
+static bool CheckListenerID(u32 ID);
 
 static ma_sound* CommonChecker(
 	const string& message,
@@ -67,7 +69,9 @@ namespace KalaWindow::Core
 	// AUDIO CORE
 	//
 
-	bool Audio::Initialize()
+	bool Audio::Initialize(
+		u32 listeners,
+		SampleRate sampleRate)
 	{
 		if (isInitialized)
 		{
@@ -80,7 +84,27 @@ namespace KalaWindow::Core
 			return false;
 		}
 
-		if (ma_engine_init(NULL, &engine) != MA_SUCCESS)
+		ma_engine_config config = ma_engine_config_init();
+
+		//enforce listeners between 1 and 4 always
+		u32 clamped = clamp(listeners, 1u, 4u);
+
+		config.listenerCount = clamped;
+
+		switch (sampleRate)
+		{
+		case SampleRate::SAMPLE_DEFAULT:
+			config.sampleRate = 0;
+			break;
+		case SampleRate::SAMPLE_48000:
+			config.sampleRate = ma_standard_sample_rate_48000;
+			break;
+		case SampleRate::SAMPLE_44100:
+			config.sampleRate = ma_standard_sample_rate_44100;
+			break;
+		}
+
+		if (ma_engine_init(&config, &engine) != MA_SUCCESS)
 		{
 			KalaWindowCore::ForceClose(
 				"Audio error",
@@ -99,87 +123,18 @@ namespace KalaWindow::Core
 		return true;
 	}
 
-	void Audio::SetListenerPosition(const AudioListener& listener)
-	{
-		if (!CheckInitState("set listener position", true)) return;
-
-#ifdef _DEBUG
-		CheckHugeValue(listener.pos.x, "listener x position", true);
-		CheckHugeValue(listener.pos.y, "listener y position", true);
-		CheckHugeValue(listener.pos.z, "listener z position", true);
-
-		CheckHugeValue(listener.front.x, "listener x direction", true);
-		CheckHugeValue(listener.front.y, "listener y direction", true);
-		CheckHugeValue(listener.front.z, "listener z direction", true);
-
-		CheckHugeValue(listener.up.x, "listener x up", true);
-		CheckHugeValue(listener.up.y, "listener y up", true);
-		CheckHugeValue(listener.up.z, "listener z up", true);
-#endif
-
-		ma_engine_listener_set_position(
-			&engine,
-			0,
-			listener.pos.x,
-			listener.pos.y,
-			listener.pos.z);
-
-		ma_engine_listener_set_direction(
-			&engine,
-			0,
-			listener.front.x,
-			listener.front.y,
-			listener.front.z);
-
-		ma_engine_listener_set_world_up(
-			&engine,
-			0,
-			listener.up.x,
-			listener.up.y,
-			listener.up.z);
-
-		if (isVerboseLoggingEnabled)
-		{
-			Log::Print(
-				"Set audio listener position to '"
-				+ to_string(listener.pos.x) + ", " + to_string(listener.pos.y) + ", " + to_string(listener.pos.z)
-				+ ", audio listener direction to '"
-				+ to_string(listener.front.x) + ", " + to_string(listener.front.y) + ", " + to_string(listener.front.z)
-				+ "' and audio listener world up to '"
-				+ to_string(listener.up.x) + ", " + to_string(listener.up.y) + ", " + to_string(listener.up.z) + "'!",
-				"AUDIO_VERBOSE",
-				LogType::LOG_DEBUG);
-		}
-	}
-	AudioListener GetListenerPosition()
-	{
-		AudioListener listener{};
-
-		if (!CheckInitState("get listener position", true)) return listener;
-
-		ma_vec3f pos = ma_engine_listener_get_position(&engine, 0);
-		ma_vec3f front = ma_engine_listener_get_direction(&engine, 0);
-		ma_vec3f up = ma_engine_listener_get_world_up(&engine, 0);
-
-		listener.pos = vec3(pos.x, pos.y, pos.z);
-		listener.front = vec3(front.x, front.y, front.z);
-		listener.up = vec3(up.x, up.y, up.z);
-
-		return listener;
-	}
-
 	void Audio::Shutdown()
 	{
 		if (!CheckInitState("shut down MiniAudio", true)) return;
 		isInitialized = false;
 
-		for (const auto& [_, sound] : soundMap)
+		for (const auto& [_, sound] : playerMap)
 		{
 			ma_sound_uninit(sound.get());
 		}
-		soundMap.clear();
+		playerMap.clear();
 
-		createdAudioTracks.clear(); //also clear all created audio files
+		createdAudioPlayers.clear(); //also clear all created audio players
 
 		ma_engine_uninit(&engine);
 
@@ -190,19 +145,287 @@ namespace KalaWindow::Core
 	}
 
 	//
-	// EACH INDIVIDUAL IMPORTED AUDIO FILE
+	// EACH INDIVIDUAL AUDIO LISTENER
 	//
 
-	AudioTrack* AudioTrack::ImportAudioTrack(
+	void AudioListener::SetMuteState(
+		bool state,
+		u32 ID)
+	{
+		if (!CheckInitState("set listener mute state", true)) return;
+
+		if (!CheckListenerID(ID)) return;
+
+		ma_engine_listener_set_enabled(
+			&engine,
+			ID,
+			state);
+
+		string stateStr = state ? "true" : "false";
+
+		Log::Print(
+			"Set audio player '" + to_string(ID) + "' mute state to '" + stateStr + "'!",
+			"AUDIO_PLAYER",
+			LogType::LOG_DEBUG);
+	}
+	bool AudioListener::IsMuted(u32 ID)
+	{
+		if (!CheckInitState("get listener mute state", true)) return false;
+
+		if (!CheckListenerID(ID)) return false;
+
+		return ma_engine_listener_is_enabled(
+			&engine,
+			ID);
+	}
+
+	void AudioListener::SetPosition(
+		const vec3& pos,
+		u32 ID)
+	{
+		if (!CheckInitState("set listener position", true)) return;
+
+		if (!CheckListenerID(ID)) return;
+
+#ifdef _DEBUG
+		CheckHugeValue(pos.x, "listener x position", true);
+		CheckHugeValue(pos.y, "listener y position", true);
+		CheckHugeValue(pos.z, "listener z position", true);
+#endif
+
+		ma_engine_listener_set_position(
+			&engine,
+			ID,
+			pos.x,
+			pos.y,
+			pos.z);
+
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set listener position to '"
+				+ to_string(pos.x) + ", " + to_string(pos.y) + ", " + to_string(pos.z),
+				"AUDIO_LISTENER_VERBOSE",
+				LogType::LOG_DEBUG);
+		}
+	}
+	vec3 AudioListener::GetPosition(u32 ID)
+	{
+		if (!CheckInitState("get listener position", true)) return vec3();
+
+		if (!CheckListenerID(ID)) return vec3();
+
+		ma_vec3f pos = ma_engine_listener_get_position(
+			&engine,
+			ID);
+
+		return vec3(pos.x, pos.y, pos.z);
+	}
+
+	void AudioListener::SetWorldUp(
+		const vec3& up,
+		u32 ID)
+	{
+		if (!CheckInitState("set listener up", true)) return;
+
+		if (!CheckListenerID(ID)) return;
+
+#ifdef _DEBUG
+		CheckHugeValue(up.x, "listener x up", true);
+		CheckHugeValue(up.y, "listener y up", true);
+		CheckHugeValue(up.z, "listener z up", true);
+#endif
+
+		ma_engine_listener_set_world_up(
+			&engine,
+			ID,
+			up.x,
+			up.y,
+			up.z);
+
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set listener up to '"
+				+ to_string(up.x) + ", " + to_string(up.y) + ", " + to_string(up.z),
+				"AUDIO_LISTENER_VERBOSE",
+				LogType::LOG_DEBUG);
+		}
+	}
+	vec3 AudioListener::GetWorldUp(u32 ID)
+	{
+		if (!CheckInitState("get listener up", true)) return vec3();
+
+		if (!CheckListenerID(ID)) return vec3();
+
+		ma_vec3f up = ma_engine_listener_get_world_up(
+			&engine,
+			ID);
+
+		return vec3(up.x, up.y, up.z);
+	}
+
+	void AudioListener::SetVelocity(
+		const vec3& vel,
+		u32 ID)
+	{
+		if (!CheckInitState("set listener velocity", true)) return;
+
+		if (!CheckListenerID(ID)) return;
+
+#ifdef _DEBUG
+		CheckHugeValue(vel.x, "listener x velocity");
+		CheckHugeValue(vel.y, "listener y velocity");
+		CheckHugeValue(vel.z, "listener z velocity");
+#endif
+
+		ma_engine_listener_set_velocity(
+			&engine,
+			ID,
+			vel.x,
+			vel.y,
+			vel.z);
+
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set listener velocity to '"
+				+ to_string(vel.x) + ", " + to_string(vel.y) + ", " + to_string(vel.z) + "'!",
+				"AUDIO_LISTENER_VERBOSE",
+				LogType::LOG_DEBUG);
+		}
+	}
+	vec3 AudioListener::GetVelocity(u32 ID)
+	{
+		if (!CheckInitState("get listener velocity", true)) return vec3();
+
+		if (!CheckListenerID(ID)) return vec3();
+
+		ma_vec3f pos = ma_engine_listener_get_velocity(
+			&engine,
+			ID);
+
+		return vec3(pos.x, pos.y, pos.z);
+	}
+
+	void AudioListener::SetDirection(
+		const vec3& dir,
+		u32 ID)
+	{
+		if (!CheckInitState("set listener direction", true)) return;
+
+		if (!CheckListenerID(ID)) return;
+
+#ifdef _DEBUG
+		CheckHugeValue(dir.x, "listener cone x direction");
+		CheckHugeValue(dir.y, "listener cone y direction");
+		CheckHugeValue(dir.z, "listener cone z direction");
+#endif
+
+		ma_engine_listener_set_direction(
+			&engine,
+			ID,
+			dir.x,
+			dir.y,
+			dir.z);
+
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set listener direction to '"
+				+ to_string(dir.x) + ", " + to_string(dir.y) + ", " + to_string(dir.z),
+				"AUDIO_LISTENER_VERBOSE",
+				LogType::LOG_DEBUG);
+		}
+	}
+	vec3 AudioListener::GetDirection(u32 ID)
+	{
+		if (!CheckInitState("get listener direction", true)) return vec3();
+
+		if (!CheckListenerID(ID)) return vec3();
+
+		ma_vec3f front = ma_engine_listener_get_direction(
+			&engine,
+			ID);
+
+		return vec3(front.x, front.y, front.z);
+	}
+
+	void AudioListener::SetConeData(
+		const AudioCone& cone,
+		u32 ID)
+	{
+		if (!CheckInitState("set listener cone data", true)) return;
+
+		if (!CheckListenerID(ID)) return;
+
+		f32 innerAngleClamped = clamp(cone.innerConeAngle, 0.0f, 359.99f);
+		f32 outerAngleClamped = clamp(cone.outerConeAngle, 0.0f, 359.99f);
+		f32 outerGainClamped = clamp(cone.outerGain, 0.0f, 1.0f);
+
+		if (outerAngleClamped < innerAngleClamped) outerAngleClamped = innerAngleClamped;
+
+		ma_engine_listener_set_cone(
+			&engine,
+			ID,
+			innerAngleClamped,
+			outerAngleClamped,
+			outerGainClamped);
+
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set listener cone inner angle to '" + to_string(innerAngleClamped) + "', "
+				+ "cone outer angle to '" + to_string(outerAngleClamped)
+				+ "' and cone outer gain to '" + to_string(outerGainClamped) + "'!",
+				"AUDIO_LISTENER_VERBOSE",
+				LogType::LOG_DEBUG);
+		}
+	}
+	AudioCone AudioListener::GetConeData(u32 ID)
+	{
+		AudioCone cone{};
+
+		if (!CheckInitState("get listener cone data", true)) return cone;
+
+		if (!CheckListenerID(ID)) return cone;
+
+		ma_vec3f front = ma_engine_listener_get_direction(
+			&engine,
+			0);
+
+		f32 innerConeAngle{};
+		f32 outerConeAngle{};
+		f32 outerGain{};
+
+		ma_engine_listener_get_cone(
+			&engine,
+			0,
+			&innerConeAngle,
+			&outerConeAngle,
+			&outerGain);
+
+		cone.innerConeAngle = innerConeAngle;
+		cone.outerConeAngle = outerConeAngle;
+		cone.outerGain = outerGain;
+
+		return cone;
+	}
+
+	//
+	// EACH INDIVIDUAL CREATED AUDIO PLAYER
+	//
+
+	AudioPlayer* AudioPlayer::CreateAudioPlayer(
 		const string& name,
 		const string& filePath)
 	{
-		if (!CheckInitState("import audio track '" + name + "'")) return nullptr;
+		if (!CheckInitState("create audio player '" + name + "'")) return nullptr;
 
 		if (!exists(filePath))
 		{
 			PrintErrorMessage(
-				"Cannot import audio track '" + name
+				"Cannot create audio player '" + name
 				+ "' because its file path '" + filePath + "' does not exist!");
 
 			return nullptr;
@@ -212,7 +435,7 @@ namespace KalaWindow::Core
 			|| !is_regular_file(filePath))
 		{
 			PrintErrorMessage(
-				"Cannot import audio track '" + name
+				"Cannot create audio player '" + name
 				+ "' because its file path '" + filePath + "' type is unsupported!");
 
 			return nullptr;
@@ -232,7 +455,7 @@ namespace KalaWindow::Core
 		if (!hasSupportedExtension)
 		{
 			PrintErrorMessage(
-				"Cannot import audio track '" + name + "' because its extenion '" 
+				"Cannot create audio player '" + name + "' because its extenion '" 
 				+ extension + "' is unsupported! You must use .wav, .flac, .mp3 or .ogg only.");
 
 			return nullptr;
@@ -249,7 +472,7 @@ namespace KalaWindow::Core
 		{
 			KalaWindowCore::ForceClose(
 				"Audio error",
-				"Failed to import audio file '" + name + "' from path '" + filePath + "'!");
+				"Failed to create audio file '" + name + "' from path '" + filePath + "'!");
 
 			return nullptr;
 		}
@@ -258,27 +481,30 @@ namespace KalaWindow::Core
 
 		u32 newID = ++globalID;
 
-		soundMap[newID] = move(sound);
+		playerMap[newID] = move(sound);
 
-		unique_ptr<AudioTrack> newTrack = make_unique<AudioTrack>();
+		unique_ptr<AudioPlayer> newTrack = make_unique<AudioPlayer>();
 		newTrack->name = name;
 		newTrack->filePath = filePath;
 		newTrack->ID = newID;
 
-		createdAudioTracks[newID] = move(newTrack);
+		createdAudioPlayers[newID] = move(newTrack);
+
+		AudioPlayer* newPlayer = createdAudioPlayers[newID].get();
+		runtimeAudioPlayers.push_back(newPlayer);
 
 		Log::Print(
-			"Imported audio file '" + name + "' with ID '" + to_string(newID) + "'!",
-			"AUDIOTRACK",
+			"Created audio file '" + name + "' with ID '" + to_string(newID) + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_SUCCESS);
 
-		return createdAudioTracks[newID].get();
+		return newPlayer;
 	}
 
-	void AudioTrack::SetName(const string& newName)
+	void AudioPlayer::SetName(const string& newName)
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track name to '" + name + "'",
+			"set audio player name to '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return;
@@ -288,7 +514,7 @@ namespace KalaWindow::Core
 		auto PrintNameError = [&oldName, &newName](const string& reason)
 			{
 				PrintErrorMessage(
-					"Cannot change audio track old name '" + oldName + "' to new name '" + newName + "'"
+					"Cannot change audio player old name '" + oldName + "' to new name '" + newName + "'"
 					"because " + reason + "!");
 			};
 
@@ -313,11 +539,11 @@ namespace KalaWindow::Core
 			return;
 		}
 
-		for (const auto& [_, track] : createdAudioTracks)
+		for (const auto& [_, track] : createdAudioPlayers)
 		{
 			if (track->GetName() == newName)
 			{
-				PrintNameError("an audio track with the new name already exists!");
+				PrintNameError("an audio player with the new name already exists!");
 
 				return;
 			}
@@ -326,15 +552,15 @@ namespace KalaWindow::Core
 		name = newName;
 
 		Log::Print(
-			"Changed audio track old name '" + oldName + "' to new name '" + name + "'!",
-			"AUDIOTRACK",
+			"Changed audio player old name '" + oldName + "' to new name '" + name + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
 
-	void AudioTrack::Play() const
+	void AudioPlayer::Play() const
 	{
 		ma_sound* sound = CommonChecker(
-			"play audio track '" + name + "'",
+			"play audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return;
@@ -346,14 +572,14 @@ namespace KalaWindow::Core
 		ma_sound_start(sound);
 
 		Log::Print(
-			"Started playing audio track '" + name + "'!",
-			"AUDIOTRACK",
+			"Started playing audio player '" + name + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	bool AudioTrack::IsPlaying() const
+	bool AudioPlayer::IsPlaying() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get play state for audio track '" + name + "'",
+			"get play state for audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return false;
@@ -361,10 +587,10 @@ namespace KalaWindow::Core
 		return (ma_sound_is_playing(sound) == MA_TRUE);
 	}
 
-	void AudioTrack::SetPlaybackPosition(u32 newPosition) const
+	void AudioPlayer::SetPlaybackPosition(u32 newPosition) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set playback position for audio track '" + name + "'",
+			"set playback position for audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return;
@@ -372,7 +598,7 @@ namespace KalaWindow::Core
 		if (newPosition > GetPlaybackPosition(true))
 		{
 			PrintErrorMessage(
-				"Playback position '" + to_string(newPosition) + "' is past audio track '" + name + "' duration!");
+				"Playback position '" + to_string(newPosition) + "' is past audio player '" + name + "' duration!");
 
 			return;
 		}
@@ -384,24 +610,24 @@ namespace KalaWindow::Core
 		ma_sound_seek_to_pcm_frame(sound, frames);
 
 		Log::Print(
-			"Set playback position for audio track '" + name + "' to '" + to_string(newPosition) + "'!",
-			"AUDIOTRACK",
+			"Set playback position for audio player '" + name + "' to '" + to_string(newPosition) + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	u32 AudioTrack::GetPlaybackPosition(bool getFullDuration) const
+	u32 AudioPlayer::GetPlaybackPosition(bool getFullDuration) const
 	{
 		ma_sound* sound = CommonChecker(
-			"get playback position for audio track '" + name + "'",
+			"get playback position for audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return 0;
 
 		ma_uint64 length{};
 
-		//get full audio track duration
+		//get full audio player duration
 		if (getFullDuration) ma_sound_get_length_in_pcm_frames(sound, &length);
 
-		//get duration up to current frame in audio track
+		//get duration up to current frame in audio player
 		else ma_sound_get_cursor_in_pcm_frames(sound, &length);
 
 		ma_uint32 sampleRate = ma_engine_get_sample_rate(&engine);
@@ -410,10 +636,10 @@ namespace KalaWindow::Core
 		return u32(seconds + 0.5);
 	}
 
-	void AudioTrack::Pause() const
+	void AudioPlayer::Pause() const
 	{
 		ma_sound* sound = CommonChecker(
-			"pause audio track '" + name + "'",
+			"pause audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return;
@@ -422,14 +648,14 @@ namespace KalaWindow::Core
 		ma_sound_stop(sound);
 
 		Log::Print(
-			"Paused audio track '" + name + "'!",
-			"AUDIOTRACK",
+			"Paused audio player '" + name + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	void AudioTrack::Continue() const
+	void AudioPlayer::Continue() const
 	{
 		ma_sound* sound = CommonChecker(
-			"continue audio track '" + name + "'",
+			"continue audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return;
@@ -438,15 +664,15 @@ namespace KalaWindow::Core
 		ma_sound_start(sound);
 
 		Log::Print(
-			"Continuing playing audio track '" + name + "'!",
-			"AUDIOTRACK",
+			"Continuing playing audio player '" + name + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
 
-	void AudioTrack::SetLoopState(bool newState) const
+	void AudioPlayer::SetLoopState(bool newState) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set loop state for audio track '" + name + "'",
+			"set loop state for audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return;
@@ -454,15 +680,16 @@ namespace KalaWindow::Core
 		ma_sound_set_looping(sound, newState);
 
 		string state = newState ? "true" : "false";
+
 		Log::Print(
-			"Set audio track '" + name + "' loop state to '" + state + "'!",
-			"AUDIOTRACK",
+			"Set audio player '" + name + "' loop state to '" + state + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	bool AudioTrack::CanLoop() const
+	bool AudioPlayer::CanLoop() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get loop state for audio track '" + name + "'",
+			"get loop state for audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return false;
@@ -470,10 +697,10 @@ namespace KalaWindow::Core
 		return (ma_sound_is_looping(sound) == MA_TRUE);
 	}
 
-	void AudioTrack::Stop() const
+	void AudioPlayer::Stop() const
 	{
 		ma_sound* sound = CommonChecker(
-			"stop audio track '" + name + "'",
+			"stop audio player '" + name + "'",
 			ID);
 
 		if (sound == nullptr) return;
@@ -484,14 +711,14 @@ namespace KalaWindow::Core
 		ma_sound_seek_to_pcm_frame(sound, 0);
 
 		Log::Print(
-			"Stopped playing audio track '" + name + "'!",
-			"AUDIOTRACK",
+			"Stopped playing audio player '" + name + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	bool AudioTrack::HasFinished() const
+	bool AudioPlayer::HasFinished() const
 	{
 		ma_sound* sound = CommonChecker(
-			"check if audio track '" + name + "' has finished",
+			"check if audio player '" + name + "' has finished",
 			ID);
 
 		if (sound == nullptr) return false;
@@ -501,10 +728,10 @@ namespace KalaWindow::Core
 			&& !isPaused);
 	}
 
-	void AudioTrack::SetVolume(f32 newVolume) const
+	void AudioPlayer::SetVolume(f32 newVolume) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' volume",
+			"set audio player '" + name + "' volume",
 			ID);
 
 		if (sound == nullptr) return;
@@ -514,14 +741,14 @@ namespace KalaWindow::Core
 		ma_sound_set_volume(sound, clamped);
 
 		Log::Print(
-			"Set audio track '" + name + "' volume to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
+			"Set audio player '" + name + "' volume to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	f32 AudioTrack::GetVolume() const
+	f32 AudioPlayer::GetVolume() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' volume",
+			"get audio player '" + name + "' volume",
 			ID);
 
 		if (sound == nullptr) return 0;
@@ -529,122 +756,10 @@ namespace KalaWindow::Core
 		return ma_sound_get_volume(sound);
 	}
 
-	void AudioTrack::SetMinGain(f32 newMinGain) const
+	void AudioPlayer::SetSpatializationState(bool state) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' min gain",
-			ID);
-
-		if (sound == nullptr) return;
-
-		f32 clamped = clamp(newMinGain, 0.0f, GetMaxGain() - 0.1f);
-
-		ma_sound_set_min_gain(sound, clamped);
-
-		Log::Print(
-			"Set audio track '" + name + "' min gain to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
-			LogType::LOG_DEBUG);
-	}
-	f32 AudioTrack::GetMinGain() const
-	{
-		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' min gain",
-			ID);
-
-		if (sound == nullptr) return 0;
-
-		return ma_sound_get_min_gain(sound);
-	}
-
-	void AudioTrack::SetMaxGain(f32 newMaxGain) const
-	{
-		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' max gain",
-			ID);
-
-		if (sound == nullptr) return;
-
-		f32 clamped = clamp(newMaxGain, GetMinGain() + 0.1f, 5.0f);
-
-		ma_sound_set_max_gain(sound, clamped);
-
-		Log::Print(
-			"Set audio track '" + name + "' max gain to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
-			LogType::LOG_DEBUG);
-	}
-	f32 AudioTrack::GetMaxGain() const
-	{
-		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' max gain",
-			ID);
-
-		if (sound == nullptr) return 0;
-
-		return ma_sound_get_max_gain(sound);
-	}
-
-	void AudioTrack::SetMinRange(f32 newMinRange) const
-	{
-		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' min range",
-			ID);
-
-		if (sound == nullptr) return;
-
-		f32 clamped = clamp(newMinRange, 0.0f, GetMaxRange() - 0.1f);
-
-		ma_sound_set_min_distance(sound, clamped);
-
-		Log::Print(
-			"Set audio track '" + name + "' min range to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
-			LogType::LOG_DEBUG);
-	}
-	f32 AudioTrack::GetMinRange() const
-	{
-		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' min range",
-			ID);
-
-		if (sound == nullptr) return 0;
-
-		return ma_sound_get_min_distance(sound);
-	}
-
-	void AudioTrack::SetMaxRange(f32 newMaxRange) const
-	{
-		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' max range",
-			ID);
-
-		if (sound == nullptr) return;
-
-		f32 clamped = clamp(newMaxRange, GetMinRange() + 0.1f, 1000.0f);
-
-		ma_sound_set_max_distance(sound, clamped);
-
-		Log::Print(
-			"Set audio track '" + name + "' max range to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
-			LogType::LOG_DEBUG);
-	}
-	f32 AudioTrack::GetMaxRange() const
-	{
-		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' max range",
-			ID);
-
-		if (sound == nullptr) return 0;
-
-		return ma_sound_get_max_distance(sound);
-	}
-
-	void AudioTrack::SetSpatializationState(bool state) const
-	{
-		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' spatialization state",
+			"set audio player '" + name + "' spatialization state",
 			ID);
 
 		if (sound == nullptr) return;
@@ -652,8 +767,8 @@ namespace KalaWindow::Core
 		if (state)
 		{
 			Log::Print(
-				"Set audio track '" + name + "' spatialization state to 'true'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' spatialization state to 'true'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			ma_sound_set_spatialization_enabled(sound, true);
@@ -661,17 +776,17 @@ namespace KalaWindow::Core
 		else
 		{
 			Log::Print(
-				"Set audio track '" + name + "' spatialization state to 'false'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' spatialization state to 'false'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			ma_sound_set_spatialization_enabled(sound, false);
 		}
 	}
-	bool AudioTrack::GetSpatializationState() const
+	bool AudioPlayer::GetSpatializationState() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' spatialization state",
+			"get audio player '" + name + "' spatialization state",
 			ID);
 
 		if (sound == nullptr) return false;
@@ -679,10 +794,10 @@ namespace KalaWindow::Core
 		return ma_sound_is_spatialization_enabled(sound);
 	}
 
-	void AudioTrack::SetPositioningState(Positioning pos) const
+	void AudioPlayer::SetPositioningState(Positioning pos) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' positioning state",
+			"set audio player '" + name + "' positioning state",
 			ID);
 
 		if (sound == nullptr) return;
@@ -692,8 +807,8 @@ namespace KalaWindow::Core
 		case Positioning::Positioning_Relative:
 
 			Log::Print(
-				"Set audio track '" + name + "' positioning state to 'relative'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' positioning state to 'relative'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			ma_sound_set_positioning(sound, ma_positioning_relative);
@@ -702,18 +817,18 @@ namespace KalaWindow::Core
 		case Positioning::Positioning_Absolute:
 
 			Log::Print(
-				"Set audio track '" + name + "' positioning state to 'absolute'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' positioning state to 'absolute'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			ma_sound_set_positioning(sound, ma_positioning_absolute);
 			break;
 		}
 	}
-	Positioning AudioTrack::GetPositioningState() const
+	Positioning AudioPlayer::GetPositioningState() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' positioning state",
+			"get audio player '" + name + "' positioning state",
 			ID);
 
 		if (sound == nullptr) return Positioning::Positioning_Relative;
@@ -724,10 +839,10 @@ namespace KalaWindow::Core
 			: Positioning::Positioning_Absolute;
 	}
 
-	void AudioTrack::SetPitch(f32 newPitch) const
+	void AudioPlayer::SetPitch(f32 newPitch) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' pitch",
+			"set audio player '" + name + "' pitch",
 			ID);
 
 		if (sound == nullptr) return;
@@ -737,14 +852,14 @@ namespace KalaWindow::Core
 		ma_sound_set_pitch(sound, clamped);
 
 		Log::Print(
-			"Set audio track '" + name + "' pitch to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
+			"Set audio player '" + name + "' pitch to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	f32 AudioTrack::GetPitch() const
+	f32 AudioPlayer::GetPitch() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' pitch",
+			"get audio player '" + name + "' pitch",
 			ID);
 
 		if (sound == nullptr) return 0;
@@ -752,10 +867,10 @@ namespace KalaWindow::Core
 		return ma_sound_get_pitch(sound);
 	}
 
-	void AudioTrack::SetPan(f32 newPan) const
+	void AudioPlayer::SetPan(f32 newPan) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' pan",
+			"set audio player '" + name + "' pan",
 			ID);
 
 		if (sound == nullptr) return;
@@ -765,14 +880,14 @@ namespace KalaWindow::Core
 		ma_sound_set_pan(sound, clamped);
 
 		Log::Print(
-			"Set audio track '" + name + "' pan to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
+			"Set audio player '" + name + "' pan to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	f32 AudioTrack::GetPan() const
+	f32 AudioPlayer::GetPan() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' pan",
+			"get audio player '" + name + "' pan",
 			ID);
 
 		if (sound == nullptr) return 0;
@@ -780,10 +895,10 @@ namespace KalaWindow::Core
 		return ma_sound_get_pan(sound);
 	}
 
-	void AudioTrack::SetPanMode(PanMode mode) const
+	void AudioPlayer::SetPanMode(PanMode mode) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' pan mode",
+			"set audio player '" + name + "' pan mode",
 			ID);
 
 		if (sound == nullptr) return;
@@ -794,8 +909,8 @@ namespace KalaWindow::Core
 			ma_sound_set_pan_mode(sound, ma_pan_mode_balance);
 
 			Log::Print(
-				"Set audio track '" + name + "' pan mode to 'balance'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' pan mode to 'balance'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			break;
@@ -803,17 +918,17 @@ namespace KalaWindow::Core
 			ma_sound_set_pan_mode(sound, ma_pan_mode_pan);
 
 			Log::Print(
-				"Set audio track '" + name + "' pan mode to 'pan'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' pan mode to 'pan'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			break;
 		}
 	}
-	PanMode AudioTrack::GetPanMode() const
+	PanMode AudioPlayer::GetPanMode() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' pan mode",
+			"get audio player '" + name + "' pan mode",
 			ID);
 
 		if (sound == nullptr) return PanMode::PanMode_Balance;
@@ -824,10 +939,10 @@ namespace KalaWindow::Core
 			: PanMode::PanMode_Pan;
 	}
 
-	void AudioTrack::SetPlayerPosition(const vec3& pos) const
+	void AudioPlayer::SetPosition(const vec3& pos) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' player position",
+			"set audio player '" + name + "' player position",
 			ID);
 
 		if (sound == nullptr) return;
@@ -847,16 +962,16 @@ namespace KalaWindow::Core
 		if (Audio::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set audio track '" + name + "' position to '"
+				"Set audio player '" + name + "' position to '"
 				+ to_string(pos.x) + ", " + to_string(pos.y) + ", " + to_string(pos.z) + "'!",
-				"AUDIOTRACK_VERBOSE",
+				"AUDIO_PLAYER_VERBOSE",
 				LogType::LOG_DEBUG);
 		}
 	}
-	vec3 AudioTrack::GetPlayerPosition() const
+	vec3 AudioPlayer::GetPosition() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' player position",
+			"get audio player '" + name + "' player position",
 			ID);
 
 		if (sound == nullptr) return vec3(0);
@@ -866,10 +981,10 @@ namespace KalaWindow::Core
 		return vec3(pos.x, pos.y, pos.z);
 	}
 
-	void AudioTrack::SetPlayerVelocity(const vec3& vel) const
+	void AudioPlayer::SetVelocity(const vec3& vel) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' player velocity",
+			"set audio player '" + name + "' player velocity",
 			ID);
 
 		if (sound == nullptr) return;
@@ -889,16 +1004,16 @@ namespace KalaWindow::Core
 		if (Audio::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set audio track '" + name + "' velocity to '"
+				"Set audio player '" + name + "' velocity to '"
 				+ to_string(vel.x) + ", " + to_string(vel.y) + ", " + to_string(vel.z) + "'!",
-				"AUDIOTRACK_VERBOSE",
+				"AUDIO_PLAYER_VERBOSE",
 				LogType::LOG_DEBUG);
 		}
 	}
-	vec3 AudioTrack::GetPlayerVelocity() const
+	vec3 AudioPlayer::GetVelocity() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' player velocity",
+			"get audio player '" + name + "' player velocity",
 			ID);
 
 		if (sound == nullptr) return vec3(0);
@@ -907,32 +1022,62 @@ namespace KalaWindow::Core
 
 		return vec3(pos.x, pos.y, pos.z);
 	}
-	
-	void AudioTrack::SetDirectionalData(const AudioPlayerCone& cone) const
+
+	void AudioPlayer::SetDirection(const vec3& dir) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' player directional data",
+			"set audio player '" + name + "' player direction",
 			ID);
 
 		if (sound == nullptr) return;
 
 #ifdef _DEBUG
-		CheckHugeValue(cone.front.x, "player cone x direction");
-		CheckHugeValue(cone.front.y, "player cone y direction");
-		CheckHugeValue(cone.front.z, "player cone z direction");
+		CheckHugeValue(dir.x, "player direction x");
+		CheckHugeValue(dir.y, "player direction y");
+		CheckHugeValue(dir.z, "player direction z");
 #endif
+
+		ma_sound_set_direction(
+			sound,
+			dir.x,
+			dir.y,
+			dir.z);
+
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set player direction to '"
+				+ to_string(dir.x) + ", " + to_string(dir.y) + ", " + to_string(dir.z),
+				"AUDIO_PLAYER_VERBOSE",
+				LogType::LOG_DEBUG);
+		}
+	}
+	vec3 AudioPlayer::GetDirection() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio player '" + name + "' direction",
+			ID);
+
+		if (sound == nullptr) return vec3();
+
+		ma_vec3f front = ma_sound_get_direction(sound);
+
+		return vec3(front.x, front.y, front.z);
+	}
+	
+	void AudioPlayer::SetConeData(const AudioCone& cone) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio player '" + name + "' player cone data",
+			ID);
+
+		if (sound == nullptr) return;
 
 		f32 innerAngleClamped = clamp(cone.innerConeAngle, 0.0f, 359.99f);
 		f32 outerAngleClamped = clamp(cone.outerConeAngle, 0.0f, 359.99f);
 		f32 outerGainClamped = clamp(cone.outerGain, 0.0f, 1.0f);
 
 		if (outerAngleClamped < innerAngleClamped) outerAngleClamped = innerAngleClamped;
-
-		ma_sound_set_direction(
-			sound,
-			cone.front.x,
-			cone.front.y,
-			cone.front.z);
 
 		ma_sound_set_cone(
 			sound,
@@ -943,26 +1088,22 @@ namespace KalaWindow::Core
 		if (Audio::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set audio player cone direction to '"
-				+ to_string(cone.front.x) + ", " + to_string(cone.front.y) + ", " + to_string(cone.front.z) + "', "
-				+ "cone inner angle to '" + to_string(innerAngleClamped) + "', "
+				"Set audio player cone inner angle to '" + to_string(innerAngleClamped) + "', "
 				+ "cone outer angle to '" + to_string(outerAngleClamped)
 				+ "' and cone outer gain to '" + to_string(outerGainClamped) + "'!",
-				"AUDIOTRACK_VERBOSE",
+				"AUDIO_PLAYER_VERBOSE",
 				LogType::LOG_DEBUG);
 		}
 	}
-	AudioPlayerCone AudioTrack::GetDirectionalData() const
+	AudioCone AudioPlayer::GetConeData() const
 	{
-		AudioPlayerCone cone{};
+		AudioCone cone{};
 
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' player directional data",
+			"get audio player '" + name + "' cone data",
 			ID);
 
 		if (sound == nullptr) return cone;
-
-		ma_vec3f front = ma_sound_get_direction(sound);
 
 		f32 innerConeAngle{};
 		f32 outerConeAngle{};
@@ -974,7 +1115,6 @@ namespace KalaWindow::Core
 			&outerConeAngle,
 			&outerGain);
 
-		cone.front = vec3(front.x, front.y, front.z);
 		cone.innerConeAngle = innerConeAngle;
 		cone.outerConeAngle = outerConeAngle;
 		cone.outerGain = outerGain;
@@ -982,10 +1122,10 @@ namespace KalaWindow::Core
 		return cone;
 	}
 
-	void AudioTrack::SetAttenuationModel(AttenuationModel model) const
+	void AudioPlayer::SetAttenuationModel(AttenuationModel model) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' attenuation model",
+			"set audio player '" + name + "' attenuation model",
 			ID);
 
 		if (sound == nullptr) return;
@@ -996,8 +1136,8 @@ namespace KalaWindow::Core
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_none);
 
 			Log::Print(
-				"Set audio track '" + name + "' attenuation mode to 'none'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' attenuation mode to 'none'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			break;
@@ -1005,8 +1145,8 @@ namespace KalaWindow::Core
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_inverse);
 
 			Log::Print(
-				"Set audio track '" + name + "' attenuation mode to 'inverse'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' attenuation mode to 'inverse'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			break;
@@ -1014,8 +1154,8 @@ namespace KalaWindow::Core
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_linear);
 
 			Log::Print(
-				"Set audio track '" + name + "' attenuation mode to 'linear'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' attenuation mode to 'linear'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			break;
@@ -1023,17 +1163,17 @@ namespace KalaWindow::Core
 			ma_sound_set_attenuation_model(sound, ma_attenuation_model_exponential);
 
 			Log::Print(
-				"Set audio track '" + name + "' attenuation mode to 'exponential'!",
-				"AUDIOTRACK",
+				"Set audio player '" + name + "' attenuation mode to 'exponential'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
 			break;
 		}
 	}
-	AttenuationModel AudioTrack::GetAttenuationModel() const
+	AttenuationModel AudioPlayer::GetAttenuationModel() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' attenuation model",
+			"get audio player '" + name + "' attenuation model",
 			ID);
 
 		if (sound == nullptr) return AttenuationModel::Attenuation_None;
@@ -1047,10 +1187,10 @@ namespace KalaWindow::Core
 		return AttenuationModel::Attenuation_None;
 	}
 
-	void AudioTrack::SetRolloff(f32 newRolloffFactor) const
+	void AudioPlayer::SetRolloff(f32 newRolloffFactor) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' rolloff factor",
+			"set audio player '" + name + "' rolloff factor",
 			ID);
 
 		if (sound == nullptr) return;
@@ -1060,14 +1200,14 @@ namespace KalaWindow::Core
 		ma_sound_set_rolloff(sound, clamped);
 
 		Log::Print(
-			"Set audio track '" + name + "' rolloff factor to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
+			"Set audio player '" + name + "' rolloff factor to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	f32 AudioTrack::GetRolloff() const
+	f32 AudioPlayer::GetRolloff() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' rolloff factor",
+			"get audio player '" + name + "' rolloff factor",
 			ID);
 
 		if (sound == nullptr) return 0;
@@ -1075,10 +1215,10 @@ namespace KalaWindow::Core
 		return ma_sound_get_rolloff(sound);
 	}
 
-	void AudioTrack::SetDopplerFactor(f32 newFactor) const
+	void AudioPlayer::SetDopplerFactor(f32 newFactor) const
 	{
 		ma_sound* sound = CommonChecker(
-			"set audio track '" + name + "' doppler factor",
+			"set audio player '" + name + "' doppler factor",
 			ID);
 
 		if (sound == nullptr) return;
@@ -1088,14 +1228,14 @@ namespace KalaWindow::Core
 		ma_sound_set_doppler_factor(sound, clamped);
 
 		Log::Print(
-			"Set audio track '" + name + "' doppler factor to '" + to_string(clamped) + "'!",
-			"AUDIOTRACK",
+			"Set audio player '" + name + "' doppler factor to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
 			LogType::LOG_DEBUG);
 	}
-	f32 AudioTrack::GetDopplerFactor() const
+	f32 AudioPlayer::GetDopplerFactor() const
 	{
 		ma_sound* sound = CommonChecker(
-			"get audio track '" + name + "' doppler factor",
+			"get audio player '" + name + "' doppler factor",
 			ID);
 
 		if (sound == nullptr) return 0;
@@ -1103,19 +1243,131 @@ namespace KalaWindow::Core
 		return ma_sound_get_doppler_factor(sound);
 	}
 
-	AudioTrack::~AudioTrack()
+	AudioPlayer::~AudioPlayer()
 	{
-		auto it = soundMap.find(ID);
-		if (it != soundMap.end())
+		auto it = playerMap.find(ID);
+		if (it != playerMap.end())
 		{
 			ma_sound_uninit(it->second.get());
-			soundMap.erase(it);
+			playerMap.erase(it);
 
 			Log::Print(
-				"Destroyed audio track '" + name + "'!",
-				"AUDIOTRACK",
+				"Destroyed audio player '" + name + "'!",
+				"AUDIO_PLAYER",
 				LogType::LOG_SUCCESS);
 		}
+	}
+
+	void AudioPlayer::SetMinGain(f32 newMinGain) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio player '" + name + "' min gain",
+			ID);
+
+		if (sound == nullptr) return;
+
+		f32 clamped = clamp(newMinGain, 0.0f, GetMaxGain() - 0.1f);
+
+		ma_sound_set_min_gain(sound, clamped);
+
+		Log::Print(
+			"Set audio player '" + name + "' min gain to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
+			LogType::LOG_DEBUG);
+	}
+	f32 AudioPlayer::GetMinGain() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio player '" + name + "' min gain",
+			ID);
+
+		if (sound == nullptr) return 0;
+
+		return ma_sound_get_min_gain(sound);
+	}
+
+	void AudioPlayer::SetMaxGain(f32 newMaxGain) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio player '" + name + "' max gain",
+			ID);
+
+		if (sound == nullptr) return;
+
+		f32 clamped = clamp(newMaxGain, GetMinGain() + 0.1f, 5.0f);
+
+		ma_sound_set_max_gain(sound, clamped);
+
+		Log::Print(
+			"Set audio player '" + name + "' max gain to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
+			LogType::LOG_DEBUG);
+	}
+	f32 AudioPlayer::GetMaxGain() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio player '" + name + "' max gain",
+			ID);
+
+		if (sound == nullptr) return 0;
+
+		return ma_sound_get_max_gain(sound);
+	}
+
+	void AudioPlayer::SetMinRange(f32 newMinRange) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio player '" + name + "' min range",
+			ID);
+
+		if (sound == nullptr) return;
+
+		f32 clamped = clamp(newMinRange, 0.0f, GetMaxRange() - 0.1f);
+
+		ma_sound_set_min_distance(sound, clamped);
+
+		Log::Print(
+			"Set audio player '" + name + "' min range to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
+			LogType::LOG_DEBUG);
+	}
+	f32 AudioPlayer::GetMinRange() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio player '" + name + "' min range",
+			ID);
+
+		if (sound == nullptr) return 0;
+
+		return ma_sound_get_min_distance(sound);
+	}
+
+	void AudioPlayer::SetMaxRange(f32 newMaxRange) const
+	{
+		ma_sound* sound = CommonChecker(
+			"set audio player '" + name + "' max range",
+			ID);
+
+		if (sound == nullptr) return;
+
+		f32 clamped = clamp(newMaxRange, GetMinRange() + 0.1f, 1000.0f);
+
+		ma_sound_set_max_distance(sound, clamped);
+
+		Log::Print(
+			"Set audio player '" + name + "' max range to '" + to_string(clamped) + "'!",
+			"AUDIO_PLAYER",
+			LogType::LOG_DEBUG);
+	}
+	f32 AudioPlayer::GetMaxRange() const
+	{
+		ma_sound* sound = CommonChecker(
+			"get audio player '" + name + "' max range",
+			ID);
+
+		if (sound == nullptr) return 0;
+
+		return ma_sound_get_max_distance(sound);
 	}
 }
 
@@ -1135,14 +1387,35 @@ bool CheckInitState(
 	return true;
 }
 
+bool CheckListenerID(u32 ID)
+{
+	if (ID == 0)
+	{
+		PrintErrorMessage(
+			"Listener ID " + to_string(ID) + " is too low! It must be atleast 1.");
+
+		return false;
+	}
+
+	if (ID > 4)
+	{
+		PrintErrorMessage(
+			"Listener ID " + to_string(ID) + " is too high! It must be below 4.");
+
+		return false;
+	}
+
+	return true;
+}
+
 ma_sound* CommonChecker(
 	const string& message,
 	u32 ID)
 {
 	if (!CheckInitState(message)) return nullptr;
 
-	auto it = soundMap.find(ID);
-	if (it != soundMap.end()) return it->second.get();
+	auto it = playerMap.find(ID);
+	if (it != playerMap.end()) return it->second.get();
 
 	PrintErrorMessage(
 		"Cannot " + message + " because the audio pointer ID '" + to_string(ID) + "' was not found in internal MiniAudio sound map!",
@@ -1168,7 +1441,7 @@ void PrintErrorMessage(
 	const string& message,
 	bool originatesFromAudio)
 {
-	string type = originatesFromAudio ? "AUDIO" : "AUDIOTRACK";
+	string type = originatesFromAudio ? "AUDIO" : "AUDIO_PLAYER";
 
 	Log::Print(
 		message,
@@ -1180,7 +1453,7 @@ void PrintWarningMessage(
 	const string& message,
 	bool originatesFromAudio)
 {
-	string type = originatesFromAudio ? "AUDIO" : "AUDIOTRACK";
+	string type = originatesFromAudio ? "AUDIO" : "AUDIO_PLAYER";
 
 	Log::Print(
 		message,

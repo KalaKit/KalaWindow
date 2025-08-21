@@ -22,7 +22,7 @@
 
 namespace KalaWindow::Core
 {
-	using KalaWindow::Core::AudioTrack;
+	using KalaWindow::Core::AudioPlayer;
 	using KalaWindow::Graphics::Window;
 	using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
 	using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
@@ -44,7 +44,7 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
 
-	LIB_API extern unordered_map<u32, unique_ptr<AudioTrack>> createdAudioTracks;
+	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
 	LIB_API extern unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders;
@@ -57,6 +57,8 @@ namespace KalaWindow::Core
 	//
 
 	LIB_API extern vector<Window*> runtimeWindows;
+
+	LIB_API extern vector<AudioPlayer*> runtimeAudioPlayers;
 
 	LIB_API extern vector<Texture_OpenGL*> runtimeOpenGLTextures;
 	LIB_API extern vector<Shader_OpenGL*> runtimeOpenGLShaders;

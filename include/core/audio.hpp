@@ -20,28 +20,22 @@ namespace KalaWindow::Core
 	using std::filesystem::path;
 	using std::filesystem::is_regular_file;
 
-	//Stores data for managing where to listen to audio from
-	struct AudioListener
+	//Stores data for managing directional audio hearing/playback
+	struct AudioCone
 	{
-		//Origin of audio listener
-		vec3 pos{};
-		//Direction at which audio listener is facing
-		vec3 front{};
-		//World up direction for audio listener
-		vec3 up{};
-	};
-	//Stores data per audio track for managing directional audio playback
-	struct AudioPlayerCone
-	{
-		//Direction of played sound. Assigning this turns this audio player from omnidirectional to directional audio player.
-		//To reset back to omnidirectional simply set front to vec3(0)
-		vec3 front{};
 		//Start of cone, full volume
 		f32 innerConeAngle{};
 		//End of cone, minimum volume
 		f32 outerConeAngle{};
 		//Sound fades out to this level at the end of the cone
 		f32 outerGain{};
+	};
+
+	enum class SampleRate
+	{
+		SAMPLE_DEFAULT, //Automatically picks device-native for best compatibility
+		SAMPLE_48000,   //Modern default
+		SAMPLE_44100    //Good for rare cases where 44.1KHz is needed like old CDs and older music standards
 	};
 
 	//The formula or curve shape used to reduce volume over distance.
@@ -77,18 +71,17 @@ namespace KalaWindow::Core
 	class LIB_API Audio
 	{
 	public:
-		//Initialize Miniaudio
-		static bool Initialize();
+		//Initialize Miniaudio.
+		//Listener count is internally clamped from 1 to 4.
+		static bool Initialize(
+			u32 listeners = 1,
+			SampleRate sampleRate = SampleRate::SAMPLE_DEFAULT);
 		static bool IsInitialized() { return isInitialized; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//SetPlayerPosition, SetListenerPosition will dump their debug logs into the console.
 		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
-
-		//Runtime function to update the global listener position
-		static void SetListenerPosition(const AudioListener& listener);
-		static AudioListener GetListenerPosition();
 
 		//Shut down Miniaudio
 		static void Shutdown();
@@ -98,18 +91,63 @@ namespace KalaWindow::Core
 	};
 
 	//
-	// EACH INDIVIDUAL IMPORTED AUDIO FILE
+	// EACH INDIVIDUAL AUDIO LISTENER
 	//
 
-	class LIB_API AudioTrack
+	class LIB_API AudioListener
+	{
+		//Set audio listener mute state
+		static void SetMuteState(
+			bool state,
+			u32 ID = 0);
+		static bool IsMuted(u32 ID = 0);
+
+		//Set audio listener up direction
+		static void SetWorldUp(
+			const vec3& up,
+			u32 ID = 0);
+		static vec3 GetWorldUp(u32 ID = 0);
+
+		//Set audio listener position
+		static void SetPosition(
+			const vec3& pos,
+			u32 ID = 0);
+		static vec3 GetPosition(u32 ID = 0);
+
+		//Set audio listener velocity
+		static void SetVelocity(
+			const vec3& vel,
+			u32 ID = 0);
+		static vec3 GetVelocity(u32 ID = 0);
+
+		//Set audio listener direction
+		static void SetDirection(
+			const vec3& pos,
+			u32 ID = 0);
+		static vec3 GetDirection(u32 ID = 0);
+
+		//Set audio listener cone values.
+		//Inner cone angle and outer cone angle are internally clamped from 0.0f to 359.99f.
+		//Outer gain is internally clamped from 0.0f to 1.0f;
+		static void SetConeData(
+			const AudioCone& cone,
+			u32 ID = 0);
+		static AudioCone GetConeData(u32 ID = 0);
+	};
+
+	//
+	// EACH INDIVIDUAL CREATED AUDIO PLAYER
+	//
+
+	class LIB_API AudioPlayer
 	{
 	public:
-		//Import a new audio track
-		static AudioTrack* ImportAudioTrack(
+		//Create a new audio player
+		static AudioPlayer* CreateAudioPlayer(
 			const string& name,
 			const string& filePath);
 
-		//Assign a new name to this audio track
+		//Assign a new name to this audio player
 		void SetName(const string& newName);
 		const string& GetName() const { return name; }
 
@@ -117,55 +155,35 @@ namespace KalaWindow::Core
 
 		u32 GetID() const { return ID; }
 
-		//Start playing this audio track from the start
+		//Start playing this audio player from the start
 		void Play() const;
 		bool IsPlaying() const;
 
-		//Set the playback position of this audio track in seconds from the start
+		//Set the playback position of this audio player in seconds from the start
 		void SetPlaybackPosition(u32 newValue) const;
-		//Get either length played or total audio track length in seconds
+		//Get either length played or total audio player length in seconds
 		u32 GetPlaybackPosition(bool getFullDuration) const;
 
-		//Pause this playing audio track
+		//Pause this playing audio player
 		void Pause() const;
-		//Continue playing this paused audio track
+		//Continue playing this paused audio player
 		void Continue() const;
 		bool IsPaused() const { return isPaused; };
 
-		//Set the loop state of this audio track. If true, then this audio track
+		//Set the loop state of this audio player. If true, then this audio player
 		//starts again from the beginning after it finishes playing.
 		void SetLoopState(bool newState) const;
 		bool CanLoop() const;
 
-		//Stop this playing audio track. If loop is enabled then this audio track starts playing again from the beginning.
+		//Stop this playing audio player. If loop is enabled then this audio player starts playing again from the beginning.
 		void Stop() const;
-		//Returns true if this audio track is not playing and is not paused
+		//Returns true if this audio player is not playing and is not paused
 		bool HasFinished() const;
 
-		//Set the volume of this audio track.
+		//Set the volume of this audio player.
 		//Clamped internally from 0.0f to 5.0f, but recommended up to 1.0
 		void SetVolume(f32 newVolume) const;
 		f32 GetVolume() const;
-
-		//Set the minimum final volume that this audio track can drop to, 
-		//even after attenuation. Clamped internally from 0.0f to MaxGain - 0.1f
-		void SetMinGain(f32 newMinGain) const;
-		f32 GetMinGain() const;
-
-		//Set the maximum final volume that this audio track can rise to, 
-		//even after boosts. Clamped internally from MinGain + 0.1f to 5.0f, but recommended up to 1.0
-		void SetMaxGain(f32 newMaxGain) const;
-		f32 GetMaxGain() const;
-
-		//Set the minimum distance at which this audio track is heard at full volume.
-		//Clamped internally from 0.0f to MaxRange - 0.1f
-		void SetMinRange(f32 newMinRange) const;
-		f32 GetMinRange() const;
-
-		//Set the maximum distance at which this audio track can be heard before it is silent.
-		//Clamped internally from MinRange + 0.1f to 1000.0f
-		void SetMaxRange(f32 newMaxRange) const;
-		f32 GetMaxRange() const;
 
 		//Toggle whether this sound is affected by spatial audio effects or not
 		void SetSpatializationState(bool newState) const;
@@ -175,7 +193,7 @@ namespace KalaWindow::Core
 		void SetPositioningState(Positioning pos) const;
 		Positioning GetPositioningState() const;
 
-		//Set the pitch of this audio track.
+		//Set the pitch of this audio player.
 		//Clamped internally from 0.0f to 5.0f, but recommended up to 1.0
 		void SetPitch(f32 newPitch) const;
 		f32 GetPitch() const;
@@ -190,18 +208,22 @@ namespace KalaWindow::Core
 		f32 GetPan() const;
 
 		//Set audio playback position
-		void SetPlayerPosition(const vec3& pos) const;
-		vec3 GetPlayerPosition() const;
+		void SetPosition(const vec3& pos) const;
+		vec3 GetPosition() const;
 
 		//Set audio playback velocity
-		void SetPlayerVelocity(const vec3& vel) const;
-		vec3 GetPlayerVelocity() const;
+		void SetVelocity(const vec3& vel) const;
+		vec3 GetVelocity() const;
 
-		//Set audio playback direction and cone data.
+		//Set audio player direction
+		void SetDirection(const vec3& pos) const;
+		vec3 GetDirection() const;
+
+		//Set audio player cone values.
 		//Inner cone angle and outer cone angle are internally clamped from 0.0f to 359.99f.
 		//Outer gain is internally clamped from 0.0f to 1.0f;
-		void SetDirectionalData(const AudioPlayerCone& cone) const;
-		AudioPlayerCone GetDirectionalData() const;
+		void SetConeData(const AudioCone& cone) const;
+		AudioCone GetConeData() const;
 
 		//The formula or curve shape used to reduce volume over distance
 		void SetAttenuationModel(AttenuationModel model) const;
@@ -218,8 +240,28 @@ namespace KalaWindow::Core
 		void SetDopplerFactor(f32 factor) const;
 		f32 GetDopplerFactor() const;
 
+		//Set the minimum final volume that this audio player can drop to, 
+		//even after attenuation. Clamped internally from 0.0f to MaxGain - 0.1f
+		void SetMinGain(f32 newMinGain) const;
+		f32 GetMinGain() const;
+
+		//Set the maximum final volume that this audio player can rise to, 
+		//even after boosts. Clamped internally from MinGain + 0.1f to 5.0f, but recommended up to 1.0
+		void SetMaxGain(f32 newMaxGain) const;
+		f32 GetMaxGain() const;
+
+		//Set the minimum distance at which this audio player is heard at full volume.
+		//Clamped internally from 0.0f to MaxRange - 0.1f
+		void SetMinRange(f32 newMinRange) const;
+		f32 GetMinRange() const;
+
+		//Set the maximum distance at which this audio player can be heard before it is silent.
+		//Clamped internally from MinRange + 0.1f to 1000.0f
+		void SetMaxRange(f32 newMaxRange) const;
+		f32 GetMaxRange() const;
+
 		//Note: Do not destroy manually, erase from containers.hpp instead
-		~AudioTrack();
+		~AudioPlayer();
 	private:
 		string name{};
 		string filePath{};
