@@ -96,6 +96,7 @@ namespace KalaWindow::Core
 
 	class LIB_API AudioListener
 	{
+	public:
 		//Set audio listener mute state
 		static void SetMuteState(
 			bool state,
