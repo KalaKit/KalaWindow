@@ -28,7 +28,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 		static void LoadAllWinFunctions();
 
 		//Load a specific function, this won't be loaded again with LoadAllFunctions
-		static void LoadWinFunction(void** target, const char* name);
+		static void LoadWinFunction(const char* name);
 	};
 }
 

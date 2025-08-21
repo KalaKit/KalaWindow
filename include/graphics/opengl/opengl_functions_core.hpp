@@ -270,6 +270,6 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 		static void LoadAllCoreFunctions();
 
 		//Load a specific function, this won't be loaded again with LoadAllFunctions
-		static void LoadCoreFunction(void** target, const char* name);
+		static void LoadCoreFunction(const char* name);
 	};
 }

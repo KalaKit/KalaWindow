@@ -15,6 +15,7 @@
 #include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
@@ -27,123 +28,117 @@ using std::ostringstream;
 
 struct CoreGLFunction
 {
-    string name;
-    void* ptr;
-};
-
-static inline vector<CoreGLFunction> loadedCoreFunctions{};
-
-struct CoreFunctionCheck
-{
     const char* name;
-    const void* ptr;
+    void** target;
 };
 
-CoreFunctionCheck checks[] =
+CoreGLFunction functions[] =
 {
     //
     // DEBUGGING
     //
 
-    { "glDebugMessageCallback", glDebugMessageCallback },
-    { "glEnable",               glEnable },
+    { "glDebugMessageCallback", reinterpret_cast<void**>(&glDebugMessageCallback) },
+    { "glEnable",               reinterpret_cast<void**>(&glEnable) },
 
     //
     // GEOMETRY
     //
 
-    { "glBindBuffer",              glBindBuffer },
-    { "glBindVertexArray",         glBindVertexArray },
-    { "glBufferData",              glBufferData },
-    { "glDeleteBuffers",           glDeleteBuffers },
-    { "glDeleteVertexArrays",      glDeleteVertexArrays },
-    { "glDrawArrays",              glDrawArrays },
-    { "glDrawElements",            glDrawElements },
-    { "glEnableVertexAttribArray", glEnableVertexAttribArray },
-    { "glGenBuffers",              glGenBuffers },
-    { "glGenVertexArrays",         glGenVertexArrays },
-    { "glGetVertexAttribiv",       glGetVertexAttribiv },
-    { "glGetVertexAttribPointerv", glGetVertexAttribPointerv },
-    { "glVertexAttribPointer",     glVertexAttribPointer },
+    { "glBindBuffer",              reinterpret_cast<void**>(&glBindBuffer) },
+    { "glBindVertexArray",         reinterpret_cast<void**>(&glBindVertexArray) },
+    { "glBufferData",              reinterpret_cast<void**>(&glBufferData) },
+    { "glDeleteBuffers",           reinterpret_cast<void**>(&glDeleteBuffers) },
+    { "glDeleteVertexArrays",      reinterpret_cast<void**>(&glDeleteVertexArrays) },
+    { "glDrawArrays",              reinterpret_cast<void**>(&glDrawArrays) },
+    { "glDrawElements",            reinterpret_cast<void**>(&glDrawElements) },
+    { "glEnableVertexAttribArray", reinterpret_cast<void**>(&glEnableVertexAttribArray) },
+    { "glGenBuffers",              reinterpret_cast<void**>(&glGenBuffers) },
+    { "glGenVertexArrays",         reinterpret_cast<void**>(&glGenVertexArrays) },
+    { "glGetVertexAttribiv",       reinterpret_cast<void**>(&glGetVertexAttribiv) },
+    { "glGetVertexAttribPointerv", reinterpret_cast<void**>(&glGetVertexAttribPointerv) },
+    { "glVertexAttribPointer",     reinterpret_cast<void**>(&glVertexAttribPointer) },
 
     //
     // SHADERS
     //
 
-    { "glAttachShader",      glAttachShader },
-    { "glCompileShader",     glCompileShader },
-    { "glCreateProgram",     glCreateProgram },
-    { "glCreateShader",      glCreateShader },
-    { "glDeleteShader",      glDeleteShader },
-    { "glDeleteProgram",     glDeleteProgram },
-    { "glDetachShader",      glDetachShader },
-    { "glGetActiveAttrib",   glGetActiveAttrib },
-    { "glGetAttribLocation", glGetAttribLocation },
-    { "glGetProgramiv",      glGetProgramiv },
-    { "glGetProgramInfoLog", glGetProgramInfoLog },
-    { "glGetShaderiv",       glGetShaderiv },
-    { "glGetShaderInfoLog",  glGetShaderInfoLog },
-    { "glLinkProgram",       glLinkProgram },
-    { "glShaderSource",      glShaderSource },
-    { "glUseProgram",        glUseProgram },
-    { "glValidateProgram",   glValidateProgram },
-    { "glIsProgram",         glIsProgram },
+    { "glAttachShader",      reinterpret_cast<void**>(&glAttachShader) },
+    { "glCompileShader",     reinterpret_cast<void**>(&glCompileShader) },
+    { "glCreateProgram",     reinterpret_cast<void**>(&glCreateProgram) },
+    { "glCreateShader",      reinterpret_cast<void**>(&glCreateShader) },
+    { "glDeleteShader",      reinterpret_cast<void**>(&glDeleteShader) },
+    { "glDeleteProgram",     reinterpret_cast<void**>(&glDeleteProgram) },
+    { "glDetachShader",      reinterpret_cast<void**>(&glDetachShader) },
+    { "glGetActiveAttrib",   reinterpret_cast<void**>(&glGetActiveAttrib) },
+    { "glGetAttribLocation", reinterpret_cast<void**>(&glGetAttribLocation) },
+    { "glGetProgramiv",      reinterpret_cast<void**>(&glGetProgramiv) },
+    { "glGetProgramInfoLog", reinterpret_cast<void**>(&glGetProgramInfoLog) },
+    { "glGetShaderiv",       reinterpret_cast<void**>(&glGetShaderiv) },
+    { "glGetShaderInfoLog",  reinterpret_cast<void**>(&glGetShaderInfoLog) },
+    { "glLinkProgram",       reinterpret_cast<void**>(&glLinkProgram) },
+    { "glShaderSource",      reinterpret_cast<void**>(&glShaderSource) },
+    { "glUseProgram",        reinterpret_cast<void**>(&glUseProgram) },
+    { "glValidateProgram",   reinterpret_cast<void**>(&glValidateProgram) },
+    { "glIsProgram",         reinterpret_cast<void**>(&glIsProgram) },
 
     //
     // UNIFORMS
     //
 
-    { "glGetUniformLocation", glGetUniformLocation },
-    { "glUniform1f",          glUniform1f },
-    { "glUniform1i",          glUniform1i },
-    { "glUniform2f",          glUniform2f },
-    { "glUniform2fv",         glUniform2fv },
-    { "glUniform3f",          glUniform3f },
-    { "glUniform3fv",         glUniform3fv },
-    { "glUniform4f",          glUniform4f },
-    { "glUniform4fv",         glUniform4fv },
-    { "glUniformMatrix2fv",   glUniformMatrix2fv },
-    { "glUniformMatrix3fv",   glUniformMatrix3fv },
-    { "glUniformMatrix4fv",   glUniformMatrix4fv },
+    { "glGetUniformLocation", reinterpret_cast<void**>(&glGetUniformLocation) },
+    { "glUniform1f",          reinterpret_cast<void**>(&glUniform1f) },
+    { "glUniform1i",          reinterpret_cast<void**>(&glUniform1i) },
+    { "glUniform2f",          reinterpret_cast<void**>(&glUniform2f) },
+    { "glUniform2fv",         reinterpret_cast<void**>(&glUniform2fv) },
+    { "glUniform3f",          reinterpret_cast<void**>(&glUniform3f) },
+    { "glUniform3fv",         reinterpret_cast<void**>(&glUniform3fv) },
+    { "glUniform4f",          reinterpret_cast<void**>(&glUniform4f) },
+    { "glUniform4fv",         reinterpret_cast<void**>(&glUniform4fv) },
+    { "glUniformMatrix2fv",   reinterpret_cast<void**>(&glUniformMatrix2fv) },
+    { "glUniformMatrix3fv",   reinterpret_cast<void**>(&glUniformMatrix3fv) },
+    { "glUniformMatrix4fv",   reinterpret_cast<void**>(&glUniformMatrix4fv) },
 
     //
     // TEXTURES
     //
 
-    { "glBindTexture",    glBindTexture },
-    { "glActiveTexture",  glActiveTexture },
-    { "glDeleteTextures", glDeleteTextures },
-    { "glGenerateMipmap", glGenerateMipmap },
-    { "glGenTextures",    glGenTextures },
-    { "glTexImage2D",     glTexImage2D },
-    { "glTexParameteri",  glTexParameteri },
-    { "glTexSubImage2D",  glTexSubImage2D },
+    { "glBindTexture",    reinterpret_cast<void**>(&glBindTexture) },
+    { "glActiveTexture",  reinterpret_cast<void**>(&glActiveTexture) },
+    { "glDeleteTextures", reinterpret_cast<void**>(&glDeleteTextures) },
+    { "glGenerateMipmap", reinterpret_cast<void**>(&glGenerateMipmap) },
+    { "glGenTextures",    reinterpret_cast<void**>(&glGenTextures) },
+    { "glTexImage2D",     reinterpret_cast<void**>(&glTexImage2D) },
+    { "glTexParameteri",  reinterpret_cast<void**>(&glTexParameteri) },
+    { "glTexSubImage2D",  reinterpret_cast<void**>(&glTexSubImage2D) },
 
     //
     // FRAMEBUFFERS AND RENDERBUFFERS
     //
 
-    { "glBindRenderbuffer",        glBindRenderbuffer },
-    { "glBindFramebuffer",         glBindFramebuffer },
-    { "glCheckFramebufferStatus",  glCheckFramebufferStatus },
-    { "glFramebufferRenderbuffer", glFramebufferRenderbuffer },
-    { "glFramebufferTexture2D",    glFramebufferTexture2D },
-    { "glGenRenderbuffers",        glGenRenderbuffers },
-    { "glGenFramebuffers",         glGenFramebuffers },
-    { "glRenderbufferStorage",     glRenderbufferStorage },
+    { "glBindRenderbuffer",        reinterpret_cast<void**>(&glBindRenderbuffer) },
+    { "glBindFramebuffer",         reinterpret_cast<void**>(&glBindFramebuffer) },
+    { "glCheckFramebufferStatus",  reinterpret_cast<void**>(&glCheckFramebufferStatus) },
+    { "glFramebufferRenderbuffer", reinterpret_cast<void**>(&glFramebufferRenderbuffer) },
+    { "glFramebufferTexture2D",    reinterpret_cast<void**>(&glFramebufferTexture2D) },
+    { "glGenRenderbuffers",        reinterpret_cast<void**>(&glGenRenderbuffers) },
+    { "glGenFramebuffers",         reinterpret_cast<void**>(&glGenFramebuffers) },
+    { "glRenderbufferStorage",     reinterpret_cast<void**>(&glRenderbufferStorage) },
 
     //
     // FRAME AND RENDER STATE
     //
 
-    { "glClear",       glClear },
-    { "glClearColor",  glClearColor },
-    { "glDisable",     glDisable },
-    { "glGetError",    glGetError },
-    { "glGetIntegerv", glGetIntegerv },
-    { "glGetString",   glGetString },
-    { "glViewport",    glViewport }
+    { "glClear",       reinterpret_cast<void**>(&glClear) },
+    { "glClearColor",  reinterpret_cast<void**>(&glClearColor) },
+    { "glDisable",     reinterpret_cast<void**>(&glDisable) },
+    { "glGetError",    reinterpret_cast<void**>(&glGetError) },
+    { "glGetIntegerv", reinterpret_cast<void**>(&glGetIntegerv) },
+    { "glGetString",   reinterpret_cast<void**>(&glGetString) },
+    { "glViewport",    reinterpret_cast<void**>(&glViewport) }
 };
+
+static inline vector<CoreGLFunction> loadedCoreFunctions{};
 
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
@@ -314,109 +309,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 
 	void OpenGL_Functions_Core::LoadAllCoreFunctions()
 	{
-        //
-        // DEBUGGING
-        //
-
-        glDebugMessageCallback = reinterpret_cast<PFNGLDEBUGMESSAGECALLBACKPROC>(wglGetProcAddress("glDebugMessageCallback"));
-        glEnable               = reinterpret_cast<PFNGLENABLEPROC>              (wglGetProcAddress("glEnable"));
-
-        //
-        // GEOMETRY
-        //
-
-        glBindBuffer              = reinterpret_cast<PFNGLBINDBUFFERPROC>             (wglGetProcAddress("glBindBuffer"));
-        glBindVertexArray         = reinterpret_cast<PFNGLBINDVERTEXARRAYPROC>        (wglGetProcAddress("glBindVertexArray"));
-        glBufferData              = reinterpret_cast<PFNGLBUFFERDATAPROC>             (wglGetProcAddress("glBufferData"));
-        glDeleteBuffers           = reinterpret_cast<PFNGLDELETEBUFFERSPROC>          (wglGetProcAddress("glDeleteBuffers"));
-        glDeleteVertexArrays      = reinterpret_cast<PFNGLDELETEVERTEXARRAYSPROC>     (wglGetProcAddress("glDeleteVertexArrays"));
-        glDrawArrays              = reinterpret_cast<PFNGLDRAWARRAYSPROC>             (wglGetProcAddress("glDrawArrays"));
-        glDrawElements            = reinterpret_cast<PFNGLDRAWELEMENTSPROC>           (wglGetProcAddress("glDrawElements"));
-        glEnableVertexAttribArray = reinterpret_cast<PFNGLENABLEVERTEXATTRIBARRAYPROC>(wglGetProcAddress("glEnableVertexAttribArray"));
-        glGenBuffers              = reinterpret_cast<PFNGLGENBUFFERSPROC>             (wglGetProcAddress("glGenBuffers"));
-        glGenVertexArrays         = reinterpret_cast<PFNGLGENVERTEXARRAYSPROC>        (wglGetProcAddress("glGenVertexArrays"));
-        glGetVertexAttribiv       = reinterpret_cast<PFNGLGETVERTEXATTRIBIVPROC>      (wglGetProcAddress("glGetVertexAttribiv"));
-        glGetVertexAttribPointerv = reinterpret_cast<PFNGLGETVERTEXATTRIBPOINTERVPROC>(wglGetProcAddress("glGetVertexAttribPointerv"));
-        glVertexAttribPointer     = reinterpret_cast<PFNGLVERTEXATTRIBPOINTERPROC>    (wglGetProcAddress("glVertexAttribPointer"));
-
-        //
-        // SHADERS
-        //
-
-        glAttachShader        = reinterpret_cast<PFNGLATTACHSHADERPROC>       (wglGetProcAddress("glAttachShader"));
-        glCompileShader       = reinterpret_cast<PFNGLCOMPILESHADERPROC>      (wglGetProcAddress("glCompileShader"));
-        glCreateProgram       = reinterpret_cast<PFNGLCREATEPROGRAMPROC>      (wglGetProcAddress("glCreateProgram"));
-        glCreateShader        = reinterpret_cast<PFNGLCREATESHADERPROC>       (wglGetProcAddress("glCreateShader"));
-        glDeleteShader        = reinterpret_cast<PFNGLDELETESHADERPROC>       (wglGetProcAddress("glDeleteShader"));
-        glDeleteProgram       = reinterpret_cast<PFNGLDELETEPROGRAMPROC>      (wglGetProcAddress("glDeleteProgram"));
-        glDetachShader        = reinterpret_cast<PFNGLDETACHSHADERPROC>       (wglGetProcAddress("glDetachShader"));
-        glGetActiveAttrib     = reinterpret_cast<PFNGLGETACTIVEATTRIBPROC>    (wglGetProcAddress("glGetActiveAttrib"));
-        glGetAttribLocation   = reinterpret_cast<PFNGLGETATTRIBLOCATIONPROC>  (wglGetProcAddress("glGetAttribLocation"));
-        glGetProgramiv        = reinterpret_cast<PFNGLGETPROGRAMIVPROC>       (wglGetProcAddress("glGetProgramiv"));
-        glGetProgramInfoLog   = reinterpret_cast<PFNGLGETPROGRAMINFOLOGPROC>  (wglGetProcAddress("glGetProgramInfoLog"));
-        glGetShaderiv         = reinterpret_cast<PFNGLGETSHADERIVPROC>        (wglGetProcAddress("glGetShaderiv"));
-        glGetShaderInfoLog    = reinterpret_cast<PFNGLGETSHADERINFOLOGPROC>   (wglGetProcAddress("glGetShaderInfoLog"));
-        glLinkProgram         = reinterpret_cast<PFNGLLINKPROGRAMPROC>        (wglGetProcAddress("glLinkProgram"));
-        glShaderSource        = reinterpret_cast<PFNGLSHADERSOURCEPROC>       (wglGetProcAddress("glShaderSource"));
-        glUseProgram          = reinterpret_cast<PFNGLUSEPROGRAMPROC>         (wglGetProcAddress("glUseProgram"));
-        glValidateProgram     = reinterpret_cast<PFNGLVALIDATEPROGRAMPROC>    (wglGetProcAddress("glValidateProgram"));
-        glIsProgram           = reinterpret_cast<PFNGLISPROGRAMPROC>          (wglGetProcAddress("glIsProgram"));
-
-        //
-        // UNIFORMS
-        //
-
-        glGetUniformLocation  = reinterpret_cast<PFNGLGETUNIFORMLOCATIONPROC> (wglGetProcAddress("glGetUniformLocation"));
-        glUniform1f           = reinterpret_cast<PFNGLUNIFORM1FPROC>          (wglGetProcAddress("glUniform1f"));
-        glUniform1i           = reinterpret_cast<PFNGLUNIFORM1IPROC>          (wglGetProcAddress("glUniform1i"));
-        glUniform2f           = reinterpret_cast<PFNGLUNIFORM2FPROC>          (wglGetProcAddress("glUniform2f"));
-        glUniform2fv          = reinterpret_cast<PFNGLUNIFORM2FVPROC>         (wglGetProcAddress("glUniform2fv"));
-        glUniform3f           = reinterpret_cast<PFNGLUNIFORM3FPROC>          (wglGetProcAddress("glUniform3f"));
-        glUniform3fv          = reinterpret_cast<PFNGLUNIFORM3FVPROC>         (wglGetProcAddress("glUniform3fv"));
-        glUniform4f           = reinterpret_cast<PFNGLUNIFORM4FPROC>          (wglGetProcAddress("glUniform4f"));
-        glUniform4fv          = reinterpret_cast<PFNGLUNIFORM4FVPROC>         (wglGetProcAddress("glUniform4fv"));
-        glUniformMatrix2fv    = reinterpret_cast<PFNGLUNIFORMMATRIX2FVPROC>   (wglGetProcAddress("glUniformMatrix2fv"));
-        glUniformMatrix3fv    = reinterpret_cast<PFNGLUNIFORMMATRIX3FVPROC>   (wglGetProcAddress("glUniformMatrix3fv"));
-        glUniformMatrix4fv    = reinterpret_cast<PFNGLUNIFORMMATRIX4FVPROC>   (wglGetProcAddress("glUniformMatrix4fv"));
-
-        //
-        // TEXTURES
-        //
-
-        glBindTexture   = reinterpret_cast<PFNGLBINDTEXTUREPROC>   (wglGetProcAddress("glBindTexture"));
-        glActiveTexture = reinterpret_cast<PFNGLACTIVETEXTUREPROC> (wglGetProcAddress("glActiveTexture"));
-        glDeleteTextures= reinterpret_cast<PFNGLDELETETEXTURESPROC>(wglGetProcAddress("glDeleteTextures"));
-        glGenerateMipmap= reinterpret_cast<PFNGLGENERATEMIPMAPPROC>(wglGetProcAddress("glGenerateMipmap"));
-        glGenTextures   = reinterpret_cast<PFNGLGENTEXTURESPROC>   (wglGetProcAddress("glGenTextures"));
-        glTexImage2D    = reinterpret_cast<PFNGLTEXIMAGE2DPROC>    (wglGetProcAddress("glTexImage2D"));
-        glTexParameteri = reinterpret_cast<PFNGLTEXPARAMETERIPROC> (wglGetProcAddress("glTexParameteri"));
-        glTexSubImage2D = reinterpret_cast<PFNGLTEXSUBIMAGE2DPROC> (wglGetProcAddress("glTexSubImage2D"));
-
-        //
-        // FRAMEBUFFERS AND RENDERBUFFERS
-        //
-
-        glBindRenderbuffer       = reinterpret_cast<PFNGLBINDRENDERBUFFERPROC>      (wglGetProcAddress("glBindRenderbuffer"));
-        glBindFramebuffer        = reinterpret_cast<PFNGLBINDFRAMEBUFFERPROC>       (wglGetProcAddress("glBindFramebuffer"));
-        glCheckFramebufferStatus = reinterpret_cast<PFNGLCHECKFRAMEBUFFERSTATUSPROC>(wglGetProcAddress("glCheckFramebufferStatus"));
-        glFramebufferRenderbuffer= reinterpret_cast<PFNGLFRAMEBUFFERRENDERBUFFERPROC>(wglGetProcAddress("glFramebufferRenderbuffer"));
-        glFramebufferTexture2D   = reinterpret_cast<PFNGLFRAMEBUFFERTEXTURE2DPROC>  (wglGetProcAddress("glFramebufferTexture2D"));
-        glGenRenderbuffers       = reinterpret_cast<PFNGLGENRENDERBUFFERSPROC>      (wglGetProcAddress("glGenRenderbuffers"));
-        glGenFramebuffers        = reinterpret_cast<PFNGLGENFRAMEBUFFERSPROC>       (wglGetProcAddress("glGenFramebuffers"));
-        glRenderbufferStorage    = reinterpret_cast<PFNGLRENDERBUFFERSTORAGEPROC>   (wglGetProcAddress("glRenderbufferStorage"));
-
-        //
-        // FRAME AND RENDER STATE
-        //
-
-        glClear       = reinterpret_cast<PFNGLCLEARPROC>      (wglGetProcAddress("glClear"));
-        glClearColor  = reinterpret_cast<PFNGLCLEARCOLORPROC> (wglGetProcAddress("glClearColor"));
-        glDisable     = reinterpret_cast<PFNGLDISABLEPROC>    (wglGetProcAddress("glDisable"));
-        glGetError    = reinterpret_cast<PFNGLGETERRORPROC>   (wglGetProcAddress("glGetError"));
-        glGetIntegerv = reinterpret_cast<PFNGLGETINTEGERVPROC>(wglGetProcAddress("glGetIntegerv"));
-        glGetString   = reinterpret_cast<PFNGLGETSTRINGPROC>  (wglGetProcAddress("glGetString"));
-        glViewport    = reinterpret_cast<PFNGLVIEWPORTPROC>   (wglGetProcAddress("glViewport"));
-
+        /*
         for (auto& check : checks)
         {
             if (!check.ptr)
@@ -426,52 +319,82 @@ namespace KalaWindow::Graphics::OpenGLFunctions
                     "Failed to load function '" + string(check.name) + "'");
             }
         }
+        */
 	}
 
-    void OpenGL_Functions_Core::LoadCoreFunction(void** target, const char* name)
+    void OpenGL_Functions_Core::LoadCoreFunction(const char* name)
     {
         //check if already loaded
         auto it = find_if(
             loadedCoreFunctions.begin(),
             loadedCoreFunctions.end(),
-            [name](const CoreGLFunction& rec) { return rec.name == name; });
+            [name](const CoreGLFunction& rec) { return strcmp(rec.name, name) == 0; });
 
-        //already loaded - return existing one
+        //already loaded
         if (it != loadedCoreFunctions.end())
         {
-            *target = it->ptr;
+            Log::Print(
+                "Function '" + string(name) + "' is already loaded!",
+                "OPENGL CORE FUNCTION",
+                LogType::LOG_ERROR);
+
+            return;
+        }
+
+        //find entry in registry
+        CoreGLFunction* entry = nullptr;
+        for (auto& f : functions)
+        {
+            if (strcmp(f.name, name) == 0)
+            {
+                entry = &f;
+                break;
+            }
+        }
+        if (!entry)
+        {
+            Log::Print(
+                "Function '" + string(name) + "' does not exist!",
+                "OPENGL CORE FUNCTION",
+                LogType::LOG_ERROR);
+
             return;
         }
 
         //try to load
+        void* ptr = nullptr;
+
 #ifdef _WIN32
-        *target = reinterpret_cast<void*>(wglGetProcAddress(name));
-        if (!*target)
+        ptr = reinterpret_cast<void*>(wglGetProcAddress(name));
+        if (!ptr)
         {
             HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
-            *target = reinterpret_cast<void*>(GetProcAddress(module, name));
+            ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
 #elif __linux__
-        * target = reinterpret_cast<T>(glXGetProcAddress(
+        ptr = reinterpret_cast<void*>(glXGetProcAddress(
             reinterpret_cast<const GLubyte*>(name)));
-        if (!*target)
+        if (!ptr)
         {
             void* module = ToVar<void*>(GlobalHandle::GetOpenGLHandle());
-            *target = reinterpret_cast<void*>(GetProcAddress(module, name));
+            ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
 #endif
 
-        if (!*target)
+        if (!ptr)
         {
             KalaWindowCore::ForceClose(
                 "OpenGL Core function error",
                 "Failed to load OpenGL error '" + string(name) + "'!");
         }
 
-        loadedCoreFunctions.push_back(
+        //assign into the real extern global
+        *entry->target = ptr;
+
+        loadedCoreFunctions.push_back(CoreGLFunction
             {
-                name,
-                *target
+                entry->name,
+                entry->target
             });
     }
 }

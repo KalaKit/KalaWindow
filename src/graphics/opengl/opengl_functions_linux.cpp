@@ -8,11 +8,15 @@
 #include <vector>
 #include <string>
 
+#include "KalaHeaders/logging.hpp"
 #include "KalaHeaders/core_types.hpp"
 
 #include "graphics/opengl/opengl_functions_linux.hpp"
 #include "core/core.hpp"
 #include "core/global_handles.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
@@ -23,19 +27,13 @@ using std::string;
 
 struct LinuxGLFunction
 {
-    string name;
-    void* ptr;
+    const char* name;
+    void** target;
 };
 
 static inline vector<LinuxGLFunction> loadedLinuxFunctions{};
 
-struct LinuxFunctionCheck
-{
-    const char* name;
-    const void* ptr;
-};
-
-LinuxFunctionCheck checks[] =
+LinuxGLFunction functions[] =
 {
     //add functions here...
 };
@@ -46,6 +44,7 @@ namespace KalaWindow::Graphics::OpenGL
 	{
         //add functions here...
 
+        /*
         for (auto& check : checks)
         {
             if (!check.ptr)
@@ -55,43 +54,73 @@ namespace KalaWindow::Graphics::OpenGL
                     "Failed to load function '" + string(check.name) + "'");
             }
         }
+        */
 	}
 
-	void OpenGL_Functions_Linux::LoadLinuxFunction(void** target, const char* name)
+	void OpenGL_Functions_Linux::LoadLinuxFunction(const char* name)
 	{
         //check if already loaded
         auto it = find_if(
             loadedLinuxFunctions.begin(),
             loadedLinuxFunctions.end(),
-            [name](const LinuxGLFunction& rec) { return rec.name == name; });
+            [name](const LinuxGLFunction& rec) { return strcmp(rec.name, name) == 0; });
 
-        //already loaded - return existing one
+        //already loaded
         if (it != loadedLinuxFunctions.end())
         {
-            *target = it->ptr;
+            Log::Print(
+                "Function '" + string(name) + "' is already loaded!",
+                "OPENGL LINUX FUNCTION",
+                LogType::LOG_ERROR);
+
+            return;
+        }
+
+        //find entry in registry
+        LinuxGLFunction* entry = nullptr;
+        for (auto& f : functions)
+        {
+            if (strcmp(f.name, name) == 0)
+            {
+                entry = &f;
+                break;
+            }
+        }
+        if (!entry)
+        {
+            Log::Print(
+                "Function '" + string(name) + "' does not exist!",
+                "OPENGL LINUX FUNCTION",
+                LogType::LOG_ERROR);
+
             return;
         }
 
         //try to load
-        *target = reinterpret_cast<T>(glXGetProcAddress(
+        void* ptr = nullptr;
+
+        ptr = reinterpret_cast<void*>(glXGetProcAddress(
             reinterpret_cast<const GLubyte*>(name)));
-        if (!*target)
+        if (!ptr)
         {
             void* module = ToVar<void*>(GlobalHandle::GetOpenGLHandle());
-            *target = reinterpret_cast<void*>(GetProcAddress(module, name));
+            ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
 
-        if (!*target)
+        if (!ptr)
         {
             KalaWindowCore::ForceClose(
-                "OpenGL Core function error",
+                "OpenGL Linux function error",
                 "Failed to load OpenGL error '" + string(name) + "'!");
         }
 
-        loadedLinuxFunctions.push_back(
+        //assign into the real extern global
+        *entry->target = ptr;
+
+        loadedLinuxFunctions.push_back(LinuxGLFunction
             {
-                name,
-                *target
+                entry->name,
+                entry->target
             });
 	}
 }

@@ -9,11 +9,15 @@
 #include <vector>
 #include <string>
 
+#include "KalaHeaders/logging.hpp"
 #include "KalaHeaders/core_types.hpp"
 
 #include "graphics/opengl/opengl_functions_win.hpp"
 #include "core/core.hpp"
 #include "core/global_handles.hpp"
+
+using KalaHeaders::Log;
+using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
@@ -24,23 +28,17 @@ using std::string;
 
 struct WinGLFunction
 {
-    string name;
-    void* ptr;
+    const char* name;
+    void** target;
 };
 
 static inline vector<WinGLFunction> loadedWinFunctions{};
 
-struct WinFunctionCheck
+WinGLFunction functions[] =
 {
-    const char* name;
-    const void* ptr;
-};
-
-WinFunctionCheck checks[] =
-{
-    { "wglCreateContextAttribsARB", wglCreateContextAttribsARB },
-    { "wglChoosePixelFormatARB",    wglChoosePixelFormatARB },
-    { "wglSwapIntervalEXT",         wglSwapIntervalEXT }
+    { "wglCreateContextAttribsARB", reinterpret_cast<void**>(&wglCreateContextAttribsARB) },
+    { "wglChoosePixelFormatARB",    reinterpret_cast<void**>(&wglChoosePixelFormatARB) },
+    { "wglSwapIntervalEXT",         reinterpret_cast<void**>(&wglSwapIntervalEXT) }
 };
 
 namespace KalaWindow::Graphics::OpenGLFunctions
@@ -51,10 +49,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 
 	void OpenGL_Functions_Windows::LoadAllWinFunctions()
 	{
-        wglCreateContextAttribsARB = reinterpret_cast<PFNWGLCREATECONTEXTATTRIBSARBPROC>(wglGetProcAddress("wglCreateContextAttribsARB"));
-        wglChoosePixelFormatARB =    reinterpret_cast<PFNWGLCHOOSEPIXELFORMATARBPROC>   (wglGetProcAddress("wglChoosePixelFormatARB"));
-        wglSwapIntervalEXT =         reinterpret_cast<PFNWGLSWAPINTERVALEXTPROC>        (wglGetProcAddress("wglSwapIntervalEXT"));
-
+        /*
         for (auto& check : checks)
         {
             if (!check.ptr)
@@ -64,42 +59,72 @@ namespace KalaWindow::Graphics::OpenGLFunctions
                     "Failed to load function '" + string(check.name) + "'");
             }
         }
+        */
 	}
 
-    void OpenGL_Functions_Windows::LoadWinFunction(void** target, const char* name)
+    void OpenGL_Functions_Windows::LoadWinFunction(const char* name)
     {
         //check if already loaded
         auto it = find_if(
             loadedWinFunctions.begin(),
             loadedWinFunctions.end(),
-            [name](const WinGLFunction& rec) { return rec.name == name; });
+            [name](const WinGLFunction& rec) { return strcmp(rec.name, name) == 0; });
 
-        //already loaded - return existing one
+        //already loaded
         if (it != loadedWinFunctions.end())
         {
-            *target = it->ptr;
+            Log::Print(
+                "Function '" + string(name) + "' is already loaded!",
+                "OPENGL WIN FUNCTION",
+                LogType::LOG_ERROR);
+
+            return;
+        }
+
+        //find entry in registry
+        WinGLFunction* entry = nullptr;
+        for (auto& f : functions)
+        {
+            if (strcmp(f.name, name) == 0)
+            {
+                entry = &f;
+                break;
+            }
+        }
+        if (!entry)
+        {
+            Log::Print(
+                "Function '" + string(name) + "' does not exist!",
+                "OPENGL WIN FUNCTION",
+                LogType::LOG_ERROR);
+
             return;
         }
 
         //try to load
-        *target = reinterpret_cast<void*>(wglGetProcAddress(name));
-        if (!*target)
+        void* ptr = nullptr;
+
+        ptr = reinterpret_cast<void*>(wglGetProcAddress(name));
+        if (!ptr)
         {
             HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
-            *target = reinterpret_cast<void*>(GetProcAddress(module, name));
+            ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
 
-        if (!*target)
+        if (!ptr)
         {
             KalaWindowCore::ForceClose(
-                "OpenGL Core function error",
+                "OpenGL Windows function error",
                 "Failed to load OpenGL error '" + string(name) + "'!");
         }
 
-        loadedWinFunctions.push_back(
+        //assign into the real extern global
+        *entry->target = ptr;
+
+        loadedWinFunctions.push_back(WinGLFunction
             {
-                name,
-                *target
+                entry->name,
+                entry->target
             });
     }
 }

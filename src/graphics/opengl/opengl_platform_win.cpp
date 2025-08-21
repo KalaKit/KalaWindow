@@ -126,13 +126,10 @@ namespace KalaWindow::Graphics::OpenGL
 		//
 
 		OpenGL_Functions_Windows::LoadWinFunction(
-			reinterpret_cast<void**>(&wglCreateContextAttribsARB),
 			"wglCreateContextAttribsARB");
 		OpenGL_Functions_Windows::LoadWinFunction(
-			reinterpret_cast<void**>(&wglChoosePixelFormatARB),
 			"wglChoosePixelFormatARB");
 		OpenGL_Functions_Windows::LoadWinFunction(
-			reinterpret_cast<void**>(&wglSwapIntervalEXT),
 			"wglSwapIntervalEXT");
 
 		//
