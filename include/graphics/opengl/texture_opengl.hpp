@@ -31,7 +31,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u32 GetOpenGLID() const { return openGLID; }
 		void SetOpenGLID(u32 newID) { openGLID = newID; }
 
-		//Note: Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from containers.hpp instead
 		~Texture_OpenGL() override;
 	private:
 		u32 openGLID{};

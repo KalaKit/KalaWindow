@@ -169,7 +169,7 @@ namespace KalaWindow::Graphics::OpenGL
 		void SetMat3(u32 programID, const string& name, const mat3& mat) const;
 		void SetMat4(u32 programID, const string& name, const mat4& mat) const;
 
-		//Note: Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from containers.hpp instead
 		~Shader_OpenGL();
 	private:
 		string name{};

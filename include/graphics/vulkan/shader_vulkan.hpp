@@ -464,7 +464,7 @@ namespace KalaWindow::Graphics::Vulkan
 			u32 offset,
 			const PushConstantValue& value);
 
-		//Note: Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from containers.hpp instead
 		~Shader_Vulkan();
 	private:
 		string name{};

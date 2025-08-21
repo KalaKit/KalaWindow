@@ -311,7 +311,7 @@ namespace KalaWindow::Graphics
 
 		void Update();
 
-		//Note: Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 
 		static Window* FindWindowByName(const string& targetName);
