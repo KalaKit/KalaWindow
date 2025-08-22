@@ -9,7 +9,7 @@
 #include "imgui/backends/imgui_impl_win32.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
 
-#include "ui/imgui.hpp"
+#include "ui/debug_ui.hpp"
 
 namespace KalaWindow::UI
 {
