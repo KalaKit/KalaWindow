@@ -37,7 +37,6 @@ namespace KalaWindow::Graphics::OpenGL
 	bool Renderer_OpenGL::Initialize(Window* targetWindow)
 	{
 		HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
-		Window::SetOpenGLLib(FromVar(module));
 
 		const WindowData& wData = targetWindow->GetWindowData();
 		OpenGLData oData{};

@@ -12,15 +12,25 @@ namespace KalaWindow::Core
 	class LIB_API GlobalHandle
 	{
 	public:
-		static void InitOpenGLHandle();
-
+		//Set the opengl handle
+		static void SetOpenGLHandle();
 		static uintptr_t GetOpenGLHandle()
 		{
-			if (openGL32 == NULL) InitOpenGLHandle();
+			if (openGL32Lib == NULL) SetOpenGLHandle();
 
-			return openGL32;
+			return openGL32Lib;
+		}
+
+		//Set the vulkan handle
+		static void SetVulkanHandle() {};
+		static uintptr_t GetVulkanHandle()
+		{
+			if (vulkanLib == NULL) SetOpenGLHandle();
+
+			return vulkanLib;
 		}
 	private:
-		static inline uintptr_t openGL32{};
+		static inline uintptr_t openGL32Lib{};
+		static inline uintptr_t vulkanLib{};
 	};
 }

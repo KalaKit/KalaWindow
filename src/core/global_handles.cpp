@@ -20,7 +20,7 @@ using std::string;
 
 namespace KalaWindow::Core
 {
-	void GlobalHandle::InitOpenGLHandle()
+	void GlobalHandle::SetOpenGLHandle()
 	{
 #ifdef _WIN32
 		HMODULE handle = GetModuleHandleA("opengl32.dll");
@@ -33,7 +33,7 @@ namespace KalaWindow::Core
 			return;
 		}
 
-		openGL32 = FromVar(handle);
+		openGL32Lib = FromVar(handle);
 #else
 		void* handle = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
 		if (!handle)

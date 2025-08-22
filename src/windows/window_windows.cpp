@@ -155,12 +155,12 @@ namespace KalaWindow::Graphics
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
 		
-		newWindow->SetTitle(title);
-		newWindow->SetID(newID);
-		newWindow->SetSize(size);
-		newWindow->SetWindowData(newWindowStruct);
+		newWindow->title = title;
+		newWindow->ID = newID;
+		newWindow->size = size;
+		newWindow->window_windows = newWindowStruct;
 
-		newWindow->SetInitializedState(true);
+		newWindow->isInitialized = true;
 
 		createdWindows[newID] = move(newWindow);
 		runtimeWindows.push_back(windowPtr);
@@ -173,35 +173,6 @@ namespace KalaWindow::Graphics
 		return windowPtr;
 	}
 
-	Window* Window::FindWindowByName(const string& targetName)
-	{
-		auto it = find_if(
-			runtimeWindows.begin(),
-			runtimeWindows.end(),
-			[targetName](const Window* win)
-			{
-				return win->title == targetName;
-			});
-
-		if (it != runtimeWindows.end()) return *it;
-
-		return nullptr;
-	}
-	Window* Window::FindWindowByID(unsigned int targetID)
-	{
-		auto it = find_if(
-			runtimeWindows.begin(),
-			runtimeWindows.end(),
-			[targetID](const Window* win)
-			{
-				return win->ID == targetID;
-			});
-
-		if (it != runtimeWindows.end()) return *it;
-
-		return nullptr;
-	}
-
 	void Window::SetTitle(const string& newTitle)
 	{
 		HWND window = ToVar<HWND>(GetWindowData().hwnd);
@@ -210,6 +181,22 @@ namespace KalaWindow::Graphics
 		title = newTitle;
 	}
 
+	void Window::SetSize(vec2 newSize)
+	{
+		HWND window = ToVar<HWND>(GetWindowData().hwnd);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			newSize.x,
+			newSize.y,
+			SWP_NOMOVE
+			| SWP_NOZORDER);
+
+		size = newSize;
+	}
 	vec2 Window::GetSize() const
 	{
 		const WindowData& winData = GetWindowData();
@@ -235,38 +222,13 @@ namespace KalaWindow::Graphics
 		};
 	}
 
-	void Window::SetSize(vec2 newSize)
+	void Window::SetFramebufferSize(vec2 newSize) const
 	{
-		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
-		SetWindowPos(
-			window,
-			nullptr,
-			0,
-			0,
-			newSize.x,
-			newSize.y,
-			SWP_NOMOVE
-			| SWP_NOZORDER);
-
-		size = newSize;
 	}
-
-	vec2 Window::GetPosition() const
+	vec2 Window::GetFramebufferSize() const
 	{
-		HWND window = ToVar<HWND>(GetWindowData().hwnd);
 
-		RECT rect{};
-		if (GetWindowRect(window, &rect))
-		{
-			return vec2
-			{ 
-				static_cast<float>(rect.left),
-				static_cast<float>(rect.top)
-			};
-		}
-
-		return vec2{ 0, 0 };
 	}
 
 	void Window::SetPosition(vec2 newPosition) const
@@ -282,6 +244,22 @@ namespace KalaWindow::Graphics
 			0,
 			SWP_NOSIZE
 			| SWP_NOZORDER);
+	}
+	vec2 Window::GetPosition() const
+	{
+		HWND window = ToVar<HWND>(GetWindowData().hwnd);
+
+		RECT rect{};
+		if (GetWindowRect(window, &rect))
+		{
+			return vec2
+			{ 
+				static_cast<float>(rect.left),
+				static_cast<float>(rect.top)
+			};
+		}
+
+		return vec2{ 0, 0 };
 	}
 
 	bool Window::IsFocused() const

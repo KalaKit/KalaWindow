@@ -221,70 +221,32 @@ namespace KalaWindow::Graphics
 		static Window* Initialize(
 			const string& title,
 			vec2 size);
+		bool IsInitialized() const { return isInitialized; }
 
-		//Get the handle to opengl32.dll
-		static uintptr_t GetOpenGLLib() { return openglLib; }
-		//Set the handle to opengl32.dll
-		static void SetOpenGLLib(uintptr_t newOpenglLib) { openglLib = newOpenglLib; }
+		//Draws the window, handles messages for active frame
+		void Update();
 
-		//Get the handle to vulkan-1.dll
-		static uintptr_t GetVulkanLib() { return vulkanLib; }
-		//Set the handle to vulkan-1.dll
-		static void SetVulkanLib(uintptr_t newVulkanLib) { vulkanLib = newVulkanLib; }
-
-#ifdef _WIN32
-		const WindowData& GetWindowData() const { return window_windows; }
-		void SetWindowData(const WindowData& newWindowStruct)
-		{
-			window_windows = newWindowStruct;
-		}
-#else
-		const WindowData& GetWindowData() const { return window_x11; }
-		void SetWindowData(const WindowData& newWindowStruct)
-		{
-			window_x11 = newWindowStruct;
-		}
-#endif
-
-		const OpenGLData& GetOpenGLData() const { return openglData; }
-		void SetOpenGLData(const OpenGLData& newOpenGLData)
-		{
-			openglData = newOpenGLData;
-		}
-
-		const VulkanData_Core& GetVulkanCoreData() const { return vulkanCoreData; }
-		void SetVulkanCoreData(const VulkanData_Core& newVulkanCoreData)
-		{
-			vulkanCoreData = newVulkanCoreData;
-		}
-
-		const VulkanShaderWindowData& GetVulkanShaderWindowStruct() const { return vulkanShaderWindowData; }
-		void SetVulkanShaderWindowStruct(const VulkanShaderWindowData& newVulkanShaderWindowData)
-		{
-			vulkanShaderWindowData = newVulkanShaderWindowData;
-		}
-
-		const string& GetTitle() const { return title; }
 		void SetTitle(const string& newTitle);
+		const string& GetTitle() const { return title; }
 
 		u32 GetID() const { return ID; }
-		void SetID(u32 newID) { ID = newID; }
 
-		//Returns dpi-accurate framebuffer size.
-		vec2 GetSize() const;
+		//Returns logical window size (client area, in DPI-independent units)
 		void SetSize(vec2 newSize);
+		vec2 GetSize() const;
 
-		vec2 GetPosition() const;
+		//Returns dpi-accurate framebuffer size
+		void SetFramebufferSize(vec2 newSize) const;
+		vec2 GetFramebufferSize() const;
+
 		void SetPosition(vec2 newPos) const;
+		vec2 GetPosition() const;
 
-		vec2 GetMaxSize() const { return maxSize; }
 		void SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
+		vec2 GetMaxSize() const { return maxSize; }
 
-		vec2 GetMinSize() const { return minSize; }
 		void SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
-
-		bool IsInitialized() const { return isInitialized; }
-		void SetInitializedState(bool newInitialized) { isInitialized = newInitialized; }
+		vec2 GetMinSize() const { return minSize; }
 
 		//If true, then this window is gonna go idle and reduces cpu and gpu
 		//cycles by waiting for messageloop messages before updating the exe.
@@ -309,18 +271,40 @@ namespace KalaWindow::Graphics
 		void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
 		void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
-		//Draws the window, handles messages for active frame
-		void Update();
+#ifdef _WIN32
+		void SetWindowData(const WindowData& newWindowStruct)
+		{
+			window_windows = newWindowStruct;
+		}
+		const WindowData& GetWindowData() const { return window_windows; }
+#else
+		void SetWindowData(const WindowData& newWindowStruct)
+		{
+			window_x11 = newWindowStruct;
+		}
+		const WindowData& GetWindowData() const { return window_x11; }
+#endif
+		void SetOpenGLData(const OpenGLData& newOpenGLData)
+		{
+			openglData = newOpenGLData;
+		}
+		const OpenGLData& GetOpenGLData() const { return openglData; }
+
+		void SetVulkanCoreData(const VulkanData_Core& newVulkanCoreData)
+		{
+			vulkanCoreData = newVulkanCoreData;
+		}
+		const VulkanData_Core& GetVulkanCoreData() const { return vulkanCoreData; }
+
+		void SetVulkanShaderWindowStruct(const VulkanShaderWindowData& newVulkanShaderWindowData)
+		{
+			vulkanShaderWindowData = newVulkanShaderWindowData;
+		}
+		const VulkanShaderWindowData& GetVulkanShaderWindowStruct() const { return vulkanShaderWindowData; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
-
-		static Window* FindWindowByName(const string& targetName);
-		static Window* FindWindowByID(unsigned int targetID);
 	private:
-		static inline uintptr_t openglLib{}; //The handle to opengl32.dll
-		static inline uintptr_t vulkanLib{}; //The handle to vulkan-1.dll
-
 		bool isInitialized = false;          //Cannot use this window if it is not yet initialized
 		bool isWindowFocusRequired = true;   //If true, then this window will not update unless selected.
 		bool isIdle = false;                 //Toggled dynamically by isfocused, isminimized and isvisible checks.
