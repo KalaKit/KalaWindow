@@ -5,7 +5,7 @@
 
 #ifdef _WIN32
 #include <Windows.h>
-#elif __linux__
+#else
 #include <dlfcn.h>
 #endif
 
@@ -34,7 +34,7 @@ namespace KalaWindow::Core
 		}
 
 		openGL32 = FromVar(handle);
-#elif __linux__
+#else
 		void* handle = dlopen("libGL.so.1", RTLD_LAZY | RTLD_LOCAL);
 		if (!handle)
 		{

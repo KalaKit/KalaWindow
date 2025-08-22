@@ -55,7 +55,7 @@ namespace KalaWindow::Graphics
 		uintptr_t hInstance{};
 		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
 	};
-#elif __linux__
+#else
 	struct WindowData
 	{
 		uintptr_t display{};
@@ -238,7 +238,7 @@ namespace KalaWindow::Graphics
 		{
 			window_windows = newWindowStruct;
 		}
-#elif __linux__
+#else
 		const WindowData& GetWindowData() const { return window_x11; }
 		void SetWindowData(const WindowData& newWindowStruct)
 		{
@@ -338,7 +338,7 @@ namespace KalaWindow::Graphics
 
 #ifdef _WIN32
 		WindowData window_windows{}; //The windows data of this window
-#elif __linux__
+#else
 		WindowData window_x11{};         //The X11 data of this window
 #endif
 

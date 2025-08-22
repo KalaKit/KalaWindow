@@ -6,7 +6,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <mmsystem.h>
-#elif __linux__
+#else
 //TODO: ADD LINUX EQUIVALENT
 #endif
 
@@ -69,7 +69,7 @@ namespace KalaWindow::Core
 		case PopupType::POPUP_TYPE_QUESTION: flags |= MB_ICONQUESTION; break;
 		default:                             flags |= MB_ICONINFORMATION; break;
 		}
-#elif __linux__
+#else
 		//TODO: ADD LINUX EQUIVALENT
 #endif
 

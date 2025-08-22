@@ -10,11 +10,15 @@
 
 #include "KalaHeaders/api.hpp"
 #include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/logging.hpp"
 
 #include "core/glm_global.hpp"
 
 namespace KalaWindow::UI
 {
+	using KalaHeaders::Log;
+	using KalaHeaders::LogType;
+
 	using std::string;
 	using std::function;
 
@@ -31,20 +35,43 @@ namespace KalaWindow::UI
 		Dir_Right = 1 //Color square on the right side
 	};
 
-	class LIB_API ImGuiCore
+	class LIB_API DebugUI
 	{
 	public:
-		//Initialize ImGui with docking.
-		static bool Initialize(
-			const string& configPath,
-			const string& tempPath);
-
-		//Returns true if ImGui was successfully initialized
-		static bool IsInitialized() { return isInitialized; };
+		//Initialize ImGui with docking
+		static bool Initialize();
+		static bool IsInitialized() { return isInitialized; }
 
 		//Place window to framebuffer center
 		static vec2 CenterWindow(vec2 size);
 
+		//Add a TTF front from storage into ImGui.
+		//Font size is internally clamped from 10 to 72.
+		static void AddFont(
+			const string& fontPath,
+			float fontSize);
+
+		//Clear all ImGui fonts
+		static void ClearFonts();
+
+		//Update ImGui style from modified style values.
+		//Also caps and updates values to allowed ranges
+		static void UpdateStyle();
+
+		//Draws all content for the current frame, handles frame start and end.
+		//Optionally handles top bar as well. Simply pass functions for your content here.
+		static void Render(
+			const function<void()>& userRenderContent,
+			const function<void()>& userTopBar = NULL);
+
+		//Shut down ImGui
+		static void Shutdown();
+
+		static void SetWindowMenuButtonPosition(WindowMenuButtonPosition btn) { windowMenuButtonPosition = btn; }
+
+		static void SetColorButtonPosition(ColorButtonPosition btn) { colorButtonPosition = btn; }
+
+		//Set float value for ImGui style
 		static void SetFloat(
 			const string& name,
 			f32 value)
@@ -69,6 +96,14 @@ namespace KalaWindow::UI
 			else if (name == "tabRounding")                         tabRounding = value;
 			else if (name == "windowBorderSize")                    windowBorderSize = value;
 			else if (name == "windowRounding")                      windowRounding = value;
+
+			else
+			{
+				Log::Print(
+					"Failed to find float style value '" + name + "'!",
+					"DEBUG_UI",
+					LogType::LOG_ERROR);
+			}
 		}
 
 		static void SetVec2(
@@ -84,6 +119,14 @@ namespace KalaWindow::UI
 			else if (name == "windowMinSize")       windowMinSize = value;
 			else if (name == "windowPadding")       windowPadding = value;
 			else if (name == "windowTitleAlign")    windowTitleAlign = value;
+
+			else
+			{
+				Log::Print(
+					"Failed to find vec2 style value '" + name + "'!",
+					"DEBUG_UI",
+					LogType::LOG_ERROR);
+			}
 		}
 
 		inline void SetVec4(
@@ -143,16 +186,15 @@ namespace KalaWindow::UI
 			else if (name == "color_TitleBgActive")         color_TitleBgActive = value;
 			else if (name == "color_TitleBgCollapsed")      color_TitleBgCollapsed = value;
 			else if (name == "color_WindowBg")              color_WindowBg = value;
+
+			else
+			{
+				Log::Print(
+					"Failed to find vec4 style value '" + name + "'!",
+					"DEBUG_UI",
+					LogType::LOG_ERROR);
+			}
 		}
-
-		//Draws all content for the current frame, handles frame start and end.
-		//Optionally handles top bar as well. Simply pass functions for your content here.
-		static void Render(
-			const function<void()>& userRenderContent,
-			const function<void()>& userTopBar = NULL);
-
-		//Shut down ImGui
-		static void Shutdown();
 	private:
 		static inline bool isInitialized;
 

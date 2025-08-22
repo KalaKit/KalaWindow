@@ -5,7 +5,7 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#elif __linux__
+#else
 //TODO: ADD LINUX EQUIVALENT
 #endif
 
@@ -19,7 +19,7 @@
 #include "core/core.hpp"
 #ifdef _WIN32
 #include "graphics/opengl/opengl_functions_win.hpp"
-#elif __linux__
+#else
 #include "graphics/opengl/opengl_functions_linux.hpp"
 #endif
 
@@ -89,7 +89,7 @@ namespace KalaWindow::Graphics::OpenGL
 				"OpenGL Error",
 				"wglMakeCurrent failed with error: " + to_string(err));
 		}
-#elif __linux__
+#else
 		//TODO: ADD LINUX EQUIVALENT
 #endif
 	}
@@ -123,7 +123,7 @@ namespace KalaWindow::Graphics::OpenGL
 				"Current OpenGL context does not match stored context!");
 			return false;
 		}
-#elif __linux__
+#else
 		//TODO: set up for linux too
 #endif
 		return true;

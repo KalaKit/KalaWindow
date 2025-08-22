@@ -51,13 +51,14 @@ set(WINDOW_SRC_FILES)
 file(GLOB WINDOW_SRC CONFIGURE_DEPENDS
     ${WINDOW_SRC_DIR}/*.cpp
     ${WINDOW_SRC_DIR}/core/*.cpp
-    ${WINDOW_SRC_DIR}/graphics/*.cpp
-	${WINDOW_SRC_DIR}/graphics/opengl/*.cpp
-	${WINDOW_SRC_DIR}/graphics/vulkan/*.cpp
-    ${WINDOW_SRC_DIR}/windows/*.cpp
-    ${WINDOW_SRC_DIR}/linux/*.cpp
 	${WINDOW_SRC_DIR}/opengl/*.cpp
 	${WINDOW_SRC_DIR}/vulkan/*.cpp
+	${WINDOW_SRC_DIR}/graphics/*.cpp
+	${WINDOW_SRC_DIR}/graphics/opengl/*.cpp
+	${WINDOW_SRC_DIR}/graphics/vulkan/*.cpp
+	${WINDOW_SRC_DIR}/windows/*.cpp
+	${WINDOW_SRC_DIR}/linux/*.cpp
+	${WINDOW_SRC_DIR}/ui/*.cpp
 	
 	#External stuff
 	${EXT_SHARED_DIR}/imgui/*.cpp

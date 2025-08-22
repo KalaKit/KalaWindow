@@ -6,14 +6,14 @@
 /*
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
-#elif __linux__
+#else
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 #define VOLK_IMPLEMENTATION
 #include <Volk/volk.h>
 #ifdef _WIN32
 #include <Windows.h>
-#elif __linux__
+#else
 #include <X11/Xlib.h> 
 #endif
 

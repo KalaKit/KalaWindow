@@ -797,7 +797,7 @@ bool ValidatorExists()
 {
 #ifdef _WIN32
     string whereCommand = "cmd /C where glslangValidator";
-#elif __linux__
+#else
     string whereCommand = "which glslangValidator >/dev/null 2>&1";
 #endif
 
@@ -826,7 +826,7 @@ bool CompileToSPV(
 
 #ifdef _WIN32
     string glslCommand = "cmd /C glslangValidator -V --target-env vulkan1.2 -o \"" + target + "\" \"" + origin + "\" >nul";
-#elif __linux__
+#else
     string glslCommand = "glslangValidator -V --target-env vulkan1.2 -o \"" + target + "\" \"" + origin + "\" >/dev/null";
 #endif
 

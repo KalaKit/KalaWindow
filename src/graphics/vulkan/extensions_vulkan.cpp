@@ -6,7 +6,7 @@
 /*
 #ifdef _WIN32
 #define VK_USE_PLATFORM_WIN32_KHR
-#elif __linux__
+#else
 #define VK_USE_PLATFORM_XLIB_KHR
 #endif
 #include <Volk/volk.h>
@@ -100,7 +100,7 @@ namespace KalaWindow::Graphics::Vulkan
 		}
 
 		vData.surface = FromVar(surface);
-#elif __linux__
+#else
 		//TODO: ADD LINUX SUPPORT
 #endif
 

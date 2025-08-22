@@ -369,7 +369,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
             HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
             ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
-#elif __linux__
+#else
         ptr = reinterpret_cast<void*>(glXGetProcAddress(
             reinterpret_cast<const GLubyte*>(name)));
         if (!ptr)
