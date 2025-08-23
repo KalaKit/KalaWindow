@@ -1204,16 +1204,18 @@ namespace KalaWindow::Graphics
 			LogType::LOG_ERROR);
 	}
 
-	void MenuBar::AddMenuOrItemLabel(
+	MenuBarEvent* MenuBar::AddMenuOrItemLabel(
 		Window* windowRef,
-		const MenuBarEvent& event)
+		const function<void()> function,
+		const string& menuLabelRef,
+		const string& itemLabelRef)
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
 
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to add menu label '" << event.menuLabel << "' or item label '" << event.itemLabel 
+			oss << "Failed to add menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
 				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
 
 			Log::Print(
@@ -1221,13 +1223,26 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return;
+			return nullptr;
 		}
 
-		if (event.menuLabel.empty())
+		if (function == nullptr)
 		{
 			ostringstream oss{};
-			oss << "Failed to add menu label '" << event.menuLabel 
+			oss << "Failed to add menu label '" << menuLabelRef
+				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the attached event function is empty!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+		if (menuLabelRef.empty())
+		{
+			ostringstream oss{};
+			oss << "Failed to add menu label '" << menuLabelRef
 				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label is empty!";
 
 			Log::Print(
@@ -1235,14 +1250,14 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return;
+			return nullptr;
 		}
-		if (event.menuLabel.length() > MAX_LABEL_LENGTH)
+		if (menuLabelRef.length() > MAX_LABEL_LENGTH)
 		{
 			ostringstream oss{};
-			oss << "Failed to add menu label '" << event.menuLabel
+			oss << "Failed to add menu label '" << menuLabelRef
 				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label length '" 
-				<< event.menuLabel.length() << "' is too long! You can only use menu label length up to '" 
+				<< menuLabelRef.length() << "' is too long! You can only use menu label length up to '"
 				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
 
 			Log::Print(
@@ -1250,14 +1265,14 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return;
+			return nullptr;
 		}
-		if (event.itemLabel.length() > MAX_LABEL_LENGTH)
+		if (itemLabelRef.length() > MAX_LABEL_LENGTH)
 		{
 			ostringstream oss{};
-			oss << "Failed to add item label '" << event.itemLabel << "' under menu label '" << event.menuLabel
+			oss << "Failed to add item label '" << itemLabelRef << "' under menu label '" << menuLabelRef
 				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the item label length '"
-				<< event.itemLabel.length() << "' is too long! You can only use item label length up to '" 
+				<< itemLabelRef.length() << "' is too long! You can only use item label length up to '"
 				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
 
 			Log::Print(
@@ -1265,61 +1280,107 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return;
+			return nullptr;
+		}
+
+
+		for (const auto& e : runtimeMenuBarEvents)
+		{
+			const string& menuLabel = e->menuLabel;
+			if (itemLabelRef.empty())
+			{
+				if (menuLabel == menuLabelRef)
+				{
+					ostringstream oss{};
+					oss << "Failed to add menu label '" << menuLabelRef
+						<< "' to menu bar on window '" << windowRef->GetTitle() << "' because a menu label with the same name already exists!";
+
+					Log::Print(
+						oss.str(),
+						"WINDOW_WINDOWS",
+						LogType::LOG_ERROR);
+
+					return nullptr;
+				}
+			}
+			else
+			{
+				const string& itemLabel = e->itemLabel;
+
+				if (menuLabel == menuLabelRef
+					&& itemLabel == itemLabelRef)
+				{
+					ostringstream oss{};
+					oss << "Failed to add item label '" << itemLabelRef << "' under menu label '" << menuLabelRef
+						<< "' to menu bar on window '" << windowRef->GetTitle() << "' because an item label with the same name already exists!";
+
+					Log::Print(
+						oss.str(),
+						"WINDOW_WINDOWS",
+						LogType::LOG_ERROR);
+
+					return nullptr;
+				}
+			}
 		}
 
 		HMENU hMenu = GetMenu(window);
 		u32 newID = ++globalID;
 
-		if (event.itemLabel.empty())
+		if (itemLabelRef.empty())
 		{
 			HMENU hSubMenu = CreatePopupMenu();
 			AppendMenu(
 				hMenu,
 				MF_POPUP,
 				(UINT_PTR)hSubMenu,
-				ToWide(event.menuLabel).c_str());
+				ToWide(menuLabelRef).c_str());
 		}
 		else
 		{
 			HMENU hSubMenu = FindSubMenu(
 				hMenu,
-				event.menuLabel);
+				menuLabelRef);
 			if (!hSubMenu)
 			{
+				hSubMenu = CreatePopupMenu();
+				AppendMenu(
+					hMenu,
+					MF_POPUP,
+					(UINT_PTR)hSubMenu,
+					ToWide(menuLabelRef).c_str());
+
 				ostringstream oss{};
-				oss << "Failed to add item label '" << event.itemLabel << "' under menu label '" << event.menuLabel
-					<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the parent label does not exist!";
+				oss << "Created menu label '" << menuLabelRef << "' for item label '" << itemLabelRef
+					<< "' in menu bar on window '" << windowRef->GetTitle() << "' because the menu label did not exist.";
 
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
-					LogType::LOG_ERROR);
-
-				return;
+					LogType::LOG_INFO);
 			}
 
 			AppendMenu(
 				hSubMenu,
 				MF_STRING,
 				newID,
-				ToWide(event.itemLabel).c_str());
+				ToWide(itemLabelRef).c_str());
 		}
 
 		DrawMenuBar(window);
 
-		MenuBarEvent newEvent
-		{
-			.menuLabel = event.menuLabel,
-			.itemLabel = event.itemLabel,
-			.itemLabelID = newID,
-			.function = event.function
-		};
+		unique_ptr<MenuBarEvent> newEvent = make_unique<MenuBarEvent>();
+		newEvent->menuLabel = menuLabelRef;
+		newEvent->itemLabel = itemLabelRef;
+		newEvent->itemLabelID = newID;
+		newEvent->function = function;
 
 		createdMenuBarEvents[newID] = move(newEvent);
 
-		MenuBarEvent* storedEvent = &createdMenuBarEvents.at(newID);
+		MenuBarEvent* storedEvent = createdMenuBarEvents[newID].get();
 		runtimeMenuBarEvents.push_back(storedEvent);
+
+		return storedEvent;
 	}
 
 	void MenuBar::AddSeparator(

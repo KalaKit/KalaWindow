@@ -425,9 +425,11 @@ namespace KalaWindow::Graphics
 		//or item label inside menu label inside the menu bar.
 		//Each item label has a unique ID that is bumped the same way
 		//as the global ID is for other KalaWindow objects
-		static void AddMenuOrItemLabel(
+		static MenuBarEvent* AddMenuOrItemLabel(
 			Window* window,
-			const MenuBarEvent& event);
+			const function<void()> function,
+			const string& menuLabel,
+			const string& itemLabel = "");
 
 		//Add a horizontal separator line to the menu label.
 		//If itemLabel isnt empty and exists then the sesparator is placed after the item label,

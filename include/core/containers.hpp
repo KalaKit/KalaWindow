@@ -46,7 +46,7 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
 
-	LIB_API extern unordered_map<u32, MenuBarEvent> createdMenuBarEvents;
+	LIB_API extern unordered_map<u32, unique_ptr<MenuBarEvent>> createdMenuBarEvents;
 
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
