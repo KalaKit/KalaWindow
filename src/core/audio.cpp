@@ -143,14 +143,6 @@ namespace KalaWindow::Core
 		if (!CheckInitState("shut down MiniAudio", true)) return;
 		isInitialized = false;
 
-		for (const auto& [_, pData] : playerMap)
-		{
-			PlayerData* data = pData.get();
-			ma_sound sound = data->sound;
-			ma_decoder decoder = data->decoder;
-
-			ma_sound_uninit(&pData->sound);
-		}
 		playerMap.clear();
 
 		//also clear all created and runtime audio players
