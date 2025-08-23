@@ -178,12 +178,12 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		//and finally set opengl viewport size
-		vec2 clientRectSize = targetWindow->GetClientRectSize();
+		vec2 framebufferSize = targetWindow->GetFramebufferSize();
 		glViewport(
 			0, 
 			0, 
-			clientRectSize.x,
-			clientRectSize.y);
+			framebufferSize.x,
+			framebufferSize.y);
 
 		targetWindow->SetOpenGLData(oData);
 

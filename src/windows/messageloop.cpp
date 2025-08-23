@@ -662,7 +662,16 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		int width = LOWORD(msg.lParam);
 		int height = HIWORD(msg.lParam);
 
-		if (Renderer_OpenGL::IsInitialized()) glViewport(0, 0, width, height);
+		if (Renderer_OpenGL::IsInitialized())
+		{
+			vec2 framebufferSize = window->GetFramebufferSize();
+
+			glViewport(
+				0,
+				0,
+				framebufferSize.x,
+				framebufferSize.y);
+		}
 
 		/*
 		Log::Print(
