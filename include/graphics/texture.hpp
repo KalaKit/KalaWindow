@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "KalaHeaders/api.hpp"
 #include "KalaHeaders/core_types.hpp"
@@ -19,6 +20,7 @@ namespace KalaWindow::Graphics
 	using KalaHeaders::LogType;
 
 	using std::string;
+	using std::vector;
 
 	//Texture internal data type
 	enum class TextureType
@@ -125,11 +127,11 @@ namespace KalaWindow::Graphics
 		}
 
 		u32 GetID() const { return ID; }
-		void SetID(u32 newID) { ID = newID; }
 
 		vec2 GetSize() const { return size; }
 		u16 GetDepth() const { return depth; }
 		u8 GetMipMapLevels() const { return mipMapLevels; }
+		const vector<u8>& GetPixels() const { return pixels; }
 
 		u32 GetTexelCount() const
 		{
@@ -144,7 +146,7 @@ namespace KalaWindow::Graphics
 
 		//Do not destroy manually, erase from containers.hpp instead
 		virtual ~Texture() {};
-	private:
+	protected:
 		string name{};
 		string path{};
 		u32 ID{};
@@ -152,6 +154,7 @@ namespace KalaWindow::Graphics
 		vec2 size{};
 		u16 depth = 1;
 		u8 mipMapLevels = 1;
+		vector<u8> pixels{};
 
 		TextureType type{};
 		TextureFormat format{};

@@ -53,7 +53,16 @@ namespace KalaWindow::Graphics
 	{
 		uintptr_t hwnd{};
 		uintptr_t hInstance{};
+		uintptr_t hMenu{};
 		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
+	};
+
+	struct MenuBarEvent
+	{
+		string menuLabel{};          //Parent menu label
+		string itemLabel{};          //Child item label of a menu label
+		u32 itemLabelID{};           //ID required for item label
+		function<void()> function{}; //Function to call when menu or item label is pressed
 	};
 #else
 	struct WindowData
@@ -73,6 +82,7 @@ namespace KalaWindow::Graphics
 		unsigned int lastProgramID{};
 	};
 
+	/*
 	//Vulkan data reusable across this window context
 	struct VulkanData_Core
 	{
@@ -214,6 +224,7 @@ namespace KalaWindow::Graphics
 		VulkanData_DynamicState dynamicState{};
 		VulkanData_MultisampleState multisampleState{};
 	};
+	*/
 
 	class LIB_API Window
 	{
@@ -226,19 +237,24 @@ namespace KalaWindow::Graphics
 		//Draws the window, handles messages for active frame
 		void Update();
 
-		void SetTitle(const string& newTitle);
-		const string& GetTitle() const { return title; }
+		void SetTitle(const string& newTitle) const;
+		string GetTitle() const;
 
 		u32 GetID() const { return ID; }
 
-		//Returns logical window size (client area, in DPI-independent units)
-		void SetSize(vec2 newSize);
-		vec2 GetSize() const;
+		//Set logical window size (client area, in DPI-independent units)
+		void SetClientRectSize(vec2 newSize) const;
+		vec2 GetClientRectSize() const;
 
-		//Returns dpi-accurate framebuffer size
+		//Set full window size (including borders)
+		void SetOuterSize(vec2 newSize) const;
+		vec2 GetOuterSize() const;
+
+		//Set dpi-accurate framebuffer size
 		void SetFramebufferSize(vec2 newSize) const;
 		vec2 GetFramebufferSize() const;
 
+		//Set window position
 		void SetPosition(vec2 newPos) const;
 		vec2 GetPosition() const;
 
@@ -252,6 +268,45 @@ namespace KalaWindow::Graphics
 		//cycles by waiting for messageloop messages before updating the exe.
 		bool IsFocusRequired() const { return isWindowFocusRequired; }
 		void SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
+
+		//If true, then this window is always on top of other windows
+		void SetAlwaysOnTopState(bool state) const;
+		bool IsAlwaysOnTop() const;
+
+		//If true, then this shows the outer frame and can be resized
+		void SetResizableState(bool state) const;
+		bool IsResizable() const;
+
+		//If true, then this window will be set to full screen size.
+		//Switch between normal window and monitor-sized borderless window.
+		void SetFullscreenState(bool state);
+		bool IsFullscreen() const;
+
+		//If true, then this window shows its top bar
+		void SetTopBarState(bool state) const;
+		bool IsTopBarEnabled() const;
+
+		//Set executable icon. Loaded via the texture framework
+		void SetIcon(const string& iconPath) const;
+		//Returns icon ID (Texture object ID)
+		u32 GetIcon() const { return iconID; }
+
+		//If true, then this window has a functional and visible minimize button
+		void SetMinimizeButtonState(bool state) const;
+		bool IsMinimizeButtonEnabled() const;
+
+		//If true, then this window has a functional and visible maximize button
+		void SetMaximizeButtonState(bool state) const;
+		bool IsMaximizeButtonEnabled() const;
+
+		//If true, then this window has a functional and visible close button.
+		//Also hides the executable icon if false.
+		void SetCloseButtonState(bool state) const;
+		bool IsCloseButtonEnabled() const;
+
+		//Set window opacity/transparency. Internally clamped between 0.0f and 1.0f
+		void SetOpacity(float alpha) const;
+		float GetOpacity() const;
 
 		//Returns true if this window is currently selected
 		bool IsFocused() const;
@@ -290,6 +345,7 @@ namespace KalaWindow::Graphics
 		}
 		const OpenGLData& GetOpenGLData() const { return openglData; }
 
+		/*
 		void SetVulkanCoreData(const VulkanData_Core& newVulkanCoreData)
 		{
 			vulkanCoreData = newVulkanCoreData;
@@ -301,6 +357,7 @@ namespace KalaWindow::Graphics
 			vulkanShaderWindowData = newVulkanShaderWindowData;
 		}
 		const VulkanShaderWindowData& GetVulkanShaderWindowStruct() const { return vulkanShaderWindowData; }
+		*/
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
@@ -312,11 +369,17 @@ namespace KalaWindow::Graphics
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
 		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become
 
-		//core variables
+		vec2 oldPos{};                     //Stored pre-fullscreen window pos
+		vec2 oldSize{};                    //Stored pre-fullscreen window size
+		//0 - WS_CAPTION
+		//1 - WS_THICKFRAME
+		//2 - WS_MINIMIZEBOX
+		//3 - WS_MAXIMIZEBOX
+		//4 - WS_SYSMENU
+		u8 oldStyle{};                     //Stored pre-fullscreen window style (Windows-only)
 
-		string title{};        //The title of this window
-		unsigned int ID{};     //The ID of this window
-		vec2 size{};          //The width and height of this window
+		u32 iconID{}; //The ID of this window icon
+		u32 ID{};     //The ID of this window
 
 		//platform-specific variables
 
@@ -330,10 +393,51 @@ namespace KalaWindow::Graphics
 
 		OpenGLData openglData{}; //The OpenGL data of this window
 
-		VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
-		VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
+		//VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
+		//VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
+	};
+
+	//Windows-only native menu bar. All menu label and item label events are handled by the message loop.
+	//Attach a functional through the MenuBarEvent struct inside the AddMenuOrItemLabel to let the message loop
+	//route back to your functional so that the menu bar interactions call your chosen functions.
+	class LIB_API MenuBar
+	{
+	public:
+		//Create a new empty menu bar at the top of the window.
+		//Only one menu bar can be added to a window
+		static void CreateMenuBar(Window* window);
+		static bool HasMenuBar(Window* window);
+
+		//Call a menu bar event function by menu label or its item label
+		static void CallMenuBarEvent(
+			Window* window,
+			const string& menuLabel,
+			const string& itemLabel = "");
+		//Call a menu bar event function by ID
+		static void CallMenuBarEvent(
+			Window* window,
+			u32 ID);
+
+		//Add a new menu label inside the menu bar
+		//or item label inside menu label inside the menu bar.
+		//Each item label has a unique ID that is bumped the same way
+		//as the global ID is for other KalaWindow objects
+		static void AddMenuOrItemLabel(
+			Window* window,
+			const MenuBarEvent& event);
+
+		//Add a horizontal separator line to the menu label.
+		//If itemLabel isnt empty and exists then the sesparator is placed after the item label,
+		//otherwise it is placed at the end of the menu label
+		static void AddSeparator(
+			Window* window,
+			const string& menuLabel,
+			const string& itemLabel = "");
+
+		//Destroy the existing menu bar inside the window
+		static void DestroyMenuBar(Window* window);
 	};
 }

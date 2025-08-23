@@ -164,16 +164,20 @@ namespace KalaWindow::Graphics::OpenGL
 			GL_UNSIGNED_BYTE,
 			data);
 
-		stbi_image_free(data);
-
 		u32 newID = ++globalID;
 		unique_ptr<Texture_OpenGL> newTexture = make_unique<Texture_OpenGL>();
 		Texture_OpenGL* texturePtr = newTexture.get();
 
-		newTexture->SetOpenGLID(newTextureID);
-		newTexture->SetName(name);
-		newTexture->SetPath(path);
-		newTexture->SetID(newID);
+		newTexture->openGLID = newTextureID;
+		newTexture->name = name;
+		newTexture->path = path;
+		newTexture->ID = newID;
+
+		size_t dataSize = static_cast<size_t>(width) * height * nrChannels;
+		vector<u8> pixels(data, data + dataSize);
+		newTexture->pixels = pixels;
+
+		stbi_image_free(data);
 
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);

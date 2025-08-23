@@ -32,6 +32,8 @@ using KalaHeaders::LogType;
 
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::MenuBar;
+using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
@@ -42,6 +44,7 @@ using KalaWindow::Core::Key;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::runtimeWindows;
+using KalaWindow::Core::runtimeMenuBarEvents;
 
 using std::string;
 using std::to_string;
@@ -695,6 +698,30 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		mmi->ptMaxTrackSize.x = window->GetMaxSize().x;
 		mmi->ptMaxTrackSize.y = window->GetMaxSize().y;
+
+		return true;
+	}
+
+	//
+	// MENU BAR EVENT
+	//
+
+	case WM_COMMAND:
+	{
+		u32 IDRef = LOWORD(msg.wParam);
+
+		if (window)
+		{
+			for (const auto& e : runtimeMenuBarEvents)
+			{
+				u32 ID = e->itemLabelID;
+				if (ID == IDRef)
+				{
+					e->function();
+					return true;
+				}
+			}
+		}
 
 		return true;
 	}

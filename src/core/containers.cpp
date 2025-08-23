@@ -15,6 +15,8 @@ namespace KalaWindow::Core
 
 	unordered_map<u32, unique_ptr<Window>> createdWindows{};
 
+	unordered_map<u32, MenuBarEvent> createdMenuBarEvents;
+
 	unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers{};
 
 	unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures{};
@@ -28,6 +30,8 @@ namespace KalaWindow::Core
 	//
 
 	vector<Window*> runtimeWindows{};
+
+	vector<MenuBarEvent*> runtimeMenuBarEvents;
 
 	vector<AudioPlayer*> runtimeAudioPlayers{};
 

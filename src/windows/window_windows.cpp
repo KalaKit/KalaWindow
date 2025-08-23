@@ -5,6 +5,13 @@
 
 #ifdef _WIN32
 
+#ifndef UNICODE
+#define UNICODE
+#endif
+#ifndef _UNICODE
+#define _UNICODE
+#endif
+
 #include <windows.h>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
@@ -12,6 +19,9 @@
 #include <algorithm>
 #include <functional>
 #include <memory>
+#include <filesystem>
+#include <sstream>
+#include <string>
 
 //#define VK_NO_PROTOTYPES
 //#include <Volk/volk.h>
@@ -20,6 +30,7 @@
 //#include "graphics/vulkan/vulkan.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/shader_opengl.hpp"
+#include "graphics/opengl/texture_opengl.hpp"
 #include "graphics/window.hpp"
 #include "windows/messageloop.hpp"
 #include "core/input.hpp"
@@ -32,6 +43,7 @@ using KalaHeaders::LogType;
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
+using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
@@ -39,6 +51,8 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
 using KalaWindow::Core::createdWindows;
 using KalaWindow::Core::runtimeWindows;
+using KalaWindow::Core::createdMenuBarEvents;
+using KalaWindow::Core::runtimeMenuBarEvents;
 
 using std::make_unique;
 using std::move;
@@ -47,11 +61,27 @@ using std::find_if;
 using std::function;
 using std::exception;
 using std::unique_ptr;
+using std::clamp;
+using std::filesystem::path;
+using std::filesystem::exists;
+using std::ostringstream;
+using std::wstring;
+using std::string;
+
+constexpr u16 MAX_TITLE_LENGTH = 512;
+constexpr u8 MAX_LABEL_LENGTH = 64;
 
 static bool enabledBeginPeriod = false;
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
+
+static wstring ToWide(const string& str);
+static string ToShort(const wstring& str);
+
+static HMENU FindSubMenu(
+	HMENU hMenuBar,
+	const string& menuLabel);
 
 namespace KalaWindow::Graphics
 {
@@ -155,9 +185,9 @@ namespace KalaWindow::Graphics
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
 		
-		newWindow->title = title;
+		newWindow->SetTitle(title);
 		newWindow->ID = newID;
-		newWindow->size = size;
+		newWindow->SetClientRectSize(size);
 		newWindow->window_windows = newWindowStruct;
 
 		newWindow->isInitialized = true;
@@ -173,17 +203,104 @@ namespace KalaWindow::Graphics
 		return windowPtr;
 	}
 
-	void Window::SetTitle(const string& newTitle)
+	void Window::SetTitle(const string& newTitle) const
 	{
-		HWND window = ToVar<HWND>(GetWindowData().hwnd);
-		SetWindowTextA(window, newTitle.c_str());
+		HWND window = ToVar<HWND>(window_windows.hwnd);
 
-		title = newTitle;
+		if (newTitle.empty())
+		{
+			Log::Print(
+				"Window title cannot be empty!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		string titleToSet = newTitle;
+		if (newTitle.length() > MAX_TITLE_LENGTH)
+		{
+			Log::Print(
+				"Window title exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_WARNING);
+
+			titleToSet = titleToSet.substr(0, MAX_TITLE_LENGTH);
+		}
+
+		wstring wideTitle = ToWide(titleToSet);
+
+		SetWindowTextW(window, wideTitle.c_str());
+	}
+	string Window::GetTitle() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		int length = GetWindowTextLengthW(window);
+		if (length == 0)
+		{
+			Log::Print(
+				"Window title was empty!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_WARNING);
+
+			return "";
+		}
+
+		wstring title(length + 1, L'\0');
+		GetWindowTextW(window, title.data(), length + 1);
+
+		title.resize(wcslen(title.c_str()));
+		return ToShort(title);
 	}
 
-	void Window::SetSize(vec2 newSize)
+	void Window::SetClientRectSize(vec2 newSize) const
 	{
-		HWND window = ToVar<HWND>(GetWindowData().hwnd);
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		//desired client area
+		RECT rect
+		{
+			0,
+			0,
+			(LONG)newSize.x,
+			(LONG)newSize.y
+		};
+
+		//Adjust for borders/title/menu
+		AdjustWindowRectEx(
+			&rect,
+			GetWindowLong(window, GWL_STYLE),
+			FALSE,
+			GetWindowLong(window, GWL_EXSTYLE));
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			rect.right - rect.left,
+			rect.bottom - rect.top,
+			SWP_NOMOVE
+			| SWP_NOZORDER);
+	}
+	vec2 Window::GetClientRectSize() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		RECT rect{};
+		GetClientRect(window, &rect);
+
+		return vec2
+		{
+			static_cast<float>(rect.right - rect.left),
+			static_cast<float>(rect.bottom - rect.top)
+		};
+	}
+
+	void Window::SetOuterSize(vec2 newSize) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
 
 		SetWindowPos(
 			window,
@@ -194,12 +311,57 @@ namespace KalaWindow::Graphics
 			newSize.y,
 			SWP_NOMOVE
 			| SWP_NOZORDER);
-
-		size = newSize;
 	}
-	vec2 Window::GetSize() const
+	vec2 Window::GetOuterSize() const
 	{
-		const WindowData& winData = GetWindowData();
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		RECT rect{};
+		GetWindowRect(window, &rect);
+
+		return vec2
+		{
+			static_cast<float>(rect.right - rect.left),
+			static_cast<float>(rect.bottom - rect.top)
+		};
+	}
+
+	void Window::SetFramebufferSize(vec2 newSize) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		UINT dpi = GetDpiForWindow(window);
+
+		//desired framebuffer area
+		RECT rect
+		{
+			0,
+			0,
+			static_cast<int>(newSize.x),
+			static_cast<int>(newSize.y)
+		};
+
+		//Adjust for borders/title/menu + DPI
+		AdjustWindowRectExForDpi(
+			&rect,
+			GetWindowLong(window, GWL_STYLE),
+			FALSE,
+			GetWindowLong(window, GWL_EXSTYLE),
+			dpi);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			rect.right - rect.left,
+			rect.bottom - rect.top,
+			SWP_NOMOVE
+			| SWP_NOZORDER);
+	}
+	vec2 Window::GetFramebufferSize() const
+	{
+		const WindowData& winData = window_windows;
 		HWND hwnd = ToVar<HWND>(winData.hwnd);
 
 		UINT dpi = GetDpiForWindow(hwnd);
@@ -207,8 +369,8 @@ namespace KalaWindow::Graphics
 		GetClientRect(hwnd, &rect);
 
 		int width = MulDiv(
-			rect.right - rect.left, 
-			dpi, 
+			rect.right - rect.left,
+			dpi,
 			96);
 		int height = MulDiv(
 			rect.bottom - rect.top,
@@ -222,18 +384,9 @@ namespace KalaWindow::Graphics
 		};
 	}
 
-	void Window::SetFramebufferSize(vec2 newSize) const
-	{
-
-	}
-	vec2 Window::GetFramebufferSize() const
-	{
-
-	}
-
 	void Window::SetPosition(vec2 newPosition) const
 	{
-		HWND window = ToVar<HWND>(GetWindowData().hwnd);
+		HWND window = ToVar<HWND>(window_windows.hwnd);
 
 		SetWindowPos(
 			window,
@@ -247,7 +400,7 @@ namespace KalaWindow::Graphics
 	}
 	vec2 Window::GetPosition() const
 	{
-		HWND window = ToVar<HWND>(GetWindowData().hwnd);
+		HWND window = ToVar<HWND>(window_windows.hwnd);
 
 		RECT rect{};
 		if (GetWindowRect(window, &rect))
@@ -262,6 +415,521 @@ namespace KalaWindow::Graphics
 		return vec2{ 0, 0 };
 	}
 
+	void Window::SetAlwaysOnTopState(bool state) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		SetWindowPos(
+			window,
+			state ? HWND_TOPMOST : HWND_NOTOPMOST,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE
+			| SWP_NOSIZE);
+	}
+	bool Window::IsAlwaysOnTop() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG exStyle = GetWindowLong(
+			window,
+			GWL_EXSTYLE);
+
+		return (exStyle & WS_EX_TOPMOST) != 0;
+	}
+
+	void Window::SetResizableState(bool state) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(window, GWL_STYLE);
+
+		if (state)
+		{
+			style |= (
+				WS_THICKFRAME
+				| WS_MAXIMIZEBOX);
+		}
+		else
+		{
+			style &= ~(
+				WS_THICKFRAME
+				| WS_MAXIMIZEBOX);
+		}
+
+		SetWindowLong(
+			window,
+			GWL_STYLE,
+			style);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE
+			| SWP_NOSIZE
+			| SWP_NOZORDER
+			| SWP_FRAMECHANGED);
+	}
+	bool Window::IsResizable() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+
+		return (style &
+			(WS_THICKFRAME
+				| WS_MAXIMIZEBOX)) != 0;
+	}
+
+	void Window::SetFullscreenState(bool state)
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		if (state)
+		{
+			//save current pos, size and style
+
+			oldPos = GetPosition();
+			oldSize = GetClientRectSize();
+			LONG style = GetWindowLong(window, GWL_STYLE);
+
+			oldStyle = 0;
+			if (style & WS_CAPTION)     oldStyle |= (1 << 0);
+			if (style & WS_THICKFRAME)  oldStyle |= (1 << 1);
+			if (style & WS_MINIMIZEBOX) oldStyle |= (1 << 2);
+			if (style & WS_MAXIMIZEBOX) oldStyle |= (1 << 3);
+			if (style & WS_SYSMENU)     oldStyle |= (1 << 4);
+
+			//remove decorations
+			style &= ~(
+				WS_CAPTION
+				| WS_THICKFRAME
+				| WS_MINIMIZEBOX
+				| WS_MAXIMIZEBOX
+				| WS_SYSMENU);
+			SetWindowLong(window, GWL_STYLE, style);
+
+			//expand to monitor bounds
+
+			HMONITOR hMonitor = MonitorFromWindow(
+				window,
+				MONITOR_DEFAULTTONEAREST);
+			MONITORINFO mi{};
+			mi.cbSize = sizeof(mi);
+			GetMonitorInfo(hMonitor, &mi);
+
+			SetWindowPos(
+				window,
+				HWND_TOP,
+				mi.rcMonitor.left,
+				mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left,
+				mi.rcMonitor.bottom - mi.rcMonitor.top,
+				SWP_FRAMECHANGED
+				| SWP_NOOWNERZORDER);
+		}
+		else
+		{
+			//rebuild style from saved flags
+
+			LONG style = GetWindowLong(window, GWL_STYLE);
+			style &= ~(
+				WS_CAPTION
+				| WS_THICKFRAME
+				| WS_MINIMIZEBOX
+				| WS_MAXIMIZEBOX
+				| WS_SYSMENU);
+
+			if (oldStyle & (1 << 0)) style |= WS_CAPTION;
+			if (oldStyle & (1 << 1)) style |= WS_THICKFRAME;
+			if (oldStyle & (1 << 2)) style |= WS_MINIMIZEBOX;
+			if (oldStyle & (1 << 3)) style |= WS_MAXIMIZEBOX;
+			if (oldStyle & (1 << 4)) style |= WS_SYSMENU;
+
+			SetWindowLong(window, GWL_STYLE, style);
+
+			SetWindowPos(
+				window,
+				nullptr,
+				(int)oldPos.x,
+				(int)oldPos.y,
+				(int)oldSize.x,
+				(int)oldSize.y,
+				SWP_FRAMECHANGED
+				| SWP_NOZORDER
+				| SWP_NOOWNERZORDER);
+		}
+	}
+	bool Window::IsFullscreen() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		vec2 pos = GetPosition();
+		vec2 size = GetOuterSize();
+
+		//expand to monitor bounds
+
+		HMONITOR hMonitor = MonitorFromWindow(
+			window,
+			MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi{};
+		mi.cbSize = sizeof(mi);
+		GetMonitorInfo(hMonitor, &mi);
+
+		bool rectMatches =
+			pos.x == mi.rcMonitor.left
+			&& pos.y == mi.rcMonitor.top
+			&& size.x == (mi.rcMonitor.right - mi.rcMonitor.left)
+			&& size.y == (mi.rcMonitor.bottom - mi.rcMonitor.top);
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+		bool undecorated = (style & (
+			WS_CAPTION
+			| WS_THICKFRAME
+			| WS_MINIMIZEBOX
+			| WS_MAXIMIZEBOX
+			| WS_SYSMENU)) == 0;
+
+		return rectMatches && undecorated;
+	}
+
+	void Window::SetTopBarState(bool state) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(window, GWL_STYLE);
+
+		if (state) style |= (WS_CAPTION);
+		else style &= ~(WS_CAPTION);
+
+		SetWindowLong(
+			window,
+			GWL_STYLE,
+			style);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE
+			| SWP_NOSIZE
+			| SWP_NOZORDER
+			| SWP_FRAMECHANGED);
+	}
+	bool Window::IsTopBarEnabled() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+
+		return (style & WS_CAPTION) != 0;
+	}
+
+	void Window::SetIcon(const string& iconPath) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		if (!exists(iconPath))
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' icon because texture file '" + iconPath + "' doesn't exist!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		Texture_OpenGL* createdTexture = Texture_OpenGL::LoadTexture(
+			path(iconPath).stem().string(),
+			iconPath,
+			TextureType::Type_2D,
+			TextureFormat::Format_RGBA8,
+			TextureUsage::Usage_None);
+
+		if (!createdTexture)
+		{
+			Log::Print(
+				"Failed to set window '" + GetTitle() + "' icon to texture '" + iconPath + "'!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		vec2 size = createdTexture->GetSize();
+		if (size.x < 16)
+		{
+			Log::Print(
+				"Icon '" + iconPath + "' is too small! Consider uploading a bigger icon than '16x16'.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_WARNING);
+		}
+		if (size.x > 256)
+		{
+			Log::Print(
+				"Icon '" + iconPath + "' is too big! Consider uploading a smaller icon than '256x256'.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_WARNING);
+		}
+
+		//convert RGBA to BGRA
+
+		const vector<u8>& pixels = createdTexture->GetPixels();
+		vector<u8> pixelsBGRA(pixels.size());
+
+		for (size_t i = 0; i < static_cast<size_t>(size.x) * size.y; i++)
+		{
+			size_t idx = i * 4;
+			pixelsBGRA[idx + 0] = pixels[idx + 2]; // B
+			pixelsBGRA[idx + 1] = pixels[idx + 1]; // G
+			pixelsBGRA[idx + 2] = pixels[idx + 0]; // R
+			pixelsBGRA[idx + 3] = pixels[idx + 3]; // A
+		}
+
+		//create DIB section (bitmap)
+		BITMAPV5HEADER bi{};
+		bi.bV5Size        = sizeof(BITMAPV5HEADER);
+		bi.bV5Width       = size.x;
+		bi.bV5Height      = -size.y; //negative - top-down
+		bi.bV5Planes      = 1;
+		bi.bV5BitCount    = 32;
+		bi.bV5Compression = BI_BITFIELDS;
+		bi.bV5RedMask     = 0x00FF0000;
+		bi.bV5GreenMask   = 0x0000FF00;
+		bi.bV5BlueMask    = 0x000000FF;
+		bi.bV5AlphaMask   = 0xFF000000;
+
+		HDC hdc = CreateCompatibleDC(nullptr);
+		void* pvBits = nullptr;
+		HBITMAP hBitMap = CreateDIBSection(
+			hdc,
+			reinterpret_cast<BITMAPINFO*>(&bi),
+			DIB_RGB_COLORS,
+			&pvBits,
+			nullptr,
+			0);
+		DeleteDC(hdc);
+
+		if (!hBitMap)
+		{
+			Log::Print(
+				"Failed to create hBitMask for setting window '" + GetTitle() + "' icon!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		memcpy(
+			pvBits,
+			pixelsBGRA.data(),
+			pixelsBGRA.size());
+
+		//wrap into ICONINFO
+
+		ICONINFO ii{};
+		ii.fIcon = TRUE;
+		ii.hbmMask = hBitMap;
+		ii.hbmColor = hBitMap;
+
+		HICON hIcon = CreateIconIndirect(&ii);
+
+		DeleteObject(hBitMap);
+
+		//apply to window
+		if (hIcon)
+		{
+			SendMessage(
+				window,
+				WM_SETICON,
+				ICON_BIG, //task bar + alt tab
+				(LPARAM)hIcon);
+
+			SendMessage(
+				window,
+				WM_SETICON,
+				ICON_SMALL, //title bar + window border
+				(LPARAM)hIcon);
+
+			DestroyIcon(hIcon);
+		}
+	}
+
+	void Window::SetMinimizeButtonState(bool state) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(window, GWL_STYLE);
+
+		if (state) style |= (WS_MINIMIZEBOX);
+		else style &= ~(WS_MINIMIZEBOX);
+
+		SetWindowLong(
+			window,
+			GWL_STYLE,
+			style);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE
+			| SWP_NOSIZE
+			| SWP_NOZORDER
+			| SWP_FRAMECHANGED);
+	}
+	bool Window::IsMinimizeButtonEnabled() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+
+		return (style & WS_MINIMIZEBOX) != 0;
+	}
+
+	void Window::SetMaximizeButtonState(bool state) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(window, GWL_STYLE);
+
+		if (state) style |= (WS_MAXIMIZEBOX);
+		else style &= ~(WS_MAXIMIZEBOX);
+
+		SetWindowLong(
+			window,
+			GWL_STYLE,
+			style);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE
+			| SWP_NOSIZE
+			| SWP_NOZORDER
+			| SWP_FRAMECHANGED);
+	}
+	bool Window::IsMaximizeButtonEnabled() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+
+		return (style & WS_MAXIMIZEBOX) != 0;
+	}
+
+	void Window::SetCloseButtonState(bool state) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(window, GWL_STYLE);
+
+		if (state) style |= (WS_SYSMENU);
+		else style &= ~(WS_SYSMENU);
+
+		SetWindowLong(
+			window,
+			GWL_STYLE,
+			style);
+
+		SetWindowPos(
+			window,
+			nullptr,
+			0,
+			0,
+			0,
+			0,
+			SWP_NOMOVE
+			| SWP_NOSIZE
+			| SWP_NOZORDER
+			| SWP_FRAMECHANGED);
+	}
+	bool Window::IsCloseButtonEnabled() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+
+		return (style & WS_SYSMENU) != 0;
+	}
+
+	void Window::SetOpacity(float alpha) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		float clamped = clamp(alpha, 0.0f, 1.0f);
+
+		BYTE bAlpha = static_cast<BYTE>(alpha * 255.0f);
+
+		//WS_EX_LAYERED is required for opacity
+
+		LONG exStyle = GetWindowLong(
+			window,
+			GWL_EXSTYLE);
+		if (!(exStyle & WS_EX_LAYERED))
+		{
+			SetWindowLong(
+				window,
+				GWL_EXSTYLE,
+				exStyle | WS_EX_LAYERED);
+		}
+
+		SetLayeredWindowAttributes(
+			window,
+			0,
+			bAlpha,
+			LWA_ALPHA);
+	}
+	float Window::GetOpacity() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		BYTE bAlpha = 255;
+		DWORD flags = 0;
+		COLORREF crKey = 0;
+
+		if (GetLayeredWindowAttributes(
+			window,
+			&crKey,
+			&bAlpha,
+			&flags)
+			&& (flags & LWA_ALPHA))
+		{
+			return static_cast<float>(bAlpha) / 255;
+		}
+
+		//treat as fully opaque when not layered
+		return 1.0f;
+	}
+
 	bool Window::IsFocused() const
 	{
 		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
@@ -273,15 +941,15 @@ namespace KalaWindow::Graphics
 	{
 		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
-		//IsIconic returns TRUE if the window is minimized (iconic state)
-		return IsIconic(hwnd) == TRUE;
+		//IsIconic returns TRUE if the window is minimized
+		return IsIconic(hwnd);
 	}
 
 	bool Window::IsVisible() const
 	{
 		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
-		return IsWindowVisible(hwnd) == TRUE;
+		return IsWindowVisible(hwnd);
 	}
 
 	void Window::SetWindowState(WindowState state) const
@@ -316,7 +984,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot run loop because window '" +
-				title +
+				GetTitle() +
 				"' has not been initialized!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
@@ -346,7 +1014,7 @@ namespace KalaWindow::Graphics
 
 	Window::~Window()
 	{
-		WindowData win = GetWindowData();
+		WindowData win = window_windows;
 		HWND winRef = ToVar<HWND>(win.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
@@ -381,6 +1049,411 @@ namespace KalaWindow::Graphics
 			"WINDOW_WINDOWS",
 			LogType::LOG_SUCCESS);
 	}
+
+	//
+	// MENU BAR CLASS DEFINITIONS
+	//
+
+	void MenuBar::CreateMenuBar(Window* windowRef)
+	{
+		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		if (HasMenuBar(windowRef))
+		{
+			Log::Print(
+				"Failed to add menu bar to window '" + windowRef->GetTitle() + "' because the window already has one!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HMENU hMenu = CreateMenu();
+		SetMenu(window, hMenu);
+		DrawMenuBar(window);
+	}
+	bool MenuBar::HasMenuBar(Window* windowRef)
+	{
+		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		return (GetMenu(window) != nullptr);
+	}
+
+	void MenuBar::CallMenuBarEvent(
+		Window* windowRef,
+		const string& menuLabelRef,
+		const string& itemLabelRef)
+	{
+		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		if (!HasMenuBar(windowRef))
+		{
+			ostringstream oss{};
+			oss << "Failed to call menu bar event by menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
+				<< "' on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		if (runtimeMenuBarEvents.empty())
+		{
+			ostringstream oss{};
+			oss << "Failed to call menu bar event by menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
+				<< "' on window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		for (const auto& e : runtimeMenuBarEvents)
+		{
+			const string& menuLabel = e->menuLabel;
+			if (itemLabelRef.empty())
+			{
+				if (menuLabel == menuLabelRef)
+				{
+					e->function();
+					return;
+				}
+			}
+			else
+			{
+				const string& itemLabel = e->itemLabel;
+
+				if (menuLabel == menuLabelRef
+					&& itemLabel == itemLabelRef)
+				{
+					e->function();
+					return;
+				}
+			}
+		}
+
+		ostringstream oss{};
+		oss << "Failed to call menu bar event by menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
+			<< "' on window '" + windowRef->GetTitle() + "' because the event does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"WINDOW_WINDOWS",
+			LogType::LOG_ERROR);
+	}
+	void MenuBar::CallMenuBarEvent(
+		Window* windowRef,
+		u32 IDRef)
+	{
+		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		if (!HasMenuBar(windowRef))
+		{
+			ostringstream oss{};
+			oss << "Failed to call menu bar event by ID '" << to_string(IDRef)
+				<< "' on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		if (runtimeMenuBarEvents.empty())
+		{
+			ostringstream oss{};
+			oss << "Failed to call menu bar event by ID '" << to_string(IDRef) 
+				<< "' on window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		for (const auto& e : runtimeMenuBarEvents)
+		{
+			u32 ID = e->itemLabelID;
+			if (ID == IDRef)
+			{
+				e->function();
+				return;
+			}
+		}
+
+		ostringstream oss{};
+		oss << "Failed to call menu bar event by ID '" << to_string(IDRef)
+			<< "' on window '" + windowRef->GetTitle() + "' because the event does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"WINDOW_WINDOWS",
+			LogType::LOG_ERROR);
+	}
+
+	void MenuBar::AddMenuOrItemLabel(
+		Window* windowRef,
+		const MenuBarEvent& event)
+	{
+		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		if (!HasMenuBar(windowRef))
+		{
+			ostringstream oss{};
+			oss << "Failed to add menu label '" << event.menuLabel << "' or item label '" << event.itemLabel 
+				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		if (event.menuLabel.empty())
+		{
+			ostringstream oss{};
+			oss << "Failed to add menu label '" << event.menuLabel 
+				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label is empty!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+		if (event.menuLabel.length() > MAX_LABEL_LENGTH)
+		{
+			ostringstream oss{};
+			oss << "Failed to add menu label '" << event.menuLabel
+				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label length '" 
+				<< event.menuLabel.length() << "' is too long! You can only use menu label length up to '" 
+				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+		if (event.itemLabel.length() > MAX_LABEL_LENGTH)
+		{
+			ostringstream oss{};
+			oss << "Failed to add item label '" << event.itemLabel << "' under menu label '" << event.menuLabel
+				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the item label length '"
+				<< event.itemLabel.length() << "' is too long! You can only use item label length up to '" 
+				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HMENU hMenu = GetMenu(window);
+		u32 newID = ++globalID;
+
+		if (event.itemLabel.empty())
+		{
+			HMENU hSubMenu = CreatePopupMenu();
+			AppendMenu(
+				hMenu,
+				MF_POPUP,
+				(UINT_PTR)hSubMenu,
+				ToWide(event.menuLabel).c_str());
+		}
+		else
+		{
+			HMENU hSubMenu = FindSubMenu(
+				hMenu,
+				event.menuLabel);
+			if (!hSubMenu)
+			{
+				ostringstream oss{};
+				oss << "Failed to add item label '" << event.itemLabel << "' under menu label '" << event.menuLabel
+					<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the parent label does not exist!";
+
+				Log::Print(
+					oss.str(),
+					"WINDOW_WINDOWS",
+					LogType::LOG_ERROR);
+
+				return;
+			}
+
+			AppendMenu(
+				hSubMenu,
+				MF_STRING,
+				newID,
+				ToWide(event.itemLabel).c_str());
+		}
+
+		DrawMenuBar(window);
+
+		MenuBarEvent newEvent
+		{
+			.menuLabel = event.menuLabel,
+			.itemLabel = event.itemLabel,
+			.itemLabelID = newID,
+			.function = event.function
+		};
+
+		createdMenuBarEvents[newID] = move(newEvent);
+
+		MenuBarEvent* storedEvent = &createdMenuBarEvents.at(newID);
+		runtimeMenuBarEvents.push_back(storedEvent);
+	}
+
+	void MenuBar::AddSeparator(
+		Window* windowRef,
+		const string& menuLabelRef,
+		const string& itemLabelRef)
+	{
+		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		if (!HasMenuBar(windowRef))
+		{
+			ostringstream oss{};
+			oss << "Failed to add separator to menu label '" << menuLabelRef << "' on window '" << windowRef->GetTitle()
+				<< "' because it has no menu bar!";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HMENU hMenu = GetMenu(window);
+
+		for (const auto& e : runtimeMenuBarEvents)
+		{
+			const string& menuLabel = e->menuLabel;
+			if (itemLabelRef.empty())
+			{
+				if (menuLabel == menuLabelRef)
+				{
+					HMENU hSubMenu = FindSubMenu(
+						hMenu,
+						menuLabel);
+					if (!hSubMenu)
+					{
+						ostringstream oss{};
+						oss << "Failed to add separator at the end of menu label '" << menuLabelRef
+							<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label does not exist!";
+
+						Log::Print(
+							oss.str(),
+							"WINDOW_WINDOWS",
+							LogType::LOG_ERROR);
+
+						return;
+					}
+
+					AppendMenu(
+						hSubMenu,
+						MF_SEPARATOR,
+						0,
+						nullptr);
+
+					DrawMenuBar(window);
+
+					return;
+				}
+			}
+			else
+			{
+				const string& itemLabel = e->itemLabel;
+
+				if (menuLabel == menuLabelRef
+					&& itemLabel == itemLabelRef)
+				{
+					HMENU hSubMenu = FindSubMenu(
+						hMenu,
+						menuLabel);
+					if (!hSubMenu)
+					{
+						ostringstream oss{};
+						oss << "Failed to add separator under menu label '" << menuLabelRef << "' after item label '" << itemLabelRef
+							<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the item label does not exist!";
+
+						Log::Print(
+							oss.str(),
+							"WINDOW_WINDOWS",
+							LogType::LOG_ERROR);
+
+						return;
+					}
+
+					int pos = GetMenuItemCount(hSubMenu);
+					for (int i = 0; i < pos; ++i)
+					{
+						wchar_t buffer[MAX_LABEL_LENGTH + 1]{};
+						GetMenuStringW(
+							hSubMenu,
+							i,
+							buffer,
+							MAX_LABEL_LENGTH + 1,
+							MF_BYPOSITION);
+
+						if (ToWide(itemLabelRef) == buffer)
+						{
+							InsertMenuW(
+								hSubMenu,
+								i + 1, //insert after this item
+								MF_BYPOSITION
+								| MF_SEPARATOR,
+								0,
+								nullptr);
+
+							DrawMenuBar(window);
+
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		ostringstream oss{};
+		oss << "Failed to add separator at the end of menu label '" << menuLabelRef << "' or after item label '" << itemLabelRef
+			<< "' on window '" + windowRef->GetTitle() + "' because menu label or item label does not exist!";
+
+		Log::Print(
+			oss.str(),
+			"WINDOW_WINDOWS",
+			LogType::LOG_ERROR);
+	}
+
+	void MenuBar::DestroyMenuBar(Window* windowRef)
+	{
+		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		HMENU hMenu = GetMenu(window);
+
+		//detach the menu bar from the window first
+		SetMenu(window, nullptr);
+		DrawMenuBar(window);
+
+		//and finally destroy the menu handle itself
+		DestroyMenu(hMenu);
+	}
 }
 
 void UpdateIdleState(Window* window, bool& isIdle)
@@ -389,6 +1462,88 @@ void UpdateIdleState(Window* window, bool& isIdle)
 		!window->IsFocused()
 		|| window->IsMinimized()
 		|| !window->IsVisible();
+}
+
+wstring ToWide(const string& str)
+{
+	if (str.empty()) return wstring();
+
+	int size_needed = MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		(int)str.size(),
+		nullptr,
+		0);
+
+	wstring wstr(size_needed, 0);
+
+	MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		(int)str.size(),
+		&wstr[0],
+		size_needed);
+
+	return wstr;
+}
+string ToShort(const wstring& str)
+{
+	if (str.empty()) return string();
+
+	int size_needed = WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		(int)str.size(),
+		nullptr,
+		0,
+		nullptr,
+		nullptr);
+
+	string result(size_needed, 0);
+
+	WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		(int)str.size(),
+		&result[0],
+		size_needed,
+		nullptr,
+		nullptr);
+
+	return result;
+}
+
+HMENU FindSubMenu(
+	HMENU hMenuBar,
+	const string& menuLabel)
+{
+	int count = GetMenuItemCount(hMenuBar);
+	if (count == -1) return nullptr;
+
+	wstring wTarget = ToWide(menuLabel);
+
+	for (int i = 0; i < count; ++i)
+	{
+		wchar_t buffer[MAX_LABEL_LENGTH + 1]{}; //max characters allowed + null terminator
+		int len = GetMenuStringW(
+			hMenuBar,
+			1,
+			buffer,
+			MAX_LABEL_LENGTH + 1, //max characters allowed + null terminator
+			MF_BYPOSITION);
+
+		if (len > 0
+			&& wTarget == buffer)
+		{
+			return GetSubMenu(hMenuBar, i);
+		}
+	}
+
+	return nullptr;
 }
 
 #endif //_WIN32

@@ -24,6 +24,8 @@ namespace KalaWindow::Core
 {
 	using KalaWindow::Core::AudioPlayer;
 	using KalaWindow::Graphics::Window;
+	using KalaWindow::Graphics::MenuBar;
+	using KalaWindow::Graphics::MenuBarEvent;
 	using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
 	using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 	//using KalaWindow::Graphics::Vulkan::Texture_Vulkan;
@@ -44,6 +46,8 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
 
+	LIB_API extern unordered_map<u32, MenuBarEvent> createdMenuBarEvents;
+
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
 	LIB_API extern unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures;
@@ -53,10 +57,12 @@ namespace KalaWindow::Core
 	//LIB_API extern unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders;
 
 	//
-	// RUNTIME STAGE VECTORS
+	// RUNTIME STAGE VECTORS (NON-OWNING, REFERENCE ONLY TO OWNERS ABOVE)
 	//
 
 	LIB_API extern vector<Window*> runtimeWindows;
+
+	LIB_API extern vector<MenuBarEvent*> runtimeMenuBarEvents;
 
 	LIB_API extern vector<AudioPlayer*> runtimeAudioPlayers;
 
