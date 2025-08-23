@@ -67,7 +67,7 @@ namespace KalaWindow::Graphics
 		string parentLabel{};        //Name of parent label, leave empty if root
 
 		string label{};              //Name of this label
-		u32 itemLabelID{};           //ID assigned to leaves, used for interaction
+		u32 labelID{};               //ID assigned to leaves, used for interaction
 		function<void()> function{}; //Function assigned to leaves
 
 		uintptr_t hMenu{};           //Branch HMENU handle for fast lookup

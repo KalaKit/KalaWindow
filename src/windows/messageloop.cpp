@@ -224,11 +224,11 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	// ENSURE CURSOR ICON IS CORRECT WHEN INSIDE WINDOW
 	//
 
+	/*
 	if (msg == WM_NCHITTEST)
 	{
 		auto result = CursorTest(hwnd, msg, wParam, lParam);
 
-		/*
 		string resultValue{};
 
 		if (result == 1) resultValue = "center";
@@ -245,10 +245,10 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 			"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
 			"MESSAGELOOP",
 			LogType::LOG_DEBUG);
-		*/
 
 		return result;
 	}
+	*/
 
 	//
 	// OTHER MESSAGES
@@ -724,7 +724,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			for (const auto& e : runtimeMenuBarEvents)
 			{
-				u32 ID = e->itemLabelID;
+				u32 ID = e->labelID;
 				if (ID == IDRef)
 				{
 					e->function();

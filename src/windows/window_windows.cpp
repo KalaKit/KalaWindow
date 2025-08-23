@@ -1189,7 +1189,7 @@ namespace KalaWindow::Graphics
 
 		for (const auto& e : runtimeMenuBarEvents)
 		{
-			u32 ID = e->itemLabelID;
+			u32 ID = e->labelID;
 			if (ID == IDRef)
 			{
 				ostringstream oss{};
@@ -1305,6 +1305,29 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
+		//leaf cant have parent that is also a leaf
+		if (type == LabelType::LABEL_LEAF
+			&& !parentRef.empty())
+		{
+			for (const auto& e : runtimeMenuBarEvents)
+			{
+				if (e->label == parentRef
+					&& e->labelID != 0)
+				{
+					ostringstream oss{};
+					oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentRef
+						<< "' in window '" << windowRef->GetTitle() << "' because the parent is also a leaf!";
+
+					Log::Print(
+						oss.str(),
+						"WINDOW_WINDOWS",
+						LogType::LOG_ERROR);
+
+					return;
+				}
+			}
+		}
+
 		//check if label or the parent of the label already exists or not
 		for (const auto& e : runtimeMenuBarEvents)
 		{
@@ -1351,7 +1374,7 @@ namespace KalaWindow::Graphics
 		if (type == LabelType::LABEL_LEAF)
 		{
 			newEvent->function = func;
-			newEvent->itemLabelID = newID;
+			newEvent->labelID = newID;
 		}
 
 		auto NewLabel = [&](HMENU parentMenu)
