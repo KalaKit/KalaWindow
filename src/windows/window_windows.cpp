@@ -1018,6 +1018,9 @@ namespace KalaWindow::Graphics
 		HWND winRef = ToVar<HWND>(win.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
+		//destroy menu bar if it was created
+		if (MenuBar::HasMenuBar(this)) MenuBar::DestroyMenuBar(this);
+
 		OpenGLData openGLData = GetOpenGLData();
 
 		if (openGLData.hglrc)

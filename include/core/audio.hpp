@@ -7,11 +7,17 @@
 
 #include <string>
 #include <filesystem>
+#include <algorithm>
 
 #include "KalaHeaders/api.hpp"
 #include "KalaHeaders/core_types.hpp"
 
 #include "glm_global.hpp"
+
+//min is 1MB
+static constexpr u64 MIN_STREAM_SIZE = static_cast<size_t>(1 * 1024) * 1024; 
+//max is 20MB
+static constexpr u64 MAX_STREAM_SIZE = static_cast<size_t>(20 * 1024) * 1024;
 
 namespace KalaWindow::Core
 {
@@ -19,6 +25,7 @@ namespace KalaWindow::Core
 	using std::filesystem::exists;
 	using std::filesystem::path;
 	using std::filesystem::is_regular_file;
+	using std::clamp;
 
 	//Stores data for managing directional audio hearing/playback
 	struct AudioCone
@@ -83,11 +90,21 @@ namespace KalaWindow::Core
 		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
+		//Set threshold where audio files will be streamed instead of loaded to memory in full.
+		//Only affects newly imported audio files.
+		static void SetStreamThreshold(u64 newThreshold)
+		{
+			streamThreshold = clamp(newThreshold, MIN_STREAM_SIZE, MAX_STREAM_SIZE);
+		};
+		static u64 GetStreamThreshold() { return streamThreshold; }
+
 		//Shut down Miniaudio
 		static void Shutdown();
 	private:
 		static inline bool isInitialized;
 		static inline bool isVerboseLoggingEnabled;
+
+		static inline u64 streamThreshold = static_cast<size_t>(5 * 1024) * 1024; //default is 5MB
 	};
 
 	//
@@ -143,7 +160,8 @@ namespace KalaWindow::Core
 	class LIB_API AudioPlayer
 	{
 	public:
-		//Create a new audio player
+		//Create a new audio player. If file size is less than or equal to 10MB
+		//then file is loaded into memory in full, otherwise it is streamed.
 		static AudioPlayer* CreateAudioPlayer(
 			const string& name,
 			const string& filePath);

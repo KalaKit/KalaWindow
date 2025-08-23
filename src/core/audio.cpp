@@ -8,6 +8,8 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <filesystem>
+#include <sstream>
 
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio/miniaudio.h"
@@ -29,6 +31,21 @@ using std::unique_ptr;
 using std::make_unique;
 using std::vector;
 using std::clamp;
+using std::filesystem::file_size;
+using std::ostringstream;
+
+struct PlayerData
+{
+	ma_sound sound{};
+	ma_decoder decoder{};
+	bool isStreaming{};
+
+	~PlayerData() 
+	{
+		ma_sound_uninit(&sound);
+		if (isStreaming) ma_decoder_uninit(&decoder);
+	}
+};
 
 static vector<string> supportedExtensions =
 {
@@ -39,13 +56,13 @@ static vector<string> supportedExtensions =
 };
 
 static ma_engine engine{};
-unordered_map<u32, unique_ptr<ma_sound>> playerMap{};
+unordered_map<u32, unique_ptr<PlayerData>> playerMap{};
 
 static bool CheckInitState(
 	const string& targetAction,
 	bool originatesFromAudio = false);
 
-static ma_sound* CommonChecker(
+static PlayerData* CommonChecker(
 	const string& message,
 	u32 ID);
 
@@ -126,9 +143,13 @@ namespace KalaWindow::Core
 		if (!CheckInitState("shut down MiniAudio", true)) return;
 		isInitialized = false;
 
-		for (const auto& [_, sound] : playerMap)
+		for (const auto& [_, pData] : playerMap)
 		{
-			ma_sound_uninit(sound.get());
+			PlayerData* data = pData.get();
+			ma_sound sound = data->sound;
+			ma_decoder decoder = data->decoder;
+
+			ma_sound_uninit(&pData->sound);
 		}
 		playerMap.clear();
 
@@ -437,27 +458,79 @@ namespace KalaWindow::Core
 			return nullptr;
 		}
 
-		unique_ptr<ma_sound> sound = make_unique<ma_sound>();
-		if (ma_sound_init_from_file(
-			&engine,
-			filePath.c_str(),
-			0,
-			NULL,
-			NULL,
-			sound.get()) != MA_SUCCESS)
-		{
-			KalaWindowCore::ForceClose(
-				"Audio error",
-				"Failed to create audio file '" + name + "' from path '" + filePath + "'!");
+		u64 fileSize = file_size(filePath);
 
-			return nullptr;
+		unique_ptr<PlayerData> pData = make_unique<PlayerData>();
+
+		//load full file into memory
+		if (fileSize <= Audio::GetStreamThreshold())
+		{
+			if (ma_sound_init_from_file(
+				&engine,
+				filePath.c_str(),
+				0,
+				NULL,
+				NULL,
+				&pData->sound) != MA_SUCCESS)
+			{
+				KalaWindowCore::ForceClose(
+					"Audio error",
+					"Failed to create audio file '" + name + "' from path '" + filePath + "'!");
+
+				return nullptr;
+			}
+
+			ostringstream oss{};
+			oss << "Loaded audio file '" << filePath << "' into memory because its size '"
+				<< to_string(fileSize) << "' is less or equal to stream limit '"
+				<< to_string(Audio::GetStreamThreshold()) + "'.";
+
+			Log::Print(
+				oss.str(),
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
 		}
-		ma_sound_set_volume(sound.get(), 1.0f);
-		ma_sound_set_pitch(sound.get(), 1.0f);
+		//decode and stream audio instead of loading entirely into memory
+		else
+		{
+			if (ma_decoder_init_file(
+				filePath.c_str(),
+				NULL,
+				&pData->decoder) != MA_SUCCESS)
+			{
+				KalaWindowCore::ForceClose(
+					"Audio error",
+					"Failed to create audio file '" + name + "' from path '" + filePath + "'!");
+
+				return nullptr;
+			}
+
+			ma_sound_init_from_data_source(
+				&engine,
+				&pData->decoder,
+				MA_SOUND_FLAG_STREAM,
+				NULL,
+				&pData->sound);
+
+			pData->isStreaming = true;
+
+			ostringstream oss{};
+			oss << "Streaming audio file '" << filePath << "' because its size '"
+				<< to_string(fileSize) << "' is over the stream limit '"
+				<< to_string(Audio::GetStreamThreshold()) + "'.";
+
+			Log::Print(
+				oss.str(),
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
+
+		ma_sound_set_volume(&pData->sound, 1.0f);
+		ma_sound_set_pitch(&pData->sound, 1.0f);
 
 		u32 newID = ++globalID;
 
-		playerMap[newID] = move(sound);
+		playerMap[newID] = move(pData);
 
 		unique_ptr<AudioPlayer> newTrack = make_unique<AudioPlayer>();
 		newTrack->name = name;
@@ -479,11 +552,11 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::SetName(const string& newName)
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player name to '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		string oldName = name;
 
@@ -535,17 +608,17 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::Play() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"play audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		//always move to start
-		ma_sound_seek_to_pcm_frame(sound, 0);
+		ma_sound_seek_to_pcm_frame(&pData->sound, 0);
 
 		//start playing sound
-		ma_sound_start(sound);
+		ma_sound_start(&pData->sound);
 
 		Log::Print(
 			"Started playing audio player '" + name + "'!",
@@ -554,22 +627,22 @@ namespace KalaWindow::Core
 	}
 	bool AudioPlayer::IsPlaying() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get play state for audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return false;
+		if (pData == nullptr) return false;
 
-		return (ma_sound_is_playing(sound) == MA_TRUE);
+		return (ma_sound_is_playing(&pData->sound) == MA_TRUE);
 	}
 
 	void AudioPlayer::SetPlaybackPosition(u32 newPosition) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set playback position for audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		if (newPosition > GetPlaybackPosition(true))
 		{
@@ -583,7 +656,7 @@ namespace KalaWindow::Core
 
 		ma_uint64 frames = (ma_uint64)newPosition * (ma_uint64)sampleRate;
 
-		ma_sound_seek_to_pcm_frame(sound, frames);
+		ma_sound_seek_to_pcm_frame(&pData->sound, frames);
 
 		Log::Print(
 			"Set playback position for audio player '" + name + "' to '" + to_string(newPosition) + "'!",
@@ -592,19 +665,19 @@ namespace KalaWindow::Core
 	}
 	u32 AudioPlayer::GetPlaybackPosition(bool getFullDuration) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get playback position for audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
 		ma_uint64 length{};
 
 		//get full audio player duration
-		if (getFullDuration) ma_sound_get_length_in_pcm_frames(sound, &length);
+		if (getFullDuration) ma_sound_get_length_in_pcm_frames(&pData->sound, &length);
 
 		//get duration up to current frame in audio player
-		else ma_sound_get_cursor_in_pcm_frames(sound, &length);
+		else ma_sound_get_cursor_in_pcm_frames(&pData->sound, &length);
 
 		ma_uint32 sampleRate = ma_engine_get_sample_rate(&engine);
 
@@ -614,14 +687,14 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::Pause() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"pause audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		//pause song without resetting back to beginning
-		ma_sound_stop(sound);
+		ma_sound_stop(&pData->sound);
 
 		Log::Print(
 			"Paused audio player '" + name + "'!",
@@ -630,14 +703,14 @@ namespace KalaWindow::Core
 	}
 	void AudioPlayer::Continue() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"continue audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		//start playing sound but continue where we last left off
-		ma_sound_start(sound);
+		ma_sound_start(&pData->sound);
 
 		Log::Print(
 			"Continuing playing audio player '" + name + "'!",
@@ -647,13 +720,13 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::SetLoopState(bool newState) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set loop state for audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
-		ma_sound_set_looping(sound, newState);
+		ma_sound_set_looping(&pData->sound, newState);
 
 		string state = newState ? "true" : "false";
 
@@ -664,27 +737,27 @@ namespace KalaWindow::Core
 	}
 	bool AudioPlayer::CanLoop() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get loop state for audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return false;
+		if (pData == nullptr) return false;
 
-		return (ma_sound_is_looping(sound) == MA_TRUE);
+		return (ma_sound_is_looping(&pData->sound) == MA_TRUE);
 	}
 
 	void AudioPlayer::Stop() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"stop audio player '" + name + "'",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
-		ma_sound_stop(sound);
+		ma_sound_stop(&pData->sound);
 
 		//reset the audio position to the start, so the next play starts fresh
-		ma_sound_seek_to_pcm_frame(sound, 0);
+		ma_sound_seek_to_pcm_frame(&pData->sound, 0);
 
 		Log::Print(
 			"Stopped playing audio player '" + name + "'!",
@@ -693,28 +766,28 @@ namespace KalaWindow::Core
 	}
 	bool AudioPlayer::HasFinished() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"check if audio player '" + name + "' has finished",
 			ID);
 
-		if (sound == nullptr) return false;
+		if (pData == nullptr) return false;
 
 		return (
-			ma_sound_is_playing(sound) == MA_FALSE
+			ma_sound_is_playing(&pData->sound) == MA_FALSE
 			&& !isPaused);
 	}
 
 	void AudioPlayer::SetVolume(f32 newVolume) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' volume",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newVolume, 0.0f, 5.0f);
 
-		ma_sound_set_volume(sound, clamped);
+		ma_sound_set_volume(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' volume to '" + to_string(clamped) + "'!",
@@ -723,22 +796,22 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetVolume() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' volume",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_volume(sound);
+		return ma_sound_get_volume(&pData->sound);
 	}
 
 	void AudioPlayer::SetSpatializationState(bool state) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' spatialization state",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		if (state)
 		{
@@ -747,7 +820,7 @@ namespace KalaWindow::Core
 				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
-			ma_sound_set_spatialization_enabled(sound, true);
+			ma_sound_set_spatialization_enabled(&pData->sound, true);
 		}
 		else
 		{
@@ -756,27 +829,27 @@ namespace KalaWindow::Core
 				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
-			ma_sound_set_spatialization_enabled(sound, false);
+			ma_sound_set_spatialization_enabled(&pData->sound, false);
 		}
 	}
 	bool AudioPlayer::GetSpatializationState() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' spatialization state",
 			ID);
 
-		if (sound == nullptr) return false;
+		if (pData == nullptr) return false;
 
-		return ma_sound_is_spatialization_enabled(sound);
+		return ma_sound_is_spatialization_enabled(&pData->sound);
 	}
 
 	void AudioPlayer::SetPositioningState(Positioning pos) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' positioning state",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		switch (pos)
 		{
@@ -787,7 +860,7 @@ namespace KalaWindow::Core
 				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
-			ma_sound_set_positioning(sound, ma_positioning_relative);
+			ma_sound_set_positioning(&pData->sound, ma_positioning_relative);
 			break;
 		
 		case Positioning::Positioning_Absolute:
@@ -797,19 +870,19 @@ namespace KalaWindow::Core
 				"AUDIO_PLAYER",
 				LogType::LOG_DEBUG);
 
-			ma_sound_set_positioning(sound, ma_positioning_absolute);
+			ma_sound_set_positioning(&pData->sound, ma_positioning_absolute);
 			break;
 		}
 	}
 	Positioning AudioPlayer::GetPositioningState() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' positioning state",
 			ID);
 
-		if (sound == nullptr) return Positioning::Positioning_Relative;
+		if (pData == nullptr) return Positioning::Positioning_Relative;
 
-		ma_positioning state = ma_sound_get_positioning(sound);
+		ma_positioning state = ma_sound_get_positioning(&pData->sound);
 		return state == ma_positioning_relative
 			? Positioning::Positioning_Relative
 			: Positioning::Positioning_Absolute;
@@ -817,15 +890,15 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::SetPitch(f32 newPitch) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' pitch",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newPitch, 0.0f, 5.0f);
 
-		ma_sound_set_pitch(sound, clamped);
+		ma_sound_set_pitch(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' pitch to '" + to_string(clamped) + "'!",
@@ -834,26 +907,26 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetPitch() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' pitch",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_pitch(sound);
+		return ma_sound_get_pitch(&pData->sound);
 	}
 
 	void AudioPlayer::SetPan(f32 newPan) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' pan",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newPan, -1.0f, 1.0f);
 
-		ma_sound_set_pan(sound, clamped);
+		ma_sound_set_pan(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' pan to '" + to_string(clamped) + "'!",
@@ -862,27 +935,27 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetPan() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' pan",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_pan(sound);
+		return ma_sound_get_pan(&pData->sound);
 	}
 
 	void AudioPlayer::SetPanMode(PanMode mode) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' pan mode",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		switch (mode)
 		{
 		case PanMode::PanMode_Balance:
-			ma_sound_set_pan_mode(sound, ma_pan_mode_balance);
+			ma_sound_set_pan_mode(&pData->sound, ma_pan_mode_balance);
 
 			Log::Print(
 				"Set audio player '" + name + "' pan mode to 'balance'!",
@@ -891,7 +964,7 @@ namespace KalaWindow::Core
 
 			break;
 		case PanMode::PanMode_Pan:
-			ma_sound_set_pan_mode(sound, ma_pan_mode_pan);
+			ma_sound_set_pan_mode(&pData->sound, ma_pan_mode_pan);
 
 			Log::Print(
 				"Set audio player '" + name + "' pan mode to 'pan'!",
@@ -903,13 +976,13 @@ namespace KalaWindow::Core
 	}
 	PanMode AudioPlayer::GetPanMode() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' pan mode",
 			ID);
 
-		if (sound == nullptr) return PanMode::PanMode_Balance;
+		if (pData == nullptr) return PanMode::PanMode_Balance;
 
-		ma_pan_mode mode = ma_sound_get_pan_mode(sound);
+		ma_pan_mode mode = ma_sound_get_pan_mode(&pData->sound);
 		return mode == ma_pan_mode_balance 
 			? PanMode::PanMode_Balance 
 			: PanMode::PanMode_Pan;
@@ -917,11 +990,11 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::SetPosition(const vec3& pos) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' player position",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(pos.x, "player x position");
@@ -930,7 +1003,7 @@ namespace KalaWindow::Core
 #endif
 
 		ma_sound_set_position(
-			sound,
+			&pData->sound,
 			pos.x,
 			pos.y,
 			pos.z);
@@ -946,24 +1019,24 @@ namespace KalaWindow::Core
 	}
 	vec3 AudioPlayer::GetPosition() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' player position",
 			ID);
 
-		if (sound == nullptr) return vec3(0);
+		if (pData == nullptr) return vec3(0);
 
-		ma_vec3f pos = ma_sound_get_position(sound);
+		ma_vec3f pos = ma_sound_get_position(&pData->sound);
 
 		return vec3(pos.x, pos.y, pos.z);
 	}
 
 	void AudioPlayer::SetVelocity(const vec3& vel) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' player velocity",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(vel.x, "player x velocity");
@@ -972,7 +1045,7 @@ namespace KalaWindow::Core
 #endif
 
 		ma_sound_set_velocity(
-			sound,
+			&pData->sound,
 			vel.x,
 			vel.y,
 			vel.z);
@@ -988,24 +1061,24 @@ namespace KalaWindow::Core
 	}
 	vec3 AudioPlayer::GetVelocity() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' player velocity",
 			ID);
 
-		if (sound == nullptr) return vec3(0);
+		if (pData == nullptr) return vec3(0);
 
-		ma_vec3f pos = ma_sound_get_velocity(sound);
+		ma_vec3f pos = ma_sound_get_velocity(&pData->sound);
 
 		return vec3(pos.x, pos.y, pos.z);
 	}
 
 	void AudioPlayer::SetDirection(const vec3& dir) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' player direction",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(dir.x, "player direction x");
@@ -1014,7 +1087,7 @@ namespace KalaWindow::Core
 #endif
 
 		ma_sound_set_direction(
-			sound,
+			&pData->sound,
 			dir.x,
 			dir.y,
 			dir.z);
@@ -1030,24 +1103,24 @@ namespace KalaWindow::Core
 	}
 	vec3 AudioPlayer::GetDirection() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' direction",
 			ID);
 
-		if (sound == nullptr) return vec3();
+		if (pData == nullptr) return vec3();
 
-		ma_vec3f front = ma_sound_get_direction(sound);
+		ma_vec3f front = ma_sound_get_direction(&pData->sound);
 
 		return vec3(front.x, front.y, front.z);
 	}
 	
 	void AudioPlayer::SetConeData(const AudioCone& cone) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' player cone data",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 innerAngleClamped = clamp(cone.innerConeAngle, 0.0f, 359.99f);
 		f32 outerAngleClamped = clamp(cone.outerConeAngle, 0.0f, 359.99f);
@@ -1056,7 +1129,7 @@ namespace KalaWindow::Core
 		if (outerAngleClamped < innerAngleClamped) outerAngleClamped = innerAngleClamped;
 
 		ma_sound_set_cone(
-			sound,
+			&pData->sound,
 			innerAngleClamped,
 			outerAngleClamped,
 			outerGainClamped);
@@ -1075,18 +1148,18 @@ namespace KalaWindow::Core
 	{
 		AudioCone cone{};
 
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' cone data",
 			ID);
 
-		if (sound == nullptr) return cone;
+		if (pData == nullptr) return cone;
 
 		f32 innerConeAngle{};
 		f32 outerConeAngle{};
 		f32 outerGain{};
 
 		ma_sound_get_cone(
-			sound,
+			&pData->sound,
 			&innerConeAngle,
 			&outerConeAngle,
 			&outerGain);
@@ -1100,16 +1173,16 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::SetAttenuationModel(AttenuationModel model) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' attenuation model",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		switch (model)
 		{
 		case AttenuationModel::Attenuation_None:
-			ma_sound_set_attenuation_model(sound, ma_attenuation_model_none);
+			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_none);
 
 			Log::Print(
 				"Set audio player '" + name + "' attenuation mode to 'none'!",
@@ -1118,7 +1191,7 @@ namespace KalaWindow::Core
 
 			break;
 		case AttenuationModel::Attenuation_Inverse:
-			ma_sound_set_attenuation_model(sound, ma_attenuation_model_inverse);
+			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_inverse);
 
 			Log::Print(
 				"Set audio player '" + name + "' attenuation mode to 'inverse'!",
@@ -1127,7 +1200,7 @@ namespace KalaWindow::Core
 
 			break;
 		case AttenuationModel::Attenuation_Linear:
-			ma_sound_set_attenuation_model(sound, ma_attenuation_model_linear);
+			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_linear);
 
 			Log::Print(
 				"Set audio player '" + name + "' attenuation mode to 'linear'!",
@@ -1136,7 +1209,7 @@ namespace KalaWindow::Core
 
 			break;
 		case AttenuationModel::Attenuation_Exponential:
-			ma_sound_set_attenuation_model(sound, ma_attenuation_model_exponential);
+			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_exponential);
 
 			Log::Print(
 				"Set audio player '" + name + "' attenuation mode to 'exponential'!",
@@ -1148,13 +1221,13 @@ namespace KalaWindow::Core
 	}
 	AttenuationModel AudioPlayer::GetAttenuationModel() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' attenuation model",
 			ID);
 
-		if (sound == nullptr) return AttenuationModel::Attenuation_None;
+		if (pData == nullptr) return AttenuationModel::Attenuation_None;
 
-		ma_attenuation_model model = ma_sound_get_attenuation_model(sound);
+		ma_attenuation_model model = ma_sound_get_attenuation_model(&pData->sound);
 
 		if (model == ma_attenuation_model_inverse)          return AttenuationModel::Attenuation_Inverse;
 		else if (model == ma_attenuation_model_linear)      return AttenuationModel::Attenuation_Linear;
@@ -1165,15 +1238,15 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::SetRolloff(f32 newRolloffFactor) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' rolloff factor",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newRolloffFactor, 0.0f, 5.0f);
 
-		ma_sound_set_rolloff(sound, clamped);
+		ma_sound_set_rolloff(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' rolloff factor to '" + to_string(clamped) + "'!",
@@ -1182,26 +1255,26 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetRolloff() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' rolloff factor",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_rolloff(sound);
+		return ma_sound_get_rolloff(&pData->sound);
 	}
 
 	void AudioPlayer::SetDopplerFactor(f32 newFactor) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' doppler factor",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newFactor, 0.0f, 5.0f);
 
-		ma_sound_set_doppler_factor(sound, clamped);
+		ma_sound_set_doppler_factor(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' doppler factor to '" + to_string(clamped) + "'!",
@@ -1210,13 +1283,13 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetDopplerFactor() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' doppler factor",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_doppler_factor(sound);
+		return ma_sound_get_doppler_factor(&pData->sound);
 	}
 
 	AudioPlayer::~AudioPlayer()
@@ -1224,7 +1297,6 @@ namespace KalaWindow::Core
 		auto it = playerMap.find(ID);
 		if (it != playerMap.end())
 		{
-			ma_sound_uninit(it->second.get());
 			playerMap.erase(it);
 
 			Log::Print(
@@ -1236,15 +1308,15 @@ namespace KalaWindow::Core
 
 	void AudioPlayer::SetMinGain(f32 newMinGain) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' min gain",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newMinGain, 0.0f, GetMaxGain() - 0.1f);
 
-		ma_sound_set_min_gain(sound, clamped);
+		ma_sound_set_min_gain(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' min gain to '" + to_string(clamped) + "'!",
@@ -1253,26 +1325,26 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetMinGain() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' min gain",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_min_gain(sound);
+		return ma_sound_get_min_gain(&pData->sound);
 	}
 
 	void AudioPlayer::SetMaxGain(f32 newMaxGain) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' max gain",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newMaxGain, GetMinGain() + 0.1f, 5.0f);
 
-		ma_sound_set_max_gain(sound, clamped);
+		ma_sound_set_max_gain(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' max gain to '" + to_string(clamped) + "'!",
@@ -1281,26 +1353,26 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetMaxGain() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' max gain",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_max_gain(sound);
+		return ma_sound_get_max_gain(&pData->sound);
 	}
 
 	void AudioPlayer::SetMinRange(f32 newMinRange) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' min range",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newMinRange, 0.0f, GetMaxRange() - 0.1f);
 
-		ma_sound_set_min_distance(sound, clamped);
+		ma_sound_set_min_distance(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' min range to '" + to_string(clamped) + "'!",
@@ -1309,26 +1381,26 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetMinRange() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' min range",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_min_distance(sound);
+		return ma_sound_get_min_distance(&pData->sound);
 	}
 
 	void AudioPlayer::SetMaxRange(f32 newMaxRange) const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' max range",
 			ID);
 
-		if (sound == nullptr) return;
+		if (pData == nullptr) return;
 
 		f32 clamped = clamp(newMaxRange, GetMinRange() + 0.1f, 1000.0f);
 
-		ma_sound_set_max_distance(sound, clamped);
+		ma_sound_set_max_distance(&pData->sound, clamped);
 
 		Log::Print(
 			"Set audio player '" + name + "' max range to '" + to_string(clamped) + "'!",
@@ -1337,13 +1409,13 @@ namespace KalaWindow::Core
 	}
 	f32 AudioPlayer::GetMaxRange() const
 	{
-		ma_sound* sound = CommonChecker(
+		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' max range",
 			ID);
 
-		if (sound == nullptr) return 0;
+		if (pData == nullptr) return 0;
 
-		return ma_sound_get_max_distance(sound);
+		return ma_sound_get_max_distance(&pData->sound);
 	}
 }
 
@@ -1363,14 +1435,18 @@ bool CheckInitState(
 	return true;
 }
 
-ma_sound* CommonChecker(
+PlayerData* CommonChecker(
 	const string& message,
 	u32 ID)
 {
 	if (!CheckInitState(message)) return nullptr;
 
 	auto it = playerMap.find(ID);
-	if (it != playerMap.end()) return it->second.get();
+	if (it != playerMap.end())
+	{
+
+		return it->second.get();
+	}
 
 	PrintErrorMessage(
 		"Cannot " + message + " because the audio pointer ID '" + to_string(ID) + "' was not found in internal MiniAudio sound map!",
