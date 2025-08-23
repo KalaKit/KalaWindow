@@ -65,9 +65,12 @@ namespace KalaWindow::Graphics
 	struct MenuBarEvent
 	{
 		string parentLabel{};        //Name of parent label, leave empty if root
+
 		string label{};              //Name of this label
-		u32 itemLabelID{};           //ID assigned internally, used for interaction
-		function<void()> function{}; //Function that must be filled for leaf
+		u32 itemLabelID{};           //ID assigned to leaves, used for interaction
+		function<void()> function{}; //Function assigned to leaves
+
+		uintptr_t hMenu{};           //Branch HMENU handle for fast lookup
 	};
 #else
 	struct WindowData
@@ -428,7 +431,7 @@ namespace KalaWindow::Graphics
 
 		//Create a menu bar label. Leaves must have functions, branches can't.
 		//Leave parentRef empty if you want this label to be root
-		static const string& CreateLabel(
+		static void CreateLabel(
 			Window* windowRef,
 			LabelType type,
 			const string& parentRef,

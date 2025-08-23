@@ -79,10 +79,6 @@ static void UpdateIdleState(Window* window, bool& isIdle);
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
 
-static HMENU FindSubMenu(
-	HMENU hMenuBar,
-	const string& menuLabel);
-
 namespace KalaWindow::Graphics
 {
 	Window* Window::Initialize(
@@ -1074,6 +1070,15 @@ namespace KalaWindow::Graphics
 		HMENU hMenu = CreateMenu();
 		SetMenu(window, hMenu);
 		DrawMenuBar(window);
+
+		ostringstream oss{};
+		oss << "Created new menu bar "
+			<< "' in window '" << windowRef->GetTitle() << "!";
+
+		Log::Print(
+			oss.str(),
+			"WINDOW_WINDOWS",
+			LogType::LOG_SUCCESS);
 	}
 	bool MenuBar::HasMenuBar(Window* windowRef)
 	{
@@ -1125,7 +1130,17 @@ namespace KalaWindow::Graphics
 				|| (parent == parentRef
 				&& label == labelRef))
 			{
+				ostringstream oss{};
+				oss << "Ran function attached to label '" << label
+					<< "' in window '" << windowRef->GetTitle() << "!";
+
+				Log::Print(
+					oss.str(),
+					"WINDOW_WINDOWS",
+					LogType::LOG_DEBUG);
+
 				e->function();
+
 				return;
 			}
 		}
@@ -1177,7 +1192,17 @@ namespace KalaWindow::Graphics
 			u32 ID = e->itemLabelID;
 			if (ID == IDRef)
 			{
+				ostringstream oss{};
+				oss << "Ran function attached to ID '" << to_string(IDRef)
+					<< "' in window '" << windowRef->GetTitle() << "!";
+
+				Log::Print(
+					oss.str(),
+					"WINDOW_WINDOWS",
+					LogType::LOG_DEBUG);
+
 				e->function();
+
 				return;
 			}
 		}
@@ -1192,7 +1217,7 @@ namespace KalaWindow::Graphics
 			LogType::LOG_ERROR);
 	}
 
-	const string& MenuBar::CreateLabel(
+	void MenuBar::CreateLabel(
 		Window* windowRef,
 		LabelType type,
 		const string& parentRef,
@@ -1202,7 +1227,6 @@ namespace KalaWindow::Graphics
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
 
 		string typeName = type == LabelType::LABEL_LEAF ? "leaf" : "branch";
-		static string emptyStr{};
 
 		string parentName = parentRef;
 		if (parentName.empty()) parentName = "root";
@@ -1217,7 +1241,7 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return emptyStr;
+			return;
 		}
 
 		if (labelRef.empty())
@@ -1230,7 +1254,7 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return emptyStr;
+			return;
 		}
 		if (labelRef.length() > MAX_LABEL_LENGTH)
 		{
@@ -1245,7 +1269,7 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return emptyStr;
+			return;
 		}
 		if (parentRef.length() > MAX_LABEL_LENGTH)
 		{
@@ -1260,7 +1284,7 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return emptyStr;
+			return;
 		}
 
 		//leaf requires valid function
@@ -1278,7 +1302,7 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return emptyStr;
+			return;
 		}
 
 		//check if label or the parent of the label already exists or not
@@ -1286,43 +1310,98 @@ namespace KalaWindow::Graphics
 		{
 			const string& parent = e->parentLabel;
 			const string& label = e->label;
-			if ((parent.empty()
-				&& label == e->label)
-				|| (parent == parentRef
-				&& label == labelRef))
+			if (parent.empty()
+				&& labelRef == label)
 			{
 				ostringstream oss{};
-				oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentName
-					<< "' in window '" << windowRef->GetTitle() 
-					<< "' because the " << typeName << " or " << typeName << " and its parent already exists!";
+				oss << "Failed to add " << typeName << " '" << labelRef << "' to window '" << windowRef->GetTitle() 
+					<< "' because the " << typeName << " already exists!";
 
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
 					LogType::LOG_ERROR);
 
-				return emptyStr;
+				return;
+			}
+			else if (parentRef == parent
+				&& labelRef == label)
+			{
+				ostringstream oss{};
+				oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentName
+					<< "' in window '" << windowRef->GetTitle()
+					<< "' because the " << typeName << " and its parent already exists!";
+
+				Log::Print(
+					oss.str(),
+					"WINDOW_WINDOWS",
+					LogType::LOG_ERROR);
+
+				return;
 			}
 		}
 
 		HMENU hMenu = GetMenu(window);
 		u32 newID = ++globalID;
 
-		if (labelRef.empty())
+		unique_ptr<MenuBarEvent> newEvent = make_unique<MenuBarEvent>();
+		newEvent->parentLabel = parentRef;
+		newEvent->label = labelRef;
+		
+		if (type == LabelType::LABEL_LEAF)
 		{
-			HMENU hSubMenu = CreatePopupMenu();
-			AppendMenu(
-				hMenu,
-				type == LabelType::LABEL_LEAF ? MF_STRING : MF_POPUP,
-				(UINT_PTR)hSubMenu,
-				ToWide(labelRef).c_str());
+			newEvent->function = func;
+			newEvent->itemLabelID = newID;
 		}
+
+		auto NewLabel = [&](HMENU parentMenu)
+			{
+				if (type == LabelType::LABEL_BRANCH)
+				{
+					HMENU thisMenu = CreatePopupMenu();
+					AppendMenu(
+						parentMenu,
+						MF_POPUP,
+						(UINT_PTR)thisMenu,
+						ToWide(labelRef).c_str());
+
+					newEvent->hMenu = FromVar(thisMenu);
+				}
+				else
+				{
+					AppendMenu(
+						parentMenu,
+						MF_STRING,
+						newID,
+						ToWide(labelRef).c_str());
+				}
+
+				ostringstream oss{};
+				oss << "Added " << typeName << " '" << labelRef << "' with ID '" << to_string(newID)
+					<< "' under parent '" << parentName
+					<< "' in window '" << windowRef->GetTitle() << "!";
+
+				Log::Print(
+					oss.str(),
+					"WINDOW_WINDOWS",
+					LogType::LOG_SUCCESS);
+			};
+
+		if (parentRef.empty()) NewLabel(hMenu);
 		else
 		{
-			HMENU hSubMenu = FindSubMenu(
-				hMenu,
-				labelRef);
-			if (!hSubMenu)
+			HMENU parentMenu{};
+
+			for (const auto& value : runtimeMenuBarEvents)
+			{
+				if (value->label == parentRef)
+				{
+					parentMenu = ToVar<HMENU>(value->hMenu);
+					break;
+				}
+			}
+
+			if (!parentMenu)
 			{
 				ostringstream oss{};
 				oss << "Cannot create " << typeName << " '" << labelRef << "' under parent '" << parentName
@@ -1333,30 +1412,18 @@ namespace KalaWindow::Graphics
 					"WINDOW_WINDOWS",
 					LogType::LOG_ERROR);
 
-				return emptyStr;
+				return;
 			}
 
-			AppendMenu(
-				hSubMenu,
-				type == LabelType::LABEL_LEAF ? MF_STRING : MF_POPUP,
-				newID,
-				ToWide(labelRef).c_str());
+			NewLabel(parentMenu);
 		}
 
 		DrawMenuBar(window);
-
-		unique_ptr<MenuBarEvent> newEvent = make_unique<MenuBarEvent>();
-		newEvent->parentLabel = parentRef;
-		newEvent->label = labelRef;
-		newEvent->itemLabelID = newID;
-		if (type == LabelType::LABEL_LEAF) newEvent->function = func;
 
 		createdMenuBarEvents[newID] = move(newEvent);
 
 		MenuBarEvent* storedEvent = createdMenuBarEvents[newID].get();
 		runtimeMenuBarEvents.push_back(storedEvent);
-
-		return labelRef;
 	}
 
 	void MenuBar::AddSeparator(
@@ -1390,10 +1457,18 @@ namespace KalaWindow::Graphics
 			{
 				if (parent == parentRef)
 				{
-					HMENU hSubMenu = FindSubMenu(
-						hMenu,
-						parentRef);
-					if (!hSubMenu)
+					HMENU parentMenu{};
+
+					for (const auto& value : runtimeMenuBarEvents)
+					{
+						if (value->label == parentRef)
+						{
+							parentMenu = ToVar<HMENU>(value->hMenu);
+							break;
+						}
+					}
+
+					if (!parentMenu)
 					{
 						ostringstream oss{};
 						oss << "Failed to add separator at the end of parent '" << parentRef
@@ -1408,10 +1483,15 @@ namespace KalaWindow::Graphics
 					}
 
 					AppendMenu(
-						hSubMenu,
+						parentMenu,
 						MF_SEPARATOR,
 						0,
 						nullptr);
+
+					Log::Print(
+						"Placed separator to the end of parent label '" + parentRef + "' in window '" + windowRef->GetTitle() + "'!",
+						"WINDOW_WINDOWS",
+						LogType::LOG_SUCCESS);
 
 					DrawMenuBar(window);
 
@@ -1423,10 +1503,18 @@ namespace KalaWindow::Graphics
 				if (parent == parentRef
 					&& label == labelRef)
 				{
-					HMENU hSubMenu = FindSubMenu(
-						hMenu,
-						parentRef);
-					if (!hSubMenu)
+					HMENU parentMenu{};
+
+					for (const auto& value : runtimeMenuBarEvents)
+					{
+						if (value->label == parentRef)
+						{
+							parentMenu = ToVar<HMENU>(value->hMenu);
+							break;
+						}
+					}
+
+					if (!parentMenu)
 					{
 						ostringstream oss{};
 						oss << "Failed to add separator under parent '" << parentRef << "' after label '" << labelRef
@@ -1440,12 +1528,12 @@ namespace KalaWindow::Graphics
 						return;
 					}
 
-					int pos = GetMenuItemCount(hSubMenu);
+					int pos = GetMenuItemCount(parentMenu);
 					for (int i = 0; i < pos; ++i)
 					{
 						wchar_t buffer[MAX_LABEL_LENGTH + 1]{};
 						GetMenuStringW(
-							hSubMenu,
+							parentMenu,
 							i,
 							buffer,
 							MAX_LABEL_LENGTH + 1,
@@ -1454,12 +1542,17 @@ namespace KalaWindow::Graphics
 						if (ToWide(labelRef) == buffer)
 						{
 							InsertMenuW(
-								hSubMenu,
+								parentMenu,
 								i + 1, //insert after this item
 								MF_BYPOSITION
 								| MF_SEPARATOR,
 								0,
 								nullptr);
+
+							Log::Print(
+								"Placed separator after label '" + labelRef + "' to window window '" + windowRef->GetTitle() + "'!",
+								"WINDOW_WINDOWS",
+								LogType::LOG_SUCCESS);
 
 							DrawMenuBar(window);
 
@@ -1492,6 +1585,15 @@ namespace KalaWindow::Graphics
 
 		//and finally destroy the menu handle itself
 		DestroyMenu(hMenu);
+
+		ostringstream oss{};
+		oss << "Destroyed menu bar "
+			<< "' in window '" << windowRef->GetTitle() << "!";
+
+		Log::Print(
+			oss.str(),
+			"WINDOW_WINDOWS",
+			LogType::LOG_SUCCESS);
 	}
 }
 
@@ -1554,35 +1656,6 @@ string ToShort(const wstring& str)
 		nullptr);
 
 	return result;
-}
-
-HMENU FindSubMenu(
-	HMENU hMenuBar,
-	const string& menuLabel)
-{
-	int count = GetMenuItemCount(hMenuBar);
-	if (count == -1) return nullptr;
-
-	wstring wTarget = ToWide(menuLabel);
-
-	for (int i = 0; i < count; ++i)
-	{
-		wchar_t buffer[MAX_LABEL_LENGTH + 1]{}; //max characters allowed + null terminator
-		int len = GetMenuStringW(
-			hMenuBar,
-			1,
-			buffer,
-			MAX_LABEL_LENGTH + 1, //max characters allowed + null terminator
-			MF_BYPOSITION);
-
-		if (len > 0
-			&& wTarget == buffer)
-		{
-			return GetSubMenu(hMenuBar, i);
-		}
-	}
-
-	return nullptr;
 }
 
 #endif //_WIN32
