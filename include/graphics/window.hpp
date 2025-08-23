@@ -57,12 +57,17 @@ namespace KalaWindow::Graphics
 		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
 	};
 
+	enum class LabelType
+	{
+		LABEL_LEAF,  //Clickable with required function, can't have children
+		LABEL_BRANCH //Not clickable, won't work if function is added, can have children
+	};
 	struct MenuBarEvent
 	{
-		string menuLabel{};          //Parent menu label
-		string itemLabel{};          //Child item label of a menu label
-		u32 itemLabelID{};           //ID required for item label
-		function<void()> function{}; //Function to call when menu or item label is pressed
+		string parentLabel{};        //Name of parent label, leave empty if root
+		string label{};              //Name of this label
+		u32 itemLabelID{};           //ID assigned internally, used for interaction
+		function<void()> function{}; //Function that must be filled for leaf
 	};
 #else
 	struct WindowData
@@ -400,44 +405,43 @@ namespace KalaWindow::Graphics
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
 	};
 
-	//Windows-only native menu bar. All menu label and item label events are handled by the message loop.
-	//Attach a functional through the MenuBarEvent struct inside the AddMenuOrItemLabel to let the message loop
-	//route back to your functional so that the menu bar interactions call your chosen functions.
+	//Windows-only native menu bar. All leaf and and branch interactions are handled by the message loop.
+	//Attach a function in CreateLabel for leaves, leave empoty for functions so that the message loop
+	//calls your function so that the menu bar interactions call your chosen functions.
 	class LIB_API MenuBar
 	{
 	public:
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window
-		static void CreateMenuBar(Window* window);
-		static bool HasMenuBar(Window* window);
+		static void CreateMenuBar(Window* windowRef);
+		static bool HasMenuBar(Window* windowRef);
 
 		//Call a menu bar event function by menu label or its item label
 		static void CallMenuBarEvent(
-			Window* window,
-			const string& menuLabel,
-			const string& itemLabel = "");
+			Window* windowRef,
+			const string& parentRef,
+			const string& labelRef = "");
 		//Call a menu bar event function by ID
 		static void CallMenuBarEvent(
-			Window* window,
+			Window* windowRef,
 			u32 ID);
 
-		//Add a new menu label inside the menu bar
-		//or item label inside menu label inside the menu bar.
-		//Each item label has a unique ID that is bumped the same way
-		//as the global ID is for other KalaWindow objects
-		static MenuBarEvent* AddMenuOrItemLabel(
-			Window* window,
-			const function<void()> function,
-			const string& menuLabel,
-			const string& itemLabel = "");
+		//Create a menu bar label. Leaves must have functions, branches can't.
+		//Leave parentRef empty if you want this label to be root
+		static const string& CreateLabel(
+			Window* windowRef,
+			LabelType type,
+			const string& parentRef,
+			const string& labelRef,
+			const function<void()> func = nullptr);
 
 		//Add a horizontal separator line to the menu label.
 		//If itemLabel isnt empty and exists then the sesparator is placed after the item label,
 		//otherwise it is placed at the end of the menu label
 		static void AddSeparator(
-			Window* window,
-			const string& menuLabel,
-			const string& itemLabel = "");
+			Window* windowRef,
+			const string& parentRef,
+			const string& labelRef = "");
 
 		//Destroy the existing menu bar inside the window
 		static void DestroyMenuBar(Window* window);

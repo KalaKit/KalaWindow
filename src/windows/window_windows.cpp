@@ -1084,16 +1084,15 @@ namespace KalaWindow::Graphics
 
 	void MenuBar::CallMenuBarEvent(
 		Window* windowRef,
-		const string& menuLabelRef,
-		const string& itemLabelRef)
+		const string& parentRef,
+		const string& labelRef)
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
 
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to call menu bar event by menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
-				<< "' on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+			oss << "Failed to call menu bar event on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
 
 			Log::Print(
 				oss.str(),
@@ -1106,7 +1105,7 @@ namespace KalaWindow::Graphics
 		if (runtimeMenuBarEvents.empty())
 		{
 			ostringstream oss{};
-			oss << "Failed to call menu bar event by menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
+			oss << "Failed to call menu bar event by label '" << labelRef << "' or parent label '" << parentRef
 				<< "' on window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
 
 			Log::Print(
@@ -1119,30 +1118,20 @@ namespace KalaWindow::Graphics
 
 		for (const auto& e : runtimeMenuBarEvents)
 		{
-			const string& menuLabel = e->menuLabel;
-			if (itemLabelRef.empty())
+			const string& parent = e->parentLabel;
+			const string& label = e->label;
+			if ((parent.empty()
+				&& label == e->label)
+				|| (parent == parentRef
+				&& label == labelRef))
 			{
-				if (menuLabel == menuLabelRef)
-				{
-					e->function();
-					return;
-				}
-			}
-			else
-			{
-				const string& itemLabel = e->itemLabel;
-
-				if (menuLabel == menuLabelRef
-					&& itemLabel == itemLabelRef)
-				{
-					e->function();
-					return;
-				}
+				e->function();
+				return;
 			}
 		}
 
 		ostringstream oss{};
-		oss << "Failed to call menu bar event by menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
+		oss << "Failed to call menu bar event by label '" << labelRef
 			<< "' on window '" + windowRef->GetTitle() + "' because the event does not exist!";
 
 		Log::Print(
@@ -1159,8 +1148,7 @@ namespace KalaWindow::Graphics
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to call menu bar event by ID '" << to_string(IDRef)
-				<< "' on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+			oss << "Failed to call menu bar event on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
 
 			Log::Print(
 				oss.str(),
@@ -1204,60 +1192,52 @@ namespace KalaWindow::Graphics
 			LogType::LOG_ERROR);
 	}
 
-	MenuBarEvent* MenuBar::AddMenuOrItemLabel(
+	const string& MenuBar::CreateLabel(
 		Window* windowRef,
-		const function<void()> function,
-		const string& menuLabelRef,
-		const string& itemLabelRef)
+		LabelType type,
+		const string& parentRef,
+		const string& labelRef,
+		const function<void()> func)
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		string typeName = type == LabelType::LABEL_LEAF ? "leaf" : "branch";
+		static string emptyStr{};
+
+		string parentName = parentRef;
+		if (parentName.empty()) parentName = "root";
 
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to add menu label '" << menuLabelRef << "' or item label '" << itemLabelRef
-				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+			oss << "Failed to add " << typeName << " to window '" << windowRef->GetTitle() << "' because no menu bar was created!";
 
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return nullptr;
+			return emptyStr;
 		}
 
-		if (function == nullptr)
+		if (labelRef.empty())
 		{
 			ostringstream oss{};
-			oss << "Failed to add menu label '" << menuLabelRef
-				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the attached event function is empty!";
+			oss << "Failed to add " << typeName << " to window '" << windowRef->GetTitle() << "' because the label name is empty!";
 
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return nullptr;
+			return emptyStr;
 		}
-		if (menuLabelRef.empty())
+		if (labelRef.length() > MAX_LABEL_LENGTH)
 		{
 			ostringstream oss{};
-			oss << "Failed to add menu label '" << menuLabelRef
-				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label is empty!";
-
-			Log::Print(
-				oss.str(),
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-		if (menuLabelRef.length() > MAX_LABEL_LENGTH)
-		{
-			ostringstream oss{};
-			oss << "Failed to add menu label '" << menuLabelRef
-				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label length '" 
-				<< menuLabelRef.length() << "' is too long! You can only use menu label length up to '"
+			oss << "Failed to add " << typeName << " '" << labelRef
+				<< "' to window '" << windowRef->GetTitle() << "' because the label length '"
+				<< labelRef.length() << "' is too long! You can only use label length up to '"
 				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
 
 			Log::Print(
@@ -1265,14 +1245,14 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return nullptr;
+			return emptyStr;
 		}
-		if (itemLabelRef.length() > MAX_LABEL_LENGTH)
+		if (parentRef.length() > MAX_LABEL_LENGTH)
 		{
 			ostringstream oss{};
-			oss << "Failed to add item label '" << itemLabelRef << "' under menu label '" << menuLabelRef
-				<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the item label length '"
-				<< itemLabelRef.length() << "' is too long! You can only use item label length up to '"
+			oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentRef
+				<< "' in window '" << windowRef->GetTitle() << "' because the parent label length '"
+				<< parentRef.length() << "' is too long! You can only use label length up to '"
 				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
 
 			Log::Print(
@@ -1280,120 +1260,116 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
-			return nullptr;
+			return emptyStr;
 		}
 
+		//leaf requires valid function
+		if (type == LabelType::LABEL_LEAF
+			&& func == nullptr)
+		{
+			ostringstream oss{};
+			oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentRef
+				<< "' in window '" << windowRef->GetTitle() << "' because the parent label length '"
+				<< parentRef.length() << "' is too long! You can only use label length up to '"
+				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
 
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return emptyStr;
+		}
+
+		//check if label or the parent of the label already exists or not
 		for (const auto& e : runtimeMenuBarEvents)
 		{
-			const string& menuLabel = e->menuLabel;
-			if (itemLabelRef.empty())
+			const string& parent = e->parentLabel;
+			const string& label = e->label;
+			if ((parent.empty()
+				&& label == e->label)
+				|| (parent == parentRef
+				&& label == labelRef))
 			{
-				if (menuLabel == menuLabelRef)
-				{
-					ostringstream oss{};
-					oss << "Failed to add menu label '" << menuLabelRef
-						<< "' to menu bar on window '" << windowRef->GetTitle() << "' because a menu label with the same name already exists!";
+				ostringstream oss{};
+				oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentName
+					<< "' in window '" << windowRef->GetTitle() 
+					<< "' because the " << typeName << " or " << typeName << " and its parent already exists!";
 
-					Log::Print(
-						oss.str(),
-						"WINDOW_WINDOWS",
-						LogType::LOG_ERROR);
+				Log::Print(
+					oss.str(),
+					"WINDOW_WINDOWS",
+					LogType::LOG_ERROR);
 
-					return nullptr;
-				}
-			}
-			else
-			{
-				const string& itemLabel = e->itemLabel;
-
-				if (menuLabel == menuLabelRef
-					&& itemLabel == itemLabelRef)
-				{
-					ostringstream oss{};
-					oss << "Failed to add item label '" << itemLabelRef << "' under menu label '" << menuLabelRef
-						<< "' to menu bar on window '" << windowRef->GetTitle() << "' because an item label with the same name already exists!";
-
-					Log::Print(
-						oss.str(),
-						"WINDOW_WINDOWS",
-						LogType::LOG_ERROR);
-
-					return nullptr;
-				}
+				return emptyStr;
 			}
 		}
 
 		HMENU hMenu = GetMenu(window);
 		u32 newID = ++globalID;
 
-		if (itemLabelRef.empty())
+		if (labelRef.empty())
 		{
 			HMENU hSubMenu = CreatePopupMenu();
 			AppendMenu(
 				hMenu,
-				MF_POPUP,
+				type == LabelType::LABEL_LEAF ? MF_STRING : MF_POPUP,
 				(UINT_PTR)hSubMenu,
-				ToWide(menuLabelRef).c_str());
+				ToWide(labelRef).c_str());
 		}
 		else
 		{
 			HMENU hSubMenu = FindSubMenu(
 				hMenu,
-				menuLabelRef);
+				labelRef);
 			if (!hSubMenu)
 			{
-				hSubMenu = CreatePopupMenu();
-				AppendMenu(
-					hMenu,
-					MF_POPUP,
-					(UINT_PTR)hSubMenu,
-					ToWide(menuLabelRef).c_str());
-
 				ostringstream oss{};
-				oss << "Created menu label '" << menuLabelRef << "' for item label '" << itemLabelRef
-					<< "' in menu bar on window '" << windowRef->GetTitle() << "' because the menu label did not exist.";
+				oss << "Cannot create " << typeName << " '" << labelRef << "' under parent '" << parentName
+					<< "' in window '" << windowRef->GetTitle() << "' because the parent does not exist!";
 
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
-					LogType::LOG_INFO);
+					LogType::LOG_ERROR);
+
+				return emptyStr;
 			}
 
 			AppendMenu(
 				hSubMenu,
-				MF_STRING,
+				type == LabelType::LABEL_LEAF ? MF_STRING : MF_POPUP,
 				newID,
-				ToWide(itemLabelRef).c_str());
+				ToWide(labelRef).c_str());
 		}
 
 		DrawMenuBar(window);
 
 		unique_ptr<MenuBarEvent> newEvent = make_unique<MenuBarEvent>();
-		newEvent->menuLabel = menuLabelRef;
-		newEvent->itemLabel = itemLabelRef;
+		newEvent->parentLabel = parentRef;
+		newEvent->label = labelRef;
 		newEvent->itemLabelID = newID;
-		newEvent->function = function;
+		if (type == LabelType::LABEL_LEAF) newEvent->function = func;
 
 		createdMenuBarEvents[newID] = move(newEvent);
 
 		MenuBarEvent* storedEvent = createdMenuBarEvents[newID].get();
 		runtimeMenuBarEvents.push_back(storedEvent);
 
-		return storedEvent;
+		return labelRef;
 	}
 
 	void MenuBar::AddSeparator(
 		Window* windowRef,
-		const string& menuLabelRef,
-		const string& itemLabelRef)
+		const string& parentRef,
+		const string& labelRef)
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
 
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to add separator to menu label '" << menuLabelRef << "' on window '" << windowRef->GetTitle()
+			oss << "Failed to add separator to menu label '" << labelRef << "' on window '" << windowRef->GetTitle()
 				<< "' because it has no menu bar!";
 
 			Log::Print(
@@ -1408,19 +1384,20 @@ namespace KalaWindow::Graphics
 
 		for (const auto& e : runtimeMenuBarEvents)
 		{
-			const string& menuLabel = e->menuLabel;
-			if (itemLabelRef.empty())
+			const string& parent = e->parentLabel;
+			const string& label = e->label;
+			if (label.empty())
 			{
-				if (menuLabel == menuLabelRef)
+				if (parent == parentRef)
 				{
 					HMENU hSubMenu = FindSubMenu(
 						hMenu,
-						menuLabel);
+						parentRef);
 					if (!hSubMenu)
 					{
 						ostringstream oss{};
-						oss << "Failed to add separator at the end of menu label '" << menuLabelRef
-							<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the menu label does not exist!";
+						oss << "Failed to add separator at the end of parent '" << parentRef
+							<< "' in window '" << windowRef->GetTitle() << "' because the parent does not exist!";
 
 						Log::Print(
 							oss.str(),
@@ -1443,19 +1420,17 @@ namespace KalaWindow::Graphics
 			}
 			else
 			{
-				const string& itemLabel = e->itemLabel;
-
-				if (menuLabel == menuLabelRef
-					&& itemLabel == itemLabelRef)
+				if (parent == parentRef
+					&& label == labelRef)
 				{
 					HMENU hSubMenu = FindSubMenu(
 						hMenu,
-						menuLabel);
+						parentRef);
 					if (!hSubMenu)
 					{
 						ostringstream oss{};
-						oss << "Failed to add separator under menu label '" << menuLabelRef << "' after item label '" << itemLabelRef
-							<< "' to menu bar on window '" << windowRef->GetTitle() << "' because the item label does not exist!";
+						oss << "Failed to add separator under parent '" << parentRef << "' after label '" << labelRef
+							<< "' in window '" << windowRef->GetTitle() << "' because the label does not exist!";
 
 						Log::Print(
 							oss.str(),
@@ -1476,7 +1451,7 @@ namespace KalaWindow::Graphics
 							MAX_LABEL_LENGTH + 1,
 							MF_BYPOSITION);
 
-						if (ToWide(itemLabelRef) == buffer)
+						if (ToWide(labelRef) == buffer)
 						{
 							InsertMenuW(
 								hSubMenu,
@@ -1496,8 +1471,8 @@ namespace KalaWindow::Graphics
 		}
 
 		ostringstream oss{};
-		oss << "Failed to add separator at the end of menu label '" << menuLabelRef << "' or after item label '" << itemLabelRef
-			<< "' on window '" + windowRef->GetTitle() + "' because menu label or item label does not exist!";
+		oss << "Failed to add separator at the end of parent '" << parentRef << "' or after label '" << labelRef
+			<< "' in window '" + windowRef->GetTitle() + "' because parent or label does not exist!";
 
 		Log::Print(
 			oss.str(),

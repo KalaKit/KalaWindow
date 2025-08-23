@@ -49,7 +49,7 @@ using KalaWindow::Core::runtimeMenuBarEvents;
 using std::string;
 using std::to_string;
 using std::vector;
-using std::stringstream;
+using std::ostringstream;
 using std::hex;
 using std::dec;
 using std::function;
@@ -712,9 +712,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 
 	//
-	// MENU BAR EVENT
+	// MENU BAR EVENTS
 	//
 
+	//leaf was clicked
 	case WM_COMMAND:
 	{
 		u32 IDRef = LOWORD(msg.wParam);
@@ -730,9 +731,14 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 					return true;
 				}
 			}
+
+			Log::Print(
+				"Did not find leaf event with ID '" + to_string(IDRef) + "'.",
+				"MESSAGELOOP",
+				LogType::LOG_DEBUG);
 		}
 
-		return true;
+		return false;
 	}
 
 	//
