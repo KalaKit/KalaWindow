@@ -534,6 +534,10 @@ namespace KalaWindow::Graphics
 		}
 		else
 		{
+			if (oldPos == vec2()) oldPos = vec2(100.0f, 100.0f);
+			if (oldSize == vec2()) oldSize = vec2(800.0f, 600.0f);
+			if (oldStyle == 0) oldStyle = 0b11111; //enable all flags
+
 			//rebuild style from saved flags
 
 			LONG style = GetWindowLong(window, GWL_STYLE);
