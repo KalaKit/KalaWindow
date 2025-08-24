@@ -100,7 +100,7 @@ namespace KalaWindow::Graphics
 			{
 				ostringstream oss{};
 				oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
-					<< "' but KalaWindow requires Windows '10' build '17763' or higher!";
+					<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
 
 				KalaWindowCore::ForceClose(
 					"Windows version out of date",
@@ -110,7 +110,7 @@ namespace KalaWindow::Graphics
 			}
 
 			Log::Print(
-				"Windows version: " + osVersion + " build " + buildVersion,
+				"Windows version '" + osVersion + "' build '" + buildVersion + "'",
 				"WINDOW_WINDOWS",
 				LogType::LOG_INFO);
 
@@ -351,6 +351,8 @@ namespace KalaWindow::Graphics
 		case DWMWCP_ROUND:      return WindowRounding::ROUNDING_ROUND;
 		case DWMWCP_ROUNDSMALL: return WindowRounding::ROUNDING_ROUND_SMALL;
 		}
+
+		return WindowRounding::ROUNDING_NONE;
 	}
 
 	void Window::SetClientRectSize(vec2 newSize) const

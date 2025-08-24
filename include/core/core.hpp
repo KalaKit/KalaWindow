@@ -64,8 +64,9 @@ namespace KalaWindow::Core
 			PopupAction action,
 			PopupType type);
 
-		//Returns Windows version as xxyyyyy format,
-		//where XX is windows version and YYYYY is build version
+		//Returns Windows version as xxyyyyyy format,
+		//where XX is windows version and YYYYYY is build version.
+		//Six digits are reserved for build numbers, so builds are 0yyyyy mostly
 		static u32 GetVersion();
 
 		//Use this when you absolutely need a hard crash at this very moment.

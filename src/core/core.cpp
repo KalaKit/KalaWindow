@@ -90,7 +90,7 @@ namespace KalaWindow::Core
 			major = 11;
 		}
 
-		return major * 100000 + build;
+		return major * 1000000 + build;
 #elif __linux__
 		return 0;
 #endif
