@@ -262,6 +262,8 @@ namespace KalaWindow::Graphics
 		void SetIcon(const string& iconPath) const;
 		//Returns icon ID (Texture object ID)
 		u32 GetIcon() const { return iconID; }
+		//Clears the current executable icon
+		void ClearIcon() const;
 
 		//Set overlay icon and optional tooltip. Loaded via the texture framework.
 		//The overlay icon is shown in the task bar in the bottom right corner of the exe icon,

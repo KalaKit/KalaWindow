@@ -325,6 +325,22 @@ namespace KalaWindow::Graphics
 
 		DestroyIcon(hIcon);
 	}
+	void Window::ClearIcon() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		SendMessage(
+			window,
+			WM_SETICON,
+			ICON_BIG, //task bar + alt tab
+			(LPARAM)nullptr);
+
+		SendMessage(
+			window,
+			WM_SETICON,
+			ICON_SMALL, //title bar + window border
+			(LPARAM)nullptr);
+	}
 
 	void Window::SetTaskbarOverlayIcon(
 		const string& iconPath,
