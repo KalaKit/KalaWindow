@@ -691,6 +691,41 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		window->TriggerRedraw();
 		return true;
 	}
+	//scale correctly when going to other monitor
+	case WM_DPICHANGED:
+	{
+		UINT dpiX = LOWORD(msg.wParam);
+		UINT dpiY = HIWORD(msg.wParam);
+
+		RECT* suggestedRect = reinterpret_cast<RECT*>(msg.lParam);
+
+		//resize window to suggestedRect
+		SetWindowPos(
+			ToVar<HWND>(window->GetWindowData().hwnd),
+			nullptr,
+			suggestedRect->left,
+			suggestedRect->top,
+			suggestedRect->right - suggestedRect->left,
+			suggestedRect->bottom - suggestedRect->top,
+			SWP_NOZORDER
+			| SWP_NOACTIVATE);
+
+		if (Renderer_OpenGL::IsInitialized())
+		{
+			vec2 framebufferSize = window->GetFramebufferSize();
+
+			glViewport(
+				0,
+				0,
+				framebufferSize.x,
+				framebufferSize.y);
+		}
+
+		window->TriggerResize();
+		window->TriggerRedraw();
+
+		return true;
+	}
 
 	//
 	// CAP MIN AND MAX WINDOW SIZE

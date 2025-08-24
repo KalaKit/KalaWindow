@@ -16,6 +16,8 @@
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 #include <ShlObj.h>
+#include <dwmapi.h>
+#pragma comment(lib, "dwmapi.lib")
 #include <algorithm>
 #include <functional>
 #include <memory>
@@ -68,6 +70,8 @@ using std::ostringstream;
 using std::wstring;
 using std::string;
 
+static bool checkedOSVersion = false;
+constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
 constexpr u16 MAX_TITLE_LENGTH = 512;
 constexpr u8 MAX_LABEL_LENGTH = 64;
 
@@ -85,6 +89,34 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size)
 	{
+		if (!checkedOSVersion)
+		{
+			u32 version = KalaWindowCore::GetVersion();
+			string versionStr = to_string(version);
+			string osVersion = versionStr.substr(0, 2);
+			string buildVersion = to_string(stoi(versionStr.substr(2)));
+
+			if (version < MIN_OS_VERSION)
+			{
+				ostringstream oss{};
+				oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
+					<< "' but KalaWindow requires Windows '10' build '17763' or higher!";
+
+				KalaWindowCore::ForceClose(
+					"Windows version out of date",
+					oss.str());
+
+				return nullptr;
+			}
+
+			Log::Print(
+				"Windows version: " + osVersion + " build " + buildVersion,
+				"WINDOW_WINDOWS",
+				LogType::LOG_INFO);
+
+			checkedOSVersion = true;
+		}
+
 		Log::Print(
 			"Creating window '" + title + "'.",
 			"WINDOW_WINDOWS",
@@ -177,6 +209,10 @@ namespace KalaWindow::Graphics
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
 
+		//set window to be DPI-aware per window
+		SetProcessDpiAwarenessContext(
+			DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+
 		u32 newID = ++globalID;
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
@@ -248,6 +284,73 @@ namespace KalaWindow::Graphics
 
 		title.resize(wcslen(title.c_str()));
 		return ToShort(title);
+	}
+
+	void Window::SetWindowRounding(WindowRounding roundState) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		DWM_WINDOW_CORNER_PREFERENCE pref{};
+
+		switch (roundState)
+		{
+		case WindowRounding::ROUNDING_DEFAULT:
+			pref = DWMWCP_DEFAULT;
+			break;
+		case WindowRounding::ROUNDING_NONE:
+			pref = DWMWCP_DONOTROUND;
+			break;
+		case WindowRounding::ROUNDING_ROUND:
+			pref = DWMWCP_ROUND;
+			break;
+		case WindowRounding::ROUNDING_ROUND_SMALL:
+			pref = DWMWCP_ROUNDSMALL;
+			break;
+		}
+
+		HRESULT hr = DwmSetWindowAttribute(
+			window,
+			DWMWA_WINDOW_CORNER_PREFERENCE,
+			&pref,
+			sizeof(pref));
+
+		if (FAILED(hr))
+		{
+			Log::Print(
+				"Failed to set window rounding preference! This feature is not supported on Windows 10.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+		}
+	}
+	WindowRounding Window::GetWindowRoundingState() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		DWM_WINDOW_CORNER_PREFERENCE pref{};
+
+		HRESULT hr = DwmGetWindowAttribute(
+			window,
+			DWMWA_WINDOW_CORNER_PREFERENCE,
+			&pref,
+			sizeof(pref));
+
+		if (FAILED(hr))
+		{
+			Log::Print(
+				"Failed to get window rounding preference! This feature is not supported on Windows 10.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return WindowRounding::ROUNDING_NONE;
+		}
+
+		switch (pref)
+		{
+		case DWMWCP_DEFAULT:    return WindowRounding::ROUNDING_DEFAULT;
+		case DWMWCP_DONOTROUND: return WindowRounding::ROUNDING_NONE;
+		case DWMWCP_ROUND:      return WindowRounding::ROUNDING_ROUND;
+		case DWMWCP_ROUNDSMALL: return WindowRounding::ROUNDING_ROUND_SMALL;
+		}
 	}
 
 	void Window::SetClientRectSize(vec2 newSize) const
@@ -1107,8 +1210,7 @@ namespace KalaWindow::Graphics
 		DrawMenuBar(window);
 
 		ostringstream oss{};
-		oss << "Created new menu bar "
-			<< "' in window '" << windowRef->GetTitle() << "!";
+		oss << "Created new menu bar in window '" << windowRef->GetTitle() << "'!";
 
 		Log::Print(
 			oss.str(),
@@ -1132,7 +1234,7 @@ namespace KalaWindow::Graphics
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to call menu bar event on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+			oss << "Failed to call menu bar event in window '" << windowRef->GetTitle() << "' because it has no menu bar!";
 
 			Log::Print(
 				oss.str(),
@@ -1146,7 +1248,7 @@ namespace KalaWindow::Graphics
 		{
 			ostringstream oss{};
 			oss << "Failed to call menu bar event by label '" << labelRef << "' or parent label '" << parentRef
-				<< "' on window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
+				<< "' in window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
 
 			Log::Print(
 				oss.str(),
@@ -1167,7 +1269,7 @@ namespace KalaWindow::Graphics
 			{
 				ostringstream oss{};
 				oss << "Ran function attached to label '" << label
-					<< "' in window '" << windowRef->GetTitle() << "!";
+					<< "' in window '" << windowRef->GetTitle() << "'!";
 
 				Log::Print(
 					oss.str(),
@@ -1182,7 +1284,7 @@ namespace KalaWindow::Graphics
 
 		ostringstream oss{};
 		oss << "Failed to call menu bar event by label '" << labelRef
-			<< "' on window '" + windowRef->GetTitle() + "' because the event does not exist!";
+			<< "' in window '" + windowRef->GetTitle() + "' because the event does not exist!";
 
 		Log::Print(
 			oss.str(),
@@ -1198,7 +1300,7 @@ namespace KalaWindow::Graphics
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to call menu bar event on window '" << windowRef->GetTitle() << "' because it has no menu bar!";
+			oss << "Failed to call menu bar event in window '" << windowRef->GetTitle() << "' because it has no menu bar!";
 
 			Log::Print(
 				oss.str(),
@@ -1212,7 +1314,7 @@ namespace KalaWindow::Graphics
 		{
 			ostringstream oss{};
 			oss << "Failed to call menu bar event by ID '" << to_string(IDRef) 
-				<< "' on window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
+				<< "' in window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
 
 			Log::Print(
 				oss.str(),
@@ -1229,7 +1331,7 @@ namespace KalaWindow::Graphics
 			{
 				ostringstream oss{};
 				oss << "Ran function attached to ID '" << to_string(IDRef)
-					<< "' in window '" << windowRef->GetTitle() << "!";
+					<< "' in window '" << windowRef->GetTitle() << "'!";
 
 				Log::Print(
 					oss.str(),
@@ -1244,7 +1346,7 @@ namespace KalaWindow::Graphics
 
 		ostringstream oss{};
 		oss << "Failed to call menu bar event by ID '" << to_string(IDRef)
-			<< "' on window '" + windowRef->GetTitle() + "' because the event does not exist!";
+			<< "' in window '" + windowRef->GetTitle() + "' because the event does not exist!";
 
 		Log::Print(
 			oss.str(),
@@ -1306,31 +1408,14 @@ namespace KalaWindow::Graphics
 
 			return;
 		}
-		if (parentRef.length() > MAX_LABEL_LENGTH)
-		{
-			ostringstream oss{};
-			oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentRef
-				<< "' in window '" << windowRef->GetTitle() << "' because the parent label length '"
-				<< parentRef.length() << "' is too long! You can only use label length up to '"
-				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
-
-			Log::Print(
-				oss.str(),
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
-
-			return;
-		}
 
 		//leaf requires valid function
 		if (type == LabelType::LABEL_LEAF
 			&& func == nullptr)
 		{
 			ostringstream oss{};
-			oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentRef
-				<< "' in window '" << windowRef->GetTitle() << "' because the parent label length '"
-				<< parentRef.length() << "' is too long! You can only use label length up to '"
-				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
+			oss << "Failed to add leaf '" << labelRef << "' under parent '" << parentRef
+				<< "' in window '" << windowRef->GetTitle() << "' because the leaf has an empty function!";
 
 			Log::Print(
 				oss.str(),
@@ -1350,7 +1435,7 @@ namespace KalaWindow::Graphics
 					&& e->labelID != 0)
 				{
 					ostringstream oss{};
-					oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentRef
+					oss << "Failed to add leaf '" << labelRef << "' under parent '" << parentRef
 						<< "' in window '" << windowRef->GetTitle() << "' because the parent is also a leaf!";
 
 					Log::Print(
@@ -1437,7 +1522,7 @@ namespace KalaWindow::Graphics
 				ostringstream oss{};
 				oss << "Added " << typeName << " '" << labelRef << "' with ID '" << to_string(newID)
 					<< "' under parent '" << parentName
-					<< "' in window '" << windowRef->GetTitle() << "!";
+					<< "' in window '" << windowRef->GetTitle() << "'!";
 
 				Log::Print(
 					oss.str(),
@@ -1462,7 +1547,7 @@ namespace KalaWindow::Graphics
 			if (!parentMenu)
 			{
 				ostringstream oss{};
-				oss << "Cannot create " << typeName << " '" << labelRef << "' under parent '" << parentName
+				oss << "Failed to create " << typeName << " '" << labelRef << "' under parent '" << parentName
 					<< "' in window '" << windowRef->GetTitle() << "' because the parent does not exist!";
 
 				Log::Print(
@@ -1494,7 +1579,7 @@ namespace KalaWindow::Graphics
 		if (!HasMenuBar(windowRef))
 		{
 			ostringstream oss{};
-			oss << "Failed to add separator to menu label '" << labelRef << "' on window '" << windowRef->GetTitle()
+			oss << "Failed to add separator to menu label '" << labelRef << "' in window '" << windowRef->GetTitle()
 				<< "' because it has no menu bar!";
 
 			Log::Print(
@@ -1608,7 +1693,7 @@ namespace KalaWindow::Graphics
 								nullptr);
 
 							Log::Print(
-								"Placed separator after label '" + labelRef + "' to window window '" + windowRef->GetTitle() + "'!",
+								"Placed separator after label '" + labelRef + "' in window '" + windowRef->GetTitle() + "'!",
 								"WINDOW_WINDOWS",
 								LogType::LOG_SUCCESS);
 
@@ -1645,8 +1730,7 @@ namespace KalaWindow::Graphics
 		DestroyMenu(hMenu);
 
 		ostringstream oss{};
-		oss << "Destroyed menu bar "
-			<< "' in window '" << windowRef->GetTitle() << "!";
+		oss << "Destroyed menu bar in window '" << windowRef->GetTitle() << "'!";
 
 		Log::Print(
 			oss.str(),

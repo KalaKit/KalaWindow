@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_types.hpp"
 
 namespace KalaWindow::Core
 {
@@ -62,6 +63,10 @@ namespace KalaWindow::Core
 			const string& message,
 			PopupAction action,
 			PopupType type);
+
+		//Returns Windows version as xxyyyyy format,
+		//where XX is windows version and YYYYY is build version
+		static u32 GetVersion();
 
 		//Use this when you absolutely need a hard crash at this very moment.
 		//Aborts and doesn't clean up data.

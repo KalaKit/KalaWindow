@@ -11,6 +11,7 @@
 #endif
 
 #include <functional>
+#include <cstdint>
 
 #include "core/core.hpp"
 #include "graphics/window.hpp"
@@ -42,6 +43,60 @@ static function<void()> userRegularShutdown;
 
 namespace KalaWindow::Core
 {
+	u32 KalaWindowCore::GetVersion()
+	{
+#ifdef WIN32
+		string title = "Window version check fail";
+
+		typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+
+		HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
+		if (!hMod)
+		{
+			ForceClose(
+				title,
+				"Failed to get 'ntdll.dll'");
+
+			return 0;
+		}
+
+		auto pRtlGetVersion = (RtlGetVersionPtr)GetProcAddress(hMod, "RtlGetVersion");
+		if (!pRtlGetVersion)
+		{
+			ForceClose(
+				title,
+				"Failed to resolve address of 'RtlGetVersion'");
+
+			return 0;
+		}
+
+		RTL_OSVERSIONINFOW rovi = { sizeof(rovi) };
+		if (pRtlGetVersion(&rovi) != 0)
+		{
+			ForceClose(
+				title,
+				"Call to 'RtlGetVersion' failed");
+
+			return 0;
+		}
+
+		u32 major = rovi.dwMajorVersion;
+		u32 build = rovi.dwBuildNumber;
+
+		//Windows 11 reports as 10.0  but build >= 22000
+		if (major == 10
+			&& build >= 22000)
+		{
+			major = 11;
+		}
+
+		return major * 100000 + build;
+#elif __linux__
+		return 0;
+#endif
+		return 0;
+	}
+
 	PopupResult KalaWindowCore::CreatePopup(
 		const string& title,
 		const string& message,

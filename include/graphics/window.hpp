@@ -57,6 +57,14 @@ namespace KalaWindow::Graphics
 		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
 	};
 
+	enum class WindowRounding
+	{
+		ROUNDING_DEFAULT,    //system default (usually ROUNDING_ROUND in Win11)
+		ROUNDING_NONE,       //sharp corners
+		ROUNDING_ROUND,      //rounded regular radius
+		ROUNDING_ROUND_SMALL //rounded but smaller radius
+	};
+
 	enum class LabelType
 	{
 		LABEL_LEAF,  //Clickable with required function, can't have children
@@ -250,6 +258,10 @@ namespace KalaWindow::Graphics
 
 		u32 GetID() const { return ID; }
 
+		//Set Windows window rounding state. Has no effect in Linux.
+		void SetWindowRounding(WindowRounding roundState) const;
+		WindowRounding GetWindowRoundingState() const;
+
 		//Set logical window size (client area, in DPI-independent units)
 		void SetClientRectSize(vec2 newSize) const;
 		vec2 GetClientRectSize() const;
@@ -307,7 +319,7 @@ namespace KalaWindow::Graphics
 		void SetMaximizeButtonState(bool state) const;
 		bool IsMaximizeButtonEnabled() const;
 
-		//If true, then this window has a functional and visible close button.
+		//If true, then this window has a functional close button.
 		//Close button won't be grayed out or won't stop rendering due to Windows limits
 		void SetCloseButtonState(bool state) const;
 		bool IsCloseButtonEnabled() const;
@@ -413,7 +425,7 @@ namespace KalaWindow::Graphics
 	};
 
 	//Windows-only native menu bar. All leaf and and branch interactions are handled by the message loop.
-	//Attach a function in CreateLabel for leaves, leave empoty for functions so that the message loop
+	//Attach a function in CreateLabel for leaves, leave empty for functions so that the message loop
 	//calls your function so that the menu bar interactions call your chosen functions.
 	class LIB_API MenuBar
 	{
