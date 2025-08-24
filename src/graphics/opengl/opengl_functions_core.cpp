@@ -109,8 +109,19 @@ CoreGLFunction functions[] =
     { "glGenerateMipmap", reinterpret_cast<void**>(&glGenerateMipmap) },
     { "glGenTextures",    reinterpret_cast<void**>(&glGenTextures) },
     { "glTexImage2D",     reinterpret_cast<void**>(&glTexImage2D) },
-    { "glTexParameteri",  reinterpret_cast<void**>(&glTexParameteri) },
+    { "glTexImage3D",     reinterpret_cast<void**>(&glTexImage3D) },
+    { "glCompressedTexImage2D", reinterpret_cast<void**>(&glCompressedTexImage2D) },
+    { "glCompressedTexImage3D", reinterpret_cast<void**>(&glCompressedTexImage3D) },
+    { "glTexStorage2D",   reinterpret_cast<void**>(&glTexStorage2D) },
+    { "glTexStorage3D",   reinterpret_cast<void**>(&glTexStorage3D) },
     { "glTexSubImage2D",  reinterpret_cast<void**>(&glTexSubImage2D) },
+    { "glTexSubImage3D",  reinterpret_cast<void**>(&glTexSubImage3D) },
+    { "glCompressedTexSubImage2D",  reinterpret_cast<void**>(&glCompressedTexSubImage2D) },
+    { "glCompressedTexSubImage3D",  reinterpret_cast<void**>(&glCompressedTexSubImage3D) },
+    { "glTexParameteri",  reinterpret_cast<void**>(&glTexParameteri) },
+    { "glTexParameteriv", reinterpret_cast<void**>(&glTexParameteriv) },
+    { "glTexParameterf",  reinterpret_cast<void**>(&glTexParameterf) },
+    { "glTexParameterfv", reinterpret_cast<void**>(&glTexParameterfv) },
 
     //
     // FRAMEBUFFERS AND RENDERBUFFERS
@@ -135,6 +146,7 @@ CoreGLFunction functions[] =
     { "glGetError",    reinterpret_cast<void**>(&glGetError) },
     { "glGetIntegerv", reinterpret_cast<void**>(&glGetIntegerv) },
     { "glGetString",   reinterpret_cast<void**>(&glGetString) },
+    { "glGetStringi",   reinterpret_cast<void**>(&glGetStringi) },
     { "glViewport",    reinterpret_cast<void**>(&glViewport) }
 };
 
@@ -279,8 +291,19 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLGENERATEMIPMAPPROC  glGenerateMipmap  = nullptr;
     PFNGLGENTEXTURESPROC     glGenTextures     = nullptr;
     PFNGLTEXIMAGE2DPROC      glTexImage2D      = nullptr;
-    PFNGLTEXPARAMETERIPROC   glTexParameteri   = nullptr;
+    PFNGLTEXIMAGE3DPROC      glTexImage3D      = nullptr;
+    PFNGLCOMPRESSEDTEXIMAGE2DPROC glCompressedTexImage2D = nullptr;
+    PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D = nullptr;
+    PFNGLTEXSTORAGE2DPROC    glTexStorage2D    = nullptr;
+    PFNGLTEXSTORAGE3DPROC    glTexStorage3D    = nullptr;
     PFNGLTEXSUBIMAGE2DPROC   glTexSubImage2D   = nullptr;
+    PFNGLTEXSUBIMAGE3DPROC   glTexSubImage3D   = nullptr;
+    PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC glCompressedTexSubImage2D = nullptr;
+    PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC glCompressedTexSubImage3D = nullptr;
+    PFNGLTEXPARAMETERIPROC   glTexParameteri   = nullptr;
+    PFNGLTEXPARAMETERIVPROC  glTexParameteriv  = nullptr;
+    PFNGLTEXPARAMETERFPROC   glTexParameterf   = nullptr;
+    PFNGLTEXPARAMETERFVPROC  glTexParameterfv  = nullptr;
 
     //
     // FRAMEBUFFERS AND RENDERBUFFERS
@@ -305,6 +328,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLGETERRORPROC     glGetError     = nullptr;
     PFNGLGETINTEGERVPROC  glGetIntegerv  = nullptr;
     PFNGLGETSTRINGPROC    glGetString    = nullptr;
+    PFNGLGETSTRINGIPROC   glGetStringi   = nullptr;
     PFNGLVIEWPORTPROC     glViewport     = nullptr;
 
 	void OpenGL_Functions_Core::LoadAllCoreFunctions()

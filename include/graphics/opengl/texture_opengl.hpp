@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "KalaHeaders/api.hpp"
 #include "KalaHeaders/core_types.hpp"
 
@@ -13,27 +15,54 @@
 
 namespace KalaWindow::Graphics::OpenGL
 {
+	using std::array;
+
 	class LIB_API Texture_OpenGL : public Texture
 	{
 	public:
+		//Load a new texture from an external file.
+		//Depth is always clamped to 1 for Type_2D and Type_Cube.
+		//Depth is a power of 4 for Type_2DArray and Type_3D
+		//and is clamped internally from 256 to 8192.
+		//Mipmap levels are clamped internally through Texture::GetMaxMipMapLevels.
+		//Returns a fallback texture if loading fails.
 		static Texture_OpenGL* LoadTexture(
 			const string& name,
 			const string& path,
 			TextureType type,
 			TextureFormat format,
 			TextureUsage usage,
-			vec2 size = vec2(0),
+			bool flipVertically = false,
 			u16 depth = 1,
 			u8 mipMapLevels = 1);
+
+
+		//Uses the data from six existing textures to create a new cubemap texture
+		static Texture_OpenGL* CreateCubeMapTexture(
+			const string& name,
+			const array<Texture*, 6>& textures,
+			u8 mipMapLevels = 1);
+
+		//Returns the fallback texture,
+		//used when a texture fails to load through Texture_OpenGL::LoadTexture
+		static Texture_OpenGL* GetFallbackTexture();
+
+		virtual void Rescale(
+			vec2 newSize,
+			TextureResizeType type = TextureResizeType::RESIZE_SRGB) override;
 
 		virtual void HotReload() override;
 
 		u32 GetOpenGLID() const { return openGLID; }
-		void SetOpenGLID(u32 newID) { openGLID = newID; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Texture_OpenGL() override;
 	private:
+		//Called once internally when any texture is created,
+		//used when a texture fails to load through Texture_OpenGL::LoadTexture.
+		//Do not call manually, this has no effect for regular texture functionality.
+		static void LoadFallbackTexture();
+
 		u32 openGLID{};
 	};
 }

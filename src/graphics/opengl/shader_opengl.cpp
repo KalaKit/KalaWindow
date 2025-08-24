@@ -8,6 +8,7 @@
 #include <sstream>
 #include <filesystem>
 #include <vector>
+#include <memory>
 
 #include "KalaHeaders/logging.hpp"
 
@@ -35,6 +36,7 @@ using std::string;
 using std::to_string;
 using std::ifstream;
 using std::stringstream;
+using std::unique_ptr;
 using std::make_unique;
 using std::filesystem::exists;
 using std::filesystem::path;
@@ -563,54 +565,28 @@ namespace KalaWindow::Graphics::OpenGL
                 "SHADER_OPENGL",
                 LogType::LOG_DEBUG);
         }
-
-        {
-            GLenum e;
-            while ((e = glGetError()) != GL_NO_ERROR) 
-            {
-                // discard
-            }
-        }
 #endif
 
         glUseProgram(ID);
 
 #ifdef _DEBUG
-        GLenum err = glGetError();
         i32 activeProgram = 0;
         glGetIntegerv(
             GL_CURRENT_PROGRAM,
             &activeProgram);
 
-        bool programMisMatch = activeProgram != (i32)ID;
-        bool hasError = err != GL_NO_ERROR;
-
-        if (programMisMatch
-            || hasError)
+        if (activeProgram != (i32)ID)
         {
-            if (hasError)
-            {
-                u32 errInt = static_cast<u32>(err);
-                const char* errorMsg = Renderer_OpenGL::GetGLErrorString(errInt);
-
-                Log::Print(
-                    "glUseProgram error: " + string(errorMsg),
-                    "SHADER_OPENGL",
-                    LogType::LOG_ERROR,
-                    2);
-            }
-
-            if (activeProgram != (i32)ID)
-            {
-                Log::Print(
-                    "OpenGL shader bind failed! Program ID not bound after glUseProgram." +
-                    string("Expected ID: '") + to_string(ID) + "', but got: '" + to_string(activeProgram) + "'.",
-                    "SHADER_OPENGL",
-                    LogType::LOG_ERROR,
-                    2);
-                return false;
-            }
+            Log::Print(
+                "OpenGL shader bind failed! Program ID not bound after glUseProgram." +
+                string("Expected ID: '") + to_string(ID) + "', but got: '" + to_string(activeProgram) + "'.",
+                "SHADER_OPENGL",
+                LogType::LOG_ERROR,
+                2);
+            return false;
         }
+
+        Renderer_OpenGL::GetError("shader '" + name + "' bind");
 #endif
 
         lastProgramID = ID;

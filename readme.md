@@ -89,7 +89,7 @@ These libraries are used by KalaWindow for various purposes, their licenses are 
 | Library                                                              | Use case                                             |
 |----------------------------------------------------------------------|------------------------------------------------------|
 | [GLM](https://github.com/icaven/glm)                                 | Math library for vectors, matrices, and 3D graphics. |
-| [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h) | Loads image files like PNG and JPEG into memory.     |
+| [stb](https://github.com/nothings/stb)                               | Various image and text editing headers and others.   |
 | [ImGui](https://github.com/ocornut/imgui)                            | Creates debug and editor user interfaces.            |
 | [MiniAudio](https://github.com/mackron/miniaudio)                    | Plays and records audio on multiple platforms.       |
 | [OpenGL headers](https://github.com/KhronosGroup/OpenGL-Registry)    | Headers used for OpenGL functionality                |

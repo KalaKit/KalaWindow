@@ -28,7 +28,7 @@ using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::string;
 using std::to_string;
-using std::stringstream;
+using std::ostringstream;
 
 static bool IsCorrectVersion();
 
@@ -103,7 +103,7 @@ namespace KalaWindow::Graphics::OpenGL
 			"OPENGL_WINDOWS",
 			LogType::LOG_DEBUG);
 
-		stringstream ss{};
+		ostringstream ss{};
 		ss << "Pixel Format Details:\n"
 			<< "  ColorBits   = " << to_string(static_cast<int>(actualPFD.cColorBits)) << "\n"
 			<< "  DepthBits   = " << to_string(static_cast<int>(actualPFD.cDepthBits)) << "\n"
@@ -197,6 +197,31 @@ namespace KalaWindow::Graphics::OpenGL
 		return true;
 	}
 
+	void Renderer_OpenGL::SetVSyncState(VSyncState newVSyncState)
+	{
+		vsyncState = newVSyncState;
+
+		if (wglSwapIntervalEXT)
+		{
+			if (newVSyncState == VSyncState::VSYNC_ON)
+			{
+				wglSwapIntervalEXT(1);
+			}
+			else
+			{
+				wglSwapIntervalEXT(0);
+			}
+		}
+		else
+		{
+			Log::Print(
+				"wglSwapIntervalEXT not supported! VSync setting ignored.",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+		}
+	}
+
 	void Renderer_OpenGL::SwapOpenGLBuffers(Window* targetWindow)
 	{
 		if (!IsInitialized())
@@ -211,6 +236,70 @@ namespace KalaWindow::Graphics::OpenGL
 		const OpenGLData& oData = targetWindow->GetOpenGLData();
 		HDC hdc = ToVar<HDC>(oData.hdc);
 		SwapBuffers(hdc);
+	}
+
+	void Renderer_OpenGL::MakeContextCurrent(Window* window)
+	{
+		const OpenGLData& oData = window->GetOpenGLData();
+
+		if (oData.hdc == 0)
+		{
+			string title = "OpenGL Error";
+			string reason = "Failed to get HDC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
+			KalaWindowCore::ForceClose(title, reason);
+			return;
+		}
+		HDC hdc = ToVar<HDC>(oData.hdc);
+
+		if (oData.hglrc == 0)
+		{
+			string title = "OpenGL Error";
+			string reason = "Failed to get HGLRC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
+			KalaWindowCore::ForceClose(title, reason);
+			return;
+		}
+		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
+
+		if (!wglMakeCurrent(hdc, hglrc))
+		{
+			DWORD err = GetLastError();
+			KalaWindowCore::ForceClose(
+				"OpenGL Error",
+				"wglMakeCurrent failed with error: " + to_string(err));
+		}
+	}
+
+	bool Renderer_OpenGL::IsContextValid(Window* targetWindow)
+	{
+		const OpenGLData& oData = targetWindow->GetOpenGLData();
+
+		if (oData.hglrc == 0)
+		{
+			string title = "OpenGL Error";
+			string reason = "Failed to get HGLRC for window '" + targetWindow->GetTitle() + "' during 'IsContextValid' stage!";
+			KalaWindowCore::ForceClose(title, reason);
+			return false;
+		}
+		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
+
+		HGLRC current = wglGetCurrentContext();
+		if (current == nullptr)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL Error",
+				"Current OpenGL context is null!");
+			return false;
+		}
+
+		if (current != hglrc)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL Error",
+				"Current OpenGL context does not match stored context!");
+			return false;
+		}
+
+		return true;
 	}
 }
 

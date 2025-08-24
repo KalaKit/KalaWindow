@@ -12,6 +12,8 @@
 
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
+	using std::string;
+
 	//
 	// DEBUGGING
 	//
@@ -201,14 +203,50 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// Generates texture object names
 	LIB_API extern PFNGLGENTEXTURESPROC glGenTextures;
 
-	// Specifies a two-dimensional texture image
+	// Generates texture object names
+	LIB_API extern PFNGLGENTEXTURESPROC glGenTextures;
+
+	// Specifies a 2D texture image
 	LIB_API extern PFNGLTEXIMAGE2DPROC glTexImage2D;
 
-	// Sets texture parameters for the currently bound texture
+	// Specifies a 3D texture image
+	LIB_API extern PFNGLTEXIMAGE3DPROC glTexImage3D;
+
+	// Specifies a compressed 2D texture image
+	LIB_API extern PFNGLCOMPRESSEDTEXIMAGE2DPROC glCompressedTexImage2D;
+
+	// Specifies a compressed 3D or array texture image
+	LIB_API extern PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D;
+
+	// Allocates immutable storage for a 2D texture or cube map (all mip levels)
+	LIB_API extern PFNGLTEXSTORAGE2DPROC glTexStorage2D;
+
+	// Allocates immutable storage for a 3D texture or 2D texture array (all mip levels)
+	LIB_API extern PFNGLTEXSTORAGE3DPROC glTexStorage3D;
+
+	// Specifies a subregion of a 2D texture image (upload pixels into an allocated level)
+	LIB_API extern PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
+
+	// Specifies a subregion of a 3D or array texture image (upload pixels into an allocated level)
+	LIB_API extern PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
+
+	// Specifies a subregion of a compressed 2D texture image (upload compressed blocks into an allocated level)
+	LIB_API extern PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC glCompressedTexSubImage2D;
+
+	// Specifies a subregion of a compressed 3D or array texture image (upload compressed blocks into an allocated level)
+	LIB_API extern PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC glCompressedTexSubImage3D;
+
+	// Sets integer texture parameters for the currently bound texture
 	LIB_API extern PFNGLTEXPARAMETERIPROC glTexParameteri;
 
-	// Specifies a subregion of an existing 2D texture image
-	LIB_API extern PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
+	// Sets integer/vector texture parameters for the currently bound texture
+	LIB_API extern PFNGLTEXPARAMETERIVPROC glTexParameteriv;
+
+	// Sets float texture parameters for the currently bound texture
+	LIB_API extern PFNGLTEXPARAMETERFPROC glTexParameterf;
+
+	// Sets float/vector texture parameters for the currently bound texture
+	LIB_API extern PFNGLTEXPARAMETERFVPROC glTexParameterfv;
 
 	//
 	// FRAMEBUFFERS AND RENDERBUFFERS
@@ -259,6 +297,9 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 
 	// Returns a string describing the current GL connection
 	LIB_API extern PFNGLGETSTRINGPROC glGetString;
+
+	// Returns a string extension for the given index
+	LIB_API extern PFNGLGETSTRINGIPROC glGetStringi;
 
 	// Sets the viewport transformation dimensions
 	LIB_API extern PFNGLVIEWPORTPROC glViewport;

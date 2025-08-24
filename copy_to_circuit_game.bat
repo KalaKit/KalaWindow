@@ -8,7 +8,7 @@ set "RELEASE_TARGET=..\circuit_game\_external_shared\KalaWindow\release"
 
 set "INCLUDE_ORIGIN=include"
 set "GLM_ORIGIN=_external_shared\glm"
-set "STB_IMAGE_ORIGIN=_external_shared\stb_image"
+set "STB_ORIGIN=_external_shared\stb"
 set "IMGUI_ORIGIN=_external_shared\imgui"
 set "MINIAUDIO_ORIGIN=_external_shared\miniaudio"
 set "OPENGL_ORIGIN=_external_shared\OpenGL"
@@ -32,7 +32,7 @@ set "CHANGES_FILE=CHANGES.txt"
 call :CopyFolder "%INCLUDE_ORIGIN%" "%EXTERNAL_TARGET%\KalaWindow\include" "include origin" "yes"
 
 call :CopyFolder "%GLM_ORIGIN%" "%EXTERNAL_TARGET%\glm" "glm"
-call :CopyFolder "%STB_IMAGE_ORIGIN%" "%EXTERNAL_TARGET%\stb_image" "stb_image"
+call :CopyFolder "%STB_ORIGIN%" "%EXTERNAL_TARGET%\stb" "stb"
 call :CopyFolder "%IMGUI_ORIGIN%" "%EXTERNAL_TARGET%\imgui" "imgui"
 call :CopyFolder "%MINIAUDIO_ORIGIN%" "%EXTERNAL_TARGET%\miniaudio" "miniaudio"
 

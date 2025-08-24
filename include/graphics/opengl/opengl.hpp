@@ -5,16 +5,15 @@
 
 #pragma once
 
-#include <memory>
+#include <string>
 
 #include "KalaHeaders/api.hpp"
-#include "KalaHeaders/core_types.hpp"
 
 #include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	using std::unique_ptr;
+	using std::string;
 
 	enum VSyncState
 	{
@@ -25,28 +24,40 @@ namespace KalaWindow::Graphics::OpenGL
 	class LIB_API Renderer_OpenGL
 	{
 	public:
-		/// <summary>
-		/// Initializes OpenGL.
-		/// </summary>
-		static bool Initialize(Window* targetWindow);
+		//
+		// GENERAL OPENGL
+		//
 
 		static bool IsInitialized() { return isInitialized; }
 
-		static const char* GetGLErrorString(unsigned int err);
+		static VSyncState GetVSyncState() { return vsyncState; }
+
+		//Check if this extension is supported by the current context (OpenGL 3.3)
+		static bool IsExtensionSupported(const string& name);
+
+		//Place after any gl call to check if an issue or error has occured within that point.
+		//Loops through all errors so that all errors at that point are printed, not just the first one.
+		static void GetError(const string& context);
+
+		//
+		// OS-SPECIFIC
+		//
+
+		//Initializes OpenGL with version 3.3
+		static bool Initialize(Window* targetWindow);
+
+		//Allows to set vsync true or false.
+		static void SetVSyncState(VSyncState vsyncState);
+
+		//Call at the end of your render loop
+		static void SwapOpenGLBuffers(Window* targetWindow);
 
 		static void MakeContextCurrent(Window* window);
 		static bool IsContextValid(Window* window);
-
-		/// <summary>
-		/// Call at the end of your render loop.
-		/// </summary>
-		static void SwapOpenGLBuffers(Window* targetWindow);
-
-		//Checks if vsync is enabled or not.
-		static VSyncState GetVSyncState();
-		//Allows to set vsync true or false.
-		static void SetVSyncState(VSyncState vsyncState);
 	private:
 		static inline bool isInitialized{};
+
+		//If off, then all framerate is uncapped
+		static inline VSyncState vsyncState = VSyncState::VSYNC_ON;
 	};
 }

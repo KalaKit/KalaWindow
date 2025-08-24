@@ -36,12 +36,16 @@ namespace KalaWindow::Graphics
 	{
 		Format_None = 0,
 
+		Format_Auto, //Auto-assign value (not recommended, can limit usefulness)
+
 		//standard UNORM formats
 
 		Format_R8,
 		Format_RG8,
 		Format_RGB8,
 		Format_RGBA8,
+		Format_SRGB8,
+		Format_SRGB8A8,
 
 		//float formats
 
@@ -55,11 +59,10 @@ namespace KalaWindow::Graphics
 
 		//depth formats
 
-		Format_Depth16,
 		Format_Depth24,
 		Format_Depth32F,
 		Format_Depth24Stencil8,
-		Format_Depth32Stencil8, //Vulkan only
+		Format_Depth32FStencil8,
 
 		//compressed formats
 
@@ -69,7 +72,7 @@ namespace KalaWindow::Graphics
 		Format_BC5, //Two channel (RG)
 
 		//High quality RGBA,
-		//Vulkan only or with 'GL_ARB_texture_compression_bptc' extension on OpenGL
+		//Requires 'GL_ARB_texture_compression_bptc' extension on OpenGL
 		Format_BC7  
 	};
 
@@ -86,11 +89,37 @@ namespace KalaWindow::Graphics
 		Usage_TransferDst   //Copy destination
 	};
 
+	enum class TextureResizeType
+	{
+		//Use for icons, UI textures.
+		//Uses Mitchell filter when shrinking, cubing when enlarging.
+		RESIZE_SRGB,
+
+		//Use for normalmaps, heightmaps, scientific data.
+		//Should not be used for icons or UI textures.
+		//Assumes input is in linear color space (already gamma corrected)
+		RESIZE_LINEAR,
+
+		//Use for resizing HDR textures or floating-point buffers.
+		//Same as linear but for float* pixel buffers.
+		//Texture pixels are internally converted to float and back to u8 when successfully rescaled.
+		RESIZE_LINEAR_FLOAT
+	};
+
 	class LIB_API Texture
 	{
 	public:
+		//Rescale an imported texture with the chosen algorithm type
+		virtual void Rescale(
+			vec2 newSize,
+			TextureResizeType type = TextureResizeType::RESIZE_SRGB) = 0;
+
 		//Rebinds the texture
 		virtual void HotReload() = 0;
+
+		//Calculates maximum reasonable mipmap levels for this texture based on texture size
+		//to prevent wasted VRAM and to avoid GL_INVALID_VALUE error
+		static u8 GetMaxMipMapLevels(vec2 size, u16 depth, u8 mipmapLevels);
 
 		const string& GetName() const { return name; }
 		void SetName(const string& newName)
@@ -110,28 +139,23 @@ namespace KalaWindow::Graphics
 		}
 
 		const string& GetPath() const { return path; }
-		void SetPath(const string& newPath)
-		{
-			if (newPath.empty()
-				|| newPath.size() > 1000)
-			{
-				Log::Print(
-					"Texture path is empty or too big! Must be between 1 and 1000 characters.",
-					"TEXTURE",
-					LogType::LOG_ERROR,
-					2);
-
-				return;
-			}
-			path = newPath;
-		}
 
 		u32 GetID() const { return ID; }
 
 		vec2 GetSize() const { return size; }
 		u16 GetDepth() const { return depth; }
 		u8 GetMipMapLevels() const { return mipMapLevels; }
+
+		void SetPixels(const vector<u8>& newPixels) { pixels = newPixels; }
 		const vector<u8>& GetPixels() const { return pixels; }
+
+		void SetCubePixels(const vector<vector<u8>>& newCubePixels) 
+		{ 
+			if (newCubePixels.size() != 6) return;
+
+			cubePixels = newCubePixels;
+		}
+		const vector<vector<u8>>& GetCubePixels() const { return cubePixels; }
 
 		u32 GetTexelCount() const
 		{
@@ -155,6 +179,7 @@ namespace KalaWindow::Graphics
 		u16 depth = 1;
 		u8 mipMapLevels = 1;
 		vector<u8> pixels{};
+		vector<vector<u8>> cubePixels{};
 
 		TextureType type{};
 		TextureFormat format{};
