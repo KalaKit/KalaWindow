@@ -73,13 +73,30 @@ namespace KalaWindow::Graphics::OpenGL
 
 		TextureCheckResult result = (IsValidTexture(name, path));
 
+		Texture_OpenGL* existingTex{};
+
 		if (result == TextureCheckResult::RESULT_INVALID) return nullptr;
 		else if (result == TextureCheckResult::RESULT_ALREADY_EXISTS)
 		{
 			for (const auto& [key, value] : createdOpenGLTextures)
 			{
-				if (value->GetName() == name) return value.get();
+				if (value->GetName() == name)
+				{
+					existingTex = value.get();
+					break;
+				}
 			}
+
+			if (existingTex != nullptr)
+			{
+				Log::Print(
+					"Returning existing texture '" + name + "'.",
+					"TEXTURE_OPENGL",
+					LogType::LOG_DEBUG);
+
+				return existingTex;
+			}
+			return nullptr;
 		}
 
 		Log::Print(

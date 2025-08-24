@@ -11,7 +11,7 @@
 
 - **Taskbar Integration**  
   - Progress bar in taskbar button (`ITaskbarList3`)  
-  - Overlay icons (status indicators)  
+
   - Flash window (`FlashWindowEx`)  
 
 - **System Tray & Notifications**  
@@ -51,3 +51,6 @@
   - Toggle borders & caption (`WS_CAPTION`, `WS_THICKFRAME`)  
   - Custom draggable hit-test regions (`WM_NCHITTEST`)  
   - System drop shadow (`CS_DROPSHADOW`) - won't be added
+  
+ - **Taskbar Integration**  
+    - Overlay icons (status indicators)  

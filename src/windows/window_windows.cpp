@@ -303,6 +303,16 @@ namespace KalaWindow::Graphics
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 
+		if (!exists(iconPath))
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' exe icon because the texture file '" + iconPath + "' doesn't exist!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
 		HICON hIcon = SetUpIcon(
 			GetTitle(),
 			iconPath);
@@ -347,6 +357,16 @@ namespace KalaWindow::Graphics
 		const string& tooltip) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		if (!exists(iconPath))
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' overlay icon because the texture file '" + iconPath + "' doesn't exist!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
 
 		HICON hIcon = SetUpIcon(
 			GetTitle(),
@@ -1742,16 +1762,6 @@ HICON SetUpIcon(
 	const string& title,
 	const string& iconPath)
 {
-	if (!exists(iconPath))
-	{
-		Log::Print(
-			"Cannot set window '" + title + "' icon because texture file '" + iconPath + "' doesn't exist!",
-			"WINDOW_WINDOWS",
-			LogType::LOG_ERROR);
-
-		return nullptr;
-	}
-
 	Texture_OpenGL* createdTexture = Texture_OpenGL::LoadTexture(
 		path(iconPath).stem().string(),
 		iconPath,
