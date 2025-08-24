@@ -848,6 +848,45 @@ namespace KalaWindow::Graphics
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 
+		if (state)
+		{
+			HMENU hSysMenu = GetSystemMenu(window, FALSE);
+
+			RemoveMenu(
+				hSysMenu,
+				SC_CLOSE,
+				MF_BYCOMMAND);
+
+			DrawMenuBar(window);
+		}
+		else
+		{
+			GetSystemMenu(window, TRUE);
+			DrawMenuBar(window);
+		}
+	}
+	bool Window::IsCloseButtonEnabled() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		HMENU hSysMenu = GetSystemMenu(window, FALSE);
+		if (!hSysMenu) return false; //no system menu
+
+		if (GetMenuState(
+			hSysMenu,
+			SC_CLOSE,
+			MF_BYCOMMAND) == (UINT)-1)
+		{
+			return false; //sc_close not found
+		}
+
+		return true;
+	}
+
+	void Window::SetSystemMenuState(bool state) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
 		LONG style = GetWindowLong(window, GWL_STYLE);
 
 		if (state) style |= (WS_SYSMENU);
@@ -870,7 +909,7 @@ namespace KalaWindow::Graphics
 			| SWP_NOZORDER
 			| SWP_FRAMECHANGED);
 	}
-	bool Window::IsCloseButtonEnabled() const
+	bool Window::IsSystemMenuEnabled() const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 

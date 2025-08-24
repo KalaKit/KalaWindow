@@ -308,9 +308,12 @@ namespace KalaWindow::Graphics
 		bool IsMaximizeButtonEnabled() const;
 
 		//If true, then this window has a functional and visible close button.
-		//Also hides the executable icon if false.
 		void SetCloseButtonState(bool state) const;
 		bool IsCloseButtonEnabled() const;
+
+		//If false, then minimize, maximize, close buttons and the logo are hidden.
+		void SetSystemMenuState(bool state) const;
+		bool IsSystemMenuEnabled() const;
 
 		//Set window opacity/transparency. Internally clamped between 0.0f and 1.0f
 		void SetOpacity(float alpha) const;
