@@ -18,12 +18,16 @@
 #include <ShlObj.h>
 #include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
+#include <atlbase.h>
+#include <atlcomcli.h>
+
 #include <algorithm>
 #include <functional>
 #include <memory>
 #include <filesystem>
 #include <sstream>
 #include <string>
+#include <vector>
 
 //#define VK_NO_PROTOTYPES
 //#include <Volk/volk.h>
@@ -31,6 +35,7 @@
 
 //#include "graphics/vulkan/vulkan.hpp"
 #include "graphics/opengl/opengl.hpp"
+#include "graphics/texture.hpp"
 #include "graphics/opengl/shader_opengl.hpp"
 #include "graphics/opengl/texture_opengl.hpp"
 #include "graphics/window.hpp"
@@ -46,6 +51,9 @@ using KalaHeaders::LogType;
 using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
 using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
 using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
+using KalaWindow::Graphics::TextureType;
+using KalaWindow::Graphics::TextureFormat;
+using KalaWindow::Graphics::TextureUsage;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
@@ -69,6 +77,7 @@ using std::filesystem::exists;
 using std::ostringstream;
 using std::wstring;
 using std::string;
+using std::vector;
 
 static bool checkedOSVersion = false;
 constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
@@ -79,6 +88,10 @@ static bool enabledBeginPeriod = false;
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
+
+static HICON SetUpIcon(
+	const string& title,
+	const string& iconPath);
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
@@ -284,6 +297,96 @@ namespace KalaWindow::Graphics
 
 		title.resize(wcslen(title.c_str()));
 		return ToShort(title);
+	}
+
+	void Window::SetIcon(const string& iconPath) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		HICON hIcon = SetUpIcon(
+			GetTitle(),
+			iconPath);
+
+		if (hIcon == nullptr) return;
+
+		//apply to window
+
+		SendMessage(
+			window,
+			WM_SETICON,
+			ICON_BIG, //task bar + alt tab
+			(LPARAM)hIcon);
+
+		SendMessage(
+			window,
+			WM_SETICON,
+			ICON_SMALL, //title bar + window border
+			(LPARAM)hIcon);
+
+		DestroyIcon(hIcon);
+	}
+
+	void Window::SetTaskbarOverlayIcon(
+		const string& iconPath,
+		const string& tooltip) const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		HICON hIcon = SetUpIcon(
+			GetTitle(),
+			iconPath);
+
+		if (hIcon == nullptr) return;
+
+		CComPtr<ITaskbarList3> taskbar{};
+		HRESULT hr = (CoCreateInstance(
+			CLSID_TaskbarList,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&taskbar)));
+
+		if (!SUCCEEDED(hr))
+		{
+			Log::Print(
+				"Failed to get ITaskbarList3 to set overlay icon!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		taskbar->SetOverlayIcon(
+			window,
+			hIcon,
+			tooltip.empty() ? nullptr : ToWide(tooltip).c_str());
+
+		DestroyIcon(hIcon);
+	}
+	void Window::ClearTaskbarOverlayIcon() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		CComPtr<ITaskbarList3> taskbar{};
+		HRESULT hr = (CoCreateInstance(
+			CLSID_TaskbarList,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&taskbar)));
+
+		if (!SUCCEEDED(hr))
+		{
+			Log::Print(
+				"Failed to get ITaskbarList3 to clear overlay icon!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		taskbar->SetOverlayIcon(
+			window,
+			nullptr,
+			nullptr);
 	}
 
 	void Window::SetWindowRounding(WindowRounding roundState) const
@@ -743,136 +846,6 @@ namespace KalaWindow::Graphics
 			GWL_STYLE);
 
 		return (style & WS_CAPTION) != 0;
-	}
-
-	void Window::SetIcon(const string& iconPath) const
-	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
-
-		if (!exists(iconPath))
-		{
-			Log::Print(
-				"Cannot set window '" + GetTitle() + "' icon because texture file '" + iconPath + "' doesn't exist!",
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
-		Texture_OpenGL* createdTexture = Texture_OpenGL::LoadTexture(
-			path(iconPath).stem().string(),
-			iconPath,
-			TextureType::Type_2D,
-			TextureFormat::Format_RGBA8,
-			TextureUsage::Usage_None);
-
-		if (!createdTexture)
-		{
-			Log::Print(
-				"Failed to set window '" + GetTitle() + "' icon to texture '" + iconPath + "'!",
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
-		vec2 size = createdTexture->GetSize();
-		if (size.x < 16)
-		{
-			Log::Print(
-				"Icon '" + iconPath + "' is too small! Consider uploading a bigger icon than '16x16'.",
-				"WINDOW_WINDOWS",
-				LogType::LOG_WARNING);
-		}
-		if (size.x > 256)
-		{
-			Log::Print(
-				"Icon '" + iconPath + "' is too big! Consider uploading a smaller icon than '256x256'.",
-				"WINDOW_WINDOWS",
-				LogType::LOG_WARNING);
-		}
-
-		//convert RGBA to BGRA
-
-		const vector<u8>& pixels = createdTexture->GetPixels();
-		vector<u8> pixelsBGRA(pixels.size());
-
-		for (size_t i = 0; i < static_cast<size_t>(size.x) * size.y; i++)
-		{
-			size_t idx = i * 4;
-			pixelsBGRA[idx + 0] = pixels[idx + 2]; // B
-			pixelsBGRA[idx + 1] = pixels[idx + 1]; // G
-			pixelsBGRA[idx + 2] = pixels[idx + 0]; // R
-			pixelsBGRA[idx + 3] = pixels[idx + 3]; // A
-		}
-
-		//create DIB section (bitmap)
-		BITMAPV5HEADER bi{};
-		bi.bV5Size        = sizeof(BITMAPV5HEADER);
-		bi.bV5Width       = size.x;
-		bi.bV5Height      = -size.y; //negative - top-down
-		bi.bV5Planes      = 1;
-		bi.bV5BitCount    = 32;
-		bi.bV5Compression = BI_BITFIELDS;
-		bi.bV5RedMask     = 0x00FF0000;
-		bi.bV5GreenMask   = 0x0000FF00;
-		bi.bV5BlueMask    = 0x000000FF;
-		bi.bV5AlphaMask   = 0xFF000000;
-
-		HDC hdc = CreateCompatibleDC(nullptr);
-		void* pvBits = nullptr;
-		HBITMAP hBitMap = CreateDIBSection(
-			hdc,
-			reinterpret_cast<BITMAPINFO*>(&bi),
-			DIB_RGB_COLORS,
-			&pvBits,
-			nullptr,
-			0);
-		DeleteDC(hdc);
-
-		if (!hBitMap)
-		{
-			Log::Print(
-				"Failed to create hBitMask for setting window '" + GetTitle() + "' icon!",
-				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
-		memcpy(
-			pvBits,
-			pixelsBGRA.data(),
-			pixelsBGRA.size());
-
-		//wrap into ICONINFO
-
-		ICONINFO ii{};
-		ii.fIcon = TRUE;
-		ii.hbmMask = hBitMap;
-		ii.hbmColor = hBitMap;
-
-		HICON hIcon = CreateIconIndirect(&ii);
-
-		DeleteObject(hBitMap);
-
-		//apply to window
-		if (hIcon)
-		{
-			SendMessage(
-				window,
-				WM_SETICON,
-				ICON_BIG, //task bar + alt tab
-				(LPARAM)hIcon);
-
-			SendMessage(
-				window,
-				WM_SETICON,
-				ICON_SMALL, //title bar + window border
-				(LPARAM)hIcon);
-
-			DestroyIcon(hIcon);
-		}
 	}
 
 	void Window::SetMinimizeButtonState(bool state) const
@@ -1747,6 +1720,138 @@ void UpdateIdleState(Window* window, bool& isIdle)
 		!window->IsFocused()
 		|| window->IsMinimized()
 		|| !window->IsVisible();
+}
+
+HICON SetUpIcon(
+	const string& title,
+	const string& iconPath)
+{
+	if (!exists(iconPath))
+	{
+		Log::Print(
+			"Cannot set window '" + title + "' icon because texture file '" + iconPath + "' doesn't exist!",
+			"WINDOW_WINDOWS",
+			LogType::LOG_ERROR);
+
+		return nullptr;
+	}
+
+	Texture_OpenGL* createdTexture = Texture_OpenGL::LoadTexture(
+		path(iconPath).stem().string(),
+		iconPath,
+		TextureType::Type_2D,
+		TextureFormat::Format_RGBA8,
+		TextureUsage::Usage_None);
+
+	if (!createdTexture)
+	{
+		Log::Print(
+			"Failed to set window '" + title + "' icon to texture '" + iconPath + "'!",
+			"WINDOW_WINDOWS",
+			LogType::LOG_ERROR);
+
+		return nullptr;
+	}
+
+	vec2 size = createdTexture->GetSize();
+	string sizeX = to_string(size.x);
+	string sizeY = to_string(size.y);
+
+	if (size.x != size.y)
+	{
+		ostringstream oss{};
+		oss << "Icon '" + iconPath + "' x '" + sizeX
+			<< "' and y '" + sizeY
+			<< "' size don't match! You must upload an image with 1:1 aspect ratio.";
+
+		Log::Print(
+			oss.str(),
+			"WINDOW_WINDOWS",
+			LogType::LOG_ERROR);
+
+		return nullptr;
+	}
+
+	if (size.x < 16)
+	{
+		Log::Print(
+			"Icon '" + iconPath + "' size '" + sizeX + "x" + sizeY + "' is too small! Consider uploading a bigger icon.",
+			"WINDOW_WINDOWS",
+			LogType::LOG_WARNING);
+	}
+	if (size.x > 256)
+	{
+		Log::Print(
+			"Icon '" + iconPath + "' size '" + sizeX + "x" + sizeY + "' is too big! Consider uploading a smaller icon.",
+			"WINDOW_WINDOWS",
+			LogType::LOG_WARNING);
+	}
+
+	//convert RGBA to BGRA
+
+	const vector<u8>& pixels = createdTexture->GetPixels();
+	vector<u8> pixelsBGRA(pixels.size());
+
+	for (size_t i = 0; i < static_cast<size_t>(size.x) * size.y; i++)
+	{
+		size_t idx = i * 4;
+		pixelsBGRA[idx + 0] = pixels[idx + 2]; // B
+		pixelsBGRA[idx + 1] = pixels[idx + 1]; // G
+		pixelsBGRA[idx + 2] = pixels[idx + 0]; // R
+		pixelsBGRA[idx + 3] = pixels[idx + 3]; // A
+	}
+
+	//create DIB section (bitmap)
+	BITMAPV5HEADER bi{};
+	bi.bV5Size = sizeof(BITMAPV5HEADER);
+	bi.bV5Width = size.x;
+	bi.bV5Height = -size.y; //negative - top-down
+	bi.bV5Planes = 1;
+	bi.bV5BitCount = 32;
+	bi.bV5Compression = BI_BITFIELDS;
+	bi.bV5RedMask = 0x00FF0000;
+	bi.bV5GreenMask = 0x0000FF00;
+	bi.bV5BlueMask = 0x000000FF;
+	bi.bV5AlphaMask = 0xFF000000;
+
+	HDC hdc = CreateCompatibleDC(nullptr);
+	void* pvBits = nullptr;
+	HBITMAP hBitMap = CreateDIBSection(
+		hdc,
+		reinterpret_cast<BITMAPINFO*>(&bi),
+		DIB_RGB_COLORS,
+		&pvBits,
+		nullptr,
+		0);
+	DeleteDC(hdc);
+
+	if (!hBitMap)
+	{
+		Log::Print(
+			"Failed to create hBitMask for setting window '" + title + "' icon!",
+			"WINDOW_WINDOWS",
+			LogType::LOG_ERROR);
+
+		return nullptr;
+	}
+
+	memcpy(
+		pvBits,
+		pixelsBGRA.data(),
+		pixelsBGRA.size());
+
+	//wrap into ICONINFO
+
+	ICONINFO ii{};
+	ii.fIcon = TRUE;
+	ii.hbmMask = hBitMap;
+	ii.hbmColor = hBitMap;
+
+	HICON hIcon = CreateIconIndirect(&ii);
+
+	DeleteObject(hBitMap);
+
+	return hIcon;
 }
 
 wstring ToWide(const string& str)

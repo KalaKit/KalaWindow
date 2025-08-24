@@ -253,10 +253,26 @@ namespace KalaWindow::Graphics
 		//Draws the window, handles messages for active frame
 		void Update();
 
+		u32 GetID() const { return ID; }
+
 		void SetTitle(const string& newTitle) const;
 		string GetTitle() const;
 
-		u32 GetID() const { return ID; }
+		//Set executable icon. Loaded via the texture framework
+		void SetIcon(const string& iconPath) const;
+		//Returns icon ID (Texture object ID)
+		u32 GetIcon() const { return iconID; }
+
+		//Set overlay icon and optional tooltip. Loaded via the texture framework.
+		//The overlay icon is shown in the task bar in the bottom right corner of the exe icon,
+		//the tooltop is what text appears if you hover over it.
+		//The overlay icon must be exactly 16x16px in size.
+		void SetTaskbarOverlayIcon(
+			const string& iconPath,
+			const string& tooltip = "") const;
+		u32 GetTaskbarOverlayIcon() const { return overlayIconID; }
+		//Clears the current overlay icon and its tooltip
+		void ClearTaskbarOverlayIcon() const;
 
 		//Set Windows window rounding state. Has no effect in Linux.
 		void SetWindowRounding(WindowRounding roundState) const;
@@ -305,11 +321,6 @@ namespace KalaWindow::Graphics
 		//If true, then this window shows its top bar
 		void SetTopBarState(bool state) const;
 		bool IsTopBarEnabled() const;
-
-		//Set executable icon. Loaded via the texture framework
-		void SetIcon(const string& iconPath) const;
-		//Returns icon ID (Texture object ID)
-		u32 GetIcon() const { return iconID; }
 
 		//If true, then this window has a functional and visible minimize button
 		void SetMinimizeButtonState(bool state) const;
@@ -402,8 +413,9 @@ namespace KalaWindow::Graphics
 		//4 - WS_SYSMENU
 		u8 oldStyle{};                     //Stored pre-fullscreen window style (Windows-only)
 
-		u32 iconID{}; //The ID of this window icon
-		u32 ID{};     //The ID of this window
+		u32 ID{};            //The ID of this window
+		u32 iconID{};        //The ID of this window icon
+		u32 overlayIconID{}; //The ID of the toolbar overlay icon
 
 		//platform-specific variables
 
