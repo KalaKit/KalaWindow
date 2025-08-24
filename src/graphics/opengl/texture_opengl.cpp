@@ -528,12 +528,12 @@ namespace KalaWindow::Graphics::OpenGL
 
 		stbi_image_free(data);
 
-		newTexture->HotReload();
-
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
 		CheckError("loading texture '" + name + "'");
+
+		texturePtr->HotReload();
 
 		Log::Print(
 			"Loaded OpenGL texture '" + name + "' with ID '" + to_string(newID) + "'!",
@@ -785,12 +785,12 @@ namespace KalaWindow::Graphics::OpenGL
 			texturePtr->cubePixels[i] = faceTex->GetPixels();
 		}
 
-		newTexture->HotReload();
-
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		CheckError("creating cube texture '" + name + "'");
+		CheckError("creating cube map texture '" + name + "'");
+
+		texturePtr->HotReload();
 
 		Log::Print(
 			"Created OpenGL cube texture '" + name + "' with ID '" + to_string(newID) + "'!",
