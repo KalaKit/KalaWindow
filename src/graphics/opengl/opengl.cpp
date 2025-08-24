@@ -24,7 +24,7 @@ using std::string;
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	bool Renderer_OpenGL::IsExtensionSupported(const string& name)
+	bool OpenGL_Renderer::IsExtensionSupported(const string& name)
 	{
 		i32 numExtensions = 0;
 		glGetIntegerv(
@@ -40,7 +40,7 @@ namespace KalaWindow::Graphics::OpenGL
 		return false;
 	}
 
-	void Renderer_OpenGL::GetError(const string& context)
+	void OpenGL_Renderer::GetError(const string& context)
 	{
 		GLenum error{};
 

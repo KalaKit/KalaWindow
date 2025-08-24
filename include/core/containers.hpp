@@ -15,10 +15,10 @@
 
 #include "core/audio.hpp"
 #include "graphics/window.hpp"
-#include "graphics/opengl/texture_opengl.hpp"
-#include "graphics/opengl/shader_opengl.hpp"
-#include "graphics/vulkan/texture_vulkan.hpp"
-#include "graphics/vulkan/shader_vulkan.hpp"
+#include "graphics/opengl/opengl_texture.hpp"
+#include "graphics/opengl/opengl_shader.hpp"
+#include "graphics/vulkan/vulkan_texture.hpp"
+#include "graphics/vulkan/vulkan_shader.hpp"
 
 namespace KalaWindow::Core
 {
@@ -26,8 +26,8 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::Window;
 	using KalaWindow::Graphics::MenuBar;
 	using KalaWindow::Graphics::MenuBarEvent;
-	using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
-	using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
+	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
+	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	//using KalaWindow::Graphics::Vulkan::Texture_Vulkan;
 	//using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 
@@ -50,8 +50,8 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
-	LIB_API extern unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures;
-	LIB_API extern unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders;
+	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
+	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
 
 	//LIB_API extern unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures;
 	//LIB_API extern unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders;
@@ -66,8 +66,8 @@ namespace KalaWindow::Core
 
 	LIB_API extern vector<AudioPlayer*> runtimeAudioPlayers;
 
-	LIB_API extern vector<Texture_OpenGL*> runtimeOpenGLTextures;
-	LIB_API extern vector<Shader_OpenGL*> runtimeOpenGLShaders;
+	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
+	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
 
 	//LIB_API extern vector<Texture_Vulkan*> runtimeVulkanTextures;
 	//LIB_API extern vector<Shader_Vulkan*> runtimeVulkanShaders;

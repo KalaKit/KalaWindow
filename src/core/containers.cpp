@@ -19,8 +19,8 @@ namespace KalaWindow::Core
 
 	unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers{};
 
-	unordered_map<u32, unique_ptr<Texture_OpenGL>> createdOpenGLTextures{};
-	unordered_map<u32, unique_ptr<Shader_OpenGL>> createdOpenGLShaders{};
+	unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures{};
+	unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders{};
 
 	//unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures{};
 	//unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders{};
@@ -35,8 +35,8 @@ namespace KalaWindow::Core
 
 	vector<AudioPlayer*> runtimeAudioPlayers{};
 
-	vector<Texture_OpenGL*> runtimeOpenGLTextures{};
-	vector<Shader_OpenGL*> runtimeOpenGLShaders{};
+	vector<OpenGL_Texture*> runtimeOpenGLTextures{};
+	vector<OpenGL_Shader*> runtimeOpenGLShaders{};
 
 	//vector<Texture_Vulkan*> runtimeVulkanTextures{};
 	//vector<Shader_Vulkan*> runtimeVulkanShaders{};

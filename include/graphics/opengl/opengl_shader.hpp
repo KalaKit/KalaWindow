@@ -34,10 +34,10 @@ namespace KalaWindow::Graphics::OpenGL
 		u32 shaderID;
 	};
 
-	class LIB_API Shader_OpenGL
+	class LIB_API OpenGL_Shader
 	{
 	public:
-		static Shader_OpenGL* CreateShader(
+		static OpenGL_Shader* CreateShader(
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages,
 			Window* targetWindow);
@@ -82,7 +82,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			Log::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning ID 0.",
-				"SHADER_OPENGL",
+				"OPENGL_SHADER",
 				LogType::LOG_ERROR,
 				2);
 			return 0;
@@ -104,7 +104,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			Log::Print(
 				"Shader with type '" + typeStr + "' was not assigned! Returning empty path.",
-				"SHADER_OPENGL",
+				"OPENGL_SHADER",
 				LogType::LOG_ERROR,
 				2);
 			return shaderPath;
@@ -169,7 +169,7 @@ namespace KalaWindow::Graphics::OpenGL
 		void SetMat4(u32 programID, const string& name, const mat4& mat) const;
 
 		//Do not destroy manually, erase from containers.hpp instead
-		~Shader_OpenGL();
+		~OpenGL_Shader();
 	private:
 		string name{};
 		u32 ID{};

@@ -16,7 +16,7 @@
 #include "core/core.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/shader_opengl.hpp"
+#include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/texture.hpp"
 #include "core/containers.hpp"
@@ -28,8 +28,8 @@ using KalaHeaders::TimeFormat;
 using KalaHeaders::DateFormat;
 
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
-using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
+using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
+using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Texture;
 
@@ -213,7 +213,7 @@ namespace KalaWindow::Core
 		}
 
 		createdOpenGLTextures.clear();
-		if (Renderer_OpenGL::IsInitialized())
+		if (OpenGL_Renderer::IsInitialized())
 		{
 			createdOpenGLShaders.clear();
 		}

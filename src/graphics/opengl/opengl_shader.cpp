@@ -13,7 +13,7 @@
 #include "KalaHeaders/logging.hpp"
 
 #include "graphics/window.hpp"
-#include "graphics/opengl/shader_opengl.hpp"
+#include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "core/core.hpp"
@@ -24,7 +24,7 @@ using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
+using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::ShaderType;
 using KalaWindow::Graphics::OpenGL::ShaderStage;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
@@ -63,13 +63,13 @@ static bool InitShader(
 
 namespace KalaWindow::Graphics::OpenGL
 {
-    void Shader_OpenGL::SetName(const string& newName)
+    void OpenGL_Shader::SetName(const string& newName)
     {
         if (newName.empty())
         {
             Log::Print(
                 "Cannot set shader name to empty name!",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return;
@@ -81,7 +81,7 @@ namespace KalaWindow::Graphics::OpenGL
             {
                 Log::Print(
                     "Cannot set shader name to already existing shader name '" + thisName + "'!",
-                    "SHADER_OPENGL",
+                    "OPENGL_SHADER",
                     LogType::LOG_ERROR,
                     2);
                 return;
@@ -90,16 +90,16 @@ namespace KalaWindow::Graphics::OpenGL
         name = newName;
     }
 
-    Shader_OpenGL* Shader_OpenGL::CreateShader(
+    OpenGL_Shader* OpenGL_Shader::CreateShader(
         const string& shaderName,
         const vector<ShaderStage>& shaderStages,
         Window* newWindow)
     {
-        if (!Renderer_OpenGL::IsInitialized())
+        if (!OpenGL_Renderer::IsInitialized())
         {
             Log::Print(
                 "Cannot create shader '" + shaderName + "' because OpenGL is not initialized!",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return nullptr;
@@ -120,11 +120,11 @@ namespace KalaWindow::Graphics::OpenGL
 
         Log::Print(
             "Creating shader '" + shaderName + "'.",
-            "SHADER_OPENGL",
+            "OPENGL_SHADER",
             LogType::LOG_DEBUG);
 
-        unique_ptr<Shader_OpenGL> newShader = make_unique<Shader_OpenGL>();
-        Shader_OpenGL* shaderPtr = newShader.get();
+        unique_ptr<OpenGL_Shader> newShader = make_unique<OpenGL_Shader>();
+        OpenGL_Shader* shaderPtr = newShader.get();
 
         ShaderStage newVertStage{};
         ShaderStage newFragStage{};
@@ -188,7 +188,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "Skipped loading vertex shader because it was not assigned as a shader stage.",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_INFO);
         }
         else
@@ -211,7 +211,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "Skipped loading fragment shader because it was not assigned as a shader stage.",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_INFO);
         }
         else
@@ -234,7 +234,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "Skipped loading geometry shader because it was not assigned as a shader stage.",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_INFO);
         }
         else
@@ -436,7 +436,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + shaderName + "' is valid!",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_SUCCESS);
         }
 
@@ -482,13 +482,13 @@ namespace KalaWindow::Graphics::OpenGL
         return shaderPtr;
     }
 
-    bool Shader_OpenGL::Bind() const
+    bool OpenGL_Shader::Bind() const
     {
-        if (!Renderer_OpenGL::IsInitialized())
+        if (!OpenGL_Renderer::IsInitialized())
         {
             Log::Print(
                 "Cannot bind shader '" + name + "' because OpenGL is not initialized!",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return false;
@@ -498,7 +498,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "Cannot bind shader '" + name + "' because the window reference is invalid!",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return false;
@@ -513,18 +513,18 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "OpenGL shader bind failed! ID is 0.",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return false;
         }
 
-        Renderer_OpenGL::MakeContextCurrent(targetWindow);
-        if (!Renderer_OpenGL::IsContextValid(targetWindow))
+        OpenGL_Renderer::MakeContextCurrent(targetWindow);
+        if (!OpenGL_Renderer::IsContextValid(targetWindow))
         {
             Log::Print(
                 "OpenGL shader bind failed! OpenGL context is invalid.",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return false;
@@ -536,7 +536,7 @@ namespace KalaWindow::Graphics::OpenGL
         /*
         Log::Print(
             "glUseProgram(" + to_string(ID) + ")",
-            "SHADER_OPENGL",
+            "OPENGL_SHADER",
             LogType::LOG_DEBUG);
         */
 
@@ -549,7 +549,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "GL_LINK_STATUS = " + to_string(linked),
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_DEBUG);
         }
 
@@ -562,7 +562,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "GL_VALIDATE_STATUS = " + to_string(validated),
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_DEBUG);
         }
 #endif
@@ -580,13 +580,13 @@ namespace KalaWindow::Graphics::OpenGL
             Log::Print(
                 "OpenGL shader bind failed! Program ID not bound after glUseProgram." +
                 string("Expected ID: '") + to_string(ID) + "', but got: '" + to_string(activeProgram) + "'.",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return false;
         }
 
-        Renderer_OpenGL::GetError("shader '" + name + "' bind");
+        OpenGL_Renderer::GetError("shader '" + name + "' bind");
 #endif
 
         lastProgramID = ID;
@@ -595,13 +595,13 @@ namespace KalaWindow::Graphics::OpenGL
         return true;
     }
 
-    void Shader_OpenGL::HotReload()
+    void OpenGL_Shader::HotReload()
     {
-        if (!Renderer_OpenGL::IsInitialized())
+        if (!OpenGL_Renderer::IsInitialized())
         {
             Log::Print(
                 "Cannot hot reload shader '" + name + "' because OpenGL is not initialized!",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return;
@@ -625,7 +625,7 @@ namespace KalaWindow::Graphics::OpenGL
                 });
         }
 
-        auto reloadedShader = Shader_OpenGL::CreateShader(
+        auto reloadedShader = OpenGL_Shader::CreateShader(
             shaderName,
             stagesToReload,
             targetWindow);
@@ -633,7 +633,7 @@ namespace KalaWindow::Graphics::OpenGL
         {
             Log::Print(
                 "Hot reload failed for shader '" + shaderName + "'! Keeping old version.",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
             return;
@@ -644,11 +644,11 @@ namespace KalaWindow::Graphics::OpenGL
 
         Log::Print(
             "Shader '" + shaderName + "' was hot reloaded!",
-            "SHADER_OPENGL",
+            "OPENGL_SHADER",
             LogType::LOG_SUCCESS);
     }
 
-    void Shader_OpenGL::SetBool(
+    void OpenGL_Shader::SetBool(
         u32 programID,
         const string& name, 
         bool value) const
@@ -658,7 +658,7 @@ namespace KalaWindow::Graphics::OpenGL
             name.c_str()), 
             (i32)value);
     }
-    void Shader_OpenGL::SetInt(
+    void OpenGL_Shader::SetInt(
         u32 programID,
         const string& name, 
         i32 value) const
@@ -668,7 +668,7 @@ namespace KalaWindow::Graphics::OpenGL
             name.c_str()), 
             value);
     }
-    void Shader_OpenGL::SetFloat(
+    void OpenGL_Shader::SetFloat(
         u32 programID,
         const string& name, 
         f32 value) const
@@ -679,7 +679,7 @@ namespace KalaWindow::Graphics::OpenGL
             value);
     }
 
-    void Shader_OpenGL::SetVec2(
+    void OpenGL_Shader::SetVec2(
         u32 programID,
         const string& name, 
         const vec2& value) const
@@ -690,7 +690,7 @@ namespace KalaWindow::Graphics::OpenGL
             1, 
             &value.x);
     }
-    void Shader_OpenGL::SetVec3(
+    void OpenGL_Shader::SetVec3(
         u32 programID,
         const string& name, 
         const vec3& value) const
@@ -701,7 +701,7 @@ namespace KalaWindow::Graphics::OpenGL
             1, 
             &value.x);
     }
-    void Shader_OpenGL::SetVec4(
+    void OpenGL_Shader::SetVec4(
         u32 programID,
         const string& name, 
         const vec4& value) const
@@ -713,7 +713,7 @@ namespace KalaWindow::Graphics::OpenGL
             &value.x);
     }
 
-    void Shader_OpenGL::SetMat2(
+    void OpenGL_Shader::SetMat2(
         u32 programID,
         const string& name, 
         const mat2& mat) const
@@ -725,7 +725,7 @@ namespace KalaWindow::Graphics::OpenGL
             GL_FALSE, 
             &mat[0].x);
     }
-    void Shader_OpenGL::SetMat3(
+    void OpenGL_Shader::SetMat3(
         u32 programID,
         const string& name, 
         const mat3& mat) const
@@ -737,7 +737,7 @@ namespace KalaWindow::Graphics::OpenGL
             GL_FALSE, 
             &mat[0].x);
     }
-    void Shader_OpenGL::SetMat4(
+    void OpenGL_Shader::SetMat4(
         u32 programID,
         const string& name, 
         const mat4& mat) const
@@ -750,7 +750,7 @@ namespace KalaWindow::Graphics::OpenGL
             &mat[0].x);
     }
 
-    Shader_OpenGL::~Shader_OpenGL()
+    OpenGL_Shader::~OpenGL_Shader()
     {
         for (auto& shaderData : GetAllShaders())
         {
@@ -779,7 +779,7 @@ namespace KalaWindow::Graphics::OpenGL
 
         Log::Print(
             "Destroyed shader '" + GetName() + "'!",
-            "SHADER_OPENGL",
+            "OPENGL_SHADER",
             LogType::LOG_SUCCESS);
     }
 }
@@ -929,7 +929,7 @@ ShaderCheckResult IsShaderValid(
 
             Log::Print(
                 reason,
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
 
@@ -982,7 +982,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
         {
             Log::Print(
                 "Shader linking succeeded (" + type + ")",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_SUCCESS);
         }
     }
@@ -1023,7 +1023,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
         {
             Log::Print(
                 "Shader compilation succeeded (" + type + ")",
-                "SHADER_OPENGL",
+                "OPENGL_SHADER",
                 LogType::LOG_SUCCESS);
         }
     }
@@ -1037,12 +1037,12 @@ bool InitShader(
     u32& programID,
     u32& shaderID)
 {
-    string shaderType = Shader_OpenGL::GetShaderTypeName(type);
+    string shaderType = OpenGL_Shader::GetShaderTypeName(type);
     string shaderName = path(shaderPath).filename().string();
 
     Log::Print(
         "Loading " + shaderType + " shader: " + shaderPath,
-        "SHADER_OPENGL",
+        "OPENGL_SHADER",
         LogType::LOG_INFO);
 
     ifstream shaderFile(shaderPath);

@@ -36,8 +36,8 @@
 //#include "graphics/vulkan/vulkan.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/texture.hpp"
-#include "graphics/opengl/shader_opengl.hpp"
-#include "graphics/opengl/texture_opengl.hpp"
+#include "graphics/opengl/opengl_shader.hpp"
+#include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/window.hpp"
 #include "windows/messageloop.hpp"
 #include "core/input.hpp"
@@ -48,9 +48,9 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
-using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
-using KalaWindow::Graphics::OpenGL::Shader_OpenGL;
-using KalaWindow::Graphics::OpenGL::Texture_OpenGL;
+using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
+using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
+using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Graphics::TextureUsage;
@@ -1762,7 +1762,7 @@ HICON SetUpIcon(
 	const string& title,
 	const string& iconPath)
 {
-	Texture_OpenGL* createdTexture = Texture_OpenGL::LoadTexture(
+	OpenGL_Texture* createdTexture = OpenGL_Texture::LoadTexture(
 		path(iconPath).stem().string(),
 		iconPath,
 		TextureType::Type_2D,

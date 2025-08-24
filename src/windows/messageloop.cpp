@@ -35,7 +35,7 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::OpenGL::Renderer_OpenGL;
+using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::Input;
 using KalaWindow::Core::Key;
@@ -662,7 +662,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		int width = LOWORD(msg.lParam);
 		int height = HIWORD(msg.lParam);
 
-		if (Renderer_OpenGL::IsInitialized())
+		if (OpenGL_Renderer::IsInitialized())
 		{
 			vec2 framebufferSize = window->GetFramebufferSize();
 
@@ -710,7 +710,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			SWP_NOZORDER
 			| SWP_NOACTIVATE);
 
-		if (Renderer_OpenGL::IsInitialized())
+		if (OpenGL_Renderer::IsInitialized())
 		{
 			vec2 framebufferSize = window->GetFramebufferSize();
 

@@ -34,7 +34,7 @@ static bool IsCorrectVersion();
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	bool Renderer_OpenGL::Initialize(Window* targetWindow)
+	bool OpenGL_Renderer::Initialize(Window* targetWindow)
 	{
 		HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
 
@@ -197,7 +197,7 @@ namespace KalaWindow::Graphics::OpenGL
 		return true;
 	}
 
-	void Renderer_OpenGL::SetVSyncState(VSyncState newVSyncState)
+	void OpenGL_Renderer::SetVSyncState(VSyncState newVSyncState)
 	{
 		vsyncState = newVSyncState;
 
@@ -222,7 +222,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 	}
 
-	void Renderer_OpenGL::SwapOpenGLBuffers(Window* targetWindow)
+	void OpenGL_Renderer::SwapOpenGLBuffers(Window* targetWindow)
 	{
 		if (!IsInitialized())
 		{
@@ -238,7 +238,7 @@ namespace KalaWindow::Graphics::OpenGL
 		SwapBuffers(hdc);
 	}
 
-	void Renderer_OpenGL::MakeContextCurrent(Window* window)
+	void OpenGL_Renderer::MakeContextCurrent(Window* window)
 	{
 		const OpenGLData& oData = window->GetOpenGLData();
 
@@ -269,7 +269,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 	}
 
-	bool Renderer_OpenGL::IsContextValid(Window* targetWindow)
+	bool OpenGL_Renderer::IsContextValid(Window* targetWindow)
 	{
 		const OpenGLData& oData = targetWindow->GetOpenGLData();
 

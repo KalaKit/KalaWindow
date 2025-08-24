@@ -602,7 +602,7 @@ namespace KalaWindow::Graphics::Vulkan
 
         Log::Print(
             "Shader '" + name + "' was hot reloaded!",
-            "SHADER_OPENGL",
+            "SHADER_VULKAN",
             LogType::LOG_SUCCESS);
 	}
 

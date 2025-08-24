@@ -21,7 +21,7 @@ namespace KalaWindow::Graphics::OpenGL
 		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
 	};
 
-	class LIB_API Renderer_OpenGL
+	class LIB_API OpenGL_Renderer
 	{
 	public:
 		//
