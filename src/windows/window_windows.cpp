@@ -848,20 +848,17 @@ namespace KalaWindow::Graphics
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 
-		if (state)
-		{
-			HMENU hSysMenu = GetSystemMenu(window, FALSE);
+		HMENU hSysMenu = GetSystemMenu(window, FALSE);
+		if (!hSysMenu) return;
 
+		if (state) GetSystemMenu(window, TRUE);
+		else
+		{
 			RemoveMenu(
 				hSysMenu,
 				SC_CLOSE,
 				MF_BYCOMMAND);
 
-			DrawMenuBar(window);
-		}
-		else
-		{
-			GetSystemMenu(window, TRUE);
 			DrawMenuBar(window);
 		}
 	}
@@ -872,15 +869,10 @@ namespace KalaWindow::Graphics
 		HMENU hSysMenu = GetSystemMenu(window, FALSE);
 		if (!hSysMenu) return false; //no system menu
 
-		if (GetMenuState(
+		return (GetMenuState(
 			hSysMenu,
 			SC_CLOSE,
-			MF_BYCOMMAND) == (UINT)-1)
-		{
-			return false; //sc_close not found
-		}
-
-		return true;
+			MF_BYCOMMAND) != (UINT)-1);
 	}
 
 	void Window::SetSystemMenuState(bool state) const

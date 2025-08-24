@@ -308,6 +308,7 @@ namespace KalaWindow::Graphics
 		bool IsMaximizeButtonEnabled() const;
 
 		//If true, then this window has a functional and visible close button.
+		//Close button won't be grayed out or won't stop rendering due to Windows limits
 		void SetCloseButtonState(bool state) const;
 		bool IsCloseButtonEnabled() const;
 
