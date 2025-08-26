@@ -6,15 +6,15 @@
 
 ![Logo](logo.png)
 
-**KalaWindow** is a C++20 multimedia framework library for **Windows** and **Linux** (X11/Wayland)\*1, built for native desktop applications ranging from lightweight tools to full-featured game engines. It provides **multi-window support**, **input handling** and a unified interface to the **native message loop** on each platform. The API is fully **OS-agnostic** and **vendor-neutral** — no platform-specific or graphics API headers** are included in its public interface, keeping user code clean and portable.
+**KalaWindow** is a C++20 multimedia framework library for **Windows** and **Linux** (X11/Wayland)\*¹, built for native desktop applications ranging from lightweight tools to full-featured game engines. It provides **multi-window support**, **input handling** and a unified interface to the **native message loop** on each platform. The API is fully **OS-agnostic** and **vendor-neutral** — no platform-specific or graphics API headers** are included in its public interface, keeping user code clean and portable.
 
-KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and **Vulkan 1.2\*2, bundled in a single binary. Each backend features a simple **shader system** (compilation, binding, cleanup), along with utilities for **initialization** and **GPU resource management**. This gives you everything needed to plug rendering directly into your application's logic without boilerplate, whether you're building a game engine or a desktop tool.
+KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and **Vulkan 1.2\*², bundled in a single binary. Each backend features a simple **shader system** (compilation, binding, cleanup), along with utilities for **initialization** and **GPU resource management**. This gives you everything needed to plug rendering directly into your application's logic without boilerplate, whether you're building a game engine or a desktop tool.
 
 KalaWindow requires Windows 10 (1809 build 17763) or higher and is not supported on older versions.
 
-> \*1 Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in 0.6 for both X11 and Wayland. Vulkan code exists in the codebase but is not fully functional until 0.5 releases.
+> \*¹ Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in 0.6 for both X11 and Wayland. Vulkan code exists in the codebase but is not fully functional until 0.5 releases.
 
-> \*2 opengl_functions_core.hpp includes glcorearb.h, opengl_functions_win.hpp includes wgleht.hpp, opengl_functions_linux.hpp includes glxeht.hpp
+> \*² opengl_functions_core.hpp includes glcorearb.h, opengl_functions_win.hpp includes wgleht.hpp, opengl_functions_linux.hpp includes glxeht.hpp
 
 ---
 
