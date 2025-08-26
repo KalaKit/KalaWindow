@@ -258,8 +258,9 @@ namespace KalaWindow::Graphics
 		void SetTitle(const string& newTitle) const;
 		string GetTitle() const;
 
-		//Set executable icon. Loaded via the texture framework
-		void SetIcon(const string& iconPath) const;
+		//Set executable icon. Loaded via the texture framework.
+		//The first parameter requires an ID to the texture.
+		void SetIcon(u32 texture) const;
 		//Returns icon ID (Texture object ID)
 		u32 GetIcon() const { return iconID; }
 		//Clears the current executable icon
@@ -269,8 +270,9 @@ namespace KalaWindow::Graphics
 		//The overlay icon is shown in the task bar in the bottom right corner of the exe icon,
 		//the tooltop is what text appears if you hover over it.
 		//The overlay icon must be exactly 16x16px in size.
+		//The first parameter requires an ID to the texture.
 		void SetTaskbarOverlayIcon(
-			const string& iconPath,
+			u32 texture,
 			const string& tooltip = "") const;
 		u32 GetTaskbarOverlayIcon() const { return overlayIconID; }
 		//Clears the current overlay icon and its tooltip

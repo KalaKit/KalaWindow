@@ -193,10 +193,10 @@ static string ToLower(string in)
 		in.begin(),
 		[](unsigned char c) 
 		{ 
-			return tolower(c); 
+			return static_cast<char>(tolower(c)); 
 		});
 
-	return "";
+	return in;
 }
 
 struct GLFormatInfo {
@@ -254,7 +254,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		TextureFormat resolvedFormat = format;
 
-		InitTexture(
+		OpenGL_Texture* result = InitTexture(
 			name,
 			filePath,
 			type,
@@ -264,6 +264,8 @@ namespace KalaWindow::Graphics::OpenGL
 			size,
 			data,
 			nrChannels);
+
+		if (result != nullptr) return result;
 
 		//
 		// BIND TEXTURE
@@ -1176,9 +1178,7 @@ OpenGL_Texture* InitTexture(
 		return OpenGL_Texture::GetFallbackTexture();
 	}
 
-	TextureCheckResult result = (IsValidTexture(name, filePath));
-
-	OpenGL_Texture* existingTex{};
+	TextureCheckResult result = IsValidTexture(name, filePath);
 
 	if (result == TextureCheckResult::RESULT_INVALID) return OpenGL_Texture::GetFallbackTexture();
 	else if (result == TextureCheckResult::RESULT_ALREADY_EXISTS)
@@ -1187,47 +1187,19 @@ OpenGL_Texture* InitTexture(
 		{
 			if (value->GetName() == name)
 			{
-				existingTex = value.get();
-				break;
+				Log::Print(
+					"Returning existing texture '" + name + "'.",
+					"OPENGL_TEXTURE",
+					LogType::LOG_INFO);
+
+				return value.get();
 			}
 		}
 
-		if (existingTex != nullptr)
-		{
-			Log::Print(
-				"Returning existing texture '" + name + "'.",
-				"OPENGL_TEXTURE",
-				LogType::LOG_DEBUG);
-
-			return existingTex;
-		}
-		return OpenGL_Texture::GetFallbackTexture();
-	}
-
-	//texture extension must match allowed format
-
-	string extension = path(filePath).extension().string();
-	if (!IsCompressed(formatIn)
-		&& extension == ".ktx")
-	{
 		Log::Print(
-			"Non-compressed format was used for compressed texture '" + name + "'!",
+			"Returning fallback texture because existing texture was not found!",
 			"OPENGL_TEXTURE",
-			LogType::LOG_ERROR,
-			2);
-
-		return OpenGL_Texture::GetFallbackTexture();
-	}
-	else if (!IsUncompressed(formatIn)
-		&& (extension == ".png"
-		|| extension == ".jpg"
-		|| extension == ".jpeg"))
-	{
-		Log::Print(
-			"Compressed format was used for noncompressed texture '" + name + "'!",
-			"OPENGL_TEXTURE",
-			LogType::LOG_ERROR,
-			2);
+			LogType::LOG_WARNING);
 
 		return OpenGL_Texture::GetFallbackTexture();
 	}
@@ -1383,6 +1355,34 @@ OpenGL_Texture* InitTexture(
 
 		Log::Print(
 			oss.str(),
+			"OPENGL_TEXTURE",
+			LogType::LOG_ERROR,
+			2);
+
+		return OpenGL_Texture::GetFallbackTexture();
+	}
+
+	//texture extension must match allowed format
+
+	string extension = path(filePath).extension().string();
+	if (!IsCompressed(formatOut)
+		&& extension == ".ktx")
+	{
+		Log::Print(
+			"Non-compressed format was used for compressed texture '" + name + "'!",
+			"OPENGL_TEXTURE",
+			LogType::LOG_ERROR,
+			2);
+
+		return OpenGL_Texture::GetFallbackTexture();
+	}
+	else if (!IsUncompressed(formatOut)
+		&& (extension == ".png"
+			|| extension == ".jpg"
+			|| extension == ".jpeg"))
+	{
+		Log::Print(
+			"Compressed format was used for noncompressed texture '" + name + "'!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);

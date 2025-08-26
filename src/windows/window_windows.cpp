@@ -62,6 +62,7 @@ using KalaWindow::Core::createdWindows;
 using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::createdMenuBarEvents;
 using KalaWindow::Core::runtimeMenuBarEvents;
+using KalaWindow::Core::createdOpenGLTextures;
 
 using std::make_unique;
 using std::move;
@@ -88,9 +89,7 @@ static bool enabledBeginPeriod = false;
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
 
-static HICON SetUpIcon(
-	const string& title,
-	const string& iconPath);
+static HICON SetUpIcon(OpenGL_Texture* texture);
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
@@ -298,23 +297,38 @@ namespace KalaWindow::Graphics
 		return ToShort(title);
 	}
 
-	void Window::SetIcon(const string& iconPath) const
+	void Window::SetIcon(u32 texture) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 
-		if (!exists(iconPath))
+		OpenGL_Texture* tex = createdOpenGLTextures[texture].get();
+
+		if (!texture
+			|| !tex)
 		{
 			Log::Print(
-				"Cannot set window '" + GetTitle() + "' exe icon because the texture file '" + iconPath + "' doesn't exist!",
+				"Cannot set window '" + GetTitle() + "' exe icon because the texture ID is invalid!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
 			return;
 		}
 
-		HICON hIcon = SetUpIcon(
-			GetTitle(),
-			iconPath);
+		TextureFormat format = tex->GetFormat();
+		if (format != TextureFormat::Format_RGBA8
+			&& format != TextureFormat::Format_SRGB8A8
+			&& format != TextureFormat::Format_RGBA16F
+			&& format != TextureFormat::Format_RGBA32F)
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' exe icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HICON hIcon = SetUpIcon(tex);
 
 		if (hIcon == nullptr) return;
 
@@ -352,24 +366,39 @@ namespace KalaWindow::Graphics
 	}
 
 	void Window::SetTaskbarOverlayIcon(
-		const string& iconPath,
+		u32 texture,
 		const string& tooltip) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 
-		if (!exists(iconPath))
+		OpenGL_Texture* tex = createdOpenGLTextures[texture].get();
+
+		if (!texture
+			|| !tex)
 		{
 			Log::Print(
-				"Cannot set window '" + GetTitle() + "' overlay icon because the texture file '" + iconPath + "' doesn't exist!",
+				"Cannot set window '" + GetTitle() + "' overlay icon because the texture ID is invalid!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
 			return;
 		}
 
-		HICON hIcon = SetUpIcon(
-			GetTitle(),
-			iconPath);
+		TextureFormat format = tex->GetFormat();
+		if (format != TextureFormat::Format_RGBA8
+			&& format != TextureFormat::Format_SRGB8A8
+			&& format != TextureFormat::Format_RGBA16F
+			&& format != TextureFormat::Format_RGBA32F)
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' overlay icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HICON hIcon = SetUpIcon(tex);
 
 		if (hIcon == nullptr) return;
 
@@ -1757,63 +1786,31 @@ void UpdateIdleState(Window* window, bool& isIdle)
 		|| !window->IsVisible();
 }
 
-HICON SetUpIcon(
-	const string& title,
-	const string& iconPath)
+HICON SetUpIcon(OpenGL_Texture* texture)
 {
-	OpenGL_Texture* createdTexture = OpenGL_Texture::LoadTexture(
-		path(iconPath).stem().string(),
-		iconPath,
-		TextureType::Type_2D,
-		TextureFormat::Format_Auto);
+	string name = texture->GetName();
+	vec2 size = texture->GetSize();
+	string sizeX = to_string(static_cast<int>(size.x));
+	string sizeY = to_string(static_cast<int>(size.y));
 
-	if (!createdTexture)
+	if (texture->GetSize().x < 16)
 	{
 		Log::Print(
-			"Failed to set window '" + title + "' icon to texture '" + iconPath + "'!",
-			"WINDOW_WINDOWS",
-			LogType::LOG_ERROR);
-
-		return nullptr;
-	}
-
-	vec2 size = createdTexture->GetSize();
-	string sizeX = to_string(size.x);
-	string sizeY = to_string(size.y);
-
-	if (size.x != size.y)
-	{
-		ostringstream oss{};
-		oss << "Icon '" + iconPath + "' x '" + sizeX
-			<< "' and y '" + sizeY
-			<< "' size don't match! You must upload an image with 1:1 aspect ratio.";
-
-		Log::Print(
-			oss.str(),
-			"WINDOW_WINDOWS",
-			LogType::LOG_ERROR);
-
-		return nullptr;
-	}
-
-	if (size.x < 16)
-	{
-		Log::Print(
-			"Icon '" + iconPath + "' size '" + sizeX + "x" + sizeY + "' is too small! Consider uploading a bigger icon.",
+			"Icon '" + name + "' size '" + sizeX + "x" + sizeY + "' is too small! Consider uploading a bigger icon.",
 			"WINDOW_WINDOWS",
 			LogType::LOG_WARNING);
 	}
 	if (size.x > 256)
 	{
 		Log::Print(
-			"Icon '" + iconPath + "' size '" + sizeX + "x" + sizeY + "' is too big! Consider uploading a smaller icon.",
+			"Icon '" + name + "' size '" + sizeX + "x" + sizeY + "' is too big! Consider uploading a smaller icon.",
 			"WINDOW_WINDOWS",
 			LogType::LOG_WARNING);
 	}
 
 	//convert RGBA to BGRA
 
-	const vector<u8>& pixels = createdTexture->GetPixels();
+	const vector<u8>& pixels = texture->GetPixels();
 	vector<u8> pixelsBGRA(pixels.size());
 
 	for (size_t i = 0; i < static_cast<size_t>(size.x) * size.y; i++)
@@ -1852,7 +1849,7 @@ HICON SetUpIcon(
 	if (!hBitMap)
 	{
 		Log::Print(
-			"Failed to create hBitMask for setting window '" + title + "' icon!",
+			"Failed to create hBitMask for setting window '" + name + "' icon!",
 			"WINDOW_WINDOWS",
 			LogType::LOG_ERROR);
 
