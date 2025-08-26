@@ -34,8 +34,6 @@ namespace KalaWindow::Graphics
 	//Texture shape/dimension
 	enum class TextureFormat : u8
 	{
-		Format_None = 0,
-
 		Format_Auto, //Auto-assign value (not recommended, can limit usefulness)
 
 		//standard UNORM formats
@@ -58,6 +56,7 @@ namespace KalaWindow::Graphics
 		Format_RGBA32F,
 
 		//compressed formats
+		//BC1-BC7 support will not be added to OpenGL on KalaWindow
 
 		Format_BC1, //DXT1 - RGB, no alpha
 		Format_BC3, //DXT5 - RGBA
@@ -65,21 +64,7 @@ namespace KalaWindow::Graphics
 		Format_BC5, //Two channel (RG)
 
 		//High quality RGBA,
-		//Requires 'GL_ARB_texture_compression_bptc' extension on OpenGL
 		Format_BC7  
-	};
-
-	//Texture use case
-	enum class TextureUsage : u8
-	{
-		Usage_None = 0,
-
-		Usage_Sampled,      //Shader sampling
-		Usage_Storage,      //ImageStore/ImageLoad (Vulkan only)
-		Usage_RenderTarget, //Color attachment
-		Usage_DepthStencil, //Depth attachment
-		Usage_TransferSrc,  //Copy source
-		Usage_TransferDst   //Copy destination
 	};
 
 	enum class TextureResizeType
@@ -131,7 +116,7 @@ namespace KalaWindow::Graphics
 			name = newName;
 		}
 
-		const string& GetPath() const { return path; }
+		const string& GetPath() const { return filePath; }
 
 		u32 GetID() const { return ID; }
 
@@ -150,6 +135,12 @@ namespace KalaWindow::Graphics
 		}
 		const vector<vector<u8>>& GetCubePixels() const { return cubePixels; }
 
+		void SetLayerPixels(const vector<vector<u8>>& newLayerPixels)
+		{
+			layerPixels = newLayerPixels;
+		}
+		const vector<vector<u8>>& GetLayerPixels() const { return layerPixels; }
+
 		u32 GetTexelCount() const
 		{
 			return static_cast<u32>(size.x)
@@ -159,23 +150,22 @@ namespace KalaWindow::Graphics
 
 		TextureType GetType() const { return type; }
 		TextureFormat GetFormat() const { return format; }
-		TextureUsage GetUsage() const { return usage; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		virtual ~Texture() {};
 	protected:
 		string name{};
-		string path{};
+		string filePath{};
 		u32 ID{};
 
 		vec2 size{};
 		u16 depth = 1;
 		u8 mipMapLevels = 1;
-		vector<u8> pixels{};
-		vector<vector<u8>> cubePixels{};
+		vector<u8> pixels{};              //2D/3D
+		vector<vector<u8>> cubePixels{};  //Cubemap
+		vector<vector<u8>> layerPixels{}; //2D array
 
 		TextureType type{};
 		TextureFormat format{};
-		TextureUsage usage{};
 	};
 }

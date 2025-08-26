@@ -53,7 +53,6 @@ using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
-using KalaWindow::Graphics::TextureUsage;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
@@ -1766,8 +1765,7 @@ HICON SetUpIcon(
 		path(iconPath).stem().string(),
 		iconPath,
 		TextureType::Type_2D,
-		TextureFormat::Format_RGBA8,
-		TextureUsage::Usage_None);
+		TextureFormat::Format_Auto);
 
 	if (!createdTexture)
 	{

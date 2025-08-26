@@ -21,28 +21,42 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 	public:
 		//Load a new texture from an external file.
-		//Depth is always clamped to 1 for Type_2D and Type_Cube.
-		//Depth is a power of 4 for Type_2DArray and Type_3D
-		//and is clamped internally from 256 to 8192.
+		//Depth is always clamped to 1 for Type_2D,
+		//it is a power of 4 for Type_3D and is clamped internally from 256 to 8192.
 		//Mipmap levels are clamped internally through Texture::GetMaxMipMapLevels.
 		//Returns a fallback texture if loading fails.
+		//Only supports Type_2D and Type_3D.
 		static OpenGL_Texture* LoadTexture(
 			const string& name,
 			const string& path,
 			TextureType type,
 			TextureFormat format,
-			TextureUsage usage,
 			bool flipVertically = false,
 			u16 depth = 1,
 			u8 mipMapLevels = 1);
 
-
-		//Uses the data from six existing textures to create a new cubemap texture
+		//Uses the data from six provided texture files to create a new cubemap texture.
 		//Mipmap levels are clamped internally through Texture::GetMaxMipMapLevels.
-		//Returns a fallback texture if loading fails.
-		static OpenGL_Texture* CreateCubeMapTexture(
+		//Returns a fallback texture if loading fails. Depth is always 6 for cube map textures.
+		//Size for each texture must match and be 1:1 aspect ratio.
+		//Only supports Type_Cube
+		static OpenGL_Texture* LoadCubeMapTexture(
 			const string& name,
-			const array<OpenGL_Texture*, 6>& textures,
+			const array<string, 6>& texturePaths,
+			TextureFormat format,
+			bool flipVertically = false,
+			u8 mipMapLevels = 1);
+
+		//Uses the data from all the provided texture files to create a new 2D array texture.
+		//Mipmap levels are clamped internally through Texture::GetMaxMipMapLevels.
+		//Returns a fallback texture if loading fails. Depth is always size of texturePaths vector.
+		//Size for each texture must match and be 1:1 aspect ratio.
+		//Only supports Type_2DArray
+		static OpenGL_Texture* Load2DArrayTexture(
+			const string& name,
+			const vector<string>& texturePaths,
+			TextureFormat format,
+			bool flipVertically = false,
 			u8 mipMapLevels = 1);
 
 		//Returns the fallback texture,
