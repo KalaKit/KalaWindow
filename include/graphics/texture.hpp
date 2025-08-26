@@ -57,13 +57,6 @@ namespace KalaWindow::Graphics
 		Format_RG32F,
 		Format_RGBA32F,
 
-		//depth formats
-
-		Format_Depth24,
-		Format_Depth32F,
-		Format_Depth24Stencil8,
-		Format_Depth32FStencil8,
-
 		//compressed formats
 
 		Format_BC1, //DXT1 - RGB, no alpha
