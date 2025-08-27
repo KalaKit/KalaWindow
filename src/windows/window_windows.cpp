@@ -235,6 +235,10 @@ namespace KalaWindow::Graphics
 
 		newWindow->isInitialized = true;
 
+		//ensure window is always shown in case setwindowstate will not be called
+		ShowWindow(newHwnd, SW_SHOWNORMAL);
+		UpdateWindow(newHwnd);
+
 		createdWindows[newID] = move(newWindow);
 		runtimeWindows.push_back(windowPtr);
 
