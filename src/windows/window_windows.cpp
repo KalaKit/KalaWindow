@@ -98,75 +98,109 @@ namespace KalaWindow::Graphics
 {
 	Window* Window::Initialize(
 		const string& title,
-		vec2 size)
+		vec2 size,
+		Window* parentWindow)
 	{
-		if (!checkedOSVersion)
+		HINSTANCE newHInstance = GetModuleHandle(nullptr);
+
+		if (createdWindows.size() == 0)
 		{
-			u32 version = KalaWindowCore::GetVersion();
-			string versionStr = to_string(version);
-			string osVersion = versionStr.substr(0, 2);
-			string buildVersion = to_string(stoi(versionStr.substr(2)));
-
-			if (version < MIN_OS_VERSION)
+			if (!checkedOSVersion)
 			{
-				ostringstream oss{};
-				oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
-					<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
+				u32 version = KalaWindowCore::GetVersion();
+				string versionStr = to_string(version);
+				string osVersion = versionStr.substr(0, 2);
+				string buildVersion = to_string(stoi(versionStr.substr(2)));
 
+				if (version < MIN_OS_VERSION)
+				{
+					ostringstream oss{};
+					oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
+						<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
+
+					KalaWindowCore::ForceClose(
+						"Windows version out of date",
+						oss.str());
+
+					return nullptr;
+				}
+
+				Log::Print(
+					"Windows version '" + osVersion + "' build '" + buildVersion + "'",
+					"WINDOW_WINDOWS",
+					LogType::LOG_INFO);
+
+				checkedOSVersion = true;
+			}
+
+			Log::Print(
+				"Creating window '" + title + "'.",
+				"WINDOW_WINDOWS",
+				LogType::LOG_DEBUG);
+
+#ifdef _WIN32
+			if (!enabledBeginPeriod)
+			{
+				timeBeginPeriod(1);
+				enabledBeginPeriod = true;
+			}
+#endif //_WIN32
+
+			WNDCLASSA wc = {};
+			wc.style =
+				CS_OWNDC      //own the DC for the lifetime of this window
+				| CS_DBLCLKS; //allow detecting double clicks
+			wc.lpfnWndProc = reinterpret_cast<WNDPROC>(MessageLoop::WindowProcCallback());
+			wc.hInstance = newHInstance;
+			wc.lpszClassName = "KalaWindowClass";
+
+			if (!RegisterClassA(&wc))
+			{
+				DWORD err = GetLastError();
+				string message{};
+				if (err == ERROR_CLASS_ALREADY_EXISTS)
+				{
+					message = "Window class already exists with different definition.\n";
+				}
+				else
+				{
+					message = "RegisterClassA failed with error: " + to_string(err) + "\n";
+				}
+
+				string errorTitle = "Window error";
 				KalaWindowCore::ForceClose(
-					"Windows version out of date",
-					oss.str());
+					errorTitle,
+					message);
+
+				return nullptr;
+			}
+		}
+
+		HWND parentWindowRef{};
+		if (parentWindow != nullptr)
+		{
+			if (find(runtimeWindows.begin(),
+				runtimeWindows.end(),
+				parentWindow)
+				== runtimeWindows.end())
+			{
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Parent window pointer does not exist! Failed to newly created child window '" + title);
 
 				return nullptr;
 			}
 
-			Log::Print(
-				"Windows version '" + osVersion + "' build '" + buildVersion + "'",
-				"WINDOW_WINDOWS",
-				LogType::LOG_INFO);
+			parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().hwnd);
 
-			checkedOSVersion = true;
-		}
-
-		Log::Print(
-			"Creating window '" + title + "'.",
-			"WINDOW_WINDOWS",
-			LogType::LOG_DEBUG);
-
-#ifdef _WIN32
-		if (!enabledBeginPeriod)
-		{
-			timeBeginPeriod(1);
-			enabledBeginPeriod = true;
-		}
-#endif //_WIN32
-
-		HINSTANCE newHInstance = GetModuleHandle(nullptr);
-
-		WNDCLASSA wc = {};
-		wc.lpfnWndProc = reinterpret_cast<WNDPROC>(MessageLoop::WindowProcCallback());
-		wc.hInstance = newHInstance;
-		wc.lpszClassName = "KalaWindowClass";
-
-		if (!RegisterClassA(&wc))
-		{
-			DWORD err = GetLastError();
-			string message{};
-			if (err == ERROR_CLASS_ALREADY_EXISTS)
+			if (parentWindowRef == nullptr)
 			{
-				message = "Window class already exists with different definition.\n";
-			}
-			else
-			{
-				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
-			}
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Parent window handle is invalid! Failed to newly created child window '" + title);
 
-			string errorTitle = "Window error";
-			KalaWindowCore::ForceClose(
-				errorTitle,
-				message);
-
-			return nullptr;
+				return nullptr;
+			}
 		}
 
 		HWND newHwnd = CreateWindowExA(
@@ -178,7 +212,7 @@ namespace KalaWindow::Graphics
 			CW_USEDEFAULT,
 			size.x,
 			size.y,
-			nullptr,
+			parentWindowRef,
 			nullptr,
 			newHInstance,
 			nullptr);

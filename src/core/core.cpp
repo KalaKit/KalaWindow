@@ -215,6 +215,7 @@ namespace KalaWindow::Core
 		createdOpenGLTextures.clear();
 		if (OpenGL_Renderer::IsInitialized())
 		{
+			wglMakeCurrent(nullptr, nullptr);
 			createdOpenGLShaders.clear();
 		}
 

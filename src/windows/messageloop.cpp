@@ -45,6 +45,7 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::runtimeMenuBarEvents;
+using KalaWindow::Core::createdWindows;
 
 using std::string;
 using std::to_string;
@@ -780,23 +781,27 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	// SHUTDOWN
 	//
 
-	//user clicked X button or pressed Alt + F4
+	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	
-	//TODO: DO NOT SHUT DOWN APPLICATION HERE, INSTEAD CHECK IF ANY WINDOWS
-	//WITH 'KEEPALIVE' FLAG EXIST IF A WINDOW WAS DESTROYED
-	//AND IF NONE EXIST, THEN CALL SHUTDOWN AT WM_DESTROY
-	
-		KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+		Log::Print(
+			"Window '" + window->GetTitle() + "' is destroyed.",
+			"MESSAGELOOP",
+			LogType::LOG_SUCCESS);
+
+		DestroyWindow(ToVar<HWND>(window->GetWindowData().hwnd));
+
+		if (createdWindows.size() == 0)
+		{
+			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+		}
+		
 		return true;
 
-	//window was destroyed - tell the system to exit
+	//full shutdown if all windows were destroyed
 	case WM_DESTROY:
-		Log::Print(
-			"Window is destroyed.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
-		PostQuitMessage(0);
+		if (createdWindows.size() == 0) PostQuitMessage(0);
+		
 		return true;
 
 	default:

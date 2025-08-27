@@ -245,9 +245,11 @@ namespace KalaWindow::Graphics
 	class LIB_API Window
 	{
 	public:
+		//Create a new window with an optional choice to attach a parent window
 		static Window* Initialize(
 			const string& title,
-			vec2 size);
+			vec2 size,
+			Window* parentWindow = nullptr);
 		bool IsInitialized() const { return isInitialized; }
 
 		//Draws the window, handles messages for active frame
