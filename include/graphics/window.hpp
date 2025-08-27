@@ -306,8 +306,8 @@ namespace KalaWindow::Graphics
 
 		//If true, then this window is gonna go idle and reduces cpu and gpu
 		//cycles by waiting for messageloop messages before updating the exe.
-		bool IsFocusRequired() const { return isWindowFocusRequired; }
 		void SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
+		bool IsFocusRequired() const { return isWindowFocusRequired; }
 
 		//If true, then this window is always on top of other windows
 		void SetAlwaysOnTopState(bool state) const;
@@ -359,9 +359,11 @@ namespace KalaWindow::Graphics
 		//Returns true if window is idle - not focused, minimized or not visible.
 		bool IsIdle() const { return isIdle; }
 
+		//Correctly handle aspect ratio during window resize for camera
 		void TriggerResize() const { if (resizeCallback) resizeCallback(); }
 		void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
 
+		//Ensure content is redrawn while window is being resized
 		void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
 		void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
