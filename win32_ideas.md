@@ -9,9 +9,6 @@
   - File drops: `WM_DROPFILES`, `DragQueryFile`
   - Future: OLE drag-and-drop (text, images, etc.)
 
-- **Taskbar Integration**
-  - Progress bar in taskbar button (`ITaskbarList3`)
-
 ---
 
 # Already added / won't be added
@@ -34,6 +31,7 @@
 - **Taskbar Integration**
     - Overlay icons (status indicators)
 	- Flash window (`FlashWindowEx`)
+	- Progress bar in taskbar button (`ITaskbarList3`)
 	
 - **System Tray & Notifications**
   - `Shell_NotifyIcon` wrappers - won't be added
