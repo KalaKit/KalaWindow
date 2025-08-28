@@ -26,20 +26,22 @@
   - Global hotkey registration (`RegisterHotKey`)  
 
 - **Hooks (Advanced)**  
-  - Low-level input hooks (keyboard, mouse)  
   - Debugging / monitoring tools (careful with perf & security)
 
 ---
 
 # Already added / won't be added
 
+- **Hooks (Advanced)**  
+  - Low-level input hooks (keyboard, mouse)
+
 - **High DPI / Scaling Control**  
   - `SetProcessDpiAwarenessContext` wrappers  
   - Query per-monitor DPI → `GetDpiForWindow`  
 
 - **Window Visual Effects**  
-  - Per-pixel alpha transparency (`UpdateLayeredWindow`)  
-  - Acrylic / Mica backgrounds (modern DWM effects)  
+  - Per-pixel alpha transparency (`UpdateLayeredWindow`) - won't be added
+  - Acrylic / Mica backgrounds (modern DWM effects) - won't be added
   - Rounded corners (`DwmSetWindowAttribute`)  
   
 - **Input (Raw / Precision)**  
@@ -52,5 +54,8 @@
   - Custom draggable hit-test regions (`WM_NCHITTEST`)  
   - System drop shadow (`CS_DROPSHADOW`) - won't be added
   
- - **Taskbar Integration**  
+- **Taskbar Integration**  
     - Overlay icons (status indicators)  
+	
+- **Power & Session Events**
+  - Session lock/unlock notifications  

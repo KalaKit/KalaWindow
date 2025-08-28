@@ -358,6 +358,11 @@ namespace KalaWindow::Graphics
 		//Can assign the window state to one of the supported types
 		void SetWindowState(WindowState state) const;
 
+		//If true, then Windows stops this app from closing
+		//when shutting down or logging off to enable you to close your work
+		void SetShutdownBlockState(bool state);
+		bool IShutdownBlockEnabled() const { return shutdownBlockState; }
+
 		//Returns true if window is idle - not focused, minimized or not visible.
 		bool IsIdle() const { return isIdle; }
 
@@ -405,9 +410,10 @@ namespace KalaWindow::Graphics
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 	private:
-		bool isInitialized = false;          //Cannot use this window if it is not yet initialized
-		bool isWindowFocusRequired = true;   //If true, then this window will not update unless selected.
-		bool isIdle = false;                 //Toggled dynamically by isfocused, isminimized and isvisible checks.
+		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
+		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
+		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
+		bool shutdownBlockState = false;   //Prevents Windows from shutting off or logging off if this is true so you can save your data
 
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
 		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become

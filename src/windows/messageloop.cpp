@@ -42,6 +42,9 @@ using KalaWindow::Core::Key;
 using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::PopupAction;
+using KalaWindow::Core::PopupType;
+using KalaWindow::Core::PopupResult;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::runtimeMenuBarEvents;
@@ -221,6 +224,31 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	}
 	if (window == nullptr) return DefWindowProc(hwnd, msg, wParam, lParam);
 
+	switch (msg)
+	{
+	//asks if user wants to log off or shut down (in case any data is unsaved)
+	case WM_QUERYENDSESSION:
+	{
+		if (KalaWindowCore::CreatePopup(
+			"Quitting application",
+			"Are you sure you want to quit? Unclosed data may be lost!",
+			PopupAction::POPUP_ACTION_YES_NO,
+			PopupType::POPUP_TYPE_QUESTION)
+			== PopupResult::POPUP_RESULT_YES)
+		{
+			return TRUE; //user clicked yes, continuing to logoff/shutdown
+		}
+		else return FALSE; //user clicked no, cancelling logoff/shutdown
+	}
+	//actually go through with logoff/shutdown
+	case WM_ENDSESSION:
+	{
+		if (wParam == TRUE) KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+
+		return 0;
+	}
+	}
+
 	//
 	// ENSURE CURSOR ICON IS CORRECT WHEN INSIDE WINDOW
 	//
@@ -261,10 +289,8 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	msgObj.wParam = wParam;
 	msgObj.lParam = lParam;
 
-	bool handled = ProcessMessage(msgObj, window);
-
-	//tell windows this message is fully handled
-	if (handled) return 0;
+	//return 0 if we handled the message ourselves
+	if (ProcessMessage(msgObj, window)) return 0;
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);
 }
@@ -783,7 +809,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
-	
+	{
 		Log::Print(
 			"Window '" + window->GetTitle() + "' is destroyed.",
 			"MESSAGELOOP",
@@ -795,14 +821,17 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		}
-		
+
 		return true;
+	}
 
 	//full shutdown if all windows were destroyed
 	case WM_DESTROY:
+	{
 		if (createdWindows.size() == 0) PostQuitMessage(0);
-		
+
 		return true;
+	}
 
 	default:
 		return false;

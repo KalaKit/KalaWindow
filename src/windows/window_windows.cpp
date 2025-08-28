@@ -16,11 +16,12 @@
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 #include <ShlObj.h>
-#include <shobjidl.h>
 #include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
 #include <atlbase.h>
 #include <atlcomcli.h>
+#include <wtsapi32.h>
+#pragma comment(lib, "Wtsapi32.lib")
 
 #include <algorithm>
 #include <functional>
@@ -1233,6 +1234,25 @@ namespace KalaWindow::Graphics
 		UpdateWindow(hwnd);
 	}
 
+	void Window::SetShutdownBlockState(bool state)
+	{
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
+		if (state)
+		{
+			WTSRegisterSessionNotification(
+				hwnd,
+				NOTIFY_FOR_THIS_SESSION);
+
+			shutdownBlockState = true;
+		}
+		else
+		{
+			WTSUnRegisterSessionNotification(hwnd);
+			shutdownBlockState = false;
+		}
+	}
+
 	void Window::Update()
 	{
 		if (!isInitialized)
@@ -1305,6 +1325,7 @@ namespace KalaWindow::Graphics
 			DestroyIcon(overlayIcon);
 			overlayIcon = nullptr;
 		}
+		if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
 
 		if (win.hwnd)
 		{
