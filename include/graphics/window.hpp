@@ -72,6 +72,15 @@ namespace KalaWindow::Graphics
 		FLASH_TIMED        //flash x times
 	};
 
+	enum class TaskbarProgressBarMode
+	{
+		PROGRESS_NONE,          //hide the bar
+		PROGRESS_INDETERMINATE, //pulse
+		PROGRESS_NORMAL,        //green bar
+		PROGRESS_PAUSED,        //yellow bar
+		PROGRESS_ERROR          //red bar
+	};
+
 	enum class LabelType
 	{
 		LABEL_LEAF,  //Clickable with required function, can't have children
@@ -379,6 +388,14 @@ namespace KalaWindow::Graphics
 		void FlashTaskbar(
 			TaskbarFlashMode mode,
 			u32 count = 0) const;
+
+		//Set taskbar progress bar mode.
+		//Max is internally clamped from 0 to 100,
+		//current is internally clamped from 0 to max - 1
+		void SetTaskbarProgressBarState(
+			TaskbarProgressBarMode,
+			u8 currentProgress,
+			u8 maxProgress) const;
 
 		//Returns true if window is idle - not focused, minimized or not visible.
 		bool IsIdle() const { return isIdle; }

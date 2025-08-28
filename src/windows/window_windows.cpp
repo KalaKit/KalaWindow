@@ -1294,6 +1294,8 @@ namespace KalaWindow::Graphics
 		TaskbarFlashMode mode,
 		u32 count) const
 	{
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
 		if (mode == TaskbarFlashMode::FLASH_TIMED
 			&& count == 0)
 		{
@@ -1304,8 +1306,6 @@ namespace KalaWindow::Graphics
 
 			return;
 		}
-
-		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
 		FLASHWINFO fi{};
 		fi.cbSize = sizeof(fi);
@@ -1329,6 +1329,66 @@ namespace KalaWindow::Graphics
 
 		fi.dwTimeout = 0;
 		FlashWindowEx(&fi);
+	}
+
+	void Window::SetTaskbarProgressBarState(
+		TaskbarProgressBarMode mode,
+		u8 current,
+		u8 max) const
+	{
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
+		u8 maxClamped = clamp(
+			max, 
+			static_cast<u8>(1), 
+			static_cast<u8>(100));
+
+		u8 currentClamped = clamp(
+			current, 
+			static_cast<u8>(0),
+			static_cast<u8>(maxClamped - 1));
+
+		CComPtr<ITaskbarList3> taskbar{};
+		HRESULT hr = CoCreateInstance(
+			CLSID_TaskbarList,
+			nullptr,
+			CLSCTX_INPROC_SERVER,
+			IID_PPV_ARGS(&taskbar));
+
+		if (!SUCCEEDED(hr)
+			|| !taskbar)
+		{
+			Log::Print(
+				"Failed to create ITaskbarList3 to set taskbar progress bar mode!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		taskbar->HrInit();
+
+		switch (mode)
+		{
+		case TaskbarProgressBarMode::PROGRESS_NONE:
+			taskbar->SetProgressState(hwnd, TBPF_NOPROGRESS);
+			break;
+		case TaskbarProgressBarMode::PROGRESS_INDETERMINATE:
+			taskbar->SetProgressState(hwnd, TBPF_INDETERMINATE);
+			break;
+		case TaskbarProgressBarMode::PROGRESS_NORMAL:
+			taskbar->SetProgressState(hwnd, TBPF_NORMAL);
+			taskbar->SetProgressValue(hwnd, currentClamped, maxClamped);
+			break;
+		case TaskbarProgressBarMode::PROGRESS_PAUSED:
+			taskbar->SetProgressState(hwnd, TBPF_PAUSED);
+			taskbar->SetProgressValue(hwnd, currentClamped, maxClamped);
+			break;
+		case TaskbarProgressBarMode::PROGRESS_ERROR:
+			taskbar->SetProgressState(hwnd, TBPF_ERROR);
+			taskbar->SetProgressValue(hwnd, currentClamped, maxClamped);
+			break;
+		}
 	}
 
 	void Window::Update()
