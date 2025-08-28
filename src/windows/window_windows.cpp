@@ -22,6 +22,9 @@
 #include <atlcomcli.h>
 #include <wtsapi32.h>
 #pragma comment(lib, "Wtsapi32.lib")
+#include <winrt/windows.ui.notifications.h>
+#include <winrt/windows.data.xml.dom.h>
+#pragma comment(lib, "runtimeobject.lib")
 
 #include <algorithm>
 #include <functional>
@@ -79,12 +82,17 @@ using std::filesystem::exists;
 using std::ostringstream;
 using std::wstring;
 using std::string;
+using std::string_view;
 using std::vector;
+using namespace winrt::Windows::UI::Notifications;
+using namespace winrt::Windows::Data::Xml::Dom;
 
 static bool checkedOSVersion = false;
 constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
 constexpr u16 MAX_TITLE_LENGTH = 512;
 constexpr u8 MAX_LABEL_LENGTH = 64;
+
+static string APP_ID{};
 
 static bool enabledBeginPeriod = false;
 
@@ -138,8 +146,18 @@ namespace KalaWindow::Graphics
 				checkedOSVersion = true;
 			}
 
+			wchar_t buffer[MAX_PATH]{};
+			GetModuleFileNameW(
+				nullptr, 
+				buffer, 
+				MAX_PATH);
+
+			path exePath(buffer);
+
+			APP_ID = exePath.stem().string();
+
 			//Treat this process as a real app with a stable identity
-			SetCurrentProcessExplicitAppUserModelID(L"KalaWindowClass");
+			SetCurrentProcessExplicitAppUserModelID(ToWide(APP_ID).c_str());
 
 			Log::Print(
 				"Creating window '" + title + "'.",
@@ -160,7 +178,7 @@ namespace KalaWindow::Graphics
 				| CS_DBLCLKS; //allow detecting double clicks
 			wc.lpfnWndProc = reinterpret_cast<WNDPROC>(MessageLoop::WindowProcCallback());
 			wc.hInstance = newHInstance;
-			wc.lpszClassName = "KalaWindowClass";
+			wc.lpszClassName = APP_ID.c_str();
 
 			if (!RegisterClassA(&wc))
 			{
@@ -213,7 +231,7 @@ namespace KalaWindow::Graphics
 
 		HWND newHwnd = CreateWindowExA(
 			0,
-			"KalaWindowClass",
+			APP_ID.c_str(),
 			title.c_str(),
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT,
@@ -1253,6 +1271,66 @@ namespace KalaWindow::Graphics
 		}
 	}
 
+	void Window::CreateNotification(
+		const string& title,
+		const string& nessage)
+	{
+		wstring titleW = ToWide(title);
+		wstring messageW = ToWide(nessage);
+
+		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
+			ToastTemplateType::ToastImageAndText02);
+
+		auto textNodes = toastXml.GetElementsByTagName(L"text");
+		textNodes.Item(0).AppendChild(toastXml.CreateTextNode(titleW));
+		textNodes.Item(1).AppendChild(toastXml.CreateTextNode(messageW));
+
+		ToastNotification toast(toastXml);
+
+		ToastNotificationManager::CreateToastNotifier(ToWide(APP_ID)).Show(toast);
+	}
+
+	void Window::FlashTaskbar(
+		TaskbarFlashMode mode,
+		u32 count) const
+	{
+		if (mode == TaskbarFlashMode::FLASH_TIMED
+			&& count == 0)
+		{
+			Log::Print(
+				"Failed to flash taskbar because mode was set to 'FLASH_TIMED' but no count value was assigned!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
+		FLASHWINFO fi{};
+		fi.cbSize = sizeof(fi);
+		fi.hwnd = hwnd;
+
+		switch (mode)
+		{
+		case TaskbarFlashMode::FLASH_ONCE:
+			fi.dwFlags = FLASHW_ALL;
+			fi.uCount = 1;
+			break;
+		case TaskbarFlashMode::FLASH_UNTIL_FOCUS:
+			fi.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
+			fi.uCount = 0; //keep flashing until focus
+			break;
+		case TaskbarFlashMode::FLASH_TIMED:
+			fi.dwFlags = FLASHW_ALL;
+			fi.uCount = count; //flash x times
+			break;
+		}
+
+		fi.dwTimeout = 0;
+		FlashWindowEx(&fi);
+	}
+
 	void Window::Update()
 	{
 		if (!isInitialized)
@@ -1325,6 +1403,7 @@ namespace KalaWindow::Graphics
 			DestroyIcon(overlayIcon);
 			overlayIcon = nullptr;
 		}
+
 		if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
 
 		if (win.hwnd)

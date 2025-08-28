@@ -233,9 +233,10 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 			"Quitting application",
 			"Are you sure you want to quit? Unclosed data may be lost!",
 			PopupAction::POPUP_ACTION_YES_NO,
-			PopupType::POPUP_TYPE_QUESTION)
+			PopupType::POPUP_TYPE_WARNING)
 			== PopupResult::POPUP_RESULT_YES)
 		{
+			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 			return TRUE; //user clicked yes, continuing to logoff/shutdown
 		}
 		else return FALSE; //user clicked no, cancelling logoff/shutdown
@@ -243,8 +244,6 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	//actually go through with logoff/shutdown
 	case WM_ENDSESSION:
 	{
-		if (wParam == TRUE) KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
-
 		return 0;
 	}
 	}

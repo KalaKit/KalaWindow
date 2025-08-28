@@ -65,6 +65,13 @@ namespace KalaWindow::Graphics
 		ROUNDING_ROUND_SMALL //rounded but smaller radius
 	};
 
+	enum class TaskbarFlashMode
+	{
+		FLASH_ONCE,        //single flash
+		FLASH_UNTIL_FOCUS, //keep flashing until user focuses on window
+		FLASH_TIMED        //flash x times
+	};
+
 	enum class LabelType
 	{
 		LABEL_LEAF,  //Clickable with required function, can't have children
@@ -362,6 +369,16 @@ namespace KalaWindow::Graphics
 		//when shutting down or logging off to enable you to close your work
 		void SetShutdownBlockState(bool state);
 		bool IShutdownBlockEnabled() const { return shutdownBlockState; }
+
+		//Create a notification that shows up on your screen
+		void CreateNotification(
+			const string& title,
+			const string& nessage);
+
+		//Flash the taskbar button to attract user attention
+		void FlashTaskbar(
+			TaskbarFlashMode mode,
+			u32 count = 0) const;
 
 		//Returns true if window is idle - not focused, minimized or not visible.
 		bool IsIdle() const { return isIdle; }
