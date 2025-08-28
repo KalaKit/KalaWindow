@@ -16,6 +16,7 @@
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
 #include <ShlObj.h>
+#include <shobjidl.h>
 #include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
 #include <atlbase.h>
@@ -91,6 +92,9 @@ static void UpdateIdleState(Window* window, bool& isIdle);
 
 static HICON SetUpIcon(OpenGL_Texture* texture);
 
+static HICON exeIcon{};
+static HICON overlayIcon{};
+
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
 
@@ -132,6 +136,9 @@ namespace KalaWindow::Graphics
 
 				checkedOSVersion = true;
 			}
+
+			//Treat this process as a real app with a stable identity
+			SetCurrentProcessExplicitAppUserModelID(L"KalaWindowClass");
 
 			Log::Print(
 				"Creating window '" + title + "'.",
@@ -186,7 +193,7 @@ namespace KalaWindow::Graphics
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
-					"Parent window pointer does not exist! Failed to newly created child window '" + title);
+					"Parent window pointer does not exist! Failed to newly create child window '" + title);
 
 				return nullptr;
 			}
@@ -197,7 +204,7 @@ namespace KalaWindow::Graphics
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
-					"Parent window handle is invalid! Failed to newly created child window '" + title);
+					"Parent window handle is invalid! Failed to newly create child window '" + title);
 
 				return nullptr;
 			}
@@ -366,9 +373,23 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HICON hIcon = SetUpIcon(tex);
+		if (exeIcon)
+		{
+			DestroyIcon(exeIcon);
+			exeIcon = nullptr;
+		}
 
-		if (hIcon == nullptr) return;
+		exeIcon = SetUpIcon(tex);
+
+		if (exeIcon == nullptr)
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' icon because SetUpIcon failed!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
 
 		//apply to window
 
@@ -376,15 +397,13 @@ namespace KalaWindow::Graphics
 			window,
 			WM_SETICON,
 			ICON_BIG, //task bar + alt tab
-			(LPARAM)hIcon);
+			(LPARAM)exeIcon);
 
 		SendMessage(
 			window,
 			WM_SETICON,
 			ICON_SMALL, //title bar + window border
-			(LPARAM)hIcon);
-
-		DestroyIcon(hIcon);
+			(LPARAM)exeIcon);
 	}
 	void Window::ClearIcon() const
 	{
@@ -436,9 +455,23 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HICON hIcon = SetUpIcon(tex);
+		if (overlayIcon)
+		{
+			DestroyIcon(overlayIcon);
+			overlayIcon = nullptr;
+		}
+		
+		overlayIcon = SetUpIcon(tex);
 
-		if (hIcon == nullptr) return;
+		if (overlayIcon == nullptr)
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' overlay icon because SetUpIcon failed!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
 
 		CComPtr<ITaskbarList3> taskbar{};
 		HRESULT hr = (CoCreateInstance(
@@ -447,10 +480,23 @@ namespace KalaWindow::Graphics
 			CLSCTX_INPROC_SERVER,
 			IID_PPV_ARGS(&taskbar)));
 
+		if (!SUCCEEDED(hr)
+			|| !taskbar)
+		{
+			Log::Print(
+				"Failed to create ITaskbarList3 to set overlay icon!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		hr = taskbar->HrInit();
+
 		if (!SUCCEEDED(hr))
 		{
 			Log::Print(
-				"Failed to get ITaskbarList3 to set overlay icon!",
+				"Failed to init ITaskbarList3 to set overlay icon!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR);
 
@@ -459,10 +505,8 @@ namespace KalaWindow::Graphics
 
 		taskbar->SetOverlayIcon(
 			window,
-			hIcon,
+			overlayIcon,
 			tooltip.empty() ? nullptr : ToWide(tooltip).c_str());
-
-		DestroyIcon(hIcon);
 	}
 	void Window::ClearTaskbarOverlayIcon() const
 	{
@@ -1250,6 +1294,17 @@ namespace KalaWindow::Graphics
 		}
 
 		//Renderer_Vulkan::DestroyWindowData(this);
+
+		if (exeIcon)
+		{
+			DestroyIcon(exeIcon);
+			exeIcon = nullptr;
+		}
+		if (overlayIcon)
+		{
+			DestroyIcon(overlayIcon);
+			overlayIcon = nullptr;
+		}
 
 		if (win.hwnd)
 		{
