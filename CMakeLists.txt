@@ -77,6 +77,10 @@ file(GLOB WINDOW_SRC CONFIGURE_DEPENDS
 	${WINDOW_SRC_DIR}/windows/*.cpp
 	${WINDOW_SRC_DIR}/linux/*.cpp
 	${WINDOW_SRC_DIR}/ui/*.cpp
+	
+	#External stuff
+	"${EXT_SHARED_DIR}/imgui/*.cpp"
+	"${EXT_SHARED_DIR}/imgui/backends/*.cpp"
 )
 list(APPEND WINDOW_SRC_FILES ${WINDOW_SRC})
 

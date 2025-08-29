@@ -10,6 +10,10 @@
 #include "KalaHeaders/core_types.hpp"
 #include "glm/glm.hpp"
 
+//forward declare imgui context struct
+//so we dont have to include the whole imgui header
+struct ImGuiContext;
+
 namespace KalaWindow::UI
 {
 	using glm::vec2;
@@ -18,9 +22,15 @@ namespace KalaWindow::UI
 	class DebugUI
 	{
 	public:
+		//Set up ImGui
 		static bool Initialize();
 		static bool IsInitialized() { return isInitialized; }
 
+		//Get the ImGui context - this is required to be assigned to your ImGui
+		//context to ensure everything draws relative to your executable
+		static ImGuiContext* GetImGuiContext();
+
+		//Assign the top bar function that should hold all your top bar draw functions
 		static void SetTopBarFunction(const function<void()>& newFunction)
 		{
 			topBarFunction = newFunction;
@@ -30,6 +40,7 @@ namespace KalaWindow::UI
 			return topBarFunction;
 		}
 
+		//Assign the main function that should hold all your main draw functions
 		static void SetMainRenderFunction(const function<void()>& newFunction)
 		{
 			mainRenderFunction = newFunction;
@@ -39,12 +50,15 @@ namespace KalaWindow::UI
 			return mainRenderFunction;
 		}
 
+		//Place ImGui window to the center
 		static vec2 CenterWindow(
 			vec2 size,
 			u32 windowID);
 
+		//ImGui main draw loop
 		static void Render(u32 windowID);
 
+		//Shut down ImGui
 		static void Shutdown();
 	private:
 		static inline bool isInitialized{};

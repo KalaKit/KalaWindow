@@ -23,6 +23,8 @@ using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 
+static ImGuiContext* context{};
+
 namespace KalaWindow::UI
 {
 	bool DebugUI::Initialize()
@@ -32,7 +34,8 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Cannot initialize ImGui more than once!",
 				"DEBUG_UI",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return false;
 		}
@@ -42,15 +45,17 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Failed to initialize ImGui! No window has been created.",
 				"DEBUG_UI",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return false;
 		}
 
 		IMGUI_CHECKVERSION();
-		ImGui::CreateContext();
-		ImGuiIO& io = ImGui::GetIO();
+		context = ImGui::CreateContext();
+		ImGui::SetCurrentContext(context);
 
+		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
 #ifdef _WIN32
@@ -71,6 +76,22 @@ namespace KalaWindow::UI
 		return true;
 	}
 
+	ImGuiContext* DebugUI::GetImGuiContext()
+	{
+		if (isInitialized)
+		{
+			Log::Print(
+				"Cannot initialize ImGui more than once!",
+				"DEBUG_UI",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
+		}
+
+		return context;
+	}
+
 	vec2 DebugUI::CenterWindow(
 		vec2 size,
 		u32 windowID)
@@ -80,7 +101,8 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Cannot center window because ImGui is not initialized!",
 				"DEBUG_UI",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return vec2();
 		}
@@ -92,7 +114,8 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Cannot center ImGui window because the window ID is invalid!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return vec2();
 		}
@@ -112,7 +135,8 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Cannot run ImGui because ImGui is not initialized!",
 				"DEBUG_UI",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -124,7 +148,8 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Cannot render ImGui because the window ID is invalid!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -175,12 +200,15 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Cannot shut down ImGui because ImGui is not initialized!",
 				"DEBUG_UI",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
 
 		isInitialized = false;
+
+		context = nullptr;
 
 		ImGui_ImplOpenGL3_Shutdown();
 		ImGui_ImplWin32_Shutdown();
