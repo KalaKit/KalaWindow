@@ -24,6 +24,8 @@ set "README_FILE=README.md"
 set "LICENSE_FILE=LICENSE.md"
 set "CHANGES_FILE=CHANGES.txt"
 
+set "CLEAN_IMGUI=..\circuit_game\_external_shared\delete_imgui_vulkan_files.bat"
+
 :: =====================================
 :: Copy new files
 :: =====================================
@@ -99,6 +101,9 @@ exit /b
 
 :Done
 echo Finished copying Circuit Chan files and folders!
+
+::Remove Vulkan files from imgui backends folder if any exist
+call "%CLEAN_IMGUI%"
 
 pause
 exit /b 0

@@ -8,6 +8,7 @@
 #include <functional>
 
 #include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/api.hpp"
 #include "glm/glm.hpp"
 
 //forward declare imgui context struct
@@ -19,7 +20,7 @@ namespace KalaWindow::UI
 	using glm::vec2;
 	using std::function;
 
-	class DebugUI
+	class LIB_API DebugUI
 	{
 	public:
 		//Set up ImGui
