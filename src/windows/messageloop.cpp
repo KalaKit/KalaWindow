@@ -1053,6 +1053,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			"MESSAGELOOP",
 			LogType::LOG_SUCCESS);
 
+		OpenGL_Renderer::Shutdown(window);
 		DestroyWindow(ToVar<HWND>(window->GetWindowData().hwnd));
 
 		if (createdWindows.size() == 0)

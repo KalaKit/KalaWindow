@@ -69,7 +69,8 @@ namespace KalaWindow::Graphics::OpenGLFunctions
             Log::Print(
                 "Function '" + string(name) + "' is already loaded!",
                 "OPENGL WIN FUNCTION",
-                LogType::LOG_ERROR);
+                LogType::LOG_ERROR,
+                2);
 
             return;
         }
@@ -89,7 +90,8 @@ namespace KalaWindow::Graphics::OpenGLFunctions
             Log::Print(
                 "Function '" + string(name) + "' does not exist!",
                 "OPENGL WIN FUNCTION",
-                LogType::LOG_ERROR);
+                LogType::LOG_ERROR,
+                2);
 
             return;
         }

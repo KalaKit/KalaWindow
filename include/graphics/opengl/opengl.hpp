@@ -39,6 +39,10 @@ namespace KalaWindow::Graphics::OpenGL
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
 		static void GetError(const string& context);
 
+		//Close the opengl context and clean the opengl textures and shaders.
+		//This should always be called before the window that owns the opengl context is destroyed as well.
+		static void Shutdown(Window* window);
+
 		//
 		// OS-SPECIFIC
 		//

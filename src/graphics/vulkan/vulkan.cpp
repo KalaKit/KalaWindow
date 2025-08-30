@@ -171,7 +171,8 @@ namespace KalaWindow::Graphics::Vulkan
 			Log::Print(
 				"Cannot enable layer '" + string(name) + "' because Vulkan is not initialized!",
 				"VULKAN",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 			return false;
 		}
 

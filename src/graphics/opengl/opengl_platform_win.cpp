@@ -242,30 +242,13 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		const OpenGLData& oData = window->GetOpenGLData();
 
-		if (oData.hdc == 0)
+		if (oData.hdc != 0
+			&& oData.hglrc != 0)
 		{
-			string title = "OpenGL Error";
-			string reason = "Failed to get HDC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
-			KalaWindowCore::ForceClose(title, reason);
-			return;
-		}
-		HDC hdc = ToVar<HDC>(oData.hdc);
+			HDC hdc = ToVar<HDC>(oData.hdc);
+			HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
 
-		if (oData.hglrc == 0)
-		{
-			string title = "OpenGL Error";
-			string reason = "Failed to get HGLRC for window '" + window->GetTitle() + "' during 'MakeContextCurrent' stage!";
-			KalaWindowCore::ForceClose(title, reason);
-			return;
-		}
-		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
-
-		if (!wglMakeCurrent(hdc, hglrc))
-		{
-			DWORD err = GetLastError();
-			KalaWindowCore::ForceClose(
-				"OpenGL Error",
-				"wglMakeCurrent failed with error: " + to_string(err));
+			if (wglGetCurrentContext() == hglrc) wglMakeCurrent(hdc, hglrc);
 		}
 	}
 
@@ -285,9 +268,12 @@ namespace KalaWindow::Graphics::OpenGL
 		HGLRC current = wglGetCurrentContext();
 		if (current == nullptr)
 		{
-			KalaWindowCore::ForceClose(
-				"OpenGL Error",
-				"Current OpenGL context is null!");
+			Log::Print(
+				"OpenGL context is null!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
 			return false;
 		}
 

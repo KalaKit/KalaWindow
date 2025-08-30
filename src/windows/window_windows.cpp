@@ -319,7 +319,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Window title cannot be empty!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -373,7 +374,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' exe icon because the texture ID is invalid!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -387,7 +389,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' exe icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -405,7 +408,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' icon because SetUpIcon failed!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -455,7 +459,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because the texture ID is invalid!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -469,7 +474,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -487,7 +493,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because SetUpIcon failed!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -505,7 +512,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create ITaskbarList3 to set overlay icon!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -517,7 +525,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to init ITaskbarList3 to set overlay icon!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -543,7 +552,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get ITaskbarList3 to clear overlay icon!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -587,7 +597,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window rounding preference! This feature is not supported on Windows 10.",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 		}
 	}
 	WindowRounding Window::GetWindowRoundingState() const
@@ -607,7 +618,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get window rounding preference! This feature is not supported on Windows 10.",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return WindowRounding::ROUNDING_NONE;
 		}
@@ -1302,7 +1314,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to flash taskbar because mode was set to 'FLASH_TIMED' but no count value was assigned!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1361,7 +1374,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create ITaskbarList3 to set taskbar progress bar mode!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1492,7 +1506,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to add menu bar to window '" + windowRef->GetTitle() + "' because the window already has one!",
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1531,7 +1546,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1545,7 +1561,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1581,7 +1598,8 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			oss.str(),
 			"WINDOW_WINDOWS",
-			LogType::LOG_ERROR);
+			LogType::LOG_ERROR,
+			2);
 	}
 	void MenuBar::CallMenuBarEvent(
 		Window* windowRef,
@@ -1597,7 +1615,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1611,7 +1630,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1643,7 +1663,8 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			oss.str(),
 			"WINDOW_WINDOWS",
-			LogType::LOG_ERROR);
+			LogType::LOG_ERROR,
+			2);
 	}
 
 	void MenuBar::CreateLabel(
@@ -1668,7 +1689,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1681,7 +1703,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1696,7 +1719,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1712,7 +1736,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1733,7 +1758,8 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						oss.str(),
 						"WINDOW_WINDOWS",
-						LogType::LOG_ERROR);
+						LogType::LOG_ERROR,
+						2);
 
 					return;
 				}
@@ -1755,7 +1781,8 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
-					LogType::LOG_ERROR);
+					LogType::LOG_ERROR,
+					2);
 
 				return;
 			}
@@ -1770,7 +1797,8 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
-					LogType::LOG_ERROR);
+					LogType::LOG_ERROR,
+					2);
 
 				return;
 			}
@@ -1845,7 +1873,8 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
-					LogType::LOG_ERROR);
+					LogType::LOG_ERROR,
+					2);
 
 				return;
 			}
@@ -1877,7 +1906,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"WINDOW_WINDOWS",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -1912,7 +1942,8 @@ namespace KalaWindow::Graphics
 						Log::Print(
 							oss.str(),
 							"WINDOW_WINDOWS",
-							LogType::LOG_ERROR);
+							LogType::LOG_ERROR,
+							2);
 
 						return;
 					}
@@ -1958,7 +1989,8 @@ namespace KalaWindow::Graphics
 						Log::Print(
 							oss.str(),
 							"WINDOW_WINDOWS",
-							LogType::LOG_ERROR);
+							LogType::LOG_ERROR,
+							2);
 
 						return;
 					}
@@ -2005,7 +2037,8 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			oss.str(),
 			"WINDOW_WINDOWS",
-			LogType::LOG_ERROR);
+			LogType::LOG_ERROR,
+			2);
 	}
 
 	void MenuBar::DestroyMenuBar(Window* windowRef)
@@ -2104,7 +2137,8 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 		Log::Print(
 			"Failed to create hBitMask for setting window '" + name + "' icon!",
 			"WINDOW_WINDOWS",
-			LogType::LOG_ERROR);
+			LogType::LOG_ERROR,
+			2);
 
 		return nullptr;
 	}

@@ -28,6 +28,7 @@ using KalaHeaders::TimeFormat;
 using KalaHeaders::DateFormat;
 
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::OpenGLData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
@@ -212,12 +213,10 @@ namespace KalaWindow::Core
 			Audio::Shutdown();
 		}
 
+		for (const auto& window : runtimeWindows) OpenGL_Renderer::Shutdown(window);
+
 		createdOpenGLTextures.clear();
-		if (OpenGL_Renderer::IsInitialized())
-		{
-			wglMakeCurrent(nullptr, nullptr);
-			createdOpenGLShaders.clear();
-		}
+		createdOpenGLShaders.clear();
 
 		/*
 		createdVulkanTextures.clear();
