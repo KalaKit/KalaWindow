@@ -7,7 +7,11 @@
 
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
+#ifdef _WIN32
 #include "imgui/backends/imgui_impl_win32.h"
+#else
+//TODO: DEFINE
+#endif
 
 #include "KalaHeaders/logging.hpp"
 
@@ -66,7 +70,7 @@ namespace KalaWindow::UI
 		HWND hwnd = ToVar<HWND>(wData.hwnd);
 		ImGui_ImplWin32_Init(hwnd);
 #else
-
+		//TODO: DEFINE
 #endif
 		ImGui_ImplOpenGL3_Init("#version 330");
 
@@ -141,25 +145,12 @@ namespace KalaWindow::UI
 			return;
 		}
 
-		vec2 rectSize = win->GetClientRectSize();
-		vec2 fbSize = win->GetFramebufferSize();
-
-		ImGuiIO& io = ImGui::GetIO();
-		io.DisplaySize = ImVec2(fbSize.x, fbSize.y);
-
-		if (fbSize == rectSize)
-		{
-			io.DisplayFramebufferScale = ImVec2(1.0f, 1.0f);
-		}
-		else
-		{
-			io.DisplayFramebufferScale = ImVec2(
-				rectSize.x > 0 ? (float)fbSize.x / (float)rectSize.x : 1.0f,
-				rectSize.y > 0 ? (float)fbSize.y / (float)rectSize.y : 1.0f);
-		}
-
 		ImGui_ImplOpenGL3_NewFrame();
+#ifdef _WIN32
 		ImGui_ImplWin32_NewFrame();
+#elif __linux__
+		//TODO: DEFINE
+#endif
 		ImGui::NewFrame();
 
 		if (topBarFunction != NULL) topBarFunction();
@@ -201,7 +192,11 @@ namespace KalaWindow::UI
 		context = nullptr;
 
 		ImGui_ImplOpenGL3_Shutdown();
+#ifdef _WIN32
 		ImGui_ImplWin32_Shutdown();
+#elif __linux__
+		//TODO: DEFINE
+#endif
 		ImGui::DestroyContext();
 	}
 }
