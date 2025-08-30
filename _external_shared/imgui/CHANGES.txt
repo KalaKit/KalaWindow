@@ -1,4 +1,7 @@
-changes
+created custom file: imgui_export.hpp
+
+file: imgui.h
+	added: #include "imgui_export.hpp"
 
 file:
 	imgui_impl_win32.cpp

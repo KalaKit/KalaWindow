@@ -124,6 +124,7 @@ target_include_directories(KalaWindow PRIVATE
 
 target_compile_definitions(KalaWindow PRIVATE
     LIB_EXPORT
+    IMGUI_EXPORT
     WIN32_LEAN_AND_MEAN
     NOMINMAX
 )

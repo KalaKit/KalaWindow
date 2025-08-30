@@ -27,7 +27,7 @@ static ImGuiContext* context{};
 
 namespace KalaWindow::UI
 {
-	bool DebugUI::Initialize()
+	bool DebugUI::Initialize(bool enableDocking)
 	{
 		if (isInitialized)
 		{
@@ -55,8 +55,11 @@ namespace KalaWindow::UI
 		context = ImGui::CreateContext();
 		ImGui::SetCurrentContext(context);
 
-		ImGuiIO& io = ImGui::GetIO();
-		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		if (enableDocking)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+		}
 
 #ifdef _WIN32
 		const WindowData& wData = runtimeWindows[0]->GetWindowData();
@@ -74,22 +77,6 @@ namespace KalaWindow::UI
 
 		isInitialized = true;
 		return true;
-	}
-
-	ImGuiContext* DebugUI::GetImGuiContext()
-	{
-		if (isInitialized)
-		{
-			Log::Print(
-				"Cannot initialize ImGui more than once!",
-				"DEBUG_UI",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
-		return context;
 	}
 
 	vec2 DebugUI::CenterWindow(
@@ -177,14 +164,17 @@ namespace KalaWindow::UI
 
 		if (topBarFunction != NULL) topBarFunction();
 
-		ImGuiDockNodeFlags flags =
-			ImGuiDockNodeFlags_PassthruCentralNode;
+		if (isDockingEnabled)
+		{
+			ImGuiDockNodeFlags flags =
+				ImGuiDockNodeFlags_PassthruCentralNode;
 
-		ImGui::DockSpaceOverViewport(
-			0,
-			ImGui::GetMainViewport(),
-			flags,
-			nullptr);
+			ImGui::DockSpaceOverViewport(
+				0,
+				ImGui::GetMainViewport(),
+				flags,
+				nullptr);
+		}
 
 		if (mainRenderFunction != NULL) mainRenderFunction();
 

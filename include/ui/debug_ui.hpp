@@ -24,14 +24,12 @@ namespace KalaWindow::UI
 	{
 	public:
 		//Set up ImGui
-		static bool Initialize();
+		static bool Initialize(bool enableDocking = true);
 		static bool IsInitialized() { return isInitialized; }
+		static bool IsDockingEnabled() { return isDockingEnabled; }
 
-		//Get the ImGui context - this is required to be assigned to your ImGui
-		//context to ensure everything draws relative to your executable
-		static ImGuiContext* GetImGuiContext();
-
-		//Assign the top bar function that should hold all your top bar draw functions
+		//Assign the top bar function that should hold all your top bar draw functions,
+		//does not need to be ran every frame.
 		static void SetTopBarFunction(const function<void()>& newFunction)
 		{
 			topBarFunction = newFunction;
@@ -41,7 +39,8 @@ namespace KalaWindow::UI
 			return topBarFunction;
 		}
 
-		//Assign the main function that should hold all your main draw functions
+		//Assign the main function that should hold all your main draw functions,
+		//does not need to be ran every frame.
 		static void SetMainRenderFunction(const function<void()>& newFunction)
 		{
 			mainRenderFunction = newFunction;
@@ -63,6 +62,7 @@ namespace KalaWindow::UI
 		static void Shutdown();
 	private:
 		static inline bool isInitialized{};
+		static inline bool isDockingEnabled{};
 
 		static inline function<void()> topBarFunction{};
 		static inline function<void()> mainRenderFunction{};
