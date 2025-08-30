@@ -334,11 +334,25 @@ namespace KalaWindow::Core
 		static bool IsMouseLocked() { return isMouseLocked; }
 		//Allows to set the lock state of the cursor, if true 
 		//then the cursor is locked to the center of the window.
-		static void SetMouseLockState(bool newState);
+		static void SetMouseLockState(
+			bool newState,
+			Window* window);
 
 		//If true, then mouse delta, raw delta and scroll delta wont be reset per frame.
 		static bool GetKeepMouseDeltaState() { return keepMouseDelta; }
 		static void SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
+
+		//If true, then mouse visibility is disabled when unfocused without clearing internal flag
+		static void SetMouseVisibilityBetweenFocus(bool state);
+
+		//If true, then mouse lock is disabled when unfocused without clearing internal flag
+		static void SetMouseLockStateBetweenFocus(
+			bool state,
+			Window* window);
+
+		//Clear all keyboard and mouse input events and mouse position values,
+		//used internally to "forget" any mouse and keyboard events if window is unfocused
+		static void ClearInputEvents();
 
 		//Call at end of frame to reset pressed/released states
 		static void EndFrameUpdate(Window* window);

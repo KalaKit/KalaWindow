@@ -18,14 +18,16 @@
 	#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 #endif
 
+#include "imgui/imgui.h"
+
 #include "windows/messageloop.hpp"
 #include "graphics/window.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
-
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl.hpp"
+#include "ui/debug_ui.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -49,6 +51,7 @@ using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::runtimeMenuBarEvents;
 using KalaWindow::Core::createdWindows;
+using KalaWindow::UI::DebugUI;
 
 using std::string;
 using std::to_string;
@@ -142,12 +145,84 @@ static const unordered_map<WPARAM, Key> VKToKeyMap = {
 	{ VK_BROWSER_HOME, Key::BrowserHome }
 };
 
+static const std::unordered_map<WPARAM, ImGuiKey> VKToImGuiKeyMap = {
+	// Letters
+	{ 'A', ImGuiKey_A }, { 'B', ImGuiKey_B }, { 'C', ImGuiKey_C }, { 'D', ImGuiKey_D },
+	{ 'E', ImGuiKey_E }, { 'F', ImGuiKey_F }, { 'G', ImGuiKey_G }, { 'H', ImGuiKey_H },
+	{ 'I', ImGuiKey_I }, { 'J', ImGuiKey_J }, { 'K', ImGuiKey_K }, { 'L', ImGuiKey_L },
+	{ 'M', ImGuiKey_M }, { 'N', ImGuiKey_N }, { 'O', ImGuiKey_O }, { 'P', ImGuiKey_P },
+	{ 'Q', ImGuiKey_Q }, { 'R', ImGuiKey_R }, { 'S', ImGuiKey_S }, { 'T', ImGuiKey_T },
+	{ 'U', ImGuiKey_U }, { 'V', ImGuiKey_V }, { 'W', ImGuiKey_W }, { 'X', ImGuiKey_X },
+	{ 'Y', ImGuiKey_Y }, { 'Z', ImGuiKey_Z },
+
+	// Numbers (top row)
+	{ '0', ImGuiKey_0 }, { '1', ImGuiKey_1 }, { '2', ImGuiKey_2 }, { '3', ImGuiKey_3 },
+	{ '4', ImGuiKey_4 }, { '5', ImGuiKey_5 }, { '6', ImGuiKey_6 }, { '7', ImGuiKey_7 },
+	{ '8', ImGuiKey_8 }, { '9', ImGuiKey_9 },
+
+	// Function Keys
+	{ VK_F1, ImGuiKey_F1 }, { VK_F2, ImGuiKey_F2 }, { VK_F3, ImGuiKey_F3 }, { VK_F4, ImGuiKey_F4 },
+	{ VK_F5, ImGuiKey_F5 }, { VK_F6, ImGuiKey_F6 }, { VK_F7, ImGuiKey_F7 }, { VK_F8, ImGuiKey_F8 },
+	{ VK_F9, ImGuiKey_F9 }, { VK_F10, ImGuiKey_F10 }, { VK_F11, ImGuiKey_F11 }, { VK_F12, ImGuiKey_F12 },
+	{ VK_F13, ImGuiKey_F13 }, { VK_F14, ImGuiKey_F14 }, { VK_F15, ImGuiKey_F15 }, { VK_F16, ImGuiKey_F16 },
+	{ VK_F17, ImGuiKey_F17 }, { VK_F18, ImGuiKey_F18 }, { VK_F19, ImGuiKey_F19 }, { VK_F20, ImGuiKey_F20 },
+	{ VK_F21, ImGuiKey_F21 }, { VK_F22, ImGuiKey_F22 }, { VK_F23, ImGuiKey_F23 }, { VK_F24, ImGuiKey_F24 },
+
+	// Numpad
+	{ VK_NUMPAD0, ImGuiKey_Keypad0 }, { VK_NUMPAD1, ImGuiKey_Keypad1 },
+	{ VK_NUMPAD2, ImGuiKey_Keypad2 }, { VK_NUMPAD3, ImGuiKey_Keypad3 },
+	{ VK_NUMPAD4, ImGuiKey_Keypad4 }, { VK_NUMPAD5, ImGuiKey_Keypad5 },
+	{ VK_NUMPAD6, ImGuiKey_Keypad6 }, { VK_NUMPAD7, ImGuiKey_Keypad7 },
+	{ VK_NUMPAD8, ImGuiKey_Keypad8 }, { VK_NUMPAD9, ImGuiKey_Keypad9 },
+	{ VK_ADD, ImGuiKey_KeypadAdd }, { VK_SUBTRACT, ImGuiKey_KeypadSubtract },
+	{ VK_MULTIPLY, ImGuiKey_KeypadMultiply }, { VK_DIVIDE, ImGuiKey_KeypadDivide },
+	{ VK_DECIMAL, ImGuiKey_KeypadDecimal },
+
+	// Navigation
+	{ VK_LEFT, ImGuiKey_LeftArrow }, { VK_RIGHT, ImGuiKey_RightArrow },
+	{ VK_UP, ImGuiKey_UpArrow }, { VK_DOWN, ImGuiKey_DownArrow },
+	{ VK_HOME, ImGuiKey_Home }, { VK_END, ImGuiKey_End },
+	{ VK_PRIOR, ImGuiKey_PageUp }, { VK_NEXT, ImGuiKey_PageDown },
+	{ VK_INSERT, ImGuiKey_Insert }, { VK_DELETE, ImGuiKey_Delete },
+
+	// Controls
+	{ VK_RETURN, ImGuiKey_Enter }, { VK_ESCAPE, ImGuiKey_Escape },
+	{ VK_BACK, ImGuiKey_Backspace }, { VK_TAB, ImGuiKey_Tab },
+	{ VK_CAPITAL, ImGuiKey_CapsLock }, { VK_SPACE, ImGuiKey_Space },
+
+	// Modifiers
+	{ VK_LSHIFT, ImGuiKey_LeftShift }, { VK_RSHIFT, ImGuiKey_RightShift },
+	{ VK_LCONTROL, ImGuiKey_LeftCtrl }, { VK_RCONTROL, ImGuiKey_RightCtrl },
+	{ VK_LMENU, ImGuiKey_LeftAlt }, { VK_RMENU, ImGuiKey_RightAlt },
+	{ VK_LWIN, ImGuiKey_LeftSuper }, { VK_RWIN, ImGuiKey_RightSuper },
+
+	// Symbols / OEM
+	{ VK_OEM_MINUS, ImGuiKey_Minus }, { VK_OEM_PLUS, ImGuiKey_Equal },
+	{ VK_OEM_4, ImGuiKey_LeftBracket }, { VK_OEM_6, ImGuiKey_RightBracket },
+	{ VK_OEM_5, ImGuiKey_Backslash }, { VK_OEM_1, ImGuiKey_Semicolon },
+	{ VK_OEM_7, ImGuiKey_Apostrophe }, { VK_OEM_COMMA, ImGuiKey_Comma },
+	{ VK_OEM_PERIOD, ImGuiKey_Period }, { VK_OEM_2, ImGuiKey_Slash },
+	{ VK_OEM_3, ImGuiKey_GraveAccent }, { VK_OEM_102, ImGuiKey_Oem102 },
+
+	// System / Special
+	{ VK_SNAPSHOT, ImGuiKey_PrintScreen }, { VK_SCROLL, ImGuiKey_ScrollLock },
+	{ VK_PAUSE, ImGuiKey_Pause }, { VK_APPS, ImGuiKey_Menu },
+};
+
 static Key TranslateVirtualKey(WPARAM vk)
 {
 	auto it = VKToKeyMap.find(vk);
 	if (it != VKToKeyMap.end()) return it->second;
 
 	return Key::Unknown;
+}
+
+static ImGuiKey TranslateVirtualKeyToImGuiKey(WPARAM vk)
+{
+	auto it = VKToImGuiKeyMap.find(vk);
+	if (it != VKToImGuiKeyMap.end()) return it->second;
+
+	return ImGuiKey_None; //fallback if not recognized by ImGui
 }
 
 static LRESULT CALLBACK InternalWindowProcCallback(
@@ -307,6 +382,9 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		return false;
 	}
 
+	ImGuiIO* io = nullptr;
+	if (DebugUI::IsInitialized()) io = &ImGui::GetIO();
+
 	/*
 	if (msg.message == 0)
 	{
@@ -351,6 +429,25 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			LogType::LOG_DEBUG);
 
 		Input::SetKeyState(key, true);
+
+		if (DebugUI::IsInitialized()
+			&& msg.wParam < 512
+			&& io)
+		{
+			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam);
+			if (k != ImGuiKey_None)
+			{
+				io->AddKeyEvent(k, true);
+
+				//also imgui support combos
+				io->AddKeyEvent(ImGuiMod_Ctrl,  (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+				io->AddKeyEvent(ImGuiMod_Shift, (GetKeyState(VK_SHIFT) & 0x8000)   != 0);
+				io->AddKeyEvent(ImGuiMod_Alt,   (GetKeyState(VK_MENU) & 0x8000)    != 0);
+				io->AddKeyEvent(ImGuiMod_Super, ((GetKeyState(VK_LWIN) & 0x8000)   != 0) 
+					                         || ((GetKeyState(VK_RWIN) & 0x8000)   != 0));
+			}
+		}
+
 		return false;
 	}
 	case WM_SYSKEYUP:
@@ -364,6 +461,25 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			LogType::LOG_DEBUG);
 
 		Input::SetKeyState(key, false);
+
+		if (DebugUI::IsInitialized()
+			&& msg.wParam < 512
+			&& io)
+		{
+			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam);
+			if (k != ImGuiKey_None)
+			{
+				io->AddKeyEvent(k, false);
+
+				//also imgui support combos
+				io->AddKeyEvent(ImGuiMod_Ctrl,  (GetKeyState(VK_CONTROL) & 0x8000) != 0);
+				io->AddKeyEvent(ImGuiMod_Shift, (GetKeyState(VK_SHIFT) & 0x8000)   != 0);
+				io->AddKeyEvent(ImGuiMod_Alt,   (GetKeyState(VK_MENU) & 0x8000)    != 0);
+				io->AddKeyEvent(ImGuiMod_Super, ((GetKeyState(VK_LWIN) & 0x8000)   != 0) 
+					                         || ((GetKeyState(VK_RWIN) & 0x8000)   != 0));
+			}
+		}
+
 		return false;
 	}
 
@@ -391,6 +507,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Input::SetMousePosition(newPos);
 		Input::SetMouseDelta(delta);
 
+		if (DebugUI::IsInitialized() && io) io->AddMousePosEvent(newPos.x, newPos.y);
+
 		return false;
 	}
 
@@ -408,6 +526,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		else if (delta < 0) scroll = -1.0f;
 
 		Input::SetMouseWheelDelta(scroll);
+
+		if (DebugUI::IsInitialized() && io) io->AddMouseWheelEvent(0.0f, scroll);
 
 		return false;
 	}
@@ -478,6 +598,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Left, true);
 
+		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, true);
+
 		Log::Print(
 			"Windows detected left mouse key down.",
 			"MESSAGELOOP",
@@ -487,6 +609,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_LBUTTONUP:
 	{
 		Input::SetMouseButtonState(MouseButton::Left, false);
+
+		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, false);
 
 		Log::Print(
 			"Windows detected left mouse key up.",
@@ -499,6 +623,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Right, true);
 
+		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, true);
+
 		Log::Print(
 			"Windows detected right mouse key down.",
 			"MESSAGELOOP",
@@ -508,6 +634,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_RBUTTONUP:
 	{
 		Input::SetMouseButtonState(MouseButton::Right, false);
+
+		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, false);
 
 		Log::Print(
 			"Windows detected right mouse key up.",
@@ -520,6 +648,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonState(MouseButton::Middle, true);
 
+		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, true);
+
 		Log::Print(
 			"Windows detected middle mouse key down.",
 			"MESSAGELOOP",
@@ -529,6 +659,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_MBUTTONUP:
 	{
 		Input::SetMouseButtonState(MouseButton::Middle, false);
+
+		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, false);
 
 		Log::Print(
 			"Windows detected middle mouse key up.",
@@ -544,6 +676,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonState(MouseButton::X1, true);
 
+			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, true);
+
 			Log::Print(
 				"Windows detected x1 mouse key down.",
 				"MESSAGELOOP",
@@ -552,6 +686,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (button == XBUTTON2)
 		{
 			Input::SetMouseButtonState(MouseButton::X2, true);
+
+			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, true);
 
 			Log::Print(
 				"Windows detected x2 mouse key down.",
@@ -567,6 +703,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonState(MouseButton::X1, false);
 
+			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, false);
+
 			Log::Print(
 				"Windows detected x1 mouse key up.",
 				"MESSAGELOOP",
@@ -575,6 +713,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (button == XBUTTON2)
 		{
 			Input::SetMouseButtonState(MouseButton::X2, false);
+
+			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, false);
 
 			Log::Print(
 				"Windows detected x2 mouse key up.",
@@ -660,6 +800,105 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		}
 
 		//let windows handle non-client areas
+		return false;
+	}
+
+	//
+	// WINDOW FOCUS
+	//
+
+	//window gains focus
+	case WM_SETFOCUS:
+	{
+		Input::SetMouseVisibilityBetweenFocus(false);
+		Input::SetMouseLockStateBetweenFocus(false, window);
+
+		Log::Print(
+			"Focusing on window '" + window->GetTitle() + "'",
+			"MESSAGELOOP",
+			LogType::LOG_DEBUG);
+
+		return false;
+	}
+
+	//window loses focus
+	case WM_KILLFOCUS:
+	{
+		Input::SetMouseVisibilityBetweenFocus(true);
+		Input::SetMouseLockStateBetweenFocus(true, window);
+		Input::ClearInputEvents();
+
+		if (DebugUI::IsInitialized()
+			&& io)
+		{
+			//reset all keyboard/gamepad keys
+			for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; key++)
+			{
+				ImGuiKey ikey = (ImGuiKey)key;
+
+				//skip mouse aliases
+				if (ikey >= ImGuiKey_MouseLeft
+					&& ikey <= ImGuiKey_MouseWheelY)
+				{
+					continue;
+				}
+
+				//skip reserved mod storage
+				if (ikey >= ImGuiKey_ReservedForModCtrl
+					&& ikey <= ImGuiKey_ReservedForModSuper)
+				{
+					continue;
+				}
+
+				io->AddKeyEvent(ikey, false);
+			}
+
+			//reset mouse buttons
+			for (int btn = 0; btn < 5; btn++)
+			{
+				io->AddMouseButtonEvent(btn, false);
+			}
+
+			//reset all digital keys
+			static const ImGuiKey gamepadDigitalKeys[] = 
+			{
+				ImGuiKey_GamepadStart, ImGuiKey_GamepadBack,
+				ImGuiKey_GamepadFaceLeft, ImGuiKey_GamepadFaceRight,
+				ImGuiKey_GamepadFaceUp, ImGuiKey_GamepadFaceDown,
+				ImGuiKey_GamepadDpadLeft, ImGuiKey_GamepadDpadRight,
+				ImGuiKey_GamepadDpadUp, ImGuiKey_GamepadDpadDown,
+				ImGuiKey_GamepadL1, ImGuiKey_GamepadR1,
+				ImGuiKey_GamepadL3, ImGuiKey_GamepadR3
+			};
+			for (ImGuiKey key : gamepadDigitalKeys) io->AddKeyEvent(key, false);
+
+			//reset all analog keys
+			static const ImGuiKey gamepadAnalogKeys[] = 
+			{
+				ImGuiKey_GamepadL2, ImGuiKey_GamepadR2,
+				ImGuiKey_GamepadLStickLeft, ImGuiKey_GamepadLStickRight,
+				ImGuiKey_GamepadLStickUp, ImGuiKey_GamepadLStickDown,
+				ImGuiKey_GamepadRStickLeft, ImGuiKey_GamepadRStickRight,
+				ImGuiKey_GamepadRStickUp, ImGuiKey_GamepadRStickDown
+			};
+			for (ImGuiKey key : gamepadAnalogKeys) io->AddKeyAnalogEvent(key, false, 0.0f);
+
+			//reset mouse wheel
+			io->AddMouseWheelEvent(0.0f, 0.0f); 
+
+			//mark mouse as "left the window"
+			io->AddMousePosEvent(-FLT_MAX, -FLT_MAX);
+
+			//reset advanced input
+			io->AddMouseSourceEvent(ImGuiMouseSource_Mouse);
+			io->AddMouseViewportEvent(0);
+		}
+
+		Log::Print(
+			"No longer focusing on window '" + window->GetTitle() + "'",
+			"MESSAGELOOP",
+			LogType::LOG_DEBUG);
+
 		return false;
 	}
 
