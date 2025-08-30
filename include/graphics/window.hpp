@@ -282,7 +282,7 @@ namespace KalaWindow::Graphics
 			const string& title,
 			vec2 size,
 			Window* parentWindow = nullptr,
-			DpiContext context = DpiContext::DPI_UNAWARE);
+			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 		bool IsInitialized() const { return isInitialized; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
