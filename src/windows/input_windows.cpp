@@ -7,6 +7,7 @@
 
 #include <Windows.h>
 #include <unordered_map>
+#include <string>
 
 #include "KalaHeaders/logging.hpp"
 
@@ -16,6 +17,8 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::WindowData;
+
+using std::string;
 
 namespace KalaWindow::Core
 {
@@ -59,6 +62,16 @@ namespace KalaWindow::Core
 
 		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
 		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
+
+		if (isVerboseLoggingEnabled)
+		{
+			string val = state ? "true" : "false";
+
+			Log::Print(
+				"Set mouse visibility state to " + val,
+				"INPUT_WINDOWS",
+				LogType::LOG_INFO);
+		}
 	}
 
 	void Input::SetMouseLockState(
@@ -87,6 +100,16 @@ namespace KalaWindow::Core
 			rect.right = lr.x; rect.bottom = lr.y;
 
 			ClipCursor(&rect);
+		}
+
+		if (isVerboseLoggingEnabled)
+		{
+			string val = state ? "true" : "false";
+
+			Log::Print(
+				"Set mouse lock state to " + val,
+				"INPUT_WINDOWS",
+				LogType::LOG_INFO);
 		}
 	}
 

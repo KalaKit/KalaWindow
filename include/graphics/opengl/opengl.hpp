@@ -32,6 +32,11 @@ namespace KalaWindow::Graphics::OpenGL
 
 		static VSyncState GetVSyncState() { return vsyncState; }
 
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//GL notifications will dump their logs into the console.
+		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);
 
@@ -60,6 +65,7 @@ namespace KalaWindow::Graphics::OpenGL
 		static bool IsContextValid(Window* window);
 	private:
 		static inline bool isInitialized{};
+		static inline bool isVerboseLoggingEnabled{};
 
 		//If off, then all framerate is uncapped
 		static inline VSyncState vsyncState = VSyncState::VSYNC_ON;

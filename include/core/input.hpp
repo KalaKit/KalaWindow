@@ -148,6 +148,11 @@ namespace KalaWindow::Core
 
 		static bool Initialize(Window* window);
 
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//key, mouse update messages will dump their logs into the console.
+		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
 		static void SetKeyState(Key key, bool isDown)
 		{
 			if (!isInitialized) return;
@@ -357,6 +362,8 @@ namespace KalaWindow::Core
 		//Call at end of frame to reset pressed/released states
 		static void EndFrameUpdate(Window* window);
 	private:
+		static inline bool isVerboseLoggingEnabled{};
+
 		static inline array<
 			bool, 
 			static_cast<size_t>(Key::KeyCount)> 

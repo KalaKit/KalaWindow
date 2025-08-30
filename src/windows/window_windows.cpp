@@ -1839,15 +1839,18 @@ namespace KalaWindow::Graphics
 						ToWide(labelRef).c_str());
 				}
 
-				ostringstream oss{};
-				oss << "Added " << typeName << " '" << labelRef << "' with ID '" << to_string(newID)
-					<< "' under parent '" << parentName
-					<< "' in window '" << windowRef->GetTitle() << "'!";
+				if (isVerboseLoggingEnabled)
+				{
+					ostringstream oss{};
+					oss << "Added " << typeName << " '" << labelRef << "' with ID '" << to_string(newID)
+						<< "' under parent '" << parentName
+						<< "' in window '" << windowRef->GetTitle() << "'!";
 
-				Log::Print(
-					oss.str(),
-					"WINDOW_WINDOWS",
-					LogType::LOG_SUCCESS);
+					Log::Print(
+						oss.str(),
+						"WINDOW_WINDOWS",
+						LogType::LOG_SUCCESS);
+				}
 			};
 
 		if (parentRef.empty()) NewLabel(hMenu);
@@ -1954,10 +1957,13 @@ namespace KalaWindow::Graphics
 						0,
 						nullptr);
 
-					Log::Print(
-						"Placed separator to the end of parent label '" + parentRef + "' in window '" + windowRef->GetTitle() + "'!",
-						"WINDOW_WINDOWS",
-						LogType::LOG_SUCCESS);
+					if (isVerboseLoggingEnabled)
+					{
+						Log::Print(
+							"Placed separator to the end of parent label '" + parentRef + "' in window '" + windowRef->GetTitle() + "'!",
+							"WINDOW_WINDOWS",
+							LogType::LOG_SUCCESS);
+					}
 
 					DrawMenuBar(window);
 
@@ -2016,10 +2022,13 @@ namespace KalaWindow::Graphics
 								0,
 								nullptr);
 
-							Log::Print(
-								"Placed separator after label '" + labelRef + "' in window '" + windowRef->GetTitle() + "'!",
-								"WINDOW_WINDOWS",
-								LogType::LOG_SUCCESS);
+							if (isVerboseLoggingEnabled)
+							{
+								Log::Print(
+									"Placed separator after label '" + labelRef + "' in window '" + windowRef->GetTitle() + "'!",
+									"WINDOW_WINDOWS",
+									LogType::LOG_SUCCESS);
+							}
 
 							DrawMenuBar(window);
 

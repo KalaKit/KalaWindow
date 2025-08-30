@@ -347,7 +347,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 		Log::Print(
 			"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
 			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		return result;
 	}
@@ -391,7 +391,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Log::Print(
 			"Received empty or WM_NULL message.",
 			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 	}
 	else
 	{
@@ -408,7 +408,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Log::Print(
 			"Got message: " + ss.str(),
 			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 	}
 	*/
 
@@ -423,10 +423,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Key key = TranslateVirtualKey(msg.wParam);
 
-		Log::Print(
-			"Windows detected keyboard key down: " + to_string(static_cast<int>(key)),
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected keyboard key down: " + to_string(static_cast<int>(key)),
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
 
 		Input::SetKeyState(key, true);
 
@@ -455,10 +458,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Key key = TranslateVirtualKey(msg.wParam);
 
-		Log::Print(
-			"Windows detected keyboard key up: " + to_string(static_cast<int>(key)),
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected keyboard key up: " + to_string(static_cast<int>(key)),
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
 
 		Input::SetKeyState(key, false);
 
@@ -540,30 +546,42 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		Input::SetMouseButtonDoubleClickState(MouseButton::Left, true);
 
-		Log::Print(
-			"Windows detected left mouse key double click.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected left mouse key double click.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 	case WM_RBUTTONDBLCLK:
 	{
 		Input::SetMouseButtonDoubleClickState(MouseButton::Right, true);
 
-		Log::Print(
-			"Windows detected right mouse key double click.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected right mouse key double click.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 	case WM_MBUTTONDBLCLK:
 	{
 		Input::SetMouseButtonDoubleClickState(MouseButton::Right, true);
 
-		Log::Print(
-			"Windows detected middle mouse key double click.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected middle mouse key double click.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 	case WM_XBUTTONDBLCLK:
@@ -573,19 +591,25 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Input::SetMouseButtonDoubleClickState(MouseButton::X1, true);
 
-			Log::Print(
-				"Windows detected x1 mouse key double click.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Windows detected x1 mouse key double click.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 		if (button == XBUTTON2)
 		{
 			Input::SetMouseButtonDoubleClickState(MouseButton::X2, true);
 
-			Log::Print(
-				"Windows detected x2 mouse key double click.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Windows detected x2 mouse key double click.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 		return false;
 	}
@@ -600,10 +624,14 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, true);
 
-		Log::Print(
-			"Windows detected left mouse key down.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected left mouse key down.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 	case WM_LBUTTONUP:
@@ -612,10 +640,14 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, false);
 
-		Log::Print(
-			"Windows detected left mouse key up.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected left mouse key up.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 
@@ -625,10 +657,14 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, true);
 
-		Log::Print(
-			"Windows detected right mouse key down.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected right mouse key down.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 	case WM_RBUTTONUP:
@@ -637,10 +673,14 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, false);
 
-		Log::Print(
-			"Windows detected right mouse key up.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected right mouse key up.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 
@@ -650,10 +690,14 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, true);
 
-		Log::Print(
-			"Windows detected middle mouse key down.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected middle mouse key down.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 	case WM_MBUTTONUP:
@@ -662,10 +706,14 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, false);
 
-		Log::Print(
-			"Windows detected middle mouse key up.",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Input::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Windows detected middle mouse key up.",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
+
 		return false;
 	}
 
@@ -678,10 +726,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, true);
 
-			Log::Print(
-				"Windows detected x1 mouse key down.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Windows detected x1 mouse key down.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 		if (button == XBUTTON2)
 		{
@@ -689,10 +740,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, true);
 
-			Log::Print(
-				"Windows detected x2 mouse key down.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Windows detected x2 mouse key down.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 		return false;
 	}
@@ -705,10 +759,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, false);
 
-			Log::Print(
-				"Windows detected x1 mouse key up.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Windows detected x1 mouse key up.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 		if (button == XBUTTON2)
 		{
@@ -716,10 +773,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, false);
 
-			Log::Print(
-				"Windows detected x2 mouse key up.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Windows detected x2 mouse key up.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 		return false;
 	}
@@ -813,10 +873,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Input::SetMouseVisibilityBetweenFocus(false);
 		Input::SetMouseLockStateBetweenFocus(false, window);
 
-		Log::Print(
-			"Focusing on window '" + window->GetTitle() + "'",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Window::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Focusing on window '" + window->GetTitle() + "'",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
 
 		return false;
 	}
@@ -894,10 +957,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			io->AddMouseViewportEvent(0);
 		}
 
-		Log::Print(
-			"No longer focusing on window '" + window->GetTitle() + "'",
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
+		if (Window::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"No longer focusing on window '" + window->GetTitle() + "'",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+		}
 
 		return false;
 	}
@@ -937,13 +1003,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				framebufferSize.x,
 				framebufferSize.y);
 		}
-
-		/*
-		Log::Print(
-			"New resolution: " + to_string(width) + ", " + to_string(height),
-			"MESSAGELOOP",
-			LogType::LOG_DEBUG);
-		*/
 
 		window->TriggerResize();
 
@@ -1035,7 +1094,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			Log::Print(
 				"Did not find leaf event with ID '" + to_string(IDRef) + "'.",
 				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 
 		return false;

@@ -268,6 +268,11 @@ namespace KalaWindow::Graphics
 			Window* parentWindow = nullptr);
 		bool IsInitialized() const { return isInitialized; }
 
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//window position, size updates will dump their logs into the console.
+		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
 		//Draws the window, handles messages for active frame
 		void Update();
 
@@ -444,6 +449,8 @@ namespace KalaWindow::Graphics
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 	private:
+		static inline bool isVerboseLoggingEnabled{};
+
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
 		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
@@ -495,6 +502,11 @@ namespace KalaWindow::Graphics
 		static void CreateMenuBar(Window* windowRef);
 		static bool HasMenuBar(Window* windowRef);
 
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//branch and leaf creation will dump their logs into the console.
+		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
 		//Call a menu bar event function by menu label or its item label
 		static void CallMenuBarEvent(
 			Window* windowRef,
@@ -524,5 +536,7 @@ namespace KalaWindow::Graphics
 
 		//Destroy the existing menu bar inside the window
 		static void DestroyMenuBar(Window* window);
+	private:
+		static inline bool isVerboseLoggingEnabled{};
 	};
 }

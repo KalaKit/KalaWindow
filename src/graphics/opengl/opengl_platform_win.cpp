@@ -70,10 +70,13 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return false;
 		}
-		Log::Print(
-			"Pixel Format Index: " + to_string(pixelFormat),
-			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG);
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Pixel Format Index: " + to_string(pixelFormat),
+				"OPENGL_WINDOWS",
+				LogType::LOG_INFO);
+		}
 
 		if (!SetPixelFormat(hdc, pixelFormat, &pfd))
 		{
@@ -83,10 +86,13 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return false;
 		}
-		Log::Print(
-			"SetPixelFormat worked!",
-			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG);
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"SetPixelFormat worked!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_INFO);
+		}
 
 		PIXELFORMATDESCRIPTOR actualPFD = {};
 		int describeResult = DescribePixelFormat(hdc, pixelFormat, sizeof(actualPFD), &actualPFD);
@@ -98,24 +104,27 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return false;
 		}
-		Log::Print(
-			"DescribePixelFormat value: " + to_string(describeResult),
-			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG);
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"DescribePixelFormat value: " + to_string(describeResult),
+				"OPENGL_WINDOWS",
+				LogType::LOG_INFO);
 
-		ostringstream ss{};
-		ss << "Pixel Format Details:\n"
-			<< "  ColorBits   = " << to_string(static_cast<int>(actualPFD.cColorBits)) << "\n"
-			<< "  DepthBits   = " << to_string(static_cast<int>(actualPFD.cDepthBits)) << "\n"
-			<< "  StencilBits = " << to_string(static_cast<int>(actualPFD.cStencilBits)) << "\n"
-			<< "  Flags:\n"
-			<< "    DRAW_TO_WINDOW = " << ((actualPFD.dwFlags & PFD_DRAW_TO_WINDOW) ? "Yes" : "No") << "\n"
-			<< "    SUPPORT_OPENGL = " << ((actualPFD.dwFlags & PFD_SUPPORT_OPENGL) ? "Yes" : "No") << "\n"
-			<< "    DOUBLEBUFFER   = " << ((actualPFD.dwFlags & PFD_DOUBLEBUFFER) ? "Yes" : "No");
-		Log::Print(
-			ss.str(),
-			"OPENGL_WINDOWS",
-			LogType::LOG_DEBUG);
+			ostringstream ss{};
+			ss << "Pixel Format Details:\n"
+				<< "  ColorBits   = " << to_string(static_cast<int>(actualPFD.cColorBits)) << "\n"
+				<< "  DepthBits   = " << to_string(static_cast<int>(actualPFD.cDepthBits)) << "\n"
+				<< "  StencilBits = " << to_string(static_cast<int>(actualPFD.cStencilBits)) << "\n"
+				<< "  Flags:\n"
+				<< "    DRAW_TO_WINDOW = " << ((actualPFD.dwFlags & PFD_DRAW_TO_WINDOW) ? "Yes" : "No") << "\n"
+				<< "    SUPPORT_OPENGL = " << ((actualPFD.dwFlags & PFD_SUPPORT_OPENGL) ? "Yes" : "No") << "\n"
+				<< "    DOUBLEBUFFER   = " << ((actualPFD.dwFlags & PFD_DOUBLEBUFFER) ? "Yes" : "No");
+			Log::Print(
+				ss.str(),
+				"OPENGL_WINDOWS",
+				LogType::LOG_INFO);
+		}
 
 		HGLRC dummyRC = wglCreateContext(hdc);
 		wglMakeCurrent(hdc, dummyRC);

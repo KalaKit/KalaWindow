@@ -174,10 +174,13 @@ namespace KalaWindow::Core
 
 		string stateStr = state ? "true" : "false";
 
-		Log::Print(
-			"Set audio player '" + to_string(ID) + "' mute state to '" + stateStr + "'!",
-			"AUDIO_LISTENER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + to_string(ID) + "' mute state to '" + stateStr + "'!",
+				"AUDIO_LISTENER",
+				LogType::LOG_INFO);
+		}
 	}
 	bool AudioListener::IsMuted(u32 ID)
 	{
@@ -213,7 +216,7 @@ namespace KalaWindow::Core
 				"Set listener position to '"
 				+ to_string(pos.x) + ", " + to_string(pos.y) + ", " + to_string(pos.z),
 				"AUDIO_LISTENER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	vec3 AudioListener::GetPosition(u32 ID)
@@ -252,7 +255,7 @@ namespace KalaWindow::Core
 				"Set listener up to '"
 				+ to_string(up.x) + ", " + to_string(up.y) + ", " + to_string(up.z),
 				"AUDIO_LISTENER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	vec3 AudioListener::GetWorldUp(u32 ID)
@@ -291,7 +294,7 @@ namespace KalaWindow::Core
 				"Set listener velocity to '"
 				+ to_string(vel.x) + ", " + to_string(vel.y) + ", " + to_string(vel.z) + "'!",
 				"AUDIO_LISTENER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	vec3 AudioListener::GetVelocity(u32 ID)
@@ -330,7 +333,7 @@ namespace KalaWindow::Core
 				"Set listener direction to '"
 				+ to_string(dir.x) + ", " + to_string(dir.y) + ", " + to_string(dir.z),
 				"AUDIO_LISTENER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	vec3 AudioListener::GetDirection(u32 ID)
@@ -370,7 +373,7 @@ namespace KalaWindow::Core
 				+ "cone outer angle to '" + to_string(outerAngleClamped)
 				+ "' and cone outer gain to '" + to_string(outerGainClamped) + "'!",
 				"AUDIO_LISTENER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	AudioCone AudioListener::GetConeData(u32 ID)
@@ -592,10 +595,13 @@ namespace KalaWindow::Core
 
 		name = newName;
 
-		Log::Print(
-			"Changed audio player old name '" + oldName + "' to new name '" + name + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Changed audio player old name '" + oldName + "' to new name '" + name + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 
 	void AudioPlayer::Play() const
@@ -612,10 +618,13 @@ namespace KalaWindow::Core
 		//start playing sound
 		ma_sound_start(&pData->sound);
 
-		Log::Print(
-			"Started playing audio player '" + name + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Started playing audio player '" + name + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	bool AudioPlayer::IsPlaying() const
 	{
@@ -650,10 +659,13 @@ namespace KalaWindow::Core
 
 		ma_sound_seek_to_pcm_frame(&pData->sound, frames);
 
-		Log::Print(
-			"Set playback position for audio player '" + name + "' to '" + to_string(newPosition) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set playback position for audio player '" + name + "' to '" + to_string(newPosition) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	u32 AudioPlayer::GetPlaybackPosition(bool getFullDuration) const
 	{
@@ -688,10 +700,13 @@ namespace KalaWindow::Core
 		//pause song without resetting back to beginning
 		ma_sound_stop(&pData->sound);
 
-		Log::Print(
-			"Paused audio player '" + name + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Paused audio player '" + name + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	void AudioPlayer::Continue() const
 	{
@@ -704,10 +719,13 @@ namespace KalaWindow::Core
 		//start playing sound but continue where we last left off
 		ma_sound_start(&pData->sound);
 
-		Log::Print(
-			"Continuing playing audio player '" + name + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Continuing playing audio player '" + name + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 
 	void AudioPlayer::SetLoopState(bool newState) const
@@ -722,10 +740,13 @@ namespace KalaWindow::Core
 
 		string state = newState ? "true" : "false";
 
-		Log::Print(
-			"Set audio player '" + name + "' loop state to '" + state + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' loop state to '" + state + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	bool AudioPlayer::CanLoop() const
 	{
@@ -751,10 +772,13 @@ namespace KalaWindow::Core
 		//reset the audio position to the start, so the next play starts fresh
 		ma_sound_seek_to_pcm_frame(&pData->sound, 0);
 
-		Log::Print(
-			"Stopped playing audio player '" + name + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Stopped playing audio player '" + name + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	bool AudioPlayer::HasFinished() const
 	{
@@ -781,10 +805,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_volume(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' volume to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' volume to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetVolume() const
 	{
@@ -805,23 +832,15 @@ namespace KalaWindow::Core
 
 		if (pData == nullptr) return;
 
-		if (state)
+		string stateVal = state ? "true" : "false";
+		ma_sound_set_spatialization_enabled(&pData->sound, state);
+
+		if (Audio::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set audio player '" + name + "' spatialization state to 'true'!",
+				"Set audio player '" + name + "' spatialization state to '" + stateVal + "'!",
 				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
-
-			ma_sound_set_spatialization_enabled(&pData->sound, true);
-		}
-		else
-		{
-			Log::Print(
-				"Set audio player '" + name + "' spatialization state to 'false'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
-
-			ma_sound_set_spatialization_enabled(&pData->sound, false);
+				LogType::LOG_INFO);
 		}
 	}
 	bool AudioPlayer::GetSpatializationState() const
@@ -843,27 +862,22 @@ namespace KalaWindow::Core
 
 		if (pData == nullptr) return;
 
-		switch (pos)
+		ma_positioning val = pos == Positioning::Positioning_Relative
+			? ma_positioning_relative
+			: ma_positioning_absolute;
+
+		string valStr = pos == Positioning::Positioning_Relative
+			? "relative"
+			: "absolute";
+
+		ma_sound_set_positioning(&pData->sound, val);
+
+		if (Audio::IsVerboseLoggingEnabled())
 		{
-		case Positioning::Positioning_Relative:
-
 			Log::Print(
-				"Set audio player '" + name + "' positioning state to 'relative'!",
+				"Set audio player '" + name + "' positioning state to '" + valStr + "'!",
 				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
-
-			ma_sound_set_positioning(&pData->sound, ma_positioning_relative);
-			break;
-		
-		case Positioning::Positioning_Absolute:
-
-			Log::Print(
-				"Set audio player '" + name + "' positioning state to 'absolute'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
-
-			ma_sound_set_positioning(&pData->sound, ma_positioning_absolute);
-			break;
+				LogType::LOG_INFO);
 		}
 	}
 	Positioning AudioPlayer::GetPositioningState() const
@@ -892,10 +906,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_pitch(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' pitch to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' pitch to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetPitch() const
 	{
@@ -920,10 +937,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_pan(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' pan to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' pan to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetPan() const
 	{
@@ -944,26 +964,21 @@ namespace KalaWindow::Core
 
 		if (pData == nullptr) return;
 
-		switch (mode)
+		ma_pan_mode val = mode == PanMode::PanMode_Balance
+			? ma_pan_mode_balance
+			: ma_pan_mode_pan;
+		string valStr = mode == PanMode::PanMode_Balance
+			? "balance"
+			: "pan";
+
+		ma_sound_set_pan_mode(&pData->sound, val);
+
+		if (Audio::IsVerboseLoggingEnabled())
 		{
-		case PanMode::PanMode_Balance:
-			ma_sound_set_pan_mode(&pData->sound, ma_pan_mode_balance);
-
 			Log::Print(
-				"Set audio player '" + name + "' pan mode to 'balance'!",
+				"Set audio player '" + name + "' pan mode to '" + valStr + "'!",
 				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
-
-			break;
-		case PanMode::PanMode_Pan:
-			ma_sound_set_pan_mode(&pData->sound, ma_pan_mode_pan);
-
-			Log::Print(
-				"Set audio player '" + name + "' pan mode to 'pan'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
-
-			break;
+				LogType::LOG_INFO);
 		}
 	}
 	PanMode AudioPlayer::GetPanMode() const
@@ -1006,7 +1021,7 @@ namespace KalaWindow::Core
 				"Set audio player '" + name + "' position to '"
 				+ to_string(pos.x) + ", " + to_string(pos.y) + ", " + to_string(pos.z) + "'!",
 				"AUDIO_PLAYER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	vec3 AudioPlayer::GetPosition() const
@@ -1048,7 +1063,7 @@ namespace KalaWindow::Core
 				"Set audio player '" + name + "' velocity to '"
 				+ to_string(vel.x) + ", " + to_string(vel.y) + ", " + to_string(vel.z) + "'!",
 				"AUDIO_PLAYER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	vec3 AudioPlayer::GetVelocity() const
@@ -1090,7 +1105,7 @@ namespace KalaWindow::Core
 				"Set player direction to '"
 				+ to_string(dir.x) + ", " + to_string(dir.y) + ", " + to_string(dir.z),
 				"AUDIO_PLAYER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	vec3 AudioPlayer::GetDirection() const
@@ -1133,7 +1148,7 @@ namespace KalaWindow::Core
 				+ "cone outer angle to '" + to_string(outerAngleClamped)
 				+ "' and cone outer gain to '" + to_string(outerGainClamped) + "'!",
 				"AUDIO_PLAYER_VERBOSE",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 		}
 	}
 	AudioCone AudioPlayer::GetConeData() const
@@ -1176,37 +1191,49 @@ namespace KalaWindow::Core
 		case AttenuationModel::Attenuation_None:
 			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_none);
 
-			Log::Print(
-				"Set audio player '" + name + "' attenuation mode to 'none'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
+			if (Audio::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Set audio player '" + name + "' attenuation mode to 'none'!",
+					"AUDIO_PLAYER",
+					LogType::LOG_INFO);
+			}
 
 			break;
 		case AttenuationModel::Attenuation_Inverse:
 			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_inverse);
 
-			Log::Print(
-				"Set audio player '" + name + "' attenuation mode to 'inverse'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
+			if (Audio::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Set audio player '" + name + "' attenuation mode to 'inverse'!",
+					"AUDIO_PLAYER",
+					LogType::LOG_INFO);
+			}
 
 			break;
 		case AttenuationModel::Attenuation_Linear:
 			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_linear);
 
-			Log::Print(
-				"Set audio player '" + name + "' attenuation mode to 'linear'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
+			if (Audio::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Set audio player '" + name + "' attenuation mode to 'linear'!",
+					"AUDIO_PLAYER",
+					LogType::LOG_INFO);
+			}
 
 			break;
 		case AttenuationModel::Attenuation_Exponential:
 			ma_sound_set_attenuation_model(&pData->sound, ma_attenuation_model_exponential);
 
-			Log::Print(
-				"Set audio player '" + name + "' attenuation mode to 'exponential'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_DEBUG);
+			if (Audio::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Set audio player '" + name + "' attenuation mode to 'exponential'!",
+					"AUDIO_PLAYER",
+					LogType::LOG_INFO);
+			}
 
 			break;
 		}
@@ -1240,10 +1267,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_rolloff(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' rolloff factor to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' rolloff factor to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetRolloff() const
 	{
@@ -1268,10 +1298,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_doppler_factor(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' doppler factor to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' doppler factor to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetDopplerFactor() const
 	{
@@ -1282,20 +1315,6 @@ namespace KalaWindow::Core
 		if (pData == nullptr) return 0;
 
 		return ma_sound_get_doppler_factor(&pData->sound);
-	}
-
-	AudioPlayer::~AudioPlayer()
-	{
-		auto it = playerMap.find(ID);
-		if (it != playerMap.end())
-		{
-			playerMap.erase(it);
-
-			Log::Print(
-				"Destroyed audio player '" + name + "'!",
-				"AUDIO_PLAYER",
-				LogType::LOG_SUCCESS);
-		}
 	}
 
 	void AudioPlayer::SetMinGain(f32 newMinGain) const
@@ -1310,10 +1329,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_min_gain(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' min gain to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' min gain to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetMinGain() const
 	{
@@ -1338,10 +1360,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_max_gain(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' max gain to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' max gain to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetMaxGain() const
 	{
@@ -1366,10 +1391,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_min_distance(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' min range to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' min range to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetMinRange() const
 	{
@@ -1394,10 +1422,13 @@ namespace KalaWindow::Core
 
 		ma_sound_set_max_distance(&pData->sound, clamped);
 
-		Log::Print(
-			"Set audio player '" + name + "' max range to '" + to_string(clamped) + "'!",
-			"AUDIO_PLAYER",
-			LogType::LOG_DEBUG);
+		if (Audio::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set audio player '" + name + "' max range to '" + to_string(clamped) + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_INFO);
+		}
 	}
 	f32 AudioPlayer::GetMaxRange() const
 	{
@@ -1408,6 +1439,20 @@ namespace KalaWindow::Core
 		if (pData == nullptr) return 0;
 
 		return ma_sound_get_max_distance(&pData->sound);
+	}
+
+	AudioPlayer::~AudioPlayer()
+	{
+		auto it = playerMap.find(ID);
+		if (it != playerMap.end())
+		{
+			playerMap.erase(it);
+
+			Log::Print(
+				"Destroyed audio player '" + name + "'!",
+				"AUDIO_PLAYER",
+				LogType::LOG_SUCCESS);
+		}
 	}
 }
 

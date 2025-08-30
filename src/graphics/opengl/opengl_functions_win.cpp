@@ -13,6 +13,7 @@
 #include "KalaHeaders/core_types.hpp"
 
 #include "graphics/opengl/opengl_functions_win.hpp"
+#include "graphics/opengl/opengl.hpp"
 #include "core/core.hpp"
 #include "core/global_handles.hpp"
 
@@ -22,6 +23,7 @@ using KalaHeaders::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
+using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 
 using std::vector;
 using std::string;
@@ -102,10 +104,13 @@ namespace KalaWindow::Graphics::OpenGLFunctions
         ptr = reinterpret_cast<void*>(wglGetProcAddress(name));
         if (!ptr)
         {
-            Log::Print(
-                "Failed to load function '" + string(name) + "'! Trying again with handle.",
-                "OPENGL WIN FUNCTION",
-                LogType::LOG_DEBUG);
+            if (OpenGL_Renderer::IsVerboseLoggingEnabled())
+            {
+                Log::Print(
+                    "Failed to load function '" + string(name) + "'! Trying again with handle.",
+                    "OPENGL WIN FUNCTION",
+                    LogType::LOG_WARNING);
+            }
 
             HMODULE module = ToVar<HMODULE>(GlobalHandle::GetOpenGLHandle());
             ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
@@ -127,10 +132,13 @@ namespace KalaWindow::Graphics::OpenGLFunctions
                 entry->target
             });
 
-        Log::Print(
-            "Loaded '" + string(name) + "'!",
-            "OPENGL WIN FUNCTION",
-            LogType::LOG_DEBUG);
+        if (OpenGL_Renderer::IsVerboseLoggingEnabled())
+        {
+            Log::Print(
+                "Loaded '" + string(name) + "'!",
+                "OPENGL WIN FUNCTION",
+                LogType::LOG_DEBUG);
+        }
     }
 }
 

@@ -186,10 +186,13 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (!vertShaderExists)
         {
-            Log::Print(
-                "Skipped loading vertex shader because it was not assigned as a shader stage.",
-                "OPENGL_SHADER",
-                LogType::LOG_INFO);
+            if (isVerboseLoggingEnabled)
+            {
+                Log::Print(
+                    "Skipped loading vertex shader because it was not assigned as a shader stage.",
+                    "OPENGL_SHADER",
+                    LogType::LOG_INFO);
+            }
         }
         else
         {
@@ -209,10 +212,13 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (!fragShaderExists)
         {
-            Log::Print(
-                "Skipped loading fragment shader because it was not assigned as a shader stage.",
-                "OPENGL_SHADER",
-                LogType::LOG_INFO);
+            if (isVerboseLoggingEnabled)
+            {
+                Log::Print(
+                    "Skipped loading fragment shader because it was not assigned as a shader stage.",
+                    "OPENGL_SHADER",
+                    LogType::LOG_INFO);
+            }
         }
         else
         {
@@ -232,10 +238,13 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (!geomShaderExists)
         {
-            Log::Print(
-                "Skipped loading geometry shader because it was not assigned as a shader stage.",
-                "OPENGL_SHADER",
-                LogType::LOG_INFO);
+            if (isVerboseLoggingEnabled)
+            {
+                Log::Print(
+                    "Skipped loading geometry shader because it was not assigned as a shader stage.",
+                    "OPENGL_SHADER",
+                    LogType::LOG_INFO);
+            }
         }
         else
         {
@@ -434,10 +443,13 @@ namespace KalaWindow::Graphics::OpenGL
         }
         else
         {
-            Log::Print(
-                "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + shaderName + "' is valid!",
-                "OPENGL_SHADER",
-                LogType::LOG_SUCCESS);
+            if (isVerboseLoggingEnabled)
+            {
+                Log::Print(
+                    "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + shaderName + "' is valid!",
+                    "OPENGL_SHADER",
+                    LogType::LOG_SUCCESS);
+            }
         }
 
         //
@@ -980,10 +992,13 @@ bool CheckCompileErrors(u32 shader, const string& type)
         }
         else
         {
-            Log::Print(
-                "Shader linking succeeded (" + type + ")",
-                "OPENGL_SHADER",
-                LogType::LOG_SUCCESS);
+            if (OpenGL_Shader::IsVerboseLoggingEnabled())
+            {
+                Log::Print(
+                    "Shader linking succeeded (" + type + ")",
+                    "OPENGL_SHADER",
+                    LogType::LOG_SUCCESS);
+            }
         }
     }
     else
@@ -1021,10 +1036,13 @@ bool CheckCompileErrors(u32 shader, const string& type)
         }
         else
         {
-            Log::Print(
-                "Shader compilation succeeded (" + type + ")",
-                "OPENGL_SHADER",
-                LogType::LOG_SUCCESS);
+            if (OpenGL_Shader::IsVerboseLoggingEnabled())
+            {
+                Log::Print(
+                    "Shader compilation succeeded (" + type + ")",
+                    "OPENGL_SHADER",
+                    LogType::LOG_SUCCESS);
+            }
         }
     }
 
