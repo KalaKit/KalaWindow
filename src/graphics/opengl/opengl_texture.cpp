@@ -1207,7 +1207,7 @@ OpenGL_Texture* InitTexture(
 	Log::Print(
 		"Loading texture '" + name + "'.",
 		"OPENGL_TEXTURE",
-		LogType::LOG_DEBUG);
+		LogType::LOG_INFO);
 
 	//
 	// GET TEXTURE DATA FROM FILE

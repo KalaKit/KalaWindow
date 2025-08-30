@@ -137,7 +137,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
             Log::Print(
                 "Loaded '" + string(name) + "'!",
                 "OPENGL WIN FUNCTION",
-                LogType::LOG_DEBUG);
+                LogType::LOG_INFO);
         }
     }
 }

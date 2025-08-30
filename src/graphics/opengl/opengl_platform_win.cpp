@@ -238,7 +238,7 @@ namespace KalaWindow::Graphics::OpenGL
 			Log::Print(
 				"Cannot swap opengl buffers because OpenGL is not initialized!",
 				"OPENGL_WINDOWS",
-				LogType::LOG_DEBUG);
+				LogType::LOG_ERROR);
 			return;
 		}
 

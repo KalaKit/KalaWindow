@@ -121,7 +121,7 @@ namespace KalaWindow::Graphics::OpenGL
         Log::Print(
             "Creating shader '" + shaderName + "'.",
             "OPENGL_SHADER",
-            LogType::LOG_DEBUG);
+            LogType::LOG_INFO);
 
         unique_ptr<OpenGL_Shader> newShader = make_unique<OpenGL_Shader>();
         OpenGL_Shader* shaderPtr = newShader.get();
@@ -545,13 +545,6 @@ namespace KalaWindow::Graphics::OpenGL
         if (ID == lastProgramID) return true;
 
 #ifdef _DEBUG
-        /*
-        Log::Print(
-            "glUseProgram(" + to_string(ID) + ")",
-            "OPENGL_SHADER",
-            LogType::LOG_DEBUG);
-        */
-
         i32 linked = 0;
         glGetProgramiv(
             ID,
@@ -562,7 +555,7 @@ namespace KalaWindow::Graphics::OpenGL
             Log::Print(
                 "GL_LINK_STATUS = " + to_string(linked),
                 "OPENGL_SHADER",
-                LogType::LOG_DEBUG);
+                LogType::LOG_WARNING);
         }
 
         i32 validated = 0;
@@ -575,7 +568,7 @@ namespace KalaWindow::Graphics::OpenGL
             Log::Print(
                 "GL_VALIDATE_STATUS = " + to_string(validated),
                 "OPENGL_SHADER",
-                LogType::LOG_DEBUG);
+                LogType::LOG_WARNING);
         }
 #endif
 

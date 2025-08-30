@@ -195,7 +195,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Attempting to run user provided regular shutdown function...",
 				"WINDOW",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 
 			if (userRegularShutdown) userRegularShutdown();
 		}

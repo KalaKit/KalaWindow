@@ -162,7 +162,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Creating window '" + title + "'.",
 				"WINDOW_WINDOWS",
-				LogType::LOG_DEBUG);
+				LogType::LOG_INFO);
 
 #ifdef _WIN32
 			if (!enabledBeginPeriod)
@@ -1583,7 +1583,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
-					LogType::LOG_DEBUG);
+					LogType::LOG_INFO);
 
 				e->function();
 
@@ -1648,7 +1648,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					oss.str(),
 					"WINDOW_WINDOWS",
-					LogType::LOG_DEBUG);
+					LogType::LOG_INFO);
 
 				e->function();
 
