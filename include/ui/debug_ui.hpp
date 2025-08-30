@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <string>
 #include <functional>
 
 #include "KalaHeaders/core_types.hpp"
@@ -18,7 +19,17 @@ struct ImGuiContext;
 namespace KalaWindow::UI
 {
 	using glm::vec2;
+	using std::string;
 	using std::function;
+
+	struct WindowSettings
+	{
+		bool isMovable = true;
+		bool isResizable = true;
+		bool isCollapsible = true;
+		bool hasToolbar = true;
+		bool saveSettings = true;
+	};
 
 	class LIB_API DebugUI
 	{
@@ -54,6 +65,35 @@ namespace KalaWindow::UI
 		static vec2 CenterWindow(
 			vec2 size,
 			u32 windowID);
+
+		//Renders a regular freeform window that can be 
+		//rendered for the whole executable lifetime.
+		//Modify the WindowSettings struct bool states to control limitations of this window.
+		//Assign a function to control what content is rendered inside this window.
+		//Leaving position at 0 moves this ImGui window to the center.
+		//Leaving min and max size at 0 adds no size constraints to this ImGui window.
+		static void RenderWindow(
+			u32 ID,
+			WindowSettings settings,
+			function<void()> func,
+			const string& title,
+			vec2 size,
+			vec2 pos = vec2(0),
+			vec2 minSize = vec2(0),
+			vec2 maxSize = vec2(0));
+
+		//Renders a non-movable and non-resizable modal ImGui at the center of the
+		//main window that should only appear when conditions are met.
+		//Window ID needs to be a valid executable window ID that you created.
+		//Assign a function to control what content is rendered inside this window.
+		//Leaving size at 0 makes the size default to 300x200.
+		//This ImGui window data will not be stored by ImGui.
+		static void RenderModalWindow(
+			u32 ID,
+			u32 windowID,
+			function<void()> func,
+			const string& title,
+			vec2 size = vec2(0));
 
 		//ImGui main draw loop
 		static void Render(u32 windowID);

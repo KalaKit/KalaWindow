@@ -4,6 +4,7 @@
 //Read LICENSE.md for more information.
 
 #include <Windows.h>
+#include <vector>
 
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
@@ -27,7 +28,12 @@ using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 
+using std::vector;
+using std::to_string;
+
 static ImGuiContext* context{};
+
+static vector<u32> createdIndexes{};
 
 namespace KalaWindow::UI
 {
@@ -117,6 +123,135 @@ namespace KalaWindow::UI
 		float posY = (rectSize.y - size.y) / 2.0f;
 
 		return vec2(posX, posY);
+	}
+
+	void DebugUI::RenderWindow(
+		u32 ID,
+		WindowSettings settings,
+		function<void()> func,
+		const string& title,
+		vec2 size,
+		vec2 pos,
+		vec2 minSize,
+		vec2 maxSize)
+	{
+		if (find(createdIndexes.begin(), createdIndexes.end(), ID) != createdIndexes.end())
+		{
+			Log::Print(
+				"Failed to create ImGui window '" + title + "' because its ID '" + to_string(ID) + "' has already been used by another ImGui window!",
+				"IMGUI",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		ImGuiCond cond = settings.isMovable
+			? ImGuiCond_FirstUseEver
+			: ImGuiCond_Always;
+
+		ImGui::SetNextWindowPos(
+			ImVec2(pos.x, pos.y),
+			cond);
+
+		ImGui::SetNextWindowSize(
+			ImVec2(size.x, size.y),
+			settings.isResizable
+			? ImGuiCond_FirstUseEver
+			: ImGuiCond_Always);
+
+		if (minSize != vec2(0)
+			&& maxSize != vec2(0))
+		{
+			if (minSize.x > maxSize.x
+				|| minSize.y > maxSize.y)
+			{
+				Log::Print(
+					"Window '" + title + "' max size cannot be lower than window min size! Size constraints are ignored.",
+					"IMGUI",
+					LogType::LOG_ERROR,
+					2);
+			}
+			else
+			{
+				ImGui::SetNextWindowSizeConstraints(
+					ImVec2(minSize.x, minSize.y),
+					ImVec2(maxSize.x, maxSize.y));
+			}
+		}
+
+		ImGuiWindowFlags flags = 0;
+
+		if (!settings.isMovable) flags |= ImGuiWindowFlags_NoMove;
+		if (!settings.isResizable) flags |= ImGuiWindowFlags_NoResize;
+		if (!settings.isCollapsible) flags |= ImGuiWindowFlags_NoCollapse;
+		if (!settings.hasToolbar) flags |= ImGuiWindowFlags_NoTitleBar;
+		if (!settings.saveSettings) flags |= ImGuiWindowFlags_NoSavedSettings;
+
+		if (ImGui::Begin((title + "##" + to_string(ID)).c_str(), NULL, flags))
+		{
+			if (!func) ImGui::Text("This window has no content.");
+			else       func();
+		}
+		ImGui::End();
+	}
+
+	void DebugUI::RenderModalWindow(
+		u32 ID,
+		u32 windowID,
+		function<void()> func,
+		const string& title,
+		vec2 size)
+	{
+		if (find(createdIndexes.begin(), createdIndexes.end(), ID) != createdIndexes.end())
+		{
+			Log::Print(
+				"Failed to create ImGui window '" + title + "' because its ID '" + to_string(ID) + "' has already been used by another ImGui window!",
+				"IMGUI",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (createdWindows.find(windowID) == createdWindows.end())
+		{
+			Log::Print(
+				"Failed to create ImGui window '" + title + "' because window ID '" + to_string(windowID) + "' does not match any existing user-created executable window ID!",
+				"IMGUI",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		vec2 center = DebugUI::CenterWindow(
+			vec2(size.x, size.y),
+			windowID);
+
+		ImGui::SetNextWindowPos(
+			ImVec2(center.x, center.y),
+			ImGuiCond_Always);
+
+		ImVec2 finalSize = size != vec2()
+			? ImVec2(size.x, size.y)
+			: ImVec2(300.0f, 200.0f);
+		ImGui::SetNextWindowSize(
+			finalSize,
+			ImGuiCond_Always);
+
+		ImGuiWindowFlags flags =
+			ImGuiWindowFlags_NoCollapse
+			| ImGuiWindowFlags_NoResize
+			| ImGuiWindowFlags_NoMove
+			| ImGuiTableFlags_NoSavedSettings;
+
+		if (ImGui::Begin((title + "##" + to_string(ID)).c_str(), NULL, flags))
+		{
+			if (!func) ImGui::Text("This window has no content.");
+			else       func();
+		}
+		ImGui::End();
 	}
 
 	void DebugUI::Render(u32 windowID)
