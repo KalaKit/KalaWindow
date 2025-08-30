@@ -16,14 +16,27 @@
 
 namespace KalaWindow::Graphics
 {
-	//TODO: CREATE AN INTERNAL FRAMEBUFFER SYSTEM WHERE THE INTERNAL FRAMEBUFFER RESOLUTION ALWAYS MATCHES
-	//USER RESOLUTION WHILE WINDOW RESOLUTION SCALES DYNAMICALLY
-	
 	//TODO: SEPARATE REUSABLE OPENGL/VULKAN STUFF FROM PER-WINDOW TO GLOBAL
 
 	using std::string;
 	using std::function;
 	using std::vector;
+
+	enum class DpiContext
+	{
+		//sharpest, ideal DPI scaling between monitors,
+		//nearly identical in performance compared to DPI_SYSTEM_AWARE
+		//but slower than DPI_UNAWARE at higher resolutions
+		DPI_PER_MONITOR,
+
+		//sharp on primary monitor, blurry if dragged to higher DPI monitor,
+		//nearly identical in performance compared to DPI_PER_MONITOR
+		//but slower than DPI_UNAWARE at higher resolutions
+		DPI_SYSTEM_AWARE, 
+
+		//always as 96 DPI, blurry on high DPI screens, fastest performance
+		DPI_UNAWARE
+	};
 
 	//Supported states the window can go to
 	enum class WindowState
@@ -261,11 +274,15 @@ namespace KalaWindow::Graphics
 	class LIB_API Window
 	{
 	public:
-		//Create a new window with an optional choice to attach a parent window
+		//Create a new window with an optional choice to attach a parent window.
+		//Assign a parent window to display this window as a child of that window.
+		//Set the context to your preferred dpi state to modify how
+		//window dpi state affects performance and quality of the framebuffer
 		static Window* Initialize(
 			const string& title,
 			vec2 size,
-			Window* parentWindow = nullptr);
+			Window* parentWindow = nullptr,
+			DpiContext context = DpiContext::DPI_UNAWARE);
 		bool IsInitialized() const { return isInitialized; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
@@ -387,7 +404,7 @@ namespace KalaWindow::Graphics
 		//Create a notification that shows up on your screen
 		void CreateNotification(
 			const string& title,
-			const string& nessage);
+			const string& nessage) const;
 
 		//Flash the taskbar button to attract user attention
 		void FlashTaskbar(

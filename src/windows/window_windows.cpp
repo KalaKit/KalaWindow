@@ -112,7 +112,8 @@ namespace KalaWindow::Graphics
 	Window* Window::Initialize(
 		const string& title,
 		vec2 size,
-		Window* parentWindow)
+		Window* parentWindow,
+		DpiContext context)
 	{
 		HINSTANCE newHInstance = GetModuleHandle(nullptr);
 
@@ -138,10 +139,13 @@ namespace KalaWindow::Graphics
 					return nullptr;
 				}
 
-				Log::Print(
-					"Windows version '" + osVersion + "' build '" + buildVersion + "'",
-					"WINDOW_WINDOWS",
-					LogType::LOG_INFO);
+				if (isVerboseLoggingEnabled)
+				{
+					Log::Print(
+						"Windows version '" + osVersion + "' build '" + buildVersion + "'",
+						"WINDOW_WINDOWS",
+						LogType::LOG_INFO);
+				}
 
 				checkedOSVersion = true;
 			}
@@ -280,9 +284,22 @@ namespace KalaWindow::Graphics
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
 
-		//set window to be DPI-aware per window
-		SetProcessDpiAwarenessContext(
-			DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+		//set window dpi aware state
+		switch (context)
+		{
+		case DpiContext::DPI_PER_MONITOR:
+			SetProcessDpiAwarenessContext(
+				DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+			break;
+		case DpiContext::DPI_SYSTEM_AWARE:
+			SetProcessDpiAwarenessContext(
+				DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
+			break;
+		case DpiContext::DPI_UNAWARE:
+			SetProcessDpiAwarenessContext(
+				DPI_AWARENESS_CONTEXT_UNAWARE);
+			break;
+		}
 
 		u32 newID = ++globalID;
 		unique_ptr<Window> newWindow = make_unique<Window>();
@@ -339,6 +356,14 @@ namespace KalaWindow::Graphics
 		wstring wideTitle = ToWide(titleToSet);
 
 		SetWindowTextW(window, wideTitle.c_str());
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window title to '" + newTitle + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	string Window::GetTitle() const
 	{
@@ -427,6 +452,14 @@ namespace KalaWindow::Graphics
 			WM_SETICON,
 			ICON_SMALL, //title bar + window border
 			(LPARAM)exeIcon);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' icon to '" + tex->GetName() + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	void Window::ClearIcon() const
 	{
@@ -535,6 +568,14 @@ namespace KalaWindow::Graphics
 			window,
 			overlayIcon,
 			tooltip.empty() ? nullptr : ToWide(tooltip).c_str());
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' overlay icon to '" + tex->GetName() + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	void Window::ClearTaskbarOverlayIcon() const
 	{
@@ -570,19 +611,25 @@ namespace KalaWindow::Graphics
 
 		DWM_WINDOW_CORNER_PREFERENCE pref{};
 
+		string roundingVal{};
+
 		switch (roundState)
 		{
 		case WindowRounding::ROUNDING_DEFAULT:
 			pref = DWMWCP_DEFAULT;
+			roundingVal = "default";
 			break;
 		case WindowRounding::ROUNDING_NONE:
 			pref = DWMWCP_DONOTROUND;
+			roundingVal = "none";
 			break;
 		case WindowRounding::ROUNDING_ROUND:
 			pref = DWMWCP_ROUND;
+			roundingVal = "round";
 			break;
 		case WindowRounding::ROUNDING_ROUND_SMALL:
 			pref = DWMWCP_ROUNDSMALL;
+			roundingVal = "small round";
 			break;
 		}
 
@@ -599,6 +646,14 @@ namespace KalaWindow::Graphics
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
+		}
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' rounding to '" + roundingVal + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
 		}
 	}
 	WindowRounding Window::GetWindowRoundingState() const
@@ -664,6 +719,16 @@ namespace KalaWindow::Graphics
 			rect.bottom - rect.top,
 			SWP_NOMOVE
 			| SWP_NOZORDER);
+
+		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' client rect size to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	vec2 Window::GetClientRectSize() const
 	{
@@ -692,6 +757,16 @@ namespace KalaWindow::Graphics
 			newSize.y,
 			SWP_NOMOVE
 			| SWP_NOZORDER);
+
+		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' outer size to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	vec2 Window::GetOuterSize() const
 	{
@@ -739,6 +814,16 @@ namespace KalaWindow::Graphics
 			rect.bottom - rect.top,
 			SWP_NOMOVE
 			| SWP_NOZORDER);
+
+		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' framebuffer size to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	vec2 Window::GetFramebufferSize() const
 	{
@@ -778,6 +863,16 @@ namespace KalaWindow::Graphics
 			0,
 			SWP_NOSIZE
 			| SWP_NOZORDER);
+
+		string val = to_string(newPosition.x) + "x" + to_string(newPosition.y);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' position to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	vec2 Window::GetPosition() const
 	{
@@ -809,6 +904,16 @@ namespace KalaWindow::Graphics
 			0,
 			SWP_NOMOVE
 			| SWP_NOSIZE);
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' always on state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	bool Window::IsAlwaysOnTop() const
 	{
@@ -856,6 +961,16 @@ namespace KalaWindow::Graphics
 			| SWP_NOSIZE
 			| SWP_NOZORDER
 			| SWP_FRAMECHANGED);
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' resizable state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	bool Window::IsResizable() const
 	{
@@ -952,6 +1067,16 @@ namespace KalaWindow::Graphics
 				| SWP_NOZORDER
 				| SWP_NOOWNERZORDER);
 		}
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' fullscreen state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	bool Window::IsFullscreen() const
 	{
@@ -1013,6 +1138,16 @@ namespace KalaWindow::Graphics
 			| SWP_NOSIZE
 			| SWP_NOZORDER
 			| SWP_FRAMECHANGED);
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' top bar state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	bool Window::IsTopBarEnabled() const
 	{
@@ -1050,6 +1185,16 @@ namespace KalaWindow::Graphics
 			| SWP_NOSIZE
 			| SWP_NOZORDER
 			| SWP_FRAMECHANGED);
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' minimize button state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	bool Window::IsMinimizeButtonEnabled() const
 	{
@@ -1087,6 +1232,16 @@ namespace KalaWindow::Graphics
 			| SWP_NOSIZE
 			| SWP_NOZORDER
 			| SWP_FRAMECHANGED);
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' maximize button state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	bool Window::IsMaximizeButtonEnabled() const
 	{
@@ -1115,6 +1270,16 @@ namespace KalaWindow::Graphics
 				MF_BYCOMMAND);
 
 			DrawMenuBar(window);
+		}
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' close buttpn state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
 		}
 	}
 	bool Window::IsCloseButtonEnabled() const
@@ -1155,6 +1320,16 @@ namespace KalaWindow::Graphics
 			| SWP_NOSIZE
 			| SWP_NOZORDER
 			| SWP_FRAMECHANGED);
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' system menu state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	bool Window::IsSystemMenuEnabled() const
 	{
@@ -1193,6 +1368,16 @@ namespace KalaWindow::Graphics
 			0,
 			bAlpha,
 			LWA_ALPHA);
+
+		string val = to_string(alpha);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 	float Window::GetOpacity() const
 	{
@@ -1242,26 +1427,41 @@ namespace KalaWindow::Graphics
 	{
 		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
+		string val{};
+
 		switch (state)
 		{
 		case WindowState::WINDOW_NORMAL:
 			ShowWindow(hwnd, SW_SHOWNORMAL);
+			val = "normal";
 			break;
 		case WindowState::WINDOW_MAXIMIZE:
 			ShowWindow(hwnd, SW_MAXIMIZE);
+			val = "maximized";
 			break;
 		case WindowState::WINDOW_MINIMIZE:
 			ShowWindow(hwnd, SW_MINIMIZE);
+			val = "minimized";
 			break;
 		case WindowState::WINDOW_HIDE:
 			ShowWindow(hwnd, SW_HIDE);
+			val = "hidden";
 			break;
 		case WindowState::WINDOW_SHOWNOACTIVATE:
 			ShowWindow(hwnd, SW_SHOWNOACTIVATE);
+			val = "unfocused visible";
 			break;
 		}
 
 		UpdateWindow(hwnd);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 
 	void Window::SetShutdownBlockState(bool state)
@@ -1281,11 +1481,21 @@ namespace KalaWindow::Graphics
 			WTSUnRegisterSessionNotification(hwnd);
 			shutdownBlockState = false;
 		}
+
+		string val = state ? "true" : "false";
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' shutdown block state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 
 	void Window::CreateNotification(
 		const string& title,
-		const string& nessage)
+		const string& nessage) const
 	{
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(nessage);
@@ -1300,6 +1510,14 @@ namespace KalaWindow::Graphics
 		ToastNotification toast(toastXml);
 
 		ToastNotificationManager::CreateToastNotifier(ToWide(APP_ID)).Show(toast);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Created notification from window '" + GetTitle() + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 
 	void Window::FlashTaskbar(
@@ -1324,24 +1542,47 @@ namespace KalaWindow::Graphics
 		fi.cbSize = sizeof(fi);
 		fi.hwnd = hwnd;
 
+		string val{};
+		string dur{};
+
 		switch (mode)
 		{
 		case TaskbarFlashMode::FLASH_ONCE:
 			fi.dwFlags = FLASHW_ALL;
 			fi.uCount = 1;
+
+			val = "once";
+			dur = "1";
+
 			break;
 		case TaskbarFlashMode::FLASH_UNTIL_FOCUS:
 			fi.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
 			fi.uCount = 0; //keep flashing until focus
+
+			val = "until focus";
+			dur = "0";
+
 			break;
 		case TaskbarFlashMode::FLASH_TIMED:
 			fi.dwFlags = FLASHW_ALL;
 			fi.uCount = count; //flash x times
+
+			val = "timed";
+			dur = to_string(count);
+
 			break;
 		}
 
 		fi.dwTimeout = 0;
 		FlashWindowEx(&fi);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Flashed taskbar icon for window '" + GetTitle() + "' with type '" + val + "' for '" + dur + "' times",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
 	}
 
 	void Window::SetTaskbarProgressBarState(
@@ -1382,26 +1623,48 @@ namespace KalaWindow::Graphics
 
 		taskbar->HrInit();
 
+		string val{};
+		string currVal{};
+		string maxVal{};
+
 		switch (mode)
 		{
 		case TaskbarProgressBarMode::PROGRESS_NONE:
 			taskbar->SetProgressState(hwnd, TBPF_NOPROGRESS);
+			val = "none";
 			break;
 		case TaskbarProgressBarMode::PROGRESS_INDETERMINATE:
 			taskbar->SetProgressState(hwnd, TBPF_INDETERMINATE);
+			val = "indeterminate";
 			break;
 		case TaskbarProgressBarMode::PROGRESS_NORMAL:
 			taskbar->SetProgressState(hwnd, TBPF_NORMAL);
 			taskbar->SetProgressValue(hwnd, currentClamped, maxClamped);
+			val = "normal";
 			break;
 		case TaskbarProgressBarMode::PROGRESS_PAUSED:
 			taskbar->SetProgressState(hwnd, TBPF_PAUSED);
 			taskbar->SetProgressValue(hwnd, currentClamped, maxClamped);
+			val = "paused";
 			break;
 		case TaskbarProgressBarMode::PROGRESS_ERROR:
 			taskbar->SetProgressState(hwnd, TBPF_ERROR);
 			taskbar->SetProgressValue(hwnd, currentClamped, maxClamped);
+			val = "error";
 			break;
+		}
+
+		if (isVerboseLoggingEnabled)
+		{
+			ostringstream oss{};
+			oss << "Set window '" + GetTitle() + "' taskbar duration type to '"
+				+ val + "', current value to '" + currVal
+				+ "' and max value to " + maxVal + "'";
+
+			Log::Print(
+				oss.str(),
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
 		}
 	}
 
