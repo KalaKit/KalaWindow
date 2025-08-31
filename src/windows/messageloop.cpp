@@ -1107,13 +1107,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	{
-		Log::Print(
-			"Window '" + window->GetTitle() + "' is destroyed.",
-			"MESSAGELOOP",
-			LogType::LOG_SUCCESS);
-
 		OpenGL_Renderer::Shutdown(window);
-		DestroyWindow(ToVar<HWND>(window->GetWindowData().hwnd));
+		createdWindows.erase(window->GetID());
 
 		if (createdWindows.size() == 0)
 		{

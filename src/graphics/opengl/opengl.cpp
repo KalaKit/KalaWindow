@@ -12,6 +12,7 @@
 #include "graphics/window.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
+#include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -23,6 +24,7 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::createdOpenGLTextures;
 using KalaWindow::Core::createdOpenGLShaders;
 using KalaWindow::Core::runtimeWindows;
+using KalaWindow::Core::GlobalHandle;
 
 using std::string;
 
@@ -72,53 +74,6 @@ namespace KalaWindow::Graphics::OpenGL
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
-		}
-	}
-
-	void OpenGL_Renderer::Shutdown(Window* window)
-	{
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Failed to shut down OpenGL because it has not yet been initialized!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (window == nullptr)
-		{
-			Log::Print(
-				"Failed to shut down OpenGL because its target window is invalid!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (window->GetOpenGLData().hdc != NULL
-			&& window->GetOpenGLData().hglrc != NULL)
-		{
-			OpenGLData oData = window->GetOpenGLData();
-			if (oData.hdc != 0
-				&& oData.hglrc != 0)
-			{
-				HDC hdc = ToVar<HDC>(oData.hdc);
-				HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
-
-#ifdef _WIN32
-				//only clear the context if it's still active
-				if (wglGetCurrentContext() == hglrc)
-				{
-					wglMakeCurrent(nullptr, nullptr);
-				}
-#elif __linux__
-				//TODO: DEFINE
-#endif
-			}
 		}
 	}
 }

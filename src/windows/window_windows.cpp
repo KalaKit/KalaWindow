@@ -48,6 +48,7 @@
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
+#include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -68,6 +69,7 @@ using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::createdMenuBarEvents;
 using KalaWindow::Core::runtimeMenuBarEvents;
 using KalaWindow::Core::createdOpenGLTextures;
+using KalaWindow::Core::GlobalHandle;
 
 using std::make_unique;
 using std::move;
@@ -1704,6 +1706,8 @@ namespace KalaWindow::Graphics
 
 	Window::~Window()
 	{
+		string title = GetTitle();
+
 		WindowData win = window_windows;
 		HWND winRef = ToVar<HWND>(win.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
@@ -1713,12 +1717,6 @@ namespace KalaWindow::Graphics
 
 		OpenGLData openGLData = GetOpenGLData();
 
-		if (openGLData.hglrc)
-		{
-			wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(ToVar<HGLRC>(openGLData.hglrc));
-			openGLData.hglrc = NULL;
-		}
 		if (win.wndProc) win.wndProc = NULL;
 		if (openGLData.hdc)
 		{
@@ -1751,7 +1749,7 @@ namespace KalaWindow::Graphics
 		win.hInstance = NULL;
 
 		Log::Print(
-			"Destroyed window '" + GetTitle() + "'!",
+			"Destroyed window '" + title + "'!",
 			"WINDOW_WINDOWS",
 			LogType::LOG_SUCCESS);
 	}

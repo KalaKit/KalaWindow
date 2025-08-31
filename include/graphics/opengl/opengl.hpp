@@ -44,15 +44,14 @@ namespace KalaWindow::Graphics::OpenGL
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
 		static void GetError(const string& context);
 
-		//Close the opengl context and clean the opengl textures and shaders.
-		//This should always be called before the window that owns the opengl context is destroyed as well.
-		static void Shutdown(Window* window);
-
 		//
 		// OS-SPECIFIC
 		//
 
-		//Initializes OpenGL with version 3.3
+		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init
+		static bool GlobalInitialize();
+
+		//Per-window OpenGL context init
 		static bool Initialize(Window* targetWindow);
 
 		//Allows to set vsync true or false.
@@ -63,6 +62,10 @@ namespace KalaWindow::Graphics::OpenGL
 
 		static void MakeContextCurrent(Window* window);
 		static bool IsContextValid(Window* window);
+
+		//Close the opengl context and clean the opengl textures and shaders.
+		//This should always be called before the window that owns the opengl context is destroyed as well.
+		static void Shutdown(Window* window);
 	private:
 		static inline bool isInitialized{};
 		static inline bool isVerboseLoggingEnabled{};

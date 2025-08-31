@@ -21,6 +21,7 @@
 #include "graphics/texture.hpp"
 #include "core/containers.hpp"
 #include "core/audio.hpp"
+#include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -33,6 +34,7 @@ using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Texture;
+using KalaWindow::Core::GlobalHandle;
 
 using std::abort;
 using std::quick_exit;
@@ -158,6 +160,9 @@ namespace KalaWindow::Core
 			TimeFormat::TIME_NONE,
 			DateFormat::DATE_NONE);
 
+		DEBUG_ASSERT(false && reason.c_str());
+
+#ifdef NDEBUG
 		if (CreatePopup(
 			title,
 			reason,
@@ -167,6 +172,7 @@ namespace KalaWindow::Core
 		{
 			Shutdown(ShutdownState::SHUTDOWN_CRITICAL);
 		}
+#endif
 	}
 
 	void KalaWindowCore::SetUserShutdownFunction(const function<void()>& regularShutdown)
@@ -179,6 +185,10 @@ namespace KalaWindow::Core
 		bool useWindowShutdown,
 		const function<void()>& userShutdown)
 	{
+		Log::Print("\n====================");
+		Log::Print("\nSHUTTING DOWN KALAWINDOW");
+		Log::Print("\n====================\n");
+
 		if (state == ShutdownState::SHUTDOWN_CRITICAL)
 		{
 #ifdef _DEBUG
@@ -190,33 +200,43 @@ namespace KalaWindow::Core
 #endif
 		}
 
-		try
+		if (userRegularShutdown)
 		{
-			Log::Print(
-				"Attempting to run user provided regular shutdown function...",
-				"WINDOW",
-				LogType::LOG_INFO);
+			try
+			{
+				Log::Print(
+					"Attempting to run user provided regular shutdown function...\n",
+					"WINDOW",
+					LogType::LOG_INFO);
 
-			if (userRegularShutdown) userRegularShutdown();
-		}
-		catch (const exception& e)
-		{
-			Log::Print(
-				"User-provided regular shutdown condition failed! Reason: " + string(e.what()),
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				userRegularShutdown();
+
+				Log::Print("\n====================\n");
+			}
+			catch (const exception& e)
+			{
+				Log::Print(
+					"User-provided regular shutdown condition failed! Reason: " + string(e.what()),
+					"WINDOW",
+					LogType::LOG_ERROR,
+					2);
+			}
 		}
 
-		if (Audio::IsInitialized())
-		{
-			Audio::Shutdown();
-		}
+		if (Audio::IsInitialized()) Audio::Shutdown();
 
 		for (const auto& window : runtimeWindows) OpenGL_Renderer::Shutdown(window);
 
 		createdOpenGLTextures.clear();
 		createdOpenGLShaders.clear();
+
+		HGLRC hglrc = ToVar<HGLRC>(GlobalHandle::GetOpenGLWinContext());
+		if (hglrc != NULL)
+		{
+			if (wglGetCurrentContext() == hglrc) wglMakeCurrent(nullptr, nullptr);
+			wglDeleteContext(hglrc);
+			GlobalHandle::SetOpenGLWinContext(NULL);
+		}
 
 		/*
 		createdVulkanTextures.clear();
@@ -232,17 +252,30 @@ namespace KalaWindow::Core
 		timeEndPeriod(1);
 #endif //_WIN32
 
-		try
+		if (!useWindowShutdown
+			&& userShutdown)
 		{
-			if (!useWindowShutdown && userShutdown) userShutdown();
-		}
-		catch (const exception& e)
-		{
-			Log::Print(
-				"User-provided post-render shutdown condition failed! Reason: " + string(e.what()),
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
+			try
+			{
+				Log::Print("\n====================\n");
+
+				Log::Print(
+					"Attempting to run user provided post-render shutdown function...\n",
+					"WINDOW",
+					LogType::LOG_INFO);
+
+				userShutdown();
+
+				Log::Print("\n====================\n");
+			}
+			catch (const exception& e)
+			{
+				Log::Print(
+					"User-provided post-render shutdown condition failed! Reason: " + string(e.what()),
+					"WINDOW",
+					LogType::LOG_ERROR,
+					2);
+			}
 		}
 
 		Log::Print(
