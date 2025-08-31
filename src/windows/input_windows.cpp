@@ -28,7 +28,7 @@ namespace KalaWindow::Core
 		{
 			Log::Print(
 				"Input is already initialized!",
-				"INPUT",
+				"INPUT_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 			return false;

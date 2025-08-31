@@ -115,6 +115,7 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size,
 		Window* parentWindow,
+		WindowState state,
 		DpiContext context)
 	{
 		HINSTANCE newHInstance = GetModuleHandle(nullptr);
@@ -141,7 +142,7 @@ namespace KalaWindow::Graphics
 					return nullptr;
 				}
 
-				if (isVerboseLoggingEnabled)
+				if (Window::IsVerboseLoggingEnabled())
 				{
 					Log::Print(
 						"Windows version '" + osVersion + "' build '" + buildVersion + "'",
@@ -314,9 +315,8 @@ namespace KalaWindow::Graphics
 
 		newWindow->isInitialized = true;
 
-		//ensure window is always shown in case setwindowstate will not be called
-		ShowWindow(newHwnd, SW_SHOWNORMAL);
-		UpdateWindow(newHwnd);
+		//set window state to user preferred version
+		newWindow->SetWindowState(state);
 
 		createdWindows[newID] = move(newWindow);
 		runtimeWindows.push_back(windowPtr);
@@ -359,7 +359,7 @@ namespace KalaWindow::Graphics
 
 		SetWindowTextW(window, wideTitle.c_str());
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window title to '" + newTitle + "'",
@@ -455,7 +455,7 @@ namespace KalaWindow::Graphics
 			ICON_SMALL, //title bar + window border
 			(LPARAM)exeIcon);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' icon to '" + tex->GetName() + "'",
@@ -571,7 +571,7 @@ namespace KalaWindow::Graphics
 			overlayIcon,
 			tooltip.empty() ? nullptr : ToWide(tooltip).c_str());
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' overlay icon to '" + tex->GetName() + "'",
@@ -650,7 +650,7 @@ namespace KalaWindow::Graphics
 				2);
 		}
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' rounding to '" + roundingVal + "'",
@@ -724,7 +724,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' client rect size to '" + val + "'",
@@ -762,7 +762,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' outer size to '" + val + "'",
@@ -819,7 +819,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' framebuffer size to '" + val + "'",
@@ -868,7 +868,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newPosition.x) + "x" + to_string(newPosition.y);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' position to '" + val + "'",
@@ -909,7 +909,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' always on state to '" + val + "'",
@@ -966,7 +966,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' resizable state to '" + val + "'",
@@ -1072,7 +1072,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' fullscreen state to '" + val + "'",
@@ -1143,7 +1143,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' top bar state to '" + val + "'",
@@ -1190,7 +1190,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' minimize button state to '" + val + "'",
@@ -1237,7 +1237,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' maximize button state to '" + val + "'",
@@ -1276,7 +1276,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' close buttpn state to '" + val + "'",
@@ -1325,7 +1325,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' system menu state to '" + val + "'",
@@ -1373,7 +1373,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(alpha);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
@@ -1457,12 +1457,45 @@ namespace KalaWindow::Graphics
 
 		UpdateWindow(hwnd);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
+				"Set window '" + GetTitle() + "' state to '" + val + "'",
 				"WINDOW_WINDOWS",
 				LogType::LOG_SUCCESS);
+		}
+	}
+	WindowState Window::GetWindowState() const
+	{
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
+		WINDOWPLACEMENT placement{};
+		placement.length = sizeof(WINDOWPLACEMENT);
+
+		if (!GetWindowPlacement(hwnd, &placement))
+		{
+			Log::Print(
+				"Failed to get window '" + GetTitle() + "' state!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			return WindowState::WINDOW_NORMAL;
+		}
+
+		switch (placement.showCmd)
+		{
+		case SW_SHOWMINIMIZED:
+			return WindowState::WINDOW_MINIMIZE;
+		case SW_SHOWMAXIMIZED:
+			return WindowState::WINDOW_MAXIMIZE;
+		case SW_HIDE:
+			return WindowState::WINDOW_HIDE;
+		case SW_SHOWNOACTIVATE:
+			return WindowState::WINDOW_SHOWNOACTIVATE;
+		case SW_NORMAL: //also covers sw_restore
+		default:
+			return WindowState::WINDOW_NORMAL;
 		}
 	}
 
@@ -1486,7 +1519,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' shutdown block state to '" + val + "'",
@@ -1513,7 +1546,7 @@ namespace KalaWindow::Graphics
 
 		ToastNotificationManager::CreateToastNotifier(ToWide(APP_ID)).Show(toast);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Created notification from window '" + GetTitle() + "'",
@@ -1578,7 +1611,7 @@ namespace KalaWindow::Graphics
 		fi.dwTimeout = 0;
 		FlashWindowEx(&fi);
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Flashed taskbar icon for window '" + GetTitle() + "' with type '" + val + "' for '" + dur + "' times",
@@ -1656,7 +1689,7 @@ namespace KalaWindow::Graphics
 			break;
 		}
 
-		if (isVerboseLoggingEnabled)
+		if (Window::IsVerboseLoggingEnabled())
 		{
 			ostringstream oss{};
 			oss << "Set window '" + GetTitle() + "' taskbar duration type to '"
@@ -1713,7 +1746,7 @@ namespace KalaWindow::Graphics
 		SetWindowState(WindowState::WINDOW_HIDE);
 
 		//destroy menu bar if it was created
-		if (MenuBar::HasMenuBar(this)) MenuBar::DestroyMenuBar(this);
+		if (MenuBar::IsInitialized(this)) MenuBar::DestroyMenuBar(this);
 
 		OpenGLData openGLData = GetOpenGLData();
 
@@ -1761,12 +1794,13 @@ namespace KalaWindow::Graphics
 	void MenuBar::CreateMenuBar(Window* windowRef)
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+		WindowData wData = windowRef->GetWindowData();
 
-		if (HasMenuBar(windowRef))
+		if (IsInitialized(windowRef))
 		{
 			Log::Print(
 				"Failed to add menu bar to window '" + windowRef->GetTitle() + "' because the window already has one!",
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1774,22 +1808,68 @@ namespace KalaWindow::Graphics
 		}
 
 		HMENU hMenu = CreateMenu();
+		wData.hMenu = FromVar(hMenu);
+		windowRef->SetWindowData(wData);
+
 		SetMenu(window, hMenu);
 		DrawMenuBar(window);
+
+		isEnabled = true;
 
 		ostringstream oss{};
 		oss << "Created new menu bar in window '" << windowRef->GetTitle() << "'!";
 
 		Log::Print(
 			oss.str(),
-			"WINDOW_WINDOWS",
+			"MENU_BAR",
 			LogType::LOG_SUCCESS);
 	}
-	bool MenuBar::HasMenuBar(Window* windowRef)
+	bool MenuBar::IsInitialized(Window* windowRef)
 	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+		return (windowRef->GetWindowData().hMenu != NULL);
+	}
 
-		return (GetMenu(window) != nullptr);
+	void MenuBar::SetMenuBarState(
+		bool state,
+		Window* windowRef)
+	{
+		HWND hwnd = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+		HMENU storedHMenu = ToVar<HMENU>(windowRef->GetWindowData().hMenu);
+
+		if (!IsInitialized(windowRef))
+		{
+			Log::Print(
+				"Failed to set menu bar state for window '" + windowRef->GetTitle() + "' because it has not yet created a menu bar!",
+				"MENU_BAR",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		SetMenu(hwnd, state ? storedHMenu : nullptr);
+		DrawMenuBar(hwnd);
+
+		string val = state ? "true" : "false";
+		isEnabled = state;
+
+		if (MenuBar::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set window '" + windowRef->GetTitle() + "' menu bar state to '" + val + "'",
+				"MENU_BAR",
+				LogType::LOG_SUCCESS);
+		}
+	}
+	bool MenuBar::IsEnabled(Window* window)
+	{
+		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+		HMENU attached = GetMenu(hwnd);
+
+		return 
+			attached != NULL
+			&& window->GetWindowData().hMenu != NULL
+			&& isEnabled;
 	}
 
 	void MenuBar::CallMenuBarEvent(
@@ -1799,14 +1879,14 @@ namespace KalaWindow::Graphics
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
 
-		if (!HasMenuBar(windowRef))
+		if (!IsInitialized(windowRef))
 		{
 			ostringstream oss{};
 			oss << "Failed to call menu bar event in window '" << windowRef->GetTitle() << "' because it has no menu bar!";
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1821,7 +1901,7 @@ namespace KalaWindow::Graphics
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1843,7 +1923,7 @@ namespace KalaWindow::Graphics
 
 				Log::Print(
 					oss.str(),
-					"WINDOW_WINDOWS",
+					"MENU_BAR",
 					LogType::LOG_INFO);
 
 				e->function();
@@ -1858,7 +1938,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			oss.str(),
-			"WINDOW_WINDOWS",
+			"MENU_BAR",
 			LogType::LOG_ERROR,
 			2);
 	}
@@ -1868,14 +1948,14 @@ namespace KalaWindow::Graphics
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
 
-		if (!HasMenuBar(windowRef))
+		if (!IsInitialized(windowRef))
 		{
 			ostringstream oss{};
 			oss << "Failed to call menu bar event in window '" << windowRef->GetTitle() << "' because it has no menu bar!";
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1890,7 +1970,7 @@ namespace KalaWindow::Graphics
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1908,7 +1988,7 @@ namespace KalaWindow::Graphics
 
 				Log::Print(
 					oss.str(),
-					"WINDOW_WINDOWS",
+					"MENU_BAR",
 					LogType::LOG_INFO);
 
 				e->function();
@@ -1923,7 +2003,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			oss.str(),
-			"WINDOW_WINDOWS",
+			"MENU_BAR",
 			LogType::LOG_ERROR,
 			2);
 	}
@@ -1942,14 +2022,14 @@ namespace KalaWindow::Graphics
 		string parentName = parentRef;
 		if (parentName.empty()) parentName = "root";
 
-		if (!HasMenuBar(windowRef))
+		if (!IsInitialized(windowRef))
 		{
 			ostringstream oss{};
 			oss << "Failed to add " << typeName << " to window '" << windowRef->GetTitle() << "' because no menu bar was created!";
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1963,7 +2043,7 @@ namespace KalaWindow::Graphics
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1979,7 +2059,7 @@ namespace KalaWindow::Graphics
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1996,7 +2076,7 @@ namespace KalaWindow::Graphics
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -2018,7 +2098,7 @@ namespace KalaWindow::Graphics
 
 					Log::Print(
 						oss.str(),
-						"WINDOW_WINDOWS",
+						"MENU_BAR",
 						LogType::LOG_ERROR,
 						2);
 
@@ -2041,7 +2121,7 @@ namespace KalaWindow::Graphics
 
 				Log::Print(
 					oss.str(),
-					"WINDOW_WINDOWS",
+					"MENU_BAR",
 					LogType::LOG_ERROR,
 					2);
 
@@ -2057,7 +2137,7 @@ namespace KalaWindow::Graphics
 
 				Log::Print(
 					oss.str(),
-					"WINDOW_WINDOWS",
+					"MENU_BAR",
 					LogType::LOG_ERROR,
 					2);
 
@@ -2100,7 +2180,7 @@ namespace KalaWindow::Graphics
 						ToWide(labelRef).c_str());
 				}
 
-				if (isVerboseLoggingEnabled)
+				if (MenuBar::IsVerboseLoggingEnabled())
 				{
 					ostringstream oss{};
 					oss << "Added " << typeName << " '" << labelRef << "' with ID '" << to_string(newID)
@@ -2109,7 +2189,7 @@ namespace KalaWindow::Graphics
 
 					Log::Print(
 						oss.str(),
-						"WINDOW_WINDOWS",
+						"MENU_BAR",
 						LogType::LOG_SUCCESS);
 				}
 			};
@@ -2136,7 +2216,7 @@ namespace KalaWindow::Graphics
 
 				Log::Print(
 					oss.str(),
-					"WINDOW_WINDOWS",
+					"MENU_BAR",
 					LogType::LOG_ERROR,
 					2);
 
@@ -2161,7 +2241,7 @@ namespace KalaWindow::Graphics
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
 
-		if (!HasMenuBar(windowRef))
+		if (!IsInitialized(windowRef))
 		{
 			ostringstream oss{};
 			oss << "Failed to add separator to menu label '" << labelRef << "' in window '" << windowRef->GetTitle()
@@ -2169,7 +2249,7 @@ namespace KalaWindow::Graphics
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"MENU_BAR",
 				LogType::LOG_ERROR,
 				2);
 
@@ -2205,7 +2285,7 @@ namespace KalaWindow::Graphics
 
 						Log::Print(
 							oss.str(),
-							"WINDOW_WINDOWS",
+							"MENU_BAR",
 							LogType::LOG_ERROR,
 							2);
 
@@ -2218,11 +2298,11 @@ namespace KalaWindow::Graphics
 						0,
 						nullptr);
 
-					if (isVerboseLoggingEnabled)
+					if (MenuBar::IsVerboseLoggingEnabled())
 					{
 						Log::Print(
 							"Placed separator to the end of parent label '" + parentRef + "' in window '" + windowRef->GetTitle() + "'!",
-							"WINDOW_WINDOWS",
+							"MENU_BAR",
 							LogType::LOG_SUCCESS);
 					}
 
@@ -2255,7 +2335,7 @@ namespace KalaWindow::Graphics
 
 						Log::Print(
 							oss.str(),
-							"WINDOW_WINDOWS",
+							"MENU_BAR",
 							LogType::LOG_ERROR,
 							2);
 
@@ -2283,11 +2363,11 @@ namespace KalaWindow::Graphics
 								0,
 								nullptr);
 
-							if (isVerboseLoggingEnabled)
+							if (MenuBar::IsVerboseLoggingEnabled())
 							{
 								Log::Print(
 									"Placed separator after label '" + labelRef + "' in window '" + windowRef->GetTitle() + "'!",
-									"WINDOW_WINDOWS",
+									"MENU_BAR",
 									LogType::LOG_SUCCESS);
 							}
 
@@ -2306,7 +2386,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			oss.str(),
-			"WINDOW_WINDOWS",
+			"MENU_BAR",
 			LogType::LOG_ERROR,
 			2);
 	}
@@ -2314,6 +2394,17 @@ namespace KalaWindow::Graphics
 	void MenuBar::DestroyMenuBar(Window* windowRef)
 	{
 		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
+
+		if (!IsInitialized(windowRef))
+		{
+			Log::Print(
+				"Cannot destroy menu bar for window '" + windowRef->GetTitle() + "' because it hasn't created one!",
+				"MENU_BAR",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
 
 		HMENU hMenu = GetMenu(window);
 
@@ -2329,7 +2420,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			oss.str(),
-			"WINDOW_WINDOWS",
+			"MENU_BAR",
 			LogType::LOG_SUCCESS);
 	}
 }

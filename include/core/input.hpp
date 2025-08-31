@@ -18,6 +18,7 @@ namespace KalaWindow::Core
 
 	using std::array;
 	using std::fill;
+	using std::prev;
 
 	enum class Key : uint32_t
 	{
@@ -141,6 +142,35 @@ namespace KalaWindow::Core
 		MouseButtonCount
 	};
 
+	struct InputCode
+	{
+		enum class Type : u8
+		{
+			Key,
+			Mouse
+		};
+
+		Type type{};
+		u32 code{}; //stores key or mouse button as u32
+
+		static constexpr InputCode FromKey(Key k)
+		{ 
+			return 
+			{ 
+				Type::Key, 
+				static_cast<u32>(k) 
+			}; 
+		}
+		static constexpr InputCode FromMouse(MouseButton k) 
+		{ 
+			return 
+			{ 
+				Type::Mouse, 
+				static_cast<u32>(k) 
+			}; 
+		}
+	};
+
 	class LIB_API Input
 	{
 	public:
@@ -198,6 +228,96 @@ namespace KalaWindow::Core
 			size_t index = static_cast<size_t>(button);
 
 			mouseDoubleClicked[index] = isDown;
+		}
+
+		//Detect if any combination of keys and mouse buttons are down
+		template<typename Range>
+		static bool IsComboDown(const Range& codes)
+		{
+			if (!isInitialized) return false;
+			if (codes.size() == 0) return false;
+
+			for (const auto& c : codes)
+			{
+				if ((c.type == InputCode::Type::Key
+					&& !IsKeyDown(static_cast<Key>(c.code)))
+					|| (c.type == InputCode::Type::Mouse
+					&& !IsMouseDown(static_cast<MouseButton>(c.code))))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		//Detect if any combination of keys and mouse buttons are pressed
+		template<typename Range>
+		static bool IsComboPressed(const Range& codes)
+		{
+			if (!isInitialized) return false;
+			if (codes.size() == 0) return false;
+
+			auto it = codes.begin();
+			auto last = prev(codes.end());
+
+			//all except last must be held
+			for (; it != last; ++it)
+			{
+				const auto& c = *it;
+				if ((c.type == InputCode::Type::Key
+					&& !IsKeyDown(static_cast<Key>(c.code)))
+					|| (c.type == InputCode::Type::Mouse
+					&& !IsMouseDown(static_cast<MouseButton>(c.code))))
+				{
+					return false;
+				}
+			}
+
+			//last must be pressed
+			const auto& c = *last;
+			if ((c.type == InputCode::Type::Key
+				&& !IsKeyPressed(static_cast<Key>(c.code)))
+				|| (c.type == InputCode::Type::Mouse
+				&& !IsMousePressed(static_cast<MouseButton>(c.code))))
+			{
+				return false;
+			}
+
+			return true;
+		}
+		//Detect if any combination of keys and mouse buttons are released
+		template<typename Range>
+		static bool IsComboReleased(const Range& codes)
+		{
+			if (!isInitialized) return false;
+			if (codes.size() == 0) return false;
+
+			auto it = codes.begin();
+			auto last = prev(codes.end());
+
+			//all except last must be held
+			for (; it != last; ++it)
+			{
+				const auto& c = *it;
+				if ((c.type == InputCode::Type::Key
+					&& !IsKeyDown(static_cast<Key>(c.code)))
+					|| (c.type == InputCode::Type::Mouse
+					&& !IsMouseDown(static_cast<MouseButton>(c.code))))
+				{
+					return false;
+				}
+			}
+
+			//last must be released
+			const auto& c = *last;
+			if ((c.type == InputCode::Type::Key
+				&& !IsKeyReleased(static_cast<Key>(c.code)))
+				|| (c.type == InputCode::Type::Mouse
+				&& !IsMouseReleased(static_cast<MouseButton>(c.code))))
+			{
+				return false;
+			}
+
+			return true;
 		}
 
 		//Is the key currently held down?

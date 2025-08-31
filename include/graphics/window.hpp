@@ -276,12 +276,14 @@ namespace KalaWindow::Graphics
 	public:
 		//Create a new window with an optional choice to attach a parent window.
 		//Assign a parent window to display this window as a child of that window.
+		//Set window state to your preferred version, like hidden at startup etc.
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
 		static Window* Initialize(
 			const string& title,
 			vec2 size,
 			Window* parentWindow = nullptr,
+			WindowState state = WindowState::WINDOW_NORMAL,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 		bool IsInitialized() const { return isInitialized; }
 
@@ -393,8 +395,10 @@ namespace KalaWindow::Graphics
 		bool IsMinimized() const;
 		//Returns false if this window is not rendered but also not minimized
 		bool IsVisible() const;
+
 		//Can assign the window state to one of the supported types
 		void SetWindowState(WindowState state) const;
+		WindowState GetWindowState() const;
 
 		//If true, then Windows stops this app from closing
 		//when shutting down or logging off to enable you to close your work
@@ -517,12 +521,18 @@ namespace KalaWindow::Graphics
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window
 		static void CreateMenuBar(Window* windowRef);
-		static bool HasMenuBar(Window* windowRef);
+		static bool IsInitialized(Window* windowRef);
+
+		//If true, then menu bar is shown
+		static void SetMenuBarState(
+			bool state,
+			Window* window);
+		static bool IsEnabled(Window* window);
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//branch and leaf creation will dump their logs into the console.
-		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static void SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
+		static bool IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
 
 		//Call a menu bar event function by menu label or its item label
 		static void CallMenuBarEvent(
@@ -554,6 +564,7 @@ namespace KalaWindow::Graphics
 		//Destroy the existing menu bar inside the window
 		static void DestroyMenuBar(Window* window);
 	private:
-		static inline bool isVerboseLoggingEnabled{};
+		static inline bool isEnabled{};
+		static inline bool isMenuBarVerboseLoggingEnabled{};
 	};
 }

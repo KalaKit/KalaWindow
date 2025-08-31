@@ -63,6 +63,82 @@ using std::function;
 
 using std::unordered_map;
 
+static const unordered_map<Key, string> KeyToStringMap = {
+    // Letters
+    { Key::A, "A" }, { Key::B, "B" }, { Key::C, "C" }, { Key::D, "D" },
+    { Key::E, "E" }, { Key::F, "F" }, { Key::G, "G" }, { Key::H, "H" },
+    { Key::I, "I" }, { Key::J, "J" }, { Key::K, "K" }, { Key::L, "L" },
+    { Key::M, "M" }, { Key::N, "N" }, { Key::O, "O" }, { Key::P, "P" },
+    { Key::Q, "Q" }, { Key::R, "R" }, { Key::S, "S" }, { Key::T, "T" },
+    { Key::U, "U" }, { Key::V, "V" }, { Key::W, "W" }, { Key::X, "X" },
+    { Key::Y, "Y" }, { Key::Z, "Z" },
+
+    // Numbers
+    { Key::Num0, "0" }, { Key::Num1, "1" }, { Key::Num2, "2" },
+    { Key::Num3, "3" }, { Key::Num4, "4" }, { Key::Num5, "5" },
+    { Key::Num6, "6" }, { Key::Num7, "7" }, { Key::Num8, "8" },
+    { Key::Num9, "9" },
+
+    // Function Keys
+    { Key::F1, "F1" }, { Key::F2, "F2" }, { Key::F3, "F3" }, { Key::F4, "F4" },
+    { Key::F5, "F5" }, { Key::F6, "F6" }, { Key::F7, "F7" }, { Key::F8, "F8" },
+    { Key::F9, "F9" }, { Key::F10, "F10" }, { Key::F11, "F11" }, { Key::F12, "F12" },
+    { Key::F13, "F13" }, { Key::F14, "F14" }, { Key::F15, "F15" }, { Key::F16, "F16" },
+    { Key::F17, "F17" }, { Key::F18, "F18" }, { Key::F19, "F19" }, { Key::F20, "F20" },
+    { Key::F21, "F21" }, { Key::F22, "F22" }, { Key::F23, "F23" }, { Key::F24, "F24" },
+
+    // Numpad
+    { Key::Numpad0, "Numpad0" }, { Key::Numpad1, "Numpad1" }, { Key::Numpad2, "Numpad2" },
+    { Key::Numpad3, "Numpad3" }, { Key::Numpad4, "Numpad4" }, { Key::Numpad5, "Numpad5" },
+    { Key::Numpad6, "Numpad6" }, { Key::Numpad7, "Numpad7" }, { Key::Numpad8, "Numpad8" },
+    { Key::Numpad9, "Numpad9" },
+    { Key::NumpadAdd, "NumpadAdd" }, { Key::NumpadSubtract, "NumpadSubtract" },
+    { Key::NumpadMultiply, "NumpadMultiply" }, { Key::NumpadDivide, "NumpadDivide" },
+    { Key::NumpadDecimal, "NumpadDecimal" }, { Key::NumLock, "NumLock" },
+
+    // Navigation
+    { Key::ArrowLeft, "ArrowLeft" }, { Key::ArrowRight, "ArrowRight" },
+    { Key::ArrowUp, "ArrowUp" }, { Key::ArrowDown, "ArrowDown" },
+    { Key::Home, "Home" }, { Key::End, "End" },
+    { Key::PageUp, "PageUp" }, { Key::PageDown, "PageDown" },
+    { Key::Insert, "Insert" }, { Key::Delete, "Delete" },
+
+    // Controls
+    { Key::Enter, "Enter" }, { Key::Escape, "Escape" },
+    { Key::Backspace, "Backspace" }, { Key::Tab, "Tab" },
+    { Key::CapsLock, "CapsLock" }, { Key::Space, "Space" },
+
+    // Modifiers
+    { Key::ShiftLeft, "ShiftLeft" }, { Key::ShiftRight, "ShiftRight" },
+    { Key::CtrlLeft, "CtrlLeft" }, { Key::CtrlRight, "CtrlRight" },
+    { Key::AltLeft, "AltLeft" }, { Key::AltRight, "AltRight" },
+    { Key::SuperLeft, "SuperLeft" }, { Key::SuperRight, "SuperRight" },
+
+    // System / Special
+    { Key::PrintScreen, "PrintScreen" }, { Key::ScrollLock, "ScrollLock" },
+    { Key::Pause, "Pause" }, { Key::Menu, "Menu" },
+
+    // Symbols / OEM
+    { Key::Minus, "Minus" }, { Key::Equal, "Equal" },
+    { Key::BracketLeft, "BracketLeft" }, { Key::BracketRight, "BracketRight" },
+    { Key::Backslash, "Backslash" }, { Key::Semicolon, "Semicolon" },
+    { Key::Apostrophe, "Apostrophe" }, { Key::Comma, "Comma" },
+    { Key::Period, "Period" }, { Key::Slash, "Slash" },
+    { Key::Tilde, "Tilde" }, { Key::Oem102, "Oem102" },
+
+    // Media & Browser
+    { Key::MediaPlayPause, "MediaPlayPause" },
+    { Key::MediaStop, "MediaStop" },
+    { Key::MediaNextTrack, "MediaNextTrack" },
+    { Key::MediaPrevTrack, "MediaPrevTrack" },
+    { Key::VolumeUp, "VolumeUp" }, { Key::VolumeDown, "VolumeDown" }, { Key::VolumeMute, "VolumeMute" },
+    { Key::LaunchMail, "LaunchMail" }, { Key::LaunchApp1, "LaunchApp1" }, { Key::LaunchApp2, "LaunchApp2" },
+    { Key::BrowserBack, "BrowserBack" }, { Key::BrowserForward, "BrowserForward" },
+    { Key::BrowserRefresh, "BrowserRefresh" }, { Key::BrowserStop, "BrowserStop" },
+    { Key::BrowserSearch, "BrowserSearch" }, { Key::BrowserFavorites, "BrowserFavorites" }, { Key::BrowserHome, "BrowserHome" }
+};
+
+
 static const unordered_map<WPARAM, Key> VKToKeyMap = {
 	// Letters
 	{ 'A', Key::A }, { 'B', Key::B }, { 'C', Key::C }, { 'D', Key::D },
@@ -209,16 +285,97 @@ static const std::unordered_map<WPARAM, ImGuiKey> VKToImGuiKeyMap = {
 	{ VK_PAUSE, ImGuiKey_Pause }, { VK_APPS, ImGuiKey_Menu },
 };
 
-static Key TranslateVirtualKey(WPARAM vk)
+static string TranslateVirtualKeyToString(WPARAM vk, LPARAM lParam)
 {
+	Key key = Key::Unknown;
+
+	switch (vk)
+	{
+	case VK_CONTROL:
+		key = (lParam & 0x01000000) ? Key::CtrlRight : Key::CtrlLeft;
+
+		break;
+
+	case VK_MENU: // Alt
+		key = (lParam & 0x01000000) ? Key::AltRight : Key::AltLeft;
+
+		break;
+
+	case VK_SHIFT:
+	{
+		//extract scancode
+		UINT scancode = (lParam >> 16) & 0xFF;
+
+		//map to left/right shift
+		UINT vk_lr = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
+		key = (vk_lr == VK_RSHIFT) ? Key::ShiftRight : Key::ShiftLeft;
+
+		break;
+	}
+
+	default:
+	{
+		auto it = VKToKeyMap.find(vk);
+		if (it != VKToKeyMap.end()) key = it->second;
+	}
+	break;
+	}
+
+	// convert to string if known
+	auto strIt = KeyToStringMap.find(key);
+	if (strIt != KeyToStringMap.end()) return strIt->second;
+
+	return "Unknown";
+}
+
+static Key TranslateVirtualKey(WPARAM vk, LPARAM lParam)
+{
+	switch (vk)
+	{
+	case VK_CONTROL:
+		return (lParam & 0x01000000) ? Key::CtrlRight : Key::CtrlLeft;
+	case VK_MENU: //alt
+		return (lParam & 0x01000000) ? Key::AltRight : Key::AltLeft;
+	case VK_SHIFT:
+	{
+		//extract scancode
+		UINT scancode = (lParam >> 16) & 0xFF;
+
+		//map to left/right shift
+		UINT vk_lr = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
+		return (vk_lr == VK_RSHIFT) ? Key::ShiftRight : Key::ShiftLeft;
+	}
+	}
+
+	//default lookup
+
 	auto it = VKToKeyMap.find(vk);
 	if (it != VKToKeyMap.end()) return it->second;
 
 	return Key::Unknown;
 }
 
-static ImGuiKey TranslateVirtualKeyToImGuiKey(WPARAM vk)
+static ImGuiKey TranslateVirtualKeyToImGuiKey(WPARAM vk, LPARAM lParam)
 {
+	switch (vk)
+	{
+	case VK_CONTROL:
+		return (lParam & 0x01000000) ? ImGuiKey_RightCtrl : ImGuiKey_LeftCtrl;
+	case VK_MENU: //alt
+		return (lParam & 0x01000000) ? ImGuiKey_RightAlt : ImGuiKey_LeftAlt;
+	case VK_SHIFT:
+	{
+		//extract scancode
+		UINT scancode = (lParam >> 16) & 0xFF;
+
+		//map to left/right shift
+		UINT vk_lr = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
+		return (vk_lr == VK_RSHIFT) ? ImGuiKey_RightShift : ImGuiKey_LeftShift;
+	}
+	}
+
+	//default lookup
+
 	auto it = VKToImGuiKeyMap.find(vk);
 	if (it != VKToImGuiKeyMap.end()) return it->second;
 
@@ -418,16 +575,29 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		// KEYBOARD INPUT
 		//
 
+	//typing text
+	case WM_UNICHAR:
+	case WM_CHAR:
+	{
+		if (DebugUI::IsInitialized()
+			&& io)
+		{
+			io->AddInputCharacter((u32)msg.wParam);
+		}
+
+		return true;
+	}
+
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 	{
-		Key key = TranslateVirtualKey(msg.wParam);
+		Key key = TranslateVirtualKey(msg.wParam, msg.lParam);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected keyboard key down: " + to_string(static_cast<int>(key)),
-				"MESSAGELOOP",
+				"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' down.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -437,7 +607,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			&& msg.wParam < 512
 			&& io)
 		{
-			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam);
+			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam, msg.lParam);
 			if (k != ImGuiKey_None)
 			{
 				io->AddKeyEvent(k, true);
@@ -456,13 +626,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
-		Key key = TranslateVirtualKey(msg.wParam);
+		Key key = TranslateVirtualKey(msg.wParam, msg.lParam);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected keyboard key up: " + to_string(static_cast<int>(key)),
-				"MESSAGELOOP",
+				"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' up.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -472,7 +642,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			&& msg.wParam < 512
 			&& io)
 		{
-			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam);
+			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam, msg.lParam);
 			if (k != ImGuiKey_None)
 			{
 				io->AddKeyEvent(k, false);
@@ -549,8 +719,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected left mouse key double click.",
-				"MESSAGELOOP",
+				"Detected left mouse key double click.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -563,8 +733,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected right mouse key double click.",
-				"MESSAGELOOP",
+				"Detected right mouse key double click.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -577,8 +747,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected middle mouse key double click.",
-				"MESSAGELOOP",
+				"Detected middle mouse key double click.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -594,8 +764,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			if (Input::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Windows detected x1 mouse key double click.",
-					"MESSAGELOOP",
+					"Detected x1 mouse key double click.",
+					"INPUT_WINDOWS",
 					LogType::LOG_INFO);
 			}
 		}
@@ -606,8 +776,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			if (Input::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Windows detected x2 mouse key double click.",
-					"MESSAGELOOP",
+					"Detected x2 mouse key double click.",
+					"INPUT_WINDOWS",
 					LogType::LOG_INFO);
 			}
 		}
@@ -627,8 +797,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected left mouse key down.",
-				"MESSAGELOOP",
+				"Detected left mouse key down.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -643,8 +813,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected left mouse key up.",
-				"MESSAGELOOP",
+				"Detected left mouse key up.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -660,8 +830,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected right mouse key down.",
-				"MESSAGELOOP",
+				"Detected right mouse key down.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -676,8 +846,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected right mouse key up.",
-				"MESSAGELOOP",
+				"Detected right mouse key up.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -693,8 +863,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected middle mouse key down.",
-				"MESSAGELOOP",
+				"Detected middle mouse key down.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -709,8 +879,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (Input::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Windows detected middle mouse key up.",
-				"MESSAGELOOP",
+				"Detected middle mouse key up.",
+				"INPUT_WINDOWS",
 				LogType::LOG_INFO);
 		}
 
@@ -729,8 +899,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			if (Input::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Windows detected x1 mouse key down.",
-					"MESSAGELOOP",
+					"Detected x1 mouse key down.",
+					"INPUT_WINDOWS",
 					LogType::LOG_INFO);
 			}
 		}
@@ -743,8 +913,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			if (Input::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Windows detected x2 mouse key down.",
-					"MESSAGELOOP",
+					"Detected x2 mouse key down.",
+					"INPUT_WINDOWS",
 					LogType::LOG_INFO);
 			}
 		}
@@ -762,8 +932,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			if (Input::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Windows detected x1 mouse key up.",
-					"MESSAGELOOP",
+					"Detected x1 mouse key up.",
+					"INPUT_WINDOWS",
 					LogType::LOG_INFO);
 			}
 		}
@@ -776,8 +946,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			if (Input::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Windows detected x2 mouse key up.",
-					"MESSAGELOOP",
+					"Detected x2 mouse key up.",
+					"INPUT_WINDOWS",
 					LogType::LOG_INFO);
 			}
 		}
