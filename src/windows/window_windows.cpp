@@ -26,6 +26,7 @@
 #include <winrt/windows.data.xml.dom.h>
 #pragma comment(lib, "runtimeobject.lib")
 #include <wrl/client.h>
+#include <shellapi.h>
 
 #include <algorithm>
 #include <functional>
@@ -348,6 +349,9 @@ namespace KalaWindow::Graphics
 
 		//set window state to user preferred version
 		newWindow->SetWindowState(state);
+
+		//allow files to be dragged to this window
+		DragAcceptFiles(newHwnd, TRUE);
 
 		createdWindows[newID] = move(newWindow);
 		runtimeWindows.push_back(windowPtr);
