@@ -1165,13 +1165,11 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (OpenGL_Renderer::IsInitialized())
 		{
-			vec2 framebufferSize = window->GetFramebufferSize();
-
 			glViewport(
 				0,
 				0,
-				framebufferSize.x,
-				framebufferSize.y);
+				(GLsizei)width,
+				(GLsizei)height);
 		}
 
 		window->TriggerResize();
