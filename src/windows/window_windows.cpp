@@ -709,6 +709,114 @@ namespace KalaWindow::Graphics
 		}
 	}
 
+	void Window::SetClipboardText(const string& text)
+	{
+		if (!OpenClipboard(nullptr))
+		{
+			Log::Print(
+				"Failed to open clipboard when writing text to clipboard!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		EmptyClipboard();
+
+		wstring wstr = ToWide(text);
+
+		HGLOBAL hGlob = GlobalAlloc(
+			GMEM_MOVEABLE,
+			(wstr.size() + 1) * sizeof(wchar_t));
+
+		if (hGlob == NULL)
+		{
+			Log::Print(
+				"Failed to construct hGlobal when saving text to clipboard!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			CloseClipboard();
+			return;
+		}
+
+		memcpy(GlobalLock(hGlob),
+			wstr.c_str(),
+			(wstr.size() + 1) * sizeof(wchar_t));
+		GlobalUnlock(hGlob);
+
+		SetClipboardData(CF_UNICODETEXT, hGlob);
+
+		CloseClipboard();
+
+		if (Window::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Saved string to clipboard: '" + text + "'!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
+	}
+	string Window::GetClipboardText()
+	{
+		if (!OpenClipboard(nullptr))
+		{
+			Log::Print(
+				"Failed to open clipboard when reading text from clipboard!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			return{};
+		}
+
+		HANDLE hData = GetClipboardData(CF_UNICODETEXT);
+		if (hData == nullptr)
+		{
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Clipboard had no data to read from.",
+					"WINDOW_WINDOWS",
+					LogType::LOG_WARNING);
+			}
+
+			CloseClipboard();
+			return{};
+		}
+
+		wchar_t* wstr = static_cast<wchar_t*>(GlobalLock(hData));
+		if (wstr == nullptr)
+		{
+			Log::Print(
+				"Failed to lock memory handle to get text from clipboard!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			CloseClipboard();
+			return{};
+		}
+
+		wstring wideVal(wstr);
+		string shortVal = ToShort(wideVal);
+
+		GlobalUnlock(hData);
+		CloseClipboard();
+
+		if (Window::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Read string to clipboard: '" + shortVal + "'!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
+
+		return shortVal;
+	}
+
 	void Window::SetTitle(const string& newTitle) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);

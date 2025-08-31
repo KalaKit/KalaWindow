@@ -6,6 +6,7 @@
 #ifdef _WIN32
 
 #include <Windows.h>
+#include <shellapi.h> 
 #include <string>
 #include <vector>
 #include <sstream>
@@ -60,6 +61,7 @@ using std::ostringstream;
 using std::hex;
 using std::dec;
 using std::function;
+using std::wstring;
 
 using std::unordered_map;
 
@@ -389,6 +391,9 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 	LPARAM lParam);
 static bool ProcessMessage(const MSG& msg, Window* window);
 
+static wstring ToWide(const string& str);
+static string ToShort(const wstring& str);
+
 namespace KalaWindow::Core
 {
 	void* MessageLoop::WindowProcCallback()
@@ -571,9 +576,9 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	switch (msg.message)
 	{
-		//
-		// KEYBOARD INPUT
-		//
+	//
+	// KEYBOARD INPUT
+	//
 
 	//typing text
 	case WM_UNICHAR:
@@ -1034,6 +1039,66 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 
 	//
+	// FILE WAS DRAGGED ONTO WINDOW
+	//
+
+	case WM_DROPFILES:
+	{
+		HDROP hDrop = (HDROP)msg.wParam;
+
+		//count how many files were dropped
+		UINT fileCount = DragQueryFileW(
+			hDrop,
+			0xFFFFFFFF,
+			nullptr,
+			0);
+
+		vector<string> droppedFiles{};
+		droppedFiles.reserve(fileCount);
+
+		for (UINT i = 0; i < fileCount; i++)
+		{
+			//get length of this file path
+			UINT length = DragQueryFileW(
+				hDrop, 
+				i, 
+				nullptr, 
+				0);
+
+			if (length == 0) continue;
+
+			wstring wstr(length + 1, L'\0');
+			DragQueryFileW(
+				hDrop,
+				i,
+				&wstr[0],
+				length + 1);
+
+			wstr.resize(length);
+
+			string path = ToShort(wstr);
+			droppedFiles.push_back(path);
+		}
+
+		DragFinish(hDrop);
+
+		if (Window::IsVerboseLoggingEnabled())
+		{
+			for (const auto& file : droppedFiles)
+			{
+				Log::Print(
+					"File '" + file + "' was dragged to window '" + window->GetTitle() + "'",
+					"WINDOW_WINDOWS",
+					LogType::LOG_INFO);
+			}
+		}
+
+		window->SetLastDraggedFiles(move(droppedFiles));
+
+		return true;
+	}
+
+	//
 	// WINDOW FOCUS
 	//
 
@@ -1299,6 +1364,59 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 
 	return false;
+}
+
+wstring ToWide(const string& str)
+{
+	if (str.empty()) return wstring();
+
+	int size_needed = MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		-1,
+		nullptr,
+		0);
+
+	wstring wstr(size_needed - 1, 0);
+
+	MultiByteToWideChar(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		-1,
+		wstr.data(),
+		size_needed);
+
+	return wstr;
+}
+string ToShort(const wstring& str)
+{
+	if (str.empty()) return{};
+
+	int size_needed = WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		-1,
+		nullptr,
+		0,
+		nullptr,
+		nullptr);
+
+	string result(size_needed - 1, 0);
+
+	WideCharToMultiByte(
+		CP_UTF8,
+		0,
+		str.c_str(),
+		-1,
+		result.data(),
+		size_needed,
+		nullptr,
+		nullptr);
+
+	return result;
 }
 
 #endif //_WIN32

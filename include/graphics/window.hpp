@@ -16,8 +16,6 @@
 
 namespace KalaWindow::Graphics
 {
-	//TODO: SEPARATE REUSABLE OPENGL/VULKAN STUFF FROM PER-WINDOW TO GLOBAL
-
 	using std::string;
 	using std::function;
 	using std::vector;
@@ -161,6 +159,17 @@ namespace KalaWindow::Graphics
 		static void CreateNotification(
 			const string& title,
 			const string& nessage);
+
+		//Places selected string to clipboard
+		static void SetClipboardText(const string& text);
+		//Returns string from clipboard
+		static string GetClipboardText();
+
+		//Assigns paths of last dragged files. This is called through WM_DROPFILES.
+		void SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
+		const vector<string>& GetLastDraggedFiles() const { return lastDraggedFiles; };
+		//Clears paths to last file paths that were dragged onto window
+		void ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
 		//Draws the window, handles messages for active frame
 		void Update();
@@ -343,6 +352,8 @@ namespace KalaWindow::Graphics
 		u32 ID{};            //The ID of this window
 		u32 iconID{};        //The ID of this window icon
 		u32 overlayIconID{}; //The ID of the toolbar overlay icon
+
+		vector<string> lastDraggedFiles{}; //The path of the last files which were dragged onto this window
 
 		//platform-specific variables
 
