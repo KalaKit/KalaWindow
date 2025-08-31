@@ -669,6 +669,14 @@ namespace KalaWindow::Graphics
 			CoTaskMemFree(pszFilePath);
 
 			result.push_back(path);
+
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Selected file '" + path + "'",
+					"WINDOW_WINDOWS",
+					LogType::LOG_SUCCESS);
+			}
 		}
 
 		return result;
