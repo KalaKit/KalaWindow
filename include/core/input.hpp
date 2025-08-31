@@ -130,6 +130,8 @@ namespace KalaWindow::Core
 
 	enum class MouseButton : uint32_t
 	{
+		Unknown = 0,
+
 		Left,
 		Right,
 		Middle,
