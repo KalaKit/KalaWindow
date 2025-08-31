@@ -32,7 +32,6 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGLData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
-//using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
 using KalaWindow::Graphics::Texture;
 using KalaWindow::Core::GlobalHandle;
 
@@ -237,14 +236,6 @@ namespace KalaWindow::Core
 			wglDeleteContext(hglrc);
 			GlobalHandle::SetOpenGLWinContext(NULL);
 		}
-
-		/*
-		createdVulkanTextures.clear();
-		if (Renderer_Vulkan::IsVulkanInitialized())
-		{
-			Renderer_Vulkan::Shutdown();
-		}
-		*/
 
 		createdWindows.clear();
 

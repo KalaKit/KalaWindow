@@ -25,6 +25,7 @@
 #include <winrt/windows.ui.notifications.h>
 #include <winrt/windows.data.xml.dom.h>
 #pragma comment(lib, "runtimeobject.lib")
+#include <wrl/client.h>
 
 #include <algorithm>
 #include <functional>
@@ -88,6 +89,7 @@ using std::string_view;
 using std::vector;
 using namespace winrt::Windows::UI::Notifications;
 using namespace winrt::Windows::Data::Xml::Dom;
+using Microsoft::WRL::ComPtr;
 
 static bool checkedOSVersion = false;
 constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
@@ -97,6 +99,33 @@ constexpr u8 MAX_LABEL_LENGTH = 64;
 static string APP_ID{};
 
 static bool enabledBeginPeriod = false;
+
+struct ComGuard
+{
+	HRESULT hr{};
+
+	ComGuard()
+	{
+		hr = CoInitializeEx(
+			nullptr,
+			COINIT_APARTMENTTHREADED
+			| COINIT_DISABLE_OLE1DDE);
+	};
+
+	~ComGuard()
+	{
+		if (SUCCEEDED(hr)
+			|| hr == S_FALSE)
+		{
+			CoUninitialize();
+		}
+	}
+
+	bool IsValid() const
+	{
+		return hr == S_OK || hr == S_FALSE;
+	}
+};
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
@@ -108,6 +137,8 @@ static HICON overlayIcon{};
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
+
+static string HResultToString(HRESULT hr);
 
 namespace KalaWindow::Graphics
 {
@@ -329,6 +360,347 @@ namespace KalaWindow::Graphics
 		return windowPtr;
 	}
 
+	vector<string> Window::GetFile(
+		FileType type,
+		bool multiple)
+	{
+		ComGuard guard{};
+		if (!guard.IsValid())
+		{
+			Log::Print(
+				"Failed to initialize COM! Reason: " + HResultToString(guard.hr),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			return {};
+		}
+
+		ComPtr<IFileOpenDialog> fileOpen{};
+
+		HRESULT hr = CoCreateInstance(
+			CLSID_FileOpenDialog,
+			nullptr,
+			CLSCTX_ALL,
+			IID_PPV_ARGS(&fileOpen));
+
+		if (FAILED(hr))
+		{
+			Log::Print(
+				"Failed to create file open dialog! Reason: " + HResultToString(hr),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			return{};
+		}
+
+		DWORD options{};
+		fileOpen->GetOptions(&options);
+
+		auto PrintError = [](
+			const string& typeVal,
+			HRESULT hr)
+			{
+				Log::Print(
+					"Failed to set file filter to '" + typeVal + "' for dialog! Reason: " + HResultToString(hr),
+					"WINDOW_WINDOWS",
+					LogType::LOG_ERROR,
+					2);
+			};
+
+		switch (type)
+		{
+		default:
+		case FileType::FILE_ANY:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"All Files (*.*)", L"*.*" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_ANY", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_FOLDER:
+		{
+			options |= FOS_PICKFOLDERS;
+
+			break;
+		}
+		case FileType::FILE_EXE:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Executable Files (*.exe)", L"*.exe" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_EXE", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_TEXT:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Text Files (*.txt;*.ini;*.rtf;*.md)", L"*.txt;*.ini;*.rtf;*.md" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_TEXT", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_STRUCTURED:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Structured Files (*.json;*.xml;*.yaml;*.yml;*.toml)", L"*.json;*.xml;*.yaml;*.yml;*.toml" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_STRUCTURED", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_SCRIPT:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Script Files (*.lua;*.cpp;*.hpp;*.c;*.h)", L"*.lua;*.cpp;*.hpp;*.c;*.h" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_SCRIPT", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_ARCHIVE:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Archive Files (*.zip;*.7z;*.rar;*.kdat)", L"*.zip;*.7z;*.rar;*.kdat" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_ARCHIVE", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_VIDEO:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Video Files (*.mp4;*.mov;*.mkv)", L"*.mp4;*.mov;*.mkv" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_VIDEO", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_AUDIO:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Audio Files (*.wav;*.flac;*.mp3;*.ogg)", L"*.wav;*.flac;*.mp3;*.ogg" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_AUDIO", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_MODEL:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Model Files (*.fbx;*.obj;*.gltf)", L"*.fbx;*.obj;*.gltf" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_MODEL", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_SHADER:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Shader Files (*.vert;*.frag;*.geom)", L"*.vert;*.frag;*.geom" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_SHADER", hr);
+				return{};
+			}
+
+			break;
+		}
+		case FileType::FILE_TEXTURE:
+		{
+			COMDLG_FILTERSPEC filter[] =
+			{
+				{ L"Image Files (*.png;*.jpg;*.jpeg)", L"*.png;*.jpg;*.jpeg" }
+			};
+
+			hr = fileOpen->SetFileTypes(1, filter);
+			if (FAILED(hr))
+			{
+				PrintError("FILE_TEXTURE", hr);
+				return{};
+			}
+
+			break;
+		}
+		}
+
+		if (multiple) options |= FOS_ALLOWMULTISELECT;
+		fileOpen->SetOptions(options);
+
+		hr = fileOpen->Show(nullptr);
+
+		//user cancelled, return cleanly
+		if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) return{};
+		//other failed reason
+		if (FAILED(hr))
+		{
+			Log::Print(
+				"Failed to show file open dialog! Reason: " + HResultToString(hr),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			return{};
+		}
+
+		ComPtr<IShellItemArray> items{};
+		hr = fileOpen->GetResults(&items);
+
+		if (FAILED(hr))
+		{
+			Log::Print(
+				"Failed to retrieve selected items from file dialog! Reason: " + HResultToString(hr),
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			return{};
+		}
+
+		DWORD count{};
+		items->GetCount(&count);
+		vector<string> result{};
+
+		for (DWORD i = 0; i < count; ++i)
+		{
+			ComPtr<IShellItem> item{};
+			hr = items->GetItemAt(i, &item);
+
+			if (FAILED(hr))
+			{
+				Log::Print(
+					"Failed to get item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
+					"WINDOW_WINDOWS",
+					LogType::LOG_ERROR,
+					2);
+
+				continue;
+			}
+
+			PWSTR pszFilePath{};
+			hr = item->GetDisplayName(
+				SIGDN_FILESYSPATH,
+				&pszFilePath);
+
+			if (FAILED(hr))
+			{
+				Log::Print(
+					"Failed to get file path for item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
+					"WINDOW_WINDOWS",
+					LogType::LOG_ERROR,
+					2);
+
+				continue;
+			}
+
+			string path = ToShort(pszFilePath);
+			CoTaskMemFree(pszFilePath);
+
+			result.push_back(path);
+		}
+
+		return result;
+	}
+
+	void Window::CreateNotification(
+		const string& title,
+		const string& nessage)
+	{
+		wstring titleW = ToWide(title);
+		wstring messageW = ToWide(nessage);
+
+		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
+			ToastTemplateType::ToastImageAndText02);
+
+		auto textNodes = toastXml.GetElementsByTagName(L"text");
+		textNodes.Item(0).AppendChild(toastXml.CreateTextNode(titleW));
+		textNodes.Item(1).AppendChild(toastXml.CreateTextNode(messageW));
+
+		ToastNotification toast(toastXml);
+
+		ToastNotificationManager::CreateToastNotifier(ToWide(APP_ID)).Show(toast);
+
+		if (Window::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Created notification '" + title + "'!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
+	}
+
 	void Window::SetTitle(const string& newTitle) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
@@ -541,7 +913,7 @@ namespace KalaWindow::Graphics
 			CLSCTX_INPROC_SERVER,
 			IID_PPV_ARGS(&taskbar)));
 
-		if (!SUCCEEDED(hr)
+		if (FAILED(hr)
 			|| !taskbar)
 		{
 			Log::Print(
@@ -555,7 +927,7 @@ namespace KalaWindow::Graphics
 
 		hr = taskbar->HrInit();
 
-		if (!SUCCEEDED(hr))
+		if (FAILED(hr))
 		{
 			Log::Print(
 				"Failed to init ITaskbarList3 to set overlay icon!",
@@ -590,7 +962,7 @@ namespace KalaWindow::Graphics
 			CLSCTX_INPROC_SERVER,
 			IID_PPV_ARGS(&taskbar)));
 
-		if (!SUCCEEDED(hr))
+		if (FAILED(hr))
 		{
 			Log::Print(
 				"Failed to get ITaskbarList3 to clear overlay icon!",
@@ -1528,33 +1900,6 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::CreateNotification(
-		const string& title,
-		const string& nessage) const
-	{
-		wstring titleW = ToWide(title);
-		wstring messageW = ToWide(nessage);
-
-		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
-			ToastTemplateType::ToastImageAndText02);
-
-		auto textNodes = toastXml.GetElementsByTagName(L"text");
-		textNodes.Item(0).AppendChild(toastXml.CreateTextNode(titleW));
-		textNodes.Item(1).AppendChild(toastXml.CreateTextNode(messageW));
-
-		ToastNotification toast(toastXml);
-
-		ToastNotificationManager::CreateToastNotifier(ToWide(APP_ID)).Show(toast);
-
-		if (Window::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Created notification from window '" + GetTitle() + "'",
-				"WINDOW_WINDOWS",
-				LogType::LOG_SUCCESS);
-		}
-	}
-
 	void Window::FlashTaskbar(
 		TaskbarFlashMode mode,
 		u32 count) const
@@ -1644,7 +1989,7 @@ namespace KalaWindow::Graphics
 			CLSCTX_INPROC_SERVER,
 			IID_PPV_ARGS(&taskbar));
 
-		if (!SUCCEEDED(hr)
+		if (FAILED(hr)
 			|| !taskbar)
 		{
 			Log::Print(
@@ -1870,142 +2215,6 @@ namespace KalaWindow::Graphics
 			attached != NULL
 			&& window->GetWindowData().hMenu != NULL
 			&& isEnabled;
-	}
-
-	void MenuBar::CallMenuBarEvent(
-		Window* windowRef,
-		const string& parentRef,
-		const string& labelRef)
-	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
-
-		if (!IsInitialized(windowRef))
-		{
-			ostringstream oss{};
-			oss << "Failed to call menu bar event in window '" << windowRef->GetTitle() << "' because it has no menu bar!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (runtimeMenuBarEvents.empty())
-		{
-			ostringstream oss{};
-			oss << "Failed to call menu bar event by label '" << labelRef << "' or parent label '" << parentRef
-				<< "' in window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		for (const auto& e : runtimeMenuBarEvents)
-		{
-			const string& parent = e->parentLabel;
-			const string& label = e->label;
-			if ((parent.empty()
-				&& label == e->label)
-				|| (parent == parentRef
-				&& label == labelRef))
-			{
-				ostringstream oss{};
-				oss << "Ran function attached to label '" << label
-					<< "' in window '" << windowRef->GetTitle() << "'!";
-
-				Log::Print(
-					oss.str(),
-					"MENU_BAR",
-					LogType::LOG_INFO);
-
-				e->function();
-
-				return;
-			}
-		}
-
-		ostringstream oss{};
-		oss << "Failed to call menu bar event by label '" << labelRef
-			<< "' in window '" + windowRef->GetTitle() + "' because the event does not exist!";
-
-		Log::Print(
-			oss.str(),
-			"MENU_BAR",
-			LogType::LOG_ERROR,
-			2);
-	}
-	void MenuBar::CallMenuBarEvent(
-		Window* windowRef,
-		u32 IDRef)
-	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
-
-		if (!IsInitialized(windowRef))
-		{
-			ostringstream oss{};
-			oss << "Failed to call menu bar event in window '" << windowRef->GetTitle() << "' because it has no menu bar!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (runtimeMenuBarEvents.empty())
-		{
-			ostringstream oss{};
-			oss << "Failed to call menu bar event by ID '" << to_string(IDRef) 
-				<< "' in window '" << windowRef->GetTitle() << "' because there are no menu bar events!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		for (const auto& e : runtimeMenuBarEvents)
-		{
-			u32 ID = e->labelID;
-			if (ID == IDRef)
-			{
-				ostringstream oss{};
-				oss << "Ran function attached to ID '" << to_string(IDRef)
-					<< "' in window '" << windowRef->GetTitle() << "'!";
-
-				Log::Print(
-					oss.str(),
-					"MENU_BAR",
-					LogType::LOG_INFO);
-
-				e->function();
-
-				return;
-			}
-		}
-
-		ostringstream oss{};
-		oss << "Failed to call menu bar event by ID '" << to_string(IDRef)
-			<< "' in window '" + windowRef->GetTitle() + "' because the event does not exist!";
-
-		Log::Print(
-			oss.str(),
-			"MENU_BAR",
-			LogType::LOG_ERROR,
-			2);
 	}
 
 	void MenuBar::CreateLabel(
@@ -2531,47 +2740,89 @@ wstring ToWide(const string& str)
 		CP_UTF8,
 		0,
 		str.c_str(),
-		(int)str.size(),
+		-1,
 		nullptr,
 		0);
 
-	wstring wstr(size_needed, 0);
+	wstring wstr(size_needed - 1, 0);
 
 	MultiByteToWideChar(
 		CP_UTF8,
 		0,
 		str.c_str(),
-		(int)str.size(),
-		&wstr[0],
+		-1,
+		wstr.data(),
 		size_needed);
 
 	return wstr;
 }
 string ToShort(const wstring& str)
 {
-	if (str.empty()) return string();
+	if (str.empty()) return{};
 
 	int size_needed = WideCharToMultiByte(
 		CP_UTF8,
 		0,
 		str.c_str(),
-		(int)str.size(),
+		-1,
 		nullptr,
 		0,
 		nullptr,
 		nullptr);
 
-	string result(size_needed, 0);
+	string result(size_needed - 1, 0);
 
 	WideCharToMultiByte(
 		CP_UTF8,
 		0,
 		str.c_str(),
-		(int)str.size(),
-		&result[0],
+		-1,
+		result.data(),
 		size_needed,
 		nullptr,
 		nullptr);
+
+	return result;
+}
+
+string HResultToString(HRESULT hr)
+{
+	LPWSTR buffer{};
+
+	DWORD len = FormatMessageW(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER
+		| FORMAT_MESSAGE_FROM_SYSTEM
+		| FORMAT_MESSAGE_IGNORE_INSERTS,
+		nullptr,
+		static_cast<DWORD>(hr),
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		reinterpret_cast<LPWSTR>(&buffer),
+		0,
+		nullptr);
+
+	string result{};
+
+	char tmp[32]{};
+	sprintf_s(tmp, "0x%08X", static_cast<unsigned int>(hr));
+	string fmtHex = tmp;
+
+	if (len
+		&& buffer)
+	{
+		result = ToShort(buffer);
+		LocalFree(buffer);
+
+		//trim trailing CR/LF
+		if (!result.empty()
+			&& (result.back() == '\n'
+			|| result.back() == '\r'))
+		{
+			result.erase(result.find_last_not_of("\r\n") + 1);
+		}
+
+		result += " (" + fmtHex + ")";
+	}
+	else result = fmtHex;
 
 	return result;
 }

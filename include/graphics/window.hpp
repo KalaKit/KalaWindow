@@ -48,17 +48,20 @@ namespace KalaWindow::Graphics
 		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it
 	};
 
-	//TODO: ADD FILE EXPLORER FUNCTION
-
 	enum class FileType
 	{
-		FILE_ANY,         //Can select any file type
-		FILE_ANY_VIDEO,   //Can select any common video file type
-		FILE_ANY_AUDIO,   //Can select any common audio file type
-		FILE_ANY_MODEL,   //Can select any common model file type (for graphics software and game development)
-		FILE_ANY_TEXTURE, //Can select any common texture file type (for graphics software and game development)
-		FILE_EXE,         //Can select any executable
-		FILE_FOLDER       //Can select any folder
+		FILE_ANY,        //Can select any files
+		FILE_FOLDER,     //Can select any folders
+		FILE_EXE,        //Can select any executables
+		FILE_TEXT,       //Can select .txt, .ini, .rtf and .md files
+		FILE_STRUCTURED, //Can select .json, .xml, .yaml, .yml and .toml files
+		FILE_SCRIPT,     //Can select .lua, .cpp, .hpp, .c and .h files
+		FILE_ARCHIVE,    //Can select .zip, .7z, .rar and .kdat files
+		FILE_VIDEO,      //Can select .mp4, .mov and .mkv files
+		FILE_AUDIO,      //Can select .wav, .flac, .mp3 and .ogg files
+		FILE_MODEL,      //Can select .fbx, .obj and .gltf files
+		FILE_SHADER,     //Can select .vert, .frag and .geom files
+		FILE_TEXTURE     //Can select .png, .jpg and .jpeg files
 	};
 
 #ifdef _WIN32
@@ -127,150 +130,6 @@ namespace KalaWindow::Graphics
 		unsigned int lastProgramID{};
 	};
 
-	/*
-	//Vulkan data reusable across this window context
-	struct VulkanData_Core
-	{
-		//Core surface & swapchain handles
-
-		uintptr_t surface{};   //VkSurfaceKHR
-		uintptr_t swapchain{}; //VkSwapchainKHR
-
-		//Swapchain image metadata
-
-		uint32_t swapchainImageFormat{};  //VkFormat
-		uint32_t swapchainExtentWidth{};  //VkExtent2D
-		uint32_t swapchainExtentHeight{}; //VkExtent2D
-
-		//Swapchain image views and framebuffers
-
-		vector<uintptr_t>  images{};       //VkImage
-		vector<uintptr_t>  imageViews{};   //VkImageView
-		vector<uintptr_t>  framebuffers{}; //VkFramebuffer
-
-		//Synchronization primitives, one set per swapchain image
-
-		vector<uintptr_t>  imageAvailableSemaphores{}; //VkSemaphore
-		vector<uintptr_t>  renderFinishedSemaphores{}; //VkSemaphore
-		vector<uintptr_t>  inFlightFences{};           //VkFence
-		vector<uintptr_t>  imagesInFlight{};           //VkFence
-
-		//Command buffers & pool used for recording into those framebuffers
-
-		vector<uintptr_t>  commandBuffers{}; //VkCommandBuffer
-		uintptr_t commandPool{};             //VkCommandPool
-
-		//The render pass used when drawing into these framebuffers
-
-		uintptr_t renderPass{}; //VkRenderPass
-	};
-
-	//VkOffset2D, contents of offset in VD_VS_VkRect2D
-	struct VD_VS_VkOffset2D
-	{
-		//Horizontal pixel offset, usually 0
-		int32_t x = 0;
-		//Vertical pixel offset, usually 0
-		int32_t y = 0;
-	};
-	//VkExtent2D, contents of extent in VD_VS_VkRect2D
-	struct VD_VS_VkExtent2D
-	{
-		//Width in pixels, usually matches framebuffer width
-		uint32_t width{};
-		//Height in pixels, usually matches framebuffer height
-		uint32_t height{};
-	};
-	//VkViewport, contents of pViewports in VulkanData_ViewportState
-	struct VD_VS_Viewports
-	{
-		//x-coordinate of top-left corner, usually 0.0f
-		float x = 0.0f;
-		//y-coordinate of top-left corner, usually 0.0f
-		float y = 0.0f;
-		//Viewport width, usually matches swapchain width
-		float width{};
-		//Viewport height, usually matches swapchain height
-		float height{};
-		//Minimum depth value, usually 0.0f
-		float minDepth = 0.0f;
-		//Maximum depth value, usually 1.0f
-		float maxDepth = 0.0f;
-	};
-	//VkRect2D, contents of pScissors in VulkanData_ViewportState
-	struct VD_VS_Scissors
-	{
-		//VkOffset2D, struct of VD_VS_VkOffset2D
-		VD_VS_VkOffset2D offset{};
-		//VkExtent2D, struct of VD_VS_VkRect2D
-		VD_VS_VkExtent2D extent{};
-	};
-	//VkPipelineViewportStateCreateInfo
-	struct VulkanData_ViewportState
-	{
-		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO
-		uint32_t sType = 20;
-		//Extension-specific structure, usually NULL
-		uintptr_t pNext = NULL;
-		//VkPipelineViewportStateCreateFlags, usually 0
-		uint32_t flags = 0;
-		//Number of viewports, usually 1
-		uint32_t viewportCount = 1;
-		//VkViewport, struct to VD_VS_Viewports
-		VD_VS_Viewports pViewports{};
-		//Number of scissors, usually 1
-		uint32_t scissorCount = 1;
-		//VkRect2D, struct to VD_VS_Scissors
-		VD_VS_Scissors pScissors{};
-	};
-
-	//VkPipelineDynamicStateCreateInfo
-	struct VulkanData_DynamicState
-	{
-		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO
-		uint32_t sType = 27;
-		//Extension-specific structure, usually NULL
-		uintptr_t pNext = NULL;
-		//VkPipelineDynamicStateCreateFlags, usually 0
-		uint32_t flags = 0;
-		//count of pDynamicStates, usually 2 (viewport and scissor)
-		uint32_t dynamicStateCount = 0;
-		//vector of VkDynamicState enums
-		vector<uint32_t> pDynamicStates{};
-	};
-
-	//VkPipelineMultisampleStateCreateInfo
-	struct VulkanData_MultisampleState
-	{
-		//VkStructureType, always VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO
-		uint32_t sType = 24;
-		//Extension-specific structure, usually NULL
-		uintptr_t pNext = NULL;
-		//VkPipelineMultisampleStateCreateFlags, usually 0
-		uint32_t flags = 0;
-		//VkSampleCountFlagBits enum, usually VK_SAMPLE_COUNT_1_BIT
-		uint32_t rasterizationSamples = 0x00000001;
-		//VkBool32, usually VK_FALSE
-		uint32_t sampleShadingEnable = 0U;
-		//Minimum sample shading value (clamped to [0,1]), usually 0.0f
-		float minSampleShading = 0.0f;
-		//VkSampleMask, usually 0
-		uint32_t pSampleMask = 0;
-		//VkBool32, usually VK_FALSE
-		uint32_t alphaToCoverageEnable = 0U;
-		//VkBool32. usually VK_FALSE
-		uint32_t alphaToOneEnable = 0U;
-	};
-
-	//Window-level shader data passed by the user in its original format
-	struct VulkanShaderWindowData
-	{
-		VulkanData_ViewportState viewportState{};
-		VulkanData_DynamicState dynamicState{};
-		VulkanData_MultisampleState multisampleState{};
-	};
-	*/
-
 	class LIB_API Window
 	{
 	public:
@@ -291,6 +150,17 @@ namespace KalaWindow::Graphics
 		//window position, size updates will dump their logs into the console.
 		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
+		//Uses the file explorer to get a path to selected files by chosen type.
+		//Set multiple to true to allow returning more than one item
+		static vector<string> GetFile(
+			FileType type,
+			bool multiple = false);
+
+		//Create a notification that shows up on your screen
+		static void CreateNotification(
+			const string& title,
+			const string& nessage);
 
 		//Draws the window, handles messages for active frame
 		void Update();
@@ -405,11 +275,6 @@ namespace KalaWindow::Graphics
 		void SetShutdownBlockState(bool state);
 		bool IShutdownBlockEnabled() const { return shutdownBlockState; }
 
-		//Create a notification that shows up on your screen
-		void CreateNotification(
-			const string& title,
-			const string& nessage) const;
-
 		//Flash the taskbar button to attract user attention
 		void FlashTaskbar(
 			TaskbarFlashMode mode,
@@ -453,20 +318,6 @@ namespace KalaWindow::Graphics
 		}
 		const OpenGLData& GetOpenGLData() const { return openglData; }
 
-		/*
-		void SetVulkanCoreData(const VulkanData_Core& newVulkanCoreData)
-		{
-			vulkanCoreData = newVulkanCoreData;
-		}
-		const VulkanData_Core& GetVulkanCoreData() const { return vulkanCoreData; }
-
-		void SetVulkanShaderWindowStruct(const VulkanShaderWindowData& newVulkanShaderWindowData)
-		{
-			vulkanShaderWindowData = newVulkanShaderWindowData;
-		}
-		const VulkanShaderWindowData& GetVulkanShaderWindowStruct() const { return vulkanShaderWindowData; }
-		*/
-
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 	private:
@@ -505,9 +356,6 @@ namespace KalaWindow::Graphics
 
 		OpenGLData openglData{}; //The OpenGL data of this window
 
-		//VulkanData_Core vulkanCoreData{}; //The core Vulkan data of this window
-		//VulkanShaderWindowData vulkanShaderWindowData{}; //Window-level VkPipeline data
-
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
 	};
@@ -533,16 +381,6 @@ namespace KalaWindow::Graphics
 		//branch and leaf creation will dump their logs into the console.
 		static void SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
 		static bool IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
-
-		//Call a menu bar event function by menu label or its item label
-		static void CallMenuBarEvent(
-			Window* windowRef,
-			const string& parentRef,
-			const string& labelRef = "");
-		//Call a menu bar event function by ID
-		static void CallMenuBarEvent(
-			Window* windowRef,
-			u32 ID);
 
 		//Create a menu bar label. Leaves must have functions, branches can't.
 		//Leave parentRef empty if you want this label to be root
