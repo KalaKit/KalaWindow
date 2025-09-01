@@ -101,33 +101,6 @@ static string APP_ID{};
 
 static bool enabledBeginPeriod = false;
 
-struct ComGuard
-{
-	HRESULT hr{};
-
-	ComGuard()
-	{
-		hr = CoInitializeEx(
-			nullptr,
-			COINIT_APARTMENTTHREADED
-			| COINIT_DISABLE_OLE1DDE);
-	};
-
-	~ComGuard()
-	{
-		if (SUCCEEDED(hr)
-			|| hr == S_FALSE)
-		{
-			CoUninitialize();
-		}
-	}
-
-	bool IsValid() const
-	{
-		return hr == S_OK || hr == S_FALSE;
-	}
-};
-
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
 
@@ -368,11 +341,16 @@ namespace KalaWindow::Graphics
 		FileType type,
 		bool multiple)
 	{
-		ComGuard guard{};
-		if (!guard.IsValid())
+		HRESULT hr = CoInitializeEx(
+			nullptr,
+			COINIT_APARTMENTTHREADED
+			| COINIT_DISABLE_OLE1DDE);
+
+		if (FAILED(hr)
+			&& hr != RPC_E_CHANGED_MODE)
 		{
 			Log::Print(
-				"Failed to initialize COM! Reason: " + HResultToString(guard.hr),
+				"Failed to initialize COM! Reason: " + HResultToString(hr),
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
@@ -380,9 +358,31 @@ namespace KalaWindow::Graphics
 			return {};
 		}
 
+		bool canUninit = (hr == S_OK);
+
+		auto UnInit = [canUninit]()
+			{
+				if (canUninit)
+				{
+					Log::Print(
+						"Calling CoUninitialize",
+						"WINDOW_WINDOWS",
+						LogType::LOG_DEBUG);
+
+					CoUninitialize();
+				}
+				else
+				{
+					Log::Print(
+						"Skipping CoUninitialize()",
+						"WINDOW_WINDOWS",
+						LogType::LOG_DEBUG);
+				}
+			};
+
 		ComPtr<IFileOpenDialog> fileOpen{};
 
-		HRESULT hr = CoCreateInstance(
+		hr = CoCreateInstance(
 			CLSID_FileOpenDialog,
 			nullptr,
 			CLSCTX_ALL,
@@ -396,6 +396,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			UnInit();
 			return{};
 		}
 
@@ -427,6 +428,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_ANY", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -449,6 +452,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_EXE", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -465,6 +470,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_TEXT", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -481,6 +488,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_STRUCTURED", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -497,6 +506,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_SCRIPT", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -513,6 +524,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_ARCHIVE", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -529,6 +542,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_VIDEO", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -545,6 +560,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_AUDIO", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -561,6 +578,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_MODEL", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -577,6 +596,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_SHADER", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -593,6 +614,8 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				PrintError("FILE_TEXTURE", hr);
+
+				UnInit();
 				return{};
 			}
 
@@ -606,7 +629,19 @@ namespace KalaWindow::Graphics
 		hr = fileOpen->Show(nullptr);
 
 		//user cancelled, return cleanly
-		if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED)) return{};
+		if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
+		{
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"User cancelled file selection.",
+					"WINDOW_WINDOWS",
+					LogType::LOG_INFO);
+			}
+
+			UnInit();
+			return{};
+		}
 		//other failed reason
 		if (FAILED(hr))
 		{
@@ -616,6 +651,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			UnInit();
 			return{};
 		}
 
@@ -630,6 +666,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			UnInit();
 			return{};
 		}
 
@@ -669,10 +706,12 @@ namespace KalaWindow::Graphics
 				continue;
 			}
 
-			string path = ToShort(pszFilePath);
-			CoTaskMemFree(pszFilePath);
-
+			wstring wide(pszFilePath);
+			string path = ToShort(wide);
+			
 			result.push_back(path);
+
+			CoTaskMemFree(pszFilePath);
 
 			if (Window::IsVerboseLoggingEnabled())
 			{
@@ -683,6 +722,7 @@ namespace KalaWindow::Graphics
 			}
 		}
 
+		UnInit();
 		return result;
 	}
 
@@ -746,7 +786,21 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		memcpy(GlobalLock(hGlob),
+		void* pMem = GlobalLock(hGlob);
+		if (!pMem)
+		{
+			Log::Print(
+				"Failed to lock hGlobal when saving text to clipboard!",
+				"WINDOW_WINDOWS",
+				LogType::LOG_ERROR,
+				2);
+
+			GlobalFree(hGlob);
+			CloseClipboard();
+			return;
+		}
+
+		memcpy(pMem,
 			wstr.c_str(),
 			(wstr.size() + 1) * sizeof(wchar_t));
 		GlobalUnlock(hGlob);
@@ -773,6 +827,21 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			return{};
+		}
+
+		if (!IsClipboardFormatAvailable(CF_UNICODETEXT))
+		{
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Clipboard does not contain Unicode text.",
+					"WINDOW_WINDOWS",
+					LogType::LOG_WARNING,
+					2);
+			}
+
+			CloseClipboard();
 			return{};
 		}
 
