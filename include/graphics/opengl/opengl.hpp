@@ -26,33 +26,33 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		MSAA_1X = 1, //Same as multisampling disabled
 		MSAA_2X = 2,
-		MSAA_4X = 4,
+		MSAA_4X = 4, //default
 		MSAA_8X = 8,
 		MSAA_16X = 16
 	};
 	enum SRGBMode
 	{
-		SRGB_ENABLED, //Enable color-correct gamma rendering
+		SRGB_ENABLED, //Enable color-correct gamma rendering (default)
 		SRGB_DISABLED //Colors will look washed out when using linear-space lighting
 	};
 	enum ColorBufferBits
 	{
 		COLOR_RGBA8,   //8 bits per channel (default)
-		COLOR_RGB10_A2 //10 bits color, 2 bits alpha (fake HDR)
+		COLOR_RGB10_A2 //10 bits color, 2 bits alpha (better color precision, sacrifices alpha quality)
 	};
 	enum DepthBufferBits
 	{
-		DEPTH_16, //16-bit integer depth (low precision, sames VRAM)
+		DEPTH_16, //16-bit integer depth (saves VRAM, bad precision over large distances)
 		DEPTH_24  //24-bit integer point depth (default)
 	};
 	enum StencilBufferBits
 	{
-		STENCIL_NONE, //Disables stencil completely
-		STENCIL_8     //8-bit stencil (default)
+		STENCIL_NONE, //Disables stencil completely (default)
+		STENCIL_8     //8-bit stencil
 	};
 	enum AlphaChannel
 	{
-		ALPHA_NONE, //Disables alpha channel completely
+		ALPHA_NONE, //Disables alpha channel completely, cannot have transparent meshes or textures
 		ALPHA_8     //8-bit alpha channel (default)
 	};
 
@@ -90,10 +90,10 @@ namespace KalaWindow::Graphics::OpenGL
 		static bool Initialize(
 			Window* targetWindow,
 			MultiSampling msaa = MultiSampling::MSAA_4X,
-			SRGBMode srgb = SRGBMode::SRGB_DISABLED,
+			SRGBMode srgb = SRGBMode::SRGB_ENABLED,
 			ColorBufferBits cBits = ColorBufferBits::COLOR_RGBA8,
 			DepthBufferBits dBits = DepthBufferBits::DEPTH_24,
-			StencilBufferBits sBits = StencilBufferBits::STENCIL_8,
+			StencilBufferBits sBits = StencilBufferBits::STENCIL_NONE,
 			AlphaChannel aChannel = AlphaChannel::ALPHA_8);
 
 		//Allows to set vsync true or false.
