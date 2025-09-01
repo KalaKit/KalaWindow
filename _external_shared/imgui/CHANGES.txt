@@ -2,9 +2,13 @@ created custom file: imgui_export.hpp
 
 file:
 	imgui_stdlib.cpp
-	imgui_stdlib.cpp
+	imgui_stdlib.h
 	moved from: misc/cpp/
 	moved to: misc/
+	
+file: imgui_stdlib.cpp
+	old: #include "imgui.h"
+	new: #include "../imgui.h"
 
 file: imgui.h
 	added: #include "imgui_export.hpp"
