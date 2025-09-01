@@ -13,13 +13,19 @@
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
 	//Creates an OpenGL rendering context with specific attributes (version, profile)
-	extern PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
+	extern PFNWGLCREATECONTEXTATTRIBSARBPROC   wglCreateContextAttribsARB;
 
 	//Chooses a pixel format that matches specified attributes
-	extern PFNWGLCHOOSEPIXELFORMATARBPROC    wglChoosePixelFormatARB;
+	extern PFNWGLCHOOSEPIXELFORMATARBPROC      wglChoosePixelFormatARB;
 
 	//Sets the swap interval for buffer swaps (vsync control)
-	extern PFNWGLSWAPINTERVALEXTPROC         wglSwapIntervalEXT;
+	extern PFNWGLSWAPINTERVALEXTPROC           wglSwapIntervalEXT;
+
+	//Retrieves float pixel format attributes for a given pixel format
+	extern PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfvARB;
+
+	//Retrieves integer pixel format attributes for a given pixel format
+	extern PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribivARB;
 
 	class LIB_API OpenGL_Functions_Windows
 	{

@@ -146,9 +146,12 @@ CoreGLFunction functions[] =
     { "glClearColor",  reinterpret_cast<void**>(&glClearColor) },
     { "glDisable",     reinterpret_cast<void**>(&glDisable) },
     { "glGetError",    reinterpret_cast<void**>(&glGetError) },
+    { "glGetBooleanv", reinterpret_cast<void**>(&glGetBooleanv) },
     { "glGetIntegerv", reinterpret_cast<void**>(&glGetIntegerv) },
+    { "glGetFloatv",   reinterpret_cast<void**>(&glGetFloatv) },
+    { "glGetDoublev",  reinterpret_cast<void**>(&glGetDoublev) },
     { "glGetString",   reinterpret_cast<void**>(&glGetString) },
-    { "glGetStringi",   reinterpret_cast<void**>(&glGetStringi) },
+    { "glGetStringi",  reinterpret_cast<void**>(&glGetStringi) },
     { "glViewport",    reinterpret_cast<void**>(&glViewport) }
 };
 
@@ -329,7 +332,10 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLCLEARCOLORPROC   glClearColor   = nullptr;
     PFNGLDISABLEPROC      glDisable      = nullptr;
     PFNGLGETERRORPROC     glGetError     = nullptr;
+    PFNGLGETBOOLEANVPROC  glGetBooleanv  = nullptr;
     PFNGLGETINTEGERVPROC  glGetIntegerv  = nullptr;
+    PFNGLGETFLOATVPROC    glGetFloatv = nullptr;
+    PFNGLGETDOUBLEVPROC   glGetDoublev = nullptr;
     PFNGLGETSTRINGPROC    glGetString    = nullptr;
     PFNGLGETSTRINGIPROC   glGetStringi   = nullptr;
     PFNGLVIEWPORTPROC     glViewport     = nullptr;

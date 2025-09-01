@@ -292,8 +292,17 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// Returns the last error flag raised
 	LIB_API extern PFNGLGETERRORPROC glGetError;
 
+	// Retrieves bool-valued parameters
+	LIB_API extern PFNGLGETBOOLEANVPROC glGetBooleanv;
+
 	// Retrieves integer-valued parameters
 	LIB_API extern PFNGLGETINTEGERVPROC glGetIntegerv;
+
+	// Retrieves float-valued parameters
+	LIB_API extern PFNGLGETFLOATVPROC glGetFloatv;
+
+	// Retrieves double-valued parameters
+	LIB_API extern PFNGLGETDOUBLEVPROC glGetDoublev;
 
 	// Returns a string describing the current GL connection
 	LIB_API extern PFNGLGETSTRINGPROC glGetString;

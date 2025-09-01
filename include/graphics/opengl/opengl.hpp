@@ -21,6 +21,41 @@ namespace KalaWindow::Graphics::OpenGL
 		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
 	};
 
+	//Hardware accelerated antialiasing
+	enum MultiSampling
+	{
+		MSAA_1X = 1, //Same as multisampling disabled
+		MSAA_2X = 2,
+		MSAA_4X = 4,
+		MSAA_8X = 8,
+		MSAA_16X = 16
+	};
+	enum SRGBMode
+	{
+		SRGB_ENABLED, //Enable color-correct gamma rendering
+		SRGB_DISABLED //Colors will look washed out when using linear-space lighting
+	};
+	enum ColorBufferBits
+	{
+		COLOR_RGBA8,   //8 bits per channel (default)
+		COLOR_RGB10_A2 //10 bits color, 2 bits alpha (fake HDR)
+	};
+	enum DepthBufferBits
+	{
+		DEPTH_16, //16-bit integer depth (low precision, sames VRAM)
+		DEPTH_24  //24-bit integer point depth (default)
+	};
+	enum StencilBufferBits
+	{
+		STENCIL_NONE, //Disables stencil completely
+		STENCIL_8     //8-bit stencil (default)
+	};
+	enum AlphaChannel
+	{
+		ALPHA_NONE, //Disables alpha channel completely
+		ALPHA_8     //8-bit alpha channel (default)
+	};
+
 	class LIB_API OpenGL_Renderer
 	{
 	public:
@@ -52,7 +87,14 @@ namespace KalaWindow::Graphics::OpenGL
 		static bool GlobalInitialize();
 
 		//Per-window OpenGL context init
-		static bool Initialize(Window* targetWindow);
+		static bool Initialize(
+			Window* targetWindow,
+			MultiSampling msaa = MultiSampling::MSAA_4X,
+			SRGBMode srgb = SRGBMode::SRGB_DISABLED,
+			ColorBufferBits cBits = ColorBufferBits::COLOR_RGBA8,
+			DepthBufferBits dBits = DepthBufferBits::DEPTH_24,
+			StencilBufferBits sBits = StencilBufferBits::STENCIL_8,
+			AlphaChannel aChannel = AlphaChannel::ALPHA_8);
 
 		//Allows to set vsync true or false.
 		static void SetVSyncState(VSyncState vsyncState);

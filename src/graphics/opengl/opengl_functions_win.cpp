@@ -38,16 +38,20 @@ static inline vector<WinGLFunction> loadedWinFunctions{};
 
 WinGLFunction functions[] =
 {
-    { "wglCreateContextAttribsARB", reinterpret_cast<void**>(&wglCreateContextAttribsARB) },
-    { "wglChoosePixelFormatARB",    reinterpret_cast<void**>(&wglChoosePixelFormatARB) },
-    { "wglSwapIntervalEXT",         reinterpret_cast<void**>(&wglSwapIntervalEXT) }
+    { "wglCreateContextAttribsARB",   reinterpret_cast<void**>(&wglCreateContextAttribsARB) },
+    { "wglChoosePixelFormatARB",      reinterpret_cast<void**>(&wglChoosePixelFormatARB) },
+    { "wglSwapIntervalEXT",           reinterpret_cast<void**>(&wglSwapIntervalEXT) },
+    { "wglGetPixelFormatAttribfvARB", reinterpret_cast<void**>(&wglGetPixelFormatAttribfvARB) },
+    { "wglGetPixelFormatAttribivARB", reinterpret_cast<void**>(&wglGetPixelFormatAttribivARB) }
 };
 
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
-	PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = nullptr;
-	PFNWGLCHOOSEPIXELFORMATARBPROC    wglChoosePixelFormatARB    = nullptr;
-	PFNWGLSWAPINTERVALEXTPROC         wglSwapIntervalEXT         = nullptr;
+	PFNWGLCREATECONTEXTATTRIBSARBPROC   wglCreateContextAttribsARB = nullptr;
+	PFNWGLCHOOSEPIXELFORMATARBPROC      wglChoosePixelFormatARB    = nullptr;
+	PFNWGLSWAPINTERVALEXTPROC           wglSwapIntervalEXT         = nullptr;
+    PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfvARB = nullptr;
+    PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribivARB = nullptr;
 
 	void OpenGL_Functions_Windows::LoadAllWinFunctions()
 	{
