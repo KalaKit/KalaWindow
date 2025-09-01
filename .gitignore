@@ -1,3 +1,7 @@
 /debug
 /release
 /.vs
+*.pdb 
+
+//ignore vulkan shader spv files
+*.spv
