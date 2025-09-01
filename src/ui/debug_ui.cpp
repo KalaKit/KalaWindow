@@ -333,5 +333,10 @@ namespace KalaWindow::UI
 		//TODO: DEFINE
 #endif
 		ImGui::DestroyContext();
+
+		Log::Print(
+			"Shut down ImGui!",
+			"DEBUG_UI",
+			LogType::LOG_SUCCESS);
 	}
 }
