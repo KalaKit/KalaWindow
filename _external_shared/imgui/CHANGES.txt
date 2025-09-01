@@ -1,5 +1,11 @@
 created custom file: imgui_export.hpp
 
+file:
+	imgui_stdlib.cpp
+	imgui_stdlib.cpp
+	moved from: misc/cpp/
+	moved to: misc/
+
 file: imgui.h
 	added: #include "imgui_export.hpp"
 
