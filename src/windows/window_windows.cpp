@@ -2838,7 +2838,7 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 	string sizeX = to_string(static_cast<int>(size.x));
 	string sizeY = to_string(static_cast<int>(size.y));
 
-	if (texture->GetSize().x < 16)
+	if (texture->GetSize().x < 32)
 	{
 		Log::Print(
 			"Icon '" + name + "' size '" + sizeX + "x" + sizeY + "' is too small! Consider uploading a bigger icon.",

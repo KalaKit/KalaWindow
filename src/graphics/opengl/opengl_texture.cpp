@@ -78,14 +78,41 @@ static OpenGL_Texture* fallbackTexture{};
 
 constexpr string_view fallbackTextureName = "FallbackTexture";
 
-//1x1 magenta texture fallback if a user-imported texture fails to load
-constexpr array<u8, 16> fallbackPixels = 
+//The actual fallback texture raw pixel data
+static array<u8, 32 * 32 * 4> fallbackPixels{};
+
+//Helper that builds the full checkerboard
+static const array<u8, 32 * 32 * 4>& GetFallbackPixels()
 {
-	255, 0, 255, 255,   //magenta
-	  0, 0,   0, 255,   //black
-	  0, 0,   0, 255,   //black
-	255, 0, 255, 255    //magenta
-};
+	if (fallbackPixels[0] != 0) return fallbackPixels;
+
+	constexpr int texSize = 32;
+	constexpr int blockSize = 8;
+
+	for (int y = 0; y < texSize; ++y)
+	{
+		for (int x = 0; x < texSize; ++x)
+		{
+			//determine block color - alternate every 8 pixels
+			bool isMagenta = (((x / blockSize) + (y / blockSize)) % 2 == 0);
+
+			int idx = (y * texSize + x) * 4;
+			using index_t = array<u8, 32 * 32 * 4>::size_type;
+
+			auto Push = [idx](u8 adder, u8 result)
+				{
+					fallbackPixels[static_cast<index_t>(idx) + adder] = result;
+				};
+
+			Push(0, isMagenta ? 255 : 0); //R
+			Push(1, 0);                   //G
+			Push(2, isMagenta ? 255 : 0); //B
+			Push(3, 255);                 //A
+		}
+	}
+
+	return fallbackPixels;
+}
 
 static OpenGL_Texture* InitTexture(
 	const string& name,
@@ -690,8 +717,8 @@ namespace KalaWindow::Graphics::OpenGL
 			GL_TEXTURE_2D,
 			0,
 			GL_RGBA8,
-			2,
-			2,
+			32,
+			32,
 			0,
 			GL_RGBA,
 			GL_UNSIGNED_BYTE,
@@ -704,9 +731,10 @@ namespace KalaWindow::Graphics::OpenGL
 
 		newTexture->name = string(fallbackTextureName);
 		newTexture->ID = newID;
-		newTexture->size = { 2.0f, 2.0f };
+		newTexture->size = { 32.0f, 32.0f };
 		newTexture->openGLID = newTextureID;
-		newTexture->pixels.assign(fallbackPixels.begin(), fallbackPixels.end());
+		const auto& pixelData = GetFallbackPixels();
+		newTexture->pixels.assign(pixelData.begin(), pixelData.end());
 		newTexture->type = TextureType::Type_2D;
 		newTexture->format = TextureFormat::Format_RGBA8;
 
