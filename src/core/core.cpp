@@ -19,6 +19,7 @@
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/vulkan/vulkan.hpp"
 #include "graphics/texture.hpp"
+#include "ui/debug_ui.hpp"
 #include "core/containers.hpp"
 #include "core/audio.hpp"
 #include "core/global_handles.hpp"
@@ -33,6 +34,7 @@ using KalaWindow::Graphics::OpenGLData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::Texture;
+using KalaWindow::UI::DebugUI;
 using KalaWindow::Core::GlobalHandle;
 
 using std::abort;
@@ -228,6 +230,8 @@ namespace KalaWindow::Core
 
 		createdOpenGLTextures.clear();
 		createdOpenGLShaders.clear();
+
+		if (DebugUI::IsInitialized()) DebugUI::Shutdown();
 
 		HGLRC hglrc = ToVar<HGLRC>(GlobalHandle::GetOpenGLWinContext());
 		if (hglrc != NULL)
