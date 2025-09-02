@@ -27,12 +27,6 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 		const char* message,
 		const void* userParam);
 
-	//Set OpenGL debug callback
-	LIB_API extern PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
-
-	//Enable an OpenGL capability
-	LIB_API extern PFNGLENABLEPROC glEnable;
-
 	//Get OpenGL debug messages and send them to the logger
 	LIB_API extern void DebugCallback(
 		GLenum source,
@@ -42,6 +36,12 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 		GLsizei length,
 		const char* message,
 		const void* userParam);
+
+	//Set OpenGL debug callback
+	LIB_API extern PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
+
+	// Returns the last error flag raised
+	LIB_API extern PFNGLGETERRORPROC glGetError;
 
 	//
 	// GEOMETRY
@@ -286,11 +286,14 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// Specifies the clear color for color buffers
 	LIB_API extern PFNGLCLEARCOLORPROC glClearColor;
 
+	// Enables a specific OpenGL capability
+	LIB_API extern PFNGLENABLEPROC glEnable;
+
 	// Disables a specific OpenGL capability
 	LIB_API extern PFNGLDISABLEPROC glDisable;
 
-	// Returns the last error flag raised
-	LIB_API extern PFNGLGETERRORPROC glGetError;
+	// Tells OpenGL how to decide which polygons are front-facing
+	LIB_API extern PFNGLFRONTFACEPROC glFrontFace;
 
 	// Retrieves bool-valued parameters
 	LIB_API extern PFNGLGETBOOLEANVPROC glGetBooleanv;

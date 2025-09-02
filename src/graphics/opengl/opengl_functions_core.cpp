@@ -41,7 +41,7 @@ CoreGLFunction functions[] =
     //
 
     { "glDebugMessageCallback", reinterpret_cast<void**>(&glDebugMessageCallback) },
-    { "glEnable",               reinterpret_cast<void**>(&glEnable) },
+    { "glGetError",             reinterpret_cast<void**>(&glGetError) },
 
     //
     // GEOMETRY
@@ -144,8 +144,9 @@ CoreGLFunction functions[] =
 
     { "glClear",       reinterpret_cast<void**>(&glClear) },
     { "glClearColor",  reinterpret_cast<void**>(&glClearColor) },
+    { "glEnable",      reinterpret_cast<void**>(&glEnable) },
     { "glDisable",     reinterpret_cast<void**>(&glDisable) },
-    { "glGetError",    reinterpret_cast<void**>(&glGetError) },
+    { "glFrontFace",   reinterpret_cast<void**>(&glFrontFace) },
     { "glGetBooleanv", reinterpret_cast<void**>(&glGetBooleanv) },
     { "glGetIntegerv", reinterpret_cast<void**>(&glGetIntegerv) },
     { "glGetFloatv",   reinterpret_cast<void**>(&glGetFloatv) },
@@ -164,7 +165,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     //
 
     PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback = nullptr;
-    PFNGLENABLEPROC               glEnable               = nullptr;
+    PFNGLGETERRORPROC             glGetError             = nullptr;
 
     void LIB_APIENTRY DebugCallback(
         GLenum source,
@@ -331,11 +332,12 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLCLEARPROC        glClear        = nullptr;
     PFNGLCLEARCOLORPROC   glClearColor   = nullptr;
     PFNGLDISABLEPROC      glDisable      = nullptr;
-    PFNGLGETERRORPROC     glGetError     = nullptr;
+    PFNGLENABLEPROC       glEnable       = nullptr;
+    PFNGLFRONTFACEPROC    glFrontFace    = nullptr;
     PFNGLGETBOOLEANVPROC  glGetBooleanv  = nullptr;
     PFNGLGETINTEGERVPROC  glGetIntegerv  = nullptr;
-    PFNGLGETFLOATVPROC    glGetFloatv = nullptr;
-    PFNGLGETDOUBLEVPROC   glGetDoublev = nullptr;
+    PFNGLGETFLOATVPROC    glGetFloatv    = nullptr;
+    PFNGLGETDOUBLEVPROC   glGetDoublev   = nullptr;
     PFNGLGETSTRINGPROC    glGetString    = nullptr;
     PFNGLGETSTRINGIPROC   glGetStringi   = nullptr;
     PFNGLVIEWPORTPROC     glViewport     = nullptr;
