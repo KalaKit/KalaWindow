@@ -93,3 +93,21 @@ Comprehensive logger header for any logging needs - sends cout, cerr and clog me
 | DATE_TEXT_MDY     | Month Day, Year                   | December 31, 2025   |
 | DATE_FILENAME_DMY | Filename-safe (day-month-year)    | 31-12-2025          |
 | DATE_FILENAME_MDY | Filename-safe (month-day-year)    | 12-31-2025          |
+
+# c_helpers.hpp
+
+A collection of blazing fast char handling helpers and some general nice to have C helpers for C++ developers
+
+Provides:
+- Checks
+  - kh_empty, kh_len, kh_starts, kh_ends
+- Comparisons
+  - kh_equals, kh_iequals, kh_nequals, kh_niequals
+- Allocation and ownership
+  - kh_set, kh_dup, kh_free
+- Copy & append
+  - kh_copy, kh_cat
+- Search & cleanup
+  - kh_fchar, kh_lchar, kh_trim, kh_remove, kh_aremove
+- Modification
+  - kh_tolower, kh_toupper, kh_replace, kh_areplace
