@@ -44,10 +44,10 @@ namespace KalaWindow::Graphics::OpenGL
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//vertex, fragment and geometry shader compilation messages will dump their logs into the console.
-		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
-		static string GetShaderTypeName(ShaderType type)
+		static inline string GetShaderTypeName(ShaderType type)
 		{
 			switch (type)
 			{

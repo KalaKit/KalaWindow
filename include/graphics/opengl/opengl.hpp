@@ -63,14 +63,14 @@ namespace KalaWindow::Graphics::OpenGL
 		// GENERAL OPENGL
 		//
 
-		static bool IsInitialized() { return isInitialized; }
+		static inline bool IsInitialized() { return isInitialized; }
 
-		static VSyncState GetVSyncState() { return vsyncState; }
+		static inline VSyncState GetVSyncState() { return vsyncState; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//GL notifications will dump their logs into the console.
-		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);

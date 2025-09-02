@@ -182,10 +182,10 @@ namespace KalaWindow::Core
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//key, mouse update messages will dump their logs into the console.
-		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
-		static void SetKeyState(Key key, bool isDown)
+		static inline void SetKeyState(Key key, bool isDown)
 		{
 			if (!isInitialized) return;
 
@@ -204,7 +204,7 @@ namespace KalaWindow::Core
 
 			keyDown[index] = isDown;
 		}
-		static void SetMouseButtonState(MouseButton button, bool isDown)
+		static inline void SetMouseButtonState(MouseButton button, bool isDown)
 		{
 			if (!isInitialized) return;
 
@@ -223,7 +223,7 @@ namespace KalaWindow::Core
 
 			mouseDown[index] = isDown;
 		}
-		static void SetMouseButtonDoubleClickState(MouseButton button, bool isDown)
+		static inline void SetMouseButtonDoubleClickState(MouseButton button, bool isDown)
 		{
 			if (!isInitialized) return;
 
@@ -234,7 +234,7 @@ namespace KalaWindow::Core
 
 		//Detect if any combination of keys and mouse buttons are down
 		template<typename Range>
-		static bool IsComboDown(const Range& codes)
+		static inline bool IsComboDown(const Range& codes)
 		{
 			if (!isInitialized) return false;
 			if (codes.size() == 0) return false;
@@ -253,7 +253,7 @@ namespace KalaWindow::Core
 		}
 		//Detect if any combination of keys and mouse buttons are pressed
 		template<typename Range>
-		static bool IsComboPressed(const Range& codes)
+		static inline bool IsComboPressed(const Range& codes)
 		{
 			if (!isInitialized) return false;
 			if (codes.size() == 0) return false;
@@ -288,7 +288,7 @@ namespace KalaWindow::Core
 		}
 		//Detect if any combination of keys and mouse buttons are released
 		template<typename Range>
-		static bool IsComboReleased(const Range& codes)
+		static inline bool IsComboReleased(const Range& codes)
 		{
 			if (!isInitialized) return false;
 			if (codes.size() == 0) return false;
@@ -323,7 +323,7 @@ namespace KalaWindow::Core
 		}
 
 		//Is the key currently held down?
-		static bool IsKeyDown(Key key)
+		static inline bool IsKeyDown(Key key)
 		{ 
 			if (!isInitialized) return false;
 
@@ -332,7 +332,7 @@ namespace KalaWindow::Core
 			return keyDown[index];
 		}
 		//Was the key just pressed this frame?
-		static bool IsKeyPressed(Key key)
+		static inline bool IsKeyPressed(Key key)
 		{
 			if (!isInitialized) return false;
 
@@ -341,7 +341,7 @@ namespace KalaWindow::Core
 			return keyPressed[index];
 		}
 		//Was the key just released this frame?
-		static bool IsKeyReleased(Key key)
+		static inline bool IsKeyReleased(Key key)
 		{
 			if (!isInitialized) return false;
 
@@ -351,7 +351,7 @@ namespace KalaWindow::Core
 		}
 
 		//Is the mouse button currently held down?
-		static bool IsMouseDown(MouseButton button)
+		static inline bool IsMouseDown(MouseButton button)
 		{
 			if (!isInitialized) return false;
 
@@ -360,7 +360,7 @@ namespace KalaWindow::Core
 			return mouseDown[index];
 		}
 		//Was the mouse button just pressed this frame?
-		static bool IsMousePressed(MouseButton button)
+		static inline bool IsMousePressed(MouseButton button)
 		{
 			if (!isInitialized) return false;
 
@@ -369,7 +369,7 @@ namespace KalaWindow::Core
 			return mousePressed[index];
 		}
 		//Was the mouse button just released this frame?
-		static bool IsMouseReleased(MouseButton button)
+		static inline bool IsMouseReleased(MouseButton button)
 		{
 			if (!isInitialized) return false;
 
@@ -379,7 +379,7 @@ namespace KalaWindow::Core
 		}
 
 		//Was the mouse button just double-clicked this frame?
-		static bool IsMouseButtonDoubleClicked(MouseButton button)
+		static inline bool IsMouseButtonDoubleClicked(MouseButton button)
 		{
 			if (!isInitialized) return false;
 
@@ -389,17 +389,17 @@ namespace KalaWindow::Core
 		}
 
 		//Get current mouse position in window coordinates
-		static vec2 GetMousePosition()
+		static inline vec2 GetMousePosition()
 		{
 			return mousePos;
 		}
-		static void SetMousePosition(vec2 newMousePos)
+		static inline void SetMousePosition(vec2 newMousePos)
 		{
 			mousePos = newMousePos;
 		}
 
 		//Get mouse delta movement since last frame
-		static vec2 GetMouseDelta()
+		static inline vec2 GetMouseDelta()
 		{
 			vec2 currMouseDelta = mouseDelta;
 
@@ -408,13 +408,13 @@ namespace KalaWindow::Core
 
 			return currMouseDelta;
 		}
-		static void SetMouseDelta(vec2 newMouseDelta)
+		static inline void SetMouseDelta(vec2 newMouseDelta)
 		{
 			mouseDelta = newMouseDelta;
 		}
 
 		//Get mouse raw delta movement since last frame
-		static vec2 GetRawMouseDelta()
+		static inline vec2 GetRawMouseDelta()
 		{
 			vec2 currMouseDelta = rawMouseDelta;
 
@@ -423,22 +423,22 @@ namespace KalaWindow::Core
 
 			return currMouseDelta;
 		}
-		static void SetRawMouseDelta(vec2 newRawMouseDelta)
+		static inline void SetRawMouseDelta(vec2 newRawMouseDelta)
 		{
 			rawMouseDelta = newRawMouseDelta;
 		}
 
 		//Get vertical scroll wheel delta (-1 to +1)
-		static float GetMouseWheelDelta()
+		static inline float GetMouseWheelDelta()
 		{
 			return mouseWheelDelta;
 		}
-		static void SetMouseWheelDelta(float delta)
+		static inline void SetMouseWheelDelta(float delta)
 		{
 			mouseWheelDelta = delta;
 		}
 
-		static bool IsMouseDragging()
+		static inline bool IsMouseDragging()
 		{
 			bool isHoldingDragKey =
 				IsMouseDown(MouseButton::Left)
@@ -453,12 +453,12 @@ namespace KalaWindow::Core
 		}
 
 		//Return true if cursor is not hidden.
-		static bool IsMouseVisible() { return isMouseVisible; }
+		static inline bool IsMouseVisible() { return isMouseVisible; }
 		//Allows to set the visibility state of the cursor, if true then the cursor is visible.
 		static void SetMouseVisibility(bool isVisible);
 
 		//Return true if the cursor is locked to the center of the window.
-		static bool IsMouseLocked() { return isMouseLocked; }
+		static inline bool IsMouseLocked() { return isMouseLocked; }
 		//Allows to set the lock state of the cursor, if true 
 		//then the cursor is locked to the center of the window.
 		static void SetMouseLockState(
@@ -466,8 +466,8 @@ namespace KalaWindow::Core
 			Window* window);
 
 		//If true, then mouse delta, raw delta and scroll delta wont be reset per frame.
-		static bool GetKeepMouseDeltaState() { return keepMouseDelta; }
-		static void SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
+		static inline bool GetKeepMouseDeltaState() { return keepMouseDelta; }
+		static inline void SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
 
 		//If true, then mouse visibility is disabled when unfocused without clearing internal flag
 		static void SetMouseVisibilityBetweenFocus(bool state);

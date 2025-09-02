@@ -83,20 +83,20 @@ namespace KalaWindow::Core
 		static bool Initialize(
 			u32 listeners = 1,
 			SampleRate sampleRate = SampleRate::SAMPLE_DEFAULT);
-		static bool IsInitialized() { return isInitialized; }
+		static inline bool IsInitialized() { return isInitialized; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//SetPlayerPosition, SetListenerPosition will dump their debug logs into the console.
-		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
 		//Set threshold where audio files will be streamed instead of loaded to memory in full.
 		//Only affects newly imported audio files.
-		static void SetStreamThreshold(u64 newThreshold)
+		static inline void SetStreamThreshold(u64 newThreshold)
 		{
 			streamThreshold = clamp(newThreshold, MIN_STREAM_SIZE, MAX_STREAM_SIZE);
 		};
-		static u64 GetStreamThreshold() { return streamThreshold; }
+		static inline u64 GetStreamThreshold() { return streamThreshold; }
 
 		//Shut down Miniaudio
 		static void Shutdown();

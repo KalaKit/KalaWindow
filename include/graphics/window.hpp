@@ -146,8 +146,8 @@ namespace KalaWindow::Graphics
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//window position, size updates will dump their logs into the console.
-		static void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
 		//Uses the file explorer to get a path to selected files by chosen type.
 		//Set multiple to true to allow returning more than one item
@@ -390,8 +390,8 @@ namespace KalaWindow::Graphics
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//branch and leaf creation will dump their logs into the console.
-		static void SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
-		static bool IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
+		static inline void SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
 
 		//Create a menu bar label. Leaves must have functions, branches can't.
 		//Leave parentRef empty if you want this label to be root

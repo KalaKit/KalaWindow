@@ -15,7 +15,7 @@ namespace KalaWindow::Core
 #ifdef _WIN32
 		//Set the opengl handle
 		static void SetOpenGLHandle();
-		static uintptr_t GetOpenGLHandle()
+		static inline uintptr_t GetOpenGLHandle()
 		{
 			if (openGL32Lib == NULL) SetOpenGLHandle();
 
@@ -23,12 +23,12 @@ namespace KalaWindow::Core
 		}
 
 		//Set the opengl master context for Windows (HGLRC)
-		static void SetOpenGLWinContext(uintptr_t newValue) { hglrc = newValue; }
-		static uintptr_t GetOpenGLWinContext() { return hglrc; }
+		static inline void SetOpenGLWinContext(uintptr_t newValue) { hglrc = newValue; }
+		static inline uintptr_t GetOpenGLWinContext() { return hglrc; }
 
 		//Set the vulkan handle
 		static void SetVulkanHandle() {};
-		static uintptr_t GetVulkanHandle()
+		static inline uintptr_t GetVulkanHandle()
 		{
 			if (vulkanLib == NULL) SetOpenGLHandle();
 

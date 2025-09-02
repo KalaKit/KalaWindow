@@ -41,22 +41,22 @@ namespace KalaWindow::UI
 
 		//Assign the top bar function that should hold all your top bar draw functions,
 		//does not need to be ran every frame.
-		static void SetTopBarFunction(const function<void()>& newFunction)
+		static inline void SetTopBarFunction(const function<void()>& newFunction)
 		{
 			topBarFunction = newFunction;
 		}
-		static const function<void()>& GetTopBarFunction()
+		static inline const function<void()>& GetTopBarFunction()
 		{
 			return topBarFunction;
 		}
 
 		//Assign the main function that should hold all your main draw functions,
 		//does not need to be ran every frame.
-		static void SetMainRenderFunction(const function<void()>& newFunction)
+		static inline void SetMainRenderFunction(const function<void()>& newFunction)
 		{
 			mainRenderFunction = newFunction;
 		}
-		static const function<void()>& GetMainRenderFunction()
+		static inline const function<void()>& GetMainRenderFunction()
 		{
 			return mainRenderFunction;
 		}
