@@ -50,6 +50,7 @@ CoreGLFunction functions[] =
     { "glBindBuffer",              reinterpret_cast<void**>(&glBindBuffer) },
     { "glBindVertexArray",         reinterpret_cast<void**>(&glBindVertexArray) },
     { "glBufferData",              reinterpret_cast<void**>(&glBufferData) },
+    { "glBufferSubData",           reinterpret_cast<void**>(&glBufferSubData) },
     { "glDeleteBuffers",           reinterpret_cast<void**>(&glDeleteBuffers) },
     { "glDeleteVertexArrays",      reinterpret_cast<void**>(&glDeleteVertexArrays) },
     { "glDrawArrays",              reinterpret_cast<void**>(&glDrawArrays) },
@@ -235,19 +236,20 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     // GEOMETRY
     //
 
-    PFNGLBINDBUFFERPROC             glBindBuffer             = nullptr;
-    PFNGLBINDVERTEXARRAYPROC        glBindVertexArray        = nullptr;
-    PFNGLBUFFERDATAPROC             glBufferData             = nullptr;
-    PFNGLDELETEBUFFERSPROC          glDeleteBuffers          = nullptr;
-    PFNGLDELETEVERTEXARRAYSPROC     glDeleteVertexArrays     = nullptr;
-    PFNGLDRAWARRAYSPROC             glDrawArrays             = nullptr;
-    PFNGLDRAWELEMENTSPROC           glDrawElements           = nullptr;
+    PFNGLBINDBUFFERPROC              glBindBuffer              = nullptr;
+    PFNGLBINDVERTEXARRAYPROC         glBindVertexArray         = nullptr;
+    PFNGLBUFFERDATAPROC              glBufferData              = nullptr;
+    PFNGLBUFFERSUBDATAPROC           glBufferSubData           = nullptr;
+    PFNGLDELETEBUFFERSPROC           glDeleteBuffers           = nullptr;
+    PFNGLDELETEVERTEXARRAYSPROC      glDeleteVertexArrays      = nullptr;
+    PFNGLDRAWARRAYSPROC              glDrawArrays              = nullptr;
+    PFNGLDRAWELEMENTSPROC            glDrawElements            = nullptr;
     PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = nullptr;
-    PFNGLGENBUFFERSPROC             glGenBuffers             = nullptr;
-    PFNGLGENVERTEXARRAYSPROC        glGenVertexArrays        = nullptr;
-    PFNGLGETVERTEXATTRIBIVPROC      glGetVertexAttribiv      = nullptr;
+    PFNGLGENBUFFERSPROC              glGenBuffers              = nullptr;
+    PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays         = nullptr;
+    PFNGLGETVERTEXATTRIBIVPROC       glGetVertexAttribiv       = nullptr;
     PFNGLGETVERTEXATTRIBPOINTERVPROC glGetVertexAttribPointerv = nullptr;
-    PFNGLVERTEXATTRIBPOINTERPROC    glVertexAttribPointer    = nullptr;
+    PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer     = nullptr;
 
     //
     // SHADERS

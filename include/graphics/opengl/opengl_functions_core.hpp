@@ -56,6 +56,9 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	//Creates and initializes a buffer object's data store
 	LIB_API extern PFNGLBUFFERDATAPROC glBufferData;
 
+	//Updates existing buffer object's data without reallocating storage
+	LIB_API extern PFNGLBUFFERSUBDATAPROC glBufferSubData;
+
 	//Deletes one or more named buffer objects
 	LIB_API extern PFNGLDELETEBUFFERSPROC glDeleteBuffers;
 
