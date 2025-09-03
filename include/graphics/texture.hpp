@@ -99,8 +99,8 @@ namespace KalaWindow::Graphics
 		//to prevent wasted VRAM and to avoid GL_INVALID_VALUE error
 		static u8 GetMaxMipMapLevels(vec2 size, u16 depth, u8 mipmapLevels);
 
-		const string& GetName() const { return name; }
-		void SetName(const string& newName)
+		inline const string& GetName() const { return name; }
+		inline void SetName(const string& newName)
 		{
 			if (newName.empty()
 				|| newName.size() > 100)
@@ -116,40 +116,40 @@ namespace KalaWindow::Graphics
 			name = newName;
 		}
 
-		const string& GetPath() const { return filePath; }
+		inline const string& GetPath() const { return filePath; }
 
-		u32 GetID() const { return ID; }
+		inline u32 GetID() const { return ID; }
 
-		vec2 GetSize() const { return size; }
-		u16 GetDepth() const { return depth; }
-		u8 GetMipMapLevels() const { return mipMapLevels; }
+		inline vec2 GetSize() const { return size; }
+		inline u16 GetDepth() const { return depth; }
+		inline u8 GetMipMapLevels() const { return mipMapLevels; }
 
-		void SetPixels(const vector<u8>& newPixels) { pixels = newPixels; }
-		const vector<u8>& GetPixels() const { return pixels; }
+		inline void SetPixels(const vector<u8>& newPixels) { pixels = newPixels; }
+		inline const vector<u8>& GetPixels() const { return pixels; }
 
-		void SetCubePixels(const vector<vector<u8>>& newCubePixels) 
+		inline void SetCubePixels(const vector<vector<u8>>& newCubePixels)
 		{ 
 			if (newCubePixels.size() != 6) return;
 
 			cubePixels = newCubePixels;
 		}
-		const vector<vector<u8>>& GetCubePixels() const { return cubePixels; }
+		inline const vector<vector<u8>>& GetCubePixels() const { return cubePixels; }
 
-		void SetLayerPixels(const vector<vector<u8>>& newLayerPixels)
+		inline void SetLayerPixels(const vector<vector<u8>>& newLayerPixels)
 		{
 			layerPixels = newLayerPixels;
 		}
-		const vector<vector<u8>>& GetLayerPixels() const { return layerPixels; }
+		inline const vector<vector<u8>>& GetLayerPixels() const { return layerPixels; }
 
-		u32 GetTexelCount() const
+		inline u32 GetTexelCount() const
 		{
 			return static_cast<u32>(size.x)
 				* static_cast<u32>(size.y)
 				* static_cast<u32>(depth);
 		}
 
-		TextureType GetType() const { return type; }
-		TextureFormat GetFormat() const { return format; }
+		inline TextureType GetType() const { return type; }
+		inline TextureFormat GetFormat() const { return format; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		virtual ~Texture() {};

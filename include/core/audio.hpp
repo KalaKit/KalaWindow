@@ -168,11 +168,11 @@ namespace KalaWindow::Core
 
 		//Assign a new name to this audio player
 		void SetName(const string& newName);
-		const string& GetName() const { return name; }
+		inline const string& GetName() const { return name; }
 
-		const string& GetPath() const { return filePath; }
+		inline const string& GetPath() const { return filePath; }
 
-		u32 GetID() const { return ID; }
+		inline u32 GetID() const { return ID; }
 
 		//Start playing this audio player from the start
 		void Play() const;
@@ -187,7 +187,7 @@ namespace KalaWindow::Core
 		void Pause() const;
 		//Continue playing this paused audio player
 		void Continue() const;
-		bool IsPaused() const { return isPaused; };
+		inline bool IsPaused() const { return isPaused; };
 
 		//Set the loop state of this audio player. If true, then this audio player
 		//starts again from the beginning after it finishes playing.

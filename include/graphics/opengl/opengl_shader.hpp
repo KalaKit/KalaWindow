@@ -62,18 +62,18 @@ namespace KalaWindow::Graphics::OpenGL
 			return "";
 		}
 
-		const string& GetName() const { return name; }
-		void SetName(const string& newName);
+		inline const string& GetName() const { return name; }
+		inline void SetName(const string& newName);
 
-		u32 GetID() const { return ID; }
+		inline u32 GetID() const { return ID; }
 
-		Window* GetTargetWindow() const { return targetWindow; }
+		inline Window* GetTargetWindow() const { return targetWindow; }
 
-		u32 GetProgramID() const { return programID; }
+		inline u32 GetProgramID() const { return programID; }
 
-		const vector<ShaderStage>& GetAllShaders() const { return shaders; }
+		inline const vector<ShaderStage>& GetAllShaders() const { return shaders; }
 
-		u32 GetShaderID(ShaderType type) const
+		inline u32 GetShaderID(ShaderType type) const
 		{
 			for (const auto& stage : shaders)
 			{
@@ -92,7 +92,7 @@ namespace KalaWindow::Graphics::OpenGL
 				2);
 			return 0;
 		}
-		const string& GetShaderPath(ShaderType type) const
+		inline const string& GetShaderPath(ShaderType type) const
 		{
 			static string shaderPath{};
 
@@ -116,7 +116,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		//Returns true if this shader is loaded
-		bool IsShaderLoaded(ShaderType targetType)
+		inline bool IsShaderLoaded(ShaderType targetType)
 		{
 			if (shaders.empty()
 				|| programID == 0)
@@ -137,7 +137,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return false;
 		}
 		//Returns true if the shader path of this shader type exists
-		bool ShaderExists(ShaderType targetType)
+		inline bool ShaderExists(ShaderType targetType)
 		{
 			if (shaders.empty()
 				|| programID == 0)

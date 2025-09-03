@@ -142,7 +142,7 @@ namespace KalaWindow::Graphics
 			Window* parentWindow = nullptr,
 			WindowState state = WindowState::WINDOW_NORMAL,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
-		bool IsInitialized() const { return isInitialized; }
+		inline bool IsInitialized() const { return isInitialized; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//window position, size updates will dump their logs into the console.
@@ -166,15 +166,15 @@ namespace KalaWindow::Graphics
 		static string GetClipboardText();
 
 		//Assigns paths of last dragged files. This is called through WM_DROPFILES.
-		void SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
-		const vector<string>& GetLastDraggedFiles() const { return lastDraggedFiles; };
+		inline void SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
+		inline const vector<string>& GetLastDraggedFiles() const { return lastDraggedFiles; };
 		//Clears paths to last file paths that were dragged onto window
-		void ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
+		inline void ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
 		//Draws the window, handles messages for active frame
 		void Update();
 
-		u32 GetID() const { return ID; }
+		inline u32 GetID() const { return ID; }
 
 		void SetTitle(const string& newTitle) const;
 		string GetTitle() const;
@@ -183,7 +183,7 @@ namespace KalaWindow::Graphics
 		//The first parameter requires an ID to the texture.
 		void SetIcon(u32 texture) const;
 		//Returns icon ID (Texture object ID)
-		u32 GetIcon() const { return iconID; }
+		inline u32 GetIcon() const { return iconID; }
 		//Clears the current executable icon
 		void ClearIcon() const;
 
@@ -195,7 +195,7 @@ namespace KalaWindow::Graphics
 		void SetTaskbarOverlayIcon(
 			u32 texture,
 			const string& tooltip = "") const;
-		u32 GetTaskbarOverlayIcon() const { return overlayIconID; }
+		inline u32 GetTaskbarOverlayIcon() const { return overlayIconID; }
 		//Clears the current overlay icon and its tooltip
 		void ClearTaskbarOverlayIcon() const;
 
@@ -219,16 +219,16 @@ namespace KalaWindow::Graphics
 		void SetPosition(vec2 newPos) const;
 		vec2 GetPosition() const;
 
-		void SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
-		vec2 GetMaxSize() const { return maxSize; }
+		inline void SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
+		inline vec2 GetMaxSize() const { return maxSize; }
 
-		void SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
-		vec2 GetMinSize() const { return minSize; }
+		inline void SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
+		inline vec2 GetMinSize() const { return minSize; }
 
 		//If true, then this window is gonna go idle and reduces cpu and gpu
 		//cycles by waiting for messageloop messages before updating the exe.
-		void SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
-		bool IsFocusRequired() const { return isWindowFocusRequired; }
+		inline void SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
+		inline bool IsFocusRequired() const { return isWindowFocusRequired; }
 
 		//If true, then this window is always on top of other windows
 		void SetAlwaysOnTopState(bool state) const;
@@ -282,7 +282,7 @@ namespace KalaWindow::Graphics
 		//If true, then Windows stops this app from closing
 		//when shutting down or logging off to enable you to close your work
 		void SetShutdownBlockState(bool state);
-		bool IShutdownBlockEnabled() const { return shutdownBlockState; }
+		inline bool IShutdownBlockEnabled() const { return shutdownBlockState; }
 
 		//Flash the taskbar button to attract user attention
 		void FlashTaskbar(
@@ -301,31 +301,31 @@ namespace KalaWindow::Graphics
 		bool IsIdle() const { return isIdle; }
 
 		//Correctly handle aspect ratio during window resize for camera
-		void TriggerResize() const { if (resizeCallback) resizeCallback(); }
-		void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
+		inline void TriggerResize() const { if (resizeCallback) resizeCallback(); }
+		inline void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
 
 		//Ensure content is redrawn while window is being resized
-		void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
-		void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
+		inline void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
+		inline void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
 #ifdef _WIN32
-		void SetWindowData(const WindowData& newWindowStruct)
+		inline void SetWindowData(const WindowData& newWindowStruct)
 		{
 			window_windows = newWindowStruct;
 		}
-		const WindowData& GetWindowData() const { return window_windows; }
+		inline const WindowData& GetWindowData() const { return window_windows; }
 #else
-		void SetWindowData(const WindowData& newWindowStruct)
+		inline void SetWindowData(const WindowData& newWindowStruct)
 		{
 			window_x11 = newWindowStruct;
 		}
-		const WindowData& GetWindowData() const { return window_x11; }
+		inline const WindowData& GetWindowData() const { return window_x11; }
 #endif
-		void SetOpenGLData(const OpenGLData& newOpenGLData)
+		inline void SetOpenGLData(const OpenGLData& newOpenGLData)
 		{
 			openglData = newOpenGLData;
 		}
-		const OpenGLData& GetOpenGLData() const { return openglData; }
+		inline const OpenGLData& GetOpenGLData() const { return openglData; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();

@@ -69,7 +69,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		virtual void HotReload() override;
 
-		u32 GetOpenGLID() const { return openGLID; }
+		inline u32 GetOpenGLID() const { return openGLID; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~OpenGL_Texture() override;

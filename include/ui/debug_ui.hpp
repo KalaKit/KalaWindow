@@ -36,8 +36,8 @@ namespace KalaWindow::UI
 	public:
 		//Set up ImGui
 		static bool Initialize(bool enableDocking = true);
-		static bool IsInitialized() { return isInitialized; }
-		static bool IsDockingEnabled() { return isDockingEnabled; }
+		static inline bool IsInitialized() { return isInitialized; }
+		static inline bool IsDockingEnabled() { return isDockingEnabled; }
 
 		//Assign the top bar function that should hold all your top bar draw functions,
 		//does not need to be ran every frame.

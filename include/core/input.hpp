@@ -155,7 +155,7 @@ namespace KalaWindow::Core
 		Type type{};
 		u32 code{}; //stores key or mouse button as u32
 
-		static constexpr InputCode FromKey(Key k)
+		static inline constexpr InputCode FromKey(Key k)
 		{ 
 			return 
 			{ 
@@ -163,7 +163,7 @@ namespace KalaWindow::Core
 				static_cast<u32>(k) 
 			}; 
 		}
-		static constexpr InputCode FromMouse(MouseButton k) 
+		static inline constexpr InputCode FromMouse(MouseButton k)
 		{ 
 			return 
 			{ 
