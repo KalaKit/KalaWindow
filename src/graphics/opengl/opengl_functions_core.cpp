@@ -131,6 +131,7 @@ CoreGLFunction functions[] =
 
     { "glBindRenderbuffer",        reinterpret_cast<void**>(&glBindRenderbuffer) },
     { "glBindFramebuffer",         reinterpret_cast<void**>(&glBindFramebuffer) },
+    { "glBindBufferBase",          reinterpret_cast<void**>(&glBindBufferBase) },
     { "glCheckFramebufferStatus",  reinterpret_cast<void**>(&glCheckFramebufferStatus) },
     { "glFramebufferRenderbuffer", reinterpret_cast<void**>(&glFramebufferRenderbuffer) },
     { "glFramebufferTexture2D",    reinterpret_cast<void**>(&glFramebufferTexture2D) },
@@ -316,14 +317,15 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     // FRAMEBUFFERS AND RENDERBUFFERS
     //
 
-    PFNGLBINDRENDERBUFFERPROC       glBindRenderbuffer         = nullptr;
-    PFNGLBINDFRAMEBUFFERPROC        glBindFramebuffer          = nullptr;
-    PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus   = nullptr;
-    PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer = nullptr;
-    PFNGLFRAMEBUFFERTEXTURE2DPROC   glFramebufferTexture2D     = nullptr;
-    PFNGLGENRENDERBUFFERSPROC       glGenRenderbuffers         = nullptr;
-    PFNGLGENFRAMEBUFFERSPROC        glGenFramebuffers          = nullptr;
-    PFNGLRENDERBUFFERSTORAGEPROC    glRenderbufferStorage      = nullptr;
+    PFNGLBINDRENDERBUFFERPROC        glBindRenderbuffer         = nullptr;
+    PFNGLBINDFRAMEBUFFERPROC         glBindFramebuffer          = nullptr;
+    PFNGLBINDBUFFERBASEPROC          glBindBufferBase           = nullptr;
+    PFNGLCHECKFRAMEBUFFERSTATUSPROC  glCheckFramebufferStatus   = nullptr;
+    PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer  = nullptr;
+    PFNGLFRAMEBUFFERTEXTURE2DPROC    glFramebufferTexture2D     = nullptr;
+    PFNGLGENRENDERBUFFERSPROC        glGenRenderbuffers         = nullptr;
+    PFNGLGENFRAMEBUFFERSPROC         glGenFramebuffers          = nullptr;
+    PFNGLRENDERBUFFERSTORAGEPROC     glRenderbufferStorage      = nullptr;
 
     //
     // FRAME AND RENDER STATE

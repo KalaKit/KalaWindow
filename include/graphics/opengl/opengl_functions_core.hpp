@@ -258,6 +258,9 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// Binds a framebuffer to a framebuffer target
 	LIB_API extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
 
+	// Binds a buffer object to a binding point that shaders can use
+	LIB_API extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
+
 	// Checks the completeness status of a framebuffer
 	LIB_API extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
 
