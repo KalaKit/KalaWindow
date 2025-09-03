@@ -89,18 +89,20 @@ CoreGLFunction functions[] =
     // UNIFORMS
     //
 
-    { "glGetUniformLocation", reinterpret_cast<void**>(&glGetUniformLocation) },
-    { "glUniform1f",          reinterpret_cast<void**>(&glUniform1f) },
-    { "glUniform1i",          reinterpret_cast<void**>(&glUniform1i) },
-    { "glUniform2f",          reinterpret_cast<void**>(&glUniform2f) },
-    { "glUniform2fv",         reinterpret_cast<void**>(&glUniform2fv) },
-    { "glUniform3f",          reinterpret_cast<void**>(&glUniform3f) },
-    { "glUniform3fv",         reinterpret_cast<void**>(&glUniform3fv) },
-    { "glUniform4f",          reinterpret_cast<void**>(&glUniform4f) },
-    { "glUniform4fv",         reinterpret_cast<void**>(&glUniform4fv) },
-    { "glUniformMatrix2fv",   reinterpret_cast<void**>(&glUniformMatrix2fv) },
-    { "glUniformMatrix3fv",   reinterpret_cast<void**>(&glUniformMatrix3fv) },
-    { "glUniformMatrix4fv",   reinterpret_cast<void**>(&glUniformMatrix4fv) },
+    { "glGetUniformLocation",   reinterpret_cast<void**>(&glGetUniformLocation) },
+    { "glGetUniformBlockIndex", reinterpret_cast<void**>(&glGetUniformBlockIndex) },
+    { "glUniformBlockBinding",  reinterpret_cast<void**>(&glUniformBlockBinding) },
+    { "glUniform1f",            reinterpret_cast<void**>(&glUniform1f) },
+    { "glUniform1i",            reinterpret_cast<void**>(&glUniform1i) },
+    { "glUniform2f",            reinterpret_cast<void**>(&glUniform2f) },
+    { "glUniform2fv",           reinterpret_cast<void**>(&glUniform2fv) },
+    { "glUniform3f",            reinterpret_cast<void**>(&glUniform3f) },
+    { "glUniform3fv",           reinterpret_cast<void**>(&glUniform3fv) },
+    { "glUniform4f",            reinterpret_cast<void**>(&glUniform4f) },
+    { "glUniform4fv",           reinterpret_cast<void**>(&glUniform4fv) },
+    { "glUniformMatrix2fv",     reinterpret_cast<void**>(&glUniformMatrix2fv) },
+    { "glUniformMatrix3fv",     reinterpret_cast<void**>(&glUniformMatrix3fv) },
+    { "glUniformMatrix4fv",     reinterpret_cast<void**>(&glUniformMatrix4fv) },
 
     //
     // TEXTURES
@@ -279,6 +281,8 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     //
 
     PFNGLGETUNIFORMLOCATIONPROC   glGetUniformLocation   = nullptr;
+    PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex = nullptr;
+    PFNGLUNIFORMBLOCKBINDINGPROC  glUniformBlockBinding  = nullptr;
     PFNGLUNIFORM1FPROC            glUniform1f            = nullptr;
     PFNGLUNIFORM1IPROC            glUniform1i            = nullptr;
     PFNGLUNIFORM2FPROC            glUniform2f            = nullptr;

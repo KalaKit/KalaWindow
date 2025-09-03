@@ -154,6 +154,12 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// Retrieves the location of a uniform variable within a shader program
 	LIB_API extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 
+	// Find block index by name
+	LIB_API extern PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
+
+	// Bind block index to binding point
+	LIB_API extern PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
+
 	// Sets a single float uniform value
 	LIB_API extern PFNGLUNIFORM1FPROC glUniform1f;
 
