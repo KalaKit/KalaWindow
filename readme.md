@@ -10,6 +10,8 @@
 
 KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and **Vulkan 1.3**\*³, bundled in a single binary. Each backend features a simple **shader system** (compilation, binding, cleanup), along with utilities for **initialization** and **GPU resource management**. This gives you everything needed to plug rendering directly into your application's logic without boilerplate, whether you're building a game engine or a desktop tool.
 
+Track development progress [here](https://trello.com/b/rXmMDRaf/kalawindow).
+
 KalaWindow requires Windows 10 (1809 build 17763) or higher and is not supported on older versions.
 
 > \*¹ Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in KalaWindow 0.8 for both X11 and Wayland.
