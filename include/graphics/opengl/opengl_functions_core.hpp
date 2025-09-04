@@ -47,6 +47,12 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// GEOMETRY
 	//
 
+	//Maps a range of a buffer object's data store into the client's address space
+	LIB_API extern PFNGLMAPBUFFERRANGEPROC glMapBufferRange;
+
+	//Creates an immutable data store for a buffer object (ARB_buffer_storage)
+	LIB_API extern PFNGLBUFFERSTORAGEPROC glBufferStorage;
+
 	//Binds a named buffer to a specified buffer binding point
 	LIB_API extern PFNGLBINDBUFFERPROC glBindBuffer;
 

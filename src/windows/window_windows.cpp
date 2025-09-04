@@ -1548,134 +1548,6 @@ namespace KalaWindow::Graphics
 				| WS_MAXIMIZEBOX)) != 0;
 	}
 
-	void Window::SetFullscreenState(bool state)
-	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
-
-		if (state)
-		{
-			//save current pos, size and style
-
-			oldPos = GetPosition();
-			oldSize = GetClientRectSize();
-			LONG style = GetWindowLong(window, GWL_STYLE);
-
-			oldStyle = 0;
-			if (style & WS_CAPTION)     oldStyle |= (1 << 0);
-			if (style & WS_THICKFRAME)  oldStyle |= (1 << 1);
-			if (style & WS_MINIMIZEBOX) oldStyle |= (1 << 2);
-			if (style & WS_MAXIMIZEBOX) oldStyle |= (1 << 3);
-			if (style & WS_SYSMENU)     oldStyle |= (1 << 4);
-
-			//remove decorations
-			style &= ~(
-				WS_CAPTION
-				| WS_THICKFRAME
-				| WS_MINIMIZEBOX
-				| WS_MAXIMIZEBOX
-				| WS_SYSMENU);
-			SetWindowLong(window, GWL_STYLE, style);
-
-			//expand to monitor bounds
-
-			HMONITOR hMonitor = MonitorFromWindow(
-				window,
-				MONITOR_DEFAULTTONEAREST);
-			MONITORINFO mi{};
-			mi.cbSize = sizeof(mi);
-			GetMonitorInfo(hMonitor, &mi);
-
-			SetWindowPos(
-				window,
-				HWND_TOP,
-				mi.rcMonitor.left,
-				mi.rcMonitor.top,
-				mi.rcMonitor.right - mi.rcMonitor.left,
-				mi.rcMonitor.bottom - mi.rcMonitor.top,
-				SWP_FRAMECHANGED
-				| SWP_NOOWNERZORDER);
-		}
-		else
-		{
-			if (oldPos == vec2()) oldPos = vec2(100.0f, 100.0f);
-			if (oldSize == vec2()) oldSize = vec2(800.0f, 600.0f);
-			if (oldStyle == 0) oldStyle = 0b11111; //enable all flags
-
-			//rebuild style from saved flags
-
-			LONG style = GetWindowLong(window, GWL_STYLE);
-			style &= ~(
-				WS_CAPTION
-				| WS_THICKFRAME
-				| WS_MINIMIZEBOX
-				| WS_MAXIMIZEBOX
-				| WS_SYSMENU);
-
-			if (oldStyle & (1 << 0)) style |= WS_CAPTION;
-			if (oldStyle & (1 << 1)) style |= WS_THICKFRAME;
-			if (oldStyle & (1 << 2)) style |= WS_MINIMIZEBOX;
-			if (oldStyle & (1 << 3)) style |= WS_MAXIMIZEBOX;
-			if (oldStyle & (1 << 4)) style |= WS_SYSMENU;
-
-			SetWindowLong(window, GWL_STYLE, style);
-
-			SetWindowPos(
-				window,
-				nullptr,
-				(int)oldPos.x,
-				(int)oldPos.y,
-				(int)oldSize.x,
-				(int)oldSize.y,
-				SWP_FRAMECHANGED
-				| SWP_NOZORDER
-				| SWP_NOOWNERZORDER);
-		}
-
-		string val = state ? "true" : "false";
-
-		if (Window::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Set window '" + GetTitle() + "' fullscreen state to '" + val + "'",
-				"WINDOW_WINDOWS",
-				LogType::LOG_SUCCESS);
-		}
-	}
-	bool Window::IsFullscreen() const
-	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
-
-		vec2 pos = GetPosition();
-		vec2 size = GetOuterSize();
-
-		//expand to monitor bounds
-
-		HMONITOR hMonitor = MonitorFromWindow(
-			window,
-			MONITOR_DEFAULTTONEAREST);
-		MONITORINFO mi{};
-		mi.cbSize = sizeof(mi);
-		GetMonitorInfo(hMonitor, &mi);
-
-		bool rectMatches =
-			pos.x == mi.rcMonitor.left
-			&& pos.y == mi.rcMonitor.top
-			&& size.x == (mi.rcMonitor.right - mi.rcMonitor.left)
-			&& size.y == (mi.rcMonitor.bottom - mi.rcMonitor.top);
-
-		LONG style = GetWindowLong(
-			window,
-			GWL_STYLE);
-		bool undecorated = (style & (
-			WS_CAPTION
-			| WS_THICKFRAME
-			| WS_MINIMIZEBOX
-			| WS_MAXIMIZEBOX
-			| WS_SYSMENU)) == 0;
-
-		return rectMatches && undecorated;
-	}
-
 	void Window::SetTopBarState(bool state) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
@@ -1984,6 +1856,221 @@ namespace KalaWindow::Graphics
 		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
 		return IsWindowVisible(hwnd);
+	}
+
+	void Window::SetExclusiveFullscreenState(bool state)
+	{
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
+		if (state)
+		{
+			//get current monitor
+
+			HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
+			MONITORINFOEX mi{};
+			mi.cbSize = sizeof(mi);
+			GetMonitorInfo(hMonitor, &mi);
+
+			//query current desktop mode
+
+			DEVMODE devMode{};
+			devMode.dmSize = sizeof(devMode);
+			EnumDisplaySettings(mi.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
+
+			//switch to exclusive fullscreen
+			if (ChangeDisplaySettingsEx(
+				mi.szDevice,
+				&devMode,
+				nullptr,
+				CDS_FULLSCREEN,
+				nullptr) == DISP_CHANGE_SUCCESSFUL)
+			{
+				LONG style = GetWindowLong(hwnd, GWL_STYLE);
+				style &= ~(
+					WS_CAPTION 
+					| WS_THICKFRAME 
+					| WS_MINIMIZEBOX 
+					| WS_MAXIMIZEBOX 
+					| WS_SYSMENU);
+				SetWindowLong(hwnd, GWL_STYLE, style);
+
+				oldPos = GetPosition();
+				oldSize = GetClientRectSize();
+
+				SetWindowPos(
+					hwnd,
+					HWND_TOP,
+					mi.rcMonitor.left,
+					mi.rcMonitor.top,
+					mi.rcMonitor.right - mi.rcMonitor.left,
+					mi.rcMonitor.bottom - mi.rcMonitor.top,
+					SWP_FRAMECHANGED
+					| SWP_NOOWNERZORDER);
+
+				ShowWindow(hwnd, SW_SHOW);
+			}
+		}
+		else
+		{
+			ChangeDisplaySettingsEx(
+				nullptr,
+				nullptr,
+				nullptr,
+				0,
+				nullptr);
+			LONG style = GetWindowLong(hwnd, GWL_STYLE);
+
+			style |= (
+				WS_CAPTION
+				| WS_THICKFRAME
+				| WS_MINIMIZEBOX
+				| WS_MAXIMIZEBOX
+				| WS_SYSMENU);
+
+			SetWindowLong(hwnd, GWL_STYLE, style);
+
+			SetWindowPos(
+				hwnd,
+				HWND_NOTOPMOST,
+				oldPos.x,
+				oldPos.y,
+				oldSize.x,
+				oldSize.y,
+				SWP_FRAMECHANGED
+				| SWP_NOOWNERZORDER);
+
+			ShowWindow(hwnd, SW_SHOW);
+		}
+
+		isExclusiveFullscreen = state;
+	}
+
+	void Window::SetBorderlessFullscreenState(bool state)
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		if (state)
+		{
+			//save current pos, size and style
+
+			oldPos = GetPosition();
+			oldSize = GetClientRectSize();
+			LONG style = GetWindowLong(window, GWL_STYLE);
+
+			oldStyle = 0;
+			if (style & WS_CAPTION)     oldStyle |= (1 << 0);
+			if (style & WS_THICKFRAME)  oldStyle |= (1 << 1);
+			if (style & WS_MINIMIZEBOX) oldStyle |= (1 << 2);
+			if (style & WS_MAXIMIZEBOX) oldStyle |= (1 << 3);
+			if (style & WS_SYSMENU)     oldStyle |= (1 << 4);
+
+			//remove decorations
+			style &= ~(
+				WS_CAPTION
+				| WS_THICKFRAME
+				| WS_MINIMIZEBOX
+				| WS_MAXIMIZEBOX
+				| WS_SYSMENU);
+			SetWindowLong(window, GWL_STYLE, style);
+
+			//expand to monitor bounds
+
+			HMONITOR hMonitor = MonitorFromWindow(
+				window,
+				MONITOR_DEFAULTTONEAREST);
+			MONITORINFO mi{};
+			mi.cbSize = sizeof(mi);
+			GetMonitorInfo(hMonitor, &mi);
+
+			SetWindowPos(
+				window,
+				HWND_TOP,
+				mi.rcMonitor.left,
+				mi.rcMonitor.top,
+				mi.rcMonitor.right - mi.rcMonitor.left,
+				mi.rcMonitor.bottom - mi.rcMonitor.top,
+				SWP_FRAMECHANGED
+				| SWP_NOOWNERZORDER);
+		}
+		else
+		{
+			if (oldPos == vec2()) oldPos = vec2(100.0f, 100.0f);
+			if (oldSize == vec2()) oldSize = vec2(800.0f, 600.0f);
+			if (oldStyle == 0) oldStyle = 0b11111; //enable all flags
+
+			//rebuild style from saved flags
+
+			LONG style = GetWindowLong(window, GWL_STYLE);
+			style &= ~(
+				WS_CAPTION
+				| WS_THICKFRAME
+				| WS_MINIMIZEBOX
+				| WS_MAXIMIZEBOX
+				| WS_SYSMENU);
+
+			if (oldStyle & (1 << 0)) style |= WS_CAPTION;
+			if (oldStyle & (1 << 1)) style |= WS_THICKFRAME;
+			if (oldStyle & (1 << 2)) style |= WS_MINIMIZEBOX;
+			if (oldStyle & (1 << 3)) style |= WS_MAXIMIZEBOX;
+			if (oldStyle & (1 << 4)) style |= WS_SYSMENU;
+
+			SetWindowLong(window, GWL_STYLE, style);
+
+			SetWindowPos(
+				window,
+				nullptr,
+				(int)oldPos.x,
+				(int)oldPos.y,
+				(int)oldSize.x,
+				(int)oldSize.y,
+				SWP_FRAMECHANGED
+				| SWP_NOZORDER
+				| SWP_NOOWNERZORDER);
+		}
+
+		string val = state ? "true" : "false";
+
+		if (Window::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set window '" + GetTitle() + "' fullscreen state to '" + val + "'",
+				"WINDOW_WINDOWS",
+				LogType::LOG_SUCCESS);
+		}
+	}
+	bool Window::IsBorderlessFullscreen() const
+	{
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		vec2 pos = GetPosition();
+		vec2 size = GetOuterSize();
+
+		//expand to monitor bounds
+
+		HMONITOR hMonitor = MonitorFromWindow(
+			window,
+			MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi{};
+		mi.cbSize = sizeof(mi);
+		GetMonitorInfo(hMonitor, &mi);
+
+		bool rectMatches =
+			pos.x == mi.rcMonitor.left
+			&& pos.y == mi.rcMonitor.top
+			&& size.x == (mi.rcMonitor.right - mi.rcMonitor.left)
+			&& size.y == (mi.rcMonitor.bottom - mi.rcMonitor.top);
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+		bool undecorated = (style & (
+			WS_CAPTION
+			| WS_THICKFRAME
+			| WS_MINIMIZEBOX
+			| WS_MAXIMIZEBOX
+			| WS_SYSMENU)) == 0;
+
+		return rectMatches && undecorated;
 	}
 
 	void Window::SetWindowState(WindowState state) const

@@ -47,6 +47,8 @@ CoreGLFunction functions[] =
     // GEOMETRY
     //
 
+    { "glMapBufferRange",          reinterpret_cast<void**>(&glMapBufferRange) },
+    { "glBufferStorage",           reinterpret_cast<void**>(&glBufferStorage) },
     { "glBindBuffer",              reinterpret_cast<void**>(&glBindBuffer) },
     { "glBindVertexArray",         reinterpret_cast<void**>(&glBindVertexArray) },
     { "glBufferData",              reinterpret_cast<void**>(&glBufferData) },
@@ -238,6 +240,8 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     // GEOMETRY
     //
 
+    PFNGLMAPBUFFERRANGEPROC          glMapBufferRange          = nullptr;
+    PFNGLBUFFERSTORAGEPROC           glBufferStorage           = nullptr;
     PFNGLBINDBUFFERPROC              glBindBuffer              = nullptr;
     PFNGLBINDVERTEXARRAYPROC         glBindVertexArray         = nullptr;
     PFNGLBUFFERDATAPROC              glBufferData              = nullptr;

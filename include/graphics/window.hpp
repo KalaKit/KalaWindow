@@ -238,11 +238,6 @@ namespace KalaWindow::Graphics
 		void SetResizableState(bool state) const;
 		bool IsResizable() const;
 
-		//If true, then this window will be set to full screen size.
-		//Switch between normal window and monitor-sized borderless window.
-		void SetFullscreenState(bool state);
-		bool IsFullscreen() const;
-
 		//If true, then this window shows its top bar
 		void SetTopBarState(bool state) const;
 		bool IsTopBarEnabled() const;
@@ -274,6 +269,14 @@ namespace KalaWindow::Graphics
 		bool IsMinimized() const;
 		//Returns false if this window is not rendered but also not minimized
 		bool IsVisible() const;
+
+		//If true, then this window will be set to true exclusive fullscreen state
+		void SetExclusiveFullscreenState(bool state);
+		inline bool IsExclusiveFullscreen() const { return isExclusiveFullscreen; };
+
+		//If true, then this window will be set to borderless full screen size
+		void SetBorderlessFullscreenState(bool state);
+		bool IsBorderlessFullscreen() const;
 
 		//Can assign the window state to one of the supported types
 		void SetWindowState(WindowState state) const;
@@ -336,6 +339,8 @@ namespace KalaWindow::Graphics
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
 		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
 		bool shutdownBlockState = false;   //Prevents Windows from shutting off or logging off if this is true so you can save your data
+
+		bool isExclusiveFullscreen = false;
 
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
 		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become
