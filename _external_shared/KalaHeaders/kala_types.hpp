@@ -545,18 +545,18 @@ namespace KLog
 	inline k_ostr& k_err = std::cerr; //Unbuffered error output, flushed immediately
 	inline k_istr& k_in = std::cin;   //Standard input
 
-	//Redirect ostream to file until k_oreset is called for this ostream
-	inline bool k_oredir(const k_path& p, k_ostr& os) 
+	//Redirect ostream to file until k_oreset is called for this ostream.
+	//Use the returned streambuf pointer to reset that buffer later
+	inline streambuf* k_oredir(const k_path& p, k_ostr& os) 
 	{
 		static k_ofstr f{};
 		f.open(p, std::ios::app);
-		if (!f.is_open()) return false;
+		if (!f.is_open()) return nullptr;
 
-		os.rdbuf(f.rdbuf()); //redirect stream buffer
-		return true;
+		return os.rdbuf(f.rdbuf()); //redirect stream buffer
 	}
 
-	//Restore ostream to original buffer
+	//Restore ostream to original buffer, use the returned buffer from redirect
 	inline void k_oreset(k_ostr& os, streambuf* originalBuf)
 	{
 		os.rdbuf(originalBuf);
@@ -564,7 +564,7 @@ namespace KLog
 
 	//Write any stream type message to target string file
 	template<typename... Ts>
-	inline void k_wfile(const k_path& p, Ts&... args)
+	inline void k_wfile(const k_path& p, Ts&&... args)
 	{
 		k_osstr ss{};
 		(ss << ... << args); //fold expression for all args
