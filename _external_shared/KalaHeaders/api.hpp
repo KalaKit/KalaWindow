@@ -3,7 +3,7 @@
 //
 // Copyright (C) 2025 Lost Empire Entertainment
 //
-// This is free software, and you are welcome to redistribute it under certain conditions.
+// This is free source code, and you are welcome to redistribute it under certain conditions.
 // Read LICENSE.md for more information.
 //
 // Provides:

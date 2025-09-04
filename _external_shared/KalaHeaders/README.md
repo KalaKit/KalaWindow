@@ -47,6 +47,28 @@ Shorthands for math variables and overrideable cross-platform templates for conv
 
 ---
 
+## kala_types.hpp
+
+Provides shorthands and helpers for various types, each split into its own namespace
+
+| Category               | Namespace     | Description                                           |
+|------------------------|---------------|-------------------------------------------------------|
+| STRING                 | KString       | Shorthands and helpers for string operations          |
+| TYPE TRAITS            | KType         | Helpers for checking if var is type                   |
+| FIXED TYPE CONTAINERS  | KContainer    | Shorthands for common fixed-type containers           |
+| MEMORY                 | KMemory       | Shorthands and helpers for smart pointer operations   |
+| TUPLE                  | KTuple        | Helpers for tuple operations                          |
+| SPAN                   | KSpan         | Shorthands and helpers for span operations            |
+| DYNAMIC TYPE VARIABLES | KDynamic      | Shorthands and helpers for optional and variant ops   |
+| FILESYSTEM             | KFile         | Shorthands and helpers for filesystem operations      |
+| FILESTREAM             | KFileStream   | Shorthands and helpers for fstream and sstream ops    |
+| STRINGSTREAM           | KStringStream | Shorthands and helpers for fstream and sstream ops    |
+| LOG                    | KLog          | Shorthands and helpers for logging operations         |
+| TIME                   | KTime         | Shorthands and helpers for time operations            |
+| SORT                   | KSort         | Helpers for sort operations                           |
+
+---
+
 ## logging.hpp
 
 Comprehensive logger header for any logging needs - sends cout, cerr and clog messages to your console.
