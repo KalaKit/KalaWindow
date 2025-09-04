@@ -12,11 +12,11 @@ KalaWindow includes a built-in rendering backend supporting **OpenGL 3.3** and *
 
 KalaWindow requires Windows 10 (1809 build 17763) or higher and is not supported on older versions.
 
-> \*¹ Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in KalaWindow 0.6 for both X11 and Wayland.
+> \*¹ Due to ongoing rewriting of the project Linux support is currently not available. It will be added back in KalaWindow 0.8 for both X11 and Wayland.
 
 > \*² `opengl_functions_core.hpp` includes `glcorearb.h` and `glext.h`, `opengl_functions_win.hpp` includes `wgleht.hpp`, `opengl_functions_linux.hpp` includes `glxeht.hpp`
 
-> *³ Vulkan code exists in the codebase but is not fully functional until KalaWindow 0.5 releases.
+> *³ Vulkan code exists in the codebase but is not fully functional until KalaWindow 0.9 releases.
 
 ---
 
