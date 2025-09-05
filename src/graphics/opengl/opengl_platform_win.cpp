@@ -407,8 +407,10 @@ namespace KalaWindow::Graphics::OpenGL
 			<< "    Acceleration type: " << accelVal << "\n"
 			<< "    Swap method:       " << swapVal;
 
+		contextData = ss.str();
+
 		Log::Print(
-			ss.str(),
+			contextData,
 			"OPENGL_WINDOWS",
 			LogType::LOG_INFO);
 
@@ -466,6 +468,23 @@ namespace KalaWindow::Graphics::OpenGL
 		const char* glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
 		const char* glslVer    = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
 
+		string profileVal{};
+		GLint profile = 0;
+		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+
+		if (profile & GL_CONTEXT_CORE_PROFILE_BIT)
+		{
+			profileVal = "Core profile";
+		}
+		else if (profile & GL_CONTEXT_COMPATIBILITY_PROFILE_BIT)
+		{
+			profileVal = "Compatibility profile";
+		}
+		else profileVal = "Unknown profile";
+
+		GLint blockSize = 0;
+		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &blockSize);
+
 		//also enable srgb if user requested it
 		if (srgb == SRGBMode::SRGB_ENABLED
 			&& srgbBuffer == 1)
@@ -479,10 +498,12 @@ namespace KalaWindow::Graphics::OpenGL
 
 		ostringstream ss2{};
 		ss2 << "OpenGL Context Info:\n"
-			<< "  Version:      " << (glVersion  ? glVersion  : "Unknown") << "\n"
-			<< "  Vendor:       " << (glVendor   ? glVendor   : "Unknown") << "\n"
-			<< "  Renderer:     " << (glRenderer ? glRenderer : "Unknown") << "\n"
-			<< "  GLSL:         " << (glslVer    ? glslVer    : "Unknown") << "\n"
+			<< "  Version:        " << (glVersion  ? glVersion  : "Unknown") << "\n"
+			<< "  Vendor:         " << (glVendor   ? glVendor   : "Unknown") << "\n"
+			<< "  Renderer:       " << (glRenderer ? glRenderer : "Unknown") << "\n"
+			<< "  GLSL:           " << (glslVer    ? glslVer    : "Unknown") << "\n"
+			<< "  Profile:        " << profileVal << "\n"
+			<< "  UBO block size: " << to_string(blockSize) << "\n"
 			<< "  SRGB enabled: " << (srgbEnabled ? "Yes" : "No");
 
 		Log::Print(

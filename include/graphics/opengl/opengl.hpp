@@ -15,6 +15,8 @@ namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
 
+	static string contextData{};
+
 	enum VSyncState
 	{
 		VSYNC_ON, //Framerate is capped to monitor refresh rate.
