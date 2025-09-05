@@ -407,10 +407,8 @@ namespace KalaWindow::Graphics::OpenGL
 			<< "    Acceleration type: " << accelVal << "\n"
 			<< "    Swap method:       " << swapVal;
 
-		contextData = ss.str();
-
 		Log::Print(
-			contextData,
+			ss.str(),
 			"OPENGL_WINDOWS",
 			LogType::LOG_INFO);
 
@@ -504,10 +502,12 @@ namespace KalaWindow::Graphics::OpenGL
 			<< "  GLSL:           " << (glslVer    ? glslVer    : "Unknown") << "\n"
 			<< "  Profile:        " << profileVal << "\n"
 			<< "  UBO block size: " << to_string(blockSize) << "\n"
-			<< "  SRGB enabled: " << (srgbEnabled ? "Yes" : "No");
+			<< "  SRGB enabled:   " << (srgbEnabled ? "Yes" : "No");
+
+		contextData = ss2.str();
 
 		Log::Print(
-			ss2.str(),
+			contextData,
 			"OPENGL_WINDOWS",
 			LogType::LOG_INFO);
 

@@ -15,8 +15,6 @@ namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
 
-	static string contextData{};
-
 	enum VSyncState
 	{
 		VSYNC_ON, //Framerate is capped to monitor refresh rate.
@@ -68,6 +66,7 @@ namespace KalaWindow::Graphics::OpenGL
 		static inline bool IsInitialized() { return isInitialized; }
 
 		static inline VSyncState GetVSyncState() { return vsyncState; }
+		static inline const string& GetContextData() { return contextData; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//GL notifications will dump their logs into the console.
@@ -113,6 +112,8 @@ namespace KalaWindow::Graphics::OpenGL
 	private:
 		static inline bool isInitialized{};
 		static inline bool isVerboseLoggingEnabled{};
+
+		static inline string contextData{};
 
 		//If off, then all framerate is uncapped
 		static inline VSyncState vsyncState = VSyncState::VSYNC_ON;
