@@ -7,35 +7,54 @@
 
 #include <string>
 #include <functional>
+#include <unordered_map>
+#include <vector>
 
 #include "KalaHeaders/core_types.hpp"
 #include "KalaHeaders/api.hpp"
 #include "glm/glm.hpp"
 
-//forward declare imgui context struct
+//forward declare imgui font struct
 //so we dont have to include the whole imgui header
-struct ImGuiContext;
+struct ImFont;
 
 namespace KalaWindow::UI
 {
 	using glm::vec2;
 	using std::string;
 	using std::function;
+	using std::unordered_map;
+	using std::vector;
+
+	struct UserFont
+	{
+		string fontName{};     //name of this font
+		ImFont* fontPointer{}; //imgui font pointer to this font
+		string fontPath{};     //path to this font
+		float fontSize{};      //size of this font
+	};
 
 	struct WindowSettings
 	{
-		bool isMovable = true;
-		bool isResizable = true;
-		bool isCollapsible = true;
-		bool hasToolbar = true;
-		bool saveSettings = true;
+		bool isMovable     = true;  //if true, then this window is movable
+		bool isResizable   = true;  //if true, then this window is resizable
+		bool isCollapsible = true;  //if true, then this window is collapsible
+		bool hasToolbar    = true;  //if true, then this window has a toolbar
+		bool saveSettings  = true;  //if true, then this window settings will be saved to imgui.ini
+		bool topMost       = false; //if true, then this window will stay at the front no matter what
+		bool noFocus       = false; //if true, then this window wont go to front even when clicked
 	};
 
 	class LIB_API DebugUI
 	{
 	public:
-		//Set up ImGui
-		static bool Initialize(bool enableDocking = true);
+		static inline unordered_map<string, UserFont> userFonts{};
+
+		//Set up ImGui. Also set docking state with enableDocking.
+		//Pass paths and font size per font relative to your executable to load as ImGui fonts
+		static bool Initialize(
+			bool enableDocking = true,
+			const vector<UserFont>& userProvidedFonts = {});
 		static inline bool IsInitialized() { return isInitialized; }
 		static inline bool IsDockingEnabled() { return isDockingEnabled; }
 

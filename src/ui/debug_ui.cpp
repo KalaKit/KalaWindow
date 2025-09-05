@@ -5,6 +5,7 @@
 
 #include <Windows.h>
 #include <vector>
+#include <filesystem>
 
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
@@ -30,6 +31,10 @@ using KalaWindow::Graphics::WindowData;
 
 using std::vector;
 using std::to_string;
+using std::filesystem::exists;
+using std::filesystem::is_regular_file;
+using std::filesystem::path;
+using std::filesystem::current_path;
 
 static ImGuiContext* context{};
 
@@ -37,7 +42,9 @@ static vector<u32> createdIndexes{};
 
 namespace KalaWindow::UI
 {
-	bool DebugUI::Initialize(bool enableDocking)
+	bool DebugUI::Initialize(
+		bool enableDocking,
+		const vector<UserFont>& userProvidedFonts)
 	{
 		if (isInitialized)
 		{
@@ -65,10 +72,93 @@ namespace KalaWindow::UI
 		context = ImGui::CreateContext();
 		ImGui::SetCurrentContext(context);
 
-		if (enableDocking)
+		ImGuiIO& io = ImGui::GetIO();
+		if (enableDocking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+
+		io.Fonts->AddFontDefault();
+
+		for (const auto& val : userProvidedFonts)
 		{
-			ImGuiIO& io = ImGui::GetIO();
-			io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+			string keyPath = (current_path() / val.fontPath).string();
+
+			Log::Print(
+				"Attempting to load font '" + keyPath + "' with size '" + to_string(val.fontSize),
+				"DEBUG_UI",
+				LogType::LOG_DEBUG);
+
+			if (!exists(keyPath))
+			{
+				Log::Print(
+					"Failed to load font '" + keyPath + "' because it does not exist!",
+					"DEBUG_UI",
+					LogType::LOG_ERROR,
+					2);
+
+				continue;
+			}
+			if (!is_regular_file(keyPath))
+			{
+				Log::Print(
+					"Failed to load font '" + keyPath + "' because it is not a font file!",
+					"DEBUG_UI",
+					LogType::LOG_ERROR,
+					2);
+
+				continue;
+			}
+			if (path(keyPath).extension().string() != ".ttf"
+				&& path(keyPath).extension().string() != ".otf")
+			{
+				Log::Print(
+					"Failed to load font '" + keyPath + "' because its extension is not correct for a font file!",
+					"DEBUG_UI",
+					LogType::LOG_ERROR,
+					2);
+
+				continue;
+			}
+			if (val.fontSize < 5.0f
+				|| val.fontSize > 150.0f)
+			{
+				Log::Print(
+					"Failed to load font '" + keyPath + "' because its size '" + to_string(val.fontSize) + "' is out of range! Pick a range from 5 to 150.",
+					"DEBUG_UI",
+					LogType::LOG_ERROR,
+					2);
+
+				continue;
+			}
+
+			ImFont* newFont = io.Fonts->AddFontFromFileTTF(keyPath.c_str(), val.fontSize);
+
+			if (!newFont)
+			{
+				Log::Print(
+					"Failed to load font '" + keyPath + "' because ImGui couldn't load it!",
+					"DEBUG_UI",
+					LogType::LOG_ERROR,
+					2);
+
+				continue;
+			}
+
+			UserFont newFontData =
+			{
+				.fontName = val.fontName,
+				.fontPointer = newFont,
+				.fontPath = val.fontPath,
+				.fontSize = val.fontSize
+			};
+
+			userFonts[val.fontName] = newFontData;
+		}
+
+		if (userFonts.size() > 0)
+		{
+			Log::Print(
+				"Loaded '" + to_string(userFonts.size()) + "' fonts!",
+				"DEBUG_UI",
+				LogType::LOG_SUCCESS);
 		}
 
 #ifdef _WIN32
@@ -182,11 +272,14 @@ namespace KalaWindow::UI
 
 		ImGuiWindowFlags flags = 0;
 
-		if (!settings.isMovable) flags |= ImGuiWindowFlags_NoMove;
-		if (!settings.isResizable) flags |= ImGuiWindowFlags_NoResize;
+		if (!settings.isMovable)     flags |= ImGuiWindowFlags_NoMove;
+		if (!settings.isResizable)   flags |= ImGuiWindowFlags_NoResize;
 		if (!settings.isCollapsible) flags |= ImGuiWindowFlags_NoCollapse;
-		if (!settings.hasToolbar) flags |= ImGuiWindowFlags_NoTitleBar;
-		if (!settings.saveSettings) flags |= ImGuiWindowFlags_NoSavedSettings;
+		if (!settings.hasToolbar)    flags |= ImGuiWindowFlags_NoTitleBar;
+		if (!settings.saveSettings)  flags |= ImGuiWindowFlags_NoSavedSettings;
+		if (settings.noFocus)        flags |= ImGuiWindowFlags_NoBringToFrontOnFocus;
+
+		if (settings.topMost) ImGui::SetNextWindowFocus();
 
 		if (ImGui::Begin((title + "##" + to_string(ID)).c_str(), NULL, flags))
 		{
