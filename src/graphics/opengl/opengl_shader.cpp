@@ -591,7 +591,15 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        OpenGL_Renderer::GetError("shader '" + name + "' bind");
+        string errorVal = OpenGL_Renderer::GetError();
+        if (!errorVal.empty())
+        {
+            KalaWindowCore::ForceClose(
+                "OpenGL shader error",
+                "Failed to bind shader '" + name + "'! Reason: " + errorVal);
+
+            return false;
+        }
 #endif
 
         lastProgramID = ID;

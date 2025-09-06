@@ -163,7 +163,7 @@ namespace KalaWindow::Core
 
 		DEBUG_ASSERT(false && reason.c_str());
 
-#ifdef NDEBUG
+#ifndef _DEBUG
 		if (CreatePopup(
 			title,
 			reason,

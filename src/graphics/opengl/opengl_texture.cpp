@@ -232,8 +232,6 @@ struct GLFormatInfo {
 	GLenum type;
 };
 
-static bool CheckError(const string& message);
-
 static stbir_pixel_layout ToStbirLayout(
 	TextureFormat format,
 	const string& textureName);
@@ -375,7 +373,15 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		CheckError("loading texture '" + name + "'");
+		string errorVal = OpenGL_Renderer::GetError();
+		if (!errorVal.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL texture error",
+				"Failed to load texture '" + name + "'! Reason: " + errorVal);
+
+			return nullptr;
+		}
 
 		texturePtr->HotReload();
 
@@ -535,7 +541,15 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		CheckError("creating cube map texture '" + name + "'");
+		string errorVal = OpenGL_Renderer::GetError();
+		if (!errorVal.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL texture error",
+				"Failed to load cubemap texture '" + name + "'! Reason: " + errorVal);
+
+			return nullptr;
+		}
 
 		texturePtr->HotReload();
 
@@ -678,7 +692,15 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		CheckError("creating 2D array texture '" + name + "'");
+		string errorVal = OpenGL_Renderer::GetError();
+		if (!errorVal.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL texture error",
+				"Failed to create 2D array texture '" + name + "'! Reason: " + errorVal);
+
+			return nullptr;
+		}
 
 		texturePtr->HotReload();
 
@@ -746,15 +768,22 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		if (!CheckError("loading fallback texture '" + string(fallbackTextureName) + "'"))
+		string errorVal = OpenGL_Renderer::GetError();
+		if (!errorVal.empty())
 		{
-			fallbackTexture = texturePtr;
+			KalaWindowCore::ForceClose(
+				"OpenGL texture error",
+				"Failed to load fallback texture! Reason: " + errorVal);
 
-			Log::Print(
-				"Loaded fallback OpenGL texture '" + string(fallbackTextureName) + "' with ID '" + to_string(newID) + "'.",
-				"OPENGL_TEXTURE",
-				LogType::LOG_SUCCESS);
+			return;
 		}
+
+		fallbackTexture = texturePtr;
+
+		Log::Print(
+			"Loaded fallback OpenGL texture with ID '" + to_string(newID) + "'!",
+			"OPENGL_TEXTURE",
+			LogType::LOG_SUCCESS);
 	}
 
 	OpenGL_Texture* OpenGL_Texture::GetFallbackTexture()
@@ -955,7 +984,15 @@ namespace KalaWindow::Graphics::OpenGL
 		pixels = move(resized);
 		size = { (f32)newSize.x, (f32)newSize.y };
 
-		CheckError("rescaling texture '" + name + "'");
+		string errorVal = OpenGL_Renderer::GetError();
+		if (!errorVal.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL texture error",
+				"Failed to rescale texture '" + name + "'! Reason: " + errorVal);
+
+			return;
+		}
 
 		HotReload();
 
@@ -1168,7 +1205,15 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (mipMapLevels > 1) glGenerateMipmap(targetType);
 
-		CheckError("hot-reloading texture '" + name + "' with " + target);
+		string errorVal = OpenGL_Renderer::GetError();
+		if (!errorVal.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL texture error",
+				"Failed to hot-reload texture '" + name + "' with " + target + "! Reason: " + errorVal);
+
+			return;
+		}
 
 		Log::Print(
 			"Hot-reloaded texture '" + name + "' with '" + target + "'!",
@@ -1547,14 +1592,6 @@ bool IsCorrectFormat(
 			|| format == TextureFormat::Format_BC7;
 	default: return false;
 	}
-}
-
-bool CheckError(const string& message)
-{
-#ifdef _DEBUG
-	return OpenGL_Renderer::GetError(message);
-#endif
-	return false;
 }
 
 stbir_pixel_layout ToStbirLayout(

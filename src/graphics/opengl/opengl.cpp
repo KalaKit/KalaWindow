@@ -47,39 +47,30 @@ namespace KalaWindow::Graphics::OpenGL
 		return false;
 	}
 
-	bool OpenGL_Renderer::GetError(const string& context)
+	string OpenGL_Renderer::GetError()
 	{
 		GLenum error{};
-		bool hadError = false;
+		string errorVal{};
 
 		while ((error = glGetError()) != GL_NO_ERROR)
 		{
-			hadError = true;
-
-			string msg{};
 			switch (error)
 			{
-			case GL_INVALID_ENUM:                  msg = "GL_INVALID_ENUM"; break;
-			case GL_INVALID_VALUE:                 msg = "GL_INVALID_VALUE"; break;
-			case GL_INVALID_INDEX:                 msg = "GL_INVALID_INDEX"; break;
+			case GL_INVALID_ENUM:                  errorVal = "GL_INVALID_ENUM"; break;
+			case GL_INVALID_VALUE:                 errorVal = "GL_INVALID_VALUE"; break;
+			case GL_INVALID_INDEX:                 errorVal = "GL_INVALID_INDEX"; break;
 
-			case GL_INVALID_OPERATION:             msg = "GL_INVALID_OPERATION"; break;
-			case GL_STACK_OVERFLOW:                msg = "GL_STACK_OVERFLOW"; break;
-			case GL_STACK_UNDERFLOW:               msg = "GL_STACK_UNDERFLOW"; break;
-			case GL_INVALID_FRAMEBUFFER_OPERATION: msg = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+			case GL_INVALID_OPERATION:             errorVal = "GL_INVALID_OPERATION"; break;
+			case GL_STACK_OVERFLOW:                errorVal = "GL_STACK_OVERFLOW"; break;
+			case GL_STACK_UNDERFLOW:               errorVal = "GL_STACK_UNDERFLOW"; break;
+			case GL_INVALID_FRAMEBUFFER_OPERATION: errorVal = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
 
-			case GL_OUT_OF_MEMORY:                 msg = "GL_OUT_OF_MEMORY"; break;
+			case GL_OUT_OF_MEMORY:                 errorVal = "GL_OUT_OF_MEMORY"; break;
 
-			default:                               msg = "Unknown error"; break;
+			default:                               errorVal = "Unknown error"; break;
 			}
-
-			Log::Print(
-				"OpenGL error in " + context + ": " + msg + " (0x" + to_string(error) + ")",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
 		}
 
-		return hadError;
+		return errorVal;
 	}
 }
