@@ -38,6 +38,7 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
 using KalaWindow::Core::createdOpenGLTextures;
 using KalaWindow::Core::runtimeOpenGLTextures;
+using KalaWindow::Core::runtimeWindows;
 
 using std::string;
 using std::string_view;
@@ -714,6 +715,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 	void OpenGL_Texture::LoadFallbackTexture()
 	{
+		while (glGetError() != GL_NO_ERROR) {} //clear old errors
+
 		if (fallbackTexture != nullptr)
 		{
 			Log::Print(
@@ -738,17 +741,23 @@ namespace KalaWindow::Graphics::OpenGL
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 
-		glTexImage2D(
+		glTexStorage2D(
 			GL_TEXTURE_2D,
-			0,
+			1,
 			GL_RGBA8,
 			32,
-			32,
+			32);
+
+		glTexSubImage2D(
+			GL_TEXTURE_2D,
 			0,
+			0,
+			0,
+			32,
+			32,
 			GL_RGBA,
 			GL_UNSIGNED_BYTE,
-			GetFallbackPixels().data()
-		);
+			GetFallbackPixels().data());
 
 		glGenerateMipmap(GL_TEXTURE_2D);
 

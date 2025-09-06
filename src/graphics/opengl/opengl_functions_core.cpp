@@ -236,6 +236,15 @@ namespace KalaWindow::Graphics::OpenGLFunctions
             << string(message) << "\n";
 
         Log::Print(oss.str());
+
+        if (severity == GL_DEBUG_SEVERITY_HIGH)
+        {
+            KalaWindowCore::ForceClose(
+                "OpenGL critical error",
+                oss.str());
+
+            return;
+        }
     }
 
     //
