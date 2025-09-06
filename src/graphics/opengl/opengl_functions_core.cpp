@@ -129,6 +129,8 @@ CoreGLFunction functions[] =
     { "glTexParameteriv", reinterpret_cast<void**>(&glTexParameteriv) },
     { "glTexParameterf",  reinterpret_cast<void**>(&glTexParameterf) },
     { "glTexParameterfv", reinterpret_cast<void**>(&glTexParameterfv) },
+    { "glPixelStorei",    reinterpret_cast<void**>(&glPixelStorei) },
+    { "glPixelStoref",    reinterpret_cast<void**>(&glPixelStoref) },
 
     //
     // FRAMEBUFFERS AND RENDERBUFFERS
@@ -322,6 +324,8 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLTEXPARAMETERIVPROC  glTexParameteriv  = nullptr;
     PFNGLTEXPARAMETERFPROC   glTexParameterf   = nullptr;
     PFNGLTEXPARAMETERFVPROC  glTexParameterfv  = nullptr;
+    PFNGLPIXELSTOREIPROC     glPixelStorei     = nullptr;
+    PFNGLPIXELSTOREFPROC     glPixelStoref     = nullptr;
 
     //
     // FRAMEBUFFERS AND RENDERBUFFERS

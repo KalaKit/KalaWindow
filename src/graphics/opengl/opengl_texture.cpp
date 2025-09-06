@@ -232,7 +232,7 @@ struct GLFormatInfo {
 	GLenum type;
 };
 
-static void CheckError(const string& message);
+static bool CheckError(const string& message);
 
 static stbir_pixel_layout ToStbirLayout(
 	TextureFormat format,
@@ -708,6 +708,9 @@ namespace KalaWindow::Graphics::OpenGL
 
 		glBindTexture(GL_TEXTURE_2D, newTextureID);
 
+		//reset state
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -722,8 +725,10 @@ namespace KalaWindow::Graphics::OpenGL
 			0,
 			GL_RGBA,
 			GL_UNSIGNED_BYTE,
-			fallbackPixels.data()
+			GetFallbackPixels().data()
 		);
+
+		glGenerateMipmap(GL_TEXTURE_2D);
 
 		u32 newID = ++globalID;
 		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
@@ -741,14 +746,15 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		fallbackTexture = texturePtr;
+		if (!CheckError("loading fallback texture '" + string(fallbackTextureName) + "'"))
+		{
+			fallbackTexture = texturePtr;
 
-		CheckError("loading fallback texture '" + string(fallbackTextureName) + "'");
-
-		Log::Print(
-			"Loaded fallback OpenGL texture '" + string(fallbackTextureName) + "' with ID '" + to_string(newID) + "'.",
-			"OPENGL_TEXTURE",
-			LogType::LOG_SUCCESS);
+			Log::Print(
+				"Loaded fallback OpenGL texture '" + string(fallbackTextureName) + "' with ID '" + to_string(newID) + "'.",
+				"OPENGL_TEXTURE",
+				LogType::LOG_SUCCESS);
+		}
 	}
 
 	OpenGL_Texture* OpenGL_Texture::GetFallbackTexture()
@@ -1160,13 +1166,14 @@ namespace KalaWindow::Graphics::OpenGL
 			break;
 		}
 
+		if (mipMapLevels > 1) glGenerateMipmap(targetType);
+
 		CheckError("hot-reloading texture '" + name + "' with " + target);
+
 		Log::Print(
 			"Hot-reloaded texture '" + name + "' with '" + target + "'!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
-
-		if (mipMapLevels > 1) glGenerateMipmap(targetType);
 	}
 
 	OpenGL_Texture::~OpenGL_Texture()
@@ -1542,11 +1549,12 @@ bool IsCorrectFormat(
 	}
 }
 
-void CheckError(const string& message)
+bool CheckError(const string& message)
 {
 #ifdef _DEBUG
-	OpenGL_Renderer::GetError(message);
+	return OpenGL_Renderer::GetError(message);
 #endif
+	return false;
 }
 
 stbir_pixel_layout ToStbirLayout(

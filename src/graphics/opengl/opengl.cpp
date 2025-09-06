@@ -27,6 +27,7 @@ using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::GlobalHandle;
 
 using std::string;
+using std::to_string;
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -46,12 +47,15 @@ namespace KalaWindow::Graphics::OpenGL
 		return false;
 	}
 
-	void OpenGL_Renderer::GetError(const string& context)
+	bool OpenGL_Renderer::GetError(const string& context)
 	{
 		GLenum error{};
+		bool hadError = false;
 
 		while ((error = glGetError()) != GL_NO_ERROR)
 		{
+			hadError = true;
+
 			string msg{};
 			switch (error)
 			{
@@ -70,10 +74,12 @@ namespace KalaWindow::Graphics::OpenGL
 			}
 
 			Log::Print(
-				"OpenGL error in " + context + ": " + msg,
+				"OpenGL error in " + context + ": " + msg + " (0x" + to_string(error) + ")",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 		}
+
+		return hadError;
 	}
 }

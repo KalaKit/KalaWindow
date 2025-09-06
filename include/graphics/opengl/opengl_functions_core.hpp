@@ -263,6 +263,12 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// Sets float/vector texture parameters for the currently bound texture
 	LIB_API extern PFNGLTEXPARAMETERFVPROC glTexParameterfv;
 
+	// Tells OpenGL how to step through rows of integer pixel data
+	LIB_API extern PFNGLPIXELSTOREIPROC glPixelStorei;
+
+	// Tells OpenGL how to step through rows of float pixel data
+	LIB_API extern PFNGLPIXELSTOREFPROC glPixelStoref;
+
 	//
 	// FRAMEBUFFERS AND RENDERBUFFERS
 	//

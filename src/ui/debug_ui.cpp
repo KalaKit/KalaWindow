@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <vector>
 #include <filesystem>
+#include <sstream>
 
 #include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
@@ -35,6 +36,9 @@ using std::filesystem::exists;
 using std::filesystem::is_regular_file;
 using std::filesystem::path;
 using std::filesystem::current_path;
+using std::setprecision;
+using std::fixed;
+using std::ostringstream;
 
 static ImGuiContext* context{};
 
@@ -81,8 +85,12 @@ namespace KalaWindow::UI
 		{
 			string keyPath = (current_path() / val.fontPath).string();
 
+			ostringstream oss{};
+			oss << "Attempting to load font '" << keyPath 
+				<< "' with size '" << fixed << setprecision(2) << val.fontSize << "'";
+
 			Log::Print(
-				"Attempting to load font '" + keyPath + "' with size '" + to_string(val.fontSize),
+				oss.str(),
 				"DEBUG_UI",
 				LogType::LOG_DEBUG);
 

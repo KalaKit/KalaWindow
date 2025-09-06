@@ -78,7 +78,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		//Place after any gl call to check if an issue or error has occured within that point.
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
-		static void GetError(const string& context);
+		static bool GetError(const string& context);
 
 		//
 		// OS-SPECIFIC
