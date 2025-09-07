@@ -12,7 +12,8 @@
 
 #include "KalaHeaders/core_types.hpp"
 #include "KalaHeaders/api.hpp"
-#include "glm/glm.hpp"
+
+#include "core/glm_global.hpp"
 
 //forward declare imgui font struct
 //so we dont have to include the whole imgui header
@@ -20,7 +21,6 @@ struct ImFont;
 
 namespace KalaWindow::UI
 {
-	using glm::vec2;
 	using std::string;
 	using std::function;
 	using std::unordered_map;
