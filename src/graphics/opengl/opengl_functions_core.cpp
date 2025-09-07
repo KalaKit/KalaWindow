@@ -63,6 +63,7 @@ CoreGLFunction functions[] =
     { "glGetVertexAttribiv",       reinterpret_cast<void**>(&glGetVertexAttribiv) },
     { "glGetVertexAttribPointerv", reinterpret_cast<void**>(&glGetVertexAttribPointerv) },
     { "glVertexAttribPointer",     reinterpret_cast<void**>(&glVertexAttribPointer) },
+    { "glCullFace",                reinterpret_cast<void**>(&glCullFace) },
 
     //
     // SHADERS
@@ -282,6 +283,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     PFNGLGETVERTEXATTRIBIVPROC       glGetVertexAttribiv       = nullptr;
     PFNGLGETVERTEXATTRIBPOINTERVPROC glGetVertexAttribPointerv = nullptr;
     PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer     = nullptr;
+    PFNGLCULLFACEPROC                glCullFace                = nullptr;
 
     //
     // SHADERS

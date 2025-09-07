@@ -95,6 +95,9 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	//Defines an array of generic vertex attribute data
 	LIB_API extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 
+	// Tells OpenGL which faces to not render before fragment shading
+	LIB_API extern PFNGLCULLFACEPROC glCullFace;
+
 	//
 	// SHADERS
 	//
