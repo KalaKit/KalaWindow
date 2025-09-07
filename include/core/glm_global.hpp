@@ -36,15 +36,39 @@ using glm::pi;
 
 //Return projection in 2D orthrographic space based off of window client rect size.
 //Positions 2D objects in top-left origin like UI
-inline mat4 Projection2D(vec2 clientRectSize)
+inline mat3 Projection2D(vec2 clientRectSize)
 {
-	return ortho(
-		0.0f,             //left
-		clientRectSize.x, //right
-		clientRectSize.y, //bottom
-		0.0f,             //top
-		-1.0f,            //near
-		1.0f);            //far
+	float left = 0.0f;
+	float right = clientRectSize.x;
+	float top = 0.0f;
+	float bottom = clientRectSize.y;
+
+	mat3 proj(1.0f);
+
+	proj[0][0] = 2.0f / (right - left);
+	proj[1][1] = 2.0f / (top - bottom); //flip Y
+	proj[2][0] = -(right + left) / (right - left);
+	proj[2][1] = -(top + bottom) / (top - bottom);
+
+	return proj;
+}
+
+//Return projection in 2D orthrographic space based off of custom viewports.
+//Positions 2D objects in top-left origin like UI
+inline mat3 Projection2D(
+	float left, 
+	float right, 
+	float top, 
+	float bottom)
+{
+	mat3 proj(1.0f);
+
+	proj[0][0] = 2.0f / (right - left);
+	proj[1][1] = 2.0f / (top - bottom); //flip Y
+	proj[2][0] = -(right + left) / (right - left);
+	proj[2][1] = -(top + bottom) / (top - bottom);
+
+	return proj;
 }
 
 //Translate model in 2D orthographic space

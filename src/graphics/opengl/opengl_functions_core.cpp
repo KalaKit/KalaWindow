@@ -145,6 +145,21 @@ CoreGLFunction functions[] =
     { "glGenRenderbuffers",        reinterpret_cast<void**>(&glGenRenderbuffers) },
     { "glGenFramebuffers",         reinterpret_cast<void**>(&glGenFramebuffers) },
     { "glRenderbufferStorage",     reinterpret_cast<void**>(&glRenderbufferStorage) },
+    { "glDepthFunc",               reinterpret_cast<void**>(&glDepthFunc) },
+    { "glDepthMask",               reinterpret_cast<void**>(&glDepthMask) },
+    { "glBlendColor",              reinterpret_cast<void**>(&glBlendColor) },
+    { "glBlendFunc",               reinterpret_cast<void**>(&glBlendFunc) },
+    { "glBlendFunci",              reinterpret_cast<void**>(&glBlendFunci) },
+    { "glBlendEquation",           reinterpret_cast<void**>(&glBlendEquation) },
+    { "glBlendEquationi",          reinterpret_cast<void**>(&glBlendEquationi) },
+    { "glBlendEquationSeparate",   reinterpret_cast<void**>(&glBlendEquationSeparate) },
+    { "glBlendEquationSeparatei",  reinterpret_cast<void**>(&glBlendEquationSeparatei) },
+    { "glStencilFunc",             reinterpret_cast<void**>(&glStencilFunc) },
+    { "glStencilFuncSeparate",     reinterpret_cast<void**>(&glStencilFuncSeparate) },
+    { "glStencilMask",             reinterpret_cast<void**>(&glStencilMask) },
+    { "glStencilMaskSeparate",     reinterpret_cast<void**>(&glStencilMaskSeparate) },
+    { "glStencilOp",               reinterpret_cast<void**>(&glStencilOp) },
+    { "glStencilOpSeparate",       reinterpret_cast<void**>(&glStencilOpSeparate) },
 
     //
     // FRAME AND RENDER STATE
@@ -340,15 +355,30 @@ namespace KalaWindow::Graphics::OpenGLFunctions
     // FRAMEBUFFERS AND RENDERBUFFERS
     //
 
-    PFNGLBINDRENDERBUFFERPROC        glBindRenderbuffer         = nullptr;
-    PFNGLBINDFRAMEBUFFERPROC         glBindFramebuffer          = nullptr;
-    PFNGLBINDBUFFERBASEPROC          glBindBufferBase           = nullptr;
-    PFNGLCHECKFRAMEBUFFERSTATUSPROC  glCheckFramebufferStatus   = nullptr;
-    PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer  = nullptr;
-    PFNGLFRAMEBUFFERTEXTURE2DPROC    glFramebufferTexture2D     = nullptr;
-    PFNGLGENRENDERBUFFERSPROC        glGenRenderbuffers         = nullptr;
-    PFNGLGENFRAMEBUFFERSPROC         glGenFramebuffers          = nullptr;
-    PFNGLRENDERBUFFERSTORAGEPROC     glRenderbufferStorage      = nullptr;
+    PFNGLBINDRENDERBUFFERPROC        glBindRenderbuffer        = nullptr;
+    PFNGLBINDFRAMEBUFFERPROC         glBindFramebuffer         = nullptr;
+    PFNGLBINDBUFFERBASEPROC          glBindBufferBase          = nullptr;
+    PFNGLCHECKFRAMEBUFFERSTATUSPROC  glCheckFramebufferStatus  = nullptr;
+    PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer = nullptr;
+    PFNGLFRAMEBUFFERTEXTURE2DPROC    glFramebufferTexture2D    = nullptr;
+    PFNGLGENRENDERBUFFERSPROC        glGenRenderbuffers        = nullptr;
+    PFNGLGENFRAMEBUFFERSPROC         glGenFramebuffers         = nullptr;
+    PFNGLRENDERBUFFERSTORAGEPROC     glRenderbufferStorage     = nullptr;
+    PFNGLDEPTHFUNCPROC               glDepthFunc               = nullptr;
+    PFNGLDEPTHMASKPROC               glDepthMask               = nullptr;
+    PFNGLBLENDCOLORPROC              glBlendColor              = nullptr;
+    PFNGLBLENDFUNCPROC               glBlendFunc               = nullptr;
+    PFNGLBLENDFUNCIPROC              glBlendFunci              = nullptr;
+    PFNGLBLENDEQUATIONPROC           glBlendEquation           = nullptr;
+    PFNGLBLENDEQUATIONIPROC          glBlendEquationi          = nullptr;
+    PFNGLBLENDEQUATIONSEPARATEPROC   glBlendEquationSeparate   = nullptr;
+    PFNGLBLENDEQUATIONSEPARATEIPROC  glBlendEquationSeparatei  = nullptr;
+    PFNGLSTENCILFUNCPROC             glStencilFunc             = nullptr;
+    PFNGLSTENCILFUNCSEPARATEPROC     glStencilFuncSeparate     = nullptr;
+    PFNGLSTENCILMASKPROC             glStencilMask             = nullptr;
+    PFNGLSTENCILMASKSEPARATEPROC     glStencilMaskSeparate     = nullptr;
+    PFNGLSTENCILOPPROC               glStencilOp               = nullptr;
+    PFNGLSTENCILOPSEPARATEPROC       glStencilOpSeparate       = nullptr;
 
     //
     // FRAME AND RENDER STATE

@@ -300,6 +300,53 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	// Establishes data storage format and dimensions for a renderbuffer
 	LIB_API extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
 
+	// Sets the comparison function used for depth testing
+	LIB_API extern PFNGLDEPTHFUNCPROC glDepthFunc;
+
+	// Toggles writing to the depth buffer
+	LIB_API extern PFNGLDEPTHMASKPROC glDepthMask;
+
+	// Sets the constant blend color used with blending factors
+	LIB_API extern PFNGLBLENDCOLORPROC glBlendColor;
+
+	// Sets the blending factors used to combine source and destination colors
+	LIB_API extern PFNGLBLENDFUNCPROC glBlendFunc;
+
+	// Sets the blending factors used to combine source and destination colors for a specific color buffer
+	LIB_API extern PFNGLBLENDFUNCIPROC glBlendFunci;
+
+	// Sets the blend equation used to combine source and destination colors
+	LIB_API extern PFNGLBLENDEQUATIONPROC glBlendEquation;
+
+	// Sets the per-render-target blend equation used to combine source and destination colors
+	LIB_API extern PFNGLBLENDEQUATIONIPROC glBlendEquationi;
+
+	// Sets the blend equation used to combine source and destination colors
+	// as well as RGB and Alpha channels
+	LIB_API extern PFNGLBLENDEQUATIONSEPARATEPROC glBlendEquationSeparate;
+
+	// Sets the per-render-target blend equation used to combine source and destination colors
+	// as well as RGB and Alpha channels
+	LIB_API extern PFNGLBLENDEQUATIONSEPARATEIPROC glBlendEquationSeparatei;
+
+	// Sets the stencil test function, reference value and mask
+	LIB_API extern PFNGLSTENCILFUNCPROC glStencilFunc;
+
+	// Sets the stencil test function separately for front and back faces
+	LIB_API extern PFNGLSTENCILFUNCSEPARATEPROC glStencilFuncSeparate;
+
+	// Sets the bitmask that controls which bits of the stencil buffer can be written
+	LIB_API extern PFNGLSTENCILMASKPROC glStencilMask;
+
+	// Sets which bits of the stencil buffer can be written, separately per face
+	LIB_API extern PFNGLSTENCILMASKSEPARATEPROC glStencilMaskSeparate;
+
+	// Sets the action to take on stencil failure, depth test failure and depth test pass
+	LIB_API extern PFNGLSTENCILOPPROC glStencilOp;
+
+	// Sets stencil operations separately for front and back faces
+	LIB_API extern PFNGLSTENCILOPSEPARATEPROC glStencilOpSeparate;
+
 	//
 	// FRAME AND RENDER STATE
 	//
