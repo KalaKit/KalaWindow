@@ -1360,7 +1360,7 @@ OpenGL_Texture* InitTexture(
 			nrChannels))
 		{
 			Log::Print(
-				"Texture '" + name + "' was loaded with an incorrect format!",
+				"Texture '" + name + "' was loaded with an incorrect format! Channel count is '" + to_string(nrChannels) + "'",
 				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
