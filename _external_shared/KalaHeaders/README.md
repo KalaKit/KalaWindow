@@ -47,7 +47,7 @@ Shorthands for math variables and overrideable cross-platform templates for conv
 
 ---
 
-## kala_types.hpp
+## kalautils.hpp
 
 Provides shorthands and helpers for various types, each split into its own namespace
 

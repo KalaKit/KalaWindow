@@ -1,15 +1,19 @@
 //------------------------------------------------------------------------------
-// kala_types.hpp
+// kalautils.hpp
 //
 // Copyright (C) 2025 Lost Empire Entertainment
 //
 // This is free source code, and you are welcome to redistribute it under certain conditions.
 // Read LICENSE.md for more information.
 //
+// Shorthands and helpers for many common C++ 20 operations.
+//
 // Provides:
+//   - MATH                   - shorthands for common math variables
+//   - PLATFORM CONVERT       - helpers for common platform-agnostic conversion operations
 //   - STRING                 - shorthands and helpers for string operations
 //   - TYPE TRAITS            - helpers for checking if var is type
-//   - FIXED TYPE CONTAINERS  - shorthands for common fixed-type containers
+//   - FIXED TYPE CONTAINERS  - shorthands and helpers for common fixed-type containers
 //   - MEMORY                 - shorthands and helpers for smart pointer operations
 //   - TUPLE                  - helpers for tuple operations
 //   - SPAN                   - shorthands and helpers for span operations
@@ -20,6 +24,8 @@
 //   - LOG                    - shorthands and helpers for logging operations
 //   - TIME                   - shorthands and helpers for time operations
 //   - SORT                   - helpers for sort operations
+//   - THREADING              - shorthands and helpers for threading operations
+//   - NETWORKING             - shorthands and helpers for networking operations
 //------------------------------------------------------------------------------
 
 #pragma once
@@ -59,6 +65,25 @@ using std::ignore;    //ignore a tuple variable
 using std::byte;      //for binary operations in filestream
 using std::streambuf; //for log ostream reset
 using std::sort;
+
+//
+// MATH
+//
+
+namespace KMath
+{
+	//TODO: add shorthands and helpers for pi, deg, rad, min, max, clamp, lerp etc
+	//TODO: move math shorthands from core_types.hpp to here
+}
+
+//
+// PLATFORM CONVERT
+//
+
+namespace KConvert
+{
+	//TODO: move platform-agnostic helpers from core_types.hpp to here
+}
 
 //
 // STRING
@@ -145,6 +170,8 @@ namespace KContainer
 
 	template<typename K, typename V>
 	using k_map = std::map<K, V>;
+	
+	//TODO: add get, set, push, emplace templates
 }
 
 //
@@ -578,7 +605,7 @@ namespace KLog
 
 namespace KTime
 {
-
+	//TODO: add content
 }
 
 //
@@ -587,5 +614,23 @@ namespace KTime
 
 namespace KSort
 {
+	//TODO: add content
+}
 
+//
+// THREADING
+//
+
+namespace KThread
+{
+	//TODO: add shorthands and helpers for thread, mutex, lock, launching, joining, detaching, closing threads
+}
+
+//
+// NETWORKING
+//
+
+namespace KNetworking
+{
+	//TODO: add shorthands and helpers for sockets, ip parsing, send/recv
 }

@@ -13,6 +13,8 @@
 
 #pragma once
 
+//TODO: move to kala_types.hpp and delete this
+
 #include <cstdint>
 #include <type_traits>
 

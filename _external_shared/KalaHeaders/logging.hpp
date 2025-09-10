@@ -237,7 +237,7 @@ namespace KalaHeaders
 		//  - message: the actual message of this log
 		//  - target: name of the namespace, class, function or variable of this log
 		//  - type: sets the tag type, LOG_INFO has no tag
-		//  - indentation: optional leading space count in front of the message
+		//  - indentation: optional leading space count in after time and date stamp
 		//  - timeFormat: optional time stamp
 		//  - dateFormat: optional date stamp
 		static void Print(
@@ -292,6 +292,8 @@ namespace KalaHeaders
 
 			string fullMessage = "[ ";
 
+			string indent(indentation, ' ');
+
 			if (dateFormat != DateFormat::DATE_NONE
 				&& defaultDateFormat != DateFormat::DATE_NONE)
 			{
@@ -303,7 +305,13 @@ namespace KalaHeaders
 				&& defaultTimeFormat != TimeFormat::TIME_NONE)
 			{
 				string timeStamp = GetTime(timeFormat);
-				fullMessage += timeStamp + " ] [ ";
+				if (!indent.empty()) fullMessage += timeStamp + " ]" + indent + "[ ";
+				else fullMessage += timeStamp + " ] [ ";
+			}
+			else
+			{
+				if (!indent.empty()) fullMessage += indent + "[ ";
+				else fullMessage += " [";
 			}
 
 			string logType{};
