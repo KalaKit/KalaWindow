@@ -7,22 +7,22 @@
 
 #include <cmath>
 
+#define GLM_ENABLE_EXPERIMENTAL //for extractEulerAngleXYZ
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/quaternion.hpp"
+#include "glm/gtx/euler_angles.hpp"
 
-using glm::vec2;
-using glm::vec3;
-using glm::vec4;
+using std::isfinite;
 
-using glm::ivec2;
-using glm::ivec3;
-using glm::ivec4;
+using glm::vec2; using glm::dvec2; using glm::ivec2;
+using glm::vec3; using glm::dvec3; using glm::ivec3;
+using glm::vec4; using glm::dvec4; using glm::ivec4;
 
-using glm::mat2;
-using glm::mat3;
-using glm::mat4;
+using glm::mat2; using glm::dmat2;
+using glm::mat3; using glm::dmat3;
+using glm::mat4; using glm::dmat4;
 
 using glm::translate;
 using glm::scale;
@@ -35,7 +35,7 @@ using glm::quat;
 using glm::mat4_cast;
 using glm::lookAt;
 using glm::pi;
-using std::isfinite;
+using glm::extractEulerAngleXYZ;
 
 //Return projection in 2D orthrographic space based off of window client rect size.
 //Positions 2D objects in top-left origin like UI
