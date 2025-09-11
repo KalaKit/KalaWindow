@@ -123,7 +123,7 @@ inline bool IsFiniteVec2(const vec2& v)
 		isfinite(v.x)
 		&& isfinite(v.y);
 }
-//Returns true if all values in a vec3 values are not Nan and not Inf
+//Returns true if all values in a vec3 are not Nan and not Inf
 inline bool IsFiniteVec3(const vec3& v)
 {
 	return
