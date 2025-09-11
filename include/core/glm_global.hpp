@@ -5,6 +5,8 @@
 
 #pragma once
 
+#include <cmath>
+
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
@@ -33,6 +35,7 @@ using glm::quat;
 using glm::mat4_cast;
 using glm::lookAt;
 using glm::pi;
+using std::isfinite;
 
 //Return projection in 2D orthrographic space based off of window client rect size.
 //Positions 2D objects in top-left origin like UI
@@ -102,4 +105,55 @@ inline mat3 Scale2D(mat3& model, const vec2& scale)
 		0.0f, 0.0f, 1.0f);
 
 	return model * sc;
+}
+
+//Returns true if all values in a quat are not Nan and not Inf
+inline bool IsFiniteQuat(const quat& q)
+{
+	return
+		isfinite(q.x)
+		&& isfinite(q.y)
+		&& isfinite(q.z)
+		&& isfinite(q.w);
+}
+//Returns true if all values in a vec2 are not Nan and not Inf
+inline bool IsFiniteVec2(const vec2& v)
+{
+	return
+		isfinite(v.x)
+		&& isfinite(v.y);
+}
+//Returns true if all values in a vec3 values are not Nan and not Inf
+inline bool IsFiniteVec3(const vec3& v)
+{
+	return
+		isfinite(v.x)
+		&& isfinite(v.y)
+		&& isfinite(v.z);
+}
+//Returns true if all values in a vec4 are not Nan and not Inf
+inline bool IsFiniteVec4(const vec4& v)
+{
+	return
+		isfinite(v.x)
+		&& isfinite(v.y)
+		&& isfinite(v.z)
+		&& isfinite(v.w);
+}
+//Returns true if all values in a mat3 are not Nan and not Inf
+inline bool IsFiniteMat3(const mat3& m)
+{
+	return
+		IsFiniteVec3(m[0])
+		&& IsFiniteVec3(m[1])
+		&& IsFiniteVec3(m[2]);
+}
+//Returns true if all values in a mat4 are not Nan and not Inf
+inline bool IsFiniteMat4(const mat4& m)
+{
+	return
+		IsFiniteVec4(m[0])
+		&& IsFiniteVec4(m[1])
+		&& IsFiniteVec4(m[2])
+		&& IsFiniteVec4(m[3]);
 }
