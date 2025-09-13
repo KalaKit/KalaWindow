@@ -13,6 +13,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/quaternion.hpp"
 #include "glm/gtx/euler_angles.hpp"
+#include "glm/gtx/matrix_decompose.hpp"
 
 using std::isfinite;
 
@@ -36,6 +37,7 @@ using glm::mat4_cast;
 using glm::lookAt;
 using glm::pi;
 using glm::extractEulerAngleXYZ;
+using glm::decompose;
 
 //Return projection in 2D orthrographic space based off of window client rect size.
 //Positions 2D objects in top-left origin like UI
