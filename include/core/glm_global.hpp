@@ -6,16 +6,27 @@
 #pragma once
 
 #include <cmath>
+#include <algorithm>
 
-#define GLM_ENABLE_EXPERIMENTAL //for extractEulerAngleXYZ
+#define GLM_ENABLE_EXPERIMENTAL //for glm::decompose
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include "glm/gtc/quaternion.hpp"
-#include "glm/gtx/euler_angles.hpp"
 #include "glm/gtx/matrix_decompose.hpp"
+#include "glm/gtx/norm.hpp"
 
 using std::isfinite;
+using std::fabs;
+using std::min;
+using std::max;
+using std::numeric_limits;
+using std::acos;
+using std::sqrt;
+using std::sin;
+using std::cos;
+using std::tan;
+using std::clamp;
 
 using glm::vec2; using glm::dvec2; using glm::ivec2;
 using glm::vec3; using glm::dvec3; using glm::ivec3;
@@ -33,11 +44,24 @@ using glm::ortho;
 using glm::perspective;
 using glm::value_ptr;
 using glm::quat;
+using glm::quat_cast;
 using glm::mat4_cast;
 using glm::lookAt;
 using glm::pi;
-using glm::extractEulerAngleXYZ;
 using glm::decompose;
+using glm::degrees;
+using glm::dot;
+using glm::length;
+using glm::length2;
+using glm::normalize;
+using glm::cross;
+
+//GLM version of clamp for vector math, not compatible with std::clamp
+template <typename T, typename U, typename V>
+inline T clampGLM(const T& x, const U& minVal, const V& maxVal)
+{
+	return glm::clamp(x, minVal, maxVal);
+}
 
 //Return projection in 2D orthographic space based off of window client rect size.
 //Positions 2D objects in top-left origin like UI

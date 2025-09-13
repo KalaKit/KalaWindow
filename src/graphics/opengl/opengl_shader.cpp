@@ -625,7 +625,7 @@ namespace KalaWindow::Graphics::OpenGL
         //back up old data
         vector<ShaderStage> oldShaders = GetAllShaders();
 
-        //attepmt to recreate
+        //attempt to recreate
 
         vector<ShaderStage> stagesToReload{};
         for (const auto& stage : oldShaders)

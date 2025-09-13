@@ -408,7 +408,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!AllTextureExtensionsMatch(paths))
 		{
 			Log::Print(
-				"Failed to load cube map texture '" + name + "' because its extensions dont match!",
+				"Failed to load cube map texture '" + name + "' because its extensions don't match!",
 				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
@@ -575,7 +575,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!AllTextureExtensionsMatch(texturePaths))
 		{
 			Log::Print(
-				"Failed to load 2D array texture '" + name + "' because its extensions dont match!",
+				"Failed to load 2D array texture '" + name + "' because its extensions don't match!",
 				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
@@ -1471,7 +1471,7 @@ OpenGL_Texture* InitTexture(
 			|| extension == ".jpeg"))
 	{
 		Log::Print(
-			"Compressed format was used for noncompressed texture '" + name + "'!",
+			"Compressed format was used for uncompressed texture '" + name + "'!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
