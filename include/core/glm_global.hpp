@@ -55,6 +55,7 @@ using glm::length;
 using glm::length2;
 using glm::normalize;
 using glm::cross;
+using glm::angleAxis;
 
 //GLM version of clamp for vector math, not compatible with std::clamp
 template <typename T, typename U, typename V>
