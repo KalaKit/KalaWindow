@@ -189,7 +189,7 @@ namespace KalaWindow::Graphics
 
 		//Set overlay icon and optional tooltip. Loaded via the texture framework.
 		//The overlay icon is shown in the task bar in the bottom right corner of the exe icon,
-		//the tooltop is what text appears if you hover over it.
+		//the tooltip is what text appears if you hover over it.
 		//The overlay icon must be exactly 16x16px in size.
 		//The first parameter requires an ID to the texture.
 		void SetTaskbarOverlayIcon(
@@ -408,7 +408,7 @@ namespace KalaWindow::Graphics
 			const function<void()> func = nullptr);
 
 		//Add a horizontal separator line to the menu label.
-		//If itemLabel isnt empty and exists then the sesparator is placed after the item label,
+		//If itemLabel isn't empty and exists then the separator is placed after the item label,
 		//otherwise it is placed at the end of the menu label
 		static void AddSeparator(
 			Window* windowRef,

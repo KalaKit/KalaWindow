@@ -39,7 +39,7 @@ using glm::pi;
 using glm::extractEulerAngleXYZ;
 using glm::decompose;
 
-//Return projection in 2D orthrographic space based off of window client rect size.
+//Return projection in 2D orthographic space based off of window client rect size.
 //Positions 2D objects in top-left origin like UI
 inline mat3 Projection2D(vec2 clientRectSize)
 {
@@ -58,7 +58,7 @@ inline mat3 Projection2D(vec2 clientRectSize)
 	return proj;
 }
 
-//Return projection in 2D orthrographic space based off of custom viewports.
+//Return projection in 2D orthographic space based off of custom viewports.
 //Positions 2D objects in top-left origin like UI
 inline mat3 Projection2D(
 	float left, 

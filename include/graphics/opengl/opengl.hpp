@@ -76,7 +76,7 @@ namespace KalaWindow::Graphics::OpenGL
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);
 
-		//Place after any gl call to check if an issue or error has occured within that point.
+		//Place after any gl call to check if an issue or error has occurred within that point.
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
 		static string GetError();
 

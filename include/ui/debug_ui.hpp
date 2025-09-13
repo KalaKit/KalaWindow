@@ -16,7 +16,7 @@
 #include "core/glm_global.hpp"
 
 //forward declare imgui font struct
-//so we dont have to include the whole imgui header
+//so we don't have to include the whole imgui header
 struct ImFont;
 
 namespace KalaWindow::UI

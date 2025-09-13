@@ -728,10 +728,10 @@ namespace KalaWindow::Graphics
 
 	void Window::CreateNotification(
 		const string& title,
-		const string& nessage)
+		const string& message)
 	{
 		wstring titleW = ToWide(title);
-		wstring messageW = ToWide(nessage);
+		wstring messageW = ToWide(message);
 
 		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
 			ToastTemplateType::ToastImageAndText02);
@@ -1712,7 +1712,7 @@ namespace KalaWindow::Graphics
 		if (Window::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' close buttpn state to '" + val + "'",
+				"Set window '" + GetTitle() + "' close button state to '" + val + "'",
 				"WINDOW_WINDOWS",
 				LogType::LOG_SUCCESS);
 		}
