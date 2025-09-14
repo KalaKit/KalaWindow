@@ -45,6 +45,7 @@ using glm::perspective;
 using glm::value_ptr;
 using glm::quat;
 using glm::quat_cast;
+using glm::mat3_cast;
 using glm::mat4_cast;
 using glm::lookAt;
 using glm::pi;
