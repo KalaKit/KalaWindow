@@ -9,22 +9,23 @@
 #include <functional>
 #include <unordered_map>
 #include <vector>
+#include <array>
+
+#include "imgui/imgui.h"
 
 #include "KalaHeaders/core_types.hpp"
 #include "KalaHeaders/api.hpp"
 
 #include "core/glm_global.hpp"
 
-//forward declare imgui font struct
-//so we don't have to include the whole imgui header
-struct ImFont;
-
 namespace KalaWindow::UI
 {
 	using std::string;
+	using std::to_string;
 	using std::function;
 	using std::unordered_map;
 	using std::vector;
+	using std::array;
 
 	struct UserFont
 	{
@@ -49,6 +50,16 @@ namespace KalaWindow::UI
 	{
 	public:
 		static inline unordered_map<string, UserFont> userFonts{};
+
+		static int FilterDigits(ImGuiInputTextCallbackData* data)
+		{
+			if (data->EventChar >= '0'
+				&& data->EventChar <= '9')
+			{
+				return false;
+			}
+			return true;
+		}
 
 		//Set up ImGui. Also set docking state with enableDocking.
 		//Pass paths and font size per font relative to your executable to load as ImGui fonts
@@ -113,6 +124,78 @@ namespace KalaWindow::UI
 			function<void()> func,
 			const string& title,
 			vec2 size = vec2(0));
+
+		//Render a dynamic size text field
+		// - ID: unique ID for this text element
+		// - width: how wide this text field is
+		// - buffer: char pointer of your target text where user input will be stored inside of
+		// - size: max allowed characters + null terminator
+		// - digitsOnly: if true, then only digits can be inserted
+		static void RenderTextField(
+			u32 ID,
+			u16 width,
+			char* buffer,
+			size_t size,
+			bool digitsOnly = false)
+		{
+			string label = "##" + to_string(ID);
+
+			ImGui::PushItemWidth(width);
+
+			if (!digitsOnly)
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer,
+					size);
+			}
+			else
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer,
+					size,
+					ImGuiInputTextFlags_CallbackCharFilter,
+					FilterDigits);
+			}
+
+			ImGui::PopItemWidth();
+		}
+		//Render a fixed size text field
+		// - ID: unique ID for this text element
+		// - width: how wide this text field is
+		// - buffer: char array of your target text where user input will be stored inside of
+		// - digitsOnly: if true, then only digits can be inserted
+		template <size_t N>
+		static void RenderTextField(
+			u32 ID,
+			u16 width,
+			array<char, N>& buffer,
+			bool digitsOnly = false)
+		{
+			string label = "##" + to_string(ID);
+
+			ImGui::PushItemWidth(width);
+
+			if (!digitsOnly)
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer.data(),
+					buffer.size());
+			}
+			else
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer.data(),
+					buffer.size(),
+					ImGuiInputTextFlags_CallbackCharFilter,
+					FilterDigits);
+			}
+
+			ImGui::PopItemWidth();
+		}
 
 		//ImGui main draw loop
 		static void Render(u32 windowID);

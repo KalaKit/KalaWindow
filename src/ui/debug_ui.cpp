@@ -8,7 +8,6 @@
 #include <filesystem>
 #include <sstream>
 
-#include "imgui/imgui.h"
 #include "imgui/backends/imgui_impl_opengl3.h"
 #ifdef _WIN32
 #include "imgui/backends/imgui_impl_win32.h"
