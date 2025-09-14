@@ -68,17 +68,15 @@ inline T clampGLM(const T& x, const U& minVal, const V& maxVal)
 //Positions 2D objects in top-left origin like UI
 inline mat3 Projection2D(vec2 clientRectSize)
 {
-	float left = 0.0f;
-	float right = clientRectSize.x;
-	float top = 0.0f;
-	float bottom = clientRectSize.y;
+	float w = clientRectSize.x;
+	float h = clientRectSize.y;
 
 	mat3 proj(1.0f);
 
-	proj[0][0] = 2.0f / (right - left);
-	proj[1][1] = 2.0f / (top - bottom); //flip Y
-	proj[2][0] = -(right + left) / (right - left);
-	proj[2][1] = -(top + bottom) / (top - bottom);
+	proj[0][0] = 2.0f / w;  //X scale
+	proj[1][1] = -2.0f / h; //Y scale (flip Y so 0 is top)
+	proj[2][0] = -1.0f;     //move X origin to left edge
+	proj[2][1] = 1.0f;      //move Y origin to top edge
 
 	return proj;
 }
