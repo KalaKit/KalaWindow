@@ -188,7 +188,7 @@ if (WIN32)
 endif()
 	
 # Copy docs
-set(COPY_TARGETS README.md LICENSE.md CHANGES.txt)
+set(COPY_TARGETS README.md LICENSE.md)
 foreach(FILE ${COPY_TARGETS})
 add_custom_command(TARGET KalaWindow POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:KalaWindow>/${FILE}"
