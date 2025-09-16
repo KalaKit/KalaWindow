@@ -24,5 +24,3 @@ Disk space: 200MB
 
 **Notes:**  
 *1 – Also available as AGP variants; earliest CPUs: Intel Pentium 4 2.4 GHz / AMD Athlon 64 2800+  
-     NVIDIA AGP min driver: 340.52  
-     AMD AGP min driver: Catalyst 13.9 (legacy)
