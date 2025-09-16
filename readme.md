@@ -18,9 +18,13 @@ KalaWindow requires Windows 10 (1809 build 17763) or higher and is not supported
 
 > \*³ KalaWindow plans to support Vulkan 1.3 in a later version but no support for DirectX or MoltenVK or other graphics backends is planned.
 
----
+# Projects made with KalaWindow
 
-## Links
+Send me an email at `sanderveski@gmail.com` or message me on discord at `greenlaser` if you want your game or program you made with KalaWindow to be listed here
+
+- [Circuit Chan](https://github.com/lost-empire-entertainment/circuit-chan)
+
+# Links
 
 [Donate on PayPal](https://www.paypal.com/donate/?hosted_button_id=QWG8SAYX5TTP6)
 
@@ -32,9 +36,7 @@ KalaWindow requires Windows 10 (1809 build 17763) or higher and is not supported
 
 [Track development on the Trello board](https://trello.com/b/rXmMDRaf/kalawindow)
 
----
-
-## Docs
+# Docs
 
 [How to build from source](docs/build_from_source.md)
 
