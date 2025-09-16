@@ -18,7 +18,7 @@ Disk space: 200MB
 |---------|-----------------|------------------------|
 | Intel   | Integrated GPU  | HD Graphics 4000       |
 | Intel   | Discrete GPU    | Iris Xe MAX Graphics (DG1) |
-| AMD     | Integrated APU  | Radeon HD 6550D (Sumo) |
+| AMD     | Integrated GPU  | Radeon HD 6550D (Sumo) |
 | AMD     | Discrete GPU    | Radeon HD 5000 series* |
 | NVIDIA  | Discrete GPU    | GeForce 8 series*      |
 
