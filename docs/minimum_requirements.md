@@ -2,7 +2,7 @@
 
 The following tables list the oldest known hardware that should, in theory, run this framework at the API level. These configurations are not tested and may not offer usable performance. They represent the technical minimum for compatibility, not a performance recommendation.
 
-All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**. Older OS versions may work but are **untested**.
+All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**.
 
 ### OpenGL 3.3
 
@@ -13,20 +13,6 @@ All targets assume **64-bit systems with Windows 10/11 or Linux distro from the 
 | Pentium 4 520       | Athlon 64 3000+    | Discrete GPU    | GeForce 8 series *1             | GeForce/ION 260.89+                |
 | Core i3-3217U       | FX-4100            | Integrated GPU  | HD Graphics 4000 (Ivy Bridge)  | 8.15.10.2622+ / Mesa 10.0+         |
 | Core i3-10100       | Ryzen 3 3200G      | Discrete GPU    | Iris Xe MAX Graphics (DG1)     | 31.0.101.3616+ / Mesa 20.0+        |
-
----
-
-### Vulkan 1.2
-
-| Intel CPU           | AMD CPU            | GPU Type        | GPU Name/Series               | Min Driver Version                |
-|---------------------|--------------------|-----------------|--------------------------------|------------------------------------|
-| Core i3-2100        | Ryzen 3 2200U      | Integrated APU  | Radeon Vega 8                  | AMDVLK 2020.Q1.1 / Mesa 20.0+      |
-| Core i3-2100        | FX-4300            | Discrete GPU    | Radeon HD 7000 series (GCN 1.0+)| Adrenalin 21.6.1+ / RADV 20.0+     |
-| Core 2 Duo E4300    | Athlon 64 X2 3800+ | Discrete GPU    | GeForce 600 series             | GeForce 441.99 beta (R440 series)+ |
-| Pentium Gold G5400  | Ryzen 3 2200G      | Integrated GPU  | UHD Graphics 610 (Pentium)     | 26.20.100.7755+ / Mesa 20.0+       |
-| Core i3-10100       | Ryzen 3 3200G      | Discrete GPU    | Iris Xe MAX Graphics (DG1)     | 27.20.100.8845+ / Mesa 20.0+       |
-
----
 
 **Notes:**  
 *1 – Also available as AGP variants; earliest CPUs: Intel Pentium 4 2.4 GHz / AMD Athlon 64 2800+  
