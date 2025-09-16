@@ -186,9 +186,9 @@ if (WIN32)
 
     target_sources(KalaWindow PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
 endif()
-	
-# Copy docs
-set(COPY_TARGETS README.md LICENSE.md)
+
+# Copy important files
+set(COPY_TARGETS README.md LICENSE.md logo.png)
 foreach(FILE ${COPY_TARGETS})
 add_custom_command(TARGET KalaWindow POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:KalaWindow>/${FILE}"
@@ -197,3 +197,11 @@ add_custom_command(TARGET KalaWindow POST_BUILD
 		"$<TARGET_FILE_DIR:KalaWindow>/${FILE}"
 )
 endforeach()
+
+# Copy entire docs folder
+add_custom_command(TARGET KalaWindow POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:KalaWindow>/docs"
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		"${CMAKE_SOURCE_DIR}/docs"
+		"$<TARGET_FILE_DIR:KalaWindow>/docs"
+)

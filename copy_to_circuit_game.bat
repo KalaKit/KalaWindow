@@ -6,6 +6,7 @@ set "EXTERNAL_TARGET=..\circuit_game\_external_shared"
 set "DEBUG_TARGET=..\circuit_game\_external_shared\KalaWindow\debug"
 set "RELEASE_TARGET=..\circuit_game\_external_shared\KalaWindow\release"
 
+set "DOCS_ORIGIN=docs"
 set "INCLUDE_ORIGIN=include"
 set "GLM_ORIGIN=_external_shared\glm"
 set "STB_ORIGIN=_external_shared\stb"
@@ -22,13 +23,16 @@ set "RELEASE_LIB=release\_KWnd03.lib"
 
 set "README_FILE=README.md"
 set "LICENSE_FILE=LICENSE.md"
-set "CHANGES_FILE=CHANGES.txt"
+set "LOGO_FILE=logo.png"
 
 set "CLEAN_IMGUI=..\circuit_game\_external_shared\delete_imgui_vulkan_files.bat"
 
 :: =====================================
 :: Copy new files
 :: =====================================
+
+::Docs target is always overwritten
+call :CopyFolder "%DOCS_ORIGIN%" "%EXTERNAL_TARGET%\KalaWindow\docs" "docs origin" "yes"
 
 ::Include target is always overwritten
 call :CopyFolder "%INCLUDE_ORIGIN%" "%EXTERNAL_TARGET%\KalaWindow\include" "include origin" "yes"
@@ -49,7 +53,7 @@ call :CopyFile "%RELEASE_LIB%" "%RELEASE_TARGET%" "release lib" "yes"
 
 call :CopyFile "%README_FILE%" "%EXTERNAL_TARGET%\KalaWindow" "readme file" "yes"
 call :CopyFile "%LICENSE_FILE%" "%EXTERNAL_TARGET%\KalaWindow" "license file" "yes"
-call :CopyFile "%CHANGES_FILE%" "%EXTERNAL_TARGET%\KalaWindow" "changes file" "yes"
+call :CopyFile "%LOGO_FILE%" "%EXTERNAL_TARGET%\KalaWindow" "logo file" "yes"
 
 goto :Done
 
