@@ -5,6 +5,7 @@ The following tables list the oldest known hardware that should, in theory, run 
 All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**.
 
 Ram: 4GB
+
 Disk space: 200MB
 
 ## OpenGL 3.3
