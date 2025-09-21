@@ -1,2 +1,15 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Force GitHub Linguist to treat headers as C++
+*.h linguist-language=C++
+*.hpp linguist-language=C++
+
+# Exclude vendored libraries from stats
+glm/* linguist-vendored
+imgui/* linguist-vendored
+KalaHeaders/* linguist-vendored
+miniaudio/* linguist-vendored
+OpenGL/* linguist-vendored
+stb/* linguist-vendored
+Vulkan/* linguist-vendored
