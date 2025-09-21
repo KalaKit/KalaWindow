@@ -1168,6 +1168,64 @@ namespace KalaWindow::Graphics
 			nullptr);
 	}
 
+	void Window::BringToFocus() const
+	{
+		if (IsFocused()) return; //skip all logic if already focused
+
+		HWND window = ToVar<HWND>(window_windows.hwnd);
+
+		WindowState state = GetWindowState();
+		if (IsMinimized()
+			|| !IsVisible()
+			|| state == WindowState::WINDOW_MINIMIZE
+			|| state == WindowState::WINDOW_HIDE)
+		{
+			SetWindowState(WindowState::WINDOW_NORMAL);
+		}
+
+		//ask Windows nicely to foreground this window
+		SetForegroundWindow(window);
+
+		//fallback: force Z-order change
+		if (!IsFocused())
+		{
+			SetWindowPos(
+				window,
+				HWND_TOPMOST,
+				0,
+				0,
+				0,
+				0,
+				SWP_NOMOVE
+				| SWP_NOSIZE
+				| SWP_SHOWWINDOW);
+
+			SetWindowPos(
+				window,
+				HWND_NOTOPMOST,
+				0,
+				0,
+				0,
+				0,
+				SWP_NOMOVE
+				| SWP_NOSIZE
+				| SWP_SHOWWINDOW);
+
+			SetForegroundWindow(window);
+
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Set window '" + GetTitle() + "' focus through the fallback method.'",
+					"WINDOW_WINDOWS",
+					LogType::LOG_SUCCESS);
+			}
+		}
+
+		//ensure keyboard focus
+		SetFocus(window);
+	}
+
 	void Window::SetWindowRounding(WindowRounding roundState) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);

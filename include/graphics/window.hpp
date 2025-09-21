@@ -199,6 +199,9 @@ namespace KalaWindow::Graphics
 		//Clears the current overlay icon and its tooltip
 		void ClearTaskbarOverlayIcon() const;
 
+		//Bring this window to the foreground and make it focused
+		void BringToFocus() const;
+
 		//Set Windows window rounding state. Has no effect in Linux.
 		void SetWindowRounding(WindowRounding roundState) const;
 		WindowRounding GetWindowRoundingState() const;
