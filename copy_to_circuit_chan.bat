@@ -2,9 +2,9 @@
 
 cd /d "%~dp0"
 
-set "EXTERNAL_TARGET=..\circuit_game\_external_shared"
-set "DEBUG_TARGET=..\circuit_game\_external_shared\KalaWindow\debug"
-set "RELEASE_TARGET=..\circuit_game\_external_shared\KalaWindow\release"
+set "EXTERNAL_TARGET=..\Circuit-chan\_external_shared"
+set "DEBUG_TARGET=..\Circuit-chan\_external_shared\KalaWindow\debug"
+set "RELEASE_TARGET=..\Circuit-chan\_external_shared\KalaWindow\release"
 
 set "DOCS_ORIGIN=docs"
 set "INCLUDE_ORIGIN=include"
@@ -25,7 +25,7 @@ set "README_FILE=README.md"
 set "LICENSE_FILE=LICENSE.md"
 set "LOGO_FILE=logo.png"
 
-set "CLEAN_IMGUI=..\circuit_game\_external_shared\delete_imgui_vulkan_files.bat"
+set "CLEAN_IMGUI=..\Circuit-chan\_external_shared\delete_imgui_vulkan_files.bat"
 
 :: =====================================
 :: Copy new files
