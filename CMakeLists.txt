@@ -187,21 +187,32 @@ if (WIN32)
     target_sources(KalaWindow PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
 endif()
 
-# Copy important files
-set(COPY_TARGETS README.md LICENSE.md logo.png)
-foreach(FILE ${COPY_TARGETS})
 add_custom_command(TARGET KalaWindow POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:KalaWindow>/${FILE}"
+    # Copy individual files
+	
+    COMMAND ${CMAKE_COMMAND} -E rm -f
+        "$<TARGET_FILE_DIR:KalaWindow>/README.md"
     COMMAND ${CMAKE_COMMAND} -E copy
-		"${CMAKE_SOURCE_DIR}/${FILE}"
-		"$<TARGET_FILE_DIR:KalaWindow>/${FILE}"
-)
-endforeach()
+        "${CMAKE_SOURCE_DIR}/README.md"
+        "$<TARGET_FILE_DIR:KalaWindow>/README.md"
 
-# Copy entire docs folder
-add_custom_command(TARGET KalaWindow POST_BUILD
-	COMMAND ${CMAKE_COMMAND} -E remove "$<TARGET_FILE_DIR:KalaWindow>/docs"
-	COMMAND ${CMAKE_COMMAND} -E copy_directory
-		"${CMAKE_SOURCE_DIR}/docs"
-		"$<TARGET_FILE_DIR:KalaWindow>/docs"
+    COMMAND ${CMAKE_COMMAND} -E rm -f
+        "$<TARGET_FILE_DIR:KalaWindow>/LICENSE.md"
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/LICENSE.md"
+        "$<TARGET_FILE_DIR:KalaWindow>/LICENSE.md"
+
+    COMMAND ${CMAKE_COMMAND} -E rm -f
+        "$<TARGET_FILE_DIR:KalaWindow>/logo.png"
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/logo.png"
+        "$<TARGET_FILE_DIR:KalaWindow>/logo.png"
+
+    # Then copy docs folder
+	
+    COMMAND ${CMAKE_COMMAND} -E rm -rf
+        "$<TARGET_FILE_DIR:KalaWindow>/docs"
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+        "${CMAKE_SOURCE_DIR}/docs"
+        "$<TARGET_FILE_DIR:KalaWindow>/docs"
 )

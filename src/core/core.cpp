@@ -43,58 +43,68 @@ using std::function;
 using std::exception;
 using std::to_string;
 
+static u32 version_windows{};
+
 static function<void()> userRegularShutdown;
+
+static void SetVersion();
 
 namespace KalaWindow::Core
 {
 	u32 KalaWindowCore::GetVersion()
 	{
 #ifdef WIN32
-		string title = "Window version check fail";
-
-		typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
-
-		HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
-		if (!hMod)
+		if (version_windows == 0)
 		{
-			ForceClose(
-				title,
-				"Failed to get 'ntdll.dll'");
+			string title = "Window version check fail";
 
-			return 0;
+			typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+
+			HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
+			if (!hMod)
+			{
+				ForceClose(
+					title,
+					"Failed to get 'ntdll.dll'");
+
+				return 0;
+			}
+
+			auto pRtlGetVersion = (RtlGetVersionPtr)GetProcAddress(hMod, "RtlGetVersion");
+			if (!pRtlGetVersion)
+			{
+				ForceClose(
+					title,
+					"Failed to resolve address of 'RtlGetVersion'");
+
+				return 0;
+			}
+
+			RTL_OSVERSIONINFOW rovi = { sizeof(rovi) };
+			if (pRtlGetVersion(&rovi) != 0)
+			{
+				ForceClose(
+					title,
+					"Call to 'RtlGetVersion' failed");
+
+				return 0;
+			}
+
+			u32 major = rovi.dwMajorVersion;
+			u32 build = rovi.dwBuildNumber;
+
+			//Windows 11 reports as 10.0  but build >= 22000
+			if (major == 10
+				&& build >= 22000)
+			{
+				major = 11;
+			}
+
+			version_windows = major * 1000000 + build;
+			return version_windows;
 		}
 
-		auto pRtlGetVersion = (RtlGetVersionPtr)GetProcAddress(hMod, "RtlGetVersion");
-		if (!pRtlGetVersion)
-		{
-			ForceClose(
-				title,
-				"Failed to resolve address of 'RtlGetVersion'");
-
-			return 0;
-		}
-
-		RTL_OSVERSIONINFOW rovi = { sizeof(rovi) };
-		if (pRtlGetVersion(&rovi) != 0)
-		{
-			ForceClose(
-				title,
-				"Call to 'RtlGetVersion' failed");
-
-			return 0;
-		}
-
-		u32 major = rovi.dwMajorVersion;
-		u32 build = rovi.dwBuildNumber;
-
-		//Windows 11 reports as 10.0  but build >= 22000
-		if (major == 10
-			&& build >= 22000)
-		{
-			major = 11;
-		}
-
-		return major * 1000000 + build;
+		return version_windows;
 #elif __linux__
 		return 0;
 #endif
