@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// file_helpers.hpp
+// file_utils.hpp
 //
 // Copyright (C) 2025 Lost Empire Entertainment
 //
@@ -49,6 +49,83 @@ namespace KalaHeaders
 	//
 	// FILE MANAGEMENT
 	//
+
+	//Rename file or folder in its current directory
+	inline string RenamePath(
+		const path& target,
+		const string& newName)
+	{
+		ostringstream oss{};
+
+		if (!exists(target))
+		{
+			oss << "Failed to rename target '" << target << "' to '"
+				<< newName << "' because it does not exist!";
+
+			return oss.str();
+		}
+		if (is_directory(target)
+			&& path(newName).has_extension())
+		{
+			oss << "Failed to rename target '" << target << "' to '"
+				<< newName << "' because target is a directory but new name has an extension!";
+
+			return oss.str();
+		}
+		if (is_regular_file(target)
+			&& newName.empty())
+		{
+			oss << "Failed to rename target '" << target << "' to '"
+				<< newName << "' because target is a file but new name is empty!";
+
+			return oss.str();
+		}
+
+		try
+		{
+			path newTarget = target.parent_path() / newName;
+			rename(target, newTarget);
+		}
+		catch (exception& e)
+		{
+			oss << "Failed to rename '"
+				<< target << "' to '"
+				<< newName << "'! Reason: " << e.what();
+
+			return oss.str();
+		}
+
+		return{};
+	}
+
+	//Delete file or folder in target path (recursive for directories)
+	inline string DeletePath(const path& target)
+	{
+		ostringstream oss{};
+
+		if (!exists(target))
+		{
+			oss << "Failed to delete target '"
+				<< target << "' because it does not exist!";
+
+			return oss.str();
+		}
+
+		try
+		{
+			if (is_regular_file(target)) remove(target);
+			else if (is_directory(target)) remove_all(target);
+		}
+		catch (exception& e)
+		{
+			oss << "Failed to delete '"
+				<< target << "'! Reason: " << e.what();
+
+			return oss.str();
+		}
+
+		return{};
+	}
 
 	//Copy file or folder from origin to target, with optional overwrite flag
 	inline string CopyPath(
@@ -182,83 +259,6 @@ namespace KalaHeaders
 			oss << "Failed to move '"
 				<< origin << "' to target '"
 				<< target << "'! Reason: " << e.what();
-
-			return oss.str();
-		}
-
-		return{};
-	}
-
-	//Delete file or folder in target path (recursive for directories)
-	inline string DeletePath(const path& target)
-	{
-		ostringstream oss{};
-
-		if (!exists(target))
-		{
-			oss << "Failed to delete target '"
-				<< target << "' because it does not exist!";
-
-			return oss.str();
-		}
-
-		try
-		{
-			if (is_regular_file(target)) remove(target);
-			else if (is_directory(target)) remove_all(target);
-		}
-		catch (exception& e)
-		{
-			oss << "Failed to delete '"
-				<< target << "'! Reason: " << e.what();
-
-			return oss.str();
-		}
-
-		return{};
-	}
-
-	//Rename file or folder in its current directory
-	inline string RenamePath(
-		const path& target,
-		const string& newName)
-	{
-		ostringstream oss{};
-
-		if (!exists(target))
-		{
-			oss << "Failed to rename target '" << target << "' to '"
-				<< newName << "' because it does not exist!";
-
-			return oss.str();
-		}
-		if (is_directory(target)
-			&& path(newName).has_extension())
-		{
-			oss << "Failed to rename target '" << target << "' to '"
-				<< newName << "' because target is a directory but new name has an extension!";
-
-			return oss.str();
-		}
-		if (is_regular_file(target)
-			&& newName.empty())
-		{
-			oss << "Failed to rename target '" << target << "' to '"
-				<< newName << "' because target is a file but new name is empty!";
-
-			return oss.str();
-		}
-
-		try
-		{
-			path newTarget = target.parent_path() / newName;
-			rename(target, newTarget);
-		}
-		catch (exception& e)
-		{
-			oss << "Failed to rename '"
-				<< target << "' to '"
-				<< newName << "'! Reason: " << e.what();
 
 			return oss.str();
 		}

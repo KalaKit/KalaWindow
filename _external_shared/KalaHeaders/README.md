@@ -2,9 +2,7 @@
 
 Header-only scripts made in C++ 20, great for general use. They don't depend on each other and can be used for any c++ projects.
 
-## WORKING HEADERS
-
-### api.hpp
+## core_utils.hpp
 
 Macros and cross platform import/export
 
@@ -13,13 +11,9 @@ Macros and cross platform import/export
 - deprecated macro
 - debug assert macro (assertions are compiled out completely in release)
 
----
-
-### core_types.hpp
-
 Shorthands for math variables and overrideable cross-platform templates for converting between uintptr_t and pointers/integrals/enums
 
-#### Shorthands
+### Shorthands
 
 | Alias | Underlying type | Size (bits) | Range / Notes                                    |
 |-------|-----------------|-------------|--------------------------------------------------|
@@ -36,7 +30,7 @@ Shorthands for math variables and overrideable cross-platform templates for conv
 | **f32** | `float`        | 32          | ~6 decimal digits precision                      |
 | **f64** | `double`       | 64          | ~15 decimal digits precision                     |
 
-#### Templates
+### Templates
 
 | Function                | Converts **from → to**           | Constraint             | Typical use cases                       |
 |-------------------------|----------------------------------|------------------------|------------------------------------------|
@@ -49,58 +43,9 @@ Shorthands for math variables and overrideable cross-platform templates for conv
 
 ---
 
-### logging.hpp
+## string_helpers.hpp
 
-Comprehensive logger header for any logging needs - sends cout, cerr and clog messages to your console.
-
-- can get current system time and date, formatted to chosen TimeFormat or DateFormat enum choice
-- can set default time and date format so that TIME_DEFAULT and DATE_DEFAULT always use them with full Print function
-- has full and basic Print functions
-
-### Full and basic Print function differences
-
-| Feature           | `Print(message, target, type, ...)` | `Print(message)`        |
-|-------------------|-----------------------------------------------|-------------------------|
-| Parameters        | Message + target + log type (+opts)           | Message only            |
-| Log types         | Supports INFO, DEBUG, SUCCESS, WARNING, ERROR | Not supported (always cout) |
-| Target handling   | Yes (with truncation checks)                  | No                      |
-| Time/Date stamp   | Yes (configurable)                            | No                      |
-| Output stream     | Varies by type (cout/clog/cerr)               | Always cout             |
-| Truncation checks | Message + target length                       | Message length only     |
-| Typical usage     | Detailed, tagged log for debugging/monitoring | Quick, simple console output |
-
-#### Available time format types
-
-| Enum Value       | Description                        | Example       |
-|------------------|------------------------------------|---------------|
-| TIME_NONE        | No time printed                    | *(empty)*     |
-| TIME_DEFAULT     | Globally defined default format    | depends       |
-| TIME_HMS         | Hours:Minutes:Seconds              | 23:59:59      |
-| TIME_HMS_MS      | Hours:Minutes:Seconds:Milliseconds | 23:59:59:123  |
-| TIME_12H         | 12-hour clock with AM/PM           | 11:59:59 PM   |
-| TIME_ISO_8601    | ISO 8601 UTC-style                 | 23:59:59Z     |
-| TIME_FILENAME    | Filename-safe (no colons)          | 23-59-59      |
-| TIME_FILENAME_MS | Filename-safe with milliseconds    | 23-59-59-123  |
-
-#### Available date format types
-
-| Enum Value        | Description                       | Example             |
-|-------------------|-----------------------------------|---------------------|
-| DATE_NONE         | No date printed                   | *(empty)*           |
-| DATE_DEFAULT      | Globally defined default format   | depends             |
-| DATE_DMY          | Day/Month/Year                    | 31/12/2025          |
-| DATE_MDY          | Month/Day/Year                    | 12/31/2025          |
-| DATE_ISO_8601     | ISO 8601                          | 2025-12-31          |
-| DATE_TEXT_DMY     | Day Month, Year                   | 31 December, 2025   |
-| DATE_TEXT_MDY     | Month Day, Year                   | December 31, 2025   |
-| DATE_FILENAME_DMY | Filename-safe (day-month-year)    | 31-12-2025          |
-| DATE_FILENAME_MDY | Filename-safe (month-day-year)    | 12-31-2025          |
-
----
-
-### string_helpers.hpp
-
-Provides various string helpers to improve workflow with string operations
+Various string conversions and functions to improve workflow with string operations
 
 | Function             | Description                                                         |
 |----------------------|---------------------------------------------------------------------|
@@ -117,21 +62,21 @@ Provides various string helpers to improve workflow with string operations
 
 ---
 
-### file_helpers.hpp
+## file_helpers.hpp
 
 Provides file management, file metadata, text I/O and binary I/O helper functions
 
-#### File management
+### File management
 
 | Function              | Description |
 |-----------------------|-------------|
+| RenamePath            | Rename file or folder in its current directory |
+| DeletePath            | Delete file or folder in target path (recursive for directories) |
 | CopyPath              | Copy file or folder from origin to target, with optional overwrite flag |
 | MovePath              | Move file or folder from origin to target, target is always overwritten if it already exists |
-| DeletePath            | Delete file or folder in target path (recursive for directories) |
-| RenamePath            | Rename file or folder in its current directory |
 | ListDirectoryContents | List all the contents of a folder, with optional recursive flag |
 
-#### File metadata
+### File metadata
 
 | Function              | Description |
 |-----------------------|-------------|
@@ -144,7 +89,7 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 | SetPathExtension      | Set the extension of the target |
 | GetPathExtension      | Get the extension of the target |
 
-#### Text I/O
+### Text I/O
 
 | Function              | Description |
 |-----------------------|-------------|
@@ -153,7 +98,7 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 | WriteLinesToFile      | Write all lines from a vector to a text file, with optional append flag. A new file is created at target path if it doesn't already exist |
 | ReadLinesFromFile     | Read all lines from a file into a vector of strings with optional lineStart and lineEnd values to avoid placing all lines to memory. If lineEnd is 0 and lineStart isnt, then this function defaults end to EOF |
 
-#### Binary I/O
+### Binary I/O
 
 | Function              | Description |
 |-----------------------|-------------|
@@ -164,46 +109,49 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 
 ---
 
-## EXPERIMENTAL HEADERS
+## log_utils.hpp
 
-These were made for fun and are not tested in detail and may not work as intended.
+Comprehensive logger header for any logging needs - sends cout, cerr and clog messages to your console.
 
-### kalautils.hpp
+- can get current system time and date, formatted to chosen TimeFormat or DateFormat enum choice
+- can set default time and date format so that TIME_DEFAULT and DATE_DEFAULT always use them with full Print function
+- has full and basic Print functions
 
-Provides shorthands and helpers for various types, each split into its own namespace
+## Full and basic Print function differences
 
-| Category               | Namespace     | Description                                           |
-|------------------------|---------------|-------------------------------------------------------|
-| STRING                 | KString       | Shorthands and helpers for string operations          |
-| TYPE TRAITS            | KType         | Helpers for checking if var is type                   |
-| FIXED TYPE CONTAINERS  | KContainer    | Shorthands for common fixed-type containers           |
-| MEMORY                 | KMemory       | Shorthands and helpers for smart pointer operations   |
-| TUPLE                  | KTuple        | Helpers for tuple operations                          |
-| SPAN                   | KSpan         | Shorthands and helpers for span operations            |
-| DYNAMIC TYPE VARIABLES | KDynamic      | Shorthands and helpers for optional and variant ops   |
-| FILESYSTEM             | KFile         | Shorthands and helpers for filesystem operations      |
-| FILESTREAM             | KFileStream   | Shorthands and helpers for fstream and sstream ops    |
-| STRINGSTREAM           | KStringStream | Shorthands and helpers for fstream and sstream ops    |
-| LOG                    | KLog          | Shorthands and helpers for logging operations         |
-| TIME                   | KTime         | Shorthands and helpers for time operations            |
-| SORT                   | KSort         | Helpers for sort operations                           |
+| Feature           | `Print(message, target, type, ...)` | `Print(message)`        |
+|-------------------|-----------------------------------------------|-------------------------|
+| Parameters        | Message + target + log type (+opts)           | Message only            |
+| Log types         | Supports INFO, DEBUG, SUCCESS, WARNING, ERROR | Not supported (always cout) |
+| Target handling   | Yes (with truncation checks)                  | No                      |
+| Time/Date stamp   | Yes (configurable)                            | No                      |
+| Output stream     | Varies by type (cout/clog/cerr)               | Always cout             |
+| Truncation checks | Message + target length                       | Message length only     |
+| Typical usage     | Detailed, tagged log for debugging/monitoring | Quick, simple console output |
 
----
+### Available time format types
 
-### c_helpers.hpp
+| Enum Value       | Description                        | Example       |
+|------------------|------------------------------------|---------------|
+| TIME_NONE        | No time printed                    | *(empty)*     |
+| TIME_DEFAULT     | Globally defined default format    | depends       |
+| TIME_HMS         | Hours:Minutes:Seconds              | 23:59:59      |
+| TIME_HMS_MS      | Hours:Minutes:Seconds:Milliseconds | 23:59:59:123  |
+| TIME_12H         | 12-hour clock with AM/PM           | 11:59:59 PM   |
+| TIME_ISO_8601    | ISO 8601 UTC-style                 | 23:59:59Z     |
+| TIME_FILENAME    | Filename-safe (no colons)          | 23-59-59      |
+| TIME_FILENAME_MS | Filename-safe with milliseconds    | 23-59-59-123  |
 
-A collection of blazing fast char handling helpers and some general nice to have C helpers for C++ developers
+### Available date format types
 
-Provides:
-- Checks
-  - kh_empty, kh_len, kh_starts, kh_ends
-- Comparisons
-  - kh_equals, kh_iequals, kh_nequals, kh_niequals
-- Allocation and ownership
-  - kh_set, kh_dup, kh_free
-- Copy & append
-  - kh_copy, kh_cat
-- Search & cleanup
-  - kh_fchar, kh_lchar, kh_trim, kh_remove, kh_aremove
-- Modification
-  - kh_tolower, kh_toupper, kh_replace, kh_areplace
+| Enum Value        | Description                       | Example             |
+|-------------------|-----------------------------------|---------------------|
+| DATE_NONE         | No date printed                   | *(empty)*           |
+| DATE_DEFAULT      | Globally defined default format   | depends             |
+| DATE_DMY          | Day/Month/Year                    | 31/12/2025          |
+| DATE_MDY          | Month/Day/Year                    | 12/31/2025          |
+| DATE_ISO_8601     | ISO 8601                          | 2025-12-31          |
+| DATE_TEXT_DMY     | Day Month, Year                   | 31 December, 2025   |
+| DATE_TEXT_MDY     | Month Day, Year                   | December 31, 2025   |
+| DATE_FILENAME_DMY | Filename-safe (day-month-year)    | 31-12-2025          |
+| DATE_FILENAME_MDY | Filename-safe (month-day-year)    | 12-31-2025          |

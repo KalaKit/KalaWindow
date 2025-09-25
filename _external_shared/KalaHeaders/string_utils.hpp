@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// string_helpers.hpp
+// string_utils.hpp
 //
 // Copyright (C) 2025 Lost Empire Entertainment
 //
@@ -7,7 +7,7 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - Various string helpers to improve workflow with string operations
+//   - Various string conversions and functions to improve workflow with string operations
 //------------------------------------------------------------------------------
 
 #pragma once
@@ -24,6 +24,35 @@ namespace KalaHeaders
 	using std::transform;
 	using std::toupper;
 	using std::tolower;	
+
+	//
+	// CONVERSION FUNCTIONS
+	//
+
+	//Convert T to string
+	template<typename T>
+	inline string ToString(const T& value) { return std::to_string(value); }
+
+	//Convert bool to 'true' or 'false'
+	template<> inline string ToString<bool>(const bool& state) { return state ? "true" : "false"; }
+
+	template<typename T> inline T FromString(const string& s); //Convert string to T
+
+	template<> inline bool               FromString<bool>(const string& s) { return (s == "true" || s == "1"); } //Convert string to bool
+
+	template<> inline int                FromString<int>(const string& s) { return std::stoi(s); }                  //Convert string to int
+	template<> inline long               FromString<long>(const string& s) { return std::stol(s); }                 //Convert string to long
+	template<> inline long long          FromString<long long>(const string& s) { return std::stoll(s); }           //Convert string to long long
+	template<> inline unsigned int       FromString<unsigned int>(const string& s) { return std::stoul(s); }        //Convert string to unsigned int
+	template<> inline unsigned long      FromString<unsigned long>(const string& s) { return std::stoul(s); }       //Convert string to unsigned long
+	template<> inline unsigned long long FromString<unsigned long long>(const string& s) { return std::stoull(s); } //Convert string to unsigned long long
+	template<> inline float              FromString<float>(const string& s) { return std::stof(s); }                //Convert string to float
+	template<> inline double             FromString<double>(const string& s) { return std::stod(s); }               //Convert string to double
+	template<> inline long double        FromString<long double>(const string& s) { return std::stold(s); }         //Convert string to long double
+
+	//
+	// GENERAL FUNCTIONS
+	//
 
 	//Check if origin contains target, with optional case sensitivity flag
 	inline bool ContainsString(
