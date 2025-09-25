@@ -7,7 +7,7 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - file management - copy, move, delete, rename, list directory contents
+//   - file management - create directory, list directory contents, rename, delete, copy, move
 //   - file metadata - file size, directory size, line count, get filename (stem + extension), get stem, get parent, get/set extension
 //   - text I/O - read/write data for text files with vector of string lines or string blob
 //   - binary I/O - read/write data for binary files with vector of bytes or buffer + size
@@ -42,6 +42,7 @@ namespace KalaHeaders
 	using std::filesystem::rename;
 	using std::filesystem::remove;
 	using std::filesystem::remove_all;
+	using std::filesystem::create_directories;
 	using std::filesystem::file_size;
 	using std::filesystem::recursive_directory_iterator;
 	using std::filesystem::directory_iterator;
@@ -49,6 +50,87 @@ namespace KalaHeaders
 	//
 	// FILE MANAGEMENT
 	//
+
+	//Create all directories to target that don't exist
+	inline string CreateDirectory(
+		const path& target)
+	{
+		ostringstream oss{};
+
+		if (exists(target))
+		{
+			oss << "Failed to create target '" << target << "' because it already exists!";
+
+			return oss.str();
+		}
+		if (target.has_extension())
+		{
+			oss << "Failed to create target '" << target << "' because it has an extension!";
+
+			return oss.str();
+		}
+
+		try
+		{
+			create_directories(target);
+		}
+		catch (exception& e)
+		{
+			oss << "Failed to create target '" << target << "'! Reason: " << e.what();
+
+			return oss.str();
+		}
+
+		return{};
+	}
+
+	//List all the contents of a folder, with optional recursive flag
+	inline string ListDirectoryContents(
+		const path& target,
+		vector<path>& outEntries,
+		bool recursive = false)
+	{
+		ostringstream oss{};
+
+		if (!exists(target))
+		{
+			oss << "Failed to list paths from target '" << target << "' because it does not exist!";
+
+			return oss.str();
+		}
+		if (!is_directory(target))
+		{
+			oss << "Failed to list paths from target '" << target << "' because it is not a directory!";
+
+			return oss.str();
+		}
+
+		try
+		{
+			if (recursive)
+			{
+				for (auto& entry : recursive_directory_iterator(target))
+				{
+					outEntries.push_back(entry.path());
+				}
+			}
+			else
+			{
+				for (auto& entry : directory_iterator(target))
+				{
+					outEntries.push_back(entry.path());
+				}
+			}
+		}
+		catch (exception& e)
+		{
+			oss << "Failed to list paths from target '" << target << "'! Reason: " << e.what();
+
+			return oss.str();
+		}
+
+		return{};
+	}
 
 	//Rename file or folder in its current directory
 	inline string RenamePath(
@@ -259,54 +341,6 @@ namespace KalaHeaders
 			oss << "Failed to move '"
 				<< origin << "' to target '"
 				<< target << "'! Reason: " << e.what();
-
-			return oss.str();
-		}
-
-		return{};
-	}
-
-	//List all the contents of a folder, with optional recursive flag
-	inline string ListDirectoryContents(
-		const path& target,
-		vector<path>& outEntries,
-		bool recursive = false)
-	{
-		ostringstream oss{};
-
-		if (!exists(target))
-		{
-			oss << "Failed to list paths from target '" << target << "' because it does not exist!";
-
-			return oss.str();
-		}
-		if (!is_directory(target))
-		{
-			oss << "Failed to list paths from target '" << target << "' because it is not a directory!";
-
-			return oss.str();
-		}
-
-		try
-		{
-			if (recursive)
-			{
-				for (auto& entry : recursive_directory_iterator(target))
-				{
-					outEntries.push_back(entry.path());
-				}
-			}
-			else
-			{
-				for (auto& entry : directory_iterator(target))
-				{
-					outEntries.push_back(entry.path());
-				}
-			}
-		}
-		catch (exception& e)
-		{
-			oss << "Failed to list paths from target '" << target << "'! Reason: " << e.what();
 
 			return oss.str();
 		}
