@@ -78,6 +78,22 @@ namespace KalaHeaders
 				return oss.str();
 			}
 		}
+		if (is_directory(origin)
+			&& target.has_extension())
+		{
+			oss << "Failed to copy origin '" << origin << "' to '"
+				<< target << "' because origin is a directory but target has an extension!";
+
+			return oss.str();
+		}
+		if (is_regular_file(origin)
+			&& target.empty())
+		{
+			oss << "Failed to copy origin '" << origin << "' to '"
+				<< target << "' because origin is a file but target is empty!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -140,6 +156,22 @@ namespace KalaHeaders
 				return oss.str();
 			}
 		}
+		if (is_directory(origin)
+			&& target.has_extension())
+		{
+			oss << "Failed to move origin '" << origin << "' to '"
+				<< target << "' because origin is a directory but target has an extension!";
+
+			return oss.str();
+		}
+		if (is_regular_file(origin)
+			&& target.empty())
+		{
+			oss << "Failed to move origin '" << origin << "' to '"
+				<< target << "' because origin is a file but target is empty!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -197,6 +229,22 @@ namespace KalaHeaders
 		{
 			oss << "Failed to rename target '" << target << "' to '"
 				<< newName << "' because it does not exist!";
+
+			return oss.str();
+		}
+		if (is_directory(target)
+			&& path(newName).has_extension())
+		{
+			oss << "Failed to rename target '" << target << "' to '"
+				<< newName << "' because target is a directory but new name has an extension!";
+
+			return oss.str();
+		}
+		if (is_regular_file(target)
+			&& newName.empty())
+		{
+			oss << "Failed to rename target '" << target << "' to '"
+				<< newName << "' because target is a file but new name is empty!";
 
 			return oss.str();
 		}
