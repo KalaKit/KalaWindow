@@ -32,7 +32,7 @@ Some **KalaWindow** headers pull in official GL extension headers:
 - `opengl_functions_win.hpp` includes `wgleht.hpp`
 - `opengl_functions_linux.hpp` includes `glxeht.hpp`
 
-**KalaWindow** plans to support Vulkan 1.3 in a later version but no support for DirectX or MoltenVK or other graphics backends is planned.
+**KalaWindow** plans to support Vulkan 1.3 in a later version, DirectX or other render pipelines will never be supported.
 
 ---
 
