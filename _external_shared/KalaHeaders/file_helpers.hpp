@@ -324,7 +324,6 @@ namespace KalaHeaders
 		uintmax_t& outSize)
 	{
 		ostringstream oss{};
-		size_t totalSize{};
 
 		if (!exists(target))
 		{
@@ -786,7 +785,6 @@ namespace KalaHeaders
 			for (size_t i = 0; i < inLines.size(); ++i)
 			{
 				out << inLines[i];
-				if (i + 1 < inLines.size()) out << '\n';
 			}
 
 			out.close();
@@ -849,7 +847,7 @@ namespace KalaHeaders
 				return oss.str();
 			}
 
-			if (lineEnd == 0) lineEnd == totalLines;
+			if (lineEnd == 0) lineEnd = totalLines;
 
 			if (lineEnd <= lineStart)
 			{
