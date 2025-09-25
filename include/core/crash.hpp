@@ -18,7 +18,8 @@ namespace KalaWindow::Core
 	class LIB_API CrashHandler
 	{
 	public:
-		//Initialize the crash handler.
+		//Initialize the crash handler. Always creates a timestamped
+		//crash log file at exe root if programm crashes.
 		//Assign the program name that will be displayed in the crash log,
 		//the optional function that will be called for your content that you wanna handle at crash
 		//and an optional flag to choose whether or not you want a crash dump

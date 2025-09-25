@@ -21,6 +21,7 @@
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
+using KalaHeaders::TimeFormat;
 
 using KalaWindow::Core::KalaWindowCore;
 
@@ -161,7 +162,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	AppendCallStackToStream(oss, info->ContextRecord);
 
-	string timeStamp = "[ " + Log::GetTime() + " ]";
+	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
 	if (canCreateDump)
 	{
