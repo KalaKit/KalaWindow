@@ -34,14 +34,12 @@ using std::wstring;
 using std::hex;
 using std::dec;
 
-//Whether or not to create a dump file at crash
-static bool createDump;
-
 //The name of this program that is displayed in the title of the error popup
-static string programName;
-
+static string assignedProgramName;
 //The user-defined function that is called when a crash occurs
-static function<void()> userShutdownFunction{};
+static function<void()> assignedShutdownFunction{};
+//Whether or not to create a dump file at crash
+static bool canCreateDump;
 
 //Windows crash handler that calls the minidump creator function
 //and sends error info to error popup
@@ -67,7 +65,8 @@ namespace KalaWindow::Core
 {
 	void CrashHandler::Initialize(
 		const string& programName,
-		bool dumpState)
+		const function<void()>& shutdownFunction,
+		bool createDump)
 	{
 		//reserve emergency stack space (for stack overflow handling)
 
@@ -76,15 +75,14 @@ namespace KalaWindow::Core
 
 		SetUnhandledExceptionFilter(HandleCrash);
 
+		assignedProgramName = programName;
+		assignedShutdownFunction = shutdownFunction;
+		canCreateDump = createDump;
+
 		Log::Print(
 			"Initialized crash handler!",
 			"CRASH_HANDLER",
 			LogType::LOG_SUCCESS);
-	}
-
-	void CrashHandler::SetUserCrashFunction(const function<void()>& crashShutdown)
-	{
-		userShutdownFunction = crashShutdown;
 	}
 }
 
@@ -165,7 +163,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	string timeStamp = "[ " + Log::GetTime() + " ]";
 
-	if (createDump)
+	if (canCreateDump)
 	{
 		WriteMiniDump(
 			info, 
@@ -186,10 +184,10 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		oss.str(),
 		timeStamp);
 
-	if (userShutdownFunction) userShutdownFunction();
+	if (assignedShutdownFunction) assignedShutdownFunction();
 
 	KalaWindowCore::ForceClose(
-		programName + " has crashed!",
+		assignedProgramName + " has crashed!",
 		oss.str());
 
 	return EXCEPTION_EXECUTE_HANDLER;

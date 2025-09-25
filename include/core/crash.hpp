@@ -20,13 +20,11 @@ namespace KalaWindow::Core
 	public:
 		//Initialize the crash handler.
 		//Assign the program name that will be displayed in the crash log,
+		//the optional function that will be called for your content that you wanna handle at crash
 		//and an optional flag to choose whether or not you want a crash dump
 		static void Initialize(
 			const string& programName,
-			bool dumpState = false);
-
-		//Intended to be used for emergency shutdown conditions if program crashed
-		//and you have critical actions you must always do even at crash
-		static void SetUserCrashFunction(const function<void()>& crashShutdown);
+			const function<void()>& shutdownFunction = nullptr,
+			bool createDump = false);
 	};
 }
