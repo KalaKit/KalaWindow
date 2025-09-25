@@ -70,11 +70,12 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 
 | Function              | Description |
 |-----------------------|-------------|
+| CreateDirectory       | Create all directories to target that don't exist |
+| ListDirectoryContents | List all the contents of a folder, with optional recursive flag |
 | RenamePath            | Rename file or folder in its current directory |
 | DeletePath            | Delete file or folder in target path (recursive for directories) |
 | CopyPath              | Copy file or folder from origin to target, with optional overwrite flag |
 | MovePath              | Move file or folder from origin to target, target is always overwritten if it already exists |
-| ListDirectoryContents | List all the contents of a folder, with optional recursive flag |
 
 ### File metadata
 
