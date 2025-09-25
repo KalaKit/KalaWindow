@@ -784,7 +784,7 @@ namespace KalaHeaders
 
 			for (size_t i = 0; i < inLines.size(); ++i)
 			{
-				out << inLines[i];
+				out << inLines[i] << "\n";
 			}
 
 			out.close();
