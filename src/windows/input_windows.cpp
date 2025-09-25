@@ -9,7 +9,7 @@
 #include <unordered_map>
 #include <string>
 
-#include "KalaHeaders/logging.hpp"
+#include "KalaHeaders/log_utils.hpp"
 
 #include "core/input.hpp"
 

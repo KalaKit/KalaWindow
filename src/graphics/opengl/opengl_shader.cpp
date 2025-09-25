@@ -10,7 +10,7 @@
 #include <vector>
 #include <memory>
 
-#include "KalaHeaders/logging.hpp"
+#include "KalaHeaders/log_utils.hpp"
 
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl_shader.hpp"

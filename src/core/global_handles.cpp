@@ -11,7 +11,7 @@
 
 #include <string>
 
-#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/core_utils.hpp"
 
 #include "core/core.hpp"
 #include "core/global_handles.hpp"

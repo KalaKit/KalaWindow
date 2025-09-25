@@ -7,8 +7,8 @@
 #include <vector>
 #include <string>
 
-#include "KalaHeaders/logging.hpp"
-#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/log_utils.hpp"
+#include "KalaHeaders/core_utils.hpp"
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"

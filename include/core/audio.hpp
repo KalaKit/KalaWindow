@@ -9,8 +9,7 @@
 #include <filesystem>
 #include <algorithm>
 
-#include "KalaHeaders/api.hpp"
-#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/core_utils.hpp"
 
 #include "glm_global.hpp"
 

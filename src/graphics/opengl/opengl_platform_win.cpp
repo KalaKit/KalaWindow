@@ -9,7 +9,7 @@
 #include <string>
 #include <sstream>
 
-#include "KalaHeaders/logging.hpp"
+#include "KalaHeaders/log_utils.hpp"
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"

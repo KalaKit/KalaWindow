@@ -15,7 +15,7 @@
 //TODO: DEFINE
 #endif
 
-#include "KalaHeaders/logging.hpp"
+#include "KalaHeaders/log_utils.hpp"
 
 #include "ui/debug_ui.hpp"
 #include "core/containers.hpp"

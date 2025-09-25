@@ -5,8 +5,7 @@
 
 #pragma once
 
-#include "KalaHeaders/api.hpp"
-#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/core_utils.hpp"
 #include "OpenGL/glcorearb.h" //core opengl
 #include "OpenGL/glext.h"     //extension tokens, enums and extra function pointers
 

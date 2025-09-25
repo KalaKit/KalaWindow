@@ -16,7 +16,7 @@
 #endif
 #include <string>
 
-#include "KalaHeaders/logging.hpp"
+#include "KalaHeaders/log_utils.hpp"
 
 #include "graphics/vulkan/extensions_vulkan.hpp"
 #include "graphics/vulkan/vulkan.hpp"

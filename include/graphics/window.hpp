@@ -9,8 +9,7 @@
 #include <functional>
 #include <vector>
 
-#include "KalaHeaders/api.hpp"
-#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
 

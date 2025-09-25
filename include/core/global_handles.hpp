@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_utils.hpp"
 
 namespace KalaWindow::Core
 {

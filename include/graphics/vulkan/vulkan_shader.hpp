@@ -10,9 +10,8 @@
 #include <functional>
 #include <variant>
 
-#include "KalaHeaders/api.hpp"
-#include "KalaHeaders/core_types.hpp"
-#include "KalaHeaders/logging.hpp"
+#include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/log_utils.hpp"
 
 #include "core/glm_global.hpp"
 #include "graphics/window.hpp"

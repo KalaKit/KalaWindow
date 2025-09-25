@@ -13,8 +13,7 @@
 
 #include "imgui/imgui.h"
 
-#include "KalaHeaders/core_types.hpp"
-#include "KalaHeaders/api.hpp"
+#include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
 

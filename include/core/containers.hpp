@@ -10,8 +10,7 @@
 #include <vector>
 #include <memory>
 
-#include "KalaHeaders/api.hpp"
-#include "KalaHeaders/core_types.hpp"
+#include "KalaHeaders/core_utils.hpp"
 
 #include "core/audio.hpp"
 #include "graphics/window.hpp"
