@@ -43,7 +43,7 @@ Shorthands for math variables and overrideable cross-platform templates for conv
 
 ---
 
-## string_helpers.hpp
+## string_utils.hpp
 
 Various string conversions and functions to improve workflow with string operations
 
@@ -62,7 +62,7 @@ Various string conversions and functions to improve workflow with string operati
 
 ---
 
-## file_helpers.hpp
+## file_utils.hpp
 
 Provides file management, file metadata, text I/O and binary I/O helper functions
 
