@@ -1,0 +1,92 @@
+#KMF VERSION 1.0
+
+// The purpose of this .kmf file is to distribute KalaWindow core stuff, KalaWindow binaries and KalaWindow external libraries
+// to external repositories that don't exist within this repository. KalaMove helps us achieve simple file movement
+// solutions thanks to how clean and efficient it is by utilizing filesystem and fstream internally.
+
+//create external shared folder if it doesnt exist
+origin: .
+target: ..@Circuit-chan@_external_shared, ..@Elypso-engine@_external_shared, ..@Elypso-hub@_external_shared, ..@Hinnamasin@_external_shared
+action: create
+
+//
+// CORE STUFF
+//
+
+//copy readme
+origin: readme.md
+target: ..@Circuit-chan@_external_shared@KalaWindow@readme.md, ..@Elypso-engine@_external_shared@KalaWindow@readme.md, ..@Elypso-hub@_external_shared@KalaWindow@readme.md, ..@Hinnamasin@_external_shared@KalaWindow@readme.md
+action: forcecopy
+
+//copy license
+origin: LICENSE.md
+target: ..@Circuit-chan@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@Hinnamasin@_external_shared@KalaWindow@LICENSE.md
+action: forcecopy
+
+//copy logo
+origin: logo.png
+target: ..@Circuit-chan@_external_shared@KalaWindow@logo.png, ..@Elypso-engine@_external_shared@KalaWindow@logo.png, ..@Elypso-hub@_external_shared@KalaWindow@logo.png, ..@Hinnamasin@_external_shared@KalaWindow@logo.png
+action: forcecopy
+
+//
+// BINARIES
+//
+
+//copy debug dll
+origin: debug@_KWnd03d.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KWnd03d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KWnd03d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KWnd03d.dll, ..@Hinnamasin@_external_shared@KalaWindow@debug@_KWnd03d.dll
+action: forcecopy
+
+//copy debug lib
+origin: debug@_KWnd03d.lib
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KWnd03d.lib, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KWnd03d.lib, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KWnd03d.lib, ..@Hinnamasin@_external_shared@KalaWindow@debug@_KWnd03d.lib
+action: forcecopy
+
+//copy debug pdb
+origin: debug@_KWnd03d.pdb
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KWnd03d.pdb, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KWnd03d.pdb, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KWnd03d.pdb, ..@Hinnamasin@_external_shared@KalaWindow@debug@_KWnd03d.pdb
+action: forcecopy
+
+//copy release dll
+origin: release@_KWnd03.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KWnd03.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@_KWnd03.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@_KWnd03.dll, ..@Hinnamasin@_external_shared@KalaWindow@release@_KWnd03.dll
+action: forcecopy
+
+//copy release lib
+origin: release@_KWnd03.lib
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KWnd03.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@_KWnd03.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@_KWnd03.lib, ..@Hinnamasin@_external_shared@KalaWindow@release@_KWnd03.lib
+action: forcecopy
+
+//
+// EXTERNAL LIBRARIES
+//
+
+//glm
+origin: _external_shared@glm
+target: ..@Circuit-chan@_external_shared@glm, ..@Elypso-engine@_external_shared@glm, ..@Elypso-hub@_external_shared@glm, ..@Hinnamasin@_external_shared@glm
+action: copy
+
+//imgui
+origin: _external_shared@imgui
+target: ..@Circuit-chan@_external_shared@imgui, ..@Elypso-engine@_external_shared@imgui, ..@Elypso-hub@_external_shared@imgui, ..@Hinnamasin@_external_shared@imgui
+action: copy
+
+//KalaHeaders
+origin: _external_shared@KalaHeaders
+target: ..@Circuit-chan@_external_shared@KalaHeaders, ..@Elypso-engine@_external_shared@KalaHeaders, ..@Elypso-hub@_external_shared@KalaHeaders, ..@Hinnamasin@_external_shared@KalaHeaders
+action: copy
+
+//miniaudio
+origin: _external_shared@miniaudio
+target: ..@Circuit-chan@_external_shared@miniaudio, ..@Elypso-engine@_external_shared@miniaudio, ..@Elypso-hub@_external_shared@miniaudio, ..@Hinnamasin@_external_shared@miniaudio
+action: copy
+
+//OpenGL
+origin: _external_shared@OpenGL
+target: ..@Circuit-chan@_external_shared@OpenGL, ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL, ..@Hinnamasin@_external_shared@OpenGL
+action: copy
+
+//stb
+origin: _external_shared@stb
+target: ..@Circuit-chan@_external_shared@stb, ..@Elypso-engine@_external_shared@stb, ..@Elypso-hub@_external_shared@stb, ..@Hinnamasin@_external_shared@stb
+action: copy
