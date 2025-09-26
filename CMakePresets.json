@@ -36,10 +36,19 @@
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
+    },
+	{
+      "name": "relwithdebinfo",
+      "inherits": "windows-base",
+      "binaryDir": "${sourceDir}/release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo"
+      }
     }
   ],
   "buildPresets": [
     { "name": "debug", "configurePreset": "debug" },
-    { "name": "release", "configurePreset": "release" }
+    { "name": "release", "configurePreset": "release" },
+	{ "name": "relwithdebinfo", "configurePreset": "relwithdebinfo" }
   ]
 }

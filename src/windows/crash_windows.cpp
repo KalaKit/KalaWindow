@@ -24,6 +24,9 @@ using KalaHeaders::LogType;
 using KalaHeaders::TimeFormat;
 
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::PopupAction;
+using KalaWindow::Core::PopupResult;
+using KalaWindow::Core::PopupType;
 
 using std::string;
 using std::ofstream;
@@ -115,7 +118,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		case 8: accessStr = "execute"; break;
 		}
 
-		oss << "Reason: Access violation - attemted to " << accessStr
+		oss << "Reason: Access violation - attempted to " << accessStr
 			<< " invalid memory at address 0x" << hex << accessType[1];
 
 		if (accessType[0] == 8)
@@ -181,15 +184,19 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 			LogType::LOG_DEBUG);
 	}
 
-	WriteLog(
+	if (KalaWindowCore::CreatePopup(
+		assignedProgramName,
 		oss.str(),
-		timeStamp);
+		PopupAction::POPUP_ACTION_OK,
+		PopupType::POPUP_TYPE_ERROR) ==
+		PopupResult::POPUP_RESULT_OK)
+	{
+		WriteLog(
+			oss.str(),
+			timeStamp);
 
-	if (assignedShutdownFunction) assignedShutdownFunction();
-
-	KalaWindowCore::ForceClose(
-		assignedProgramName + " has crashed!",
-		oss.str());
+		if (assignedShutdownFunction) assignedShutdownFunction();
+	}
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }

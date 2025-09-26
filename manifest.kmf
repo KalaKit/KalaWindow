@@ -28,6 +28,16 @@ origin: logo.png
 target: ..@Circuit-chan@_external_shared@KalaWindow@logo.png, ..@Elypso-engine@_external_shared@KalaWindow@logo.png, ..@Elypso-hub@_external_shared@KalaWindow@logo.png, ..@Hinnamasin@_external_shared@KalaWindow@logo.png
 action: forcecopy
 
+//copy include files
+origin: include
+target: ..@Circuit-chan@_external_shared@KalaWindow@include, ..@Elypso-engine@_external_shared@KalaWindow@include, ..@Elypso-hub@_external_shared@KalaWindow@include, ..@Hinnamasin@_external_shared@KalaWindow@include
+action: forcecopy
+
+//copy docs
+origin: docs
+target: ..@Circuit-chan@_external_shared@KalaWindow@docs, ..@Elypso-engine@_external_shared@KalaWindow@docs, ..@Elypso-hub@_external_shared@KalaWindow@docs, ..@Hinnamasin@_external_shared@KalaWindow@docs
+action: forcecopy
+
 //
 // BINARIES
 //
