@@ -7,7 +7,7 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - file management - create directory, list directory contents, rename, delete, copy, move
+//   - file management - create file, create directory, list directory contents, rename, delete, copy, move
 //   - file metadata - file size, directory size, line count, get filename (stem + extension), get stem, get parent, get/set extension
 //   - text I/O - read/write data for text files with vector of string lines or string blob
 //   - binary I/O - read/write data for binary files with vector of bytes or buffer + size
@@ -47,13 +47,198 @@ namespace KalaHeaders
 	using std::filesystem::recursive_directory_iterator;
 	using std::filesystem::directory_iterator;
 
+	enum class FileType
+	{
+		FILE_TEXT,
+		FILE_BINARY
+	};
+
+	//Data struct that is used for creating a new file.
+	//One of the four data blocks must also be filled (inBuffer + bufferSize are together)
+	struct FileData
+	{
+		//Pointer of buffer that will be written into new file
+		uint8_t* inBuffer{};
+		//Size of buffer
+		size_t bufferSize{};
+
+		//Vector of bytes that will be written into new file
+		vector<uint8_t> inData{};
+
+		//String blob that will be written into new file
+		string inText{};
+
+		//Vector of strings that will be written into new file
+		vector<string> inLines{};
+	};
+
 	//
 	// FILE MANAGEMENT
 	//
 
-	//Create all directories to target that don't exist
-	inline string CreateDirectory(
-		const path& target)
+	//Forward declarations for write* functions
+
+	inline string WriteTextToFile(
+		const path& target,
+		const string& inText,
+		bool append = false);
+
+	inline string WriteLinesToFile(
+		const path& target,
+		const vector<string>& inLines,
+		bool append = false);
+
+	inline string WriteBinaryBufferToFile(
+		const path& target,
+		const uint8_t* inBuffer,
+		size_t bufferSize,
+		bool append = false);
+
+	inline string WriteBinaryLinesToFile(
+		const path& target,
+		const vector<uint8_t>& inData,
+		bool append = false);
+
+	//Create regular or binary file at target path. If you also want data written
+	//to the new file after its been created then pass a fileData struct
+	//with one of the fields filled in, only the first found field data is used
+	inline string CreateFile(
+		const path& target,
+		FileType targetFileType = FileType::FILE_BINARY,
+		const FileData& fileData = FileData{})
+	{
+		ostringstream oss{};
+
+		if (target.empty())
+		{
+			oss << "Failed to create new file because no target path was passed!";
+
+			return oss.str();
+		}
+		if (exists(target))
+		{
+			oss << "Failed to create new file at path '" << target
+				<< "' because it already exists!";
+
+			return oss.str();
+		}
+
+		switch (targetFileType)
+		{
+		case FileType::FILE_TEXT:
+		{
+			if (fileData.inBuffer != nullptr
+				|| fileData.bufferSize > 0
+				|| !fileData.inData.empty())
+			{
+				oss << "Failed to create new file at path '" << target
+					<< "' because its type was set to 'FILE_TEXT' and binary data was passed to it!";
+
+				return oss.str();
+			}
+
+			ofstream file(
+				target,
+				ios::out
+				| ios::trunc);
+
+			file.close();
+
+			if (!fileData.inLines.empty()
+				|| !fileData.inText.empty())
+			{
+				string result{};
+
+				if (!fileData.inText.empty())
+				{
+					result = WriteTextToFile(
+						target,
+						fileData.inText);
+				}
+				else if (!fileData.inLines.empty())
+				{
+					result = WriteLinesToFile(
+						target,
+						fileData.inLines);
+				}
+
+				if (!result.empty())
+				{
+					oss << "Failed to create new text file '"
+						<< target << "'! Reason: " << result;
+
+					return oss.str();
+				}
+			}
+			break;
+		}
+		case FileType::FILE_BINARY:
+		{
+			if (!fileData.inLines.empty()
+				|| !fileData.inText.empty())
+			{
+				oss << "Failed to create new file at path '" << target
+					<< "' because its type was set to 'FILE_BINARY' and string data was passed to it!";
+
+				return oss.str();
+			}
+
+			if ((fileData.inBuffer == nullptr
+				&& fileData.bufferSize > 0)
+				|| (fileData.inBuffer != nullptr
+				&& fileData.bufferSize == 0))
+			{
+				oss << "Failed to create new file at path '" << target
+					<< "' because inBuffer or bufferSize was not filled! Both must have valid data.";
+
+				return oss.str();
+			}
+
+			ofstream file(
+				target,
+				ios::out
+				| ios::binary
+				| ios::trunc);
+
+			file.close();
+
+			if (fileData.inBuffer != nullptr
+				|| !fileData.inData.empty())
+			{
+				string result{};
+
+				if (fileData.inBuffer != nullptr)
+				{
+					result = WriteBinaryBufferToFile(
+						target,
+						fileData.inBuffer,
+						fileData.bufferSize);
+				}
+				else if (!fileData.inData.empty())
+				{
+					result = WriteBinaryLinesToFile(
+						target,
+						fileData.inData);
+				}
+
+				if (!result.empty())
+				{
+					oss << "Failed to create new binary file '"
+						<< target << "'! Reason: " << result;
+
+					return oss.str();
+				}
+			}
+			break;
+		}
+		}
+
+		return{};
+	}
+
+	//Create a directory at target path, this also creates all
+	//parent folders up to it that don't exist yet
+	inline string CreateDirectory(const path& target)
 	{
 		ostringstream oss{};
 
@@ -462,7 +647,9 @@ namespace KalaHeaders
 
 		try
 		{
-			ifstream in(target, ios::in);
+			ifstream in(
+				target, 
+				ios::in);
 
 			if (!in.is_open())
 			{
@@ -649,7 +836,7 @@ namespace KalaHeaders
 	inline string WriteTextToFile(
 		const path& target,
 		const string& inText,
-		bool append = false)
+		bool append)
 	{
 		ostringstream oss{};
 
@@ -772,7 +959,7 @@ namespace KalaHeaders
 	inline string WriteLinesToFile(
 		const path& target,
 		const vector<string>& inLines,
-		bool append = false)
+		bool append)
 	{
 		ostringstream oss{};
 
@@ -964,7 +1151,7 @@ namespace KalaHeaders
 		const path& target,
 		const uint8_t* inBuffer,
 		size_t bufferSize,
-		bool append = false)
+		bool append)
 	{
 		ostringstream oss{};
 
@@ -1111,7 +1298,7 @@ namespace KalaHeaders
 	inline string WriteBinaryLinesToFile(
 		const path& target,
 		const vector<uint8_t>& inData,
-		bool append = false)
+		bool append)
 	{
 		ostringstream oss{};
 

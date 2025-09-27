@@ -70,7 +70,8 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 
 | Function              | Description |
 |-----------------------|-------------|
-| CreateDirectory       | Create all directories to target that don't exist |
+| CreateFile            | Create regular or binary file at target path. If you also want data written to the new file after its been created then pass a fileData struct with one of the fields filled in, only the first found field data is used |
+| CreateDirectory       | Create a directory at target path, this also creates all parent folders up to it that don't exist yet |
 | ListDirectoryContents | List all the contents of a folder, with optional recursive flag |
 | RenamePath            | Rename file or folder in its current directory |
 | DeletePath            | Delete file or folder in target path (recursive for directories) |
