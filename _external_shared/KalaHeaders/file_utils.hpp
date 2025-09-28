@@ -669,7 +669,8 @@ namespace KalaHeaders
 				target, 
 				ios::in);
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -894,7 +895,8 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (out.fail())
+			if (out.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -944,7 +946,8 @@ namespace KalaHeaders
 				target,
 				ios::in);
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1023,7 +1026,8 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (out.fail())
+			if (out.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1080,7 +1084,8 @@ namespace KalaHeaders
 				target,
 				ios::in);
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1245,7 +1250,8 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (out.fail())
+			if (out.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1259,7 +1265,8 @@ namespace KalaHeaders
 				reinterpret_cast<const char*>(inBuffer),
 				static_cast<streamsize>(bufferSize));
 
-			if (out.fail())
+			if (out.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1324,7 +1331,8 @@ namespace KalaHeaders
 				ios::in
 				| ios::binary);
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1338,7 +1346,8 @@ namespace KalaHeaders
 				reinterpret_cast<char*>(outBuffer),
 				static_cast<streamsize>(bufferSize));
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1414,7 +1423,8 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (out.fail())
+			if (out.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1428,7 +1438,8 @@ namespace KalaHeaders
 				reinterpret_cast<const char*>(inData.data()),
 				static_cast<streamsize>(inData.size()));
 
-			if (out.fail())
+			if (out.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1482,7 +1493,8 @@ namespace KalaHeaders
 				ios::in
 				| ios::binary);
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1551,7 +1563,8 @@ namespace KalaHeaders
 				reinterpret_cast<char*>(allData.data()),
 				static_cast<streamsize>(readSize));
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1620,7 +1633,8 @@ namespace KalaHeaders
 				target,
 				ios::binary);
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1685,10 +1699,10 @@ namespace KalaHeaders
 
 				in.read(reinterpret_cast<char*>(buffer.data() + preserve), chunkSize);
 
-				if (in.fail())
+				if (in.fail()
+					&& errno != 0)
 				{
 					int err = errno;
-
 					oss << "Failed to get range by value from target '"
 						<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
 
@@ -1768,7 +1782,8 @@ namespace KalaHeaders
 				target,
 				ios::binary);
 
-			if (in.fail())
+			if (in.fail()
+				&& errno != 0)
 			{
 				int err = errno;
 
@@ -1833,7 +1848,8 @@ namespace KalaHeaders
 
 				in.read(reinterpret_cast<char*>(buffer.data() + preserve), chunkSize);
 
-				if (in.fail())
+				if (in.fail()
+					&& errno != 0)
 				{
 					int err = errno;
 
