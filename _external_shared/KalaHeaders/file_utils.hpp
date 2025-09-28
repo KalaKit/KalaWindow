@@ -27,11 +27,14 @@ namespace KalaHeaders
 	using std::string;
 	using std::vector;
 	using std::ostringstream;
+	using std::istreambuf_iterator;
 	using std::ifstream;
 	using std::ofstream;
 	using std::streamsize;
 	using std::streamoff;
 	using std::ios;
+	using std::search;
+	using std::distance;
 	using std::filesystem::exists;
 	using std::filesystem::path;
 	using std::filesystem::is_regular_file;
@@ -70,6 +73,13 @@ namespace KalaHeaders
 
 		//Vector of strings that will be written into new file
 		vector<string> inLines{};
+	};
+
+	//Start and end of chosen string or bytes value in a binary file
+	struct BinaryRange
+	{
+		size_t start{};
+		size_t end{};
 	};
 
 	//
@@ -1475,6 +1485,152 @@ namespace KalaHeaders
 		catch (exception& e)
 		{
 			oss << "Failed to read binary from target '" << target << "'! Reason: " << e.what();
+
+			return oss.str();
+		}
+
+		return{};
+	}
+
+	//Return all start and end of defined string in a binary
+	inline string GetRangeByValue(
+		const path& target,
+		const string& inData,
+		vector<BinaryRange>& outData)
+	{
+		ostringstream oss{};
+
+		if (!exists(target))
+		{
+			oss << "Failed to get binary data range from target '" << target << "' because it does not exist!";
+
+			return oss.str();
+		}
+		if (!is_regular_file(target))
+		{
+			oss << "Failed to get binary data range from target '" << target << "' because it is not a regular file!";
+
+			return oss.str();
+		}
+		if (inData.empty())
+		{
+			oss << "Failed to get binary data range from target '" << target << "' because input string was empty!";
+
+			return oss.str();
+		}
+
+		try
+		{
+			ifstream file(
+				target,
+				ios::binary);
+
+			if (!file.is_open())
+			{
+				oss << "Failed to get binary data range from target '" << target << "' because it couldn't be opened!";
+
+				return oss.str();
+			}
+
+			vector<uint8_t> buffer(
+				(istreambuf_iterator<char>(file)),
+				istreambuf_iterator<char>());
+
+			auto first = buffer.begin();
+			while (true)
+			{
+				auto it = search(
+					first,
+					buffer.end(),
+					inData.begin(),
+					inData.end());
+
+				if (it == buffer.end()) break;
+
+				size_t start = static_cast<size_t>(distance(buffer.begin(), it));
+				size_t end = start + inData.size();
+
+				outData.push_back({ start, end });
+
+				first = it + inData.size();
+			}
+		}
+		catch (exception& e)
+		{
+			oss << "Failed to get binary data range from target '" << target << "'! Reason: " << e.what();
+
+			return oss.str();
+		}
+
+		return{};
+	}
+
+	//Return all start and end of defined bytes in a binary
+	inline string GetRangeByValue(
+		const path& target,
+		const vector<uint8_t>& inData,
+		vector<BinaryRange>& outData)
+	{
+		ostringstream oss{};
+
+		if (!exists(target))
+		{
+			oss << "Failed to get binary data range from target '" << target << "' because it does not exist!";
+
+			return oss.str();
+		}
+		if (!is_regular_file(target))
+		{
+			oss << "Failed to get binary data range from target '" << target << "' because it is not a regular file!";
+
+			return oss.str();
+		}
+		if (inData.empty())
+		{
+			oss << "Failed to get binary data range from target '" << target << "' because input vector was empty!";
+
+			return oss.str();
+		}
+
+		try
+		{
+			ifstream file(
+				target,
+				ios::binary);
+
+			if (!file.is_open())
+			{
+				oss << "Failed to get binary data range from target '" << target << "' because it couldn't be opened!";
+
+				return oss.str();
+			}
+
+			vector<uint8_t> buffer(
+				(istreambuf_iterator<char>(file)),
+				istreambuf_iterator<char>());
+
+			auto first = buffer.begin();
+			while (true)
+			{
+				auto it = search(
+					first,
+					buffer.end(),
+					inData.begin(),
+					inData.end());
+
+				if (it == buffer.end()) break;
+
+				size_t start = static_cast<size_t>(distance(buffer.begin(), it));
+				size_t end = start + inData.size();
+
+				outData.push_back({ start, end });
+
+				first = it + inData.size();
+			}
+		}
+		catch (exception& e)
+		{
+			oss << "Failed to get binary data range from target '" << target << "'! Reason: " << e.what();
 
 			return oss.str();
 		}
