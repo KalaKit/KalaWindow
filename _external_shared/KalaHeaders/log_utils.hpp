@@ -273,13 +273,13 @@ namespace KalaHeaders
 
 			string safeMessage = message;
 			string safeTarget = target;
-			if (message.length() > 1000)
+			if (message.length() > 5000)
 			{
 				Print(
-					"Log message length is too long! Message was cut off after 1000 characters.",
+					"Log message length is too long! Message was cut off after 5000 characters.",
 					"LOG",
 					LogType::LOG_WARNING);
-				safeMessage = safeMessage.substr(0, 997) + "...";
+				safeMessage = safeMessage.substr(0, 4997) + "...";
 			}
 			if (target.length() > 20)
 			{
@@ -365,13 +365,13 @@ namespace KalaHeaders
 			}
 
 			string safeMessage = message;
-			if (message.length() > 1000)
+			if (message.length() > 5000)
 			{
 				Print(
-					"Log message length is too long! Message was cut off after 1000 characters.",
+					"Log message length is too long! Message was cut off after 5000 characters.",
 					"LOG",
 					LogType::LOG_DEBUG);
-				safeMessage = safeMessage.substr(0, 997) + "...";
+				safeMessage = safeMessage.substr(0, 4997) + "...";
 			}
 
 
