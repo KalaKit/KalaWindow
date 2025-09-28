@@ -20,9 +20,16 @@
 #include <sstream>
 #include <fstream>
 #include <filesystem>
+#include <cerrno>
+#include <cstring>
 
 namespace KalaHeaders
 {
+	constexpr size_t TEN_MB = 10ULL * 1024 * 1024;
+	constexpr size_t ONE_GB = 1ULL * 1024 * 1024 * 1024;
+	constexpr size_t CHUNK_64KB = 64ULL * 1024;
+	constexpr size_t CHUNK_1MB = 1ULL * 1024 * 1024;
+
 	using std::exception;
 	using std::string;
 	using std::vector;
@@ -35,6 +42,7 @@ namespace KalaHeaders
 	using std::ios;
 	using std::search;
 	using std::distance;
+	using std::strerror;
 	using std::filesystem::exists;
 	using std::filesystem::path;
 	using std::filesystem::is_regular_file;
@@ -661,9 +669,12 @@ namespace KalaHeaders
 				target, 
 				ios::in);
 
-			if (!in.is_open())
+			if (in.fail())
 			{
-				oss << "Failed to get target '" << target << "' line count because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to get target '"
+					<< target << "' line count because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -883,9 +894,12 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (!out.is_open())
+			if (out.fail())
 			{
-				oss << "Failed to write text to target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to write text to target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -930,9 +944,12 @@ namespace KalaHeaders
 				target,
 				ios::in);
 
-			if (!in.is_open())
+			if (in.fail())
 			{
-				oss << "Failed to read text from target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to read text from target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -1006,9 +1023,12 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (!out.is_open())
+			if (out.fail())
 			{
-				oss << "Failed to write lines to target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to write lines to target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -1060,9 +1080,12 @@ namespace KalaHeaders
 				target,
 				ios::in);
 
-			if (!in.is_open())
+			if (in.fail())
 			{
-				oss << "Failed to read lines from target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to read lines from target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -1155,6 +1178,22 @@ namespace KalaHeaders
 	// BINARY I/O
 	//
 
+	//Simple helper to get binary chunk stream size for efficient binary reading
+	inline size_t GetBinaryChunkStreamSize(size_t fileSize)
+	{
+		//empty file
+		if (fileSize == 0) return 0;
+
+		//whole file is under 10MB, use as single chunk
+		if (fileSize < TEN_MB) return fileSize;
+
+		//whole file is 10MB to 1GB - return 64KB chunk size
+		if (fileSize < ONE_GB) return CHUNK_64KB;
+
+		//whole file size is over 1GB - return 1MB chunk size
+		return CHUNK_1MB;
+	}
+
 	//Write raw binary buffer (pointer + size) to a file, with optional append flag.
 	//A new file is created at target path if it doesn't already exist
 	inline string WriteBinaryBufferToFile(
@@ -1206,9 +1245,12 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (!out.is_open())
+			if (out.fail())
 			{
-				oss << "Failed to write binary buffer to target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to write binary buffer to target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -1216,6 +1258,17 @@ namespace KalaHeaders
 			out.write(
 				reinterpret_cast<const char*>(inBuffer),
 				static_cast<streamsize>(bufferSize));
+
+			if (out.fail())
+			{
+				int err = errno;
+
+				oss << "Failed to write binary buffer to target '"
+					<< target << "' because a write error occured! Reason: (errno " << err << "): " << strerror(err);
+
+				out.close();
+				return oss.str();
+			}
 
 			out.close();
 		}
@@ -1271,9 +1324,12 @@ namespace KalaHeaders
 				ios::in
 				| ios::binary);
 
-			if (!in.is_open())
+			if (in.fail())
 			{
-				oss << "Failed to read binary buffer from target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to read binary buffer from target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -1281,6 +1337,17 @@ namespace KalaHeaders
 			in.read(
 				reinterpret_cast<char*>(outBuffer),
 				static_cast<streamsize>(bufferSize));
+
+			if (in.fail())
+			{
+				int err = errno;
+
+				oss << "Failed to read binary buffer from target '"
+					<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
+
+				in.close();
+				return oss.str();
+			}
 
 			outBytesRead = static_cast<size_t>(in.gcount());
 
@@ -1347,9 +1414,12 @@ namespace KalaHeaders
 					| ios::trunc);
 			}
 
-			if (!out.is_open())
+			if (out.fail())
 			{
-				oss << "Failed to write binary to target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to write binary to target '"
+					<< target << "' because it couldn't be opened! Reason: " << strerror(err);
 
 				return oss.str();
 			}
@@ -1357,6 +1427,17 @@ namespace KalaHeaders
 			out.write(
 				reinterpret_cast<const char*>(inData.data()),
 				static_cast<streamsize>(inData.size()));
+
+			if (out.fail())
+			{
+				int err = errno;
+
+				oss << "Failed to write binary lines to target '"
+					<< target << "' because a write error occured! Reason: (errno " << err << "): " << strerror(err);
+
+				out.close();
+				return oss.str();
+			}
 
 			out.close();
 		}
@@ -1401,9 +1482,12 @@ namespace KalaHeaders
 				ios::in
 				| ios::binary);
 
-			if (!in.is_open())
+			if (in.fail())
 			{
-				oss << "Failed to read binary from target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to read binary from target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
@@ -1467,6 +1551,17 @@ namespace KalaHeaders
 				reinterpret_cast<char*>(allData.data()),
 				static_cast<streamsize>(readSize));
 
+			if (in.fail())
+			{
+				int err = errno;
+
+				oss << "Failed to read binary lines from target '"
+					<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
+
+				in.close();
+				return oss.str();
+			}
+
 			size_t bytesRead = static_cast<size_t>(in.gcount());
 
 			in.close();
@@ -1521,38 +1616,113 @@ namespace KalaHeaders
 
 		try
 		{
-			ifstream file(
+			ifstream in(
 				target,
 				ios::binary);
 
-			if (!file.is_open())
+			if (in.fail())
 			{
-				oss << "Failed to get binary data range from target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to get binary data range from target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
 
-			vector<uint8_t> buffer(
-				(istreambuf_iterator<char>(file)),
-				istreambuf_iterator<char>());
+			size_t fileSize{};
+			string result = GetFileSize(
+				target,
+				fileSize);
 
-			auto first = buffer.begin();
-			while (true)
+			if (!result.empty())
 			{
-				auto it = search(
-					first,
-					buffer.end(),
-					inData.begin(),
-					inData.end());
+				ostringstream oss{};
+				oss << "Failed to get range by value for target '" << target
+					<< "'! Reason: " << result;
 
-				if (it == buffer.end()) break;
+				return oss.str();
+			}
 
-				size_t start = static_cast<size_t>(distance(buffer.begin(), it));
-				size_t end = start + inData.size();
+			if (fileSize == 0)
+			{
+				ostringstream oss{};
+				oss << "Failed to get range by value for target '" << target
+					<< "' because target file is empty!";
 
-				outData.push_back({ start, end });
+				return oss.str();
+			}
 
-				first = it + inData.size();
+			size_t patternSize = inData.size();
+			if (patternSize == 0)
+			{
+				ostringstream oss{};
+				oss << "Failed to get range by value for target '" << target
+					<< "' because input pattern is empty!";
+
+				return oss.str();
+			}
+
+			size_t chunkSize = GetBinaryChunkStreamSize(fileSize);
+
+			vector<uint8_t> buffer(chunkSize + patternSize - 1);
+			size_t offset{};
+			bool firstRead = true;
+
+			while (in)
+			{
+				size_t preserve{};
+
+				if (!firstRead)
+				{
+					preserve = patternSize > 1 ? patternSize - 1 : 0;
+					memmove(
+						buffer.data(),
+						buffer.data() + chunkSize,
+						preserve);
+					offset -= preserve;
+				}
+
+				in.read(reinterpret_cast<char*>(buffer.data() + preserve), chunkSize);
+
+				if (in.fail())
+				{
+					int err = errno;
+
+					oss << "Failed to get range by value from target '"
+						<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
+
+					in.close();
+					return oss.str();
+				}
+
+				size_t bytesRead = static_cast<size_t>(in.gcount());
+
+				if (bytesRead == 0) break;
+
+				size_t totalBytes = bytesRead + preserve;
+
+				auto first = buffer.begin();
+				while (true)
+				{
+					auto it = search(
+						first,
+						buffer.begin() + totalBytes,
+						inData.begin(),
+						inData.end());
+
+					if (it == buffer.begin() + totalBytes) break;
+
+					size_t start = offset + static_cast<size_t>(distance(buffer.begin(), it));
+					size_t end = start + inData.size();
+
+					outData.push_back({ start, end });
+
+					first = it + inData.size();
+				}
+
+				offset += bytesRead;
+				firstRead = false;
 			}
 		}
 		catch (exception& e)
@@ -1594,38 +1764,113 @@ namespace KalaHeaders
 
 		try
 		{
-			ifstream file(
+			ifstream in(
 				target,
 				ios::binary);
 
-			if (!file.is_open())
+			if (in.fail())
 			{
-				oss << "Failed to get binary data range from target '" << target << "' because it couldn't be opened!";
+				int err = errno;
+
+				oss << "Failed to get binary data range from target '"
+					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
 
 				return oss.str();
 			}
 
-			vector<uint8_t> buffer(
-				(istreambuf_iterator<char>(file)),
-				istreambuf_iterator<char>());
+			size_t fileSize{};
+			string result = GetFileSize(
+				target, 
+				fileSize);
 
-			auto first = buffer.begin();
-			while (true)
+			if (!result.empty())
 			{
-				auto it = search(
-					first,
-					buffer.end(),
-					inData.begin(),
-					inData.end());
+				ostringstream oss{};
+				oss << "Failed to get range by value for target '" << target
+					<< "'! Reason: " << result;
 
-				if (it == buffer.end()) break;
+				return oss.str();
+			}
 
-				size_t start = static_cast<size_t>(distance(buffer.begin(), it));
-				size_t end = start + inData.size();
+			if (fileSize == 0)
+			{
+				ostringstream oss{};
+				oss << "Failed to get range by value for target '" << target
+					<< "' because target file is empty!";
 
-				outData.push_back({ start, end });
+				return oss.str();
+			}
 
-				first = it + inData.size();
+			size_t patternSize = inData.size();
+			if (patternSize == 0)
+			{
+				ostringstream oss{};
+				oss << "Failed to get range by value for target '" << target
+					<< "' because input pattern is empty!";
+
+				return oss.str();
+			}
+
+			size_t chunkSize = GetBinaryChunkStreamSize(fileSize);
+
+			vector<uint8_t> buffer(chunkSize + patternSize - 1);
+			size_t offset{};
+			bool firstRead = true;
+
+			while (in)
+			{
+				size_t preserve{};
+
+				if (!firstRead)
+				{
+					preserve = patternSize > 1 ? patternSize - 1 : 0;
+					memmove(
+						buffer.data(),
+						buffer.data() + chunkSize,
+						preserve);
+					offset -= preserve;
+				}
+
+				in.read(reinterpret_cast<char*>(buffer.data() + preserve), chunkSize);
+
+				if (in.fail())
+				{
+					int err = errno;
+
+					oss << "Failed to get range by value from target '"
+						<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
+
+					in.close();
+					return oss.str();
+				}
+
+				size_t bytesRead = static_cast<size_t>(in.gcount());
+
+				if (bytesRead == 0) break;
+
+				size_t totalBytes = bytesRead + preserve;
+
+				auto first = buffer.begin();
+				while (true)
+				{
+					auto it = search(
+						first,
+						buffer.begin() + totalBytes,
+						inData.begin(),
+						inData.end());
+
+					if (it == buffer.begin() + totalBytes) break;
+
+					size_t start = offset + static_cast<size_t>(distance(buffer.begin(), it));
+					size_t end = start + inData.size();
+
+					outData.push_back({ start, end });
+
+					first = it + inData.size();
+				}
+
+				offset += bytesRead;
+				firstRead = false;
 			}
 		}
 		catch (exception& e)
