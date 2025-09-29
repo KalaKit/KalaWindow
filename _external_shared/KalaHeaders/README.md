@@ -104,8 +104,6 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 
 | Function                 | Description |
 |--------------------------|-------------|
-| GetBinaryChunkStreamSize  | Simple helper to get binary chunk stream size for efficient binary reading |
-| WriteBinaryBufferToFile  | Write raw binary buffer (pointer + size) to a file, with optional append flag. A new file is created at target path if it doesn't already exist |
 | ReadBinaryBufferFromFile | Read raw binary data from a file into a buffer (up to bufferSize bytes). OutBytesRead returns the number of bytes read |
 | WriteBinaryLinesToFile   | Write all binary data from a vector<uint8_t> to a file, with optional append flag. A new file is created at target path if it doesn't already exist |
 | ReadBinaryLinesFromFile  | Read all binary data from a file into a vector<uint8_t> with optional rangeStart and rangeEnd values to avoid placing whole binary file to memory. If rangeEnd is 0 and rangeStart isnt, then this function defaults end to EOF |
