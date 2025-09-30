@@ -68,11 +68,6 @@ namespace KalaHeaders
 	//One of the four data blocks must also be filled (inBuffer + bufferSize are together)
 	struct FileData
 	{
-		//Pointer of buffer that will be written into new file
-		uint8_t* inBuffer{};
-		//Size of buffer
-		size_t bufferSize{};
-
 		//Vector of bytes that will be written into new file
 		vector<uint8_t> inData{};
 
@@ -104,12 +99,6 @@ namespace KalaHeaders
 	inline string WriteLinesToFile(
 		const path& target,
 		const vector<string>& inLines,
-		bool append = false);
-
-	inline string WriteBinaryBufferToFile(
-		const path& target,
-		const uint8_t* inBuffer,
-		size_t bufferSize,
 		bool append = false);
 
 	inline string WriteBinaryLinesToFile(
@@ -145,9 +134,7 @@ namespace KalaHeaders
 		{
 		case FileType::FILE_TEXT:
 		{
-			if (fileData.inBuffer != nullptr
-				|| fileData.bufferSize > 0
-				|| !fileData.inData.empty())
+			if (!fileData.inData.empty())
 			{
 				oss << "Failed to create new file at path '" << target
 					<< "' because its type was set to 'FILE_TEXT' and binary data was passed to it!";
@@ -201,17 +188,6 @@ namespace KalaHeaders
 				return oss.str();
 			}
 
-			if ((fileData.inBuffer == nullptr
-				&& fileData.bufferSize > 0)
-				|| (fileData.inBuffer != nullptr
-				&& fileData.bufferSize == 0))
-			{
-				oss << "Failed to create new file at path '" << target
-					<< "' because inBuffer or bufferSize was not filled! Both must have valid data.";
-
-				return oss.str();
-			}
-
 			ofstream file(
 				target,
 				ios::out
@@ -220,24 +196,13 @@ namespace KalaHeaders
 
 			file.close();
 
-			if (fileData.inBuffer != nullptr
-				|| !fileData.inData.empty())
+			if (!fileData.inData.empty())
 			{
 				string result{};
 
-				if (fileData.inBuffer != nullptr)
-				{
-					result = WriteBinaryBufferToFile(
-						target,
-						fileData.inBuffer,
-						fileData.bufferSize);
-				}
-				else if (!fileData.inData.empty())
-				{
-					result = WriteBinaryLinesToFile(
-						target,
-						fileData.inData);
-				}
+				result = WriteBinaryLinesToFile(
+					target,
+					fileData.inData);
 
 				if (!result.empty())
 				{
