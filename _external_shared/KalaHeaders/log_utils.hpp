@@ -290,7 +290,7 @@ namespace KalaHeaders
 				safeTarget = safeTarget.substr(0, 17) + "...";
 			}
 
-			string fullMessage = "[ ";
+			string fullMessage{};
 
 			string indent(indentation, ' ');
 
@@ -298,21 +298,23 @@ namespace KalaHeaders
 				&& defaultDateFormat != DateFormat::DATE_NONE)
 			{
 				string dateStamp = GetDate(dateFormat);
-				fullMessage += dateStamp + " | ";
+				fullMessage += "[ " + dateStamp + " ] ";
 			}
 
 			if (timeFormat != TimeFormat::TIME_NONE
 				&& defaultTimeFormat != TimeFormat::TIME_NONE)
 			{
 				string timeStamp = GetTime(timeFormat);
-				if (!indent.empty()) fullMessage += timeStamp + " ]" + indent + "[ ";
-				else fullMessage += timeStamp + " ] [ ";
+
+				fullMessage += "[ " + timeStamp + " ] ";
+				if (!indent.empty()) fullMessage += indent;
 			}
 			else
 			{
-				if (!indent.empty()) fullMessage += indent + "[ ";
-				else fullMessage += " [";
+				if (!indent.empty()) fullMessage += indent;
 			}
+
+			fullMessage += "[ ";
 
 			string logType{};
 			switch (type)
