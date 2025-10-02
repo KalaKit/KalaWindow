@@ -67,3 +67,11 @@ Send me an email at `sanderveski@gmail.com` or message me on discord at `greenla
 [Minimum requirements](docs/minimum_requirements.md)
 
 [KalaWindow Library Naming Scheme](docs/naming_scheme.md)
+
+### Web builds
+
+KalaWindow is slowly working on adding web build support. These are experimental and may not function as intended.
+
+[Emscripten setup](docs/web_builds/emscripten.md)
+
+[WASM setup](docs/web_builds/wasm.md)
