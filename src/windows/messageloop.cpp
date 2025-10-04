@@ -596,6 +596,15 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_SYSKEYDOWN:
 	case WM_KEYDOWN:
 	{
+		if (msg.wParam == VK_LBUTTON
+			|| msg.wParam == VK_RBUTTON
+			|| msg.wParam == VK_MBUTTON
+			|| msg.wParam == VK_XBUTTON1
+			|| msg.wParam == VK_XBUTTON2)
+		{
+			return false;
+		}
+
 		Key key = TranslateVirtualKey(msg.wParam, msg.lParam);
 
 		if (Input::IsVerboseLoggingEnabled())
@@ -631,6 +640,15 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_SYSKEYUP:
 	case WM_KEYUP:
 	{
+		if (msg.wParam == VK_LBUTTON
+			|| msg.wParam == VK_RBUTTON
+			|| msg.wParam == VK_MBUTTON
+			|| msg.wParam == VK_XBUTTON1
+			|| msg.wParam == VK_XBUTTON2)
+		{
+			return false;
+		}
+
 		Key key = TranslateVirtualKey(msg.wParam, msg.lParam);
 
 		if (Input::IsVerboseLoggingEnabled())
@@ -990,19 +1008,35 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			const RAWMOUSE& mouse = raw->data.mouse;
 
-			//add support for up to 8 extra mouse buttons
-			for (int i = 0; i < 8; i++)
+			//skip wheel-only and main button events
+			if ((mouse.usButtonFlags
+				& (RI_MOUSE_WHEEL
+					| RI_MOUSE_HWHEEL
+					| RI_MOUSE_BUTTON_1_DOWN
+					| RI_MOUSE_BUTTON_1_UP
+					| RI_MOUSE_BUTTON_2_DOWN
+					| RI_MOUSE_BUTTON_2_UP
+					| RI_MOUSE_BUTTON_3_DOWN
+					| RI_MOUSE_BUTTON_3_UP)) == 0)
 			{
-				USHORT downFlag = RI_MOUSE_BUTTON_1_DOWN << (i * 2);
-				USHORT upFlag = RI_MOUSE_BUTTON_1_UP << (i * 2);
+				//add support for up to 8 extra mouse buttons
+				for (int i = 0; i < 8; i++)
+				{
+					USHORT downFlag = RI_MOUSE_BUTTON_1_DOWN << (i * 2);
+					USHORT upFlag = RI_MOUSE_BUTTON_1_UP << (i * 2);
 
-				if (mouse.usButtonFlags & downFlag)
-				{
-					Input::SetKeyState(static_cast<Key>(static_cast<int>(MouseButton::X3) + i), true);
-				}
-				if (mouse.usButtonFlags & upFlag)
-				{
-					Input::SetKeyState(static_cast<Key>(static_cast<int>(MouseButton::X3) + i), false);
+					if (mouse.usButtonFlags & downFlag)
+					{
+						Input::SetMouseButtonState(
+							static_cast<MouseButton>(static_cast<int>(MouseButton::X3) + i),
+							true);
+					}
+					if (mouse.usButtonFlags & upFlag)
+					{
+						Input::SetMouseButtonState(
+							static_cast<MouseButton>(static_cast<int>(MouseButton::X3) + i),
+							false);
+					}
 				}
 			}
 
