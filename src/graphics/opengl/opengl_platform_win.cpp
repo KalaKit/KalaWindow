@@ -391,24 +391,24 @@ namespace KalaWindow::Graphics::OpenGL
 			? "Undefined"
 			: "Unknown";
 
+		ostringstream ss{};
+		ss << "Pixel Format Details:\n"
+			<< "  Pixel format ID: " << pfID << "\n"
+			<< "  Color bits:      " << colorBits << "\n"
+			<< "  Depth bits:      " << depthBits << "\n"
+			<< "  Stencil bits:    " << stencilBits << "\n"
+			<< "  Alpha bits:      " << alphaBits << "\n"
+			<< "  Flags:\n"
+			<< "    Draw to window:    " << (drawToWindow == 1 ? "Yes" : "No") << "\n"
+			<< "    Support OpenGL:    " << (supportGL == 1 ? "Yes" : "No") << "\n"
+			<< "    Double buffer:     " << (doubleBuffer == 1 ? "Yes" : "No") << "\n"
+			<< "    MSAA:              " << (sampleBuffer == 1 ? to_string(samples) + "x" : "Disabled") << "\n"
+			<< "    SRGB capable:      " << (srgbBuffer == 1 ? "Yes" : "No") << "\n"
+			<< "    Acceleration type: " << accelVal << "\n"
+			<< "    Swap method:       " << swapVal;
+
 		if (isVerboseLoggingEnabled)
 		{
-			ostringstream ss{};
-			ss << "Pixel Format Details:\n"
-				<< "  Pixel format ID: " << pfID << "\n"
-				<< "  Color bits:      " << colorBits << "\n"
-				<< "  Depth bits:      " << depthBits << "\n"
-				<< "  Stencil bits:    " << stencilBits << "\n"
-				<< "  Alpha bits:      " << alphaBits << "\n"
-				<< "  Flags:\n"
-				<< "    Draw to window:    " << (drawToWindow == 1 ? "Yes" : "No") << "\n"
-				<< "    Support OpenGL:    " << (supportGL == 1 ? "Yes" : "No") << "\n"
-				<< "    Double buffer:     " << (doubleBuffer == 1 ? "Yes" : "No") << "\n"
-				<< "    MSAA:              " << (sampleBuffer == 1 ? to_string(samples) + "x" : "Disabled") << "\n"
-				<< "    SRGB capable:      " << (srgbBuffer == 1 ? "Yes" : "No") << "\n"
-				<< "    Acceleration type: " << accelVal << "\n"
-				<< "    Swap method:       " << swapVal;
-
 			Log::Print(
 				ss.str(),
 				"OPENGL_WINDOWS",
@@ -497,23 +497,25 @@ namespace KalaWindow::Graphics::OpenGL
 		GLboolean srgbEnabled = GL_FALSE;
 		glGetBooleanv(GL_FRAMEBUFFER_SRGB, &srgbEnabled);
 
+		ostringstream ss2{};
+		ss2 << "OpenGL Context Info:\n"
+			<< "  Version:        " << (glVersion ? glVersion : "Unknown") << "\n"
+			<< "  Vendor:         " << (glVendor ? glVendor : "Unknown") << "\n"
+			<< "  Renderer:       " << (glRenderer ? glRenderer : "Unknown") << "\n"
+			<< "  GLSL:           " << (glslVer ? glslVer : "Unknown") << "\n"
+			<< "  Profile:        " << profileVal << "\n"
+			<< "  UBO block size: " << to_string(blockSize) << "\n"
+			<< "  SRGB enabled:   " << (srgbEnabled ? "Yes" : "No");
+
 		if (isVerboseLoggingEnabled)
 		{
-			ostringstream ss2{};
-			ss2 << "OpenGL Context Info:\n"
-				<< "  Version:        " << (glVersion ? glVersion : "Unknown") << "\n"
-				<< "  Vendor:         " << (glVendor ? glVendor : "Unknown") << "\n"
-				<< "  Renderer:       " << (glRenderer ? glRenderer : "Unknown") << "\n"
-				<< "  GLSL:           " << (glslVer ? glslVer : "Unknown") << "\n"
-				<< "  Profile:        " << profileVal << "\n"
-				<< "  UBO block size: " << to_string(blockSize) << "\n"
-				<< "  SRGB enabled:   " << (srgbEnabled ? "Yes" : "No");
-
 			Log::Print(
 				ss2.str(),
 				"OPENGL_WINDOWS",
 				LogType::LOG_INFO);
 		}
+
+		contextData = ss2.str();
 
 		Log::Print(
 			"Initialized OpenGL context for Window '" + targetWindow->GetTitle() + "'!",
