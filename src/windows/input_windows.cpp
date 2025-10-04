@@ -160,11 +160,13 @@ namespace KalaWindow::Core
 		fill(mouseReleased.begin(), mouseReleased.end(), false);
 		fill(mouseDoubleClicked.begin(), mouseDoubleClicked.end(), false);
 
+		//always reset mouse wheel delta
+		mouseWheelDelta = 0;
+
 		if (!keepMouseDelta)
 		{
 			mouseDelta = { 0, 0 };
 			rawMouseDelta = { 0, 0 };
-			mouseWheelDelta = 0;
 		}
 	}
 
