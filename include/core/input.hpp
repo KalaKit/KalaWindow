@@ -136,9 +136,6 @@ namespace KalaWindow::Core
 		Middle,
 		X1,
 		X2,
-		X3,
-		X4,
-		X5,
 
 		MouseButtonCount
 	};
