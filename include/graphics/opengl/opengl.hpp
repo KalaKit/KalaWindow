@@ -4,6 +4,11 @@
 //Read LICENSE.md for more information.
 
 #pragma once
+#ifdef _WIN32
+#include <windows.h>
+#else
+//TODO: add the right one for glx
+#endif
 
 #include <string>
 
@@ -54,19 +59,6 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		ALPHA_NONE, //Disables alpha channel completely, cannot have transparent meshes or textures
 		ALPHA_8     //8-bit alpha channel (default)
-	};
-
-	//OpenGL data reusable across this window context
-	struct OpenGLData
-	{
-#ifdef _WIN32
-		HGLRC hglrc{};          //OpenGL context wia WGL
-		HDC hdc{};              //OpenGL handle to device context
-#else
-		//TODO: update to correct value
-		uintptr_t glxContext{}; //OpenGL context via glx
-#endif
-		unsigned int lastProgramID{};
 	};
 
 	class LIB_API OpenGL_Renderer
@@ -132,14 +124,28 @@ namespace KalaWindow::Graphics::OpenGL
 		static inline VSyncState vsyncState = VSyncState::VSYNC_ON;
 	};
 
-	class LIB_API OpenGL_Data
+	class LIB_API OpenGL_DataContainer
 	{
 	public:
-		OpenGL_Data* Initialize(Window* window);
+		OpenGL_DataContainer* Initialize(Window* window);
 
 		inline void SetOpenGLData(const OpenGLData& data) { openGLData = data; }
 		inline const OpenGLData& GetOpenGLData() const { return openGLData; }
 	private:
-		OpenGLData openGLData;
+#ifdef _WIN32
+		HGLRC hglrc{};          //OpenGL context wia WGL
+		HDC hdc{};              //OpenGL handle to device context
+#else
+		//TODO: update to correct value
+		uintptr_t glxContext{}; //OpenGL context via glx
+#endif
+		unsigned int lastProgramID{};
+
+		MultiSampling msaa{};
+		SRGBMode srgb{};
+		ColorBufferBits cBits{};
+		DepthBufferBits dBits{};
+		StencilBufferBits sBits{};
+		AlphaChannel aChannel{};
 	};
 }

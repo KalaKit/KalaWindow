@@ -16,6 +16,7 @@
 #include "graphics/opengl/opengl_functions_win.hpp"
 #include "graphics/window.hpp"
 #include "core/core.hpp"
+#include "core/containers.hpp"
 #include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
@@ -23,6 +24,7 @@ using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::GlobalHandle;
+using KalaWindow::Core::createdOpenGLData;
 using KalaWindow::Graphics::Window;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
@@ -544,7 +546,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 	}
 
-	void OpenGL_Renderer::SwapOpenGLBuffers(Window* targetWindow)
+	void OpenGL_Renderer::SwapOpenGLBuffers(Window* window)
 	{
 		if (!IsInitialized())
 		{
@@ -553,6 +555,14 @@ namespace KalaWindow::Graphics::OpenGL
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR);
 			return;
+		}
+
+		OpenGL_Data* glData{};
+
+		u32 glID = window->GetOpenGLID();
+		if (createdOpenGLData.contains(glID))
+		{
+			glData = createdOpenGLData[glID].get();
 		}
 
 		const OpenGLData& oData = targetWindow->GetOpenGLData();
@@ -657,6 +667,11 @@ namespace KalaWindow::Graphics::OpenGL
 #elif __linux__
 		//TODO: DEFINE
 #endif
+	}
+
+	OpenGL_DataContainer* Initialize(Window* window)
+	{
+
 	}
 }
 

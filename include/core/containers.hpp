@@ -15,6 +15,7 @@
 #include "core/input.hpp"
 #include "core/audio.hpp"
 #include "graphics/window.hpp"
+#include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/vulkan/vulkan_texture.hpp"
@@ -28,6 +29,7 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::Window;
 	using KalaWindow::Graphics::MenuBar;
 	using KalaWindow::Graphics::MenuBarEvent;
+	using KalaWindow::Graphics::OpenGL::OpenGL_Data;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::UI::DebugUI;
@@ -55,6 +57,7 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
+	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Data>> createdOpenGLData;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
 
@@ -75,6 +78,7 @@ namespace KalaWindow::Core
 
 	LIB_API extern vector<AudioPlayer*> runtimeAudioPlayers;
 
+	LIB_API extern vector<OpenGL_Data*> runtimeOpenGLData;
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
 
