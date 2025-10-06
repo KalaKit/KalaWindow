@@ -595,7 +595,7 @@ namespace KalaWindow::Graphics::OpenGL
 		HGLRC hglrcReal = ToVar<HGLRC>(oData.hglrc);
 
 		HGLRC current = wglGetCurrentContext();
-		if (current == nullptr)
+		if (!current)
 		{
 			Log::Print(
 				"OpenGL context is null!",
@@ -630,7 +630,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		if (window == nullptr)
+		if (!window)
 		{
 			Log::Print(
 				"Failed to shut down OpenGL because its target window is invalid!",

@@ -100,22 +100,6 @@ namespace KalaWindow::Graphics
 		PROGRESS_PAUSED,        //yellow bar
 		PROGRESS_ERROR          //red bar
 	};
-
-	enum class LabelType
-	{
-		LABEL_LEAF,  //Clickable with required function, can't have children
-		LABEL_BRANCH //Not clickable, won't work if function is added, can have children
-	};
-	struct MenuBarEvent
-	{
-		string parentLabel{};        //Name of parent label, leave empty if root
-
-		string label{};              //Name of this label
-		u32 labelID{};               //ID assigned to leaves, used for interaction
-		function<void()> function{}; //Function assigned to leaves
-
-		uintptr_t hMenu{};           //Branch HMENU handle for fast lookup
-	};
 #else
 	struct WindowData
 	{
@@ -392,11 +376,8 @@ namespace KalaWindow::Graphics
 		}
 		inline InputData& GetInputData() { return inputData; }
 
-		inline void SetImGuiContext(uintptr_t newContext)
-		{
-			imguiContext = newContext;
-		}
-		inline uintptr_t GetImGuiContext() { return imguiContext; }
+		inline void SetDebugUIID(u32 newValue) { debugUIID = newValue; }
+		inline const u32 GetDebugUIID() const { return debugUIID; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
@@ -436,14 +417,34 @@ namespace KalaWindow::Graphics
 		WindowData window_x11{};     //The X11 data of this window
 #endif
 
+		OpenGLData openglData{}; //The OpenGL data of this window
+
 		InputData inputData{}; //All input data of this window
 
-		uintptr_t imguiContext{}; //The imgui context of this window
-
-		OpenGLData openglData{}; //The OpenGL data of this window
+		u32 debugUIID{};
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
+	};
+
+	//
+	// MENU BAR CONTENT
+	//
+
+	enum class LabelType
+	{
+		LABEL_LEAF,  //Clickable with required function, can't have children
+		LABEL_BRANCH //Not clickable, won't work if function is added, can have children
+	};
+	struct MenuBarEvent
+	{
+		string parentLabel{};        //Name of parent label, leave empty if root
+
+		string label{};              //Name of this label
+		u32 labelID{};               //ID assigned to leaves, used for interaction
+		function<void()> function{}; //Function assigned to leaves
+
+		uintptr_t hMenu{};           //Branch HMENU handle for fast lookup
 	};
 
 	//Windows-only native menu bar. All leaf and and branch interactions are handled by the message loop.
@@ -454,8 +455,8 @@ namespace KalaWindow::Graphics
 	public:
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window
-		static void CreateMenuBar(Window* windowRef);
-		static bool IsInitialized(Window* windowRef);
+		static void CreateMenuBar(Window* window);
+		static bool IsInitialized(Window* window);
 
 		//If true, then menu bar is shown
 		static void SetMenuBarState(

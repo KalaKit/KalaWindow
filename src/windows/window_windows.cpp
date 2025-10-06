@@ -231,7 +231,7 @@ namespace KalaWindow::Graphics
 
 			parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().hwnd);
 
-			if (parentWindowRef == nullptr)
+			if (!parentWindowRef)
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
@@ -846,7 +846,7 @@ namespace KalaWindow::Graphics
 		}
 
 		HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-		if (hData == nullptr)
+		if (!hData)
 		{
 			if (Window::IsVerboseLoggingEnabled())
 			{
@@ -861,7 +861,7 @@ namespace KalaWindow::Graphics
 		}
 
 		wchar_t* wstr = static_cast<wchar_t*>(GlobalLock(hData));
-		if (wstr == nullptr)
+		if (!wstr)
 		{
 			Log::Print(
 				"Failed to lock memory handle to get text from clipboard!",
@@ -991,7 +991,7 @@ namespace KalaWindow::Graphics
 
 		exeIcon = SetUpIcon(tex);
 
-		if (exeIcon == nullptr)
+		if (!exeIcon)
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' icon because SetUpIcon failed!",
@@ -1084,7 +1084,7 @@ namespace KalaWindow::Graphics
 		
 		overlayIcon = SetUpIcon(tex);
 
-		if (overlayIcon == nullptr)
+		if (!overlayIcon)
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because SetUpIcon failed!",
@@ -2611,7 +2611,7 @@ namespace KalaWindow::Graphics
 
 		//leaf requires valid function
 		if (type == LabelType::LABEL_LEAF
-			&& func == nullptr)
+			&& !func)
 		{
 			ostringstream oss{};
 			oss << "Failed to add leaf '" << labelRef << "' under parent '" << parentRef

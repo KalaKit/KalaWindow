@@ -506,7 +506,7 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        if (targetWindow == nullptr)
+        if (!targetWindow)
         {
             Log::Print(
                 "Cannot bind shader '" + name + "' because the window reference is invalid!",

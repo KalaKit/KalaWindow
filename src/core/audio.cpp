@@ -551,7 +551,7 @@ namespace KalaWindow::Core
 			"set audio player name to '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		string oldName = name;
 
@@ -610,7 +610,7 @@ namespace KalaWindow::Core
 			"play audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		//always move to start
 		ma_sound_seek_to_pcm_frame(&pData->sound, 0);
@@ -632,7 +632,7 @@ namespace KalaWindow::Core
 			"get play state for audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return false;
+		if (!pData) return false;
 
 		return (ma_sound_is_playing(&pData->sound) == MA_TRUE);
 	}
@@ -643,7 +643,7 @@ namespace KalaWindow::Core
 			"set playback position for audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		if (newPosition > GetPlaybackPosition(true))
 		{
@@ -673,7 +673,7 @@ namespace KalaWindow::Core
 			"get playback position for audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		ma_uint64 length{};
 
@@ -695,7 +695,7 @@ namespace KalaWindow::Core
 			"pause audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		//pause song without resetting back to beginning
 		ma_sound_stop(&pData->sound);
@@ -714,7 +714,7 @@ namespace KalaWindow::Core
 			"continue audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		//start playing sound but continue where we last left off
 		ma_sound_start(&pData->sound);
@@ -734,7 +734,7 @@ namespace KalaWindow::Core
 			"set loop state for audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		ma_sound_set_looping(&pData->sound, newState);
 
@@ -754,7 +754,7 @@ namespace KalaWindow::Core
 			"get loop state for audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return false;
+		if (!pData) return false;
 
 		return (ma_sound_is_looping(&pData->sound) == MA_TRUE);
 	}
@@ -765,7 +765,7 @@ namespace KalaWindow::Core
 			"stop audio player '" + name + "'",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		ma_sound_stop(&pData->sound);
 
@@ -786,7 +786,7 @@ namespace KalaWindow::Core
 			"check if audio player '" + name + "' has finished",
 			ID);
 
-		if (pData == nullptr) return false;
+		if (!pData) return false;
 
 		return (
 			ma_sound_is_playing(&pData->sound) == MA_FALSE
@@ -799,7 +799,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' volume",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newVolume, 0.0f, 5.0f);
 
@@ -819,7 +819,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' volume",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_volume(&pData->sound);
 	}
@@ -830,7 +830,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' spatialization state",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		string stateVal = state ? "true" : "false";
 		ma_sound_set_spatialization_enabled(&pData->sound, state);
@@ -849,7 +849,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' spatialization state",
 			ID);
 
-		if (pData == nullptr) return false;
+		if (!pData) return false;
 
 		return ma_sound_is_spatialization_enabled(&pData->sound);
 	}
@@ -860,7 +860,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' positioning state",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		ma_positioning val = pos == Positioning::Positioning_Relative
 			? ma_positioning_relative
@@ -886,7 +886,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' positioning state",
 			ID);
 
-		if (pData == nullptr) return Positioning::Positioning_Relative;
+		if (!pData) return Positioning::Positioning_Relative;
 
 		ma_positioning state = ma_sound_get_positioning(&pData->sound);
 		return state == ma_positioning_relative
@@ -900,7 +900,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' pitch",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newPitch, 0.0f, 5.0f);
 
@@ -920,7 +920,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' pitch",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_pitch(&pData->sound);
 	}
@@ -931,7 +931,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' pan",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newPan, -1.0f, 1.0f);
 
@@ -951,7 +951,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' pan",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_pan(&pData->sound);
 	}
@@ -962,7 +962,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' pan mode",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		ma_pan_mode val = mode == PanMode::PanMode_Balance
 			? ma_pan_mode_balance
@@ -987,7 +987,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' pan mode",
 			ID);
 
-		if (pData == nullptr) return PanMode::PanMode_Balance;
+		if (!pData) return PanMode::PanMode_Balance;
 
 		ma_pan_mode mode = ma_sound_get_pan_mode(&pData->sound);
 		return mode == ma_pan_mode_balance 
@@ -1001,7 +1001,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' player position",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(pos.x, "player x position");
@@ -1030,7 +1030,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' player position",
 			ID);
 
-		if (pData == nullptr) return vec3(0);
+		if (!pData) return vec3(0);
 
 		ma_vec3f pos = ma_sound_get_position(&pData->sound);
 
@@ -1043,7 +1043,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' player velocity",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(vel.x, "player x velocity");
@@ -1072,7 +1072,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' player velocity",
 			ID);
 
-		if (pData == nullptr) return vec3(0);
+		if (!pData) return vec3(0);
 
 		ma_vec3f pos = ma_sound_get_velocity(&pData->sound);
 
@@ -1085,7 +1085,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' player direction",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 #ifdef _DEBUG
 		CheckHugeValue(dir.x, "player direction x");
@@ -1114,7 +1114,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' direction",
 			ID);
 
-		if (pData == nullptr) return vec3();
+		if (!pData) return vec3();
 
 		ma_vec3f front = ma_sound_get_direction(&pData->sound);
 
@@ -1127,7 +1127,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' player cone data",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 innerAngleClamped = clamp(cone.innerConeAngle, 0.0f, 359.99f);
 		f32 outerAngleClamped = clamp(cone.outerConeAngle, 0.0f, 359.99f);
@@ -1159,7 +1159,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' cone data",
 			ID);
 
-		if (pData == nullptr) return cone;
+		if (!pData) return cone;
 
 		f32 innerConeAngle{};
 		f32 outerConeAngle{};
@@ -1184,7 +1184,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' attenuation model",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		switch (model)
 		{
@@ -1244,7 +1244,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' attenuation model",
 			ID);
 
-		if (pData == nullptr) return AttenuationModel::Attenuation_None;
+		if (!pData) return AttenuationModel::Attenuation_None;
 
 		ma_attenuation_model model = ma_sound_get_attenuation_model(&pData->sound);
 
@@ -1261,7 +1261,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' rolloff factor",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newRolloffFactor, 0.0f, 5.0f);
 
@@ -1281,7 +1281,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' rolloff factor",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_rolloff(&pData->sound);
 	}
@@ -1292,7 +1292,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' doppler factor",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newFactor, 0.0f, 5.0f);
 
@@ -1312,7 +1312,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' doppler factor",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_doppler_factor(&pData->sound);
 	}
@@ -1323,7 +1323,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' min gain",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newMinGain, 0.0f, GetMaxGain() - 0.1f);
 
@@ -1343,7 +1343,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' min gain",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_min_gain(&pData->sound);
 	}
@@ -1354,7 +1354,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' max gain",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newMaxGain, GetMinGain() + 0.1f, 5.0f);
 
@@ -1374,7 +1374,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' max gain",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_max_gain(&pData->sound);
 	}
@@ -1385,7 +1385,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' min range",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newMinRange, 0.0f, GetMaxRange() - 0.1f);
 
@@ -1405,7 +1405,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' min range",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_min_distance(&pData->sound);
 	}
@@ -1416,7 +1416,7 @@ namespace KalaWindow::Core
 			"set audio player '" + name + "' max range",
 			ID);
 
-		if (pData == nullptr) return;
+		if (!pData) return;
 
 		f32 clamped = clamp(newMaxRange, GetMinRange() + 0.1f, 1000.0f);
 
@@ -1436,7 +1436,7 @@ namespace KalaWindow::Core
 			"get audio player '" + name + "' max range",
 			ID);
 
-		if (pData == nullptr) return 0;
+		if (!pData) return 0;
 
 		return ma_sound_get_max_distance(&pData->sound);
 	}

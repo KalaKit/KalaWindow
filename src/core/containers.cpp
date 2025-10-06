@@ -22,6 +22,8 @@ namespace KalaWindow::Core
 	unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures{};
 	unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders{};
 
+	unordered_map<u32, unique_ptr<DebugUI>> createdUI{};
+
 	//unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures{};
 	//unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders{};
 
@@ -37,6 +39,8 @@ namespace KalaWindow::Core
 
 	vector<OpenGL_Texture*> runtimeOpenGLTextures{};
 	vector<OpenGL_Shader*> runtimeOpenGLShaders{};
+
+	vector<DebugUI*> runtimeUI{};
 
 	//vector<Texture_Vulkan*> runtimeVulkanTextures{};
 	//vector<Shader_Vulkan*> runtimeVulkanShaders{};

@@ -18,6 +18,7 @@
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/vulkan/vulkan_texture.hpp"
 #include "graphics/vulkan/vulkan_shader.hpp"
+#include "ui/debug_ui.hpp"
 
 namespace KalaWindow::Core
 {
@@ -27,6 +28,7 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::MenuBarEvent;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
+	using KalaWindow::UI::DebugUI;
 	//using KalaWindow::Graphics::Vulkan::Texture_Vulkan;
 	//using KalaWindow::Graphics::Vulkan::Shader_Vulkan;
 
@@ -52,6 +54,8 @@ namespace KalaWindow::Core
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
 
+	LIB_API extern unordered_map<u32, unique_ptr<DebugUI>> createdUI;
+
 	//LIB_API extern unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures;
 	//LIB_API extern unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders;
 
@@ -67,6 +71,8 @@ namespace KalaWindow::Core
 
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
+
+	LIB_API extern vector<DebugUI*> runtimeUI;
 
 	//LIB_API extern vector<Texture_Vulkan*> runtimeVulkanTextures;
 	//LIB_API extern vector<Shader_Vulkan*> runtimeVulkanShaders;

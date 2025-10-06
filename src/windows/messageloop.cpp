@@ -40,18 +40,7 @@ using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using KalaWindow::Core::Input;
-using KalaWindow::Core::Key;
-using KalaWindow::Core::MouseButton;
-using KalaWindow::Core::Key;
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::PopupAction;
-using KalaWindow::Core::PopupType;
-using KalaWindow::Core::PopupResult;
-using KalaWindow::Core::ShutdownState;
-using KalaWindow::Core::runtimeWindows;
-using KalaWindow::Core::runtimeMenuBarEvents;
-using KalaWindow::Core::createdWindows;
+using namespace KalaWindow::Core;
 using KalaWindow::UI::DebugUI;
 
 using std::string;
@@ -459,7 +448,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 			break;
 		}
 	}
-	if (window == nullptr) return DefWindowProc(hwnd, msg, wParam, lParam);
+	if (!window) return DefWindowProc(hwnd, msg, wParam, lParam);
 
 	switch (msg)
 	{
@@ -533,7 +522,7 @@ static LRESULT CALLBACK InternalWindowProcCallback(
 
 static bool ProcessMessage(const MSG& msg, Window* window)
 {
-	if (window == nullptr)
+	if (!window)
 	{
 		Log::Print(
 			"Cannot use 'ProcessMessage' because window is nullptr!",
@@ -545,7 +534,22 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 
 	ImGuiIO* io = nullptr;
-	if (DebugUI::IsInitialized()) io = &ImGui::GetIO();
+
+	{
+		u32 debugUIID = window->GetDebugUIID();
+
+		DebugUI* debugUI{};
+		if (createdUI.contains(debugUIID))
+		{
+			debugUI = createdUI[debugUIID].get();
+		}
+
+		if (debugUI
+			&& debugUI->IsInitialized())
+		{
+			io = &ImGui::GetIO();
+		}
+	}
 
 	/*
 	if (msg.message == 0)
@@ -584,11 +588,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_UNICHAR:
 	case WM_CHAR:
 	{
-		if (DebugUI::IsInitialized()
-			&& io)
-		{
-			io->AddInputCharacter((u32)msg.wParam);
-		}
+		if (io) io->AddInputCharacter((u32)msg.wParam);
 
 		return true;
 	}
@@ -620,9 +620,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			key, 
 			true);
 
-		if (DebugUI::IsInitialized()
-			&& msg.wParam < 512
-			&& io)
+		if (io && msg.wParam < 512)
 		{
 			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam, msg.lParam);
 			if (k != ImGuiKey_None)
@@ -667,9 +665,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			key, 
 			false);
 
-		if (DebugUI::IsInitialized()
-			&& msg.wParam < 512
-			&& io)
+		if (io && msg.wParam < 512)
 		{
 			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam, msg.lParam);
 			if (k != ImGuiKey_None)
@@ -712,7 +708,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Input::SetMousePosition(window, newPos);
 		Input::SetMouseDelta(window, delta);
 
-		if (DebugUI::IsInitialized() && io) io->AddMousePosEvent(newPos.x, newPos.y);
+		if (io) io->AddMousePosEvent(newPos.x, newPos.y);
 
 		return false;
 	}
@@ -732,7 +728,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		Input::SetMouseWheelDelta(window, scroll);
 
-		if (DebugUI::IsInitialized() && io) io->AddMouseWheelEvent(0.0f, scroll);
+		if (io) io->AddMouseWheelEvent(0.0f, scroll);
 
 		return false;
 	}
@@ -839,7 +835,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			MouseButton::Left,
 			true);
 
-		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, true);
+		if (io) io->AddMouseButtonEvent(0, true);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -858,7 +854,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			MouseButton::Left,
 			false);
 
-		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, false);
+		if (io) io->AddMouseButtonEvent(0, false);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -878,7 +874,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			MouseButton::Right,
 			true);
 
-		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, true);
+		if (io) io->AddMouseButtonEvent(1, true);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -897,7 +893,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			MouseButton::Right,
 			false);
 
-		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, false);
+		if (io) io->AddMouseButtonEvent(1, false);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -917,7 +913,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			MouseButton::Middle,
 			true);
 
-		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, true);
+		if (io) io->AddMouseButtonEvent(2, true);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -936,7 +932,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			MouseButton::Middle,
 			false);
 
-		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, false);
+		if (io) io->AddMouseButtonEvent(2, false);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -959,7 +955,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				MouseButton::X1,
 				true);
 
-			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, true);
+			if (io) io->AddMouseButtonEvent(3, true);
 
 			if (Input::IsVerboseLoggingEnabled())
 			{
@@ -976,7 +972,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				MouseButton::X2,
 				true);
 
-			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, true);
+			if (io) io->AddMouseButtonEvent(4, true);
 
 			if (Input::IsVerboseLoggingEnabled())
 			{
@@ -998,7 +994,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				MouseButton::X1, 
 				false);
 
-			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, false);
+			if (io) io->AddMouseButtonEvent(3, false);
 
 			if (Input::IsVerboseLoggingEnabled())
 			{
@@ -1015,7 +1011,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				MouseButton::X2, 
 				false);
 
-			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, false);
+			if (io) io->AddMouseButtonEvent(4, false);
 
 			if (Input::IsVerboseLoggingEnabled())
 			{
@@ -1174,8 +1170,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		Input::SetMouseLockStateBetweenFocus(window, true);
 		Input::ClearInputEvents(window);
 
-		if (DebugUI::IsInitialized()
-			&& io)
+		if (io)
 		{
 			//reset all keyboard/gamepad keys
 			for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; key++)

@@ -17,6 +17,11 @@
 
 #include "core/glm_global.hpp"
 
+namespace KalaWindow::Graphics
+{
+	class Window;
+}
+
 namespace KalaWindow::UI
 {
 	using std::string;
@@ -25,6 +30,8 @@ namespace KalaWindow::UI
 	using std::unordered_map;
 	using std::vector;
 	using std::array;
+
+	using KalaWindow::Graphics::Window;
 
 	struct UserFont
 	{
@@ -48,52 +55,60 @@ namespace KalaWindow::UI
 	class LIB_API DebugUI
 	{
 	public:
-		static inline unordered_map<string, UserFont> userFonts{};
-
-		static int FilterDigits(ImGuiInputTextCallbackData* data)
-		{
-			if (data->EventChar >= '0'
-				&& data->EventChar <= '9')
-			{
-				return false;
-			}
-			return true;
-		}
-
 		//Set up ImGui. Also set docking state with enableDocking.
 		//Pass paths and font size per font relative to your executable to load as ImGui fonts
-		static bool Initialize(
+		static DebugUI* Initialize(
+			Window* window,
 			bool enableDocking = true,
 			const vector<UserFont>& userProvidedFonts = {});
-		static inline bool IsInitialized() { return isInitialized; }
-		static inline bool IsDockingEnabled() { return isDockingEnabled; }
+
+		inline const u32 GetID() const { return ID; }
+
+		inline bool IsInitialized() const { return isInitialized; }
+		inline bool IsDockingEnabled() const { return isDockingEnabled; }
+
+		//Returns selected user font by name
+		inline const UserFont& GetUserFont(const string& name) const
+		{
+			static const UserFont empty{};
+
+			auto it = userFonts.find(name);
+			if (it != userFonts.end()) return it->second;
+
+			return empty;
+		}
+		//Returns all user fonts
+		inline const unordered_map<string, UserFont>& GetAllUserFonts() const
+		{
+			return userFonts;
+		}
 
 		//Assign the top bar function that should hold all your top bar draw functions,
 		//does not need to be ran every frame.
-		static inline void SetTopBarFunction(const function<void()>& newFunction)
+		inline void SetTopBarFunction(const function<void()>& newFunction)
 		{
 			topBarFunction = newFunction;
 		}
-		static inline const function<void()>& GetTopBarFunction()
+		inline const function<void()>& GetTopBarFunction()
 		{
 			return topBarFunction;
 		}
 
 		//Assign the main function that should hold all your main draw functions,
 		//does not need to be ran every frame.
-		static inline void SetMainRenderFunction(const function<void()>& newFunction)
+		inline void SetMainRenderFunction(const function<void()>& newFunction)
 		{
 			mainRenderFunction = newFunction;
 		}
-		static inline const function<void()>& GetMainRenderFunction()
+		inline const function<void()>& GetMainRenderFunction()
 		{
 			return mainRenderFunction;
 		}
 
 		//Place ImGui window to the center
-		static vec2 CenterWindow(
-			vec2 size,
-			u32 windowID);
+		vec2 CenterWindow(
+			Window* window,
+			vec2 size) const;
 
 		//Renders a regular freeform window that can be 
 		//rendered for the whole executable lifetime.
@@ -101,7 +116,7 @@ namespace KalaWindow::UI
 		//Assign a function to control what content is rendered inside this window.
 		//Leaving position at 0 moves this ImGui window to the center.
 		//Leaving min and max size at 0 adds no size constraints to this ImGui window.
-		static void RenderWindow(
+		void RenderWindow(
 			u32 ID,
 			WindowSettings settings,
 			function<void()> func,
@@ -117,12 +132,12 @@ namespace KalaWindow::UI
 		//Assign a function to control what content is rendered inside this window.
 		//Leaving size at 0 makes the size default to 300x200.
 		//This ImGui window data will not be stored by ImGui.
-		static void RenderModalWindow(
+		void RenderModalWindow(
+			Window* window,
 			u32 ID,
-			u32 windowID,
 			function<void()> func,
 			const string& title,
-			vec2 size = vec2(0));
+			vec2 size = vec2(0)) const;
 
 		//Render a dynamic size text field
 		// - ID: unique ID for this text element
@@ -130,7 +145,7 @@ namespace KalaWindow::UI
 		// - buffer: char pointer of your target text where user input will be stored inside of
 		// - size: max allowed characters + null terminator
 		// - digitsOnly: if true, then only digits can be inserted
-		static void RenderTextField(
+		void RenderTextField(
 			u32 ID,
 			u16 width,
 			char* buffer,
@@ -155,7 +170,12 @@ namespace KalaWindow::UI
 					buffer,
 					size,
 					ImGuiInputTextFlags_CallbackCharFilter,
-					FilterDigits);
+					[](ImGuiInputTextCallbackData* data) -> int
+					{
+						return 
+							!(data->EventChar >= '0'
+							&& data->EventChar <= '9');
+					});
 			}
 
 			ImGui::PopItemWidth();
@@ -166,7 +186,7 @@ namespace KalaWindow::UI
 		// - buffer: char array of your target text where user input will be stored inside of
 		// - digitsOnly: if true, then only digits can be inserted
 		template <size_t N>
-		static void RenderTextField(
+		void RenderTextField(
 			u32 ID,
 			u16 width,
 			array<char, N>& buffer,
@@ -190,22 +210,33 @@ namespace KalaWindow::UI
 					buffer.data(),
 					buffer.size(),
 					ImGuiInputTextFlags_CallbackCharFilter,
-					FilterDigits);
+					[](ImGuiInputTextCallbackData* data) -> int
+					{
+						return
+							!(data->EventChar >= '0'
+							&& data->EventChar <= '9');
+					});
 			}
 
 			ImGui::PopItemWidth();
 		}
 
 		//ImGui main draw loop
-		static void Render(u32 windowID);
+		void Render(Window* window);
 
-		//Shut down ImGui
-		static void Shutdown();
+		//Do not destroy manually, erase from containers.hpp instead
+		~DebugUI();
 	private:
-		static inline bool isInitialized{};
-		static inline bool isDockingEnabled{};
+		bool isInitialized{};
+		bool isDockingEnabled{};
 
-		static inline function<void()> topBarFunction{};
-		static inline function<void()> mainRenderFunction{};
+		ImGuiContext* context{};
+
+		u32 ID{};
+
+		function<void()> topBarFunction{};
+		function<void()> mainRenderFunction{};
+
+		unordered_map<string, UserFont> userFonts{};
 	};
 }

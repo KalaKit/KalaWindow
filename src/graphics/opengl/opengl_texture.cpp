@@ -272,7 +272,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		//ensure a fallback texture always exists
-		if (fallbackTexture == nullptr) LoadFallbackTexture();
+		if (!fallbackTexture) LoadFallbackTexture();
 
 		vector<u8> data{};
 		int nrChannels{};
@@ -402,7 +402,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		//ensure a fallback texture always exists
-		if (fallbackTexture == nullptr) LoadFallbackTexture();
+		if (!fallbackTexture) LoadFallbackTexture();
 
 		vector<string> paths(begin(texturePaths), end(texturePaths));
 		if (!AllTextureExtensionsMatch(paths))
@@ -570,7 +570,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		//ensure a fallback texture always exists
-		if (fallbackTexture == nullptr) LoadFallbackTexture();
+		if (!fallbackTexture) LoadFallbackTexture();
 
 		if (!AllTextureExtensionsMatch(texturePaths))
 		{
@@ -797,7 +797,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 	OpenGL_Texture* OpenGL_Texture::GetFallbackTexture()
 	{
-		if (fallbackTexture == nullptr)
+		if (!fallbackTexture)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL texture error",

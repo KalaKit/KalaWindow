@@ -7,6 +7,7 @@
 #include <vector>
 #include <filesystem>
 #include <sstream>
+#include <memory>
 
 #include "imgui/backends/imgui_impl_opengl3.h"
 #ifdef _WIN32
@@ -24,8 +25,9 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::createdWindows;
-using KalaWindow::Core::runtimeWindows;
+using KalaWindow::Core::createdUI;
+using KalaWindow::Core::runtimeUI;
+using KalaWindow::Core::globalID;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 
@@ -38,29 +40,19 @@ using std::filesystem::current_path;
 using std::setprecision;
 using std::fixed;
 using std::ostringstream;
-
-static ImGuiContext* context{};
+using std::unique_ptr;
+using std::make_unique;
 
 static vector<u32> createdIndexes{};
 
 namespace KalaWindow::UI
 {
-	bool DebugUI::Initialize(
+	DebugUI* DebugUI::Initialize(
+		Window* window,
 		bool enableDocking,
 		const vector<UserFont>& userProvidedFonts)
 	{
-		if (isInitialized)
-		{
-			Log::Print(
-				"Cannot initialize ImGui more than once!",
-				"DEBUG_UI",
-				LogType::LOG_ERROR,
-				2);
-
-			return false;
-		}
-
-		if (runtimeWindows.empty())
+		if (!window)
 		{
 			Log::Print(
 				"Failed to initialize ImGui! No window has been created.",
@@ -68,12 +60,18 @@ namespace KalaWindow::UI
 				LogType::LOG_ERROR,
 				2);
 
-			return false;
+			return nullptr;
 		}
 
+		u32 newID = ++globalID;
+		unique_ptr<DebugUI> newDebugUI = make_unique<DebugUI>();
+		DebugUI* debugPtr = newDebugUI.get();
+
+		debugPtr->ID = newID;
+
 		IMGUI_CHECKVERSION();
-		context = ImGui::CreateContext();
-		ImGui::SetCurrentContext(context);
+		debugPtr->context = ImGui::CreateContext();
+		ImGui::SetCurrentContext(debugPtr->context);
 
 		ImGuiIO& io = ImGui::GetIO();
 		if (enableDocking) io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
@@ -157,19 +155,19 @@ namespace KalaWindow::UI
 				.fontSize = val.fontSize
 			};
 
-			userFonts[val.fontName] = newFontData;
+			debugPtr->userFonts[val.fontName] = newFontData;
 		}
 
-		if (userFonts.size() > 0)
+		if (debugPtr->userFonts.size() > 0)
 		{
 			Log::Print(
-				"Loaded '" + to_string(userFonts.size()) + "' fonts!",
+				"Loaded '" + to_string(debugPtr->userFonts.size()) + "' fonts!",
 				"DEBUG_UI",
 				LogType::LOG_SUCCESS);
 		}
 
 #ifdef _WIN32
-		const WindowData& wData = runtimeWindows[0]->GetWindowData();
+		const WindowData& wData = window->GetWindowData();
 		HWND hwnd = ToVar<HWND>(wData.hwnd);
 		ImGui_ImplWin32_Init(hwnd);
 #else
@@ -177,18 +175,22 @@ namespace KalaWindow::UI
 #endif
 		ImGui_ImplOpenGL3_Init("#version 330");
 
+		createdUI[newID] = move(newDebugUI);
+		runtimeUI.push_back(debugPtr);
+
+		debugPtr->isInitialized = true;
+
 		Log::Print(
 			"Initialized ImGui!",
 			"DEBUG_UI",
 			LogType::LOG_SUCCESS);
 
-		isInitialized = true;
-		return true;
+		return debugPtr;
 	}
 
 	vec2 DebugUI::CenterWindow(
-		vec2 size,
-		u32 windowID)
+		Window* window,
+		vec2 size) const
 	{
 		if (!isInitialized)
 		{
@@ -201,12 +203,10 @@ namespace KalaWindow::UI
 			return vec2();
 		}
 
-		Window* win = createdWindows[windowID].get();
-
-		if (win == nullptr)
+		if (!window)
 		{
 			Log::Print(
-				"Cannot center ImGui window because the window ID is invalid!",
+				"Cannot center ImGui window because the target window is invalid!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
@@ -214,7 +214,7 @@ namespace KalaWindow::UI
 			return vec2();
 		}
 
-		vec2 rectSize = win->GetClientRectSize();
+		vec2 rectSize = window->GetClientRectSize();
 
 		float posX = (rectSize.x - size.x) / 2.0f;
 		float posY = (rectSize.y - size.y) / 2.0f;
@@ -297,11 +297,11 @@ namespace KalaWindow::UI
 	}
 
 	void DebugUI::RenderModalWindow(
+		Window* window,
 		u32 ID,
-		u32 windowID,
 		function<void()> func,
 		const string& title,
-		vec2 size)
+		vec2 size) const
 	{
 		if (find(createdIndexes.begin(), createdIndexes.end(), ID) != createdIndexes.end())
 		{
@@ -314,11 +314,11 @@ namespace KalaWindow::UI
 			return;
 		}
 
-		if (createdWindows.find(windowID) == createdWindows.end())
+		if (!window)
 		{
 			Log::Print(
-				"Failed to create ImGui window '" + title + "' because window ID '" + to_string(windowID) + "' does not match any existing user-created executable window ID!",
-				"IMGUI",
+				"Cannot render modal window because the target window is invalid!",
+				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
 
@@ -326,8 +326,8 @@ namespace KalaWindow::UI
 		}
 
 		vec2 center = DebugUI::CenterWindow(
-			vec2(size.x, size.y),
-			windowID);
+			window,
+			vec2(size.x, size.y));
 
 		ImGui::SetNextWindowPos(
 			ImVec2(center.x, center.y),
@@ -354,7 +354,7 @@ namespace KalaWindow::UI
 		ImGui::End();
 	}
 
-	void DebugUI::Render(u32 windowID)
+	void DebugUI::Render(Window* window)
 	{
 		if (!isInitialized)
 		{
@@ -367,12 +367,10 @@ namespace KalaWindow::UI
 			return;
 		}
 
-		Window* win = createdWindows[windowID].get();
-
-		if (win == nullptr)
+		if (!window)
 		{
 			Log::Print(
-				"Cannot render ImGui because the window ID is invalid!",
+				"Cannot render ImGui because the target window is invalid!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
@@ -409,7 +407,7 @@ namespace KalaWindow::UI
 		if (drawData != nullptr) ImGui_ImplOpenGL3_RenderDrawData(drawData);
 	}
 
-	void DebugUI::Shutdown()
+	DebugUI::~DebugUI()
 	{
 		if (!isInitialized)
 		{

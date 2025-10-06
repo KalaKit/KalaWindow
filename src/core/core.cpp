@@ -241,7 +241,8 @@ namespace KalaWindow::Core
 		createdOpenGLTextures.clear();
 		createdOpenGLShaders.clear();
 
-		if (DebugUI::IsInitialized()) DebugUI::Shutdown();
+		runtimeOpenGLTextures.clear();
+		runtimeOpenGLShaders.clear();
 
 		HGLRC hglrc = ToVar<HGLRC>(GlobalHandle::GetOpenGLWinContext());
 		if (hglrc != NULL)
@@ -252,6 +253,10 @@ namespace KalaWindow::Core
 		}
 
 		createdWindows.clear();
+		createdUI.clear();
+
+		runtimeWindows.clear();
+		runtimeUI.clear();
 
 #ifdef _WIN32
 		timeEndPeriod(1);
