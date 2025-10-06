@@ -615,7 +615,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				LogType::LOG_INFO);
 		}
 
-		Input::SetKeyState(key, true);
+		Input::SetKeyState(
+			window,
+			key, 
+			true);
 
 		if (DebugUI::IsInitialized()
 			&& msg.wParam < 512
@@ -659,7 +662,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				LogType::LOG_INFO);
 		}
 
-		Input::SetKeyState(key, false);
+		Input::SetKeyState(
+			window, 
+			key, 
+			false);
 
 		if (DebugUI::IsInitialized()
 			&& msg.wParam < 512
@@ -695,7 +701,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		};
 
 		//get the old position before updating
-		vec2 oldPos = Input::GetMousePosition();
+		vec2 oldPos = Input::GetMousePosition(window);
 
 		vec2 delta = 
 		{
@@ -703,8 +709,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			newPos.y - oldPos.y
 		};
 
-		Input::SetMousePosition(newPos);
-		Input::SetMouseDelta(delta);
+		Input::SetMousePosition(window, newPos);
+		Input::SetMouseDelta(window, delta);
 
 		if (DebugUI::IsInitialized() && io) io->AddMousePosEvent(newPos.x, newPos.y);
 
@@ -724,7 +730,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (delta > 0) scroll = +1.0f;
 		else if (delta < 0) scroll = -1.0f;
 
-		Input::SetMouseWheelDelta(scroll);
+		Input::SetMouseWheelDelta(window, scroll);
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseWheelEvent(0.0f, scroll);
 
@@ -737,7 +743,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_LBUTTONDBLCLK:
 	{
-		Input::SetMouseButtonDoubleClickState(MouseButton::Left, true);
+		Input::SetMouseButtonDoubleClickState(
+			window,
+			MouseButton::Left,
+			true);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -751,7 +760,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 	case WM_RBUTTONDBLCLK:
 	{
-		Input::SetMouseButtonDoubleClickState(MouseButton::Right, true);
+		Input::SetMouseButtonDoubleClickState(
+			window,
+			MouseButton::Right,
+			true);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -765,7 +777,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 	case WM_MBUTTONDBLCLK:
 	{
-		Input::SetMouseButtonDoubleClickState(MouseButton::Right, true);
+		Input::SetMouseButtonDoubleClickState(
+			window,
+			MouseButton::Right,
+			true);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -782,7 +797,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 		if (button == XBUTTON1)
 		{
-			Input::SetMouseButtonDoubleClickState(MouseButton::X1, true);
+			Input::SetMouseButtonDoubleClickState(
+				window,
+				MouseButton::X1,
+				true);
 
 			if (Input::IsVerboseLoggingEnabled())
 			{
@@ -794,7 +812,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		}
 		if (button == XBUTTON2)
 		{
-			Input::SetMouseButtonDoubleClickState(MouseButton::X2, true);
+			Input::SetMouseButtonDoubleClickState(
+				window,
+				MouseButton::X2,
+				true);
 
 			if (Input::IsVerboseLoggingEnabled())
 			{
@@ -813,7 +834,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_LBUTTONDOWN:
 	{
-		Input::SetMouseButtonState(MouseButton::Left, true);
+		Input::SetMouseButtonState(
+			window,
+			MouseButton::Left,
+			true);
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, true);
 
@@ -829,7 +853,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 	case WM_LBUTTONUP:
 	{
-		Input::SetMouseButtonState(MouseButton::Left, false);
+		Input::SetMouseButtonState(
+			window,
+			MouseButton::Left,
+			false);
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(0, false);
 
@@ -846,7 +873,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_RBUTTONDOWN:
 	{
-		Input::SetMouseButtonState(MouseButton::Right, true);
+		Input::SetMouseButtonState(
+			window,
+			MouseButton::Right,
+			true);
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, true);
 
@@ -862,7 +892,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 	case WM_RBUTTONUP:
 	{
-		Input::SetMouseButtonState(MouseButton::Right, false);
+		Input::SetMouseButtonState(
+			window,
+			MouseButton::Right,
+			false);
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(1, false);
 
@@ -879,7 +912,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_MBUTTONDOWN:
 	{
-		Input::SetMouseButtonState(MouseButton::Middle, true);
+		Input::SetMouseButtonState(
+			window,
+			MouseButton::Middle,
+			true);
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, true);
 
@@ -895,7 +931,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 	case WM_MBUTTONUP:
 	{
-		Input::SetMouseButtonState(MouseButton::Middle, false);
+		Input::SetMouseButtonState(
+			window,
+			MouseButton::Middle,
+			false);
 
 		if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(2, false);
 
@@ -915,7 +954,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 		if (button == XBUTTON1)
 		{
-			Input::SetMouseButtonState(MouseButton::X1, true);
+			Input::SetMouseButtonState(
+				window,
+				MouseButton::X1,
+				true);
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, true);
 
@@ -929,7 +971,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		}
 		if (button == XBUTTON2)
 		{
-			Input::SetMouseButtonState(MouseButton::X2, true);
+			Input::SetMouseButtonState(
+				window,
+				MouseButton::X2,
+				true);
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, true);
 
@@ -948,7 +993,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 		if (button == XBUTTON1)
 		{
-			Input::SetMouseButtonState(MouseButton::X1, false);
+			Input::SetMouseButtonState(
+				window,
+				MouseButton::X1, 
+				false);
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(3, false);
 
@@ -962,7 +1010,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		}
 		if (button == XBUTTON2)
 		{
-			Input::SetMouseButtonState(MouseButton::X2, false);
+			Input::SetMouseButtonState(
+				window, 
+				MouseButton::X2, 
+				false);
 
 			if (DebugUI::IsInitialized() && io) io->AddMouseButtonEvent(4, false);
 
@@ -1007,12 +1058,12 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		//sets raw mouse movement
 		if (mouse.usFlags == MOUSE_MOVE_RELATIVE)
 		{
-			vec2 newMouseRawDelta = Input::GetRawMouseDelta();
+			vec2 newMouseRawDelta = Input::GetRawMouseDelta(window);
 
 			newMouseRawDelta.x += mouse.lLastX;
 			newMouseRawDelta.y += mouse.lLastY;
 
-			Input::SetRawMouseDelta(newMouseRawDelta);
+			Input::SetRawMouseDelta(window, newMouseRawDelta);
 		}
 
 		return false;
@@ -1102,8 +1153,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window gains focus
 	case WM_SETFOCUS:
 	{
-		Input::SetMouseVisibilityBetweenFocus(false);
-		Input::SetMouseLockStateBetweenFocus(false, window);
+		Input::SetMouseVisibilityBetweenFocus(window, false);
+		Input::SetMouseLockStateBetweenFocus(window, false);
 
 		if (Window::IsVerboseLoggingEnabled())
 		{
@@ -1119,9 +1170,9 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window loses focus
 	case WM_KILLFOCUS:
 	{
-		Input::SetMouseVisibilityBetweenFocus(true);
-		Input::SetMouseLockStateBetweenFocus(true, window);
-		Input::ClearInputEvents();
+		Input::SetMouseVisibilityBetweenFocus(window, true);
+		Input::SetMouseLockStateBetweenFocus(window, true);
+		Input::ClearInputEvents(window);
 
 		if (DebugUI::IsInitialized()
 			&& io)

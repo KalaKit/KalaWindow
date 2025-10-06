@@ -8,16 +8,23 @@
 #include <string>
 #include <functional>
 #include <vector>
+#include <array>
 
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/input.hpp"
 
 namespace KalaWindow::Graphics
 {
+	using KalaWindow::Core::Input;
+	using KalaWindow::Core::Key;
+	using KalaWindow::Core::MouseButton;
+
 	using std::string;
 	using std::function;
 	using std::vector;
+	using std::array;
 
 	enum class DpiContext
 	{
@@ -125,6 +132,53 @@ namespace KalaWindow::Graphics
 		uintptr_t hdc{};        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
 		uintptr_t glxContext{}; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
 		unsigned int lastProgramID{};
+	};
+
+	//Input data reusable across this window context
+	struct InputData
+	{
+		//is this window context initialized
+		bool isInitialized{};
+
+		array<
+			bool,
+			static_cast<size_t>(Key::KeyCount)>
+			keyDown{};
+		array<
+			bool,
+			static_cast<size_t>(Key::KeyCount)>
+			keyPressed{};
+		array<
+			bool,
+			static_cast<size_t>(Key::KeyCount)>
+			keyReleased{};
+
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mouseDown{};
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mousePressed{};
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mouseReleased{};
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mouseDoubleClicked{};
+
+		bool isMouseVisible = true;
+		bool isMouseLocked = false;
+		bool keepMouseDelta = false;
+
+		vec2 mousePos = vec2{ 0.0f, 0.0f };
+		vec2 mouseDelta = vec2{ 0.0f, 0.0f };
+		vec2 rawMouseDelta = vec2{ 0.0f, 0.0f };
+
+		float mouseWheelDelta = 0.0f;
 	};
 
 	class LIB_API Window
@@ -332,6 +386,18 @@ namespace KalaWindow::Graphics
 		}
 		inline const OpenGLData& GetOpenGLData() const { return openglData; }
 
+		inline void SetInputData(const InputData& newInputData)
+		{
+			inputData = newInputData;
+		}
+		inline InputData& GetInputData() { return inputData; }
+
+		inline void SetImGuiContext(uintptr_t newContext)
+		{
+			imguiContext = newContext;
+		}
+		inline uintptr_t GetImGuiContext() { return imguiContext; }
+
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 	private:
@@ -367,10 +433,12 @@ namespace KalaWindow::Graphics
 #ifdef _WIN32
 		WindowData window_windows{}; //The windows data of this window
 #else
-		WindowData window_x11{};         //The X11 data of this window
+		WindowData window_x11{};     //The X11 data of this window
 #endif
 
-		//vendor-specific variables
+		InputData inputData{}; //All input data of this window
+
+		uintptr_t imguiContext{}; //The imgui context of this window
 
 		OpenGLData openglData{}; //The OpenGL data of this window
 
