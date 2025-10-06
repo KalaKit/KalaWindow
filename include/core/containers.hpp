@@ -12,6 +12,7 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
+#include "core/input.hpp"
 #include "core/audio.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
@@ -22,6 +23,7 @@
 
 namespace KalaWindow::Core
 {
+	using KalaWindow::Core::Input;
 	using KalaWindow::Core::AudioPlayer;
 	using KalaWindow::Graphics::Window;
 	using KalaWindow::Graphics::MenuBar;
@@ -47,6 +49,8 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
 
+	LIB_API extern unordered_map<u32, unique_ptr<Input>> createdInput;
+
 	LIB_API extern unordered_map<u32, unique_ptr<MenuBarEvent>> createdMenuBarEvents;
 
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
@@ -64,6 +68,8 @@ namespace KalaWindow::Core
 	//
 
 	LIB_API extern vector<Window*> runtimeWindows;
+
+	LIB_API extern vector<Input*> runtimeInput;
 
 	LIB_API extern vector<MenuBarEvent*> runtimeMenuBarEvents;
 

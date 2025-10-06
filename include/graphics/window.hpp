@@ -13,14 +13,9 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
-#include "core/input.hpp"
 
 namespace KalaWindow::Graphics
 {
-	using KalaWindow::Core::Input;
-	using KalaWindow::Core::Key;
-	using KalaWindow::Core::MouseButton;
-
 	using std::string;
 	using std::function;
 	using std::vector;
@@ -108,62 +103,6 @@ namespace KalaWindow::Graphics
 		uintptr_t visual{};
 	};
 #endif
-
-	//OpenGL data reusable across this window context
-	struct OpenGLData
-	{
-		uintptr_t hglrc{};      //OPENGL CONTEXT VIA WGL, ONLY USED FOR WINDOWS
-		uintptr_t hdc{};        //OPENGL HANDLE TO DEVICE CONTEXT, ONLY USED FOR WINDOWS
-		uintptr_t glxContext{}; //OPENGL CONTEXT VIA GLX, ONLY USED FOR X11
-		unsigned int lastProgramID{};
-	};
-
-	//Input data reusable across this window context
-	struct InputData
-	{
-		//is this window context initialized
-		bool isInitialized{};
-
-		array<
-			bool,
-			static_cast<size_t>(Key::KeyCount)>
-			keyDown{};
-		array<
-			bool,
-			static_cast<size_t>(Key::KeyCount)>
-			keyPressed{};
-		array<
-			bool,
-			static_cast<size_t>(Key::KeyCount)>
-			keyReleased{};
-
-		array<
-			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
-			mouseDown{};
-		array<
-			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
-			mousePressed{};
-		array<
-			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
-			mouseReleased{};
-		array<
-			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
-			mouseDoubleClicked{};
-
-		bool isMouseVisible = true;
-		bool isMouseLocked = false;
-		bool keepMouseDelta = false;
-
-		vec2 mousePos = vec2{ 0.0f, 0.0f };
-		vec2 mouseDelta = vec2{ 0.0f, 0.0f };
-		vec2 rawMouseDelta = vec2{ 0.0f, 0.0f };
-
-		float mouseWheelDelta = 0.0f;
-	};
 
 	class LIB_API Window
 	{
@@ -364,17 +303,11 @@ namespace KalaWindow::Graphics
 		}
 		inline const WindowData& GetWindowData() const { return window_x11; }
 #endif
-		inline void SetOpenGLData(const OpenGLData& newOpenGLData)
-		{
-			openglData = newOpenGLData;
-		}
-		inline const OpenGLData& GetOpenGLData() const { return openglData; }
+		inline void SetOpenGLID(u32 newValue) { glID = newValue; }
+		inline const u32 GetOpenGLID() const { return glID; }
 
-		inline void SetInputData(const InputData& newInputData)
-		{
-			inputData = newInputData;
-		}
-		inline InputData& GetInputData() { return inputData; }
+		inline void SetInputID(u32 newValue) { inputID = newValue; }
+		inline const u32 GetInputID() const { return inputID; }
 
 		inline void SetDebugUIID(u32 newValue) { debugUIID = newValue; }
 		inline const u32 GetDebugUIID() const { return debugUIID; }
@@ -417,10 +350,8 @@ namespace KalaWindow::Graphics
 		WindowData window_x11{};     //The X11 data of this window
 #endif
 
-		OpenGLData openglData{}; //The OpenGL data of this window
-
-		InputData inputData{}; //All input data of this window
-
+		u32 glID{};
+		u32 inputID{};
 		u32 debugUIID{};
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized

@@ -56,6 +56,19 @@ namespace KalaWindow::Graphics::OpenGL
 		ALPHA_8     //8-bit alpha channel (default)
 	};
 
+	//OpenGL data reusable across this window context
+	struct OpenGLData
+	{
+#ifdef _WIN32
+		HGLRC hglrc{};          //OpenGL context wia WGL
+		HDC hdc{};              //OpenGL handle to device context
+#else
+		//TODO: update to correct value
+		uintptr_t glxContext{}; //OpenGL context via glx
+#endif
+		unsigned int lastProgramID{};
+	};
+
 	class LIB_API OpenGL_Renderer
 	{
 	public:
@@ -117,5 +130,16 @@ namespace KalaWindow::Graphics::OpenGL
 
 		//If off, then all framerate is uncapped
 		static inline VSyncState vsyncState = VSyncState::VSYNC_ON;
+	};
+
+	class LIB_API OpenGL_Data
+	{
+	public:
+		OpenGL_Data* Initialize(Window* window);
+
+		inline void SetOpenGLData(const OpenGLData& data) { openGLData = data; }
+		inline const OpenGLData& GetOpenGLData() const { return openGLData; }
+	private:
+		OpenGLData openGLData;
 	};
 }

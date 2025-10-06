@@ -8,25 +8,29 @@
 #include <Windows.h>
 #include <unordered_map>
 #include <string>
+#include <memory>
 
 #include "KalaHeaders/log_utils.hpp"
 
 #include "core/core.hpp"
 #include "core/input.hpp"
+#include "core/containers.hpp"
 #include "graphics/window.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
+using KalaWindow::Core::createdWindows;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::InputData;
 
 using std::string;
+using std::unique_ptr;
+using std::make_unique;
 
 namespace KalaWindow::Core
 {
-	void Input::Initialize(Window* window)
+	Input* Input::Initialize(Window* window)
 	{
 		if (!window) 
 		{
@@ -37,18 +41,11 @@ namespace KalaWindow::Core
 			return;
 		}
 
-		InputData& iData = window->GetInputData();
+		u32 newID = ++globalID;
+		unique_ptr<Input> newInput = make_unique<Input>();
+		Input* inputPtr = newInput.get();
 
-		if (!iData.isInitialized)
-		{
-			Log::Print(
-				"Input is already initialized for window '" + window->GetTitle() + "'!",
-				"INPUT_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
+		inputPtr->ID = newID;
 
 		//
 		// MOUSE RAW INPUT
@@ -65,119 +62,88 @@ namespace KalaWindow::Core
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
-		iData.isInitialized = true;
+		createdInput[newID] = move(newInput);
+		runtimeInput.push_back(inputPtr);
+
+		inputPtr->isInitialized = true;
+
+		Log::Print(
+			"Initialized input for window '" + window->GetTitle() + "'!",
+			"DEBUG_UI",
+			LogType::LOG_SUCCESS);
+
+		return inputPtr;
 	}
-	bool Input::IsInitialized(Window* window)
+	bool Input::IsInitialized() const
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		return iData.isInitialized;
+		return isInitialized;
 	}
 
 	void Input::SetKeyState(
-		Window* window,
 		Key key,
 		bool isDown)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
 		size_t index = static_cast<size_t>(key);
 
 		if (isDown
-			&& !iData.keyDown[index])
+			&& !keyDown[index])
 		{
-			iData.keyPressed[index] = true;
+			keyPressed[index] = true;
 		}
 		if (!isDown
-			&& iData.keyDown[index])
+			&& keyDown[index])
 		{
-			iData.keyReleased[index] = true;
+			keyReleased[index] = true;
 		}
 
-		iData.keyDown[index] = isDown;
+		keyDown[index] = isDown;
 	}
 	void Input::SetMouseButtonState(
-		Window* window,
 		MouseButton button,
 		bool isDown)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
 		size_t index = static_cast<size_t>(button);
 
 		if (isDown
-			&& !iData.mouseDown[index])
+			&& !mouseDown[index])
 		{
-			iData.mousePressed[index] = true;
+			mousePressed[index] = true;
 		}
 		if (!isDown
-			&& iData.mouseDown[index])
+			&& mouseDown[index])
 		{
-			iData.mouseReleased[index] = true;
+			mouseReleased[index] = true;
 		}
 
-		iData.mouseDown[index] = isDown;
+		mouseDown[index] = isDown;
 	}
 	void Input::SetMouseButtonDoubleClickState(
-		Window* window,
 		MouseButton button,
 		bool isDown)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
 		size_t index = static_cast<size_t>(button);
 
-		iData.mouseDoubleClicked[index] = isDown;
+		mouseDoubleClicked[index] = isDown;
 	}
 
-	bool Input::IsComboDown(
-		Window* window,
-		const span<const InputCode>& codes)
+	bool Input::IsComboDown(const span<const InputCode>& codes)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		if (codes.size() == 0) return false;
 
 		for (const auto& c : codes)
 		{
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyDown(window, static_cast<Key>(c.code)))
+				&& !IsKeyDown(static_cast<Key>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseDown(window, static_cast<MouseButton>(c.code))))
+				&& !IsMouseDown(static_cast<MouseButton>(c.code))))
 			{
 				return false;
 			}
 		}
 		return true;
 	}
-	bool Input::IsComboPressed(
-		Window* window,
-		const span<const InputCode>& codes)
+	bool Input::IsComboPressed(const span<const InputCode>& codes)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		if (codes.size() == 0) return false;
 
 		auto it = codes.begin();
@@ -188,9 +154,9 @@ namespace KalaWindow::Core
 		{
 			const auto& c = *it;
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyDown(window, static_cast<Key>(c.code)))
+				&& !IsKeyDown(static_cast<Key>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseDown(window, static_cast<MouseButton>(c.code))))
+				&& !IsMouseDown(static_cast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -199,25 +165,17 @@ namespace KalaWindow::Core
 		//last must be pressed
 		const auto& c = *last;
 		if ((c.type == InputCode::Type::Key
-			&& !IsKeyPressed(window, static_cast<Key>(c.code)))
+			&& !IsKeyPressed(static_cast<Key>(c.code)))
 			|| (c.type == InputCode::Type::Mouse
-			&& !IsMousePressed(window, static_cast<MouseButton>(c.code))))
+			&& !IsMousePressed(static_cast<MouseButton>(c.code))))
 		{
 			return false;
 		}
 
 		return true;
 	}
-	bool Input::IsComboReleased(
-		Window* window,
-		const span<const InputCode>& codes)
+	bool Input::IsComboReleased(const span<const InputCode>& codes)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		if (codes.size() == 0) return false;
 
 		auto it = codes.begin();
@@ -228,9 +186,9 @@ namespace KalaWindow::Core
 		{
 			const auto& c = *it;
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyDown(window, static_cast<Key>(c.code)))
+				&& !IsKeyDown(static_cast<Key>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseDown(window, static_cast<MouseButton>(c.code))))
+				&& !IsMouseDown(static_cast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -239,9 +197,9 @@ namespace KalaWindow::Core
 		//last must be released
 		const auto& c = *last;
 		if ((c.type == InputCode::Type::Key
-			&& !IsKeyReleased(window, static_cast<Key>(c.code)))
+			&& !IsKeyReleased(static_cast<Key>(c.code)))
 			|| (c.type == InputCode::Type::Mouse
-			&& !IsMouseReleased(window, static_cast<MouseButton>(c.code))))
+			&& !IsMouseReleased(static_cast<MouseButton>(c.code))))
 		{
 			return false;
 		}
@@ -249,250 +207,118 @@ namespace KalaWindow::Core
 		return true;
 	}
 
-	bool Input::IsKeyDown(
-		Window* window,
-		Key key)
+	bool Input::IsKeyDown(Key key)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		size_t index = static_cast<size_t>(key);
 
-		return iData.keyDown[index];
+		return keyDown[index];
 	}
-	bool Input::IsKeyPressed(
-		Window* window,
-		Key key)
+	bool Input::IsKeyPressed(Key key)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		size_t index = static_cast<size_t>(key);
 
-		return iData.keyPressed[index];
+		return keyPressed[index];
 	}
-	bool Input::IsKeyReleased(
-		Window* window,
-		Key key)
+	bool Input::IsKeyReleased(Key key)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		size_t index = static_cast<size_t>(key);
 
-		return iData.keyReleased[index];
+		return keyReleased[index];
 	}
 
-	bool Input::IsMouseDown(
-		Window* window,
-		MouseButton button)
+	bool Input::IsMouseDown(MouseButton button)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		size_t index = static_cast<size_t>(button);
 
-		return iData.mouseDown[index];
+		return mouseDown[index];
 	}
-	bool Input::IsMousePressed(
-		Window* window,
-		MouseButton button)
+	bool Input::IsMousePressed(MouseButton button)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		size_t index = static_cast<size_t>(button);
 
-		return iData.mousePressed[index];
+		return mousePressed[index];
 	}
-	bool Input::IsMouseReleased(
-		Window* window,
-		MouseButton button)
+	bool Input::IsMouseReleased(MouseButton button)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		size_t index = static_cast<size_t>(button);
 
-		return iData.mouseReleased[index];
+		return mouseReleased[index];
 	}
 
-	bool Input::IsMouseButtonDoubleClicked(
-		Window* window,
-		MouseButton button)
+	bool Input::IsMouseButtonDoubleClicked(MouseButton button)
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		size_t index = static_cast<size_t>(button);
 
-		return iData.mouseDoubleClicked[index];
+		return mouseDoubleClicked[index];
 	}
 
-	vec2 Input::GetMousePosition(Window* window)
+	vec2 Input::GetMousePosition() const
 	{
-		if (!window) return{};
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return{};
-
-		return iData.mousePos;
+		return mousePos;
 	}
-	void Input::SetMousePosition(
-		Window* window,
-		vec2 newMousePos)
+	void Input::SetMousePosition(vec2 newMousePos)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		iData.mousePos = newMousePos;
+		mousePos = newMousePos;
 	}
 
-	vec2 Input::GetMouseDelta(Window* window)
+	vec2 Input::GetMouseDelta()
 	{
-		if (!window) return{};
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return{};
-
-		vec2 currMouseDelta = iData.mouseDelta;
+		vec2 currMouseDelta = mouseDelta;
 
 		//reset after retrieval for per-frame delta behavior
-		iData.mouseDelta = vec2{ 0.0f, 0.0f };
+		mouseDelta = vec2{ 0.0f, 0.0f };
 
 		return currMouseDelta;
 	}
-	void Input::SetMouseDelta(
-		Window* window,
-		vec2 newMouseDelta)
+	void Input::SetMouseDelta(vec2 newMouseDelta)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		iData.mouseDelta = newMouseDelta;
+		mouseDelta = newMouseDelta;
 	}
 
-	vec2 Input::GetRawMouseDelta(Window* window)
+	vec2 Input::GetRawMouseDelta()
 	{
-		if (!window) return{};
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return{};
-
-		vec2 currMouseDelta = iData.rawMouseDelta;
+		vec2 currMouseDelta = rawMouseDelta;
 
 		//reset after retrieval for per-frame delta behavior
-		iData.rawMouseDelta = vec2{ 0.0f, 0.0f };
+		rawMouseDelta = vec2{ 0.0f, 0.0f };
 
 		return currMouseDelta;
 	}
-	void Input::SetRawMouseDelta(
-		Window* window,
-		vec2 newRawMouseDelta)
+	void Input::SetRawMouseDelta(vec2 newRawMouseDelta)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		iData.rawMouseDelta = newRawMouseDelta;
+		rawMouseDelta = newRawMouseDelta;
 	}
 
-	float Input::GetMouseWheelDelta(Window* window)
+	float Input::GetMouseWheelDelta() const
 	{
-		if (!window) return{};
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return{};
-
-		return iData.mouseWheelDelta;
+		return mouseWheelDelta;
 	}
-	void Input::SetMouseWheelDelta(
-		Window* window,
-		float delta)
+	void Input::SetMouseWheelDelta(float delta)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		iData.mouseWheelDelta = delta;
+		mouseWheelDelta = delta;
 	}
 
-	bool Input::IsMouseDragging(Window* window)
+	bool Input::IsMouseDragging()
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
 		bool isHoldingDragKey =
-			IsMouseDown(window, MouseButton::Left)
-			|| IsMouseDown(window, MouseButton::Right);
+			IsMouseDown(MouseButton::Left)
+			|| IsMouseDown(MouseButton::Right);
 
 		bool isDragging =
 			isHoldingDragKey
-			&& (iData.mouseDelta.x != 0
-				|| iData.mouseDelta.y != 0);
+			&& (mouseDelta.x != 0
+				|| mouseDelta.y != 0);
 
 		return isDragging;
 	}
 
-	bool Input::IsMouseVisible(Window* window)
+	bool Input::IsMouseVisible() const
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
-		return iData.isMouseVisible;
+		return isMouseVisible;
 	}
-	void Input::SetMouseVisibility(
-		Window* window,
-		bool state)
+	void Input::SetMouseVisibility(bool state)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		iData.isMouseVisible = state;
+		isMouseVisible = state;
 
 		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
 		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
@@ -508,27 +334,13 @@ namespace KalaWindow::Core
 		}
 	}
 
-	bool Input::IsMouseLocked(Window* window)
+	bool Input::IsMouseLocked() const
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
-		return iData.isMouseLocked;
+		return isMouseLocked;
 	}
-	void Input::SetMouseLockState(
-		Window* window,
-		bool state)
+	void Input::SetMouseLockState(bool state)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		iData.isMouseLocked = state;
+		isMouseLocked = state;
 
 		if (!state)
 		{
@@ -536,6 +348,22 @@ namespace KalaWindow::Core
 		}
 		else
 		{
+			Window* window{};
+			if (createdWindows.contains(windowID))
+			{
+				window = createdWindows[windowID].get();
+			}
+
+			if (!window)
+			{
+				Log::Print(
+					"Failed to get window reference when setting mouse lock state!",
+					"INPUT",
+					LogType::LOG_ERROR);
+
+				return;
+			}
+
 			HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
 
 			RECT rect{};
@@ -561,57 +389,27 @@ namespace KalaWindow::Core
 		}
 	}
 
-	bool Input::GetKeepMouseDeltaState(Window* window)
+	bool Input::GetKeepMouseDeltaState()
 	{
-		if (!window) return false;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return false;
-
-		return iData.keepMouseDelta;
+		return keepMouseDelta;
 	}
-	void Input::SetKeepMouseDeltaState(
-		Window* window,
-		bool newState)
+	void Input::SetKeepMouseDeltaState(bool newState)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		iData.keepMouseDelta = newState;
+		keepMouseDelta = newState;
 	}
 
-	void Input::SetMouseVisibilityBetweenFocus(
-		Window* window,
-		bool state)
+	void Input::SetMouseVisibilityBetweenFocus(bool state)
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		if (!iData.isMouseVisible)
+		if (!isMouseVisible)
 		{
 			if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
 			else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
 		}
 	}
 
-	void Input::SetMouseLockStateBetweenFocus(
-		Window* window,
-		bool state)
+	void Input::SetMouseLockStateBetweenFocus(bool state) const
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		if (iData.isMouseLocked)
+		if (isMouseLocked)
 		{
 			if (!state)
 			{
@@ -619,6 +417,22 @@ namespace KalaWindow::Core
 			}
 			else
 			{
+				Window* window{};
+				if (createdWindows.contains(windowID))
+				{
+					window = createdWindows[windowID].get();
+				}
+
+				if (!window)
+				{
+					Log::Print(
+						"Failed to get window reference when setting mouse lock state between focus!",
+						"INPUT",
+						LogType::LOG_ERROR);
+
+					return;
+				}
+
 				HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
 
 				RECT rect{};
@@ -635,42 +449,46 @@ namespace KalaWindow::Core
 		}
 	}
 
-	void Input::ClearInputEvents(Window* window)
+	void Input::ClearInputEvents()
 	{
-		if (!window) return;
-
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		fill(iData.keyPressed.begin(), iData.keyPressed.end(), false);
-		fill(iData.keyReleased.begin(), iData.keyReleased.end(), false);
-		fill(iData.mousePressed.begin(), iData.mousePressed.end(), false);
-		fill(iData.mouseReleased.begin(), iData.mouseReleased.end(), false);
-		fill(iData.mouseDoubleClicked.begin(), iData.mouseDoubleClicked.end(), false);
+		fill(keyPressed.begin(), keyPressed.end(), false);
+		fill(keyReleased.begin(), keyReleased.end(), false);
+		fill(mousePressed.begin(), mousePressed.end(), false);
+		fill(mouseReleased.begin(), mouseReleased.end(), false);
+		fill(mouseDoubleClicked.begin(), mouseDoubleClicked.end(), false);
 
 		//always reset mouse wheel delta
-		iData.mouseWheelDelta = 0;
+		mouseWheelDelta = 0;
 
-		if (!iData.keepMouseDelta)
+		if (!keepMouseDelta)
 		{
-			iData.mouseDelta = { 0, 0 };
-			iData.rawMouseDelta = { 0, 0 };
+			mouseDelta = { 0, 0 };
+			rawMouseDelta = { 0, 0 };
 		}
 	}
 
-	void Input::EndFrameUpdate(Window* window)
+	void Input::EndFrameUpdate()
 	{
-		if (!window) return;
+		ClearInputEvents();
 
-		InputData& iData = window->GetInputData();
-
-		if (!iData.isInitialized) return;
-
-		ClearInputEvents(window);
-
-		if (iData.isMouseLocked)
+		if (isMouseLocked)
 		{
+			Window* window{};
+			if (createdWindows.contains(windowID))
+			{
+				window = createdWindows[windowID].get();
+			}
+
+			if (!window)
+			{
+				Log::Print(
+					"Failed to get window reference at input end frame update!",
+					"INPUT",
+					LogType::LOG_ERROR);
+
+				return;
+			}
+
 			const WindowData& windowData = window->GetWindowData();
 			HWND windowRef = ToVar<HWND>(windowData.hwnd);
 
@@ -693,6 +511,11 @@ namespace KalaWindow::Core
 				SetCursorPos(center.x, center.y);
 			}
 		}
+	}
+
+	Input::~Input()
+	{
+
 	}
 }
 

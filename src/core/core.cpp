@@ -30,7 +30,6 @@ using KalaHeaders::TimeFormat;
 using KalaHeaders::DateFormat;
 
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::OpenGLData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::Texture;
@@ -46,8 +45,6 @@ using std::to_string;
 static u32 version_windows{};
 
 static function<void()> userRegularShutdown;
-
-static void SetVersion();
 
 namespace KalaWindow::Core
 {

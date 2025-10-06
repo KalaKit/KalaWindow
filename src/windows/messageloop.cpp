@@ -535,6 +535,24 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	ImGuiIO* io = nullptr;
 
+	Input* input{};
+
+	{
+		u32 inputID = window->GetInputID();
+
+		Input* tempInput{};
+		if (createdInput.contains(inputID))
+		{
+			tempInput = createdInput[inputID].get();
+		}
+
+		if (tempInput
+			&& tempInput->IsInitialized())
+		{
+			input = tempInput;
+		}
+	}
+
 	{
 		u32 debugUIID = window->GetDebugUIID();
 
@@ -615,10 +633,12 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				LogType::LOG_INFO);
 		}
 
-		Input::SetKeyState(
-			window,
-			key, 
-			true);
+		if (input)
+		{
+			input->SetKeyState(
+				key,
+				true);
+		}
 
 		if (io && msg.wParam < 512)
 		{
@@ -660,10 +680,12 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				LogType::LOG_INFO);
 		}
 
-		Input::SetKeyState(
-			window, 
-			key, 
-			false);
+		if (input)
+		{
+			input->SetKeyState(
+				key,
+				false);
+		}
 
 		if (io && msg.wParam < 512)
 		{
@@ -696,17 +718,20 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			float(GET_Y_LPARAM(msg.lParam))
 		};
 
-		//get the old position before updating
-		vec2 oldPos = Input::GetMousePosition(window);
-
-		vec2 delta = 
+		if (input)
 		{
-			newPos.x - oldPos.x,
-			newPos.y - oldPos.y
-		};
+			//get the old position before updating
+			vec2 oldPos = input->GetMousePosition();
 
-		Input::SetMousePosition(window, newPos);
-		Input::SetMouseDelta(window, delta);
+			vec2 delta =
+			{
+				newPos.x - oldPos.x,
+				newPos.y - oldPos.y
+			};
+
+			input->SetMousePosition(newPos);
+			input->SetMouseDelta(delta);
+		}
 
 		if (io) io->AddMousePosEvent(newPos.x, newPos.y);
 
@@ -726,7 +751,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (delta > 0) scroll = +1.0f;
 		else if (delta < 0) scroll = -1.0f;
 
-		Input::SetMouseWheelDelta(window, scroll);
+		if (input) input->SetMouseWheelDelta(scroll);
 
 		if (io) io->AddMouseWheelEvent(0.0f, scroll);
 
@@ -739,51 +764,57 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_LBUTTONDBLCLK:
 	{
-		Input::SetMouseButtonDoubleClickState(
-			window,
-			MouseButton::Left,
-			true);
-
-		if (Input::IsVerboseLoggingEnabled())
+		if (input)
 		{
-			Log::Print(
-				"Detected left mouse key double click.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
+			input->SetMouseButtonDoubleClickState(
+				MouseButton::Left,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected left mouse key double click.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
 		}
 
 		return false;
 	}
 	case WM_RBUTTONDBLCLK:
 	{
-		Input::SetMouseButtonDoubleClickState(
-			window,
-			MouseButton::Right,
-			true);
-
-		if (Input::IsVerboseLoggingEnabled())
+		if (input)
 		{
-			Log::Print(
-				"Detected right mouse key double click.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
+			input->SetMouseButtonDoubleClickState(
+				MouseButton::Right,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected right mouse key double click.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
 		}
 
 		return false;
 	}
 	case WM_MBUTTONDBLCLK:
 	{
-		Input::SetMouseButtonDoubleClickState(
-			window,
-			MouseButton::Right,
-			true);
-
-		if (Input::IsVerboseLoggingEnabled())
+		if (input)
 		{
-			Log::Print(
-				"Detected middle mouse key double click.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
+			input->SetMouseButtonDoubleClickState(
+				MouseButton::Right,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected middle mouse key double click.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
 		}
 
 		return false;
@@ -791,34 +822,36 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_XBUTTONDBLCLK:
 	{
 		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
-		if (button == XBUTTON1)
-		{
-			Input::SetMouseButtonDoubleClickState(
-				window,
-				MouseButton::X1,
-				true);
 
-			if (Input::IsVerboseLoggingEnabled())
+		if (input)
+		{
+			if (button == XBUTTON1)
 			{
-				Log::Print(
-					"Detected x1 mouse key double click.",
-					"INPUT_WINDOWS",
-					LogType::LOG_INFO);
+				input->SetMouseButtonDoubleClickState(
+					MouseButton::X1,
+					true);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x1 mouse key double click.",
+						"INPUT_WINDOWS",
+						LogType::LOG_INFO);
+				}
 			}
-		}
-		if (button == XBUTTON2)
-		{
-			Input::SetMouseButtonDoubleClickState(
-				window,
-				MouseButton::X2,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
+			if (button == XBUTTON2)
 			{
-				Log::Print(
-					"Detected x2 mouse key double click.",
-					"INPUT_WINDOWS",
-					LogType::LOG_INFO);
+				input->SetMouseButtonDoubleClickState(
+					MouseButton::X2,
+					true);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x2 mouse key double click.",
+						"INPUT_WINDOWS",
+						LogType::LOG_INFO);
+				}
 			}
 		}
 		return false;
@@ -830,117 +863,129 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_LBUTTONDOWN:
 	{
-		Input::SetMouseButtonState(
-			window,
-			MouseButton::Left,
-			true);
+		if (input)
+		{
+			input->SetMouseButtonState(
+				MouseButton::Left,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected left mouse key down.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
+		}
 
 		if (io) io->AddMouseButtonEvent(0, true);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected left mouse key down.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
-		}
 
 		return false;
 	}
 	case WM_LBUTTONUP:
 	{
-		Input::SetMouseButtonState(
-			window,
-			MouseButton::Left,
-			false);
+		if (input)
+		{
+			input->SetMouseButtonState(
+				MouseButton::Left,
+				false);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected left mouse key up.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
+		}
 
 		if (io) io->AddMouseButtonEvent(0, false);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected left mouse key up.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
-		}
 
 		return false;
 	}
 
 	case WM_RBUTTONDOWN:
 	{
-		Input::SetMouseButtonState(
-			window,
-			MouseButton::Right,
-			true);
+		if (input)
+		{
+			input->SetMouseButtonState(
+				MouseButton::Right,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected right mouse key down.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
+		}
 
 		if (io) io->AddMouseButtonEvent(1, true);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected right mouse key down.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
-		}
 
 		return false;
 	}
 	case WM_RBUTTONUP:
 	{
-		Input::SetMouseButtonState(
-			window,
-			MouseButton::Right,
-			false);
+		if (input)
+		{
+			input->SetMouseButtonState(
+				MouseButton::Right,
+				false);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected right mouse key up.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
+		}
 
 		if (io) io->AddMouseButtonEvent(1, false);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected right mouse key up.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
-		}
 
 		return false;
 	}
 
 	case WM_MBUTTONDOWN:
 	{
-		Input::SetMouseButtonState(
-			window,
-			MouseButton::Middle,
-			true);
+		if (input)
+		{
+			input->SetMouseButtonState(
+				MouseButton::Middle,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected middle mouse key down.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
+		}
 
 		if (io) io->AddMouseButtonEvent(2, true);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected middle mouse key down.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
-		}
 
 		return false;
 	}
 	case WM_MBUTTONUP:
 	{
-		Input::SetMouseButtonState(
-			window,
-			MouseButton::Middle,
-			false);
+		if (input)
+		{
+			input->SetMouseButtonState(
+				MouseButton::Middle,
+				false);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected middle mouse key up.",
+					"INPUT_WINDOWS",
+					LogType::LOG_INFO);
+			}
+		}
 
 		if (io) io->AddMouseButtonEvent(2, false);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected middle mouse key up.",
-				"INPUT_WINDOWS",
-				LogType::LOG_INFO);
-		}
 
 		return false;
 	}
@@ -950,37 +995,41 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 		if (button == XBUTTON1)
 		{
-			Input::SetMouseButtonState(
-				window,
-				MouseButton::X1,
-				true);
+			if (input)
+			{
+				input->SetMouseButtonState(
+					MouseButton::X1,
+					true);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x1 mouse key down.",
+						"INPUT_WINDOWS",
+						LogType::LOG_INFO);
+				}
+			}
 
 			if (io) io->AddMouseButtonEvent(3, true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected x1 mouse key down.",
-					"INPUT_WINDOWS",
-					LogType::LOG_INFO);
-			}
 		}
 		if (button == XBUTTON2)
 		{
-			Input::SetMouseButtonState(
-				window,
-				MouseButton::X2,
-				true);
+			if (input)
+			{
+				input->SetMouseButtonState(
+					MouseButton::X2,
+					true);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x2 mouse key down.",
+						"INPUT_WINDOWS",
+						LogType::LOG_INFO);
+				}
+			}
 
 			if (io) io->AddMouseButtonEvent(4, true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected x2 mouse key down.",
-					"INPUT_WINDOWS",
-					LogType::LOG_INFO);
-			}
 		}
 		return false;
 	}
@@ -989,37 +1038,41 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 		if (button == XBUTTON1)
 		{
-			Input::SetMouseButtonState(
-				window,
-				MouseButton::X1, 
-				false);
+			if (input)
+			{
+				input->SetMouseButtonState(
+					MouseButton::X1,
+					false);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x1 mouse key up.",
+						"INPUT_WINDOWS",
+						LogType::LOG_INFO);
+				}
+			}
 
 			if (io) io->AddMouseButtonEvent(3, false);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected x1 mouse key up.",
-					"INPUT_WINDOWS",
-					LogType::LOG_INFO);
-			}
 		}
 		if (button == XBUTTON2)
 		{
-			Input::SetMouseButtonState(
-				window, 
-				MouseButton::X2, 
-				false);
+			if (input)
+			{
+				input->SetMouseButtonState(
+					MouseButton::X2,
+					false);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x2 mouse key up.",
+						"INPUT_WINDOWS",
+						LogType::LOG_INFO);
+				}
+			}
 
 			if (io) io->AddMouseButtonEvent(4, false);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected x2 mouse key up.",
-					"INPUT_WINDOWS",
-					LogType::LOG_INFO);
-			}
 		}
 		return false;
 	}
@@ -1052,14 +1105,15 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		const RAWMOUSE& mouse = reinterpret_cast<RAWINPUT*>(buffer.data())->data.mouse;
 
 		//sets raw mouse movement
-		if (mouse.usFlags == MOUSE_MOVE_RELATIVE)
+		if (mouse.usFlags == MOUSE_MOVE_RELATIVE
+			&& input)
 		{
-			vec2 newMouseRawDelta = Input::GetRawMouseDelta(window);
+			vec2 newMouseRawDelta = input->GetRawMouseDelta();
 
 			newMouseRawDelta.x += mouse.lLastX;
 			newMouseRawDelta.y += mouse.lLastY;
 
-			Input::SetRawMouseDelta(window, newMouseRawDelta);
+			input->SetRawMouseDelta(newMouseRawDelta);
 		}
 
 		return false;
@@ -1149,15 +1203,18 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window gains focus
 	case WM_SETFOCUS:
 	{
-		Input::SetMouseVisibilityBetweenFocus(window, false);
-		Input::SetMouseLockStateBetweenFocus(window, false);
-
-		if (Window::IsVerboseLoggingEnabled())
+		if (input)
 		{
-			Log::Print(
-				"Focusing on window '" + window->GetTitle() + "'",
-				"MESSAGELOOP",
-				LogType::LOG_INFO);
+			input->SetMouseVisibilityBetweenFocus(false);
+			input->SetMouseLockStateBetweenFocus(false);
+
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Focusing on window '" + window->GetTitle() + "'",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 
 		return false;
@@ -1166,9 +1223,20 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window loses focus
 	case WM_KILLFOCUS:
 	{
-		Input::SetMouseVisibilityBetweenFocus(window, true);
-		Input::SetMouseLockStateBetweenFocus(window, true);
-		Input::ClearInputEvents(window);
+		if (input)
+		{
+			input->SetMouseVisibilityBetweenFocus(true);
+			input->SetMouseLockStateBetweenFocus(true);
+			input->ClearInputEvents();
+
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"No longer focusing on window '" + window->GetTitle() + "'",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
+		}
 
 		if (io)
 		{
@@ -1233,14 +1301,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			//reset advanced input
 			io->AddMouseSourceEvent(ImGuiMouseSource_Mouse);
 			io->AddMouseViewportEvent(0);
-		}
-
-		if (Window::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"No longer focusing on window '" + window->GetTitle() + "'",
-				"MESSAGELOOP",
-				LogType::LOG_INFO);
 		}
 
 		return false;

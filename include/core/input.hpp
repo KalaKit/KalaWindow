@@ -11,11 +11,7 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
-
-namespace KalaWindow::Graphics 
-{ 
-	class Window;
-}
+#include "graphics/window.hpp"
 
 namespace KalaWindow::Core
 {
@@ -179,135 +175,142 @@ namespace KalaWindow::Core
 	class LIB_API Input
 	{
 	public:
-		static void Initialize(Window* window);
-		static bool IsInitialized(Window* window);
+		static Input* Initialize(Window* window);
+
+		bool IsInitialized() const;
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//key, mouse update messages will dump their logs into the console.
 		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
-		static void SetKeyState(
-			Window* window,
+		void SetKeyState(
 			Key key,
 			bool isDown);
-		static void SetMouseButtonState(
-			Window* window,
+		void SetMouseButtonState(
 			MouseButton button,
 			bool isDown);
-		static void SetMouseButtonDoubleClickState(
-			Window* window,
+		void SetMouseButtonDoubleClickState(
 			MouseButton button,
 			bool isDown);
 
 		//Detect if any combination of keys and mouse buttons are down
-		static bool IsComboDown(
-			Window* window,
-			const span<const InputCode>& codes);
+		bool IsComboDown(const span<const InputCode>& codes);
 		//Detect if any combination of keys and mouse buttons are pressed
-		static bool IsComboPressed(
-			Window* window,
-			const span<const InputCode>& codes);
+		bool IsComboPressed(const span<const InputCode>& codes);
 		//Detect if any combination of keys and mouse buttons are released
-		static bool IsComboReleased(
-			Window* window,
-			const span<const InputCode>& codes);
+		bool IsComboReleased(const span<const InputCode>& codes);
 
 		//Is the key currently held down?
-		static bool IsKeyDown(
-			Window* window,
-			Key key);
+		bool IsKeyDown(Key key);
 		//Was the key just pressed this frame?
-		static bool IsKeyPressed(
-			Window* window,
-			Key key);
+		bool IsKeyPressed(Key key);
 		//Was the key just released this frame?
-		static bool IsKeyReleased(
-			Window* window,
-			Key key);
+		bool IsKeyReleased(Key key);
 
 		//Is the mouse button currently held down?
-		static bool IsMouseDown(
-			Window* window,
-			MouseButton button);
+		bool IsMouseDown(MouseButton button);
 		//Was the mouse button just pressed this frame?
-		static bool IsMousePressed(
-			Window* window,
-			MouseButton button);
+		bool IsMousePressed(MouseButton button);
 		//Was the mouse button just released this frame?
-		static bool IsMouseReleased(
-			Window* window,
-			MouseButton button);
+		bool IsMouseReleased(MouseButton button);
 
 		//Was the mouse button just double-clicked this frame?
-		static bool IsMouseButtonDoubleClicked(
-			Window* window,
-			MouseButton button);
+		bool IsMouseButtonDoubleClicked(MouseButton button);
 
 		//Get current mouse position in window coordinates
-		static vec2 GetMousePosition(Window* window);
-		static void SetMousePosition(
-			Window* window,
-			vec2 newMousePos);
+		vec2 GetMousePosition() const;
+		void SetMousePosition(vec2 newMousePos);
 
 		//Get mouse delta movement since last frame
-		static vec2 GetMouseDelta(Window* window);
-		static void SetMouseDelta(
-			Window* window,
-			vec2 newMouseDelta);
+		vec2 GetMouseDelta();
+		void SetMouseDelta(vec2 newMouseDelta);
 
 		//Get mouse raw delta movement since last frame
-		static vec2 GetRawMouseDelta(Window* window);
-		static void SetRawMouseDelta(
-			Window* window,
-			vec2 newRawMouseDelta);
+		vec2 GetRawMouseDelta();
+		void SetRawMouseDelta(vec2 newRawMouseDelta);
 
 		//Get vertical scroll wheel delta (-1 to +1)
-		static float GetMouseWheelDelta(Window* window);
-		static void SetMouseWheelDelta(
-			Window* window,
-			float delta);
+		float GetMouseWheelDelta() const;
+		void SetMouseWheelDelta(float delta);
 
-		static bool IsMouseDragging(Window* window);
+		bool IsMouseDragging();
 
 		//Return true if cursor is not hidden.
-		static bool IsMouseVisible(Window* window);
+		bool IsMouseVisible() const;
 		//Allows to set the visibility state of the cursor, if true then the cursor is visible.
-		static void SetMouseVisibility(
-			Window* window,
-			bool isVisible);
+		void SetMouseVisibility(bool isVisible);
 
 		//Return true if the cursor is locked to the center of the window.
-		static bool IsMouseLocked(Window* window);
+		bool IsMouseLocked() const;
 		//Allows to set the lock state of the cursor, if true 
 		//then the cursor is locked to the center of the window.
-		static void SetMouseLockState(
-			Window* window,
-			bool newState);
+		void SetMouseLockState(bool newState);
 
 		//If true, then mouse delta, raw delta and scroll delta wont be reset per frame.
-		static bool GetKeepMouseDeltaState(Window* window);
-		static void SetKeepMouseDeltaState(
-			Window* window,
-			bool newState);
+		bool GetKeepMouseDeltaState();
+		void SetKeepMouseDeltaState(bool newState);
 
 		//If true, then mouse visibility is disabled when unfocused without clearing internal flag
-		static void SetMouseVisibilityBetweenFocus(
-			Window* window,
-			bool state);
+		void SetMouseVisibilityBetweenFocus(bool state);
 
 		//If true, then mouse lock is disabled when unfocused without clearing internal flag
-		static void SetMouseLockStateBetweenFocus(
-			Window* window,
-			bool state);
+		void SetMouseLockStateBetweenFocus(bool state) const;
 
 		//Clear all keyboard and mouse input events and mouse position values,
 		//used internally to "forget" any mouse and keyboard events if window is unfocused
-		static void ClearInputEvents(Window* window);
+		void ClearInputEvents();
 
 		//Call at end of frame to reset pressed/released states
-		static void EndFrameUpdate(Window* window);
+		void EndFrameUpdate();
+
+		~Input();
 	private:
 		static inline bool isVerboseLoggingEnabled{};
+
+		bool isInitialized{};
+
+		u32 ID{};
+		u32 windowID{};
+
+		array<
+			bool,
+			static_cast<size_t>(Key::KeyCount)>
+			keyDown{};
+		array<
+			bool,
+			static_cast<size_t>(Key::KeyCount)>
+			keyPressed{};
+		array<
+			bool,
+			static_cast<size_t>(Key::KeyCount)>
+			keyReleased{};
+
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mouseDown{};
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mousePressed{};
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mouseReleased{};
+		array<
+			bool,
+			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			mouseDoubleClicked{};
+
+		bool isMouseVisible = true;
+		bool isMouseLocked = false;
+		bool keepMouseDelta = false;
+
+		vec2 mousePos = vec2{ 0.0f, 0.0f };
+		vec2 mouseDelta = vec2{ 0.0f, 0.0f };
+		vec2 rawMouseDelta = vec2{ 0.0f, 0.0f };
+
+		float mouseWheelDelta = 0.0f;
 	};
 }
