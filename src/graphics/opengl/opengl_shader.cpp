@@ -24,11 +24,13 @@ using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Graphics::OpenGL::OpenGL_DataContainer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::ShaderType;
 using KalaWindow::Graphics::OpenGL::ShaderStage;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::globalID;
+using KalaWindow::Core::createdOpenGLData;
 using KalaWindow::Core::createdOpenGLShaders;
 using KalaWindow::Core::runtimeOpenGLShaders;
 
@@ -516,9 +518,25 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        OpenGLData oData = targetWindow->GetOpenGLData();
+        OpenGL_DataContainer* cont{};
 
-        u32& lastProgramID = oData.lastProgramID;
+        u32 glID = targetWindow->GetOpenGLID();
+        if (createdOpenGLData.contains(glID))
+        {
+            cont = createdOpenGLData[glID].get();
+        }
+
+        if (!cont)
+        {
+            Log::Print(
+                "Cannot bind shader '" + name + "' for window '" + targetWindow->GetTitle() + "' because its opengl data container was not found!",
+                "OPENGL_WINDOWS",
+                LogType::LOG_ERROR);
+
+            return false;
+        }
+
+        u32 lastProgramID = cont->GetLastProgramID();
         u32 ID = programID;
 
         if (ID == 0)
@@ -602,8 +620,7 @@ namespace KalaWindow::Graphics::OpenGL
         }
 #endif
 
-        lastProgramID = ID;
-        oData.lastProgramID = lastProgramID;
+        cont->SetLastProgramID(ID);
 
         return true;
     }

@@ -43,6 +43,7 @@
 //#include "graphics/vulkan/vulkan.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/texture.hpp"
+#include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/window.hpp"
@@ -56,6 +57,7 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 //using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
+using KalaWindow::Graphics::OpenGL::OpenGL_DataContainer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -70,6 +72,7 @@ using KalaWindow::Core::createdWindows;
 using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::createdMenuBarEvents;
 using KalaWindow::Core::runtimeMenuBarEvents;
+using KalaWindow::Core::createdOpenGLData;
 using KalaWindow::Core::createdOpenGLTextures;
 using KalaWindow::Core::GlobalHandle;
 
@@ -2427,15 +2430,23 @@ namespace KalaWindow::Graphics
 		//destroy menu bar if it was created
 		if (MenuBar::IsInitialized(this)) MenuBar::DestroyMenuBar(this);
 
-		OpenGLData openGLData = GetOpenGLData();
+		OpenGL_DataContainer* cont{};
+		if (createdOpenGLData.contains(glID))
+		{
+			cont = createdOpenGLData[glID].get();
+		}
 
 		if (win.wndProc) win.wndProc = NULL;
-		if (openGLData.hdc)
+		if (cont)
 		{
-			ReleaseDC(
-				ToVar<HWND>(win.hwnd),
-				ToVar<HDC>(openGLData.hdc));
-			openGLData.hdc = NULL;
+			HDC hdc = cont->GetOpenGLHandle();
+			if (hdc)
+			{
+				ReleaseDC(
+					ToVar<HWND>(win.hwnd),
+					hdc);
+				cont->SetOpenGLHandle(NULL);
+			}
 		}
 
 		//Renderer_Vulkan::DestroyWindowData(this);

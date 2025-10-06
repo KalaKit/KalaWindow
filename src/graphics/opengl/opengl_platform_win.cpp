@@ -149,7 +149,7 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 	bool OpenGL_Renderer::Initialize(
-		Window* targetWindow,
+		Window* window,
 		MultiSampling msaa,
 		SRGBMode srgb,
 		ColorBufferBits cBits,
@@ -157,25 +157,29 @@ namespace KalaWindow::Graphics::OpenGL
 		StencilBufferBits sBits,
 		AlphaChannel aChannel)
 	{
-		if (targetWindow->GetOpenGLData().hdc != NULL)
+		OpenGL_DataContainer* cont{};
+
+		u32 glID = window->GetOpenGLID();
+		if (createdOpenGLData.contains(glID))
+		{
+			cont = createdOpenGLData[glID].get();
+		}
+
+		if (!cont)
 		{
 			Log::Print(
-				"Cannot initialize OpenGL more than once per window!",
+				"Cannot OpenGL context for window '" + window->GetTitle() + "' because its opengl data container was not found!",
 				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_ERROR);
 
 			return false;
 		}
 
-		const WindowData& wData = targetWindow->GetWindowData();
+		const WindowData& wData = window->GetWindowData();
 		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
-		OpenGLData data{};
-
 		HDC hdc = GetDC(windowRef);
-
-		data.hdc = FromVar(hdc);
+		cont->SetOpenGLHandle(hdc);
 
 		vector<int> pixelAttribs =
 		{
@@ -451,20 +455,18 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (existing == NULL) GlobalHandle::SetOpenGLWinContext(FromVar(hglrc));
 
-		data.hglrc = FromVar(hglrc);
+		cont->SetOpenGLContext(hglrc);
 
 		wglMakeCurrent(hdc, hglrc);
 		wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size
-		vec2 framebufferSize = targetWindow->GetFramebufferSize();
+		vec2 framebufferSize = window->GetFramebufferSize();
 		glViewport(
 			0,
 			0,
 			(GLsizei)framebufferSize.x,
 			(GLsizei)framebufferSize.y);
-
-		targetWindow->SetOpenGLData(data);
 
 		const char* glVersion  = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 		const char* glVendor   = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
@@ -520,7 +522,7 @@ namespace KalaWindow::Graphics::OpenGL
 		contextData = ss2.str();
 
 		Log::Print(
-			"Initialized OpenGL context for Window '" + targetWindow->GetTitle() + "'!",
+			"Initialized OpenGL context for Window '" + window->GetTitle() + "'!",
 			"OPENGL_WINDOWS",
 			LogType::LOG_SUCCESS);
 
@@ -557,25 +559,63 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		OpenGL_Data* glData{};
+		OpenGL_DataContainer* cont{};
 
 		u32 glID = window->GetOpenGLID();
 		if (createdOpenGLData.contains(glID))
 		{
-			glData = createdOpenGLData[glID].get();
+			cont = createdOpenGLData[glID].get();
 		}
 
-		const OpenGLData& oData = targetWindow->GetOpenGLData();
-		HDC hdc = ToVar<HDC>(oData.hdc);
-		SwapBuffers(hdc);
+		if (!cont)
+		{
+			Log::Print(
+				"Cannot swap OpenGL buffers for window '" + window->GetTitle() + "' because its opengl data container was not found!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HDC handle{};
+		if (cont->GetOpenGLHandle() == NULL)
+		{
+			Log::Print(
+				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its hdc is not assigned!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+;
+		handle = cont->GetOpenGLHandle();
+		SwapBuffers(handle);
 	}
 
 	void OpenGL_Renderer::MakeContextCurrent(Window* window)
 	{
-		const OpenGLData& oData = window->GetOpenGLData();
+		OpenGL_DataContainer* cont{};
 
-		if (oData.hdc == 0
-			|| oData.hglrc == 0)
+		u32 glID = window->GetOpenGLID();
+		if (createdOpenGLData.contains(glID))
+		{
+			cont = createdOpenGLData[glID].get();
+		}
+
+		if (!cont)
+		{
+			Log::Print(
+				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its opengl data container was not found!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		HDC handle{};
+		HGLRC context{};
+		if (cont->GetOpenGLHandle() == NULL
+			|| cont->GetOpenGLContext() == NULL)
 		{
 			Log::Print(
 				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its hdc or hglrc is not assigned!",
@@ -585,24 +625,44 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		HDC hdc = ToVar<HDC>(oData.hdc);
-		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
+		handle = cont->GetOpenGLHandle();
+		context = cont->GetOpenGLContext();
 
-		if (wglGetCurrentContext() != hglrc) wglMakeCurrent(hdc, hglrc);
+		if (wglGetCurrentContext() != context) wglMakeCurrent(handle, context);
 	}
 
-	bool OpenGL_Renderer::IsContextValid(Window* targetWindow)
+	bool OpenGL_Renderer::IsContextValid(Window* window)
 	{
-		const OpenGLData& oData = targetWindow->GetOpenGLData();
+		OpenGL_DataContainer* cont{};
 
-		if (oData.hglrc == NULL)
+		u32 glID = window->GetOpenGLID();
+		if (createdOpenGLData.contains(glID))
 		{
-			string title = "OpenGL Error";
-			string reason = "Failed to get HGLRC for window '" + targetWindow->GetTitle() + "' during 'IsContextValid' stage!";
-			KalaWindowCore::ForceClose(title, reason);
+			cont = createdOpenGLData[glID].get();
+		}
+
+		if (!cont)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity for window '" + window->GetTitle() + "' because its opengl data container was not found!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR);
+
 			return false;
 		}
-		HGLRC hglrcReal = ToVar<HGLRC>(oData.hglrc);
+
+		HGLRC context{};
+		if (cont->GetOpenGLContext() == NULL)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity window '" + window->GetTitle() + "' because its hglrc is not assigned!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return false;
+		}
+
+		context = cont->GetOpenGLContext();
 
 		HGLRC current = wglGetCurrentContext();
 		if (!current)
@@ -616,11 +676,12 @@ namespace KalaWindow::Graphics::OpenGL
 			return false;
 		}
 
-		if (current != hglrcReal)
+		if (current != context)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL Error",
 				"Current OpenGL context does not match stored context!");
+
 			return false;
 		}
 
@@ -652,10 +713,26 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 #ifdef _WIN32
-		OpenGLData oData = window->GetOpenGLData();
+		OpenGL_DataContainer* cont{};
+
+		u32 glID = window->GetOpenGLID();
+		if (createdOpenGLData.contains(glID))
+		{
+			cont = createdOpenGLData[glID].get();
+		}
+
+		if (!cont)
+		{
+			Log::Print(
+				"Cannot shut down OpenGL context for window '" + window->GetTitle() + "' because its opengl data container was not found!",
+				"OPENGL_WINDOWS",
+				LogType::LOG_ERROR);
+
+			return;
+		}
 		
-		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
-		HDC hdc = ToVar<HDC>(oData.hdc);
+		HGLRC hglrc = cont->GetOpenGLContext();
+		HDC hdc = cont->GetOpenGLHandle();
 		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
 
 		if (hglrc != NULL)
@@ -671,7 +748,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 	OpenGL_DataContainer* Initialize(Window* window)
 	{
-
+		return nullptr;
 	}
 }
 

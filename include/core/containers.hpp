@@ -29,7 +29,7 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::Window;
 	using KalaWindow::Graphics::MenuBar;
 	using KalaWindow::Graphics::MenuBarEvent;
-	using KalaWindow::Graphics::OpenGL::OpenGL_Data;
+	using KalaWindow::Graphics::OpenGL::OpenGL_DataContainer;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::UI::DebugUI;
@@ -57,7 +57,7 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
-	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Data>> createdOpenGLData;
+	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_DataContainer>> createdOpenGLData;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
 
@@ -78,7 +78,7 @@ namespace KalaWindow::Core
 
 	LIB_API extern vector<AudioPlayer*> runtimeAudioPlayers;
 
-	LIB_API extern vector<OpenGL_Data*> runtimeOpenGLData;
+	LIB_API extern vector<OpenGL_DataContainer*> runtimeOpenGLData;
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
 

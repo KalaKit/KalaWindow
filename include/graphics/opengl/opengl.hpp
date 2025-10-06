@@ -129,17 +129,23 @@ namespace KalaWindow::Graphics::OpenGL
 	public:
 		OpenGL_DataContainer* Initialize(Window* window);
 
-		inline void SetOpenGLData(const OpenGLData& data) { openGLData = data; }
-		inline const OpenGLData& GetOpenGLData() const { return openGLData; }
+		inline void SetOpenGLContext(const HGLRC& newContext) { context = newContext; }
+		inline const HGLRC& GetOpenGLContext() const { return context; }
+
+		inline void SetOpenGLHandle(const HDC& newHandle) { handle = newHandle; }
+		inline const HDC& GetOpenGLHandle() const { return handle; }
+
+		inline void SetLastProgramID(u32 newID) { lastProgramID = newID; }
+		inline const u32 GetLastProgramID() const { return lastProgramID; }
 	private:
 #ifdef _WIN32
-		HGLRC hglrc{};          //OpenGL context wia WGL
-		HDC hdc{};              //OpenGL handle to device context
+		HGLRC context{}; //OpenGL context wia WGL
+		HDC handle{};    //OpenGL handle to device context
 #else
 		//TODO: update to correct value
 		uintptr_t glxContext{}; //OpenGL context via glx
 #endif
-		unsigned int lastProgramID{};
+		u32 lastProgramID{};
 
 		MultiSampling msaa{};
 		SRGBMode srgb{};

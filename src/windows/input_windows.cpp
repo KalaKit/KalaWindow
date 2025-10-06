@@ -38,7 +38,7 @@ namespace KalaWindow::Core
 				"Input error",
 				"Failed to initialize input because its target window context is invalid!");
 
-			return;
+			return nullptr;
 		}
 
 		u32 newID = ++globalID;
