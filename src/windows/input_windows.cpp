@@ -30,8 +30,10 @@ using std::make_unique;
 
 namespace KalaWindow::Core
 {
-	Input* Input::Initialize(Window* window)
+	Input* Input::Initialize(u32 windowID)
 	{
+		Window* window = GetValueByID<Window>(windowID);
+
 		if (!window) 
 		{
 			KalaWindowCore::ForceClose(
@@ -348,11 +350,7 @@ namespace KalaWindow::Core
 		}
 		else
 		{
-			Window* window{};
-			if (createdWindows.contains(windowID))
-			{
-				window = createdWindows[windowID].get();
-			}
+			Window* window = GetValueByID<Window>(windowID);
 
 			if (!window)
 			{
@@ -417,11 +415,7 @@ namespace KalaWindow::Core
 			}
 			else
 			{
-				Window* window{};
-				if (createdWindows.contains(windowID))
-				{
-					window = createdWindows[windowID].get();
-				}
+				Window* window = GetValueByID<Window>(windowID);
 
 				if (!window)
 				{
@@ -473,11 +467,7 @@ namespace KalaWindow::Core
 
 		if (isMouseLocked)
 		{
-			Window* window{};
-			if (createdWindows.contains(windowID))
-			{
-				window = createdWindows[windowID].get();
-			}
+			Window* window = GetValueByID<Window>(windowID);
 
 			if (!window)
 			{

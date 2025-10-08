@@ -13,16 +13,16 @@
 #include <functional>
 #include <cstdint>
 
+#include "KalaHeaders/log_utils.hpp"
+
 #include "core/core.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
-#include "graphics/vulkan/vulkan.hpp"
 #include "graphics/texture.hpp"
 #include "ui/debug_ui.hpp"
 #include "core/containers.hpp"
 #include "core/audio.hpp"
-#include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -30,11 +30,9 @@ using KalaHeaders::TimeFormat;
 using KalaHeaders::DateFormat;
 
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::Texture;
 using KalaWindow::UI::DebugUI;
-using KalaWindow::Core::GlobalHandle;
 
 using std::abort;
 using std::quick_exit;
@@ -233,27 +231,21 @@ namespace KalaWindow::Core
 
 		if (Audio::IsInitialized()) Audio::Shutdown();
 
-		for (const auto& window : runtimeWindows) OpenGL_Renderer::Shutdown(window);
-
 		createdOpenGLTextures.clear();
 		createdOpenGLShaders.clear();
 
 		runtimeOpenGLTextures.clear();
 		runtimeOpenGLShaders.clear();
 
-		HGLRC hglrc = ToVar<HGLRC>(GlobalHandle::GetOpenGLWinContext());
-		if (hglrc != NULL)
-		{
-			if (wglGetCurrentContext() == hglrc) wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(hglrc);
-			GlobalHandle::SetOpenGLWinContext(NULL);
-		}
-
-		createdWindows.clear();
+		createdInput.clear();
 		createdUI.clear();
+		createdOpenGLContext.clear();
+		createdWindows.clear();
 
-		runtimeWindows.clear();
+		runtimeInput.clear();
 		runtimeUI.clear();
+		runtimeOpenGLContext.clear();
+		runtimeWindows.clear();
 
 #ifdef _WIN32
 		timeEndPeriod(1);

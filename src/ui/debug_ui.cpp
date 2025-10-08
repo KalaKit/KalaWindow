@@ -25,9 +25,7 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::createdUI;
-using KalaWindow::Core::runtimeUI;
-using KalaWindow::Core::globalID;
+using namespace KalaWindow::Core;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 
@@ -48,14 +46,16 @@ static vector<u32> createdIndexes{};
 namespace KalaWindow::UI
 {
 	DebugUI* DebugUI::Initialize(
-		Window* window,
+		u32 windowID,
 		bool enableDocking,
 		const vector<UserFont>& userProvidedFonts)
 	{
+		Window* window = GetValueByID<Window>(windowID);
+
 		if (!window)
 		{
 			Log::Print(
-				"Failed to initialize ImGui! No window has been created.",
+				"Failed to initialize ImGui because it's window was not found!",
 				"DEBUG_UI",
 				LogType::LOG_ERROR,
 				2);
@@ -189,7 +189,7 @@ namespace KalaWindow::UI
 	}
 
 	vec2 DebugUI::CenterWindow(
-		Window* window,
+		u32 windowID,
 		vec2 size) const
 	{
 		if (!isInitialized)
@@ -203,10 +203,12 @@ namespace KalaWindow::UI
 			return vec2();
 		}
 
+		Window* window = GetValueByID<Window>(windowID);
+
 		if (!window)
 		{
 			Log::Print(
-				"Cannot center ImGui window because the target window is invalid!",
+				"Cannot center ImGui window because it's window was not found!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
@@ -297,7 +299,7 @@ namespace KalaWindow::UI
 	}
 
 	void DebugUI::RenderModalWindow(
-		Window* window,
+		u32 windowID,
 		u32 ID,
 		function<void()> func,
 		const string& title,
@@ -314,10 +316,12 @@ namespace KalaWindow::UI
 			return;
 		}
 
+		Window* window = GetValueByID<Window>(windowID);
+
 		if (!window)
 		{
 			Log::Print(
-				"Cannot render modal window because the target window is invalid!",
+				"Cannot render modal window because it's window was not found!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
@@ -326,7 +330,7 @@ namespace KalaWindow::UI
 		}
 
 		vec2 center = DebugUI::CenterWindow(
-			window,
+			windowID,
 			vec2(size.x, size.y));
 
 		ImGui::SetNextWindowPos(
@@ -354,12 +358,13 @@ namespace KalaWindow::UI
 		ImGui::End();
 	}
 
-	void DebugUI::Render(Window* window)
+	void DebugUI::Render(u32 windowID)
 	{
 		if (!isInitialized)
 		{
 			Log::Print(
 				"Cannot run ImGui because ImGui is not initialized!",
+
 				"DEBUG_UI",
 				LogType::LOG_ERROR,
 				2);
@@ -367,10 +372,12 @@ namespace KalaWindow::UI
 			return;
 		}
 
+		Window* window = GetValueByID<Window>(windowID);
+
 		if (!window)
 		{
 			Log::Print(
-				"Cannot render ImGui because the target window is invalid!",
+				"Cannot render ImGui because it's window was not found!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);

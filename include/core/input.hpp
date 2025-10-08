@@ -11,12 +11,9 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
-#include "graphics/window.hpp"
 
 namespace KalaWindow::Core
 {
-	using KalaWindow::Graphics::Window;
-
 	using std::array;
 	using std::fill;
 	using std::prev;
@@ -175,7 +172,7 @@ namespace KalaWindow::Core
 	class LIB_API Input
 	{
 	public:
-		static Input* Initialize(Window* window);
+		static Input* Initialize(u32 windowID);
 
 		bool IsInitialized() const;
 

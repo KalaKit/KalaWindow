@@ -21,14 +21,11 @@ namespace KalaWindow::Core
 
 	unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers{};
 
-	unordered_map<u32, unique_ptr<OpenGL_DataContainer>> createdOpenGLData{};
+	unordered_map<u32, unique_ptr<OpenGL_Context>> createdOpenGLContext{};
 	unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures{};
 	unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders{};
 
 	unordered_map<u32, unique_ptr<DebugUI>> createdUI{};
-
-	//unordered_map<u32, unique_ptr<Texture_Vulkan>> createdVulkanTextures{};
-	//unordered_map<u32, unique_ptr<Shader_Vulkan>> createdVulkanShaders{};
 
 	//
 	// RUNTIME STAGE VECTORS
@@ -42,12 +39,9 @@ namespace KalaWindow::Core
 
 	vector<AudioPlayer*> runtimeAudioPlayers{};
 
-	vector<OpenGL_DataContainer*> runtimeOpenGLData{};
+	vector<OpenGL_Context*> runtimeOpenGLContext{};
 	vector<OpenGL_Texture*> runtimeOpenGLTextures{};
 	vector<OpenGL_Shader*> runtimeOpenGLShaders{};
 
 	vector<DebugUI*> runtimeUI{};
-
-	//vector<Texture_Vulkan*> runtimeVulkanTextures{};
-	//vector<Shader_Vulkan*> runtimeVulkanShaders{};
 }

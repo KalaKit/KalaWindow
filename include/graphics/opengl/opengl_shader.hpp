@@ -8,15 +8,9 @@
 #include <string>
 
 #include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/log_utils.hpp"
-
-#include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	using KalaHeaders::Log;
-	using KalaHeaders::LogType;
-
 	using std::string;
 
 	enum class ShaderType
@@ -37,9 +31,9 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 	public:
 		static OpenGL_Shader* CreateShader(
+			u32 windowID,
 			const string& shaderName,
-			const vector<ShaderStage>& shaderStages,
-			Window* targetWindow);
+			const vector<ShaderStage>& shaderStages);
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//vertex, fragment and geometry shader compilation messages will dump their logs into the console.
@@ -66,8 +60,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 		inline u32 GetID() const { return ID; }
 
-		inline Window* GetTargetWindow() const { return targetWindow; }
-
 		inline u32 GetProgramID() const { return programID; }
 
 		inline const vector<ShaderStage>& GetAllShaders() const { return shaders; }
@@ -84,11 +76,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			string typeStr = GetShaderTypeName(type);
 
-			Log::Print(
-				"Shader with type '" + typeStr + "' was not assigned! Returning ID 0.",
-				"OPENGL_SHADER",
-				LogType::LOG_ERROR,
-				2);
 			return 0;
 		}
 		inline const string& GetShaderPath(ShaderType type) const
@@ -106,11 +93,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			string typeStr = GetShaderTypeName(type);
 
-			Log::Print(
-				"Shader with type '" + typeStr + "' was not assigned! Returning empty path.",
-				"OPENGL_SHADER",
-				LogType::LOG_ERROR,
-				2);
 			return shaderPath;
 		}
 
@@ -180,7 +162,7 @@ namespace KalaWindow::Graphics::OpenGL
 		string name{};
 		u32 ID{};
 
-		Window* targetWindow{};
+		u32 windowID{};
 
 		u32 programID{};
 

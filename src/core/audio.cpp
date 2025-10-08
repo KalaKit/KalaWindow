@@ -14,6 +14,8 @@
 #define MINIAUDIO_IMPLEMENTATION
 #include "miniaudio/miniaudio.h"
 
+#include "KalaHeaders/log_utils.hpp"
+
 #include "core/audio.hpp"
 #include "core/containers.hpp"
 #include "core/core.hpp"

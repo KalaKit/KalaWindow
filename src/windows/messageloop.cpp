@@ -21,6 +21,8 @@
 
 #include "imgui/imgui.h"
 
+#include "KalaHeaders/log_utils.hpp"
+
 #include "windows/messageloop.hpp"
 #include "graphics/window.hpp"
 #include "core/input.hpp"
@@ -38,7 +40,7 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
+using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 using namespace KalaWindow::Core;
 using KalaWindow::UI::DebugUI;
@@ -535,39 +537,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	ImGuiIO* io = nullptr;
 
-	Input* input{};
-
-	{
-		u32 inputID = window->GetInputID();
-
-		Input* tempInput{};
-		if (createdInput.contains(inputID))
-		{
-			tempInput = createdInput[inputID].get();
-		}
-
-		if (tempInput
-			&& tempInput->IsInitialized())
-		{
-			input = tempInput;
-		}
-	}
-
-	{
-		u32 debugUIID = window->GetDebugUIID();
-
-		DebugUI* debugUI{};
-		if (createdUI.contains(debugUIID))
-		{
-			debugUI = createdUI[debugUIID].get();
-		}
-
-		if (debugUI
-			&& debugUI->IsInitialized())
-		{
-			io = &ImGui::GetIO();
-		}
-	}
+	Input* input = GetValueByID<Input>(window->GetInputID());
 
 	/*
 	if (msg.message == 0)
@@ -1331,7 +1301,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		int width = LOWORD(msg.lParam);
 		int height = HIWORD(msg.lParam);
 
-		if (OpenGL_Renderer::IsInitialized())
+		if (OpenGL_Global::IsInitialized())
 		{
 			glViewport(
 				0,
@@ -1370,7 +1340,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			SWP_NOZORDER
 			| SWP_NOACTIVATE);
 
-		if (OpenGL_Renderer::IsInitialized())
+		if (OpenGL_Global::IsInitialized())
 		{
 			vec2 framebufferSize = window->GetFramebufferSize();
 
@@ -1443,7 +1413,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	{
-		OpenGL_Renderer::Shutdown(window);
+		createdOpenGLContext.erase(window->GetOpenGLID());
+		createdInput.erase(window->GetInputID());
+		createdUI.erase(window->GetDebugUIID());
+
 		createdWindows.erase(window->GetID());
 
 		if (createdWindows.size() == 0)

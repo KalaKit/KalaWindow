@@ -36,11 +36,8 @@
 #include <string>
 #include <vector>
 
-//#define VK_NO_PROTOTYPES
-//#include <Volk/volk.h>
-//#include <vulkan/vulkan.h>
+#include "KalaHeaders/log_utils.hpp"
 
-//#include "graphics/vulkan/vulkan.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/texture.hpp"
 #include "graphics/opengl/opengl.hpp"
@@ -51,30 +48,17 @@
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
-#include "core/global_handles.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-//using KalaWindow::Graphics::Vulkan::Renderer_Vulkan;
-using KalaWindow::Graphics::OpenGL::OpenGL_DataContainer;
-using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
+using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Core::MessageLoop;
-using KalaWindow::Core::Input;
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::globalID;
-using KalaWindow::Core::createdWindows;
-using KalaWindow::Core::runtimeWindows;
-using KalaWindow::Core::createdMenuBarEvents;
-using KalaWindow::Core::runtimeMenuBarEvents;
-using KalaWindow::Core::createdOpenGLData;
-using KalaWindow::Core::createdOpenGLTextures;
-using KalaWindow::Core::GlobalHandle;
+using namespace KalaWindow::Core;
 
 using std::make_unique;
 using std::move;
@@ -2423,33 +2407,27 @@ namespace KalaWindow::Graphics
 	{
 		string title = GetTitle();
 
-		WindowData win = window_windows;
-		HWND winRef = ToVar<HWND>(win.hwnd);
+		HWND winRef = ToVar<HWND>(window_windows.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
 		//destroy menu bar if it was created
 		if (MenuBar::IsInitialized(this)) MenuBar::DestroyMenuBar(this);
 
-		OpenGL_DataContainer* cont{};
-		if (createdOpenGLData.contains(glID))
-		{
-			cont = createdOpenGLData[glID].get();
-		}
+		if (window_windows.wndProc) window_windows.wndProc = NULL;
 
-		if (win.wndProc) win.wndProc = NULL;
+		OpenGL_Context* cont = GetValueByID<OpenGL_Context>(glID);
+
 		if (cont)
 		{
-			HDC hdc = cont->GetOpenGLHandle();
+			HDC hdc = GetDC(winRef);
 			if (hdc)
 			{
 				ReleaseDC(
-					ToVar<HWND>(win.hwnd),
+					ToVar<HWND>(window_windows.hwnd),
 					hdc);
-				cont->SetOpenGLHandle(NULL);
+				cont->SetHandle(NULL);
 			}
 		}
-
-		//Renderer_Vulkan::DestroyWindowData(this);
 
 		if (exeIcon)
 		{
@@ -2464,12 +2442,12 @@ namespace KalaWindow::Graphics
 
 		if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
 
-		if (win.hwnd)
+		if (window_windows.hwnd)
 		{
 			DestroyWindow(winRef);
-			win.hwnd = NULL;
+			window_windows.hwnd = NULL;
 		}
-		win.hInstance = NULL;
+		window_windows.hInstance = NULL;
 
 		Log::Print(
 			"Destroyed window '" + title + "'!",

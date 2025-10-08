@@ -58,7 +58,7 @@ namespace KalaWindow::UI
 		//Set up ImGui. Also set docking state with enableDocking.
 		//Pass paths and font size per font relative to your executable to load as ImGui fonts
 		static DebugUI* Initialize(
-			Window* window,
+			u32 windowID,
 			bool enableDocking = true,
 			const vector<UserFont>& userProvidedFonts = {});
 
@@ -107,7 +107,7 @@ namespace KalaWindow::UI
 
 		//Place ImGui window to the center
 		vec2 CenterWindow(
-			Window* window,
+			u32 windowID,
 			vec2 size) const;
 
 		//Renders a regular freeform window that can be 
@@ -133,7 +133,7 @@ namespace KalaWindow::UI
 		//Leaving size at 0 makes the size default to 300x200.
 		//This ImGui window data will not be stored by ImGui.
 		void RenderModalWindow(
-			Window* window,
+			u32 windowID,
 			u32 ID,
 			function<void()> func,
 			const string& title,
@@ -222,7 +222,7 @@ namespace KalaWindow::UI
 		}
 
 		//ImGui main draw loop
-		void Render(Window* window);
+		void Render(u32 windowID);
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~DebugUI();

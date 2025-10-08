@@ -18,6 +18,8 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb/stb_image_resize2.h"
 
+#include "KalaHeaders/log_utils.hpp"
+
 #include "graphics/texture.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
@@ -28,7 +30,7 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
+using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::Texture;
 using KalaWindow::Graphics::TextureType;
@@ -374,7 +376,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -542,7 +544,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -693,7 +695,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -777,7 +779,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -993,7 +995,7 @@ namespace KalaWindow::Graphics::OpenGL
 		pixels = move(resized);
 		size = { (f32)newSize.x, (f32)newSize.y };
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -1214,7 +1216,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (mipMapLevels > 1) glGenerateMipmap(targetType);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(

@@ -327,18 +327,18 @@ namespace KalaWindow::Graphics
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
 		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become
 
-		vec2 oldPos{};                     //Stored pre-fullscreen window pos
-		vec2 oldSize{};                    //Stored pre-fullscreen window size
+		vec2 oldPos{};        //Stored pre-fullscreen window pos
+		vec2 oldSize{};       //Stored pre-fullscreen window size
 		//0 - WS_CAPTION
 		//1 - WS_THICKFRAME
 		//2 - WS_MINIMIZEBOX
 		//3 - WS_MAXIMIZEBOX
 		//4 - WS_SYSMENU
-		u8 oldStyle{};                     //Stored pre-fullscreen window style (Windows-only)
+		u8 oldStyle{};        //Stored pre-fullscreen window style (Windows-only)
 
-		u32 ID{};            //The ID of this window
-		u32 iconID{};        //The ID of this window icon
-		u32 overlayIconID{}; //The ID of the toolbar overlay icon
+		u32 ID{};            //ID for this window
+		u32 iconID{};        //ID for this window icon
+		u32 overlayIconID{}; //ID for this window toolbar overlay icon
 
 		vector<string> lastDraggedFiles{}; //The path of the last files which were dragged onto this window
 
@@ -350,9 +350,9 @@ namespace KalaWindow::Graphics
 		WindowData window_x11{};     //The X11 data of this window
 #endif
 
-		u32 glID{};
-		u32 inputID{};
-		u32 debugUIID{};
+		u32 glID{};      //ID for this window opengl context
+		u32 inputID{};   //ID for this window input
+		u32 debugUIID{}; //ID for this window imgui context
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn

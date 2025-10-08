@@ -4,17 +4,10 @@
 //Read LICENSE.md for more information.
 
 #pragma once
-#ifdef _WIN32
-#include <windows.h>
-#else
-//TODO: add the right one for glx
-#endif
 
 #include <string>
 
 #include "KalaHeaders/core_utils.hpp"
-
-#include "graphics/window.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -61,17 +54,20 @@ namespace KalaWindow::Graphics::OpenGL
 		ALPHA_8     //8-bit alpha channel (default)
 	};
 
-	class LIB_API OpenGL_Renderer
+	class LIB_API OpenGL_Global
 	{
 	public:
-		//
-		// GENERAL OPENGL
-		//
-
+		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init
+		static bool Initialize();
 		static inline bool IsInitialized() { return isInitialized; }
 
-		static inline VSyncState GetVSyncState() { return vsyncState; }
-		static inline const string& GetContextData() { return contextData; }
+		static void SetOpenGLLibrary();
+		static inline uintptr_t GetOpenGLLibrary()
+		{
+			if (openGL32Lib == NULL) SetOpenGLLibrary();
+
+			return openGL32Lib;
+		}
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//GL notifications will dump their logs into the console.
@@ -84,17 +80,23 @@ namespace KalaWindow::Graphics::OpenGL
 		//Place after any gl call to check if an issue or error has occurred within that point.
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
 		static string GetError();
+	private:
+		static inline bool isInitialized{};
+		static inline bool isVerboseLoggingEnabled{};
 
-		//
-		// OS-SPECIFIC
-		//
+		static inline uintptr_t openGL32Lib{};
+		uintptr_t hglrc{}; //master context for shared resources
+	};
 
-		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init
-		static bool GlobalInitialize();
-
-		//Per-window OpenGL context init
-		static bool Initialize(
-			Window* targetWindow,
+	class LIB_API OpenGL_Context
+	{
+	public:
+		//Initialize a per-window OpenGL context.
+		//parentContext determines the ID of the parent context which
+		//this context will get shaders, textures and buffers from
+		static OpenGL_Context* Initialize(
+			u32 windowID,
+			u32 parentContext,
 			MultiSampling msaa = MultiSampling::MSAA_4X,
 			SRGBMode srgb = SRGBMode::SRGB_ENABLED,
 			ColorBufferBits cBits = ColorBufferBits::COLOR_RGBA8,
@@ -102,50 +104,50 @@ namespace KalaWindow::Graphics::OpenGL
 			StencilBufferBits sBits = StencilBufferBits::STENCIL_NONE,
 			AlphaChannel aChannel = AlphaChannel::ALPHA_8);
 
-		//Allows to set vsync true or false.
-		static void SetVSyncState(VSyncState vsyncState);
+		inline bool IsInitialized() const { return isInitialized; }
 
-		//Call at the end of your render loop
-		static void SwapOpenGLBuffers(Window* targetWindow);
+		inline u32 GetID() const { return ID; }
 
-		static void MakeContextCurrent(Window* window);
-		static bool IsContextValid(Window* window);
+		inline const string& GetContextData() { return contextData; }
 
-		//Close the opengl context and clean the opengl textures and shaders.
-		//This should always be called before the window that owns the opengl context is destroyed as well.
-		static void Shutdown(Window* window);
-	private:
-		static inline bool isInitialized{};
-		static inline bool isVerboseLoggingEnabled{};
+		void SwapOpenGLBuffers() const;
 
-		static inline string contextData{};
+		void MakeContextCurrent() const;
+		bool IsContextValid() const;
 
-		//If off, then all framerate is uncapped
-		static inline VSyncState vsyncState = VSyncState::VSYNC_ON;
-	};
+		void SetVSyncState(VSyncState vsyncState);
+		inline VSyncState GetVSyncState() const { return vsyncState; }
 
-	class LIB_API OpenGL_DataContainer
-	{
-	public:
-		OpenGL_DataContainer* Initialize(Window* window);
+		inline void SetParent(OpenGL_Context* newVal) { parentContext = newVal; }
+		inline OpenGL_Context* GetParent() const { return parentContext; }
 
-		inline void SetOpenGLContext(const HGLRC& newContext) { context = newContext; }
-		inline const HGLRC& GetOpenGLContext() const { return context; }
+		inline void SetContext(const uintptr_t& newVal) { hglrc = newVal; }
+		inline const uintptr_t& GetContext() const { return hglrc; }
 
-		inline void SetOpenGLHandle(const HDC& newHandle) { handle = newHandle; }
-		inline const HDC& GetOpenGLHandle() const { return handle; }
+		inline void SetHandle(const uintptr_t& newVal) { hdc = newVal; }
+		inline const uintptr_t& GetHandle() const { return hdc; }
 
 		inline void SetLastProgramID(u32 newID) { lastProgramID = newID; }
 		inline const u32 GetLastProgramID() const { return lastProgramID; }
+
+		//Do not destroy manually, erase from containers.hpp instead
+		~OpenGL_Context();
 	private:
 #ifdef _WIN32
-		HGLRC context{}; //OpenGL context wia WGL
-		HDC handle{};    //OpenGL handle to device context
+		bool isInitialized{};
+		u32 ID{};
+
+		u32 windowID{};
+		OpenGL_Context* parentContext{};
+
+		uintptr_t hglrc{}; //OpenGL context wia WGL
+		uintptr_t hdc{};   //OpenGL handle to device context
 #else
-		//TODO: update to correct value
 		uintptr_t glxContext{}; //OpenGL context via glx
 #endif
 		u32 lastProgramID{};
+
+		string contextData{};
 
 		MultiSampling msaa{};
 		SRGBMode srgb{};
@@ -153,5 +155,7 @@ namespace KalaWindow::Graphics::OpenGL
 		DepthBufferBits dBits{};
 		StencilBufferBits sBits{};
 		AlphaChannel aChannel{};
+
+		VSyncState vsyncState = VSyncState::VSYNC_ON;
 	};
 }
