@@ -527,7 +527,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	if (!window)
 	{
 		Log::Print(
-			"Cannot use 'ProcessMessage' because window is nullptr!",
+			"Cannot use 'ProcessMessage' because its window was not found!",
 			"MESSAGELOOP",
 			LogType::LOG_ERROR,
 			2);

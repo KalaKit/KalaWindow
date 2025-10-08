@@ -36,11 +36,7 @@ using KalaWindow::Graphics::Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::globalID;
-using KalaWindow::Core::createdOpenGLTextures;
-using KalaWindow::Core::runtimeOpenGLTextures;
-using KalaWindow::Core::runtimeWindows;
+using namespace KalaWindow::Core;
 
 using std::string;
 using std::string_view;
@@ -275,6 +271,44 @@ namespace KalaWindow::Graphics::OpenGL
 	{
 		//ensure a fallback texture always exists
 		if (!fallbackTexture) LoadFallbackTexture();
+
+		if (!OpenGL_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Cannot load texture '" + name + "' because OpenGL is not initialized!");
+
+			return nullptr;
+		}
+
+		if (runtimeWindows.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Cannot load texture '" + name + "' because no windows exist!");
+
+			return nullptr;
+		}
+
+		bool foundCont = false;
+		for (const Window* w : runtimeWindows)
+		{
+			OpenGL_Context* cont = GetValueByID<OpenGL_Context>(w->GetOpenGLID());
+
+			if (cont
+				&& cont->IsContextValid())
+			{
+				foundCont = true;
+				break;
+			}
+		}
+
+		if (!foundCont)
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Cannot load texture '" + name + "' because no created windows have a valid OpenGL context!");
+		}
 
 		vector<u8> data{};
 		int nrChannels{};

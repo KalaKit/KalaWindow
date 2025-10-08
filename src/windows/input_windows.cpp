@@ -25,6 +25,7 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::WindowData;
 
 using std::string;
+using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
 
@@ -37,8 +38,8 @@ namespace KalaWindow::Core
 		if (!window) 
 		{
 			KalaWindowCore::ForceClose(
-				"Input error",
-				"Failed to initialize input because its target window context is invalid!");
+				"UI error",
+				"Failed to initialize ImGui because its window was not found!");
 
 			return nullptr;
 		}
@@ -67,10 +68,12 @@ namespace KalaWindow::Core
 		createdInput[newID] = move(newInput);
 		runtimeInput.push_back(inputPtr);
 
+		window->SetInputID(inputPtr->ID);
+
 		inputPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized input for window '" + window->GetTitle() + "'!",
+			"Initialized input for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
 			"DEBUG_UI",
 			LogType::LOG_SUCCESS);
 
@@ -355,7 +358,7 @@ namespace KalaWindow::Core
 			if (!window)
 			{
 				Log::Print(
-					"Failed to get window reference when setting mouse lock state!",
+					"Cannot set mouse lock state because its window was not found!",
 					"INPUT",
 					LogType::LOG_ERROR);
 
@@ -420,7 +423,7 @@ namespace KalaWindow::Core
 				if (!window)
 				{
 					Log::Print(
-						"Failed to get window reference when setting mouse lock state between focus!",
+						"Cannot set mouse lock state between focus because its window was not found!",
 						"INPUT",
 						LogType::LOG_ERROR);
 
@@ -472,7 +475,7 @@ namespace KalaWindow::Core
 			if (!window)
 			{
 				Log::Print(
-					"Failed to get window reference at input end frame update!",
+					"Cannot get window reference at input end frame update because its window was not found!",
 					"INPUT",
 					LogType::LOG_ERROR);
 

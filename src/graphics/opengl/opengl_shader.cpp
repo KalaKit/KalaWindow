@@ -61,33 +61,6 @@ static bool InitShader(
 
 namespace KalaWindow::Graphics::OpenGL
 {
-    void OpenGL_Shader::SetName(const string& newName)
-    {
-        if (newName.empty())
-        {
-            Log::Print(
-                "Cannot set shader name to empty name!",
-                "OPENGL_SHADER",
-                LogType::LOG_ERROR,
-                2);
-            return;
-        }
-        for (const auto& createdShader : createdOpenGLShaders)
-        {
-            string thisName = createdShader.second->GetName();
-            if (newName == thisName)
-            {
-                Log::Print(
-                    "Cannot set shader name to already existing shader name '" + thisName + "'!",
-                    "OPENGL_SHADER",
-                    LogType::LOG_ERROR,
-                    2);
-                return;
-            }
-        }
-        name = newName;
-    }
-
     OpenGL_Shader* OpenGL_Shader::CreateShader(
         u32 windowID,
         const string& shaderName,
@@ -95,11 +68,9 @@ namespace KalaWindow::Graphics::OpenGL
     {
         if (!OpenGL_Global::IsInitialized())
         {
-            Log::Print(
-                "Cannot create shader '" + shaderName + "' because OpenGL is not initialized!",
-                "OPENGL_SHADER",
-                LogType::LOG_ERROR,
-                2);
+            KalaWindowCore::ForceClose(
+                "UI error",
+                "Cannot create shader '" + shaderName + "' because OpenGL is not initialized!");
 
             return nullptr;
         }
@@ -109,11 +80,22 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (!window)
         {
-            Log::Print(
-                "Cannot create shader '" + shaderName + "' because its target window is invalid!",
-                "OPENGL_SHADER",
-                LogType::LOG_ERROR,
-                2);
+            KalaWindowCore::ForceClose(
+                "UI error",
+                "Cannot create shader '" + shaderName + "' because its window was not found!");
+
+            return nullptr;
+        }
+
+        OpenGL_Context* cont = GetValueByID<OpenGL_Context>(window->GetOpenGLID());
+
+        if (!cont
+            || (cont
+            && !cont->IsContextValid()))
+        {
+            KalaWindowCore::ForceClose(
+                "UI error",
+                "Cannot create shader '" + shaderName + "' because window '" + window->GetTitle() + "' has no valid OpenGL context!");
 
             return nullptr;
         }
@@ -507,6 +489,33 @@ namespace KalaWindow::Graphics::OpenGL
         return shaderPtr;
     }
 
+    void OpenGL_Shader::SetName(const string& newName)
+    {
+        if (newName.empty())
+        {
+            Log::Print(
+                "Cannot set shader name to empty name!",
+                "OPENGL_SHADER",
+                LogType::LOG_ERROR,
+                2);
+            return;
+        }
+        for (const auto& createdShader : createdOpenGLShaders)
+        {
+            string thisName = createdShader.second->GetName();
+            if (newName == thisName)
+            {
+                Log::Print(
+                    "Cannot set shader name to already existing shader name '" + thisName + "'!",
+                    "OPENGL_SHADER",
+                    LogType::LOG_ERROR,
+                    2);
+                return;
+            }
+        }
+        name = newName;
+    }
+
     bool OpenGL_Shader::Bind() const
     {
         if (!OpenGL_Global::IsInitialized())
@@ -524,7 +533,7 @@ namespace KalaWindow::Graphics::OpenGL
         if (!window)
         {
             Log::Print(
-                "Cannot bind shader '" + name + "' because its target window is invalid!",
+                "Cannot bind shader '" + name + "' because its window was not found!",
                 "OPENGL_SHADER",
                 LogType::LOG_ERROR,
                 2);
@@ -533,10 +542,12 @@ namespace KalaWindow::Graphics::OpenGL
 
         OpenGL_Context* cont = GetValueByID<OpenGL_Context>(window->GetOpenGLID());
 
-        if (!cont)
+        if (!cont
+            || (cont
+            && !cont->IsContextValid()))
         {
             Log::Print(
-                "Cannot bind shader '" + name + "' for window '" + window->GetTitle() + "' because its opengl data container was not found!",
+                "Cannot bind shader '" + name + "' for window '" + window->GetTitle() + "' because it has no valid OpenGL context!",
                 "OPENGL_WINDOWS",
                 LogType::LOG_ERROR);
 

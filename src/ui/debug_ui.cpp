@@ -19,8 +19,10 @@
 #include "KalaHeaders/log_utils.hpp"
 
 #include "ui/debug_ui.hpp"
+#include "core/core.hpp"
 #include "core/containers.hpp"
 #include "graphics/window.hpp"
+#include "graphics/opengl/opengl.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -28,6 +30,7 @@ using KalaHeaders::LogType;
 using namespace KalaWindow::Core;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
+using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 
 using std::vector;
 using std::to_string;
@@ -50,15 +53,35 @@ namespace KalaWindow::UI
 		bool enableDocking,
 		const vector<UserFont>& userProvidedFonts)
 	{
+		if (!OpenGL_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"UI error",
+				"Failed to initialize ImGui because OpenGL has not been initialized!");
+
+			return nullptr;
+		}
+
 		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window)
 		{
-			Log::Print(
-				"Failed to initialize ImGui because it's window was not found!",
-				"DEBUG_UI",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"UI error",
+				"Failed to initialize ImGui because its window was not found!");
+
+			return nullptr;
+		}
+
+		OpenGL_Context* cont = GetValueByID<OpenGL_Context>(window->GetOpenGLID());
+
+		if (!cont
+			|| (cont
+			&& !cont->IsContextValid()))
+		{
+			KalaWindowCore::ForceClose(
+				"UI error",
+				"Cannot initialize ImGui context because window '" + window->GetTitle() + "' has no valid OpenGL context!");
 
 			return nullptr;
 		}
@@ -178,10 +201,13 @@ namespace KalaWindow::UI
 		createdUI[newID] = move(newDebugUI);
 		runtimeUI.push_back(debugPtr);
 
+		window->SetDebugUIID(debugPtr->ID);
+		debugPtr->windowID = window->GetID();
+
 		debugPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized ImGui!",
+			"Created debug ui context with ID '" + to_string(newID) + "'!",
 			"DEBUG_UI",
 			LogType::LOG_SUCCESS);
 
@@ -190,26 +216,15 @@ namespace KalaWindow::UI
 
 	vec2 DebugUI::CenterWindow(
 		u32 windowID,
-		vec2 size) const
+		vec2 size)
 	{
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Cannot center window because ImGui is not initialized!",
-				"DEBUG_UI",
-				LogType::LOG_ERROR,
-				2);
-
-			return vec2();
-		}
-
 		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window)
 		{
 			Log::Print(
-				"Cannot center ImGui window because it's window was not found!",
-				"WINDOW_WINDOWS",
+				"Cannot center window because its window was not found!",
+				"DEBUG_UI",
 				LogType::LOG_ERROR,
 				2);
 
@@ -303,7 +318,7 @@ namespace KalaWindow::UI
 		u32 ID,
 		function<void()> func,
 		const string& title,
-		vec2 size) const
+		vec2 size)
 	{
 		if (find(createdIndexes.begin(), createdIndexes.end(), ID) != createdIndexes.end())
 		{
@@ -321,7 +336,7 @@ namespace KalaWindow::UI
 		if (!window)
 		{
 			Log::Print(
-				"Cannot render modal window because it's window was not found!",
+				"Cannot render modal window because its window was not found!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
@@ -377,7 +392,7 @@ namespace KalaWindow::UI
 		if (!window)
 		{
 			Log::Print(
-				"Cannot render ImGui because it's window was not found!",
+				"Cannot render ImGui because its window was not found!",
 				"WINDOW_WINDOWS",
 				LogType::LOG_ERROR,
 				2);

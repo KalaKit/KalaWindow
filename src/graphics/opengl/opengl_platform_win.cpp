@@ -37,30 +37,7 @@ using std::make_unique;
 static bool IsCorrectVersion();
 static HWND CreateDummyWindow();
 
-static string GetErrorType(const string& errorOrigin)
-{
-	DWORD err = GetLastError();
-
-	string message{};
-
-	switch (err)
-	{
-	case ERROR_INVALID_OPERATION:    message = "ERROR_INVALID_OPERATION";      break;
-	case ERROR_INVALID_PIXEL_FORMAT: message = "ERROR_INVALID_PIXEL_FORMAT";   break;
-	case ERROR_INVALID_PARAMETER:    message = "ERROR_INVALID_PARAMETER";      break;
-	case ERROR_OUTOFMEMORY:          message = "ERROR_OUTOFMEMORY";            break;
-	case 0x2095:                     message = "ERROR_INVALID_VERSION_ARB";    break;
-	case 0x2096:                     message = "ERROR_INVALID_PROFILE_ARB";    break;
-	case ERROR_SUCCESS:              message = "ERROR_SUCCESS (no error set)"; break;
-	default:                         message = "Unknown error";                break;
-	}
-
-	ostringstream oss{};
-	oss << errorOrigin << " failed! Win32 error = "
-		<< message << " (" << dec << err << " / 0x" << hex << err << dec << ")";
-
-	return oss.str();
-}
+static string GetErrorType(const string& errorOrigin);
 
 namespace KalaWindow::Graphics::OpenGL
 {
@@ -223,6 +200,15 @@ namespace KalaWindow::Graphics::OpenGL
 		StencilBufferBits sBits,
 		AlphaChannel aChannel)
 	{
+		if (!OpenGL_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL context error",
+				"Cannot initialize OpenGL context because global OpenGL has not yet been initialized!");
+
+			return nullptr;
+		}
+
 		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window)
@@ -605,10 +591,13 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLContext[newID] = move(newCont);
 		runtimeOpenGLContext.push_back(contPtr);
 
+		window->SetOpenGLID(contPtr->ID);
+		contPtr->windowID = window->GetID();
+
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized OpenGL context for Window '" + window->GetTitle() + "'!",
+			"Initialized OpenGL context for Window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
 			"OPENGL_WINDOWS",
 			LogType::LOG_SUCCESS);
 
@@ -720,7 +709,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!window)
 		{
 			Log::Print(
-				"Cannot check OpenGL context validity window is not assigned!",
+				"Cannot check OpenGL context validity because its window was not found!",
 				"OPENGL_WINDOWS",
 				LogType::LOG_ERROR,
 				2);
@@ -803,7 +792,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!window)
 		{
 			Log::Print(
-				"Failed to shut down OpenGL because its target window is invalid!",
+				"Failed to shut down OpenGL because its window was not found!",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
@@ -869,6 +858,31 @@ HWND CreateDummyWindow()
 		nullptr);
 
 	return hwnd;
+}
+
+string GetErrorType(const string& errorOrigin)
+{
+	DWORD err = GetLastError();
+
+	string message{};
+
+	switch (err)
+	{
+	case ERROR_INVALID_OPERATION:    message = "ERROR_INVALID_OPERATION";      break;
+	case ERROR_INVALID_PIXEL_FORMAT: message = "ERROR_INVALID_PIXEL_FORMAT";   break;
+	case ERROR_INVALID_PARAMETER:    message = "ERROR_INVALID_PARAMETER";      break;
+	case ERROR_OUTOFMEMORY:          message = "ERROR_OUTOFMEMORY";            break;
+	case 0x2095:                     message = "ERROR_INVALID_VERSION_ARB";    break;
+	case 0x2096:                     message = "ERROR_INVALID_PROFILE_ARB";    break;
+	case ERROR_SUCCESS:              message = "ERROR_SUCCESS (no error set)"; break;
+	default:                         message = "Unknown error";                break;
+	}
+
+	ostringstream oss{};
+	oss << errorOrigin << " failed! Win32 error = "
+		<< message << " (" << dec << err << " / 0x" << hex << err << dec << ")";
+
+	return oss.str();
 }
 
 #endif //_WIN32

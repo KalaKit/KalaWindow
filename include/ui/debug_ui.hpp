@@ -62,6 +62,124 @@ namespace KalaWindow::UI
 			bool enableDocking = true,
 			const vector<UserFont>& userProvidedFonts = {});
 
+		inline bool IsInitialized() { return isInitialized; }
+
+		//Place ImGui window to the center
+		static vec2 CenterWindow(
+			u32 windowID,
+			vec2 size);
+
+		//Renders a regular freeform window that can be 
+		//rendered for the whole executable lifetime.
+		//Modify the WindowSettings struct bool states to control limitations of this window.
+		//Assign a function to control what content is rendered inside this window.
+		//Leaving position at 0 moves this ImGui window to the center.
+		//Leaving min and max size at 0 adds no size constraints to this ImGui window.
+		static void RenderWindow(
+			u32 ID,
+			WindowSettings settings,
+			function<void()> func,
+			const string& title,
+			vec2 size,
+			vec2 pos = vec2(0),
+			vec2 minSize = vec2(0),
+			vec2 maxSize = vec2(0));
+
+		//Renders a non-movable and non-resizable modal ImGui at the center of the
+		//main window that should only appear when conditions are met.
+		//Window ID needs to be a valid executable window ID that you created.
+		//Assign a function to control what content is rendered inside this window.
+		//Leaving size at 0 makes the size default to 300x200.
+		//This ImGui window data will not be stored by ImGui.
+		static void RenderModalWindow(
+			u32 windowID,
+			u32 ID,
+			function<void()> func,
+			const string& title,
+			vec2 size = vec2(0));
+
+		//Render a dynamic size text field
+		// - ID: unique ID for this text element
+		// - width: how wide this text field is
+		// - buffer: char pointer of your target text where user input will be stored inside of
+		// - size: max allowed characters + null terminator
+		// - digitsOnly: if true, then only digits can be inserted
+		static void RenderTextField(
+			u32 ID,
+			u16 width,
+			char* buffer,
+			size_t size,
+			bool digitsOnly = false)
+		{
+			string label = "##" + to_string(ID);
+
+			ImGui::PushItemWidth(width);
+
+			if (!digitsOnly)
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer,
+					size);
+			}
+			else
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer,
+					size,
+					ImGuiInputTextFlags_CallbackCharFilter,
+					[](ImGuiInputTextCallbackData* data) -> int
+					{
+						return
+							!(data->EventChar >= '0'
+								&& data->EventChar <= '9');
+					});
+			}
+
+			ImGui::PopItemWidth();
+		}
+		//Render a fixed size text field
+		// - ID: unique ID for this text element
+		// - width: how wide this text field is
+		// - buffer: char array of your target text where user input will be stored inside of
+		// - digitsOnly: if true, then only digits can be inserted
+		template <size_t N>
+		static void RenderTextField(
+			u32 ID,
+			u16 width,
+			array<char, N>& buffer,
+			bool digitsOnly = false)
+		{
+			string label = "##" + to_string(ID);
+
+			ImGui::PushItemWidth(width);
+
+			if (!digitsOnly)
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer.data(),
+					buffer.size());
+			}
+			else
+			{
+				ImGui::InputText(
+					label.c_str(),
+					buffer.data(),
+					buffer.size(),
+					ImGuiInputTextFlags_CallbackCharFilter,
+					[](ImGuiInputTextCallbackData* data) -> int
+					{
+						return
+							!(data->EventChar >= '0'
+								&& data->EventChar <= '9');
+					});
+			}
+
+			ImGui::PopItemWidth();
+		}
+
 		inline const u32 GetID() const { return ID; }
 
 		inline bool IsInitialized() const { return isInitialized; }
@@ -105,122 +223,6 @@ namespace KalaWindow::UI
 			return mainRenderFunction;
 		}
 
-		//Place ImGui window to the center
-		vec2 CenterWindow(
-			u32 windowID,
-			vec2 size) const;
-
-		//Renders a regular freeform window that can be 
-		//rendered for the whole executable lifetime.
-		//Modify the WindowSettings struct bool states to control limitations of this window.
-		//Assign a function to control what content is rendered inside this window.
-		//Leaving position at 0 moves this ImGui window to the center.
-		//Leaving min and max size at 0 adds no size constraints to this ImGui window.
-		void RenderWindow(
-			u32 ID,
-			WindowSettings settings,
-			function<void()> func,
-			const string& title,
-			vec2 size,
-			vec2 pos = vec2(0),
-			vec2 minSize = vec2(0),
-			vec2 maxSize = vec2(0));
-
-		//Renders a non-movable and non-resizable modal ImGui at the center of the
-		//main window that should only appear when conditions are met.
-		//Window ID needs to be a valid executable window ID that you created.
-		//Assign a function to control what content is rendered inside this window.
-		//Leaving size at 0 makes the size default to 300x200.
-		//This ImGui window data will not be stored by ImGui.
-		void RenderModalWindow(
-			u32 windowID,
-			u32 ID,
-			function<void()> func,
-			const string& title,
-			vec2 size = vec2(0)) const;
-
-		//Render a dynamic size text field
-		// - ID: unique ID for this text element
-		// - width: how wide this text field is
-		// - buffer: char pointer of your target text where user input will be stored inside of
-		// - size: max allowed characters + null terminator
-		// - digitsOnly: if true, then only digits can be inserted
-		void RenderTextField(
-			u32 ID,
-			u16 width,
-			char* buffer,
-			size_t size,
-			bool digitsOnly = false)
-		{
-			string label = "##" + to_string(ID);
-
-			ImGui::PushItemWidth(width);
-
-			if (!digitsOnly)
-			{
-				ImGui::InputText(
-					label.c_str(),
-					buffer,
-					size);
-			}
-			else
-			{
-				ImGui::InputText(
-					label.c_str(),
-					buffer,
-					size,
-					ImGuiInputTextFlags_CallbackCharFilter,
-					[](ImGuiInputTextCallbackData* data) -> int
-					{
-						return 
-							!(data->EventChar >= '0'
-							&& data->EventChar <= '9');
-					});
-			}
-
-			ImGui::PopItemWidth();
-		}
-		//Render a fixed size text field
-		// - ID: unique ID for this text element
-		// - width: how wide this text field is
-		// - buffer: char array of your target text where user input will be stored inside of
-		// - digitsOnly: if true, then only digits can be inserted
-		template <size_t N>
-		void RenderTextField(
-			u32 ID,
-			u16 width,
-			array<char, N>& buffer,
-			bool digitsOnly = false)
-		{
-			string label = "##" + to_string(ID);
-
-			ImGui::PushItemWidth(width);
-
-			if (!digitsOnly)
-			{
-				ImGui::InputText(
-					label.c_str(),
-					buffer.data(),
-					buffer.size());
-			}
-			else
-			{
-				ImGui::InputText(
-					label.c_str(),
-					buffer.data(),
-					buffer.size(),
-					ImGuiInputTextFlags_CallbackCharFilter,
-					[](ImGuiInputTextCallbackData* data) -> int
-					{
-						return
-							!(data->EventChar >= '0'
-							&& data->EventChar <= '9');
-					});
-			}
-
-			ImGui::PopItemWidth();
-		}
-
 		//ImGui main draw loop
 		void Render(u32 windowID);
 
@@ -233,6 +235,7 @@ namespace KalaWindow::UI
 		ImGuiContext* context{};
 
 		u32 ID{};
+		u32 windowID{};
 
 		function<void()> topBarFunction{};
 		function<void()> mainRenderFunction{};

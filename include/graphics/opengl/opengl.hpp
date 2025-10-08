@@ -135,9 +135,10 @@ namespace KalaWindow::Graphics::OpenGL
 	private:
 #ifdef _WIN32
 		bool isInitialized{};
-		u32 ID{};
 
+		u32 ID{};
 		u32 windowID{};
+
 		OpenGL_Context* parentContext{};
 
 		uintptr_t hglrc{}; //OpenGL context wia WGL
