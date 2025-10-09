@@ -251,14 +251,13 @@ namespace KalaWindow::Graphics
 
 		//Returns true if one of these is true:
 		//  - not foreground
-		//  - not focused
 		//  - minimized
 		//  - not visible
 		bool IsIdle() const { return isIdle; }
 
 		//Returns true if this window is in the front
 		bool IsForegroundWindow() const;
-		//Returns true if this window or one of its children have keyboard focus
+		//Returns true if this window is currently receiving keyboard input
 		bool IsFocused() const;
 		//Returns true if this window is not open, but exists
 		bool IsMinimized() const;
