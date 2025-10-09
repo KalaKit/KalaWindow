@@ -40,7 +40,6 @@
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/texture.hpp"
-#include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/window.hpp"
@@ -88,6 +87,8 @@ static string APP_ID{};
 
 static bool enabledBeginPeriod = false;
 
+static void PreInitSetup();
+
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
 
@@ -110,96 +111,16 @@ namespace KalaWindow::Graphics
 		WindowState state,
 		DpiContext context)
 	{
-		HINSTANCE newHInstance = GetModuleHandle(nullptr);
+		PreInitSetup();
 
-		if (createdWindows.size() == 0)
-		{
-			if (!checkedOSVersion)
-			{
-				u32 version = KalaWindowCore::GetVersion();
-				string versionStr = to_string(version);
-				string osVersion = versionStr.substr(0, 2);
-				string buildVersion = to_string(stoi(versionStr.substr(2)));
+		u32 newID = ++globalID;
+		unique_ptr<Window> newWindow = make_unique<Window>();
+		Window* windowPtr = newWindow.get();
 
-				if (version < MIN_OS_VERSION)
-				{
-					ostringstream oss{};
-					oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
-						<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
-
-					KalaWindowCore::ForceClose(
-						"Windows version out of date",
-						oss.str());
-
-					return nullptr;
-				}
-
-				if (Window::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Windows version '" + osVersion + "' build '" + buildVersion + "'",
-						"WINDOW_WINDOWS",
-						LogType::LOG_INFO);
-				}
-
-				checkedOSVersion = true;
-			}
-
-			wchar_t buffer[MAX_PATH]{};
-			GetModuleFileNameW(
-				nullptr, 
-				buffer, 
-				MAX_PATH);
-
-			path exePath(buffer);
-
-			APP_ID = exePath.stem().string();
-
-			//Treat this process as a real app with a stable identity
-			SetCurrentProcessExplicitAppUserModelID(ToWide(APP_ID).c_str());
-
-			Log::Print(
-				"Creating window '" + title + "'.",
-				"WINDOW_WINDOWS",
-				LogType::LOG_INFO);
-
-#ifdef _WIN32
-			if (!enabledBeginPeriod)
-			{
-				timeBeginPeriod(1);
-				enabledBeginPeriod = true;
-			}
-#endif //_WIN32
-
-			WNDCLASSA wc = {};
-			wc.style =
-				CS_OWNDC      //own the DC for the lifetime of this window
-				| CS_DBLCLKS; //allow detecting double clicks
-			wc.lpfnWndProc = reinterpret_cast<WNDPROC>(MessageLoop::WindowProcCallback());
-			wc.hInstance = newHInstance;
-			wc.lpszClassName = APP_ID.c_str();
-
-			if (!RegisterClassA(&wc))
-			{
-				DWORD err = GetLastError();
-				string message{};
-				if (err == ERROR_CLASS_ALREADY_EXISTS)
-				{
-					message = "Window class already exists with different definition.\n";
-				}
-				else
-				{
-					message = "RegisterClassA failed with error: " + to_string(err) + "\n";
-				}
-
-				string errorTitle = "Window error";
-				KalaWindowCore::ForceClose(
-					errorTitle,
-					message);
-
-				return nullptr;
-			}
-		}
+		Log::Print(
+			"Creating window '" + title + "' with ID '" + to_string(newID) + "'.",
+			"WINDOW",
+			LogType::LOG_DEBUG);
 
 		HWND parentWindowRef{};
 		if (parentWindow != nullptr)
@@ -228,8 +149,14 @@ namespace KalaWindow::Graphics
 			}
 		}
 
+		DWORD exStyle =
+			WS_EX_APPWINDOW
+			| WS_EX_ACCEPTFILES;
+
+		HINSTANCE newHInstance = GetModuleHandle(nullptr);
+
 		HWND newHwnd = CreateWindowExA(
-			0,
+			exStyle,
 			APP_ID.c_str(),
 			title.c_str(),
 			WS_OVERLAPPEDWINDOW,
@@ -240,7 +167,7 @@ namespace KalaWindow::Graphics
 			parentWindowRef,
 			nullptr,
 			newHInstance,
-			nullptr);
+			windowPtr);
 
 		if (!newHwnd)
 		{
@@ -264,13 +191,17 @@ namespace KalaWindow::Graphics
 
 			if (errorMsg) LocalFree(errorMsg);
 
-			string errorTitle = "Window error";
 			KalaWindowCore::ForceClose(
-				errorTitle,
+				"Window error",
 				message);
 
 			return nullptr;
 		}
+
+		SetWindowLongPtr(
+			newHwnd,
+			GWLP_USERDATA,
+			reinterpret_cast<LONG_PTR>(windowPtr));
 
 		WindowData newWindowStruct =
 		{
@@ -295,10 +226,6 @@ namespace KalaWindow::Graphics
 				DPI_AWARENESS_CONTEXT_UNAWARE);
 			break;
 		}
-
-		u32 newID = ++globalID;
-		unique_ptr<Window> newWindow = make_unique<Window>();
-		Window* windowPtr = newWindow.get();
 		
 		newWindow->SetTitle(title);
 		newWindow->ID = newID;
@@ -318,7 +245,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
-			"WINDOW_WINDOWS",
+			"WINDOW",
 			LogType::LOG_SUCCESS);
 
 		return windowPtr;
@@ -338,7 +265,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to initialize COM! Reason: " + HResultToString(hr),
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -353,7 +280,7 @@ namespace KalaWindow::Graphics
 				{
 					Log::Print(
 						"Calling CoUninitialize",
-						"WINDOW_WINDOWS",
+						"WINDOW",
 						LogType::LOG_DEBUG);
 
 					CoUninitialize();
@@ -362,7 +289,7 @@ namespace KalaWindow::Graphics
 				{
 					Log::Print(
 						"Skipping CoUninitialize()",
-						"WINDOW_WINDOWS",
+						"WINDOW",
 						LogType::LOG_DEBUG);
 				}
 			};
@@ -379,7 +306,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to create file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -396,7 +323,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to set file filter to '" + typeVal + "' for dialog! Reason: " + HResultToString(hr),
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_ERROR,
 					2);
 			};
@@ -622,7 +549,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"User cancelled file selection.",
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_INFO);
 			}
 
@@ -634,7 +561,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to show file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -649,7 +576,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to retrieve selected items from file dialog! Reason: " + HResultToString(hr),
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -670,7 +597,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to get item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_ERROR,
 					2);
 
@@ -686,7 +613,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to get file path for item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_ERROR,
 					2);
 
@@ -704,7 +631,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Selected file '" + path + "'",
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_SUCCESS);
 			}
 		}
@@ -735,7 +662,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Created notification '" + title + "'!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -746,7 +673,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to open clipboard when writing text to clipboard!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -765,7 +692,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to construct hGlobal when saving text to clipboard!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -778,7 +705,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to lock hGlobal when saving text to clipboard!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -800,7 +727,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Saved string to clipboard: '" + text + "'!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -810,7 +737,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to open clipboard when reading text from clipboard!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -823,7 +750,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Clipboard does not contain Unicode text.",
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_WARNING,
 					2);
 			}
@@ -839,7 +766,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Clipboard had no data to read from.",
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_WARNING);
 			}
 
@@ -852,7 +779,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to lock memory handle to get text from clipboard!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -870,7 +797,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Read string to clipboard: '" + shortVal + "'!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 
@@ -885,7 +812,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Window title cannot be empty!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -897,7 +824,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Window title exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_WARNING);
 
 			titleToSet = titleToSet.substr(0, MAX_TITLE_LENGTH);
@@ -911,7 +838,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window title to '" + newTitle + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -924,7 +851,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Window title was empty!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_WARNING);
 
 			return "";
@@ -948,7 +875,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' exe icon because the texture ID is invalid!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -963,7 +890,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' exe icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -982,7 +909,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' icon because SetUpIcon failed!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1007,7 +934,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' icon to '" + tex->GetName() + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1041,7 +968,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because the texture ID is invalid!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1056,7 +983,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1075,7 +1002,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because SetUpIcon failed!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1094,7 +1021,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to create ITaskbarList3 to set overlay icon!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1107,7 +1034,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to init ITaskbarList3 to set overlay icon!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1123,7 +1050,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' overlay icon to '" + tex->GetName() + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1142,7 +1069,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to get ITaskbarList3 to clear overlay icon!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1172,6 +1099,7 @@ namespace KalaWindow::Graphics
 
 		//ask Windows nicely to foreground this window
 		SetForegroundWindow(window);
+		SetActiveWindow(window);
 
 		//fallback: force Z-order change
 		if (!IsFocused())
@@ -1204,7 +1132,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Set window '" + GetTitle() + "' focus through the fallback method.'",
-					"WINDOW_WINDOWS",
+					"WINDOW",
 					LogType::LOG_SUCCESS);
 			}
 		}
@@ -1251,7 +1179,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to set window rounding preference! This feature is not supported on Windows 10.",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 		}
@@ -1260,7 +1188,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' rounding to '" + roundingVal + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1280,7 +1208,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to get window rounding preference! This feature is not supported on Windows 10.",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1334,7 +1262,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' client rect size to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1372,7 +1300,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' outer size to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1429,7 +1357,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' framebuffer size to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1478,7 +1406,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' position to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1519,7 +1447,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' always on state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1576,7 +1504,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' resizable state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1625,7 +1553,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' top bar state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1672,7 +1600,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' minimize button state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1719,7 +1647,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' maximize button state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1758,7 +1686,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' close button state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1807,7 +1735,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' system menu state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -1855,7 +1783,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -2079,7 +2007,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' fullscreen state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -2154,7 +2082,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -2169,7 +2097,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to get window '" + GetTitle() + "' state!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -2216,7 +2144,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' shutdown block state to '" + val + "'",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -2232,7 +2160,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to flash taskbar because mode was set to 'FLASH_TIMED' but no count value was assigned!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -2281,7 +2209,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Flashed taskbar icon for window '" + GetTitle() + "' with type '" + val + "' for '" + dur + "' times",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -2315,7 +2243,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to create ITaskbarList3 to set taskbar progress bar mode!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -2364,7 +2292,7 @@ namespace KalaWindow::Graphics
 
 			Log::Print(
 				oss.str(),
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -2377,7 +2305,7 @@ namespace KalaWindow::Graphics
 				"Cannot run loop because window '" +
 				GetTitle() +
 				"' has not been initialized!",
-				"WINDOW_WINDOWS",
+				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
 			return;
@@ -2389,12 +2317,14 @@ namespace KalaWindow::Graphics
 
 		MSG msg;
 		
+		/*
 		if (isWindowFocusRequired
 			&& isIdle
 			&& !PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) 
 		{
 			WaitMessage();
 		}
+		*/
 
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -2415,9 +2345,7 @@ namespace KalaWindow::Graphics
 
 		if (window_windows.wndProc) window_windows.wndProc = NULL;
 
-		OpenGL_Context* cont = GetValueByID<OpenGL_Context>(glID);
-
-		if (cont)
+		if (glContext)
 		{
 			HDC hdc = GetDC(winRef);
 			if (hdc)
@@ -2425,7 +2353,7 @@ namespace KalaWindow::Graphics
 				ReleaseDC(
 					ToVar<HWND>(window_windows.hwnd),
 					hdc);
-				cont->SetHandle(NULL);
+				glContext->SetHandle(NULL);
 			}
 		}
 
@@ -2451,7 +2379,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			"Destroyed window '" + title + "'!",
-			"WINDOW_WINDOWS",
+			"WINDOW",
 			LogType::LOG_SUCCESS);
 	}
 
@@ -2957,6 +2885,90 @@ namespace KalaWindow::Graphics
 	}
 }
 
+void PreInitSetup()
+{
+	if (createdWindows.size() == 0)
+	{
+		if (!checkedOSVersion)
+		{
+			u32 version = KalaWindowCore::GetVersion();
+			string versionStr = to_string(version);
+			string osVersion = versionStr.substr(0, 2);
+			string buildVersion = to_string(stoi(versionStr.substr(2)));
+
+			if (version < MIN_OS_VERSION)
+			{
+				ostringstream oss{};
+				oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
+					<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
+
+				KalaWindowCore::ForceClose(
+					"Window error",
+					oss.str());
+
+				return;
+			}
+
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Windows version '" + osVersion + "' build '" + buildVersion + "'",
+					"WINDOW",
+					LogType::LOG_INFO);
+			}
+
+			checkedOSVersion = true;
+		}
+
+		wchar_t buffer[MAX_PATH]{};
+		GetModuleFileNameW(
+			nullptr,
+			buffer,
+			MAX_PATH);
+
+		path exePath(buffer);
+
+		APP_ID = exePath.stem().string();
+
+		//Treat this process as a real app with a stable identity
+		SetCurrentProcessExplicitAppUserModelID(ToWide(APP_ID).c_str());
+
+		if (!enabledBeginPeriod)
+		{
+			timeBeginPeriod(1);
+			enabledBeginPeriod = true;
+		}
+
+		WNDCLASSA wc = {};
+		wc.style =
+			CS_OWNDC      //own the DC for the lifetime of this window
+			| CS_DBLCLKS; //allow detecting double clicks
+		wc.lpfnWndProc = MessageLoop::WindowProcCallback;
+		wc.hInstance = GetModuleHandle(nullptr);
+		wc.lpszClassName = APP_ID.c_str();
+
+		if (!RegisterClassA(&wc))
+		{
+			DWORD err = GetLastError();
+			string message{};
+			if (err == ERROR_CLASS_ALREADY_EXISTS)
+			{
+				message = "Window class already exists with different definition.\n";
+			}
+			else
+			{
+				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
+			}
+
+			KalaWindowCore::ForceClose(
+				"Window error",
+				message);
+
+			return;
+		}
+	}
+}
+
 void UpdateIdleState(Window* window, bool& isIdle)
 {
 	isIdle =
@@ -2976,14 +2988,14 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 	{
 		Log::Print(
 			"Icon '" + name + "' size '" + sizeX + "x" + sizeY + "' is too small! Consider uploading a bigger icon.",
-			"WINDOW_WINDOWS",
+			"WINDOW",
 			LogType::LOG_WARNING);
 	}
 	if (size.x > 256)
 	{
 		Log::Print(
 			"Icon '" + name + "' size '" + sizeX + "x" + sizeY + "' is too big! Consider uploading a smaller icon.",
-			"WINDOW_WINDOWS",
+			"WINDOW",
 			LogType::LOG_WARNING);
 	}
 
@@ -3029,7 +3041,7 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 	{
 		Log::Print(
 			"Failed to create hBitMask for setting window '" + name + "' icon!",
-			"WINDOW_WINDOWS",
+			"WINDOW",
 			LogType::LOG_ERROR,
 			2);
 

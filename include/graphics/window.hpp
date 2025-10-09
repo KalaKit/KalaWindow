@@ -13,6 +13,9 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/input.hpp"
+#include "graphics/opengl/opengl.hpp"
+#include "ui/debug_ui.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -20,6 +23,10 @@ namespace KalaWindow::Graphics
 	using std::function;
 	using std::vector;
 	using std::array;
+
+	using KalaWindow::Core::Input;
+	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
+	using KalaWindow::UI::DebugUI;
 
 	enum class DpiContext
 	{
@@ -303,14 +310,14 @@ namespace KalaWindow::Graphics
 		}
 		inline const WindowData& GetWindowData() const { return window_x11; }
 #endif
-		inline void SetOpenGLID(u32 newValue) { glID = newValue; }
-		inline const u32 GetOpenGLID() const { return glID; }
+		inline void SetOpenGLContext(OpenGL_Context* newValue) { glContext = newValue; }
+		inline OpenGL_Context* GetOpenGLContext() const { return glContext; }
 
-		inline void SetInputID(u32 newValue) { inputID = newValue; }
-		inline const u32 GetInputID() const { return inputID; }
+		inline void SetInput(Input* newValue) { input = newValue; }
+		inline Input* GetInput() const { return input; }
 
-		inline void SetDebugUIID(u32 newValue) { debugUIID = newValue; }
-		inline const u32 GetDebugUIID() const { return debugUIID; }
+		inline void SetDebugUI(DebugUI* newValue) { debugUI = newValue; }
+		inline const DebugUI* GetDebugUI() const { return debugUI; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
@@ -350,9 +357,9 @@ namespace KalaWindow::Graphics
 		WindowData window_x11{};     //The X11 data of this window
 #endif
 
-		u32 glID{};      //ID for this window opengl context
-		u32 inputID{};   //ID for this window input
-		u32 debugUIID{}; //ID for this window imgui context
+		OpenGL_Context* glContext{};
+		Input* input{};
+		DebugUI* debugUI{};
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn

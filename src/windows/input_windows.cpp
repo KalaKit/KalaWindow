@@ -38,8 +38,8 @@ namespace KalaWindow::Core
 		if (!window) 
 		{
 			KalaWindowCore::ForceClose(
-				"UI error",
-				"Failed to initialize ImGui because its window was not found!");
+				"Input error",
+				"Failed to initialize input because its window was not found!");
 
 			return nullptr;
 		}
@@ -47,6 +47,11 @@ namespace KalaWindow::Core
 		u32 newID = ++globalID;
 		unique_ptr<Input> newInput = make_unique<Input>();
 		Input* inputPtr = newInput.get();
+
+		Log::Print(
+			"Creating input for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"INPUT_WINDOWS",
+			LogType::LOG_DEBUG);
 
 		inputPtr->ID = newID;
 
@@ -68,7 +73,8 @@ namespace KalaWindow::Core
 		createdInput[newID] = move(newInput);
 		runtimeInput.push_back(inputPtr);
 
-		window->SetInputID(inputPtr->ID);
+		window->SetInput(inputPtr);
+		inputPtr->windowID = window->GetID();
 
 		inputPtr->isInitialized = true;
 
@@ -359,7 +365,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"Cannot set mouse lock state because its window was not found!",
-					"INPUT",
+					"INPUT_WINDOWS",
 					LogType::LOG_ERROR);
 
 				return;
@@ -390,7 +396,7 @@ namespace KalaWindow::Core
 		}
 	}
 
-	bool Input::GetKeepMouseDeltaState()
+	bool Input::GetKeepMouseDeltaState() const
 	{
 		return keepMouseDelta;
 	}
@@ -399,7 +405,7 @@ namespace KalaWindow::Core
 		keepMouseDelta = newState;
 	}
 
-	void Input::SetMouseVisibilityBetweenFocus(bool state)
+	void Input::SetMouseVisibilityBetweenFocus(bool state) const
 	{
 		if (!isMouseVisible)
 		{
@@ -424,7 +430,7 @@ namespace KalaWindow::Core
 				{
 					Log::Print(
 						"Cannot set mouse lock state between focus because its window was not found!",
-						"INPUT",
+						"INPUT_WINDOWS",
 						LogType::LOG_ERROR);
 
 					return;
@@ -476,7 +482,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"Cannot get window reference at input end frame update because its window was not found!",
-					"INPUT",
+					"INPUT_WINDOWS",
 					LogType::LOG_ERROR);
 
 				return;

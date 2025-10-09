@@ -87,7 +87,7 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        OpenGL_Context* cont = GetValueByID<OpenGL_Context>(window->GetOpenGLID());
+        OpenGL_Context* cont = window->GetOpenGLContext();
 
         if (!cont
             || (cont
@@ -540,7 +540,7 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        OpenGL_Context* cont = GetValueByID<OpenGL_Context>(window->GetOpenGLID());
+        OpenGL_Context* cont = window->GetOpenGLContext();
 
         if (!cont
             || (cont

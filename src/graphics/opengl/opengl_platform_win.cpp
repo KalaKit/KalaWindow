@@ -51,7 +51,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot initialize global OpenGL more than once!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR);
 
 			return false;
@@ -84,7 +84,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (pf == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL Window Error",
+				"OpenGL error",
 				"ChoosePixelFormat failed during global OpenGL init!");
 
 			return false;
@@ -93,7 +93,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!SetPixelFormat(dummyDC, pf, &pfd))
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL Window Error",
+				"OpenGL error",
 				"SetPixelFormat failed during global OpenGL init!");
 
 			return false;
@@ -120,7 +120,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Initialized OpenGL!",
-			"OPENGL_WINDOWS",
+			"OPENGL",
 			LogType::LOG_SUCCESS);
 
 		isInitialized = true;
@@ -203,7 +203,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!OpenGL_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				"Cannot initialize OpenGL context because global OpenGL has not yet been initialized!");
 
 			return nullptr;
@@ -213,11 +213,9 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (!window)
 		{
-			Log::Print(
-				"Cannot initialize OpenGL context because it's window was not found!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Cannot initialize OpenGL context because it's window was not found!");
 
 			return nullptr;
 		}
@@ -225,6 +223,11 @@ namespace KalaWindow::Graphics::OpenGL
 		u32 newID = ++globalID;
 		unique_ptr<OpenGL_Context> newCont = make_unique<OpenGL_Context>();
 		OpenGL_Context* contPtr = newCont.get();
+
+		Log::Print(
+			"Creating OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"OPENGL",
+			LogType::LOG_DEBUG);
 
 		contPtr->ID = newID;
 
@@ -342,7 +345,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!result)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				GetErrorType("wglChoosePixelFormatARB"));
 
 			return nullptr;
@@ -350,7 +353,7 @@ namespace KalaWindow::Graphics::OpenGL
 		else if (numFormats == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				"wglChoosePixelFormatARB returned no matching pixel formats!");
 
 			return nullptr;
@@ -366,7 +369,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (describeResult == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				"DescribePixelFormat failed!");
 
 			return nullptr;
@@ -378,7 +381,7 @@ namespace KalaWindow::Graphics::OpenGL
 			&pfd))
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				"SetPixelFormat failed!");
 
 			return nullptr;
@@ -470,7 +473,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				ss.str(),
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_INFO);
 		}
 
@@ -501,7 +504,7 @@ namespace KalaWindow::Graphics::OpenGL
 				{
 					Log::Print(
 						"OperGL parent context ID cannot be same as this context ID!",
-						"OPENGL_WINDOWS",
+						"OPENGL",
 						LogType::LOG_ERROR);
 				}
 				else existing = ToVar<HGLRC>(parentCont->hglrc);
@@ -516,7 +519,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!storedHGLRC)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				GetErrorType("wglCreateContextAttribsARB"));
 
 			return nullptr;
@@ -582,7 +585,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				ss2.str(),
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_INFO);
 		}
 
@@ -591,14 +594,14 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLContext[newID] = move(newCont);
 		runtimeOpenGLContext.push_back(contPtr);
 
-		window->SetOpenGLID(contPtr->ID);
+		window->SetOpenGLContext(contPtr);
 		contPtr->windowID = window->GetID();
 
 		contPtr->isInitialized = true;
 
 		Log::Print(
 			"Initialized OpenGL context for Window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
-			"OPENGL_WINDOWS",
+			"OPENGL",
 			LogType::LOG_SUCCESS);
 
 		return contPtr;
@@ -610,7 +613,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot swap OpenGL buffers because this OpenGL context is not initialized!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -623,7 +626,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot swap OpenGL buffers because it's window was not found!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -635,7 +638,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its hdc is not assigned!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -652,7 +655,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot context current because this OpenGL context is not initialized!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -665,7 +668,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot set OpenGL context because it's window was not found!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -679,7 +682,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its hdc or hglrc is not assigned!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -697,7 +700,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot check context validity because this OpenGL context is not initialized!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -710,7 +713,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot check OpenGL context validity because its window was not found!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -722,7 +725,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot check OpenGL context validity for window '" + window->GetTitle() + "' because its hglrc is not assigned!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -736,7 +739,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"OpenGL context is null!",
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -746,7 +749,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (current != storedHGLRC)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL Error",
+				"OpenGL error",
 				"Current OpenGL context does not match stored context!");
 
 			return false;

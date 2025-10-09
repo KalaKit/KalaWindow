@@ -176,6 +176,8 @@ namespace KalaWindow::Core
 
 		bool IsInitialized() const;
 
+		inline u32 GetID() const { return ID; }
+
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//key, mouse update messages will dump their logs into the console.
 		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
@@ -245,11 +247,11 @@ namespace KalaWindow::Core
 		void SetMouseLockState(bool newState);
 
 		//If true, then mouse delta, raw delta and scroll delta wont be reset per frame.
-		bool GetKeepMouseDeltaState();
+		bool GetKeepMouseDeltaState() const;
 		void SetKeepMouseDeltaState(bool newState);
 
 		//If true, then mouse visibility is disabled when unfocused without clearing internal flag
-		void SetMouseVisibilityBetweenFocus(bool state);
+		void SetMouseVisibilityBetweenFocus(bool state) const;
 
 		//If true, then mouse lock is disabled when unfocused without clearing internal flag
 		void SetMouseLockStateBetweenFocus(bool state) const;

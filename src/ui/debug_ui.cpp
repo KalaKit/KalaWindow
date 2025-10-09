@@ -56,7 +56,7 @@ namespace KalaWindow::UI
 		if (!OpenGL_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
-				"UI error",
+				"Debug UI error",
 				"Failed to initialize ImGui because OpenGL has not been initialized!");
 
 			return nullptr;
@@ -67,20 +67,20 @@ namespace KalaWindow::UI
 		if (!window)
 		{
 			KalaWindowCore::ForceClose(
-				"UI error",
+				"Debug UI error",
 				"Failed to initialize ImGui because its window was not found!");
 
 			return nullptr;
 		}
 
-		OpenGL_Context* cont = GetValueByID<OpenGL_Context>(window->GetOpenGLID());
+		OpenGL_Context* cont = window->GetOpenGLContext();
 
 		if (!cont
 			|| (cont
 			&& !cont->IsContextValid()))
 		{
 			KalaWindowCore::ForceClose(
-				"UI error",
+				"Debug UI error",
 				"Cannot initialize ImGui context because window '" + window->GetTitle() + "' has no valid OpenGL context!");
 
 			return nullptr;
@@ -89,6 +89,11 @@ namespace KalaWindow::UI
 		u32 newID = ++globalID;
 		unique_ptr<DebugUI> newDebugUI = make_unique<DebugUI>();
 		DebugUI* debugPtr = newDebugUI.get();
+
+		Log::Print(
+			"Creating debug UI for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"OPENGL_WINDOWS",
+			LogType::LOG_DEBUG);
 
 		debugPtr->ID = newID;
 
@@ -201,7 +206,7 @@ namespace KalaWindow::UI
 		createdUI[newID] = move(newDebugUI);
 		runtimeUI.push_back(debugPtr);
 
-		window->SetDebugUIID(debugPtr->ID);
+		window->SetDebugUI(debugPtr);
 		debugPtr->windowID = window->GetID();
 
 		debugPtr->isInitialized = true;

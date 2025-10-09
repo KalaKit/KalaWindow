@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <Windows.h>
+
 #include "KalaHeaders/core_utils.hpp"
 
 namespace KalaWindow::Core
@@ -14,7 +16,11 @@ namespace KalaWindow::Core
 	class LIB_API MessageLoop
 	{
 	public:
-		static void* WindowProcCallback();
+		static LRESULT CALLBACK WindowProcCallback(
+			HWND hwnd,
+			UINT msg,
+			WPARAM wParam,
+			LPARAM lParam);
 	};
 }
 

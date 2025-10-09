@@ -293,7 +293,7 @@ namespace KalaWindow::Graphics::OpenGL
 		bool foundCont = false;
 		for (const Window* w : runtimeWindows)
 		{
-			OpenGL_Context* cont = GetValueByID<OpenGL_Context>(w->GetOpenGLID());
+			OpenGL_Context* cont = w->GetOpenGLContext();
 
 			if (cont
 				&& cont->IsContextValid())

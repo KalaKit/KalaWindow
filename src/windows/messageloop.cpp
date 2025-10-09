@@ -375,11 +375,6 @@ static ImGuiKey TranslateVirtualKeyToImGuiKey(WPARAM vk, LPARAM lParam)
 	return ImGuiKey_None; //fallback if not recognized by ImGui
 }
 
-static LRESULT CALLBACK InternalWindowProcCallback(
-	HWND hwnd,
-	UINT msg,
-	WPARAM wParam,
-	LPARAM lParam);
 static bool ProcessMessage(const MSG& msg, Window* window);
 
 static wstring ToWide(const string& str);
@@ -387,9 +382,120 @@ static string ToShort(const wstring& str);
 
 namespace KalaWindow::Core
 {
-	void* MessageLoop::WindowProcCallback()
+	LRESULT CALLBACK MessageLoop::WindowProcCallback(
+		HWND hwnd,
+		UINT msg,
+		WPARAM wParam,
+		LPARAM lParam)
 	{
-		return reinterpret_cast<void*>(&InternalWindowProcCallback);
+		Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+
+		if (!window)
+		{
+			return DefWindowProc(
+				hwnd, 
+				msg, 
+				wParam, 
+				lParam);
+		}
+
+		switch (msg)
+		{
+			//asks if user wants to log off or shut down (in case any data is unsaved)
+		case WM_QUERYENDSESSION:
+		{
+			if (KalaWindowCore::CreatePopup(
+				"Quitting application",
+				"Are you sure you want to quit? Unclosed data may be lost!",
+				PopupAction::POPUP_ACTION_YES_NO,
+				PopupType::POPUP_TYPE_WARNING)
+				== PopupResult::POPUP_RESULT_YES)
+			{
+				KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+				return TRUE; //user clicked yes, continuing to logoff/shutdown
+			}
+			else return FALSE; //user clicked no, cancelling logoff/shutdown
+		}
+		//actually go through with logoff/shutdown
+		case WM_ENDSESSION:
+		{
+			return 0;
+		}
+
+		case WM_MOUSEACTIVATE:
+		{
+			if (!window->IsFocused())
+			{
+				window->BringToFocus();
+
+				Log::Print(
+					"Window '" + window->GetTitle() + "' clicked while inactive",
+					"MESSAGELOOP",
+					LogType::LOG_DEBUG);
+			}
+
+			return MA_ACTIVATE;
+		}
+
+		case WM_NCLBUTTONDOWN:
+		{
+			return DefWindowProc(
+				hwnd,
+				msg,
+				wParam,
+				lParam);
+		}
+
+		}
+
+		//
+		// ENSURE CURSOR ICON IS CORRECT WHEN INSIDE WINDOW
+		//
+
+		/*
+		if (msg == WM_NCHITTEST)
+		{
+			auto result = CursorTest(hwnd, msg, wParam, lParam);
+
+			string resultValue{};
+
+			if (result == 1) resultValue = "center";
+			if (result == 10) resultValue = "left edge";
+			if (result == 11) resultValue = "right edge";
+			if (result == 12) resultValue = "top bar";
+			if (result == 13) resultValue = "top left corner";
+			if (result == 14) resultValue = "top right corner";
+			if (result == 15) resultValue = "bottom edge";
+			if (result == 16) resultValue = "bottom left corner";
+			if (result == 17) resultValue = "bottom right corner";
+
+			Log::Print(
+				"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
+				"MESSAGELOOP",
+				LogType::LOG_INFO);
+
+			return result;
+		}
+		*/
+
+		//
+		// OTHER MESSAGES
+		//
+
+		MSG msgObj{};
+		msgObj.hwnd = hwnd;
+		msgObj.message = msg;
+		msgObj.wParam = wParam;
+		msgObj.lParam = lParam;
+
+		//return 0 if we handled the message ourselves
+		if (ProcessMessage(msgObj, window)) return 0;
+
+		return DefWindowProc(
+			hwnd, 
+			msg, 
+			wParam, 
+			lParam);
 	}
 }
 
@@ -432,96 +538,6 @@ static LRESULT CursorTest(
 	return HTCLIENT;
 }
 
-static LRESULT CALLBACK InternalWindowProcCallback(
-	HWND hwnd,
-	UINT msg,
-	WPARAM wParam,
-	LPARAM lParam)
-{
-	Window* window{};
-	for (auto& windowPtr : runtimeWindows)
-	{
-		if (!windowPtr) continue;
-
-		const WindowData& data = windowPtr->GetWindowData();
-		if (ToVar<HWND>(data.hwnd) == hwnd)
-		{
-			window = windowPtr;
-			break;
-		}
-	}
-	if (!window) return DefWindowProc(hwnd, msg, wParam, lParam);
-
-	switch (msg)
-	{
-	//asks if user wants to log off or shut down (in case any data is unsaved)
-	case WM_QUERYENDSESSION:
-	{
-		if (KalaWindowCore::CreatePopup(
-			"Quitting application",
-			"Are you sure you want to quit? Unclosed data may be lost!",
-			PopupAction::POPUP_ACTION_YES_NO,
-			PopupType::POPUP_TYPE_WARNING)
-			== PopupResult::POPUP_RESULT_YES)
-		{
-			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
-			return TRUE; //user clicked yes, continuing to logoff/shutdown
-		}
-		else return FALSE; //user clicked no, cancelling logoff/shutdown
-	}
-	//actually go through with logoff/shutdown
-	case WM_ENDSESSION:
-	{
-		return 0;
-	}
-	}
-
-	//
-	// ENSURE CURSOR ICON IS CORRECT WHEN INSIDE WINDOW
-	//
-
-	/*
-	if (msg == WM_NCHITTEST)
-	{
-		auto result = CursorTest(hwnd, msg, wParam, lParam);
-
-		string resultValue{};
-
-		if (result == 1) resultValue = "center";
-		if (result == 10) resultValue = "left edge";
-		if (result == 11) resultValue = "right edge";
-		if (result == 12) resultValue = "top bar";
-		if (result == 13) resultValue = "top left corner";
-		if (result == 14) resultValue = "top right corner";
-		if (result == 15) resultValue = "bottom edge";
-		if (result == 16) resultValue = "bottom left corner";
-		if (result == 17) resultValue = "bottom right corner";
-
-		Log::Print(
-			"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
-			"MESSAGELOOP",
-			LogType::LOG_INFO);
-
-		return result;
-	}
-	*/
-
-	//
-	// OTHER MESSAGES
-	//
-
-	MSG msgObj{};
-	msgObj.hwnd = hwnd;
-	msgObj.message = msg;
-	msgObj.wParam = wParam;
-	msgObj.lParam = lParam;
-
-	//return 0 if we handled the message ourselves
-	if (ProcessMessage(msgObj, window)) return 0;
-
-	return DefWindowProc(hwnd, msg, wParam, lParam);
-}
-
 static bool ProcessMessage(const MSG& msg, Window* window)
 {
 	if (!window)
@@ -537,7 +553,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	ImGuiIO* io = nullptr;
 
-	Input* input = GetValueByID<Input>(window->GetInputID());
+	Input* input = window->GetInput();
 
 	/*
 	if (msg.message == 0)
@@ -1173,18 +1189,22 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window gains focus
 	case WM_SETFOCUS:
 	{
-		if (input)
+		if (!input)
+		{
+			Log::Print(
+				"Cannot get focus to window '" + window->GetTitle() + "' because input is invalid!",
+				"MESSAGELOOP",
+				LogType::LOG_ERROR);
+		}
+		else
 		{
 			input->SetMouseVisibilityBetweenFocus(false);
 			input->SetMouseLockStateBetweenFocus(false);
 
-			if (Window::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Focusing on window '" + window->GetTitle() + "'",
-					"MESSAGELOOP",
-					LogType::LOG_INFO);
-			}
+			Log::Print(
+				"Returned focus to window '" + window->GetTitle() + "'!",
+				"MESSAGELOOP",
+				LogType::LOG_DEBUG);
 		}
 
 		return false;
@@ -1193,19 +1213,23 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window loses focus
 	case WM_KILLFOCUS:
 	{
-		if (input)
+		if (!input)
+		{
+			Log::Print(
+				"Cannot kill focus for window '" + window->GetTitle() + "' because input is invalid!",
+				"MESSAGELOOP",
+				LogType::LOG_ERROR);
+		}
+		else
 		{
 			input->SetMouseVisibilityBetweenFocus(true);
 			input->SetMouseLockStateBetweenFocus(true);
 			input->ClearInputEvents();
 
-			if (Window::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"No longer focusing on window '" + window->GetTitle() + "'",
-					"MESSAGELOOP",
-					LogType::LOG_INFO);
-			}
+			Log::Print(
+				"No longer focusing on window '" + window->GetTitle() + "'.",
+				"MESSAGELOOP",
+				LogType::LOG_DEBUG);
 		}
 
 		if (io)
@@ -1413,9 +1437,9 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	{
-		createdOpenGLContext.erase(window->GetOpenGLID());
-		createdInput.erase(window->GetInputID());
-		createdUI.erase(window->GetDebugUIID());
+		createdOpenGLContext.erase(window->GetOpenGLContext()->GetID());
+		createdInput.erase(window->GetInput()->GetID());
+		createdUI.erase(window->GetDebugUI()->GetID());
 
 		createdWindows.erase(window->GetID());
 
