@@ -1809,11 +1809,20 @@ namespace KalaWindow::Graphics
 		return 1.0f;
 	}
 
+	bool Window::IsForegroundWindow() const
+	{
+		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
+
+		return GetForegroundWindow() == hwnd;
+	}
+
 	bool Window::IsFocused() const
 	{
 		HWND hwnd = ToVar<HWND>(window_windows.hwnd);
 
-		return hwnd == GetForegroundWindow();
+		return 
+			GetFocus()
+			&& IsChild(hwnd, GetFocus());
 	}
 
 	bool Window::IsMinimized() const
@@ -2302,12 +2311,11 @@ namespace KalaWindow::Graphics
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Cannot run loop because window '" +
-				GetTitle() +
-				"' has not been initialized!",
+				"Cannot run window loop because window '" + GetTitle() + "' has not been initialized!",
 				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
+
 			return;
 		}
 
@@ -2316,15 +2324,6 @@ namespace KalaWindow::Graphics
 			isIdle);
 
 		MSG msg;
-		
-		/*
-		if (isWindowFocusRequired
-			&& isIdle
-			&& !PeekMessage(&msg, nullptr, 0, 0, PM_NOREMOVE)) 
-		{
-			WaitMessage();
-		}
-		*/
 
 		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
 		{
@@ -2972,7 +2971,8 @@ void PreInitSetup()
 void UpdateIdleState(Window* window, bool& isIdle)
 {
 	isIdle =
-		!window->IsFocused()
+		!window->IsForegroundWindow()
+		|| !window->IsFocused()
 		|| window->IsMinimized()
 		|| !window->IsVisible();
 }

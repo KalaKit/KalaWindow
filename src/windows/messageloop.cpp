@@ -424,11 +424,21 @@ namespace KalaWindow::Core
 
 		case WM_MOUSEACTIVATE:
 		{
+			Log::Print(
+				"Clicked on window '" + window->GetTitle() + "' client area.",
+				"MESSAGELOOP",
+				LogType::LOG_DEBUG);
+
 			return MA_ACTIVATE;
 		}
 
 		case WM_NCLBUTTONDOWN:
 		{
+			Log::Print(
+				"Clicked on window '" + window->GetTitle() + "' non-client area.",
+				"MESSAGELOOP",
+				LogType::LOG_DEBUG);
+
 			return DefWindowProc(
 				hwnd,
 				msg,
@@ -1175,6 +1185,26 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	// WINDOW FOCUS
 	//
 
+	case WM_ACTIVATE:
+	{
+		if (LOWORD(msg.lParam) == WA_INACTIVE)
+		{
+			Log::Print(
+				"Window '" + window->GetTitle() + "' was deactivated.",
+				"MESSAGELOOP",
+				LogType::LOG_DEBUG);
+		}
+		else
+		{
+			Log::Print(
+				"Window '" + window->GetTitle() + "' was activated.",
+				"MESSAGELOOP",
+				LogType::LOG_DEBUG);
+		}
+
+		return true; //let defwindowproc run its logic
+	}
+
 	//window gains focus
 	case WM_SETFOCUS:
 	{
@@ -1188,6 +1218,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				"MESSAGELOOP",
 				LogType::LOG_DEBUG);
 		}
+
+		if (!window->IsFocused()) window->BringToFocus();
 
 		return false;
 	}

@@ -62,7 +62,9 @@ namespace KalaWindow::UI
 			bool enableDocking = true,
 			const vector<UserFont>& userProvidedFonts = {});
 
-		inline bool IsInitialized() { return isInitialized; }
+		inline bool IsInitialized() const { return isInitialized; }
+
+		inline const u32 GetID() const { return ID; }
 
 		//Place ImGui window to the center
 		static vec2 CenterWindow(
@@ -180,9 +182,6 @@ namespace KalaWindow::UI
 			ImGui::PopItemWidth();
 		}
 
-		inline const u32 GetID() const { return ID; }
-
-		inline bool IsInitialized() const { return isInitialized; }
 		inline bool IsDockingEnabled() const { return isDockingEnabled; }
 
 		//Returns selected user font by name
@@ -224,7 +223,7 @@ namespace KalaWindow::UI
 		}
 
 		//ImGui main draw loop
-		void Render(u32 windowID);
+		void Render();
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~DebugUI();

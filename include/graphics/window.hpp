@@ -249,7 +249,16 @@ namespace KalaWindow::Graphics
 		void SetOpacity(float alpha) const;
 		float GetOpacity() const;
 
-		//Returns true if this window is currently selected
+		//Returns true if one of these is true:
+		//  - not foreground
+		//  - not focused
+		//  - minimized
+		//  - not visible
+		bool IsIdle() const { return isIdle; }
+
+		//Returns true if this window is in the front
+		bool IsForegroundWindow() const;
+		//Returns true if this window or one of its children have keyboard focus
 		bool IsFocused() const;
 		//Returns true if this window is not open, but exists
 		bool IsMinimized() const;
@@ -286,9 +295,6 @@ namespace KalaWindow::Graphics
 			u8 currentProgress,
 			u8 maxProgress) const;
 
-		//Returns true if window is idle - not focused, minimized or not visible.
-		bool IsIdle() const { return isIdle; }
-
 		//Correctly handle aspect ratio during window resize for camera
 		inline void TriggerResize() const { if (resizeCallback) resizeCallback(); }
 		inline void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
@@ -317,7 +323,7 @@ namespace KalaWindow::Graphics
 		inline Input* GetInput() const { return input; }
 
 		inline void SetDebugUI(DebugUI* newValue) { debugUI = newValue; }
-		inline const DebugUI* GetDebugUI() const { return debugUI; }
+		inline DebugUI* GetDebugUI() const { return debugUI; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();

@@ -378,7 +378,7 @@ namespace KalaWindow::UI
 		ImGui::End();
 	}
 
-	void DebugUI::Render(u32 windowID)
+	void DebugUI::Render()
 	{
 		if (!isInitialized)
 		{
