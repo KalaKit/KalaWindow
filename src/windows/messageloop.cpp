@@ -1299,6 +1299,11 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (it != runtimeWindows.end()) runtimeWindows.erase(it);
 
+		if (runtimeWindows.size() == 0)
+		{
+			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+		}
+
 		return true; //we handled it
 	}
 
