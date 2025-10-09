@@ -141,10 +141,13 @@ namespace KalaWindow::Graphics
 
 		HINSTANCE newHInstance = GetModuleHandle(nullptr);
 
-		HWND newHwnd = CreateWindowExA(
+		wstring appIDWide = ToWide(Window_Global::GetAppID());
+		wstring titleWide = ToWide(title);
+
+		HWND newHwnd = CreateWindowExW(
 			exStyle,
-			Window_Global::GetAppID().c_str(),
-			title.c_str(),
+			appIDWide.c_str(),
+			titleWide.c_str(),
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT,
 			CW_USEDEFAULT,
@@ -158,28 +161,31 @@ namespace KalaWindow::Graphics
 		if (!newHwnd)
 		{
 			DWORD errorCode = GetLastError();
-			LPSTR errorMsg = nullptr;
-			FormatMessageA(
+			LPWSTR errorMsg = nullptr;
+			FormatMessageW(
 				FORMAT_MESSAGE_ALLOCATE_BUFFER
 				| FORMAT_MESSAGE_FROM_SYSTEM
 				| FORMAT_MESSAGE_IGNORE_INSERTS,
 				nullptr,
 				errorCode,
 				0,
-				(LPSTR)&errorMsg,
+				(LPWSTR)&errorMsg,
 				0,
 				nullptr);
 
-			string message = "CreateWindowExA failed with error "
-				+ to_string(errorCode)
-				+ ": "
-				+ (errorMsg ? errorMsg : "Unknown");
+			LPCWSTR result = errorMsg != nullptr ? errorMsg : L"Unknown";
+
+			ostringstream msg{};
+
+			msg << "CreateWindowExW failed with error "
+				<< errorCode << ": "
+				<< ToShort(result);
 
 			if (errorMsg) LocalFree(errorMsg);
 
 			KalaWindowCore::ForceClose(
 				"Window error",
-				message);
+				msg.str());
 
 			return nullptr;
 		}
@@ -266,7 +272,9 @@ namespace KalaWindow::Graphics
 
 		wstring wideTitle = ToWide(titleToSet);
 
-		SetWindowTextW(window, wideTitle.c_str());
+		SetWindowTextW(
+			window, 
+			wideTitle.c_str());
 
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{

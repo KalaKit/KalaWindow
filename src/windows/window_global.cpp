@@ -106,15 +106,17 @@ namespace KalaWindow::Graphics
 			enabledBeginPeriod = true;
 		}
 
-		WNDCLASSA wc = {};
+		wstring appIDWide = ToWide(appID);
+
+		WNDCLASSW wc = {};
 		wc.style =
 			CS_OWNDC      //own the DC for the lifetime of this window
 			| CS_DBLCLKS; //allow detecting double clicks
 		wc.lpfnWndProc = MessageLoop::WindowProcCallback;
 		wc.hInstance = GetModuleHandle(nullptr);
-		wc.lpszClassName = appID.c_str();
+		wc.lpszClassName = appIDWide.c_str();
 
-		if (!RegisterClassA(&wc))
+		if (!RegisterClassW(&wc))
 		{
 			DWORD err = GetLastError();
 			string message{};
@@ -124,7 +126,7 @@ namespace KalaWindow::Graphics
 			}
 			else
 			{
-				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
+				message = "RegisterClassW failed with error: " + to_string(err) + "\n";
 			}
 
 			KalaWindowCore::ForceClose(
@@ -144,17 +146,6 @@ namespace KalaWindow::Graphics
 
 	u32 Window_Global::GetVersion()
 	{
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Cannot get version because global window context has not been initialized!",
-				"WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			return{};
-		}
-
 #ifdef WIN32
 		if (version == 0)
 		{
