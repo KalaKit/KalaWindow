@@ -424,20 +424,26 @@ namespace KalaWindow::Core
 
 		case WM_MOUSEACTIVATE:
 		{
-			Log::Print(
-				"Clicked on window '" + window->GetTitle() + "' client area.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Clicked on window '" + window->GetTitle() + "' client area.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 
 			return MA_ACTIVATE;
 		}
 
 		case WM_NCLBUTTONDOWN:
 		{
-			Log::Print(
-				"Clicked on window '" + window->GetTitle() + "' non-client area.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Clicked on window '" + window->GetTitle() + "' non-client area.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 
 			return DefWindowProc(
 				hwnd,
@@ -1187,22 +1193,36 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_ACTIVATE:
 	{
-		if (LOWORD(msg.lParam) == WA_INACTIVE)
+		switch (LOWORD(msg.wParam))
 		{
-			Log::Print(
-				"Window '" + window->GetTitle() + "' was deactivated.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+		case WA_INACTIVE:
+		{
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Window '" + window->GetTitle() + "' was deactivated.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
+
+			break;
 		}
-		else
+		case WA_ACTIVE:      //outside focus
+		case WA_CLICKACTIVE: //direct click focus
 		{
-			Log::Print(
-				"Window '" + window->GetTitle() + "' was activated.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Window '" + window->GetTitle() + "' was activated.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
+
+			break;
+		}
 		}
 
-		return true; //let defwindowproc run its logic
+		return true; //let DefWindowProc run its logic
 	}
 
 	//window gains focus
@@ -1213,10 +1233,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			input->SetMouseVisibilityBetweenFocus(false);
 			input->SetMouseLockStateBetweenFocus(false);
 
-			Log::Print(
-				"Returned focus to window '" + window->GetTitle() + "'!",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Returned focus to window '" + window->GetTitle() + "'!",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 
 		if (!window->IsFocused()) window->BringToFocus();
@@ -1233,10 +1256,13 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			input->SetMouseLockStateBetweenFocus(true);
 			input->ClearInputEvents();
 
-			Log::Print(
-				"No longer focusing on window '" + window->GetTitle() + "'.",
-				"MESSAGELOOP",
-				LogType::LOG_DEBUG);
+			if (Window::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"No longer focusing on window '" + window->GetTitle() + "'.",
+					"MESSAGELOOP",
+					LogType::LOG_INFO);
+			}
 		}
 
 		if (io)
