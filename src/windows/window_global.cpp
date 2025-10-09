@@ -24,13 +24,11 @@
 #include "graphics/window.hpp"
 #include "core/core.hpp"
 #include "windows/messageloop.hpp"
-#include "core/containers.hpp"
 
 using namespace KalaHeaders;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Windows::MessageLoop;
-using KalaWindow::Core::createdWindows;
 
 using std::to_string;
 using std::wstring;
@@ -44,7 +42,6 @@ static string ToShort(const wstring& str);
 static string HResultToString(HRESULT hr);
 
 static bool checkedOSVersion = false;
-static u32 version{};
 constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
 
 static bool enabledBeginPeriod = false;
@@ -53,102 +50,121 @@ namespace KalaWindow::Graphics
 {
 	void Window_Global::Initialize()
 	{
-		if (createdWindows.size() == 0)
+		if (isInitialized)
 		{
-			if (!checkedOSVersion)
-			{
-				version = GetVersion();
-				string versionStr = to_string(version);
-				string osVersion = versionStr.substr(0, 2);
-				string buildVersion = to_string(stoi(versionStr.substr(2)));
+			Log::Print(
+				"Cannot initialize global window context because it has already been initialized!",
+				"WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
 
-				if (version < MIN_OS_VERSION)
-				{
-					ostringstream oss{};
-					oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
-						<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
-
-					KalaWindowCore::ForceClose(
-						"Window error",
-						oss.str());
-
-					return;
-				}
-
-				if (Window::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Windows version '" + osVersion + "' build '" + buildVersion + "'",
-						"WINDOW",
-						LogType::LOG_INFO);
-				}
-
-				checkedOSVersion = true;
-			}
-
-			wchar_t buffer[MAX_PATH]{};
-			GetModuleFileNameW(
-				nullptr,
-				buffer,
-				MAX_PATH);
-
-			path exePath(buffer);
-
-			appID = exePath.stem().string();
-
-			//Treat this process as a real app with a stable identity
-			SetCurrentProcessExplicitAppUserModelID(ToWide(appID).c_str());
-
-			if (!enabledBeginPeriod)
-			{
-				timeBeginPeriod(1);
-				enabledBeginPeriod = true;
-			}
-
-			WNDCLASSA wc = {};
-			wc.style =
-				CS_OWNDC      //own the DC for the lifetime of this window
-				| CS_DBLCLKS; //allow detecting double clicks
-			wc.lpfnWndProc = MessageLoop::WindowProcCallback;
-			wc.hInstance = GetModuleHandle(nullptr);
-			wc.lpszClassName = appID.c_str();
-
-			if (!RegisterClassA(&wc))
-			{
-				DWORD err = GetLastError();
-				string message{};
-				if (err == ERROR_CLASS_ALREADY_EXISTS)
-				{
-					message = "Window class already exists with different definition.\n";
-				}
-				else
-				{
-					message = "RegisterClassA failed with error: " + to_string(err) + "\n";
-				}
-
-				KalaWindowCore::ForceClose(
-					"Window error",
-					message);
-
-				return;
-			}
+			return;
 		}
+
+		version = GetVersion();
+		string versionStr = to_string(version);
+		string osVersion = versionStr.substr(0, 2);
+		string buildVersion = to_string(stoi(versionStr.substr(2)));
+
+		if (version < MIN_OS_VERSION)
+		{
+			ostringstream oss{};
+			oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
+				<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
+
+			KalaWindowCore::ForceClose(
+				"Global window error",
+				oss.str());
+
+			return;
+		}
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Windows version '" + osVersion + "' build '" + buildVersion + "'",
+				"WINDOW_GLOBAL",
+				LogType::LOG_INFO);
+		}
+
+		wchar_t buffer[MAX_PATH]{};
+		GetModuleFileNameW(
+			nullptr,
+			buffer,
+			MAX_PATH);
+
+		path exePath(buffer);
+
+		appID = exePath.stem().string();
+
+		//Treat this process as a real app with a stable identity
+		SetCurrentProcessExplicitAppUserModelID(ToWide(appID).c_str());
+
+		if (!enabledBeginPeriod)
+		{
+			timeBeginPeriod(1);
+			enabledBeginPeriod = true;
+		}
+
+		WNDCLASSA wc = {};
+		wc.style =
+			CS_OWNDC      //own the DC for the lifetime of this window
+			| CS_DBLCLKS; //allow detecting double clicks
+		wc.lpfnWndProc = MessageLoop::WindowProcCallback;
+		wc.hInstance = GetModuleHandle(nullptr);
+		wc.lpszClassName = appID.c_str();
+
+		if (!RegisterClassA(&wc))
+		{
+			DWORD err = GetLastError();
+			string message{};
+			if (err == ERROR_CLASS_ALREADY_EXISTS)
+			{
+				message = "Window class already exists with different definition.\n";
+			}
+			else
+			{
+				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
+			}
+
+			KalaWindowCore::ForceClose(
+				"Global window error",
+				message);
+
+			return;
+		}
+
+		isInitialized = true;
+
+		Log::Print(
+			"Initialized global window context!",
+			"WINDOW_GLOBAL",
+			LogType::LOG_SUCCESS);
 	}
 
 	u32 Window_Global::GetVersion()
 	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot get version because global window context has not been initialized!",
+				"WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			return{};
+		}
+
 #ifdef WIN32
 		if (version == 0)
 		{
-			string title = "Window version check fail";
-
 			typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
 			HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
 			if (!hMod)
 			{
 				KalaWindowCore::ForceClose(
-					title,
+					"Global window error",
 					"Failed to get 'ntdll.dll'");
 
 				return 0;
@@ -158,7 +174,7 @@ namespace KalaWindow::Graphics
 			if (!pRtlGetVersion)
 			{
 				KalaWindowCore::ForceClose(
-					title,
+					"Global window error",
 					"Failed to resolve address of 'RtlGetVersion'");
 
 				return 0;
@@ -168,7 +184,7 @@ namespace KalaWindow::Graphics
 			if (pRtlGetVersion(&rovi) != 0)
 			{
 				KalaWindowCore::ForceClose(
-					title,
+					"Global window error",
 					"Call to 'RtlGetVersion' failed");
 
 				return 0;
@@ -260,7 +276,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to initialize COM! Reason: " + HResultToString(hr),
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -275,7 +291,7 @@ namespace KalaWindow::Graphics
 				{
 					Log::Print(
 						"Calling CoUninitialize",
-						"WINDOW",
+						"WINDOW_GLOBAL",
 						LogType::LOG_DEBUG);
 
 					CoUninitialize();
@@ -284,7 +300,7 @@ namespace KalaWindow::Graphics
 				{
 					Log::Print(
 						"Skipping CoUninitialize()",
-						"WINDOW",
+						"WINDOW_GLOBAL",
 						LogType::LOG_DEBUG);
 				}
 			};
@@ -301,7 +317,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to create file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -318,7 +334,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to set file filter to '" + typeVal + "' for dialog! Reason: " + HResultToString(hr),
-					"WINDOW",
+					"WINDOW_GLOBAL",
 					LogType::LOG_ERROR,
 					2);
 			};
@@ -540,11 +556,11 @@ namespace KalaWindow::Graphics
 		//user cancelled, return cleanly
 		if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
 		{
-			if (Window::IsVerboseLoggingEnabled())
+			if (isVerboseLoggingEnabled)
 			{
 				Log::Print(
 					"User cancelled file selection.",
-					"WINDOW",
+					"WINDOW_GLOBAL",
 					LogType::LOG_INFO);
 			}
 
@@ -556,7 +572,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to show file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -571,7 +587,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to retrieve selected items from file dialog! Reason: " + HResultToString(hr),
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -592,7 +608,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to get item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW",
+					"WINDOW_GLOBAL",
 					LogType::LOG_ERROR,
 					2);
 
@@ -608,7 +624,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to get file path for item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW",
+					"WINDOW_GLOBAL",
 					LogType::LOG_ERROR,
 					2);
 
@@ -622,11 +638,11 @@ namespace KalaWindow::Graphics
 
 			CoTaskMemFree(pszFilePath);
 
-			if (Window::IsVerboseLoggingEnabled())
+			if (isVerboseLoggingEnabled)
 			{
 				Log::Print(
 					"Selected file '" + path + "'",
-					"WINDOW",
+					"WINDOW_GLOBAL",
 					LogType::LOG_SUCCESS);
 			}
 		}
@@ -653,11 +669,11 @@ namespace KalaWindow::Graphics
 
 		ToastNotificationManager::CreateToastNotifier(ToWide(appID)).Show(toast);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
 				"Created notification '" + title + "'!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -668,7 +684,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to open clipboard when writing text to clipboard!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -687,7 +703,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to construct hGlobal when saving text to clipboard!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -700,7 +716,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to lock hGlobal when saving text to clipboard!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -718,11 +734,11 @@ namespace KalaWindow::Graphics
 
 		CloseClipboard();
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
 				"Saved string to clipboard: '" + text + "'!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -732,7 +748,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to open clipboard when reading text from clipboard!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -741,11 +757,11 @@ namespace KalaWindow::Graphics
 
 		if (!IsClipboardFormatAvailable(CF_UNICODETEXT))
 		{
-			if (Window::IsVerboseLoggingEnabled())
+			if (isVerboseLoggingEnabled)
 			{
 				Log::Print(
 					"Clipboard does not contain Unicode text.",
-					"WINDOW",
+					"WINDOW_GLOBAL",
 					LogType::LOG_WARNING,
 					2);
 			}
@@ -757,11 +773,11 @@ namespace KalaWindow::Graphics
 		HANDLE hData = GetClipboardData(CF_UNICODETEXT);
 		if (!hData)
 		{
-			if (Window::IsVerboseLoggingEnabled())
+			if (isVerboseLoggingEnabled)
 			{
 				Log::Print(
 					"Clipboard had no data to read from.",
-					"WINDOW",
+					"WINDOW_GLOBAL",
 					LogType::LOG_WARNING);
 			}
 
@@ -774,7 +790,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to lock memory handle to get text from clipboard!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -788,11 +804,11 @@ namespace KalaWindow::Graphics
 		GlobalUnlock(hData);
 		CloseClipboard();
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
 				"Read string to clipboard: '" + shortVal + "'!",
-				"WINDOW",
+				"WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
 

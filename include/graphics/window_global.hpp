@@ -65,6 +65,12 @@ namespace KalaWindow::Graphics
 	{
 	public:
 		static void Initialize();
+		static inline bool IsInitialized() { return isInitialized; }
+
+		//Toggle verbose logging. If true, then global window context 
+		//and all windows will dump their logs into the console.
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
 		//Returns Windows version as xxyyyyyy format,
 		//where XX is windows version and YYYYYY is build version.
@@ -78,7 +84,7 @@ namespace KalaWindow::Graphics
 			PopupAction action,
 			PopupType type);
 
-		static inline string GetAppID() { return appID; }
+		static inline const string& GetAppID() { return appID; }
 
 		//Uses the file explorer to get a path to selected files by chosen type.
 		//Set multiple to true to allow returning more than one item
@@ -96,6 +102,10 @@ namespace KalaWindow::Graphics
 		//Returns string from clipboard
 		static string GetClipboardText();
 	private:
+		static inline bool isInitialized{};
+		static inline bool isVerboseLoggingEnabled{};
+
+		static inline u32 version{};
 		static inline string appID{};
 	};
 }

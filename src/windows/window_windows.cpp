@@ -87,10 +87,18 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size,
 		Window* parentWindow,
-
 		WindowState state,
 		DpiContext context)
 	{
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to create window '" + title + "' because global window context has not been created!");
+
+			return nullptr;
+		}
+
 		u32 newID = ++globalID;
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
@@ -110,7 +118,7 @@ namespace KalaWindow::Graphics
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
-					"Parent window pointer does not exist! Failed to newly create child window '" + title);
+					"Failed to create child window '" + title + "' because parent window pointer does not exist!");
 
 				return nullptr;
 			}
@@ -121,7 +129,7 @@ namespace KalaWindow::Graphics
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
-					"Parent window handle is invalid! Failed to newly create child window '" + title);
+					"Failed to create child window '" + title + "' because parent window handle is invalid!");
 
 				return nullptr;
 			}
@@ -260,7 +268,7 @@ namespace KalaWindow::Graphics
 
 		SetWindowTextW(window, wideTitle.c_str());
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window title to '" + newTitle + "'",
@@ -358,7 +366,7 @@ namespace KalaWindow::Graphics
 			ICON_SMALL, //title bar + window border
 			(LPARAM)exeIcon);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' icon to '" + tex->GetName() + "'",
@@ -476,7 +484,7 @@ namespace KalaWindow::Graphics
 			overlayIcon,
 			tooltip.empty() ? nullptr : ToWide(tooltip).c_str());
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' overlay icon to '" + tex->GetName() + "'",
@@ -560,7 +568,7 @@ namespace KalaWindow::Graphics
 
 			SetForegroundWindow(window);
 
-			if (Window::IsVerboseLoggingEnabled())
+			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
 					"Set window '" + GetTitle() + "' focus through the fallback method.'",
@@ -617,7 +625,7 @@ namespace KalaWindow::Graphics
 				2);
 		}
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' rounding to '" + roundingVal + "'",
@@ -693,7 +701,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' client rect size to '" + val + "'",
@@ -733,7 +741,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' outer size to '" + val + "'",
@@ -792,7 +800,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' framebuffer size to '" + val + "'",
@@ -842,7 +850,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(newPosition.x) + "x" + to_string(newPosition.y);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' position to '" + val + "'",
@@ -885,7 +893,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' always on state to '" + val + "'",
@@ -944,7 +952,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' resizable state to '" + val + "'",
@@ -995,7 +1003,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' top bar state to '" + val + "'",
@@ -1044,7 +1052,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' minimize button state to '" + val + "'",
@@ -1093,7 +1101,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' maximize button state to '" + val + "'",
@@ -1134,7 +1142,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' close button state to '" + val + "'",
@@ -1185,7 +1193,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' system menu state to '" + val + "'",
@@ -1235,7 +1243,7 @@ namespace KalaWindow::Graphics
 
 		string val = to_string(alpha);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
@@ -1473,7 +1481,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' fullscreen state to '" + val + "'",
@@ -1550,7 +1558,7 @@ namespace KalaWindow::Graphics
 
 		UpdateWindow(window);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' state to '" + val + "'",
@@ -1614,7 +1622,7 @@ namespace KalaWindow::Graphics
 
 		string val = state ? "true" : "false";
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				"Set window '" + GetTitle() + "' shutdown block state to '" + val + "'",
@@ -1691,7 +1699,7 @@ namespace KalaWindow::Graphics
 		fi.dwTimeout = 0;
 		FlashWindowEx(&fi);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			string targetMsg = target == FlashTarget::TARGET_WINDOW
 				? "window '" + GetTitle() + "'"
@@ -1774,7 +1782,7 @@ namespace KalaWindow::Graphics
 			break;
 		}
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			ostringstream oss{};
 			oss << "Set window '" + GetTitle() + "' taskbar duration type to '"

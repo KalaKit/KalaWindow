@@ -116,11 +116,6 @@ namespace KalaWindow::Graphics
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 		inline bool IsInitialized() const { return isInitialized; }
 
-		//Toggle verbose logging. If true, then usually frequently updated runtime values like
-		//window position, size updates will dump their logs into the console.
-		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
-
 		//Assigns paths of last dragged files. This is called through WM_DROPFILES.
 		inline void SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
 		inline const vector<string>& GetLastDraggedFiles() const { return lastDraggedFiles; };
@@ -304,8 +299,6 @@ namespace KalaWindow::Graphics
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 	private:
-		static inline bool isVerboseLoggingEnabled{};
-
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
 		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.

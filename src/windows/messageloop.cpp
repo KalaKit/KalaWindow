@@ -429,7 +429,7 @@ namespace KalaWindow::Windows
 
 		case WM_MOUSEACTIVATE:
 		{
-			if (Window::IsVerboseLoggingEnabled())
+			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
 					"Clicked on window '" + window->GetTitle() + "' client area.",
@@ -442,7 +442,7 @@ namespace KalaWindow::Windows
 
 		case WM_NCLBUTTONDOWN:
 		{
-			if (Window::IsVerboseLoggingEnabled())
+			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
 					"Clicked on window '" + window->GetTitle() + "' non-client area.",
@@ -1176,7 +1176,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		DragFinish(hDrop);
 
-		if (Window::IsVerboseLoggingEnabled())
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			for (const auto& file : droppedFiles)
 			{
@@ -1202,7 +1202,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 		case WA_INACTIVE:
 		{
-			if (Window::IsVerboseLoggingEnabled())
+			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
 					"Window '" + window->GetTitle() + "' was deactivated.",
@@ -1215,7 +1215,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		case WA_ACTIVE:      //outside focus
 		case WA_CLICKACTIVE: //direct click focus
 		{
-			if (Window::IsVerboseLoggingEnabled())
+			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
 					"Window '" + window->GetTitle() + "' was activated.",
@@ -1238,7 +1238,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			input->SetMouseVisibilityBetweenFocus(false);
 			input->SetMouseLockStateBetweenFocus(false);
 
-			if (Window::IsVerboseLoggingEnabled())
+			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
 					"Returned focus to window '" + window->GetTitle() + "'!",
@@ -1261,7 +1261,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			input->SetMouseLockStateBetweenFocus(true);
 			input->ClearInputEvents();
 
-			if (Window::IsVerboseLoggingEnabled())
+			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
 					"No longer focusing on window '" + window->GetTitle() + "'.",
