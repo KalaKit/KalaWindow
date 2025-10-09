@@ -401,7 +401,7 @@ namespace KalaWindow::Core
 
 		switch (msg)
 		{
-			//asks if user wants to log off or shut down (in case any data is unsaved)
+		//asks if user wants to log off or shut down (in case any data is unsaved)
 		case WM_QUERYENDSESSION:
 		{
 			if (KalaWindowCore::CreatePopup(
@@ -424,16 +424,6 @@ namespace KalaWindow::Core
 
 		case WM_MOUSEACTIVATE:
 		{
-			if (!window->IsFocused())
-			{
-				window->BringToFocus();
-
-				Log::Print(
-					"Window '" + window->GetTitle() + "' clicked while inactive",
-					"MESSAGELOOP",
-					LogType::LOG_DEBUG);
-			}
-
 			return MA_ACTIVATE;
 		}
 
@@ -445,7 +435,6 @@ namespace KalaWindow::Core
 				wParam,
 				lParam);
 		}
-
 		}
 
 		//
@@ -1189,14 +1178,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window gains focus
 	case WM_SETFOCUS:
 	{
-		if (!input)
-		{
-			Log::Print(
-				"Cannot get focus to window '" + window->GetTitle() + "' because input is invalid!",
-				"MESSAGELOOP",
-				LogType::LOG_ERROR);
-		}
-		else
+		if (input)
 		{
 			input->SetMouseVisibilityBetweenFocus(false);
 			input->SetMouseLockStateBetweenFocus(false);
@@ -1213,14 +1195,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//window loses focus
 	case WM_KILLFOCUS:
 	{
-		if (!input)
-		{
-			Log::Print(
-				"Cannot kill focus for window '" + window->GetTitle() + "' because input is invalid!",
-				"MESSAGELOOP",
-				LogType::LOG_ERROR);
-		}
-		else
+		if (input)
 		{
 			input->SetMouseVisibilityBetweenFocus(true);
 			input->SetMouseLockStateBetweenFocus(true);
