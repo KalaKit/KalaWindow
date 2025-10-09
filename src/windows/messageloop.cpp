@@ -19,8 +19,6 @@
 	#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 #endif
 
-#include "imgui/imgui.h"
-
 #include "KalaHeaders/log_utils.hpp"
 
 #include "windows/messageloop.hpp"
@@ -31,7 +29,6 @@
 #include "core/containers.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl.hpp"
-#include "ui/debug_ui.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -48,7 +45,6 @@ using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 using namespace KalaWindow::Core;
-using KalaWindow::UI::DebugUI;
 
 using std::string;
 using std::to_string;
@@ -219,70 +215,6 @@ static const unordered_map<WPARAM, Key> VKToKeyMap = {
 	{ VK_BROWSER_HOME, Key::BrowserHome }
 };
 
-static const std::unordered_map<WPARAM, ImGuiKey> VKToImGuiKeyMap = {
-	// Letters
-	{ 'A', ImGuiKey_A }, { 'B', ImGuiKey_B }, { 'C', ImGuiKey_C }, { 'D', ImGuiKey_D },
-	{ 'E', ImGuiKey_E }, { 'F', ImGuiKey_F }, { 'G', ImGuiKey_G }, { 'H', ImGuiKey_H },
-	{ 'I', ImGuiKey_I }, { 'J', ImGuiKey_J }, { 'K', ImGuiKey_K }, { 'L', ImGuiKey_L },
-	{ 'M', ImGuiKey_M }, { 'N', ImGuiKey_N }, { 'O', ImGuiKey_O }, { 'P', ImGuiKey_P },
-	{ 'Q', ImGuiKey_Q }, { 'R', ImGuiKey_R }, { 'S', ImGuiKey_S }, { 'T', ImGuiKey_T },
-	{ 'U', ImGuiKey_U }, { 'V', ImGuiKey_V }, { 'W', ImGuiKey_W }, { 'X', ImGuiKey_X },
-	{ 'Y', ImGuiKey_Y }, { 'Z', ImGuiKey_Z },
-
-	// Numbers (top row)
-	{ '0', ImGuiKey_0 }, { '1', ImGuiKey_1 }, { '2', ImGuiKey_2 }, { '3', ImGuiKey_3 },
-	{ '4', ImGuiKey_4 }, { '5', ImGuiKey_5 }, { '6', ImGuiKey_6 }, { '7', ImGuiKey_7 },
-	{ '8', ImGuiKey_8 }, { '9', ImGuiKey_9 },
-
-	// Function Keys
-	{ VK_F1, ImGuiKey_F1 }, { VK_F2, ImGuiKey_F2 }, { VK_F3, ImGuiKey_F3 }, { VK_F4, ImGuiKey_F4 },
-	{ VK_F5, ImGuiKey_F5 }, { VK_F6, ImGuiKey_F6 }, { VK_F7, ImGuiKey_F7 }, { VK_F8, ImGuiKey_F8 },
-	{ VK_F9, ImGuiKey_F9 }, { VK_F10, ImGuiKey_F10 }, { VK_F11, ImGuiKey_F11 }, { VK_F12, ImGuiKey_F12 },
-	{ VK_F13, ImGuiKey_F13 }, { VK_F14, ImGuiKey_F14 }, { VK_F15, ImGuiKey_F15 }, { VK_F16, ImGuiKey_F16 },
-	{ VK_F17, ImGuiKey_F17 }, { VK_F18, ImGuiKey_F18 }, { VK_F19, ImGuiKey_F19 }, { VK_F20, ImGuiKey_F20 },
-	{ VK_F21, ImGuiKey_F21 }, { VK_F22, ImGuiKey_F22 }, { VK_F23, ImGuiKey_F23 }, { VK_F24, ImGuiKey_F24 },
-
-	// Numpad
-	{ VK_NUMPAD0, ImGuiKey_Keypad0 }, { VK_NUMPAD1, ImGuiKey_Keypad1 },
-	{ VK_NUMPAD2, ImGuiKey_Keypad2 }, { VK_NUMPAD3, ImGuiKey_Keypad3 },
-	{ VK_NUMPAD4, ImGuiKey_Keypad4 }, { VK_NUMPAD5, ImGuiKey_Keypad5 },
-	{ VK_NUMPAD6, ImGuiKey_Keypad6 }, { VK_NUMPAD7, ImGuiKey_Keypad7 },
-	{ VK_NUMPAD8, ImGuiKey_Keypad8 }, { VK_NUMPAD9, ImGuiKey_Keypad9 },
-	{ VK_ADD, ImGuiKey_KeypadAdd }, { VK_SUBTRACT, ImGuiKey_KeypadSubtract },
-	{ VK_MULTIPLY, ImGuiKey_KeypadMultiply }, { VK_DIVIDE, ImGuiKey_KeypadDivide },
-	{ VK_DECIMAL, ImGuiKey_KeypadDecimal },
-
-	// Navigation
-	{ VK_LEFT, ImGuiKey_LeftArrow }, { VK_RIGHT, ImGuiKey_RightArrow },
-	{ VK_UP, ImGuiKey_UpArrow }, { VK_DOWN, ImGuiKey_DownArrow },
-	{ VK_HOME, ImGuiKey_Home }, { VK_END, ImGuiKey_End },
-	{ VK_PRIOR, ImGuiKey_PageUp }, { VK_NEXT, ImGuiKey_PageDown },
-	{ VK_INSERT, ImGuiKey_Insert }, { VK_DELETE, ImGuiKey_Delete },
-
-	// Controls
-	{ VK_RETURN, ImGuiKey_Enter }, { VK_ESCAPE, ImGuiKey_Escape },
-	{ VK_BACK, ImGuiKey_Backspace }, { VK_TAB, ImGuiKey_Tab },
-	{ VK_CAPITAL, ImGuiKey_CapsLock }, { VK_SPACE, ImGuiKey_Space },
-
-	// Modifiers
-	{ VK_LSHIFT, ImGuiKey_LeftShift }, { VK_RSHIFT, ImGuiKey_RightShift },
-	{ VK_LCONTROL, ImGuiKey_LeftCtrl }, { VK_RCONTROL, ImGuiKey_RightCtrl },
-	{ VK_LMENU, ImGuiKey_LeftAlt }, { VK_RMENU, ImGuiKey_RightAlt },
-	{ VK_LWIN, ImGuiKey_LeftSuper }, { VK_RWIN, ImGuiKey_RightSuper },
-
-	// Symbols / OEM
-	{ VK_OEM_MINUS, ImGuiKey_Minus }, { VK_OEM_PLUS, ImGuiKey_Equal },
-	{ VK_OEM_4, ImGuiKey_LeftBracket }, { VK_OEM_6, ImGuiKey_RightBracket },
-	{ VK_OEM_5, ImGuiKey_Backslash }, { VK_OEM_1, ImGuiKey_Semicolon },
-	{ VK_OEM_7, ImGuiKey_Apostrophe }, { VK_OEM_COMMA, ImGuiKey_Comma },
-	{ VK_OEM_PERIOD, ImGuiKey_Period }, { VK_OEM_2, ImGuiKey_Slash },
-	{ VK_OEM_3, ImGuiKey_GraveAccent }, { VK_OEM_102, ImGuiKey_Oem102 },
-
-	// System / Special
-	{ VK_SNAPSHOT, ImGuiKey_PrintScreen }, { VK_SCROLL, ImGuiKey_ScrollLock },
-	{ VK_PAUSE, ImGuiKey_Pause }, { VK_APPS, ImGuiKey_Menu },
-};
-
 static string TranslateVirtualKeyToString(WPARAM vk, LPARAM lParam)
 {
 	Key key = Key::Unknown;
@@ -351,33 +283,6 @@ static Key TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 	if (it != VKToKeyMap.end()) return it->second;
 
 	return Key::Unknown;
-}
-
-static ImGuiKey TranslateVirtualKeyToImGuiKey(WPARAM vk, LPARAM lParam)
-{
-	switch (vk)
-	{
-	case VK_CONTROL:
-		return (lParam & 0x01000000) ? ImGuiKey_RightCtrl : ImGuiKey_LeftCtrl;
-	case VK_MENU: //alt
-		return (lParam & 0x01000000) ? ImGuiKey_RightAlt : ImGuiKey_LeftAlt;
-	case VK_SHIFT:
-	{
-		//extract scancode
-		UINT scancode = (lParam >> 16) & 0xFF;
-
-		//map to left/right shift
-		UINT vk_lr = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
-		return (vk_lr == VK_RSHIFT) ? ImGuiKey_RightShift : ImGuiKey_LeftShift;
-	}
-	}
-
-	//default lookup
-
-	auto it = VKToImGuiKeyMap.find(vk);
-	if (it != VKToImGuiKeyMap.end()) return it->second;
-
-	return ImGuiKey_None; //fallback if not recognized by ImGui
 }
 
 static bool ProcessMessage(const MSG& msg, Window* window);
@@ -498,8 +403,8 @@ namespace KalaWindow::Windows
 		msgObj.wParam = wParam;
 		msgObj.lParam = lParam;
 
-		//return 0 if we handled the message ourselves
-		if (ProcessMessage(msgObj, window)) return 0;
+		//return false if we handled the message ourselves
+		if (ProcessMessage(msgObj, window)) return false;
 
 		return DefWindowProc(
 			hwnd, 
@@ -561,8 +466,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		return false;
 	}
 
-	ImGuiIO* io = nullptr;
-
 	Input* input = window->GetInput();
 
 	/*
@@ -602,9 +505,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_UNICHAR:
 	case WM_CHAR:
 	{
-		if (io) io->AddInputCharacter((u32)msg.wParam);
-
-		return true;
+		return true; //we handled it
 	}
 
 	case WM_SYSKEYDOWN:
@@ -634,22 +535,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			input->SetKeyState(
 				key,
 				true);
-		}
-
-		if (io && msg.wParam < 512)
-		{
-			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam, msg.lParam);
-			if (k != ImGuiKey_None)
-			{
-				io->AddKeyEvent(k, true);
-
-				//also imgui support combos
-				io->AddKeyEvent(ImGuiMod_Ctrl,  (GetKeyState(VK_CONTROL) & 0x8000) != 0);
-				io->AddKeyEvent(ImGuiMod_Shift, (GetKeyState(VK_SHIFT) & 0x8000)   != 0);
-				io->AddKeyEvent(ImGuiMod_Alt,   (GetKeyState(VK_MENU) & 0x8000)    != 0);
-				io->AddKeyEvent(ImGuiMod_Super, ((GetKeyState(VK_LWIN) & 0x8000)   != 0) 
-					                         || ((GetKeyState(VK_RWIN) & 0x8000)   != 0));
-			}
 		}
 
 		return false;
@@ -683,22 +568,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				false);
 		}
 
-		if (io && msg.wParam < 512)
-		{
-			ImGuiKey k = TranslateVirtualKeyToImGuiKey(msg.wParam, msg.lParam);
-			if (k != ImGuiKey_None)
-			{
-				io->AddKeyEvent(k, false);
-
-				//also imgui support combos
-				io->AddKeyEvent(ImGuiMod_Ctrl,  (GetKeyState(VK_CONTROL) & 0x8000) != 0);
-				io->AddKeyEvent(ImGuiMod_Shift, (GetKeyState(VK_SHIFT) & 0x8000)   != 0);
-				io->AddKeyEvent(ImGuiMod_Alt,   (GetKeyState(VK_MENU) & 0x8000)    != 0);
-				io->AddKeyEvent(ImGuiMod_Super, ((GetKeyState(VK_LWIN) & 0x8000)   != 0) 
-					                         || ((GetKeyState(VK_RWIN) & 0x8000)   != 0));
-			}
-		}
-
 		return false;
 	}
 
@@ -729,8 +598,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			input->SetMouseDelta(delta);
 		}
 
-		if (io) io->AddMousePosEvent(newPos.x, newPos.y);
-
 		return false;
 	}
 
@@ -748,8 +615,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		else if (delta < 0) scroll = -1.0f;
 
 		if (input) input->SetMouseWheelDelta(scroll);
-
-		if (io) io->AddMouseWheelEvent(0.0f, scroll);
 
 		return false;
 	}
@@ -874,8 +739,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			}
 		}
 
-		if (io) io->AddMouseButtonEvent(0, true);
-
 		return false;
 	}
 	case WM_LBUTTONUP:
@@ -894,8 +757,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 					LogType::LOG_INFO);
 			}
 		}
-
-		if (io) io->AddMouseButtonEvent(0, false);
 
 		return false;
 	}
@@ -917,8 +778,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			}
 		}
 
-		if (io) io->AddMouseButtonEvent(1, true);
-
 		return false;
 	}
 	case WM_RBUTTONUP:
@@ -937,8 +796,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 					LogType::LOG_INFO);
 			}
 		}
-
-		if (io) io->AddMouseButtonEvent(1, false);
 
 		return false;
 	}
@@ -960,8 +817,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			}
 		}
 
-		if (io) io->AddMouseButtonEvent(2, true);
-
 		return false;
 	}
 	case WM_MBUTTONUP:
@@ -980,8 +835,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 					LogType::LOG_INFO);
 			}
 		}
-
-		if (io) io->AddMouseButtonEvent(2, false);
 
 		return false;
 	}
@@ -1005,8 +858,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 						LogType::LOG_INFO);
 				}
 			}
-
-			if (io) io->AddMouseButtonEvent(3, true);
 		}
 		if (button == XBUTTON2)
 		{
@@ -1024,8 +875,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 						LogType::LOG_INFO);
 				}
 			}
-
-			if (io) io->AddMouseButtonEvent(4, true);
 		}
 		return false;
 	}
@@ -1048,8 +897,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 						LogType::LOG_INFO);
 				}
 			}
-
-			if (io) io->AddMouseButtonEvent(3, false);
 		}
 		if (button == XBUTTON2)
 		{
@@ -1067,8 +914,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 						LogType::LOG_INFO);
 				}
 			}
-
-			if (io) io->AddMouseButtonEvent(4, false);
 		}
 		return false;
 	}
@@ -1189,7 +1034,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		window->SetLastDraggedFiles(move(droppedFiles));
 
-		return true;
+		return true; //we handled it
 	}
 
 	//
@@ -1227,7 +1072,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		}
 		}
 
-		return true; //let DefWindowProc run its logic
+		return false;
 	}
 
 	//window gains focus
@@ -1270,71 +1115,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			}
 		}
 
-		if (io)
-		{
-			//reset all keyboard/gamepad keys
-			for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; key++)
-			{
-				ImGuiKey ikey = (ImGuiKey)key;
-
-				//skip mouse aliases
-				if (ikey >= ImGuiKey_MouseLeft
-					&& ikey <= ImGuiKey_MouseWheelY)
-				{
-					continue;
-				}
-
-				//skip reserved mod storage
-				if (ikey >= ImGuiKey_ReservedForModCtrl
-					&& ikey <= ImGuiKey_ReservedForModSuper)
-				{
-					continue;
-				}
-
-				io->AddKeyEvent(ikey, false);
-			}
-
-			//reset mouse buttons
-			for (int btn = 0; btn < 5; btn++)
-			{
-				io->AddMouseButtonEvent(btn, false);
-			}
-
-			//reset all digital keys
-			static const ImGuiKey gamepadDigitalKeys[] = 
-			{
-				ImGuiKey_GamepadStart, ImGuiKey_GamepadBack,
-				ImGuiKey_GamepadFaceLeft, ImGuiKey_GamepadFaceRight,
-				ImGuiKey_GamepadFaceUp, ImGuiKey_GamepadFaceDown,
-				ImGuiKey_GamepadDpadLeft, ImGuiKey_GamepadDpadRight,
-				ImGuiKey_GamepadDpadUp, ImGuiKey_GamepadDpadDown,
-				ImGuiKey_GamepadL1, ImGuiKey_GamepadR1,
-				ImGuiKey_GamepadL3, ImGuiKey_GamepadR3
-			};
-			for (ImGuiKey key : gamepadDigitalKeys) io->AddKeyEvent(key, false);
-
-			//reset all analog keys
-			static const ImGuiKey gamepadAnalogKeys[] = 
-			{
-				ImGuiKey_GamepadL2, ImGuiKey_GamepadR2,
-				ImGuiKey_GamepadLStickLeft, ImGuiKey_GamepadLStickRight,
-				ImGuiKey_GamepadLStickUp, ImGuiKey_GamepadLStickDown,
-				ImGuiKey_GamepadRStickLeft, ImGuiKey_GamepadRStickRight,
-				ImGuiKey_GamepadRStickUp, ImGuiKey_GamepadRStickDown
-			};
-			for (ImGuiKey key : gamepadAnalogKeys) io->AddKeyAnalogEvent(key, false, 0.0f);
-
-			//reset mouse wheel
-			io->AddMouseWheelEvent(0.0f, 0.0f); 
-
-			//mark mouse as "left the window"
-			io->AddMousePosEvent(-FLT_MAX, -FLT_MAX);
-
-			//reset advanced input
-			io->AddMouseSourceEvent(ImGuiMouseSource_Mouse);
-			io->AddMouseViewportEvent(0);
-		}
-
 		return false;
 	}
 
@@ -1351,7 +1131,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		BeginPaint(hwnd, &ps);
 		EndPaint(hwnd, &ps);
 
-		return true;
+		return true; //we handled it
 	}
 
 	//
@@ -1378,7 +1158,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			window->SetResizingState(false);
 		}
 
-		return true;
+		return true; //we handled it
 	}
 	case WM_SIZING:
 	{
@@ -1389,7 +1169,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			window->TriggerRedraw();
 		}
 
-		return true;
+		return true; //we handled it
 	}
 	//scale correctly when going to other monitor
 	case WM_DPICHANGED:
@@ -1424,7 +1204,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		window->TriggerResize();
 		window->TriggerRedraw();
 
-		return true;
+		return true; //we handled it
 	}
 
 	//
@@ -1441,7 +1221,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		mmi->ptMaxTrackSize.x = window->GetMaxSize().x;
 		mmi->ptMaxTrackSize.y = window->GetMaxSize().y;
 
-		return true;
+		return true; //we handled it
 	}
 
 	//
@@ -1461,7 +1241,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				if (ID == IDRef)
 				{
 					e->function();
-					return true;
+					return true; //we handled it
 				}
 			}
 
@@ -1481,18 +1261,45 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	{
-		createdOpenGLContext.erase(window->GetOpenGLContext()->GetID());
-		createdInput.erase(window->GetInput()->GetID());
-		createdUI.erase(window->GetDebugUI()->GetID());
-
-		createdWindows.erase(window->GetID());
-
-		if (createdWindows.size() == 0)
+		Input* input = window->GetInput();
+		if (input)
 		{
-			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+			u32 inputID = input->GetID();
+			createdInput.erase(inputID);
+
+			auto it = find(
+				runtimeInput.begin(),
+				runtimeInput.end(),
+				input);
+
+			if (it != runtimeInput.end()) runtimeInput.erase(it);
 		}
 
-		return true;
+		OpenGL_Context* context = window->GetOpenGLContext();
+		if (context)
+		{
+			u32 contextID = context->GetID();
+			createdOpenGLContext.erase(contextID);
+
+			auto it = find(
+				runtimeOpenGLContext.begin(),
+				runtimeOpenGLContext.end(),
+				context);
+
+			if (it != runtimeOpenGLContext.end()) runtimeOpenGLContext.erase(it);
+		}
+
+		u32 windowID = window->GetID();
+		createdWindows.erase(windowID);
+
+		auto it = find(
+			runtimeWindows.begin(),
+			runtimeWindows.end(),
+			window);
+
+		if (it != runtimeWindows.end()) runtimeWindows.erase(it);
+
+		return true; //we handled it
 	}
 
 	//full shutdown if all windows were destroyed
@@ -1500,7 +1307,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		if (createdWindows.size() == 0) PostQuitMessage(0);
 
-		return true;
+		return true; //we handled it
 	}
 
 	default:

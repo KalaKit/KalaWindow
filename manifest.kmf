@@ -76,11 +76,6 @@ origin: _external_shared@glm
 target: ..@Circuit-chan@_external_shared@glm, ..@Elypso-engine@_external_shared@glm, ..@Elypso-hub@_external_shared@glm, ..@Hinnamasin@_external_shared@glm, ..@KalaServer@_external_shared@glm
 action: copy
 
-//imgui
-origin: _external_shared@imgui
-target: ..@Circuit-chan@_external_shared@imgui, ..@Elypso-engine@_external_shared@imgui, ..@Elypso-hub@_external_shared@imgui, ..@Hinnamasin@_external_shared@imgui , ..@KalaServer@_external_shared@imgui
-action: copy
-
 //KalaHeaders
 origin: _external_shared@KalaHeaders
 target: ..@Circuit-chan@_external_shared@KalaHeaders, ..@Elypso-engine@_external_shared@KalaHeaders, ..@Elypso-hub@_external_shared@KalaHeaders, ..@Hinnamasin@_external_shared@KalaHeaders, ..@KalaServer@_external_shared@KalaHeaders

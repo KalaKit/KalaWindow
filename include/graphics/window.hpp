@@ -15,7 +15,6 @@
 #include "core/glm_global.hpp"
 #include "core/input.hpp"
 #include "graphics/opengl/opengl.hpp"
-#include "ui/debug_ui.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -26,7 +25,6 @@ namespace KalaWindow::Graphics
 
 	using KalaWindow::Core::Input;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
-	using KalaWindow::UI::DebugUI;
 
 	enum class DpiContext
 	{
@@ -116,6 +114,8 @@ namespace KalaWindow::Graphics
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 		inline bool IsInitialized() const { return isInitialized; }
 
+		inline u32 GetID() const { return ID; }
+
 		//Assigns paths of last dragged files. This is called through WM_DROPFILES.
 		inline void SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
 		inline const vector<string>& GetLastDraggedFiles() const { return lastDraggedFiles; };
@@ -124,8 +124,6 @@ namespace KalaWindow::Graphics
 
 		//Draws the window, handles messages for active frame
 		void Update();
-
-		inline u32 GetID() const { return ID; }
 
 		void SetTitle(const string& newTitle) const;
 		string GetTitle() const;
@@ -293,13 +291,11 @@ namespace KalaWindow::Graphics
 		inline void SetInput(Input* newValue) { input = newValue; }
 		inline Input* GetInput() const { return input; }
 
-		inline void SetDebugUI(DebugUI* newValue) { debugUI = newValue; }
-		inline DebugUI* GetDebugUI() const { return debugUI; }
-
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 	private:
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
+
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
 		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
 		bool isResizing = false;           //If true, then this window is currently being resized
@@ -335,7 +331,6 @@ namespace KalaWindow::Graphics
 
 		OpenGL_Context* glContext{};
 		Input* input{};
-		DebugUI* debugUI{};
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn

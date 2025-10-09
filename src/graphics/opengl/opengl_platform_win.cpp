@@ -119,7 +119,7 @@ namespace KalaWindow::Graphics::OpenGL
 		DestroyWindow(dummyHWND);
 
 		Log::Print(
-			"Initialized OpenGL!",
+			"Initialized global OpenGL context!",
 			"OPENGL",
 			LogType::LOG_SUCCESS);
 
@@ -600,7 +600,7 @@ namespace KalaWindow::Graphics::OpenGL
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized OpenGL context for Window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Initialized OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
 			"OPENGL",
 			LogType::LOG_SUCCESS);
 
@@ -782,7 +782,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Failed to shut down OpenGL because it has not yet been initialized!",
+				"Cannot shut down OpenGL context because it is not initialized!",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
@@ -795,13 +795,29 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!window)
 		{
 			Log::Print(
-				"Failed to shut down OpenGL because its window was not found!",
+				"Cannot shut down OpenGL context because its window was not found!",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
 			return;
 		}
+
+		if (!window->GetOpenGLContext())
+		{
+			Log::Print(
+				"Cannot shut down OpenGL context because the target window doesn't have one!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		Log::Print(
+			"Destroying OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
+			"OPENGL",
+			LogType::LOG_DEBUG);
 
 #ifdef _WIN32
 		HGLRC storedHGLRC = ToVar<HGLRC>(hglrc);

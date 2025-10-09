@@ -20,7 +20,6 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/texture.hpp"
-#include "ui/debug_ui.hpp"
 #include "core/containers.hpp"
 #include "core/audio.hpp"
 #include "graphics/window_global.hpp"
@@ -33,7 +32,6 @@ using KalaHeaders::DateFormat;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::Texture;
-using KalaWindow::UI::DebugUI;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
@@ -133,12 +131,10 @@ namespace KalaWindow::Core
 		runtimeOpenGLShaders.clear();
 
 		createdInput.clear();
-		createdUI.clear();
 		createdOpenGLContext.clear();
 		createdWindows.clear();
 
 		runtimeInput.clear();
-		runtimeUI.clear();
 		runtimeOpenGLContext.clear();
 		runtimeWindows.clear();
 

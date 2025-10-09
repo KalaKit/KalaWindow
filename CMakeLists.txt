@@ -27,24 +27,6 @@ else()
     message(FATAL_ERROR "[KALAWINDOW] Unsupported platform. Must be Windows or Linux.")
 endif()
 
-# Enforce SDK version on Windows
-if (WIN32)
-	file(GLOB WINSDK_VERSIONS "C:/Program Files (x86)/Windows Kits/10/Include/*")
-	
-	# Pick the highest version
-	list(SORT WINSDK_VERSIONS)
-	list(REVERSE WINSDK_VERSIONS)
-	list(GET WINSDK_VERSIONS 0 WINSDK_PATH)
-	
-	# Extract the version number
-	get_filename_component(WINSDK_VERSION ${WINSDK_PATH} NAME)
-	
-	# Tell CMake to use that SDK
-	set(CMAKE_SYSTEM_VERSION ${WINSDK_VERSION})
-
-	message(STATUS "Using Windows SDK version: ${CMAKE_SYSTEM_VERSION}")
-endif()
-
 # Build Type Detection
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     set(IS_DEBUG TRUE)
@@ -77,11 +59,6 @@ file(GLOB WINDOW_SRC CONFIGURE_DEPENDS
 	${WINDOW_SRC_DIR}/windows/*.cpp
 	${WINDOW_SRC_DIR}/linux/*.cpp
 	${WINDOW_SRC_DIR}/ui/*.cpp
-	
-	#External stuff
-	"${EXT_SHARED_DIR}/imgui/*.cpp"
-	"${EXT_SHARED_DIR}/imgui/backends/*.cpp"
-	"${EXT_SHARED_DIR}/imgui/misc/*.cpp"
 )
 list(APPEND WINDOW_SRC_FILES ${WINDOW_SRC})
 

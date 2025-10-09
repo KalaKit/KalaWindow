@@ -1834,6 +1834,11 @@ namespace KalaWindow::Graphics
 	{
 		string title = GetTitle();
 
+		Log::Print(
+			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
+			"WINDOW",
+			LogType::LOG_DEBUG);
+
 		HWND winRef = ToVar<HWND>(window_windows.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
@@ -1873,11 +1878,6 @@ namespace KalaWindow::Graphics
 			window_windows.hwnd = NULL;
 		}
 		window_windows.hInstance = NULL;
-
-		Log::Print(
-			"Destroyed window '" + title + "'!",
-			"WINDOW",
-			LogType::LOG_SUCCESS);
 	}
 }
 

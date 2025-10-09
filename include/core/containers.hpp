@@ -19,7 +19,6 @@
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "windows/menubar.hpp"
-#include "ui/debug_ui.hpp"
 
 namespace KalaWindow::Core
 {
@@ -31,7 +30,6 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
-	using KalaWindow::UI::DebugUI;
 
 	using std::string;
 	using std::unordered_map;
@@ -58,8 +56,6 @@ namespace KalaWindow::Core
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
 
-	LIB_API extern unordered_map<u32, unique_ptr<DebugUI>> createdUI;
-
 	//
 	// RUNTIME STAGE VECTORS (NON-OWNING, REFERENCE ONLY TO OWNERS ABOVE)
 	//
@@ -76,8 +72,6 @@ namespace KalaWindow::Core
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
 
-	LIB_API extern vector<DebugUI*> runtimeUI;
-
 	//
 	// GET VALUE FROM CONTAINER BY TYPE
 	//
@@ -91,7 +85,6 @@ namespace KalaWindow::Core
 	template<> struct ContainerOf<OpenGL_Context> { static inline auto& get() { return createdOpenGLContext; } };
 	template<> struct ContainerOf<OpenGL_Texture> { static inline auto& get() { return createdOpenGLTextures; } };
 	template<> struct ContainerOf<OpenGL_Shader>  { static inline auto& get() { return createdOpenGLShaders; } };
-	template<> struct ContainerOf<DebugUI>        { static inline auto& get() { return createdUI; } };
 
 	template<typename T>
 	inline T* GetValueByID(u32 ID)

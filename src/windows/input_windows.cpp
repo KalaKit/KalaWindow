@@ -49,8 +49,8 @@ namespace KalaWindow::Core
 		Input* inputPtr = newInput.get();
 
 		Log::Print(
-			"Creating input for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
-			"INPUT_WINDOWS",
+			"Creating input context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"INPUT",
 			LogType::LOG_DEBUG);
 
 		inputPtr->ID = newID;
@@ -79,8 +79,8 @@ namespace KalaWindow::Core
 		inputPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized input for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
-			"DEBUG_UI",
+			"Initialized input context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"INPUT",
 			LogType::LOG_SUCCESS);
 
 		return inputPtr;
@@ -340,7 +340,7 @@ namespace KalaWindow::Core
 
 			Log::Print(
 				"Set mouse visibility state to " + val,
-				"INPUT_WINDOWS",
+				"INPUT",
 				LogType::LOG_INFO);
 		}
 	}
@@ -365,7 +365,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"Cannot set mouse lock state because its window was not found!",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_ERROR);
 
 				return;
@@ -391,7 +391,7 @@ namespace KalaWindow::Core
 
 			Log::Print(
 				"Set mouse lock state to " + val,
-				"INPUT_WINDOWS",
+				"INPUT",
 				LogType::LOG_INFO);
 		}
 	}
@@ -430,7 +430,7 @@ namespace KalaWindow::Core
 				{
 					Log::Print(
 						"Cannot set mouse lock state between focus because its window was not found!",
-						"INPUT_WINDOWS",
+						"INPUT",
 						LogType::LOG_ERROR);
 
 					return;
@@ -482,7 +482,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"Cannot get window reference at input end frame update because its window was not found!",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_ERROR);
 
 				return;
@@ -514,7 +514,36 @@ namespace KalaWindow::Core
 
 	Input::~Input()
 	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot shut down input context because it is not initialized!",
+				"INPUT",
+				LogType::LOG_ERROR,
+				2);
 
+			return;
+		}
+
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			Log::Print(
+				"Cannot shut down input context because its window was not found!",
+				"INPUT",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		Log::Print(
+			"Destroying input context for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
+			"INPUT",
+			LogType::LOG_DEBUG);
+
+		EndFrameUpdate();
 	}
 }
 
