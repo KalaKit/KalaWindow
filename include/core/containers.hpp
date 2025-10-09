@@ -18,6 +18,7 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
+#include "windows/menubar.hpp"
 #include "ui/debug_ui.hpp"
 
 namespace KalaWindow::Core
@@ -25,8 +26,8 @@ namespace KalaWindow::Core
 	using KalaWindow::Core::Input;
 	using KalaWindow::Core::AudioPlayer;
 	using KalaWindow::Graphics::Window;
-	using KalaWindow::Graphics::MenuBar;
-	using KalaWindow::Graphics::MenuBarEvent;
+	using KalaWindow::Windows::MenuBar;
+	using KalaWindow::Windows::MenuBarEvent;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;

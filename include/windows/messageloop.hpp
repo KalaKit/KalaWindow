@@ -11,7 +11,7 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
-namespace KalaWindow::Core
+namespace KalaWindow::Windows
 {
 	class LIB_API MessageLoop
 	{

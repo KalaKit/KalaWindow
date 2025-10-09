@@ -25,6 +25,7 @@
 
 #include "windows/messageloop.hpp"
 #include "graphics/window.hpp"
+#include "graphics/window_global.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
@@ -35,10 +36,14 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::MessageLoop;
+using KalaWindow::Windows::MessageLoop;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::MenuBar;
-using KalaWindow::Graphics::MenuBarEvent;
+using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Graphics::PopupAction;
+using KalaWindow::Graphics::PopupResult;
+using KalaWindow::Graphics::PopupType;
+using KalaWindow::Windows::MenuBar;
+using KalaWindow::Windows::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
@@ -380,7 +385,7 @@ static bool ProcessMessage(const MSG& msg, Window* window);
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
 
-namespace KalaWindow::Core
+namespace KalaWindow::Windows
 {
 	LRESULT CALLBACK MessageLoop::WindowProcCallback(
 		HWND hwnd,
@@ -404,7 +409,7 @@ namespace KalaWindow::Core
 		//asks if user wants to log off or shut down (in case any data is unsaved)
 		case WM_QUERYENDSESSION:
 		{
-			if (KalaWindowCore::CreatePopup(
+			if (Window_Global::CreatePopup(
 				"Quitting application",
 				"Are you sure you want to quit? Unclosed data may be lost!",
 				PopupAction::POPUP_ACTION_YES_NO,
@@ -1355,27 +1360,35 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_SIZE:
 	{
-		int width = LOWORD(msg.lParam);
-		int height = HIWORD(msg.lParam);
-
-		if (OpenGL_Global::IsInitialized())
+		if (window->IsResizable())
 		{
-			glViewport(
-				0,
-				0,
-				(GLsizei)width,
-				(GLsizei)height);
-		}
+			vec2 clientRectSize = window->GetFramebufferSize();
 
-		window->TriggerResize();
+			if (OpenGL_Global::IsInitialized())
+			{
+				glViewport(
+					0,
+					0,
+					(GLsizei)clientRectSize.x,
+					(GLsizei)clientRectSize.y);
+			}
+
+			window->TriggerResize();
+
+			window->SetResizingState(false);
+		}
 
 		return true;
 	}
 	case WM_SIZING:
 	{
-		HWND windowRef = ToVar<HWND>(window->GetWindowData().hwnd);
+		if (window->IsResizable())
+		{
+			if (!window->IsResizing()) window->SetResizingState(true);
 
-		window->TriggerRedraw();
+			window->TriggerRedraw();
+		}
+
 		return true;
 	}
 	//scale correctly when going to other monitor
@@ -1420,8 +1433,6 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_GETMINMAXINFO:
 	{
-		HWND windowRef = ToVar<HWND>(window->GetWindowData().hwnd);
-
 		MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(msg.lParam);
 
 		mmi->ptMinTrackSize.x = window->GetMinSize().x;

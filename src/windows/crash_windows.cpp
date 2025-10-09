@@ -18,15 +18,16 @@
 
 #include "core/crash.hpp"
 #include "core/core.hpp"
+#include "graphics/window_global.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 using KalaHeaders::TimeFormat;
 
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::PopupAction;
-using KalaWindow::Core::PopupResult;
-using KalaWindow::Core::PopupType;
+using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Graphics::PopupAction;
+using KalaWindow::Graphics::PopupResult;
+using KalaWindow::Graphics::PopupType;
 
 using std::string;
 using std::ofstream;
@@ -184,7 +185,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 			LogType::LOG_DEBUG);
 	}
 
-	if (KalaWindowCore::CreatePopup(
+	if (Window_Global::CreatePopup(
 		assignedProgramName,
 		oss.str(),
 		PopupAction::POPUP_ACTION_OK,

@@ -23,6 +23,7 @@
 #include "ui/debug_ui.hpp"
 #include "core/containers.hpp"
 #include "core/audio.hpp"
+#include "graphics/window_global.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -33,6 +34,10 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::Texture;
 using KalaWindow::UI::DebugUI;
+using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Graphics::PopupAction;
+using KalaWindow::Graphics::PopupResult;
+using KalaWindow::Graphics::PopupType;
 
 using std::abort;
 using std::quick_exit;
@@ -40,120 +45,10 @@ using std::function;
 using std::exception;
 using std::to_string;
 
-static u32 version_windows{};
-
 static function<void()> userRegularShutdown;
 
 namespace KalaWindow::Core
 {
-	u32 KalaWindowCore::GetVersion()
-	{
-#ifdef WIN32
-		if (version_windows == 0)
-		{
-			string title = "Window version check fail";
-
-			typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
-
-			HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
-			if (!hMod)
-			{
-				ForceClose(
-					title,
-					"Failed to get 'ntdll.dll'");
-
-				return 0;
-			}
-
-			auto pRtlGetVersion = (RtlGetVersionPtr)GetProcAddress(hMod, "RtlGetVersion");
-			if (!pRtlGetVersion)
-			{
-				ForceClose(
-					title,
-					"Failed to resolve address of 'RtlGetVersion'");
-
-				return 0;
-			}
-
-			RTL_OSVERSIONINFOW rovi = { sizeof(rovi) };
-			if (pRtlGetVersion(&rovi) != 0)
-			{
-				ForceClose(
-					title,
-					"Call to 'RtlGetVersion' failed");
-
-				return 0;
-			}
-
-			u32 major = rovi.dwMajorVersion;
-			u32 build = rovi.dwBuildNumber;
-
-			//Windows 11 reports as 10.0  but build >= 22000
-			if (major == 10
-				&& build >= 22000)
-			{
-				major = 11;
-			}
-
-			version_windows = major * 1000000 + build;
-			return version_windows;
-		}
-
-		return version_windows;
-#elif __linux__
-		return 0;
-#endif
-		return 0;
-	}
-
-	PopupResult KalaWindowCore::CreatePopup(
-		const string& title,
-		const string& message,
-		PopupAction action,
-		PopupType type)
-	{
-		int flags = 0;
-
-#ifdef _WIN32
-		switch (action)
-		{
-		case PopupAction::POPUP_ACTION_OK:            flags |= MB_OK; break;
-		case PopupAction::POPUP_ACTION_OK_CANCEL:     flags |= MB_OKCANCEL; break;
-		case PopupAction::POPUP_ACTION_YES_NO:        flags |= MB_YESNO; break;
-		case PopupAction::POPUP_ACTION_YES_NO_CANCEL: flags |= MB_YESNOCANCEL; break;
-		case PopupAction::POPUP_ACTION_RETRY_CANCEL:  flags |= MB_RETRYCANCEL; break;
-		default:                                      flags |= MB_OK; break;
-		}
-
-		switch (type)
-		{
-		case PopupType::POPUP_TYPE_INFO:     flags |= MB_ICONINFORMATION; break;
-		case PopupType::POPUP_TYPE_WARNING:  flags |= MB_ICONWARNING; break;
-		case PopupType::POPUP_TYPE_ERROR:    flags |= MB_ICONERROR; break;
-		case PopupType::POPUP_TYPE_QUESTION: flags |= MB_ICONQUESTION; break;
-		default:                             flags |= MB_ICONINFORMATION; break;
-		}
-#else
-		//TODO: ADD LINUX EQUIVALENT
-#endif
-
-		int result = MessageBox(
-			nullptr,
-			message.c_str(),
-			title.c_str(),
-			flags);
-
-		switch (result)
-		{
-		case IDOK:     return PopupResult::POPUP_RESULT_OK;
-		case IDCANCEL: return PopupResult::POPUP_RESULT_CANCEL;
-		case IDYES:    return PopupResult::POPUP_RESULT_YES;
-		case IDNO:     return PopupResult::POPUP_RESULT_NO;
-		case IDRETRY:  return PopupResult::POPUP_RESULT_RETRY;
-		default:       return PopupResult::POPUP_RESULT_NONE;
-		}
-	}
-
 	void KalaWindowCore::ForceClose(
 		const string& title,
 		const string& reason)
@@ -169,7 +64,7 @@ namespace KalaWindow::Core
 		DEBUG_ASSERT(false && reason.c_str());
 
 #ifndef _DEBUG
-		if (CreatePopup(
+		if (Window_Global::CreatePopup(
 			title,
 			reason,
 			PopupAction::POPUP_ACTION_OK,

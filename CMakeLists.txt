@@ -128,6 +128,8 @@ target_compile_definitions(KalaWindow PRIVATE
     IMGUI_EXPORT
     WIN32_LEAN_AND_MEAN
     NOMINMAX
+	UNICODE
+	_UNICODE
 )
 
 # Link libraries

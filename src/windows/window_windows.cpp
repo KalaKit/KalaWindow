@@ -5,27 +5,16 @@
 
 #ifdef _WIN32
 
-#ifndef UNICODE
-#define UNICODE
-#endif
-#ifndef _UNICODE
-#define _UNICODE
-#endif
-
 #include <windows.h>
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
-#include <ShlObj.h>
+#include <ShObjIdl.h>
 #include <dwmapi.h>
 #pragma comment(lib, "dwmapi.lib")
 #include <atlbase.h>
 #include <atlcomcli.h>
 #include <wtsapi32.h>
 #pragma comment(lib, "Wtsapi32.lib")
-#include <winrt/windows.ui.notifications.h>
-#include <winrt/windows.data.xml.dom.h>
-#pragma comment(lib, "runtimeobject.lib")
-#include <wrl/client.h>
 #include <shellapi.h>
 
 #include <algorithm>
@@ -43,6 +32,7 @@
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/window.hpp"
+#include "graphics/window_global.hpp"
 #include "windows/messageloop.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
@@ -57,6 +47,7 @@ using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Windows::MessageLoop;
 using namespace KalaWindow::Core;
 
 using std::make_unique;
@@ -74,20 +65,8 @@ using std::wstring;
 using std::string;
 using std::string_view;
 using std::vector;
-using namespace winrt::Windows::UI::Notifications;
-using namespace winrt::Windows::Data::Xml::Dom;
-using Microsoft::WRL::ComPtr;
 
-static bool checkedOSVersion = false;
-constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
 constexpr u16 MAX_TITLE_LENGTH = 512;
-constexpr u8 MAX_LABEL_LENGTH = 64;
-
-static string APP_ID{};
-
-static bool enabledBeginPeriod = false;
-
-static void PreInitSetup();
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
@@ -108,11 +87,10 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size,
 		Window* parentWindow,
+
 		WindowState state,
 		DpiContext context)
 	{
-		PreInitSetup();
-
 		u32 newID = ++globalID;
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
@@ -157,7 +135,7 @@ namespace KalaWindow::Graphics
 
 		HWND newHwnd = CreateWindowExA(
 			exStyle,
-			APP_ID.c_str(),
+			Window_Global::GetAppID().c_str(),
 			title.c_str(),
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT,
@@ -249,559 +227,6 @@ namespace KalaWindow::Graphics
 			LogType::LOG_SUCCESS);
 
 		return windowPtr;
-	}
-
-	vector<string> Window::GetFile(
-		FileType type,
-		bool multiple)
-	{
-		HRESULT hr = CoInitializeEx(
-			nullptr,
-			COINIT_APARTMENTTHREADED
-			| COINIT_DISABLE_OLE1DDE);
-
-		if (FAILED(hr)
-			&& hr != RPC_E_CHANGED_MODE)
-		{
-			Log::Print(
-				"Failed to initialize COM! Reason: " + HResultToString(hr),
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return {};
-		}
-
-		bool canUninit = (hr == S_OK);
-
-		auto UnInit = [canUninit]()
-			{
-				if (canUninit)
-				{
-					Log::Print(
-						"Calling CoUninitialize",
-						"WINDOW",
-						LogType::LOG_DEBUG);
-
-					CoUninitialize();
-				}
-				else
-				{
-					Log::Print(
-						"Skipping CoUninitialize()",
-						"WINDOW",
-						LogType::LOG_DEBUG);
-				}
-			};
-
-		ComPtr<IFileOpenDialog> fileOpen{};
-
-		hr = CoCreateInstance(
-			CLSID_FileOpenDialog,
-			nullptr,
-			CLSCTX_ALL,
-			IID_PPV_ARGS(&fileOpen));
-
-		if (FAILED(hr))
-		{
-			Log::Print(
-				"Failed to create file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			UnInit();
-			return{};
-		}
-
-		DWORD options{};
-		fileOpen->GetOptions(&options);
-
-		auto PrintError = [](
-			const string& typeVal,
-			HRESULT hr)
-			{
-				Log::Print(
-					"Failed to set file filter to '" + typeVal + "' for dialog! Reason: " + HResultToString(hr),
-					"WINDOW",
-					LogType::LOG_ERROR,
-					2);
-			};
-
-		switch (type)
-		{
-		default:
-		case FileType::FILE_ANY:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"All Files (*.*)", L"*.*" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_ANY", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_FOLDER:
-		{
-			options |= FOS_PICKFOLDERS;
-
-			break;
-		}
-		case FileType::FILE_EXE:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Executable Files (*.exe)", L"*.exe" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_EXE", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_TEXT:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Text Files (*.txt;*.ini;*.rtf;*.md)", L"*.txt;*.ini;*.rtf;*.md" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_TEXT", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_STRUCTURED:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Structured Files (*.json;*.xml;*.yaml;*.yml;*.toml)", L"*.json;*.xml;*.yaml;*.yml;*.toml" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_STRUCTURED", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_SCRIPT:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Script Files (*.lua;*.cpp;*.hpp;*.c;*.h)", L"*.lua;*.cpp;*.hpp;*.c;*.h" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_SCRIPT", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_ARCHIVE:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Archive Files (*.zip;*.7z;*.rar;*.kdat)", L"*.zip;*.7z;*.rar;*.kdat" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_ARCHIVE", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_VIDEO:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Video Files (*.mp4;*.mov;*.mkv)", L"*.mp4;*.mov;*.mkv" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_VIDEO", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_AUDIO:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Audio Files (*.wav;*.flac;*.mp3;*.ogg)", L"*.wav;*.flac;*.mp3;*.ogg" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_AUDIO", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_MODEL:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Model Files (*.fbx;*.obj;*.gltf)", L"*.fbx;*.obj;*.gltf" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_MODEL", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_SHADER:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Shader Files (*.vert;*.frag;*.geom)", L"*.vert;*.frag;*.geom" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_SHADER", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_TEXTURE:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Image Files (*.png;*.jpg;*.jpeg)", L"*.png;*.jpg;*.jpeg" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_TEXTURE", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		}
-
-		if (multiple) options |= FOS_ALLOWMULTISELECT;
-		fileOpen->SetOptions(options);
-
-		hr = fileOpen->Show(nullptr);
-
-		//user cancelled, return cleanly
-		if (hr == HRESULT_FROM_WIN32(ERROR_CANCELLED))
-		{
-			if (Window::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"User cancelled file selection.",
-					"WINDOW",
-					LogType::LOG_INFO);
-			}
-
-			UnInit();
-			return{};
-		}
-		//other failed reason
-		if (FAILED(hr))
-		{
-			Log::Print(
-				"Failed to show file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			UnInit();
-			return{};
-		}
-
-		ComPtr<IShellItemArray> items{};
-		hr = fileOpen->GetResults(&items);
-
-		if (FAILED(hr))
-		{
-			Log::Print(
-				"Failed to retrieve selected items from file dialog! Reason: " + HResultToString(hr),
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			UnInit();
-			return{};
-		}
-
-		DWORD count{};
-		items->GetCount(&count);
-		vector<string> result{};
-
-		for (DWORD i = 0; i < count; ++i)
-		{
-			ComPtr<IShellItem> item{};
-			hr = items->GetItemAt(i, &item);
-
-			if (FAILED(hr))
-			{
-				Log::Print(
-					"Failed to get item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW",
-					LogType::LOG_ERROR,
-					2);
-
-				continue;
-			}
-
-			PWSTR pszFilePath{};
-			hr = item->GetDisplayName(
-				SIGDN_FILESYSPATH,
-				&pszFilePath);
-
-			if (FAILED(hr))
-			{
-				Log::Print(
-					"Failed to get file path for item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW",
-					LogType::LOG_ERROR,
-					2);
-
-				continue;
-			}
-
-			wstring wide(pszFilePath);
-			string path = ToShort(wide);
-			
-			result.push_back(path);
-
-			CoTaskMemFree(pszFilePath);
-
-			if (Window::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Selected file '" + path + "'",
-					"WINDOW",
-					LogType::LOG_SUCCESS);
-			}
-		}
-
-		UnInit();
-		return result;
-	}
-
-	void Window::CreateNotification(
-		const string& title,
-		const string& message)
-	{
-		wstring titleW = ToWide(title);
-		wstring messageW = ToWide(message);
-
-		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
-			ToastTemplateType::ToastImageAndText02);
-
-		auto textNodes = toastXml.GetElementsByTagName(L"text");
-		textNodes.Item(0).AppendChild(toastXml.CreateTextNode(titleW));
-		textNodes.Item(1).AppendChild(toastXml.CreateTextNode(messageW));
-
-		ToastNotification toast(toastXml);
-
-		ToastNotificationManager::CreateToastNotifier(ToWide(APP_ID)).Show(toast);
-
-		if (Window::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Created notification '" + title + "'!",
-				"WINDOW",
-				LogType::LOG_SUCCESS);
-		}
-	}
-
-	void Window::SetClipboardText(const string& text)
-	{
-		if (!OpenClipboard(nullptr))
-		{
-			Log::Print(
-				"Failed to open clipboard when writing text to clipboard!",
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		EmptyClipboard();
-
-		wstring wstr = ToWide(text);
-
-		HGLOBAL hGlob = GlobalAlloc(
-			GMEM_MOVEABLE,
-			(wstr.size() + 1) * sizeof(wchar_t));
-
-		if (hGlob == NULL)
-		{
-			Log::Print(
-				"Failed to construct hGlobal when saving text to clipboard!",
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			CloseClipboard();
-			return;
-		}
-
-		void* pMem = GlobalLock(hGlob);
-		if (!pMem)
-		{
-			Log::Print(
-				"Failed to lock hGlobal when saving text to clipboard!",
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			GlobalFree(hGlob);
-			CloseClipboard();
-			return;
-		}
-
-		memcpy(pMem,
-			wstr.c_str(),
-			(wstr.size() + 1) * sizeof(wchar_t));
-		GlobalUnlock(hGlob);
-
-		SetClipboardData(CF_UNICODETEXT, hGlob);
-
-		CloseClipboard();
-
-		if (Window::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Saved string to clipboard: '" + text + "'!",
-				"WINDOW",
-				LogType::LOG_SUCCESS);
-		}
-	}
-	string Window::GetClipboardText()
-	{
-		if (!OpenClipboard(nullptr))
-		{
-			Log::Print(
-				"Failed to open clipboard when reading text from clipboard!",
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return{};
-		}
-
-		if (!IsClipboardFormatAvailable(CF_UNICODETEXT))
-		{
-			if (Window::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Clipboard does not contain Unicode text.",
-					"WINDOW",
-					LogType::LOG_WARNING,
-					2);
-			}
-
-			CloseClipboard();
-			return{};
-		}
-
-		HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-		if (!hData)
-		{
-			if (Window::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Clipboard had no data to read from.",
-					"WINDOW",
-					LogType::LOG_WARNING);
-			}
-
-			CloseClipboard();
-			return{};
-		}
-
-		wchar_t* wstr = static_cast<wchar_t*>(GlobalLock(hData));
-		if (!wstr)
-		{
-			Log::Print(
-				"Failed to lock memory handle to get text from clipboard!",
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			CloseClipboard();
-			return{};
-		}
-
-		wstring wideVal(wstr);
-		string shortVal = ToShort(wideVal);
-
-		GlobalUnlock(hData);
-		CloseClipboard();
-
-		if (Window::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Read string to clipboard: '" + shortVal + "'!",
-				"WINDOW",
-				LogType::LOG_SUCCESS);
-		}
-
-		return shortVal;
 	}
 
 	void Window::SetTitle(const string& newTitle) const
@@ -2198,18 +1623,23 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::FlashTaskbar(
-		TaskbarFlashMode mode,
+	void Window::Flash(
+		FlashTarget target,
+		FlashType type,
 		u32 count) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
 
-		if (mode == TaskbarFlashMode::FLASH_TIMED
+		string targetName = target == FlashTarget::TARGET_WINDOW
+			? "window"
+			: "taskbar";
+
+		if (type == FlashType::FLASH_TIMED
 			&& count == 0)
 		{
 			Log::Print(
-				"Failed to flash taskbar because mode was set to 'FLASH_TIMED' but no count value was assigned!",
+				"Failed to flash " + targetName + " because type was set to 'FLASH_TIMED' but no count value was assigned!",
 				"WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -2224,26 +1654,32 @@ namespace KalaWindow::Graphics
 		string val{};
 		string dur{};
 
-		switch (mode)
+		switch (type)
 		{
-		case TaskbarFlashMode::FLASH_ONCE:
-			fi.dwFlags = FLASHW_ALL;
+		case FlashType::FLASH_ONCE:
+			fi.dwFlags = target == FlashTarget::TARGET_WINDOW
+				? FLASHW_CAPTION
+				: FLASHW_ALL;
 			fi.uCount = 1;
 
 			val = "once";
 			dur = "1";
 
 			break;
-		case TaskbarFlashMode::FLASH_UNTIL_FOCUS:
-			fi.dwFlags = FLASHW_ALL | FLASHW_TIMERNOFG;
+		case FlashType::FLASH_UNTIL_FOCUS:
+			fi.dwFlags = target == FlashTarget::TARGET_WINDOW
+				? FLASHW_CAPTION | FLASHW_TIMERNOFG
+				: FLASHW_ALL | FLASHW_TIMERNOFG;
 			fi.uCount = 0; //keep flashing until focus
 
 			val = "until focus";
 			dur = "0";
 
 			break;
-		case TaskbarFlashMode::FLASH_TIMED:
-			fi.dwFlags = FLASHW_ALL;
+		case FlashType::FLASH_TIMED:
+			fi.dwFlags = target == FlashTarget::TARGET_WINDOW
+				? FLASHW_CAPTION
+				: FLASHW_ALL;
 			fi.uCount = count; //flash x times
 
 			val = "timed";
@@ -2257,8 +1693,12 @@ namespace KalaWindow::Graphics
 
 		if (Window::IsVerboseLoggingEnabled())
 		{
+			string targetMsg = target == FlashTarget::TARGET_WINDOW
+				? "window '" + GetTitle() + "'"
+				: "taskbar for window '" + GetTitle() + "'";
+
 			Log::Print(
-				"Flashed taskbar icon for window '" + GetTitle() + "' with type '" + val + "' for '" + dur + "' times",
+				"Flashed " + targetMsg + " with type '" + val + "' for '" + dur + "' times",
 				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
@@ -2423,598 +1863,6 @@ namespace KalaWindow::Graphics
 			"WINDOW",
 			LogType::LOG_SUCCESS);
 	}
-
-	//
-	// MENU BAR CLASS DEFINITIONS
-	//
-
-	void MenuBar::CreateMenuBar(Window* windowRef)
-	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
-		if (!window) return;
-
-		WindowData wData = windowRef->GetWindowData();
-
-		if (IsInitialized(windowRef))
-		{
-			Log::Print(
-				"Failed to add menu bar to window '" + windowRef->GetTitle() + "' because the window already has one!",
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		HMENU hMenu = CreateMenu();
-		wData.hMenu = FromVar(hMenu);
-		windowRef->SetWindowData(wData);
-
-		SetMenu(window, hMenu);
-		DrawMenuBar(window);
-
-		isEnabled = true;
-
-		ostringstream oss{};
-		oss << "Created new menu bar in window '" << windowRef->GetTitle() << "'!";
-
-		Log::Print(
-			oss.str(),
-			"MENU_BAR",
-			LogType::LOG_SUCCESS);
-	}
-	bool MenuBar::IsInitialized(Window* windowRef)
-	{
-		return (windowRef->GetWindowData().hMenu != NULL);
-	}
-
-	void MenuBar::SetMenuBarState(
-		bool state,
-		Window* windowRef)
-	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
-		if (!window) return;
-
-		HMENU storedHMenu = ToVar<HMENU>(windowRef->GetWindowData().hMenu);
-
-		if (!IsInitialized(windowRef))
-		{
-			Log::Print(
-				"Failed to set menu bar state for window '" + windowRef->GetTitle() + "' because it has not yet created a menu bar!",
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		SetMenu(window, state ? storedHMenu : nullptr);
-		DrawMenuBar(window);
-
-		string val = state ? "true" : "false";
-		isEnabled = state;
-
-		if (MenuBar::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Set window '" + windowRef->GetTitle() + "' menu bar state to '" + val + "'",
-				"MENU_BAR",
-				LogType::LOG_SUCCESS);
-		}
-	}
-	bool MenuBar::IsEnabled(Window* window)
-	{
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
-		HMENU attached = GetMenu(hwnd);
-
-		return 
-			attached != NULL
-			&& window->GetWindowData().hMenu != NULL
-			&& isEnabled;
-	}
-
-	void MenuBar::CreateLabel(
-		Window* windowRef,
-		LabelType type,
-		const string& parentRef,
-		const string& labelRef,
-		const function<void()> func)
-	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
-		if (!window) return;
-
-		string typeName = type == LabelType::LABEL_LEAF ? "leaf" : "branch";
-
-		string parentName = parentRef;
-		if (parentName.empty()) parentName = "root";
-
-		if (!IsInitialized(windowRef))
-		{
-			ostringstream oss{};
-			oss << "Failed to add " << typeName << " to window '" << windowRef->GetTitle() << "' because no menu bar was created!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (labelRef.empty())
-		{
-			ostringstream oss{};
-			oss << "Failed to add " << typeName << " to window '" << windowRef->GetTitle() << "' because the label name is empty!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-		if (labelRef.length() > MAX_LABEL_LENGTH)
-		{
-			ostringstream oss{};
-			oss << "Failed to add " << typeName << " '" << labelRef
-				<< "' to window '" << windowRef->GetTitle() << "' because the label length '"
-				<< labelRef.length() << "' is too long! You can only use label length up to '"
-				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		//leaf requires valid function
-		if (type == LabelType::LABEL_LEAF
-			&& !func)
-		{
-			ostringstream oss{};
-			oss << "Failed to add leaf '" << labelRef << "' under parent '" << parentRef
-				<< "' in window '" << windowRef->GetTitle() << "' because the leaf has an empty function!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		//leaf cant have parent that is also a leaf
-		if (type == LabelType::LABEL_LEAF
-			&& !parentRef.empty())
-		{
-			for (const auto& e : runtimeMenuBarEvents)
-			{
-				if (e->label == parentRef
-					&& e->labelID != 0)
-				{
-					ostringstream oss{};
-					oss << "Failed to add leaf '" << labelRef << "' under parent '" << parentRef
-						<< "' in window '" << windowRef->GetTitle() << "' because the parent is also a leaf!";
-
-					Log::Print(
-						oss.str(),
-						"MENU_BAR",
-						LogType::LOG_ERROR,
-						2);
-
-					return;
-				}
-			}
-		}
-
-		//check if label or the parent of the label already exists or not
-		for (const auto& e : runtimeMenuBarEvents)
-		{
-			const string& parent = e->parentLabel;
-			const string& label = e->label;
-			if (parent.empty()
-				&& labelRef == label)
-			{
-				ostringstream oss{};
-				oss << "Failed to add " << typeName << " '" << labelRef << "' to window '" << windowRef->GetTitle() 
-					<< "' because the " << typeName << " already exists!";
-
-				Log::Print(
-					oss.str(),
-					"MENU_BAR",
-					LogType::LOG_ERROR,
-					2);
-
-				return;
-			}
-			else if (parentRef == parent
-				&& labelRef == label)
-			{
-				ostringstream oss{};
-				oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentName
-					<< "' in window '" << windowRef->GetTitle()
-					<< "' because the " << typeName << " and its parent already exists!";
-
-				Log::Print(
-					oss.str(),
-					"MENU_BAR",
-					LogType::LOG_ERROR,
-					2);
-
-				return;
-			}
-		}
-
-		HMENU hMenu = GetMenu(window);
-		u32 newID = ++globalID;
-
-		unique_ptr<MenuBarEvent> newEvent = make_unique<MenuBarEvent>();
-		newEvent->parentLabel = parentRef;
-		newEvent->label = labelRef;
-		
-		if (type == LabelType::LABEL_LEAF)
-		{
-			newEvent->function = func;
-			newEvent->labelID = newID;
-		}
-
-		auto NewLabel = [&](HMENU parentMenu)
-			{
-				if (type == LabelType::LABEL_BRANCH)
-				{
-					HMENU thisMenu = CreatePopupMenu();
-					AppendMenu(
-						parentMenu,
-						MF_POPUP,
-						(UINT_PTR)thisMenu,
-						ToWide(labelRef).c_str());
-
-					newEvent->hMenu = FromVar(thisMenu);
-				}
-				else
-				{
-					AppendMenu(
-						parentMenu,
-						MF_STRING,
-						newID,
-						ToWide(labelRef).c_str());
-				}
-
-				if (MenuBar::IsVerboseLoggingEnabled())
-				{
-					ostringstream oss{};
-					oss << "Added " << typeName << " '" << labelRef << "' with ID '" << to_string(newID)
-						<< "' under parent '" << parentName
-						<< "' in window '" << windowRef->GetTitle() << "'!";
-
-					Log::Print(
-						oss.str(),
-						"MENU_BAR",
-						LogType::LOG_SUCCESS);
-				}
-			};
-
-		if (parentRef.empty()) NewLabel(hMenu);
-		else
-		{
-			HMENU parentMenu{};
-
-			for (const auto& value : runtimeMenuBarEvents)
-			{
-				if (value->label == parentRef)
-				{
-					parentMenu = ToVar<HMENU>(value->hMenu);
-					break;
-				}
-			}
-
-			if (!parentMenu)
-			{
-				ostringstream oss{};
-				oss << "Failed to create " << typeName << " '" << labelRef << "' under parent '" << parentName
-					<< "' in window '" << windowRef->GetTitle() << "' because the parent does not exist!";
-
-				Log::Print(
-					oss.str(),
-					"MENU_BAR",
-					LogType::LOG_ERROR,
-					2);
-
-				return;
-			}
-
-			NewLabel(parentMenu);
-		}
-
-		DrawMenuBar(window);
-
-		createdMenuBarEvents[newID] = move(newEvent);
-
-		MenuBarEvent* storedEvent = createdMenuBarEvents[newID].get();
-		runtimeMenuBarEvents.push_back(storedEvent);
-	}
-
-	void MenuBar::AddSeparator(
-		Window* windowRef,
-		const string& parentRef,
-		const string& labelRef)
-	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
-		if (!window) return;
-
-		if (!IsInitialized(windowRef))
-		{
-			ostringstream oss{};
-			oss << "Failed to add separator to menu label '" << labelRef << "' in window '" << windowRef->GetTitle()
-				<< "' because it has no menu bar!";
-
-			Log::Print(
-				oss.str(),
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		HMENU hMenu = GetMenu(window);
-
-		for (const auto& e : runtimeMenuBarEvents)
-		{
-			const string& parent = e->parentLabel;
-			const string& label = e->label;
-			if (label.empty())
-			{
-				if (parent == parentRef)
-				{
-					HMENU parentMenu{};
-
-					for (const auto& value : runtimeMenuBarEvents)
-					{
-						if (value->label == parentRef)
-						{
-							parentMenu = ToVar<HMENU>(value->hMenu);
-							break;
-						}
-					}
-
-					if (!parentMenu)
-					{
-						ostringstream oss{};
-						oss << "Failed to add separator at the end of parent '" << parentRef
-							<< "' in window '" << windowRef->GetTitle() << "' because the parent does not exist!";
-
-						Log::Print(
-							oss.str(),
-							"MENU_BAR",
-							LogType::LOG_ERROR,
-							2);
-
-						return;
-					}
-
-					AppendMenu(
-						parentMenu,
-						MF_SEPARATOR,
-						0,
-						nullptr);
-
-					if (MenuBar::IsVerboseLoggingEnabled())
-					{
-						Log::Print(
-							"Placed separator to the end of parent label '" + parentRef + "' in window '" + windowRef->GetTitle() + "'!",
-							"MENU_BAR",
-							LogType::LOG_SUCCESS);
-					}
-
-					DrawMenuBar(window);
-
-					return;
-				}
-			}
-			else
-			{
-				if (parent == parentRef
-					&& label == labelRef)
-				{
-					HMENU parentMenu{};
-
-					for (const auto& value : runtimeMenuBarEvents)
-					{
-						if (value->label == parentRef)
-						{
-							parentMenu = ToVar<HMENU>(value->hMenu);
-							break;
-						}
-					}
-
-					if (!parentMenu)
-					{
-						ostringstream oss{};
-						oss << "Failed to add separator under parent '" << parentRef << "' after label '" << labelRef
-							<< "' in window '" << windowRef->GetTitle() << "' because the label does not exist!";
-
-						Log::Print(
-							oss.str(),
-							"MENU_BAR",
-							LogType::LOG_ERROR,
-							2);
-
-						return;
-					}
-
-					int pos = GetMenuItemCount(parentMenu);
-					for (int i = 0; i < pos; ++i)
-					{
-						wchar_t buffer[MAX_LABEL_LENGTH + 1]{};
-						GetMenuStringW(
-							parentMenu,
-							i,
-							buffer,
-							MAX_LABEL_LENGTH + 1,
-							MF_BYPOSITION);
-
-						if (ToWide(labelRef) == buffer)
-						{
-							InsertMenuW(
-								parentMenu,
-								i + 1, //insert after this item
-								MF_BYPOSITION
-								| MF_SEPARATOR,
-								0,
-								nullptr);
-
-							if (MenuBar::IsVerboseLoggingEnabled())
-							{
-								Log::Print(
-									"Placed separator after label '" + labelRef + "' in window '" + windowRef->GetTitle() + "'!",
-									"MENU_BAR",
-									LogType::LOG_SUCCESS);
-							}
-
-							DrawMenuBar(window);
-
-							return;
-						}
-					}
-				}
-			}
-		}
-
-		ostringstream oss{};
-		oss << "Failed to add separator at the end of parent '" << parentRef << "' or after label '" << labelRef
-			<< "' in window '" + windowRef->GetTitle() + "' because parent or label does not exist!";
-
-		Log::Print(
-			oss.str(),
-			"MENU_BAR",
-			LogType::LOG_ERROR,
-			2);
-	}
-
-	void MenuBar::DestroyMenuBar(Window* windowRef)
-	{
-		HWND window = ToVar<HWND>(windowRef->GetWindowData().hwnd);
-		if (!window) return;
-
-		if (!IsInitialized(windowRef))
-		{
-			Log::Print(
-				"Cannot destroy menu bar for window '" + windowRef->GetTitle() + "' because it hasn't created one!",
-				"MENU_BAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		HMENU hMenu = GetMenu(window);
-
-		//detach the menu bar from the window first
-		SetMenu(window, nullptr);
-		DrawMenuBar(window);
-
-		//and finally destroy the menu handle itself
-		DestroyMenu(hMenu);
-
-		ostringstream oss{};
-		oss << "Destroyed menu bar in window '" << windowRef->GetTitle() << "'!";
-
-		Log::Print(
-			oss.str(),
-			"MENU_BAR",
-			LogType::LOG_SUCCESS);
-	}
-}
-
-void PreInitSetup()
-{
-	if (createdWindows.size() == 0)
-	{
-		if (!checkedOSVersion)
-		{
-			u32 version = KalaWindowCore::GetVersion();
-			string versionStr = to_string(version);
-			string osVersion = versionStr.substr(0, 2);
-			string buildVersion = to_string(stoi(versionStr.substr(2)));
-
-			if (version < MIN_OS_VERSION)
-			{
-				ostringstream oss{};
-				oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
-					<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
-
-				KalaWindowCore::ForceClose(
-					"Window error",
-					oss.str());
-
-				return;
-			}
-
-			if (Window::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Windows version '" + osVersion + "' build '" + buildVersion + "'",
-					"WINDOW",
-					LogType::LOG_INFO);
-			}
-
-			checkedOSVersion = true;
-		}
-
-		wchar_t buffer[MAX_PATH]{};
-		GetModuleFileNameW(
-			nullptr,
-			buffer,
-			MAX_PATH);
-
-		path exePath(buffer);
-
-		APP_ID = exePath.stem().string();
-
-		//Treat this process as a real app with a stable identity
-		SetCurrentProcessExplicitAppUserModelID(ToWide(APP_ID).c_str());
-
-		if (!enabledBeginPeriod)
-		{
-			timeBeginPeriod(1);
-			enabledBeginPeriod = true;
-		}
-
-		WNDCLASSA wc = {};
-		wc.style =
-			CS_OWNDC      //own the DC for the lifetime of this window
-			| CS_DBLCLKS; //allow detecting double clicks
-		wc.lpfnWndProc = MessageLoop::WindowProcCallback;
-		wc.hInstance = GetModuleHandle(nullptr);
-		wc.lpszClassName = APP_ID.c_str();
-
-		if (!RegisterClassA(&wc))
-		{
-			DWORD err = GetLastError();
-			string message{};
-			if (err == ERROR_CLASS_ALREADY_EXISTS)
-			{
-				message = "Window class already exists with different definition.\n";
-			}
-			else
-			{
-				message = "RegisterClassA failed with error: " + to_string(err) + "\n";
-			}
-
-			KalaWindowCore::ForceClose(
-				"Window error",
-				message);
-
-			return;
-		}
-	}
 }
 
 void UpdateIdleState(Window* window, bool& isIdle)
@@ -3164,48 +2012,6 @@ string ToShort(const wstring& str)
 		size_needed,
 		nullptr,
 		nullptr);
-
-	return result;
-}
-
-string HResultToString(HRESULT hr)
-{
-	LPWSTR buffer{};
-
-	DWORD len = FormatMessageW(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER
-		| FORMAT_MESSAGE_FROM_SYSTEM
-		| FORMAT_MESSAGE_IGNORE_INSERTS,
-		nullptr,
-		static_cast<DWORD>(hr),
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		reinterpret_cast<LPWSTR>(&buffer),
-		0,
-		nullptr);
-
-	string result{};
-
-	char tmp[32]{};
-	sprintf_s(tmp, "0x%08X", static_cast<unsigned int>(hr));
-	string fmtHex = tmp;
-
-	if (len
-		&& buffer)
-	{
-		result = ToShort(buffer);
-		LocalFree(buffer);
-
-		//trim trailing CR/LF
-		if (!result.empty()
-			&& (result.back() == '\n'
-			|| result.back() == '\r'))
-		{
-			result.erase(result.find_last_not_of("\r\n") + 1);
-		}
-
-		result += " (" + fmtHex + ")";
-	}
-	else result = fmtHex;
 
 	return result;
 }
