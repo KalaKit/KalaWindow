@@ -61,6 +61,12 @@ namespace KalaWindow::Graphics
 		FILE_TEXTURE     //Can select .png, .jpg and .jpeg files
 	};
 
+	enum class SoundType
+	{
+		SOUND_OK,
+		SOUND_ERROR
+	};
+
 	class LIB_API Window_Global
 	{
 	public:
@@ -96,6 +102,9 @@ namespace KalaWindow::Graphics
 		static void CreateNotification(
 			const string& title,
 			const string& nessage);
+
+		//Play a system sound once of the chosen type
+		static void PlaySystemSound(SoundType type);
 
 		//Places selected string to clipboard
 		static void SetClipboardText(const string& text);

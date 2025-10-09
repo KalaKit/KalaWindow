@@ -146,7 +146,6 @@ namespace KalaWindow::Graphics
 
 	u32 Window_Global::GetVersion()
 	{
-#ifdef WIN32
 		if (version == 0)
 		{
 			typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
@@ -196,10 +195,6 @@ namespace KalaWindow::Graphics
 		}
 
 		return version;
-#elif __linux__
-		return 0;
-#endif
-		return 0;
 	}
 
 	PopupResult Window_Global::CreatePopup(
@@ -210,7 +205,6 @@ namespace KalaWindow::Graphics
 	{
 		int flags = 0;
 
-#ifdef _WIN32
 		switch (action)
 		{
 		case PopupAction::POPUP_ACTION_OK:            flags |= MB_OK; break;
@@ -229,9 +223,6 @@ namespace KalaWindow::Graphics
 		case PopupType::POPUP_TYPE_QUESTION: flags |= MB_ICONQUESTION; break;
 		default:                             flags |= MB_ICONINFORMATION; break;
 		}
-#else
-		//TODO: ADD LINUX EQUIVALENT
-#endif
 
 		wstring messageWide = ToWide(message);
 		wstring titleWide = ToWide(title);
@@ -664,6 +655,31 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Created notification '" + title + "'!",
+				"WINDOW_GLOBAL",
+				LogType::LOG_SUCCESS);
+		}
+	}
+
+	void Window_Global::PlaySystemSound(SoundType type)
+	{
+		string soundType{};
+
+		switch (type)
+		{
+		case SoundType::SOUND_OK:
+			MessageBeep(MB_OK);
+			soundType = "ok";
+			break;
+		case SoundType::SOUND_ERROR:
+			MessageBeep(MB_ICONHAND);
+			soundType = "error";
+			break;
+		}
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Played sound type '" + soundType + "'!",
 				"WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
