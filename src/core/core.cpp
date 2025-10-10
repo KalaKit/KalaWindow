@@ -133,8 +133,8 @@ namespace KalaWindow::Core
 		createdCameras.clear();
 		runtimeCameras.clear();
 
-		createdWidgetManagers.clear();
-		runtimeWidgetManagers.clear();
+		createdText.clear();
+		runtimeText.clear();
 
 		createdInput.clear();
 		createdOpenGLContext.clear();

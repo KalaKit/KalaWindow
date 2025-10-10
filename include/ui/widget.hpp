@@ -13,6 +13,8 @@
 
 #include "core/glm_global.hpp"
 
+#include "graphics/opengl/opengl_shader.hpp"
+
 namespace KalaWindow::UI
 {
 	constexpr u16 MAX_Z_ORDER = 1024u;
@@ -21,7 +23,7 @@ namespace KalaWindow::UI
 	using std::vector;
 	using std::clamp;
 
-	class OpenGL_Shader;
+	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 
 	class LIB_API Widget
 	{
