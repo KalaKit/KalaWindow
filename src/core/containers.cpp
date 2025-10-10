@@ -22,9 +22,13 @@ namespace KalaWindow::Core
 
 	unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers{};
 
+	unordered_map<u32, unique_ptr<Camera>> createdCameras{};
+
 	unordered_map<u32, unique_ptr<OpenGL_Context>> createdOpenGLContext{};
 	unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures{};
 	unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders{};
+
+	unordered_map<u32, unique_ptr<Quad>> createdQuads{};
 
 	//
 	// RUNTIME STAGE VECTORS
@@ -38,7 +42,11 @@ namespace KalaWindow::Core
 
 	vector<AudioPlayer*> runtimeAudioPlayers{};
 
+	vector<Camera*> runtimeCameras{};
+
 	vector<OpenGL_Context*> runtimeOpenGLContext{};
 	vector<OpenGL_Texture*> runtimeOpenGLTextures{};
 	vector<OpenGL_Shader*> runtimeOpenGLShaders{};
+
+	vector<Quad*> runtimeQuads{};
 }

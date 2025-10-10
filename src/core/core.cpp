@@ -130,6 +130,12 @@ namespace KalaWindow::Core
 		runtimeOpenGLTextures.clear();
 		runtimeOpenGLShaders.clear();
 
+		createdCameras.clear();
+		runtimeCameras.clear();
+
+		createdQuads.clear();
+		runtimeQuads.clear();
+
 		createdInput.clear();
 		createdOpenGLContext.clear();
 		createdWindows.clear();

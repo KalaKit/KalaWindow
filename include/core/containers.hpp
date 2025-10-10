@@ -19,6 +19,8 @@
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "windows/menubar.hpp"
+#include "ui/quad.hpp"
+#include "graphics/camera.hpp"
 
 namespace KalaWindow::Core
 {
@@ -30,6 +32,8 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
+	using KalaWindow::UI::Quad;
+	using KalaWindow::Graphics::Camera;
 
 	using std::string;
 	using std::unordered_map;
@@ -52,9 +56,13 @@ namespace KalaWindow::Core
 
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
+	LIB_API extern unordered_map<u32, unique_ptr<Camera>> createdCameras;
+
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Context>> createdOpenGLContext;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
+
+	LIB_API extern unordered_map<u32, unique_ptr<Quad>> createdQuads;
 
 	//
 	// RUNTIME STAGE VECTORS (NON-OWNING, REFERENCE ONLY TO OWNERS ABOVE)
@@ -68,9 +76,13 @@ namespace KalaWindow::Core
 
 	LIB_API extern vector<AudioPlayer*> runtimeAudioPlayers;
 
+	LIB_API extern vector<Camera*> runtimeCameras;
+
 	LIB_API extern vector<OpenGL_Context*> runtimeOpenGLContext;
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
+
+	LIB_API extern vector<Quad*> runtimeQuads;
 
 	//
 	// GET VALUE FROM CONTAINER BY TYPE
@@ -82,9 +94,11 @@ namespace KalaWindow::Core
 	template<> struct ContainerOf<Input>          { static inline auto& get() { return createdInput; } };
 	template<> struct ContainerOf<MenuBarEvent>   { static inline auto& get() { return createdMenuBarEvents; } };
 	template<> struct ContainerOf<AudioPlayer>    { static inline auto& get() { return createdAudioPlayers; } };
+	template<> struct ContainerOf<Camera>         { static inline auto& get() { return createdCameras; } };
 	template<> struct ContainerOf<OpenGL_Context> { static inline auto& get() { return createdOpenGLContext; } };
 	template<> struct ContainerOf<OpenGL_Texture> { static inline auto& get() { return createdOpenGLTextures; } };
 	template<> struct ContainerOf<OpenGL_Shader>  { static inline auto& get() { return createdOpenGLShaders; } };
+	template<> struct ContainerOf<Quad>           { static inline auto& get() { return createdQuads; } };
 
 	template<typename T>
 	inline T* GetValueByID(u32 ID)
