@@ -18,6 +18,8 @@
 #define STB_IMAGE_RESIZE_IMPLEMENTATION
 #include "stb/stb_image_resize2.h"
 
+#include "KalaHeaders/log_utils.hpp"
+
 #include "graphics/texture.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
@@ -28,17 +30,13 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
+using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::globalID;
-using KalaWindow::Core::createdOpenGLTextures;
-using KalaWindow::Core::runtimeOpenGLTextures;
-using KalaWindow::Core::runtimeWindows;
+using namespace KalaWindow::Core;
 
 using std::string;
 using std::string_view;
@@ -272,7 +270,45 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		//ensure a fallback texture always exists
-		if (fallbackTexture == nullptr) LoadFallbackTexture();
+		if (!fallbackTexture) LoadFallbackTexture();
+
+		if (!OpenGL_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Cannot load texture '" + name + "' because OpenGL is not initialized!");
+
+			return nullptr;
+		}
+
+		if (runtimeWindows.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Cannot load texture '" + name + "' because no windows exist!");
+
+			return nullptr;
+		}
+
+		bool foundCont = false;
+		for (const Window* w : runtimeWindows)
+		{
+			OpenGL_Context* cont = w->GetOpenGLContext();
+
+			if (cont
+				&& cont->IsContextValid())
+			{
+				foundCont = true;
+				break;
+			}
+		}
+
+		if (!foundCont)
+		{
+			KalaWindowCore::ForceClose(
+				"Texture error",
+				"Cannot load texture '" + name + "' because no created windows have a valid OpenGL context!");
+		}
 
 		vector<u8> data{};
 		int nrChannels{};
@@ -374,7 +410,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -402,7 +438,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		//ensure a fallback texture always exists
-		if (fallbackTexture == nullptr) LoadFallbackTexture();
+		if (!fallbackTexture) LoadFallbackTexture();
 
 		vector<string> paths(begin(texturePaths), end(texturePaths));
 		if (!AllTextureExtensionsMatch(paths))
@@ -542,7 +578,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -570,7 +606,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		//ensure a fallback texture always exists
-		if (fallbackTexture == nullptr) LoadFallbackTexture();
+		if (!fallbackTexture) LoadFallbackTexture();
 
 		if (!AllTextureExtensionsMatch(texturePaths))
 		{
@@ -693,7 +729,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -777,7 +813,7 @@ namespace KalaWindow::Graphics::OpenGL
 		createdOpenGLTextures[newID] = move(newTexture);
 		runtimeOpenGLTextures.push_back(texturePtr);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -797,7 +833,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 	OpenGL_Texture* OpenGL_Texture::GetFallbackTexture()
 	{
-		if (fallbackTexture == nullptr)
+		if (!fallbackTexture)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL texture error",
@@ -993,7 +1029,7 @@ namespace KalaWindow::Graphics::OpenGL
 		pixels = move(resized);
 		size = { (f32)newSize.x, (f32)newSize.y };
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -1214,7 +1250,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (mipMapLevels > 1) glGenerateMipmap(targetType);
 
-		string errorVal = OpenGL_Renderer::GetError();
+		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
 			KalaWindowCore::ForceClose(

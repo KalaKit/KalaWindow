@@ -35,15 +35,15 @@ using std::underlying_type_t;
 //
 
 #ifdef _WIN32
-#ifdef LIB_EXPORT
-#define LIB_API  __declspec(dllexport)
-#else
-#define LIB_API  __declspec(dllimport)
-#endif
+	#ifdef LIB_EXPORT
+		#define LIB_API  __declspec(dllexport)
+	#else
+		#define LIB_API  __declspec(dllimport)
+	#endif
 #elif __linux__
-#define LIB_API  __attribute__((visibility("default")))
+	#define LIB_API  __attribute__((visibility("default")))
 #else
-#define LIB_API 
+	#define LIB_API 
 #endif
 
 //
@@ -51,9 +51,9 @@ using std::underlying_type_t;
 //
 
 #ifdef _WIN32
-#define LIB_APIENTRY __stdcall
+	#define LIB_APIENTRY __stdcall
 #elif __linux__
-#define LIB_APIENTRY
+	#define LIB_APIENTRY
 #endif
 
 //
@@ -61,14 +61,14 @@ using std::underlying_type_t;
 //
 
 #if defined(_MSC_VER)
-#define FORCE_INLINE __forceinline
-#define NO_INLINE    __declspec(noinline)
+	#define FORCE_INLINE __forceinline
+	#define NO_INLINE    __declspec(noinline)
 #elif defined(__GNUC__) || defined(__clang__)
-#define FORCE_INLINE inline __attribute__((always_inline))
-#define NO_INLINE    __attribute__((noinline))
+	#define FORCE_INLINE inline __attribute__((always_inline))
+	#define NO_INLINE    __attribute__((noinline))
 #else
-#define FORCE_INLINE inline
-#define NO_INLINE
+	#define FORCE_INLINE inline
+	#define NO_INLINE
 #endif
 
 //
@@ -76,11 +76,11 @@ using std::underlying_type_t;
 //
 
 #if defined(_MSC_VER)
-#define DEPRECATED(msg) __declspec(deprecated(msg))
+	#define DEPRECATED(msg) __declspec(deprecated(msg))
 #elif defined(__GNUC__) || defined(__clang__)
-#define DEPRECATED(msg) __attribute__((deprecated(msg)))
+	#define DEPRECATED(msg) __attribute__((deprecated(msg)))
 #else
-#define DEPRECATED(msg)
+	#define DEPRECATED(msg)
 #endif
 
 //
@@ -88,10 +88,10 @@ using std::underlying_type_t;
 //
 
 #if defined(NDEBUG)
-#define DEBUG_ASSERT(x) ((void)0)
+	#define DEBUG_ASSERT(x) ((void)0)
 #else
-#include <cassert>
-#define DEBUG_ASSERT(x) assert(x)
+	#include <cassert>
+	#define DEBUG_ASSERT(x) assert(x)
 #endif
 
 //

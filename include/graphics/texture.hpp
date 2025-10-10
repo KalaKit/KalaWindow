@@ -9,15 +9,11 @@
 #include <vector>
 
 #include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/log_utils.hpp"
 
 #include "core/glm_global.hpp"
 
 namespace KalaWindow::Graphics
 {
-	using KalaHeaders::Log;
-	using KalaHeaders::LogType;
-
 	using std::string;
 	using std::vector;
 
@@ -104,12 +100,6 @@ namespace KalaWindow::Graphics
 			if (newName.empty()
 				|| newName.size() > 100)
 			{
-				Log::Print(
-					"Texture name is empty or too big! Must be between 1 and 100 characters.",
-					"TEXTURE",
-					LogType::LOG_ERROR,
-					2);
-
 				return;
 			}
 			name = newName;

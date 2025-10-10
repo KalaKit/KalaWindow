@@ -8,6 +8,7 @@
 #include <Windows.h>
 #include <string>
 #include <sstream>
+#include <memory>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -16,13 +17,12 @@
 #include "graphics/opengl/opengl_functions_win.hpp"
 #include "graphics/window.hpp"
 #include "core/core.hpp"
-#include "core/global_handles.hpp"
+#include "core/containers.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::GlobalHandle;
+using namespace KalaWindow::Core;
 using KalaWindow::Graphics::Window;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
@@ -31,46 +31,28 @@ using std::to_string;
 using std::ostringstream;
 using std::dec;
 using std::hex;
+using std::unique_ptr;
+using std::make_unique;
 
 static bool IsCorrectVersion();
 static HWND CreateDummyWindow();
 
-static string GetErrorType(const string& errorOrigin)
-{
-	DWORD err = GetLastError();
-
-	string message{};
-
-	switch (err)
-	{
-	case ERROR_INVALID_OPERATION:    message = "ERROR_INVALID_OPERATION";      break;
-	case ERROR_INVALID_PIXEL_FORMAT: message = "ERROR_INVALID_PIXEL_FORMAT";   break;
-	case ERROR_INVALID_PARAMETER:    message = "ERROR_INVALID_PARAMETER";      break;
-	case ERROR_OUTOFMEMORY:          message = "ERROR_OUTOFMEMORY";            break;
-	case 0x2095:                     message = "ERROR_INVALID_VERSION_ARB";    break;
-	case 0x2096:                     message = "ERROR_INVALID_PROFILE_ARB";    break;
-	case ERROR_SUCCESS:              message = "ERROR_SUCCESS (no error set)"; break;
-	default:                         message = "Unknown error";                break;
-	}
-
-	ostringstream oss{};
-	oss << errorOrigin << " failed! Win32 error = "
-		<< message << " (" << dec << err << " / 0x" << hex << err << dec << ")";
-
-	return oss.str();
-}
+static string GetErrorType(const string& errorOrigin);
 
 namespace KalaWindow::Graphics::OpenGL
 {
-	bool OpenGL_Renderer::GlobalInitialize()
+	//
+	// GLOBAL
+	//
+
+	bool OpenGL_Global::Initialize()
 	{
-		if (isInitialized
-			&& GlobalHandle::GetOpenGLWinContext() != NULL)
+		if (isInitialized)
 		{
 			Log::Print(
 				"Cannot initialize global OpenGL more than once!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_SUCCESS);
+				"OPENGL",
+				LogType::LOG_ERROR);
 
 			return false;
 		}
@@ -102,7 +84,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (pf == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL Window Error",
+				"OpenGL error",
 				"ChoosePixelFormat failed during global OpenGL init!");
 
 			return false;
@@ -111,7 +93,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!SetPixelFormat(dummyDC, pf, &pfd))
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL Window Error",
+				"OpenGL error",
 				"SetPixelFormat failed during global OpenGL init!");
 
 			return false;
@@ -137,8 +119,8 @@ namespace KalaWindow::Graphics::OpenGL
 		DestroyWindow(dummyHWND);
 
 		Log::Print(
-			"Initialized OpenGL!",
-			"OPENGL_WINDOWS",
+			"Initialized global OpenGL context!",
+			"OPENGL",
 			LogType::LOG_SUCCESS);
 
 		isInitialized = true;
@@ -146,8 +128,71 @@ namespace KalaWindow::Graphics::OpenGL
 		return true;
 	}
 
-	bool OpenGL_Renderer::Initialize(
-		Window* targetWindow,
+	void OpenGL_Global::SetOpenGLLibrary()
+	{
+		HMODULE handle = GetModuleHandleA("opengl32.dll");
+		if (!handle)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Failed to get handle for 'opengl32.dll'");
+
+			return;
+		}
+
+		openGL32Lib = FromVar(handle);
+	}
+
+	bool OpenGL_Global::IsExtensionSupported(const string& name)
+	{
+		i32 numExtensions = 0;
+		glGetIntegerv(
+			GL_NUM_EXTENSIONS,
+			&numExtensions);
+
+		for (i32 i = 0; i < numExtensions; ++i)
+		{
+			const char* extName = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+			if (name == extName) return true;
+		}
+
+		return false;
+	}
+
+	string OpenGL_Global::GetError()
+	{
+		GLenum error{};
+		string errorVal{};
+
+		while ((error = glGetError()) != GL_NO_ERROR)
+		{
+			switch (error)
+			{
+			case GL_INVALID_ENUM:                  errorVal = "GL_INVALID_ENUM"; break;
+			case GL_INVALID_VALUE:                 errorVal = "GL_INVALID_VALUE"; break;
+			case GL_INVALID_INDEX:                 errorVal = "GL_INVALID_INDEX"; break;
+
+			case GL_INVALID_OPERATION:             errorVal = "GL_INVALID_OPERATION"; break;
+			case GL_STACK_OVERFLOW:                errorVal = "GL_STACK_OVERFLOW"; break;
+			case GL_STACK_UNDERFLOW:               errorVal = "GL_STACK_UNDERFLOW"; break;
+			case GL_INVALID_FRAMEBUFFER_OPERATION: errorVal = "GL_INVALID_FRAMEBUFFER_OPERATION"; break;
+
+			case GL_OUT_OF_MEMORY:                 errorVal = "GL_OUT_OF_MEMORY"; break;
+
+			default:                               errorVal = "Unknown error"; break;
+			}
+		}
+
+		return errorVal;
+	}
+
+	//
+	// CONTEXT
+	//
+
+	OpenGL_Context* OpenGL_Context::Initialize(
+		u32 windowID,
+		u32 parentContext,
 		MultiSampling msaa,
 		SRGBMode srgb,
 		ColorBufferBits cBits,
@@ -155,25 +200,42 @@ namespace KalaWindow::Graphics::OpenGL
 		StencilBufferBits sBits,
 		AlphaChannel aChannel)
 	{
-		if (targetWindow->GetOpenGLData().hdc != NULL)
+		if (!OpenGL_Global::IsInitialized())
 		{
-			Log::Print(
-				"Cannot initialize OpenGL more than once per window!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Cannot initialize OpenGL context because global OpenGL has not yet been initialized!");
 
-			return false;
+			return nullptr;
 		}
 
-		const WindowData& wData = targetWindow->GetWindowData();
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Cannot initialize OpenGL context because it's window was not found!");
+
+			return nullptr;
+		}
+
+		u32 newID = ++globalID;
+		unique_ptr<OpenGL_Context> newCont = make_unique<OpenGL_Context>();
+		OpenGL_Context* contPtr = newCont.get();
+
+		Log::Print(
+			"Creating OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"OPENGL",
+			LogType::LOG_DEBUG);
+
+		contPtr->ID = newID;
+
+		const WindowData& wData = window->GetWindowData();
 		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
-		OpenGLData data{};
-
-		HDC hdc = GetDC(windowRef);
-
-		data.hdc = FromVar(hdc);
+		HDC storedHDC = GetDC(windowRef);
+		contPtr->hdc = FromVar(storedHDC);
 
 		vector<int> pixelAttribs =
 		{
@@ -271,7 +333,7 @@ namespace KalaWindow::Graphics::OpenGL
 		UINT numFormats = 0;
 
 		BOOL result = (wglChoosePixelFormatARB(
-			hdc,
+			storedHDC,
 			pixelAttribs.data(),
 			nullptr,
 			1,
@@ -283,23 +345,23 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!result)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				GetErrorType("wglChoosePixelFormatARB"));
 
-			return false;
+			return nullptr;
 		}
 		else if (numFormats == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				"wglChoosePixelFormatARB returned no matching pixel formats!");
 
-			return false;
+			return nullptr;
 		}
 
 		PIXELFORMATDESCRIPTOR pfd{};
 		int describeResult = DescribePixelFormat(
-			hdc,
+			storedHDC,
 			pfID,
 			sizeof(pfd),
 			&pfd);
@@ -307,75 +369,75 @@ namespace KalaWindow::Graphics::OpenGL
 		if (describeResult == 0)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				"DescribePixelFormat failed!");
 
-			return false;
+			return nullptr;
 		}
 
 		if (!SetPixelFormat(
-			hdc,
+			storedHDC,
 			pfID,
 			&pfd))
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				"SetPixelFormat failed!");
 
-			return false;
+			return nullptr;
 		}
 
 		int attrib_color_bits = WGL_COLOR_BITS_ARB;
 		int colorBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_color_bits, &colorBits);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_color_bits, &colorBits);
 
 		int attrib_depth_bits = WGL_DEPTH_BITS_ARB;
 		int depthBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_depth_bits, &depthBits);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_depth_bits, &depthBits);
 
 		int attrib_stencil_bits = WGL_STENCIL_BITS_ARB;
 		int stencilBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_stencil_bits, &stencilBits);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_stencil_bits, &stencilBits);
 
 		int attrib_alpha_bits = WGL_ALPHA_BITS_ARB;
 		int alphaBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_alpha_bits, &alphaBits);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_alpha_bits, &alphaBits);
 
 		int attrib_draw = WGL_DRAW_TO_WINDOW_ARB;
 		int drawToWindow = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_draw, &drawToWindow);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_draw, &drawToWindow);
 
 		int attrib_gl = WGL_SUPPORT_OPENGL_ARB;
 		int supportGL = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_gl, &supportGL);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_gl, &supportGL);
 
 		int attrib_double_buffer = WGL_DOUBLE_BUFFER_ARB;
 		int doubleBuffer = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_double_buffer, &doubleBuffer);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_double_buffer, &doubleBuffer);
 
 		//MSAA samples
 		int attrib_MSAA_buffers = WGL_SAMPLE_BUFFERS_ARB;
 		int sampleBuffer = 0;
 		int attrib_MSAA_samples = WGL_SAMPLES_ARB;
 		int samples = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_buffers, &sampleBuffer);
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_samples, &samples);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_MSAA_buffers, &sampleBuffer);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_MSAA_samples, &samples);
 		string msaaVal = sampleBuffer == 1 ? to_string(samples) + "x" : "Disabled";
 
 		//sRGB capable
 		int attrib_srgb = WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB;
 		int srgbBuffer = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_srgb, &srgbBuffer);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_srgb, &srgbBuffer);
 
 		//acceleration
 		int attrib_acceleration = WGL_ACCELERATION_ARB;
 		int accel = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_acceleration, &accel);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_acceleration, &accel);
 
 		//swap method
 		int attrib_swap_method = WGL_SWAP_METHOD_ARB;
 		int swap = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_swap_method, &swap);
+		wglGetPixelFormatAttribivARB(storedHDC, pfID, 0, 1, &attrib_swap_method, &swap);
 
 		string accelVal = (accel == WGL_FULL_ACCELERATION_ARB)
 			? "Hardware"
@@ -407,11 +469,11 @@ namespace KalaWindow::Graphics::OpenGL
 			<< "    Acceleration type: " << accelVal << "\n"
 			<< "    Swap method:       " << swapVal;
 
-		if (isVerboseLoggingEnabled)
+		if (OpenGL_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				ss.str(),
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_INFO);
 		}
 
@@ -431,38 +493,50 @@ namespace KalaWindow::Graphics::OpenGL
 			0
 		};
 
-		HGLRC existing = ToVar<HGLRC>(GlobalHandle::GetOpenGLWinContext());
+		HGLRC existing{};
 
-		HGLRC hglrc = wglCreateContextAttribsARB(
-			hdc,
+		if (parentContext != 0)
+		{
+			OpenGL_Context* parentCont = GetValueByID<OpenGL_Context>(parentContext);
+			if (parentCont)
+			{
+				if (parentCont->GetID() == contPtr->ID)
+				{
+					Log::Print(
+						"OperGL parent context ID cannot be same as this context ID!",
+						"OPENGL",
+						LogType::LOG_ERROR);
+				}
+				else existing = ToVar<HGLRC>(parentCont->hglrc);
+			}
+		}
+
+		HGLRC storedHGLRC = wglCreateContextAttribsARB(
+			storedHDC,
 			existing,
 			attribs);
 
-		if (!hglrc)
+		if (!storedHGLRC)
 		{
 			KalaWindowCore::ForceClose(
-				"OpenGL context error",
+				"OpenGL error",
 				GetErrorType("wglCreateContextAttribsARB"));
 
-			return false;
+			return nullptr;
 		}
 
-		if (existing == NULL) GlobalHandle::SetOpenGLWinContext(FromVar(hglrc));
+		contPtr->hglrc = FromVar(storedHGLRC);
 
-		data.hglrc = FromVar(hglrc);
-
-		wglMakeCurrent(hdc, hglrc);
+		wglMakeCurrent(storedHDC, storedHGLRC);
 		wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size
-		vec2 framebufferSize = targetWindow->GetFramebufferSize();
+		vec2 framebufferSize = window->GetFramebufferSize();
 		glViewport(
 			0,
 			0,
 			(GLsizei)framebufferSize.x,
 			(GLsizei)framebufferSize.y);
-
-		targetWindow->SetOpenGLData(data);
 
 		const char* glVersion  = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 		const char* glVendor   = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
@@ -507,25 +581,184 @@ namespace KalaWindow::Graphics::OpenGL
 			<< "  UBO block size: " << to_string(blockSize) << "\n"
 			<< "  SRGB enabled:   " << (srgbEnabled ? "Yes" : "No");
 
-		if (isVerboseLoggingEnabled)
+		if (OpenGL_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
 				ss2.str(),
-				"OPENGL_WINDOWS",
+				"OPENGL",
 				LogType::LOG_INFO);
 		}
 
-		contextData = ss2.str();
+		contPtr->contextData = ss2.str();
+
+		createdOpenGLContext[newID] = move(newCont);
+		runtimeOpenGLContext.push_back(contPtr);
+
+		window->SetOpenGLContext(contPtr);
+		contPtr->windowID = window->GetID();
+
+		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized OpenGL context for Window '" + targetWindow->GetTitle() + "'!",
-			"OPENGL_WINDOWS",
+			"Initialized OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"OPENGL",
 			LogType::LOG_SUCCESS);
+
+		return contPtr;
+	}
+
+	void OpenGL_Context::SwapOpenGLBuffers() const
+	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot swap OpenGL buffers because this OpenGL context is not initialized!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			Log::Print(
+				"Cannot swap OpenGL buffers because it's window was not found!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		HDC storedHDC{};
+		if (hdc == NULL)
+		{
+			Log::Print(
+				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its hdc is not assigned!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+;
+		storedHDC = ToVar<HDC>(hdc);
+		SwapBuffers(storedHDC);
+	}
+
+	void OpenGL_Context::MakeContextCurrent() const
+	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot context current because this OpenGL context is not initialized!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			Log::Print(
+				"Cannot set OpenGL context because it's window was not found!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		HDC storedHDC{};
+		HGLRC storedHGLRC{};
+		if (hdc == NULL
+			|| hglrc == NULL)
+		{
+			Log::Print(
+				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its hdc or hglrc is not assigned!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		storedHDC = ToVar<HDC>(hdc);
+		storedHGLRC = ToVar<HGLRC>(hglrc);
+
+		if (wglGetCurrentContext() != storedHGLRC) wglMakeCurrent(storedHDC, storedHGLRC);
+	}
+	bool OpenGL_Context::IsContextValid() const
+	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot check context validity because this OpenGL context is not initialized!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because its window was not found!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		HGLRC storedHGLRC{};
+		if (hglrc == NULL)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity for window '" + window->GetTitle() + "' because its hglrc is not assigned!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		storedHGLRC = ToVar<HGLRC>(hglrc);
+
+		HGLRC current = wglGetCurrentContext();
+		if (!current)
+		{
+			Log::Print(
+				"OpenGL context is null!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		if (current != storedHGLRC)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Current OpenGL context does not match stored context!");
+
+			return false;
+		}
 
 		return true;
 	}
 
-	void OpenGL_Renderer::SetVSyncState(VSyncState newVSyncState)
+	void OpenGL_Context::SetVSyncState(VSyncState newVSyncState)
 	{
 		vsyncState = newVSyncState;
 
@@ -544,85 +777,12 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 	}
 
-	void OpenGL_Renderer::SwapOpenGLBuffers(Window* targetWindow)
-	{
-		if (!IsInitialized())
-		{
-			Log::Print(
-				"Cannot swap opengl buffers because OpenGL is not initialized!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR);
-			return;
-		}
-
-		const OpenGLData& oData = targetWindow->GetOpenGLData();
-		HDC hdc = ToVar<HDC>(oData.hdc);
-		SwapBuffers(hdc);
-	}
-
-	void OpenGL_Renderer::MakeContextCurrent(Window* window)
-	{
-		const OpenGLData& oData = window->GetOpenGLData();
-
-		if (oData.hdc == 0
-			|| oData.hglrc == 0)
-		{
-			Log::Print(
-				"Cannot make OpenGL context current for window '" + window->GetTitle() + "' because its hdc or hglrc is not assigned!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
-		HDC hdc = ToVar<HDC>(oData.hdc);
-		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
-
-		if (wglGetCurrentContext() != hglrc) wglMakeCurrent(hdc, hglrc);
-	}
-
-	bool OpenGL_Renderer::IsContextValid(Window* targetWindow)
-	{
-		const OpenGLData& oData = targetWindow->GetOpenGLData();
-
-		if (oData.hglrc == NULL)
-		{
-			string title = "OpenGL Error";
-			string reason = "Failed to get HGLRC for window '" + targetWindow->GetTitle() + "' during 'IsContextValid' stage!";
-			KalaWindowCore::ForceClose(title, reason);
-			return false;
-		}
-		HGLRC hglrcReal = ToVar<HGLRC>(oData.hglrc);
-
-		HGLRC current = wglGetCurrentContext();
-		if (current == nullptr)
-		{
-			Log::Print(
-				"OpenGL context is null!",
-				"OPENGL_WINDOWS",
-				LogType::LOG_ERROR,
-				2);
-
-			return false;
-		}
-
-		if (current != hglrcReal)
-		{
-			KalaWindowCore::ForceClose(
-				"OpenGL Error",
-				"Current OpenGL context does not match stored context!");
-			return false;
-		}
-
-		return true;
-	}
-
-	void OpenGL_Renderer::Shutdown(Window* window)
+	OpenGL_Context::~OpenGL_Context()
 	{
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Failed to shut down OpenGL because it has not yet been initialized!",
+				"Cannot shut down OpenGL context because it is not initialized!",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
@@ -630,10 +790,12 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		if (window == nullptr)
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
 		{
 			Log::Print(
-				"Failed to shut down OpenGL because its target window is invalid!",
+				"Cannot shut down OpenGL context because its window was not found!",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
@@ -641,19 +803,30 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-#ifdef _WIN32
-		OpenGLData oData = window->GetOpenGLData();
-		
-		HGLRC hglrc = ToVar<HGLRC>(oData.hglrc);
-		HDC hdc = ToVar<HDC>(oData.hdc);
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
-
-		if (hglrc != NULL)
+		if (!window->GetOpenGLContext())
 		{
-			if (wglGetCurrentContext() == hglrc) wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(hglrc);
+			Log::Print(
+				"Cannot shut down OpenGL context because the target window doesn't have one!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
 		}
-		if (hdc != NULL) ReleaseDC(hwnd, hdc);
+
+		Log::Print(
+			"Destroying OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
+			"OPENGL",
+			LogType::LOG_DEBUG);
+
+#ifdef _WIN32
+		HGLRC storedHGLRC = ToVar<HGLRC>(hglrc);
+
+		if (storedHGLRC != NULL)
+		{
+			if (wglGetCurrentContext() == storedHGLRC) wglMakeCurrent(nullptr, nullptr);
+			wglDeleteContext(storedHGLRC);
+		}
 #elif __linux__
 		//TODO: DEFINE
 #endif
@@ -704,6 +877,31 @@ HWND CreateDummyWindow()
 		nullptr);
 
 	return hwnd;
+}
+
+string GetErrorType(const string& errorOrigin)
+{
+	DWORD err = GetLastError();
+
+	string message{};
+
+	switch (err)
+	{
+	case ERROR_INVALID_OPERATION:    message = "ERROR_INVALID_OPERATION";      break;
+	case ERROR_INVALID_PIXEL_FORMAT: message = "ERROR_INVALID_PIXEL_FORMAT";   break;
+	case ERROR_INVALID_PARAMETER:    message = "ERROR_INVALID_PARAMETER";      break;
+	case ERROR_OUTOFMEMORY:          message = "ERROR_OUTOFMEMORY";            break;
+	case 0x2095:                     message = "ERROR_INVALID_VERSION_ARB";    break;
+	case 0x2096:                     message = "ERROR_INVALID_PROFILE_ARB";    break;
+	case ERROR_SUCCESS:              message = "ERROR_SUCCESS (no error set)"; break;
+	default:                         message = "Unknown error";                break;
+	}
+
+	ostringstream oss{};
+	oss << errorOrigin << " failed! Win32 error = "
+		<< message << " (" << dec << err << " / 0x" << hex << err << dec << ")";
+
+	return oss.str();
 }
 
 #endif //_WIN32
