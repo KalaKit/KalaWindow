@@ -14,11 +14,9 @@ namespace KalaWindow::Core
 	//
 
 	unordered_map<u32, unique_ptr<Window>> createdWindows{};
+	unordered_map<u32, unique_ptr<MenuBarEvent>> createdMenuBarEvents{};
 
 	unordered_map<u32, unique_ptr<Input>> createdInput{};
-
-
-	unordered_map<u32, unique_ptr<MenuBarEvent>> createdMenuBarEvents;
 
 	unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers{};
 
@@ -28,17 +26,16 @@ namespace KalaWindow::Core
 	unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures{};
 	unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders{};
 
-	unordered_map<u32, unique_ptr<Quad>> createdQuads{};
+	unordered_map<u32, unique_ptr<WidgetManager>> createdWidgetManagers{};
 
 	//
 	// RUNTIME STAGE VECTORS
 	//
 
 	vector<Window*> runtimeWindows{};
+	vector<MenuBarEvent*> runtimeMenuBarEvents{};
 
 	vector<Input*> runtimeInput{};
-
-	vector<MenuBarEvent*> runtimeMenuBarEvents;
 
 	vector<AudioPlayer*> runtimeAudioPlayers{};
 
@@ -48,5 +45,5 @@ namespace KalaWindow::Core
 	vector<OpenGL_Texture*> runtimeOpenGLTextures{};
 	vector<OpenGL_Shader*> runtimeOpenGLShaders{};
 
-	vector<Quad*> runtimeQuads{};
+	vector<WidgetManager*> runtimeWidgetManagers{};
 }

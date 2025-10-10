@@ -9,6 +9,7 @@
 
 #include "graphics/camera.hpp"
 #include "core/containers.hpp"
+#include "graphics/window.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -17,6 +18,7 @@ using KalaWindow::Core::GetValueByID;
 using KalaWindow::Core::globalID;
 using KalaWindow::Core::createdCameras;
 using KalaWindow::Core::runtimeCameras;
+using KalaWindow::Graphics::Window;
 
 using std::to_string;
 using std::unique_ptr;

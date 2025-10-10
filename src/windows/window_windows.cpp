@@ -37,6 +37,7 @@
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "core/containers.hpp"
+#include "windows/menubar.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -48,6 +49,7 @@ using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Windows::MessageLoop;
+using KalaWindow::Windows::MenuBar;
 using namespace KalaWindow::Core;
 
 using std::make_unique;

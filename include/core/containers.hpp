@@ -12,28 +12,27 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
+#include "windows/menubar.hpp"
+#include "graphics/window.hpp"
 #include "core/input.hpp"
 #include "core/audio.hpp"
-#include "graphics/window.hpp"
+#include "graphics/camera.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
-#include "windows/menubar.hpp"
-#include "ui/quad.hpp"
-#include "graphics/camera.hpp"
+#include "ui/widgetmanager.hpp"
 
 namespace KalaWindow::Core
 {
+	using KalaWindow::Graphics::Window;
+	using KalaWindow::Windows::MenuBarEvent;
 	using KalaWindow::Core::Input;
 	using KalaWindow::Core::AudioPlayer;
-	using KalaWindow::Graphics::Window;
-	using KalaWindow::Windows::MenuBar;
-	using KalaWindow::Windows::MenuBarEvent;
+	using KalaWindow::Graphics::Camera;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
-	using KalaWindow::UI::Quad;
-	using KalaWindow::Graphics::Camera;
+	using KalaWindow::UI::WidgetManager;
 
 	using std::string;
 	using std::unordered_map;
@@ -49,10 +48,9 @@ namespace KalaWindow::Core
 	//
 
 	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
+	LIB_API extern unordered_map<u32, unique_ptr<MenuBarEvent>> createdMenuBarEvents;
 
 	LIB_API extern unordered_map<u32, unique_ptr<Input>> createdInput;
-
-	LIB_API extern unordered_map<u32, unique_ptr<MenuBarEvent>> createdMenuBarEvents;
 
 	LIB_API extern unordered_map<u32, unique_ptr<AudioPlayer>> createdAudioPlayers;
 
@@ -62,17 +60,16 @@ namespace KalaWindow::Core
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
 
-	LIB_API extern unordered_map<u32, unique_ptr<Quad>> createdQuads;
+	LIB_API extern unordered_map<u32, unique_ptr<WidgetManager>> createdWidgetManagers;
 
 	//
 	// RUNTIME STAGE VECTORS (NON-OWNING, REFERENCE ONLY TO OWNERS ABOVE)
 	//
 
 	LIB_API extern vector<Window*> runtimeWindows;
+	LIB_API extern vector<MenuBarEvent*> runtimeMenuBarEvents;
 
 	LIB_API extern vector<Input*> runtimeInput;
-
-	LIB_API extern vector<MenuBarEvent*> runtimeMenuBarEvents;
 
 	LIB_API extern vector<AudioPlayer*> runtimeAudioPlayers;
 
@@ -82,7 +79,7 @@ namespace KalaWindow::Core
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
 
-	LIB_API extern vector<Quad*> runtimeQuads;
+	LIB_API extern vector<WidgetManager*> runtimeWidgetManagers;
 
 	//
 	// GET VALUE FROM CONTAINER BY TYPE
@@ -98,7 +95,7 @@ namespace KalaWindow::Core
 	template<> struct ContainerOf<OpenGL_Context> { static inline auto& get() { return createdOpenGLContext; } };
 	template<> struct ContainerOf<OpenGL_Texture> { static inline auto& get() { return createdOpenGLTextures; } };
 	template<> struct ContainerOf<OpenGL_Shader>  { static inline auto& get() { return createdOpenGLShaders; } };
-	template<> struct ContainerOf<Quad>           { static inline auto& get() { return createdQuads; } };
+	template<> struct ContainerOf<WidgetManager>  { static inline auto& get() { return createdWidgetManagers; } };
 
 	template<typename T>
 	inline T* GetValueByID(u32 ID)

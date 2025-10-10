@@ -3,27 +3,19 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include <memory>
-
-#include "ui/quad.hpp"
-#include "core/containers.hpp"
-
-using KalaWindow::Core::globalID;
-using KalaWindow::Core::createdQuads;
-using KalaWindow::Core::runtimeQuads;
-
-using std::unique_ptr;
-using std::make_unique;
+#include "ui/widgetmanager.hpp"
 
 namespace KalaWindow::UI
 {
-	Quad* Quad::Initialize()
+	WidgetManager* WidgetManager::Initialize(u32 windowID)
 	{
 		return nullptr;
 	}
 
-	Quad::~Quad()
+	vector<Widget*> WidgetManager::HitWidgets(
+		const vec3& origin, 
+		const vec3& target)
 	{
-
+		return {};
 	}
 }

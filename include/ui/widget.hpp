@@ -12,8 +12,6 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
-#include "graphics/opengl/opengl_shader.hpp"
-#include "graphics/opengl/opengl_texture.hpp"
 
 namespace KalaWindow::UI
 {
@@ -23,35 +21,7 @@ namespace KalaWindow::UI
 	using std::vector;
 	using std::clamp;
 
-	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
-	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
-
-	class Widget;
-
-	class LIB_API WidgetManager
-	{
-	public:
-		//Initializes the global widget system reused across all windows.
-		//Also initializes the quad and text shaders
-		static void Initialize(u32 windowID);
-
-		//Returns all hit widgets in 2D or 3D space sorted by highest Z first.
-		//If origin and target are same and their Z is 0.0f
-		//then all widgets at click area are returned
-		static vector<Widget*> HitWidgets(const vec3& origin, const vec3& target);
-
-		static inline OpenGL_Shader* GetQuadShader()
-		{
-			return shader_quad;
-		}
-		static inline OpenGL_Shader* GetTextShader()
-		{
-			return shader_text;
-		}
-	private:
-		static inline OpenGL_Shader* shader_quad{};
-		static inline OpenGL_Shader* shader_text{};
-	};
+	class OpenGL_Shader;
 
 	class LIB_API Widget
 	{

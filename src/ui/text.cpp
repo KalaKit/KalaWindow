@@ -3,18 +3,25 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#pragma once
+#include <memory>
 
-#include "ui/widget.hpp"
+#include "ui/text.hpp"
+#include "core/containers.hpp"
+
+using KalaWindow::Core::globalID;
+
+using std::unique_ptr;
+using std::make_unique;
 
 namespace KalaWindow::UI
 {
-	class Quad : public Widget
+	Text* Text::Initialize()
 	{
-	public:
-		static Quad* Initialize();
+		return nullptr;
+	}
 
-		//Do not destroy manually, erase from containers.hpp instead
-		virtual ~Quad();
-	};
+	Text::~Text()
+	{
+
+	}
 }
