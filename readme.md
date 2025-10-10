@@ -16,7 +16,6 @@ Features built into **KalaWindow**:
 - OpenGl 3.3 context
 - shader system with compilation and hot reload (recompile shaders at runtime)
 - texture system with hot reload (can modify raw pixel data for each texture)
-- basic UI support through ImGui wrapper
 - audio framework through MiniAudio wrapper
 
 ---
@@ -25,14 +24,14 @@ Features built into **KalaWindow**:
 
 **KalaWindow** requires Windows 10 (1809 build 17763) or higher and is not supported on older versions.
 
-**KalaWindow** plans to support **Linux** in a later version but no support for Mac, ARM, console, mobile or Web is planned.
+**KalaWindow** plans to support **Linux** in a later version but no support for Mac, ARM, console, mobile.
 
 Some **KalaWindow** headers pull in official GL extension headers:
 - `opengl_functions_core.hpp` includes `glcorearb.h` and `glext.h`
 - `opengl_functions_win.hpp` includes `wgleht.hpp`
 - `opengl_functions_linux.hpp` includes `glxeht.hpp`
 
-**KalaWindow** plans to support Vulkan 1.3 in a later version, DirectX or other render pipelines will never be supported.
+**KalaWindow** plans to support Vulkan 1.3 in a later version: DirectX, MoltenVK or other render pipelines will never be supported.
 
 ---
 
