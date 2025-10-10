@@ -7,11 +7,13 @@
 
 #include <string_view>
 
+#include "KalaHeaders/core_utils.hpp"
+
 namespace KalaWindow::Graphics::OpenGL::Shader
 {
 	using std::string_view;
 
-	inline constexpr string_view shader_text_vertex = 
+	LIB_API inline constexpr string_view shader_text_vertex =
 	R"(
 		#version 330 core
 
@@ -42,7 +44,7 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		}
 	)";
 
-	inline constexpr string_view shader_text_fragment =
+	LIB_API inline constexpr string_view shader_text_fragment =
 	R"(
 		#version 330 core
 

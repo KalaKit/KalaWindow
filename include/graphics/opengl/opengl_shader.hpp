@@ -6,12 +6,16 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "KalaHeaders/core_utils.hpp"
+
+#include "core/glm_global.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
+	using std::vector;
 
 	enum class ShaderType
 	{
@@ -23,7 +27,16 @@ namespace KalaWindow::Graphics::OpenGL
 	struct ShaderStage
 	{
 		ShaderType shaderType;
-		string shaderPath;
+
+		//path to external shader file,
+		//use this if you have a shader file you want to read
+		string shaderPath{};
+
+		//raw string data to shader code,
+		//use this if you want to skip loading external shader files
+		//and you have a string ready for reading
+		string shaderText{};
+
 		u32 shaderID;
 	};
 
