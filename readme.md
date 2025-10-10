@@ -20,18 +20,33 @@ Features built into **KalaWindow**:
 
 ---
 
-## Additional notes
+## Supported platforms
 
-**KalaWindow** requires Windows 10 (1809 build 17763) or higher and is not supported on older versions.
+| Platform  | Status         | Notes                                                |
+|-----------|----------------|------------------------------------------------------|
+| Windows   | Supported      | Requires Windows 10 (build 1809 / 17763) or higher   |
+| Linux     | Planned        | Support coming in a future version                   |
+| WebGL     | Planned        | Support coming in a future version                   |
+| Mac       | Not Supported  | No plans for macOS compatibility                     |
+| ARM       | Not Supported  | ARM architecture will not be targeted                |
+| Console   | Not Supported  | No plans for console platforms                       |
+| Mobile    | Not Supported  | No plans for mobile platforms                        |
 
-**KalaWindow** plans to support **Linux** in a later version but no support for Mac, ARM, console, mobile.
+---
+
+## Supported render pipelines
+
+| Render Pipeline | Status         | Notes                                             |
+|-----------------|----------------|---------------------------------------------------|
+| OpenGL          | Supported      | Internally locked to OpenGL 3.3                   |
+| Vulkan          | Planned        | Support for Vulkan 1.3 coming in a future version |
+| DirectX         | Not Supported  | No plans for DirectX compatibility                |
+| MoltenVK        | Not Supported  | No plans for MoltenVK compatibility               |
 
 Some **KalaWindow** headers pull in official GL extension headers:
 - `opengl_functions_core.hpp` includes `glcorearb.h` and `glext.h`
 - `opengl_functions_win.hpp` includes `wgleht.hpp`
 - `opengl_functions_linux.hpp` includes `glxeht.hpp`
-
-**KalaWindow** plans to support Vulkan 1.3 in a later version: DirectX, MoltenVK or other render pipelines will never be supported.
 
 ---
 
