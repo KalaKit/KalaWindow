@@ -21,12 +21,12 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "windows/messageloop.hpp"
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
-#include "core/containers.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl.hpp"
 
@@ -44,7 +44,15 @@ using KalaWindow::Windows::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using namespace KalaWindow::Core;
+using KalaWindow::Core::Key;
+using KalaWindow::Core::MouseButton;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::ShutdownState;
+using KalaWindow::Core::Input;
+using KalaWindow::Core::createdWindows;
+using KalaWindow::Core::runtimeWindows;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::windowContent;
 
 using std::string;
 using std::to_string;
@@ -465,7 +473,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		return false;
 	}
 
-	Input* input = window->GetInput();
+	WindowContent& content = windowContent[window];
+	Input* input = content.input.get();
 
 	/*
 	if (msg.message == 0)
@@ -1263,13 +1272,17 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (window)
 		{
-			for (const auto& e : runtimeMenuBarEvents)
+			MenuBar* menuBar = content.menubar.get();
+			if (menuBar)
 			{
-				u32 ID = e->labelID;
-				if (ID == IDRef)
+				for (const auto& e : content.runtimeMenuBarEvents)
 				{
-					e->function();
-					return true; //we handled it
+					u32 ID = e->labelID;
+					if (ID == IDRef)
+					{
+						e->function();
+						return true; //we handled it
+					}
 				}
 			}
 
@@ -1289,34 +1302,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	{
-		Input* input = window->GetInput();
-		if (input)
-		{
-			u32 inputID = input->GetID();
-			createdInput.erase(inputID);
-
-			auto it = find(
-				runtimeInput.begin(),
-				runtimeInput.end(),
-				input);
-
-			if (it != runtimeInput.end()) runtimeInput.erase(it);
-		}
-
-		OpenGL_Context* context = window->GetOpenGLContext();
-		if (context)
-		{
-			u32 contextID = context->GetID();
-			createdOpenGLContext.erase(contextID);
-
-			auto it = find(
-				runtimeOpenGLContext.begin(),
-				runtimeOpenGLContext.end(),
-				context);
-
-			if (it != runtimeOpenGLContext.end()) runtimeOpenGLContext.erase(it);
-		}
-
+		windowContent.erase(window);
+			
 		u32 windowID = window->GetID();
 		createdWindows.erase(windowID);
 

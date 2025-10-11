@@ -5,19 +5,21 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "ui/widget.hpp"
 #include "ui/text.hpp"
-#include "core/containers.hpp"
 #include "graphics/window.hpp"
+#include "graphics/opengl/opengl.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Graphics::OpenGL_Context;
 using KalaWindow::Core::GetValueByID;
-using KalaWindow::Core::runtimeWidgets;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::windowContent;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 
 using std::to_string;
 
@@ -29,8 +31,6 @@ namespace KalaWindow::UI
 		const vec3& target,
 		float distance)
 	{
-		if (runtimeWidgets.empty()) return{};
-
 		if (windowID == 0) return{};
 
 		Window* window = GetValueByID<Window>(windowID);
@@ -42,7 +42,11 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		OpenGL_Context* context = window->GetOpenGLContext();
+		WindowContent& content = windowContent[window];
+
+		if (content.runtimeWidgets.empty()) return{};
+
+		OpenGL_Context* context = content.glContext.get();
 
 		if (!context
 			|| !context->IsInitialized())
@@ -50,7 +54,7 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		Input* input = window->GetInput();
+		Input* input = content.input.get();
 
 		if (!input
 			|| !input->IsInitialized())
@@ -123,14 +127,16 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		OpenGL_Context* context = window->GetOpenGLContext();
+		WindowContent& content = windowContent[window];
+
+		OpenGL_Context* context = content.glContext.get();
 		if (!context
 			|| !context->IsInitialized())
 		{
 			return false;
 		}
 
-		Input* input = window->GetInput();
+		Input* input = content.input.get();
 
 		if (!input
 			|| !input->IsInitialized())

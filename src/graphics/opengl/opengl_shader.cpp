@@ -12,12 +12,12 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "core/core.hpp"
-#include "core/containers.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -28,7 +28,13 @@ using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::ShaderType;
 using KalaWindow::Graphics::OpenGL::ShaderStage;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using namespace KalaWindow::Core;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::globalID;
+using KalaWindow::Core::GetValueByID;
+using KalaWindow::Core::createdOpenGLShaders;
+using KalaWindow::Core::runtimeOpenGLShaders;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::windowContent;
 
 using std::string;
 using std::to_string;
@@ -87,7 +93,9 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        OpenGL_Context* cont = window->GetOpenGLContext();
+        WindowContent& content = windowContent[window];
+
+        OpenGL_Context* cont = content.glContext.get();
 
         if (!cont
             || (cont
@@ -546,7 +554,9 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        OpenGL_Context* cont = window->GetOpenGLContext();
+        WindowContent& content = windowContent[window];
+
+        OpenGL_Context* cont = content.glContext.get();
 
         if (!cont
             || (cont

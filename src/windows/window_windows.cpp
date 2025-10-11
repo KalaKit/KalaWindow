@@ -27,6 +27,7 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
@@ -36,7 +37,6 @@
 #include "windows/messageloop.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
-#include "core/containers.hpp"
 #include "windows/menubar.hpp"
 
 using KalaHeaders::Log;
@@ -50,7 +50,13 @@ using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Windows::MessageLoop;
 using KalaWindow::Windows::MenuBar;
-using namespace KalaWindow::Core;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::globalID;
+using KalaWindow::Core::createdOpenGLTextures;
+using KalaWindow::Core::createdWindows;
+using KalaWindow::Core::runtimeWindows;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::windowContent;
 
 using std::make_unique;
 using std::move;
@@ -221,21 +227,24 @@ namespace KalaWindow::Graphics
 			break;
 		}
 		
-		newWindow->SetTitle(title);
-		newWindow->ID = newID;
-		newWindow->SetClientRectSize(size);
-		newWindow->window_windows = newWindowStruct;
+		windowPtr->SetTitle(title);
+		windowPtr->ID = newID;
+		windowPtr->SetClientRectSize(size);
+		windowPtr->window_windows = newWindowStruct;
 
-		newWindow->isInitialized = true;
+		windowPtr->isInitialized = true;
 
 		//set window state to user preferred version
-		newWindow->SetWindowState(state);
+		windowPtr->SetWindowState(state);
 
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
 
 		createdWindows[newID] = move(newWindow);
 		runtimeWindows.push_back(windowPtr);
+		
+		WindowContent newWindowContent{};
+		windowContent[windowPtr] = move(newWindowContent);
 
 		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
@@ -286,7 +295,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	string Window::GetTitle() const
+	const string& Window::GetTitle() const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return{};
@@ -1844,12 +1853,12 @@ namespace KalaWindow::Graphics
 		HWND winRef = ToVar<HWND>(window_windows.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
-		//destroy menu bar if it was created
-		if (MenuBar::IsInitialized(this)) MenuBar::DestroyMenuBar(this);
-
 		if (window_windows.wndProc) window_windows.wndProc = NULL;
 
-		if (glContext)
+		WindowContent& content = windowContent[this];
+		OpenGL_Context* context = content.glContext.get();
+
+		if (context)
 		{
 			HDC hdc = GetDC(winRef);
 			if (hdc)
@@ -1857,7 +1866,7 @@ namespace KalaWindow::Graphics
 				ReleaseDC(
 					ToVar<HWND>(window_windows.hwnd),
 					hdc);
-				glContext->SetHandle(NULL);
+				context->SetHandle(NULL);
 			}
 		}
 
@@ -1871,6 +1880,8 @@ namespace KalaWindow::Graphics
 			DestroyIcon(overlayIcon);
 			overlayIcon = nullptr;
 		}
+
+		windowContent.erase(this);
 
 		if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
 

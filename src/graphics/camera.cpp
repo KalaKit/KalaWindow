@@ -7,18 +7,20 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "graphics/camera.hpp"
 #include "core/containers.hpp"
+#include "graphics/camera.hpp"
 #include "graphics/window.hpp"
+#include "graphics/opengl/opengl.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::GetValueByID;
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::createdCameras;
-using KalaWindow::Core::runtimeCameras;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::windowContent;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 
 using std::to_string;
 using std::unique_ptr;
@@ -45,7 +47,9 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		OpenGL_Context* context = window->GetOpenGLContext();
+		WindowContent& content = windowContent[window];
+
+		OpenGL_Context* context = content.glContext.get();
 		if (!context
 			|| !context->IsInitialized())
 		{
@@ -77,8 +81,8 @@ namespace KalaWindow::Graphics
 		f32 aspectRatio = size.x / size.y;
 		camPtr->SetAspectRatio(aspectRatio);
 
-		createdCameras[newID] = move(newCam);
-		runtimeCameras.push_back(camPtr);
+		content.cameras[newID] = move(newCam);
+		content.runtimeCameras.push_back(camPtr);
 
 		camPtr->ID = newID;
 		camPtr->windowID = window->GetID();

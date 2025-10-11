@@ -20,12 +20,12 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "graphics/texture.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "core/core.hpp"
-#include "core/containers.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -261,6 +261,7 @@ namespace KalaWindow::Graphics
 namespace KalaWindow::Graphics::OpenGL
 {
 	OpenGL_Texture* OpenGL_Texture::LoadTexture(
+		u32 windowID,
 		const string& name,
 		const string& filePath,
 		TextureType type,
@@ -269,46 +270,44 @@ namespace KalaWindow::Graphics::OpenGL
 		u16 depth,
 		u8 mipMapLevels)
 	{
-		//ensure a fallback texture always exists
-		if (!fallbackTexture) LoadFallbackTexture();
-
 		if (!OpenGL_Global::IsInitialized())
 		{
-			KalaWindowCore::ForceClose(
-				"Texture error",
-				"Cannot load texture '" + name + "' because OpenGL is not initialized!");
+			Log::Print(
+				"Cannot load texture '" + name + "' because OpenGL has not been initialized!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
 
 			return nullptr;
 		}
 
-		if (runtimeWindows.empty())
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
 		{
-			KalaWindowCore::ForceClose(
-				"Texture error",
-				"Cannot load texture '" + name + "' because no windows exist!");
+			Log::Print(
+				"Cannot load texture '" + name + "' because its window reference is invalid!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
 
 			return nullptr;
 		}
 
-		bool foundCont = false;
-		for (const Window* w : runtimeWindows)
-		{
-			OpenGL_Context* cont = w->GetOpenGLContext();
+		WindowContent& content = windowContent[window];
 
-			if (cont
-				&& cont->IsContextValid())
-			{
-				foundCont = true;
-				break;
-			}
+		OpenGL_Context* context = content.glContext.get();
+
+		if (!context)
+		{
+			Log::Print(
+				"Cannot load texture '" + name + "' because its OpenGL context is invalid!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
 		}
 
-		if (!foundCont)
-		{
-			KalaWindowCore::ForceClose(
-				"Texture error",
-				"Cannot load texture '" + name + "' because no created windows have a valid OpenGL context!");
-		}
+		//ensure a fallback texture always exists
+		if (!fallbackTexture) LoadFallbackTexture();
 
 		vector<u8> data{};
 		int nrChannels{};
@@ -431,12 +430,49 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 	OpenGL_Texture* OpenGL_Texture::LoadCubeMapTexture(
+		u32 windowID,
 		const string& name,
 		const array<string, 6>& texturePaths,
 		TextureFormat format,
 		bool flipVertically,
 		u8 mipMapLevels)
 	{
+		if (!OpenGL_Global::IsInitialized())
+		{
+			Log::Print(
+				"Cannot load cubemap texture '" + name + "' because OpenGL has not been initialized!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			Log::Print(
+				"Cannot load cubemap texture '" + name + "' because its window reference is invalid!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		WindowContent& content = windowContent[window];
+
+		OpenGL_Context* context = content.glContext.get();
+
+		if (!context)
+		{
+			Log::Print(
+				"Cannot load cubemap texture '" + name + "' because its OpenGL context is invalid!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
 		//ensure a fallback texture always exists
 		if (!fallbackTexture) LoadFallbackTexture();
 
@@ -599,12 +635,49 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 	OpenGL_Texture* OpenGL_Texture::Load2DArrayTexture(
+		u32 windowID,
 		const string& name,
 		const vector<string>& texturePaths,
 		TextureFormat format,
 		bool flipVertically,
 		u8 mipMapLevels)
 	{
+		if (!OpenGL_Global::IsInitialized())
+		{
+			Log::Print(
+				"Cannot load 2D array texture '" + name + "' because OpenGL has not been initialized!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			Log::Print(
+				"Cannot load 2D array texture '" + name + "' because its window reference is invalid!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		WindowContent& content = windowContent[window];
+
+		OpenGL_Context* context = content.glContext.get();
+
+		if (!context)
+		{
+			Log::Print(
+				"Cannot load 2D array texture '" + name + "' because its OpenGL context is invalid!",
+				"TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
 		//ensure a fallback texture always exists
 		if (!fallbackTexture) LoadFallbackTexture();
 

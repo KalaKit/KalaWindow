@@ -16,15 +16,20 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/audio.hpp"
 #include "core/containers.hpp"
+#include "core/audio.hpp"
 #include "core/core.hpp"
+#include "graphics/window.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::Audio;
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::windowContent;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::GetValueByID;
+using KalaWindow::Graphics::Window;
 
 using std::unordered_map;
 using std::string;
@@ -146,10 +151,6 @@ namespace KalaWindow::Core
 		isInitialized = false;
 
 		playerMap.clear();
-
-		//also clear all created and runtime audio players
-		runtimeAudioPlayers.clear();
-		createdAudioPlayers.clear();
 
 		ma_engine_uninit(&engine);
 
@@ -411,9 +412,22 @@ namespace KalaWindow::Core
 	//
 
 	AudioPlayer* AudioPlayer::CreateAudioPlayer(
+		u32 windowID,
 		const string& name,
 		const string& filePath)
 	{
+		Window* window = GetValueByID<Window>(windowID);
+
+		if (!window)
+		{
+			Log::Print(
+				"Failed to create audio player '" + name + "' because its window reference is invalid!",
+				"AUDIO_PLAYER",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
 		if (!CheckInitState("create audio player '" + name + "'")) return nullptr;
 
 		if (!exists(filePath))
@@ -530,21 +544,24 @@ namespace KalaWindow::Core
 		playerMap[newID] = move(pData);
 
 		unique_ptr<AudioPlayer> newTrack = make_unique<AudioPlayer>();
-		newTrack->name = name;
-		newTrack->filePath = filePath;
-		newTrack->ID = newID;
+		AudioPlayer* trackPtr = newTrack.get();
 
-		createdAudioPlayers[newID] = move(newTrack);
+		trackPtr->name = name;
+		trackPtr->filePath = filePath;
+		trackPtr->ID = newID;
+		trackPtr->windowID = windowID;
 
-		AudioPlayer* newPlayer = createdAudioPlayers[newID].get();
-		runtimeAudioPlayers.push_back(newPlayer);
+		WindowContent& content = windowContent[window];
+
+		content.audioPlayers[newID] = move(newTrack);
+		content.runtimeAudioPlayers.push_back(trackPtr);
 
 		Log::Print(
 			"Created audio file '" + name + "' with ID '" + to_string(newID) + "'!",
 			"AUDIO_PLAYER",
 			LogType::LOG_SUCCESS);
 
-		return newPlayer;
+		return trackPtr;
 	}
 
 	void AudioPlayer::SetName(const string& newName)
@@ -585,7 +602,10 @@ namespace KalaWindow::Core
 			return;
 		}
 
-		for (const auto& [_, track] : createdAudioPlayers)
+		Window* window = GetValueByID<Window>(windowID);
+		WindowContent& content = windowContent[window];
+
+		for (const auto& [_, track] : content.audioPlayers)
 		{
 			if (track->GetName() == newName)
 			{

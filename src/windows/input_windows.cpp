@@ -12,15 +12,17 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "core/core.hpp"
 #include "core/input.hpp"
-#include "core/containers.hpp"
 #include "graphics/window.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::createdWindows;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::windowContent;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::WindowData;
 
@@ -70,10 +72,9 @@ namespace KalaWindow::Core
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
-		createdInput[newID] = move(newInput);
-		runtimeInput.push_back(inputPtr);
+		WindowContent& content = windowContent[window];
+		content.input = move(newInput);
 
-		window->SetInput(inputPtr);
 		inputPtr->windowID = window->GetID();
 
 		inputPtr->isInitialized = true;

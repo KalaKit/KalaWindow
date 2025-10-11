@@ -13,8 +13,6 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
-#include "core/input.hpp"
-#include "graphics/opengl/opengl.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -22,9 +20,6 @@ namespace KalaWindow::Graphics
 	using std::function;
 	using std::vector;
 	using std::array;
-
-	using KalaWindow::Core::Input;
-	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 
 	enum class DpiContext
 	{
@@ -126,7 +121,7 @@ namespace KalaWindow::Graphics
 		void Update();
 
 		void SetTitle(const string& newTitle) const;
-		string GetTitle() const;
+		const string& GetTitle() const;
 
 		//Set executable icon. Loaded via the texture framework.
 		//The first parameter requires an ID to the texture.
@@ -285,11 +280,6 @@ namespace KalaWindow::Graphics
 		}
 		inline const WindowData& GetWindowData() const { return window_x11; }
 #endif
-		inline void SetOpenGLContext(OpenGL_Context* newValue) { glContext = newValue; }
-		inline OpenGL_Context* GetOpenGLContext() const { return glContext; }
-
-		inline void SetInput(Input* newValue) { input = newValue; }
-		inline Input* GetInput() const { return input; }
 
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
@@ -328,9 +318,6 @@ namespace KalaWindow::Graphics
 #else
 		WindowData window_x11{};     //The X11 data of this window
 #endif
-
-		OpenGL_Context* glContext{};
-		Input* input{};
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn

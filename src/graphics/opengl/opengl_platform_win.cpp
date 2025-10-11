@@ -12,17 +12,21 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl_functions_win.hpp"
 #include "graphics/window.hpp"
 #include "core/core.hpp"
-#include "core/containers.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using namespace KalaWindow::Core;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::GetValueByID;
+using KalaWindow::Core::globalID;
+using KalaWindow::Core::WindowContent;
+using KalaWindow::Core::windowContent;
 using KalaWindow::Graphics::Window;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
@@ -497,7 +501,17 @@ namespace KalaWindow::Graphics::OpenGL
 
 		if (parentContext != 0)
 		{
-			OpenGL_Context* parentCont = GetValueByID<OpenGL_Context>(parentContext);
+			OpenGL_Context* parentCont{};
+
+			for (const auto& content : windowContent)
+			{
+				if (content.second.glContext->ID == parentContext)
+				{
+					parentCont = content.second.glContext.get();
+					break;
+				}
+			}
+
 			if (parentCont)
 			{
 				if (parentCont->GetID() == contPtr->ID)
@@ -591,10 +605,9 @@ namespace KalaWindow::Graphics::OpenGL
 
 		contPtr->contextData = ss2.str();
 
-		createdOpenGLContext[newID] = move(newCont);
-		runtimeOpenGLContext.push_back(contPtr);
+		WindowContent& content = windowContent[window];
+		content.glContext = move(newCont);
 
-		window->SetOpenGLContext(contPtr);
 		contPtr->windowID = window->GetID();
 
 		contPtr->isInitialized = true;
@@ -803,7 +816,9 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		if (!window->GetOpenGLContext())
+		WindowContent& content = windowContent[window];
+
+		if (!content.glContext)
 		{
 			Log::Print(
 				"Cannot shut down OpenGL context because the target window doesn't have one!",

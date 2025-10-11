@@ -5,8 +5,8 @@
 
 #include <memory>
 
-#include "ui/image.hpp"
 #include "core/containers.hpp"
+#include "ui/image.hpp"
 
 using KalaWindow::Core::globalID;
 

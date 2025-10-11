@@ -15,12 +15,12 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/containers.hpp"
 #include "core/core.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/texture.hpp"
-#include "core/containers.hpp"
 #include "core/audio.hpp"
 #include "graphics/window_global.hpp"
 
@@ -130,20 +130,8 @@ namespace KalaWindow::Core
 		runtimeOpenGLTextures.clear();
 		runtimeOpenGLShaders.clear();
 
-		createdCameras.clear();
-		runtimeCameras.clear();
-
-		createdWidgets.clear();
-		runtimeWidgets.clear();
-		runtimeText.clear();
-		runtimeImages.clear();
-
-		createdInput.clear();
-		createdOpenGLContext.clear();
+		windowContent.clear();
 		createdWindows.clear();
-
-		runtimeInput.clear();
-		runtimeOpenGLContext.clear();
 		runtimeWindows.clear();
 
 #ifdef _WIN32
