@@ -14,16 +14,19 @@
 #include "core/glm_global.hpp"
 
 #include "graphics/opengl/opengl_shader.hpp"
+#include "graphics/opengl/opengl_texture.hpp"
+
 
 namespace KalaWindow::UI
 {
-	constexpr u16 MAX_Z_ORDER = 1024u;
-
 	using std::string;
 	using std::vector;
 	using std::clamp;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
+	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
+
+	constexpr u16 MAX_Z_ORDER = 1024u;
 
 	class LIB_API Widget
 	{
@@ -37,11 +40,56 @@ namespace KalaWindow::UI
 			const mat4& view,
 			const mat4& projection) = 0;
 
+		//Skip hit testing if true
+		inline void SetInteractableState(bool newValue) { isInteractable = newValue; }
+		//Skip hit testing if true
+		inline bool IsInteractable() const { return isInteractable; }
+
+		//No children render past this widget size if true
+		inline void SetClippingState(bool newValue) { isClipping = newValue; }
+		//No children render past this widget size if true
+		inline bool IsClipping() const { return isClipping; }
+
 		inline u32 GetID() const { return ID; }
 
 		//Swapping a window ID at runtime delinks this widget from its parent and its children
 		void SetWindowID(u32 newID);
 		inline u32 GetWindowID() const { return windowID; }
+
+		//Makes this widget Z order 1 unit higher than target widget
+		inline void MoveAbove(Widget* targetWidget)
+		{
+			//skip if target widget is nullptr
+			if (!targetWidget) return;
+			//skip if target widget is this
+			if (targetWidget == this) return;
+			//skip if target widget is not initialized
+			if (!targetWidget->isInitialized) return;
+
+			u16 targetZOrder = targetWidget->zOrder;
+
+			//skip if target z order already is max
+			if (targetZOrder == MAX_Z_ORDER) return;
+
+			zOrder = ++targetZOrder;
+		}
+		//Makes this widget Z order 1 unit lower than target widget
+		inline void MoveBelow(Widget* targetWidget)
+		{
+			//skip if target widget is nullptr
+			if (!targetWidget) return;
+			//skip if target widget is this
+			if (targetWidget == this) return;
+			//skip if target widget is not initialized
+			if (!targetWidget->isInitialized) return;
+
+			u16 targetZOrder = targetWidget->zOrder;
+
+			//skip if target z order already is 0
+			if (targetZOrder == 0) return;
+
+			zOrder = --targetZOrder;
+		}
 
 		inline void SetZOrder(u16 newZOrder)
 		{
@@ -135,12 +183,47 @@ namespace KalaWindow::UI
 		inline u32 GetVBO() const { return VBO; }
 		inline u32 GetEBO() const { return EBO; }
 
+		inline const vector<vec3>& GetVertices() const { return vertices; }
+		inline const vector<u32>& GetIndices() const { return indices; }
+
 		inline void SetShader(OpenGL_Shader* newShader)
 		{
+			//skip if new shader is nullptr
+			if (!newShader) return;
+			//skip if new shader is same as current shader
+			if (shader == newShader) return;
+
 			shader = newShader;
 		}
+		inline void ClearShader() { shader = nullptr; }
 		inline const OpenGL_Shader* GetShader() const { return shader; }
 
+		inline void SetTexture(OpenGL_Texture* newTexture)
+		{
+			//skip if new texture is nullptr
+			if (!newTexture) return;
+			//skip if new texture is same as current texture
+			if (texture == newTexture) return;
+
+			texture = newTexture;
+		}
+		inline void ClearTexture() { texture = nullptr; }
+		inline const OpenGL_Texture* GetTexture() const { return texture; }
+
+		//Returns the top-most widget of this widget
+		inline Widget* GetRoot()
+		{
+			if (!parent) return this;
+
+			return parent->GetRoot();
+		}
+
+		inline bool HasParent()
+		{
+			return parent;
+		}
+
+		//Assigning a new parent clears this from old parent children
 		inline void SetParent(Widget* newParent) 
 		{
 			//skip if parent is nullptr
@@ -161,7 +244,7 @@ namespace KalaWindow::UI
 			//skip if one of the children of this widget already has the same ID
 			for (const auto& c : children)
 			{
-				if (c->ID == newParent->ID)
+				if (c == newParent)
 				{
 					alreadyExists = true;
 					break;
@@ -176,7 +259,7 @@ namespace KalaWindow::UI
 			//skip adding this as new child to parent if it already has this as child
 			for (const auto& c : parent->children)
 			{
-				if (c->ID == ID)
+				if (c == this)
 				{
 					alreadyExists = true;
 					break;
@@ -214,8 +297,8 @@ namespace KalaWindow::UI
 			return parent; 
 		}
 
-		//Returns true if this has the selected child
-		inline bool HasChildByWidget(Widget* child)
+		//Returns true if this or any of its children has the selected widget
+		inline bool HasChildByWidget(const Widget* child)
 		{
 			//skip if child is nullptr
 			if (!child) return false;
@@ -224,25 +307,16 @@ namespace KalaWindow::UI
 			//skip if child is not initialized
 			if (!child->IsInitialized()) return false;
 
-			return find(
-				children.begin(),
-				children.end(),
-				child) 
-				!= children.end();
-		}
-		//Returns true if this has a child with the selected ID
-		inline bool HasChildByID(u32 childID)
-		{
-			//skip if this has no children
-			if (children.empty()) return false;
-
 			for (const auto& c : children)
 			{
-				if (c->ID == childID) return true;
+				if (c == child) return true;
+				if (c->HasChildByWidget(child)) return true;
 			}
 
 			return false;
 		}
+		//Returns true if this has a child with the selected ID
+		bool HasChildByID(u32 childID);
 		//Returns true if this has a child at the selected index
 		inline bool HasChildByIndex(u32 childIndex)
 		{
@@ -367,11 +441,18 @@ namespace KalaWindow::UI
 		virtual ~Widget();
 	protected:
 		bool isInitialized{};
+		bool isInteractable = true;
+		bool isClipping{};
 
 		string name{};
 
 		u32 ID{};
 		u32 windowID{};
+
+		vec3 pos{};
+		vec3 rotVec{};
+		quat rotQuat{};
+		vec3 size{};
 
 		u16 zOrder{};
 
@@ -379,12 +460,14 @@ namespace KalaWindow::UI
 		u32 VBO{};
 		u32 EBO{};
 
-		vec3 pos{};
-		vec3 rotVec{};
-		quat rotQuat{};
-		vec3 size{};
+		vector<vec3> vertices{};
+		vector<u32> indices{};
+
+		vec3 color{};
+		float opacity{};
 
 		OpenGL_Shader* shader{};
+		OpenGL_Texture* texture{};
 
 		Widget* parent{};
 		vector<Widget*> children{};

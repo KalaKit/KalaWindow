@@ -5,8 +5,9 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "ui/widget.hpp"
+#include "ui/text.hpp"
+#include "core/containers.hpp"
 #include "graphics/window.hpp"
 
 using KalaHeaders::Log;
@@ -35,6 +36,24 @@ namespace KalaWindow::UI
 		RemoveParent();
 
 		windowID = newID;
+	}
+
+	bool Widget::HasChildByID(u32 childID)
+	{
+		//skip if this has no children
+		if (children.empty()) return false;
+
+		Widget* child{};
+		if (auto* c = GetValueByID<Text>(childID))
+		{
+			child = c;
+		}
+
+		if (!child) return false;
+
+		if (HasChildByWidget(child)) return true;
+
+		return false;
 	}
 
 	Widget::~Widget()
