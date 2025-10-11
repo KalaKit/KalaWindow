@@ -26,8 +26,7 @@ namespace KalaWindow::Core
 	unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures{};
 	unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders{};
 
-	unordered_map<u32, unique_ptr<Text>> createdText{};
-	unordered_map<u32, unique_ptr<Image>> createdImages{};
+	unordered_map<u32, unique_ptr<Widget>> createdWidgets{};
 
 	//
 	// RUNTIME STAGE VECTORS
@@ -46,6 +45,7 @@ namespace KalaWindow::Core
 	vector<OpenGL_Texture*> runtimeOpenGLTextures{};
 	vector<OpenGL_Shader*> runtimeOpenGLShaders{};
 
+	vector<Widget*> runtimeWidgets{};
 	vector<Text*> runtimeText{};
 	vector<Image*> runtimeImages{};
 }

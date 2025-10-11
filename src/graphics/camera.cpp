@@ -47,8 +47,7 @@ namespace KalaWindow::Graphics
 
 		OpenGL_Context* context = window->GetOpenGLContext();
 		if (!context
-			|| (context
-			&& !context->IsInitialized()))
+			|| !context->IsInitialized())
 		{
 			Log::Print(
 				"Cannot create camera '" + cameraName + "' because the target window '" + window->GetTitle() + "' OpenGL context is invalid!",
