@@ -9,16 +9,16 @@
 
 namespace KalaWindow::UI
 {
-	class Text : public Widget
+	class Image : public Widget
 	{
 	public:
-		static Text* Initialize();
+		static Image* Initialize();
 
 		virtual bool Render(
 			const mat4& view,
 			const mat4& projection) override;
 
 		//Do not destroy manually, erase from containers.hpp instead
-		virtual ~Text();
+		virtual ~Image();
 	};
 }

@@ -5,7 +5,7 @@
 
 #include <memory>
 
-#include "ui/text.hpp"
+#include "ui/image.hpp"
 #include "core/containers.hpp"
 
 using KalaWindow::Core::globalID;
@@ -15,19 +15,19 @@ using std::make_unique;
 
 namespace KalaWindow::UI
 {
-	Text* Text::Initialize()
+	Image* Image::Initialize()
 	{
 		return nullptr;
 	}
 
-	bool Text::Render(
+	bool Image::Render(
 		const mat4& view,
 		const mat4& projection)
 	{
 		return false;
 	}
 
-	Text::~Text()
+	Image::~Image()
 	{
 
 	}

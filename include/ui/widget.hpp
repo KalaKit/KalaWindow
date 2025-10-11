@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <algorithm>
+#include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
 
@@ -16,12 +17,12 @@
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 
-
 namespace KalaWindow::UI
 {
 	using std::string;
 	using std::vector;
 	using std::clamp;
+	using std::function;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;

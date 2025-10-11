@@ -454,6 +454,8 @@ namespace KalaWindow::Core
 
 	void Input::ClearInputEvents()
 	{
+		lastLetter.clear();
+
 		fill(keyPressed.begin(), keyPressed.end(), false);
 		fill(keyReleased.begin(), keyReleased.end(), false);
 		fill(mousePressed.begin(), mousePressed.end(), false);

@@ -7,6 +7,7 @@
 
 #include <array>
 #include <span>
+#include <string>
 
 #include "KalaHeaders/core_utils.hpp"
 
@@ -18,6 +19,7 @@ namespace KalaWindow::Core
 	using std::fill;
 	using std::prev;
 	using std::span;
+	using std::string;
 
 	enum class Key : uint32_t
 	{
@@ -183,6 +185,10 @@ namespace KalaWindow::Core
 		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
+		inline void SetTypedLetter(const string& letter) { lastLetter = letter; }
+		//Get the letter that was typed this frame
+		inline const string& GetTypedLetter() const { return lastLetter; }
+
 		void SetKeyState(
 			Key key,
 			bool isDown);
@@ -271,6 +277,8 @@ namespace KalaWindow::Core
 
 		u32 ID{};
 		u32 windowID{};
+
+		string lastLetter{};
 
 		array<
 			bool,

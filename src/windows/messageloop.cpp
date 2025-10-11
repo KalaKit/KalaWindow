@@ -132,7 +132,6 @@ static const unordered_map<Key, string> KeyToStringMap = {
     { Key::BrowserSearch, "BrowserSearch" }, { Key::BrowserFavorites, "BrowserFavorites" }, { Key::BrowserHome, "BrowserHome" }
 };
 
-
 static const unordered_map<WPARAM, Key> VKToKeyMap = {
 	// Letters
 	{ 'A', Key::A }, { 'B', Key::B }, { 'C', Key::C }, { 'D', Key::D },
@@ -505,6 +504,35 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_UNICHAR:
 	case WM_CHAR:
 	{
+		if (input)
+		{
+			wstring wstr(1, static_cast<wchar_t>(msg.wParam));
+			string sstr = ToShort(wstr);
+
+			if (sstr == "\t")
+			{
+				sstr = " ";
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Converted 'tab' to four spaces.",
+						"INPUT",
+						LogType::LOG_INFO);
+				}
+			}
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected char '" + sstr + "'",
+					"INPUT",
+					LogType::LOG_INFO);
+			}
+
+			input->SetTypedLetter(sstr);
+		}
+
 		return true; //we handled it
 	}
 
@@ -526,7 +554,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Log::Print(
 				"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' down.",
-				"INPUT_WINDOWS",
+				"INPUT",
 				LogType::LOG_INFO);
 		}
 
@@ -557,7 +585,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		{
 			Log::Print(
 				"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' up.",
-				"INPUT_WINDOWS",
+				"INPUT",
 				LogType::LOG_INFO);
 		}
 
@@ -635,7 +663,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected left mouse key double click.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -654,7 +682,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected right mouse key double click.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -673,7 +701,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected middle mouse key double click.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -696,7 +724,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				{
 					Log::Print(
 						"Detected x1 mouse key double click.",
-						"INPUT_WINDOWS",
+						"INPUT",
 						LogType::LOG_INFO);
 				}
 			}
@@ -710,7 +738,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				{
 					Log::Print(
 						"Detected x2 mouse key double click.",
-						"INPUT_WINDOWS",
+						"INPUT",
 						LogType::LOG_INFO);
 				}
 			}
@@ -734,7 +762,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected left mouse key down.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -753,7 +781,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected left mouse key up.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -773,7 +801,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected right mouse key down.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -792,7 +820,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected right mouse key up.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -812,7 +840,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected middle mouse key down.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -831,7 +859,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			{
 				Log::Print(
 					"Detected middle mouse key up.",
-					"INPUT_WINDOWS",
+					"INPUT",
 					LogType::LOG_INFO);
 			}
 		}
@@ -854,7 +882,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				{
 					Log::Print(
 						"Detected x1 mouse key down.",
-						"INPUT_WINDOWS",
+						"INPUT",
 						LogType::LOG_INFO);
 				}
 			}
@@ -871,7 +899,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				{
 					Log::Print(
 						"Detected x2 mouse key down.",
-						"INPUT_WINDOWS",
+						"INPUT",
 						LogType::LOG_INFO);
 				}
 			}
@@ -893,7 +921,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				{
 					Log::Print(
 						"Detected x1 mouse key up.",
-						"INPUT_WINDOWS",
+						"INPUT",
 						LogType::LOG_INFO);
 				}
 			}
@@ -910,7 +938,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				{
 					Log::Print(
 						"Detected x2 mouse key up.",
-						"INPUT_WINDOWS",
+						"INPUT",
 						LogType::LOG_INFO);
 				}
 			}
