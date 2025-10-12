@@ -23,6 +23,7 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 using KalaHeaders::TimeFormat;
+using KalaHeaders::DateFormat;
 
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -182,7 +183,9 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		Log::Print(
 			"Dump file creation disabled by user.",
 			"CRASH_HANDLER",
-			LogType::LOG_DEBUG);
+			LogType::LOG_DEBUG,
+			0,
+			true);
 	}
 
 	if (Window_Global::CreatePopup(
@@ -195,6 +198,15 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		WriteLog(
 			oss.str(),
 			timeStamp);
+
+		Log::Print(
+			oss.str(),
+			"FORCE CLOSE",
+			LogType::LOG_ERROR,
+			2,
+			true,
+			TimeFormat::TIME_NONE,
+			DateFormat::DATE_NONE);
 
 		if (assignedShutdownFunction) assignedShutdownFunction();
 	}

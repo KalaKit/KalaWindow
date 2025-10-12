@@ -17,6 +17,7 @@
 #pragma comment(lib, "winmm.lib")
 
 #include <filesystem>
+#include <sstream>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -32,6 +33,7 @@ using KalaWindow::Windows::MessageLoop;
 
 using std::to_string;
 using std::wstring;
+using std::ostringstream;
 using Microsoft::WRL::ComPtr;
 using namespace winrt::Windows::UI::Notifications;
 using namespace winrt::Windows::Data::Xml::Dom;
