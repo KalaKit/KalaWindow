@@ -20,6 +20,7 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
+#include "ui/font.hpp"
 #include "ui/widget.hpp"
 #include "ui/text.hpp"
 #include "ui/image.hpp"
@@ -35,6 +36,7 @@ namespace KalaWindow::Core
 	using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
+	using KalaWindow::UI::Font;
 	using KalaWindow::UI::Widget;
 	using KalaWindow::UI::Text;
 	using KalaWindow::UI::Image;
@@ -98,6 +100,8 @@ namespace KalaWindow::Core
 	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
 	LIB_API extern unordered_map<Window*, unique_ptr<WindowContent>> windowContent;
 
+	LIB_API extern unordered_map<u32, unique_ptr<Font>> createdFonts;
+
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
 
@@ -107,6 +111,8 @@ namespace KalaWindow::Core
 
 	LIB_API extern vector<Window*> runtimeWindows;
 	LIB_API extern vector<WindowContent*> runtimeWindowContent;
+
+	LIB_API extern vector<Font*> runtimeFonts;
 
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
@@ -118,6 +124,7 @@ namespace KalaWindow::Core
 	template<typename T> struct ContainerOf;
 
 	template<> struct ContainerOf<Window>         { static inline auto& get() { return createdWindows; } };
+	template<> struct ContainerOf<Font>           { static inline auto& get() { return createdFonts; } };
 	template<> struct ContainerOf<OpenGL_Texture> { static inline auto& get() { return createdOpenGLTextures; } };
 	template<> struct ContainerOf<OpenGL_Shader>  { static inline auto& get() { return createdOpenGLShaders; } };
 
