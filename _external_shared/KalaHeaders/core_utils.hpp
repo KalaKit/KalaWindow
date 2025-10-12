@@ -21,6 +21,10 @@
 #include <cstdint>
 #include <type_traits>
 
+//for commonly used types
+#include <utility>
+#include <algorithm>
+
 #ifdef _WIN32
 #include <basetsd.h>
 #endif
@@ -29,6 +33,11 @@ using std::is_pointer_v;
 using std::is_integral_v;
 using std::is_enum_v;
 using std::underlying_type_t;
+
+//commonly used
+using std::clamp;
+using std::move;
+using std::find;
 
 //
 // CROSS-PLATFORM IMPORT/EXPORT

@@ -162,6 +162,7 @@ namespace KalaWindow::Core
 		//Create a new audio player. If file size is less than or equal to 10MB
 		//then file is loaded into memory in full, otherwise it is streamed.
 		static AudioPlayer* CreateAudioPlayer(
+			u32 windowID,
 			const string& name,
 			const string& filePath);
 
@@ -283,7 +284,9 @@ namespace KalaWindow::Core
 	private:
 		string name{};
 		string filePath{};
+
 		u32 ID{};
+		u32 windowID{};
 
 		bool isPaused{};
 	};
