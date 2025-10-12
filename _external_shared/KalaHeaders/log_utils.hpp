@@ -8,7 +8,7 @@
 //
 // Provides:
 //   - Detailed logger - time, date, log type, origin tag
-//   - Simple logger - just a cout to the console with a single string parameter
+//   - Simple logger - just a fwrite to the console with a single string parameter
 //   - Log types - info (no log type stamp), debug (skipped in release), success, warning, error
 //   - Time stamp, date stamp accurate to system clock
 //------------------------------------------------------------------------------
@@ -16,24 +16,21 @@
 #pragma once
 
 #include <string>
-#include <sstream>
-#include <iostream>
 #include <chrono>
+#include <array>
 
 namespace KalaHeaders
 {
 	using std::string;
-	using std::ostringstream;
-	using std::cout;
-	using std::clog;
-	using std::cerr;
+	using std::string_view;
 	using std::chrono::system_clock;
 	using std::chrono::duration_cast;
+	using std::chrono::microseconds;
 	using std::chrono::milliseconds;
-	using std::setfill;
-	using std::setw;
-	using std::put_time;
 	using std::localtime;
+	using std::array;
+	using std::fwrite;
+	using std::fflush;
 
 	enum class LogType
 	{
@@ -67,10 +64,17 @@ namespace KalaHeaders
 		DATE_FILENAME_MDY  //12-31-2025
 	};
 
+	struct CachedPrefix
+	{
+		LogType type{};
+		string target{};
+		string prefix{};
+	};
+
 	class Log
 	{
 	public:
-		static void SetDefaultTimeFormat(TimeFormat format)
+		static inline void SetDefaultTimeFormat(TimeFormat format)
 		{
 			if (format == TimeFormat::TIME_DEFAULT)
 			{
@@ -92,12 +96,12 @@ namespace KalaHeaders
 
 			defaultTimeFormat = format;
 		}
-		static TimeFormat GetDefaultTimeFormat()
+		static inline TimeFormat GetDefaultTimeFormat()
 		{
 			return defaultTimeFormat;
 		}
 
-		static void SetDefaultDateFormat(DateFormat format)
+		static inline void SetDefaultDateFormat(DateFormat format)
 		{
 			if (format == DateFormat::DATE_DEFAULT)
 			{
@@ -124,63 +128,83 @@ namespace KalaHeaders
 			return defaultDateFormat;
 		}
 
-		//Returns current time in chosen or default format.
-		static const string& GetTime(TimeFormat timeFormat = TimeFormat::TIME_DEFAULT)
+		//Returns current time in chosen or default format
+		static inline const string& GetTime(TimeFormat timeFormat = TimeFormat::TIME_DEFAULT)
 		{
-			static string result{};
+			static string cached[static_cast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
+			static long long last_ms = -1;
+
+			static const string empty{};
 
 			if (timeFormat == TimeFormat::TIME_NONE
 				|| (timeFormat == TimeFormat::TIME_DEFAULT
-					&& defaultTimeFormat == TimeFormat::TIME_NONE))
+				&& defaultTimeFormat == TimeFormat::TIME_NONE))
 			{
-				return result;
+				return empty;
 			}
 			if (timeFormat == TimeFormat::TIME_DEFAULT)
 			{
 				return GetTime(defaultTimeFormat);
 			}
 
-			auto now = system_clock::now();
-			auto in_time_t = system_clock::to_time_t(now);
-			auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
+			const auto now = system_clock::now();
+			const auto us_since_epoch = duration_cast<microseconds>(now.time_since_epoch()).count();
+			const auto ms_since_epoch = duration_cast<milliseconds>(now.time_since_epoch()).count();
+	
+			if (ms_since_epoch == last_ms
+				&& !cached[static_cast<int>(timeFormat)].empty())
+			{
+				return cached[static_cast<int>(timeFormat)];
+			}
 
-			ostringstream ss{};
+			last_ms = ms_since_epoch;
+
+			const auto in_time_t = system_clock::to_time_t(now);
+			const int ms = (us_since_epoch / 1000) % 1000;
+			const int us = us_since_epoch % 1000000;
+
+			tm timeInfo{};
+			localtime_s(&timeInfo, &in_time_t);
+
+			char buffer[32]{};
 			switch (timeFormat)
 			{
-			default: break;
 			case TimeFormat::TIME_HMS:
-				ss << put_time(localtime(&in_time_t), "%H:%M:%S");
+				strftime(buffer, sizeof(buffer), "%H:%M:%S", &timeInfo);
 				break;
 			case TimeFormat::TIME_HMS_MS:
-				ss << put_time(localtime(&in_time_t), "%H:%M:%S")
-					<< ':'
-					<< setw(3)
-					<< setfill('0')
-					<< ms.count();
+				{
+					char tmp[16]{};
+					strftime(tmp, sizeof(tmp), "%H:%M:%S", &timeInfo);
+					snprintf(buffer, sizeof(buffer), "%s:%03d", tmp, ms);
+				}
 				break;
 			case TimeFormat::TIME_12H:
-				ss << put_time(localtime(&in_time_t), "%I:%M:%S %p");
+				strftime(buffer, sizeof(buffer), "%I:%M:%S %p", &timeInfo);
 				break;
 			case TimeFormat::TIME_ISO_8601:
-				ss << put_time(localtime(&in_time_t), "%H:%M:%S") << "Z";
+				strftime(buffer, sizeof(buffer), "%H:%M:%SZ", &timeInfo);
 				break;
 			case TimeFormat::TIME_FILENAME:
-				ss << put_time(localtime(&in_time_t), "%H-%M-%S");
+				strftime(buffer, sizeof(buffer), "%H-%M-%S", &timeInfo);
 				break;
 			case TimeFormat::TIME_FILENAME_MS:
-				ss << put_time(localtime(&in_time_t), "%H-%M-%S")
-					<< '-'
-					<< setw(3)
-					<< setfill('0')
-					<< ms.count();
+				{
+					char tmp[16]{};
+					strftime(tmp, sizeof(tmp), "%H-%M-%S", &timeInfo);
+					snprintf(buffer, sizeof(buffer), "%s:%03d", tmp, ms);
+				}
+				break;
+			default:
+				buffer[0] = '\0';
 				break;
 			}
 
-			result = ss.str();
-			return result;
+			cached[static_cast<int>(timeFormat)] = buffer;
+			return cached[static_cast<int>(timeFormat)];
 		}
 		//Returns current date in chosen or default format.
-		static const string& GetDate(DateFormat dateFormat = DateFormat::DATE_DEFAULT)
+		static inline const string& GetDate(DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
 			static string result{};
 
@@ -195,56 +219,59 @@ namespace KalaHeaders
 				return GetDate(defaultDateFormat);
 			}
 
-			auto now = system_clock::now();
-			auto in_time_t = system_clock::to_time_t(now);
+			const auto now = system_clock::now();
+			const auto in_time_t = system_clock::to_time_t(now);
 
-			ostringstream ss{};
+			tm timeInfo{};
+			localtime_s(&timeInfo, &in_time_t);
 
+			char buffer[64]{};
 			switch (dateFormat)
 			{
-			default: break;
 			case DateFormat::DATE_DMY:
-				ss << put_time(localtime(&in_time_t), "%d/%m/%Y");
+				strftime(buffer, sizeof(buffer), "%d/%m/%Y", &timeInfo);
 				break;
 			case DateFormat::DATE_MDY:
-				ss << put_time(localtime(&in_time_t), "%m/%d/%Y");
+				strftime(buffer, sizeof(buffer), "%m/%d/%Y", &timeInfo);
 				break;
 			case DateFormat::DATE_ISO_8601:
-				ss << put_time(localtime(&in_time_t), "%Y-%m-%d");
+				strftime(buffer, sizeof(buffer), "%Y-%m-%d", &timeInfo);
 				break;
 			case DateFormat::DATE_TEXT_DMY:
-				ss << put_time(localtime(&in_time_t), "%d %B, %Y");
+				strftime(buffer, sizeof(buffer), "%d %B, %Y", &timeInfo);
 				break;
 			case DateFormat::DATE_TEXT_MDY:
-				ss << put_time(localtime(&in_time_t), "%B %d, %Y");
+				strftime(buffer, sizeof(buffer), "%B %d, %Y", &timeInfo);
 				break;
 			case DateFormat::DATE_FILENAME_DMY:
-				ss << put_time(localtime(&in_time_t), "%d-%B-%Y");
+				strftime(buffer, sizeof(buffer), "%d-%B-%Y", &timeInfo);
 				break;
 			case DateFormat::DATE_FILENAME_MDY:
-				ss << put_time(localtime(&in_time_t), "%B-%d-%Y");
+				strftime(buffer, sizeof(buffer), "%B-%d-%Y", &timeInfo);
 				break;
+			default:
+				buffer[0] = '\0';
 			}
-			result = ss.str();
 
+			result.assign(buffer);;
 			return result;
 		}
 
-		//Prints a log message to the console using
-		//cout, clog or cerr depending on the log type.
+		//Prints a log message to the console using fwrite.
 		//A newline is added automatically so std::endline or \n is not needed.
-		//Full result: [DATE | TIME] [ TYPE | TARGET ] MESSAGE
 		//  - message: the actual message of this log
 		//  - target: name of the namespace, class, function or variable of this log
 		//  - type: sets the tag type, LOG_INFO has no tag
 		//  - indentation: optional leading space count in after time and date stamp
+		//  - flush: set to true for crash logs, diagnostics, assertion failures
 		//  - timeFormat: optional time stamp
 		//  - dateFormat: optional date stamp
-		static void Print(
+		static inline void Print(
 			const string& message,
 			const string& target,
 			LogType type,
 			unsigned int indentation = 0,
+			bool flush = false,
 			TimeFormat timeFormat = TimeFormat::TIME_DEFAULT,
 			DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
@@ -271,90 +298,85 @@ namespace KalaHeaders
 				return;
 			}
 
-			string safeMessage = message;
-			string safeTarget = target;
-			if (message.length() > 5000)
-			{
-				Print(
-					"Log message length is too long! Message was cut off after 5000 characters.",
-					"LOG",
-					LogType::LOG_WARNING);
-				safeMessage = safeMessage.substr(0, 4997) + "...";
-			}
-			if (target.length() > 20)
-			{
-				Print(
-					"Log target length is too long! Target was cut off after 20 characters.",
-					"LOG",
-					LogType::LOG_WARNING);
-				safeTarget = safeTarget.substr(0, 17) + "...";
-			}
+			string_view safeMessage{ message };
+			string_view safeTarget{ target };
+			if (message.size() > 2046) safeMessage = safeMessage.substr(0, 2046);
+			if (target.size() > 20) safeTarget = safeTarget.substr(0, 19);
 
-			string fullMessage{};
-
-			string indent(indentation, ' ');
-
-			if (dateFormat != DateFormat::DATE_NONE
-				&& defaultDateFormat != DateFormat::DATE_NONE)
-			{
-				string dateStamp = GetDate(dateFormat);
-				fullMessage += "[ " + dateStamp + " ] ";
-			}
-
-			if (timeFormat != TimeFormat::TIME_NONE
+			const string& timeStamp = (
+				timeFormat != TimeFormat::TIME_NONE
 				&& defaultTimeFormat != TimeFormat::TIME_NONE)
+				? GetTime(timeFormat)
+				: "";
+
+			const string& dateStamp = (
+				dateFormat != DateFormat::DATE_NONE
+				&& defaultDateFormat != DateFormat::DATE_NONE)
+				? GetDate(dateFormat)
+				: "";
+
+			const string& prefix = GetCachedPrefix(type, safeTarget);
+
+			thread_local array<char, 2048> buf{};
+			char* p = buf.data();
+
+			//append [ date ] [ time ]
+			if (!dateStamp.empty())
 			{
-				string timeStamp = GetTime(timeFormat);
-
-				fullMessage += "[ " + timeStamp + " ] ";
-				if (!indent.empty()) fullMessage += indent;
+				*p++ = '[';
+				*p++ = ' ';
+				memcpy(p, dateStamp.data(), dateStamp.size());
+				p += dateStamp.size();
+				*p++ = ' ';
+				*p++ = ']';
+				*p++ = ' ';
 			}
-			else
+			if (!timeStamp.empty())
 			{
-				if (!indent.empty()) fullMessage += indent;
+				*p++ = '[';
+				*p++ = ' ';
+				memcpy(p, timeStamp.data(), timeStamp.size());
+				p += timeStamp.size();
+				*p++ = ' ';
+				*p++ = ']';
+				*p++ = ' ';
 			}
 
-			fullMessage += "[ ";
-
-			string logType{};
-			switch (type)
+			//indentation
+			if (indentation > 0)
 			{
-			case LogType::LOG_DEBUG:
-				fullMessage += "DEBUG | ";
-				break;
-			case LogType::LOG_SUCCESS:
-				fullMessage += "SUCCESS | ";
-				break;
-			case LogType::LOG_WARNING:
-				fullMessage += "WARNING | ";
-				break;
-			case LogType::LOG_ERROR:
-				fullMessage += "ERROR | ";
-				break;
+				memset(p, ' ', indentation);
+				p += indentation;
 			}
 
-			fullMessage += target + " ] " + message + "\n";
+			//cached prefix
+			memcpy(p, prefix.data(), prefix.size());
+			p += prefix.size();
 
-			switch (type)
-			{
-			case LogType::LOG_ERROR:
-				cerr << fullMessage;
-				break;
-			case LogType::LOG_WARNING:
-			case LogType::LOG_DEBUG:
-				clog << fullMessage;
-				break;
-			case LogType::LOG_INFO:
-			case LogType::LOG_SUCCESS:
-			default:
-				cout << fullMessage;
-				break;
-			}
+			//message
+			memcpy(p, safeMessage.data(), safeMessage.size());
+			p += safeMessage.size();
+
+			//newline
+			*p++ = '\n';
+
+			FILE* out = (type == LogType::LOG_ERROR)
+				? stderr
+				: stdout;
+
+			const size_t length = static_cast<size_t>(p - buf.data());
+			fwrite(buf.data(), 1, length, out);
+
+			if (flush) fflush(out);
 		}
 
-		//Overload for the core print function.
-		//This one simply prints the message to cout with a newline at the end.
-		static void Print(const string& message)
+		//Prints a log message to the console using fwrite.
+		//A newline is added automatically so std::endline or \n is not needed.
+		//  - message: the actual message of this log
+		//  - flush: set to true for crash logs, diagnostics, assertion failures
+		static inline void Print(
+			const string& message,
+			bool flush = false)
 		{
 			if (message.empty())
 			{
@@ -366,21 +388,76 @@ namespace KalaHeaders
 				return;
 			}
 
-			string safeMessage = message;
-			if (message.length() > 5000)
-			{
-				Print(
-					"Log message length is too long! Message was cut off after 5000 characters.",
-					"LOG",
-					LogType::LOG_DEBUG);
-				safeMessage = safeMessage.substr(0, 4997) + "...";
-			}
+			string_view safeView{ message };
+			if (safeView.size() > 2046) safeView = safeView.substr(0, 2046);
 
+			thread_local array<char, 2048> buf{};
+			const size_t length = safeView.size();
+			const size_t totalLength = length + 1; //+1 for '\n'
 
-			cout << safeMessage << "\n";
+			memcpy(buf.data(), safeView.data(), length);
+			buf[length] = '\n';
+
+			fwrite(buf.data(), 1, totalLength, stdout);
+			if (flush) fflush(stdout);
 		}
 	private:
 		static inline TimeFormat defaultTimeFormat = TimeFormat::TIME_HMS_MS;
 		static inline DateFormat defaultDateFormat = DateFormat::DATE_NONE;
+
+		static inline thread_local array<CachedPrefix, 64> prefixCache;
+		static inline thread_local size_t prefixCount;
+
+		static constexpr const char* LogTypeTag[] =
+		{
+			"",           //LOG_INFO
+			"DEBUG | ",
+			"SUCCESS | ",
+			"WARNING | ",
+			"ERROR | "
+		};
+
+		static inline const string& GetCachedPrefix(
+			LogType type,
+			string_view target)
+		{
+			//search existing entries
+
+			for (size_t i = 0; i < prefixCount; ++i)
+			{
+				const auto& e = prefixCache[i];
+				if (e.type == type
+					&& e.target == target)
+				{
+					return e.prefix;
+				}
+			}
+
+			//not found, make new
+
+			const char* tag = LogTypeTag[static_cast<size_t>(type)];
+			const size_t tagLength = strlen(tag);
+			const size_t targetLength = target.size();
+
+			//"[ " + tag + target + "] " = 2 + tagLength + targetLength + 2
+
+			string built{};
+			built.resize(2 + tagLength + targetLength + 2);
+
+			char* p = built.data();
+			p[0] = '[';
+			p[1] = ' ';
+			memcpy(p + 2, tag, tagLength);
+			memcpy(p + 2 + tagLength, target.data(), targetLength);
+			p[2 + tagLength + targetLength] = ']';
+			p[3 + tagLength + targetLength] = ' ';
+
+			size_t index = (prefixCount < prefixCache.size())
+				? prefixCount++
+				: (prefixCount++ % prefixCache.size());
+
+			prefixCache[index] = { type, string(target), move(built) };
+			return prefixCache[index].prefix;
+		}
 	};
 }

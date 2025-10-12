@@ -638,9 +638,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to get target '"
-					<< target << "' line count because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to get target '" << target
+					<< "' line count because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -864,9 +869,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to write text to target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to write text to target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -915,9 +925,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to read text from target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to read text from target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -995,9 +1010,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to write lines to target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to write lines to target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -1053,9 +1073,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to read lines from target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to read lines from target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -1212,9 +1237,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to write binary to target '"
-					<< target << "' because it couldn't be opened! Reason: " << strerror(err);
+				oss << "Failed to write binary lines to target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -1227,11 +1257,15 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to write binary lines to target '"
-					<< target << "' because a write error occured! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to write binary lines to target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
 
-				out.close();
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
+
 				return oss.str();
 			}
 
@@ -1239,7 +1273,7 @@ namespace KalaHeaders
 		}
 		catch (exception& e)
 		{
-			oss << "Failed to write binary to target '" << target << "'! Reason: " << e.what();
+			oss << "Failed to write binary lines to target '" << target << "'! Reason: " << e.what();
 
 			return oss.str();
 		}
@@ -1282,9 +1316,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to read binary from target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to read binary lines from target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -1296,7 +1335,7 @@ namespace KalaHeaders
 			{
 				in.close();
 
-				oss << "Failed to read binary from target '" << target << "' because it had no data!";
+				oss << "Failed to read binary lines from target '" << target << "' because it had no data!";
 
 				return oss.str();
 			}
@@ -1307,7 +1346,7 @@ namespace KalaHeaders
 			{
 				in.close();
 
-				oss << "Failed to read binary from target '" << target << "' because rangeEnd '"
+				oss << "Failed to read binary lines from target '" << target << "' because rangeEnd '"
 					<< rangeEnd << "' is lower or equal to rangeStart '" << rangeStart << "'!";
 
 				return oss.str();
@@ -1316,7 +1355,7 @@ namespace KalaHeaders
 			{
 				in.close();
 
-				oss << "Failed to read binary from target '" << target << "' because rangeStart '"
+				oss << "Failed to read binary lines from target '" << target << "' because rangeStart '"
 					<< rangeStart << "' is higher or equal to rangeEnd '" << rangeEnd << "'!";
 
 				return oss.str();
@@ -1325,7 +1364,7 @@ namespace KalaHeaders
 			{
 				in.close();
 
-				oss << "Failed to read binary from target '" << target << "' because rangeStart '"
+				oss << "Failed to read binary lines from target '" << target << "' because rangeStart '"
 					<< rangeStart << "' is higher or equal to file size '" << fileSize << "'!";
 
 				return oss.str();
@@ -1334,7 +1373,7 @@ namespace KalaHeaders
 			{
 				in.close();
 
-				oss << "Failed to read binary from target '" << target << "' because rangeEnd '"
+				oss << "Failed to read binary lines from target '" << target << "' because rangeEnd '"
 					<< rangeEnd << "' is higher than file size '" << fileSize << "'!";
 
 				return oss.str();
@@ -1352,11 +1391,15 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to read binary lines from target '"
-					<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to read binary lines from target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
 
-				in.close();
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
+
 				return oss.str();
 			}
 
@@ -1366,7 +1409,7 @@ namespace KalaHeaders
 
 			if (bytesRead != readSize)
 			{
-				oss << "Failed to read binary from target '" << target << "'!"
+				oss << "Failed to read binary lines from target '" << target << "'!"
 					<< " Expected size was '" << readSize << "' bytes but result was '" << bytesRead << "' bytes.";
 
 				return oss.str();
@@ -1422,9 +1465,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to get binary data range from target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to get ragge by value from target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -1488,10 +1536,15 @@ namespace KalaHeaders
 					&& errno != 0)
 				{
 					int err = errno;
-					oss << "Failed to get range by value from target '"
-						<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
+					char buf[256]{};
 
-					in.close();
+					oss << "Failed to get range by value from target '" << target
+						<< "' because it couldn't be opened! "
+						<< "Reason: (errno " << err << "): ";
+
+					if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+					else oss << " Unknown error";
+
 					return oss.str();
 				}
 
@@ -1571,9 +1624,14 @@ namespace KalaHeaders
 				&& errno != 0)
 			{
 				int err = errno;
+				char buf[256]{};
 
-				oss << "Failed to get binary data range from target '"
-					<< target << "' because it couldn't be opened! Reason: (errno " << err << "): " << strerror(err);
+				oss << "Failed to get range by value from target '" << target
+					<< "' because it couldn't be opened! "
+					<< "Reason: (errno " << err << "): ";
+
+				if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+				else oss << " Unknown error";
 
 				return oss.str();
 			}
@@ -1637,11 +1695,15 @@ namespace KalaHeaders
 					&& errno != 0)
 				{
 					int err = errno;
+					char buf[256]{};
 
-					oss << "Failed to get range by value from target '"
-						<< target << "' because a read error occured! Reason: (errno " << err << "): " << strerror(err);
+					oss << "Failed to get range by value from target '" << target
+						<< "' because it couldn't be opened! "
+						<< "Reason: (errno " << err << "): ";
 
-					in.close();
+					if (strerror_s(buf, sizeof(buf), err) == 0) oss << buf;
+					else oss << " Unknown error";
+
 					return oss.str();
 				}
 
