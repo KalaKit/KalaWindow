@@ -551,10 +551,10 @@ namespace KalaWindow::Core
 		trackPtr->ID = newID;
 		trackPtr->windowID = windowID;
 
-		WindowContent& content = windowContent[window];
+		WindowContent* content = windowContent[window].get();
 
-		content.audioPlayers[newID] = move(newTrack);
-		content.runtimeAudioPlayers.push_back(trackPtr);
+		content->audioPlayers[newID] = move(newTrack);
+		content->runtimeAudioPlayers.push_back(trackPtr);
 
 		Log::Print(
 			"Created audio file '" + name + "' with ID '" + to_string(newID) + "'!",
@@ -603,9 +603,9 @@ namespace KalaWindow::Core
 		}
 
 		Window* window = GetValueByID<Window>(windowID);
-		WindowContent& content = windowContent[window];
+		WindowContent* content = windowContent[window].get();
 
-		for (const auto& [_, track] : content.audioPlayers)
+		for (const auto& [_, track] : content->audioPlayers)
 		{
 			if (track->GetName() == newName)
 			{

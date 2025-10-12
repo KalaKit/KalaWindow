@@ -47,9 +47,9 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		WindowContent& content = windowContent[window];
+		WindowContent* content = windowContent[window].get();
 
-		OpenGL_Context* context = content.glContext.get();
+		OpenGL_Context* context = content->glContext.get();
 		if (!context
 			|| !context->IsInitialized())
 		{
@@ -81,8 +81,8 @@ namespace KalaWindow::Graphics
 		f32 aspectRatio = size.x / size.y;
 		camPtr->SetAspectRatio(aspectRatio);
 
-		content.cameras[newID] = move(newCam);
-		content.runtimeCameras.push_back(camPtr);
+		content->cameras[newID] = move(newCam);
+		content->runtimeCameras.push_back(camPtr);
 
 		camPtr->ID = newID;
 		camPtr->windowID = window->GetID();

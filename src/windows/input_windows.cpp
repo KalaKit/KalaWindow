@@ -72,8 +72,8 @@ namespace KalaWindow::Core
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
-		WindowContent& content = windowContent[window];
-		content.input = move(newInput);
+		WindowContent* content = windowContent[window].get();
+		content->input = move(newInput);
 
 		inputPtr->windowID = window->GetID();
 

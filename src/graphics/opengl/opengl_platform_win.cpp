@@ -505,9 +505,9 @@ namespace KalaWindow::Graphics::OpenGL
 
 			for (const auto& content : windowContent)
 			{
-				if (content.second.glContext->ID == parentContext)
+				if (content.second->glContext->ID == parentContext)
 				{
-					parentCont = content.second.glContext.get();
+					parentCont = content.second->glContext.get();
 					break;
 				}
 			}
@@ -605,8 +605,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		contPtr->contextData = ss2.str();
 
-		WindowContent& content = windowContent[window];
-		content.glContext = move(newCont);
+		WindowContent* content = windowContent[window].get();
+		content->glContext = move(newCont);
 
 		contPtr->windowID = window->GetID();
 
@@ -816,9 +816,9 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		WindowContent& content = windowContent[window];
+		WindowContent* content = windowContent[window].get();
 
-		if (!content.glContext)
+		if (!content->glContext)
 		{
 			Log::Print(
 				"Cannot shut down OpenGL context because the target window doesn't have one!",

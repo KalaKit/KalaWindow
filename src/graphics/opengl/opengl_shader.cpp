@@ -93,9 +93,9 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        WindowContent& content = windowContent[window];
+        WindowContent* content = windowContent[window].get();
 
-        OpenGL_Context* cont = content.glContext.get();
+        OpenGL_Context* cont = content->glContext.get();
 
         if (!cont
             || (cont
@@ -554,9 +554,9 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        WindowContent& content = windowContent[window];
+        WindowContent* content = windowContent[window].get();
 
-        OpenGL_Context* cont = content.glContext.get();
+        OpenGL_Context* cont = content->glContext.get();
 
         if (!cont
             || (cont

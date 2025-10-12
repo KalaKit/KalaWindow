@@ -71,8 +71,8 @@ namespace KalaWindow::Windows
 		SetMenu(hwnd, hMenu);
 		DrawMenuBar(hwnd);
 
-		WindowContent& content = windowContent[window];
-		content.menubar = move(newMenu);
+		WindowContent* content = windowContent[window].get();
+		content->menubar = move(newMenu);
 
 		menuPtr->isInitialized = true;
 		menuPtr->isEnabled = true;
@@ -255,13 +255,13 @@ namespace KalaWindow::Windows
 			return;
 		}
 
-		WindowContent& content = windowContent[window];
+		WindowContent* content = windowContent[window].get();
 
 		//leaf cant have parent that is also a leaf
 		if (type == LabelType::LABEL_LEAF
 			&& !parentRef.empty())
 		{
-			for (const auto& e : content.runtimeMenuBarEvents)
+			for (const auto& e : content->runtimeMenuBarEvents)
 			{
 				if (e->label == parentRef
 					&& e->labelID != 0)
@@ -282,7 +282,7 @@ namespace KalaWindow::Windows
 		}
 
 		//check if label or the parent of the label already exists or not
-		for (const auto& e : content.runtimeMenuBarEvents)
+		for (const auto& e : content->runtimeMenuBarEvents)
 		{
 			const string& parent = e->parentLabel;
 			const string& label = e->label;
@@ -375,7 +375,7 @@ namespace KalaWindow::Windows
 		{
 			HMENU parentMenu{};
 
-			for (const auto& value : content.runtimeMenuBarEvents)
+			for (const auto& value : content->runtimeMenuBarEvents)
 			{
 				if (value->label == parentRef)
 				{
@@ -404,8 +404,8 @@ namespace KalaWindow::Windows
 
 		DrawMenuBar(hwnd);
 
-		content.menuBarEvents[newID] = move(newEvent);
-		content.runtimeMenuBarEvents.push_back(eventPtr);
+		content->menuBarEvents[newID] = move(newEvent);
+		content->runtimeMenuBarEvents.push_back(eventPtr);
 	}
 
 	void MenuBar::AddSeparator(
@@ -444,9 +444,9 @@ namespace KalaWindow::Windows
 
 		HMENU hMenu = GetMenu(hwnd);
 
-		WindowContent& content = windowContent[window];
+		WindowContent* content = windowContent[window].get();
 
-		for (const auto& e : content.runtimeMenuBarEvents)
+		for (const auto& e : content->runtimeMenuBarEvents)
 		{
 			const string& parent = e->parentLabel;
 			const string& label = e->label;
@@ -456,7 +456,7 @@ namespace KalaWindow::Windows
 				{
 					HMENU parentMenu{};
 
-					for (const auto& value : content.runtimeMenuBarEvents)
+					for (const auto& value : content->runtimeMenuBarEvents)
 					{
 						if (value->label == parentRef)
 						{
@@ -506,7 +506,7 @@ namespace KalaWindow::Windows
 				{
 					HMENU parentMenu{};
 
-					for (const auto& value : content.runtimeMenuBarEvents)
+					for (const auto& value : content->runtimeMenuBarEvents)
 					{
 						if (value->label == parentRef)
 						{

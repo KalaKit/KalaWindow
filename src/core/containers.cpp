@@ -14,7 +14,7 @@ namespace KalaWindow::Core
 	//
 
 	unordered_map<u32, unique_ptr<Window>> createdWindows{};
-	unordered_map<Window*, WindowContent> windowContent{};
+	unordered_map<Window*, unique_ptr<WindowContent>> windowContent{};
 
 	unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures{};
 	unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders{};
@@ -24,6 +24,7 @@ namespace KalaWindow::Core
 	//
 
 	vector<Window*> runtimeWindows{};
+	vector<WindowContent*> runtimeWindowContent{};
 
 	vector<OpenGL_Texture*> runtimeOpenGLTextures{};
 	vector<OpenGL_Shader*> runtimeOpenGLShaders{};

@@ -52,11 +52,13 @@ using KalaWindow::Windows::MessageLoop;
 using KalaWindow::Windows::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
+using KalaWindow::Core::GetValueByID;
 using KalaWindow::Core::createdOpenGLTextures;
 using KalaWindow::Core::createdWindows;
 using KalaWindow::Core::runtimeWindows;
 using KalaWindow::Core::WindowContent;
 using KalaWindow::Core::windowContent;
+using KalaWindow::Core::runtimeWindowContent;
 
 using std::make_unique;
 using std::move;
@@ -243,8 +245,11 @@ namespace KalaWindow::Graphics
 		createdWindows[newID] = move(newWindow);
 		runtimeWindows.push_back(windowPtr);
 		
-		WindowContent newWindowContent{};
-		windowContent[windowPtr] = move(newWindowContent);
+		unique_ptr<WindowContent> newContent = make_unique<WindowContent>();
+		WindowContent* contentPtr = newContent.get();
+
+		windowContent[windowPtr] = move(newContent);
+		runtimeWindowContent.push_back(contentPtr);
 
 		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
@@ -297,8 +302,10 @@ namespace KalaWindow::Graphics
 	}
 	const string& Window::GetTitle() const
 	{
+		static string result{};
+
 		HWND window = ToVar<HWND>(window_windows.hwnd);
-		if (!window) return{};
+		if (!window) return result;
 
 		int length = GetWindowTextLengthW(window);
 		if (length == 0)
@@ -308,14 +315,16 @@ namespace KalaWindow::Graphics
 				"WINDOW",
 				LogType::LOG_WARNING);
 
-			return "";
+			return result;
 		}
 
 		wstring title(length + 1, L'\0');
 		GetWindowTextW(window, title.data(), length + 1);
 
 		title.resize(wcslen(title.c_str()));
-		return ToShort(title);
+		result = ToShort(title);
+
+		return result;
 	}
 
 	void Window::SetIcon(u32 texture) const
@@ -1855,8 +1864,8 @@ namespace KalaWindow::Graphics
 
 		if (window_windows.wndProc) window_windows.wndProc = NULL;
 
-		WindowContent& content = windowContent[this];
-		OpenGL_Context* context = content.glContext.get();
+		WindowContent* content = windowContent[this].get();
+		OpenGL_Context* context = content->glContext.get();
 
 		if (context)
 		{

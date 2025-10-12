@@ -473,8 +473,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		return false;
 	}
 
-	WindowContent& content = windowContent[window];
-	Input* input = content.input.get();
+	WindowContent* content = windowContent[window].get();
+	Input* input = content->input.get();
 
 	/*
 	if (msg.message == 0)
@@ -1272,10 +1272,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (window)
 		{
-			MenuBar* menuBar = content.menubar.get();
+			MenuBar* menuBar = content->menubar.get();
 			if (menuBar)
 			{
-				for (const auto& e : content.runtimeMenuBarEvents)
+				for (const auto& e : content->runtimeMenuBarEvents)
 				{
 					u32 ID = e->labelID;
 					if (ID == IDRef)

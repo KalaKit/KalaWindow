@@ -96,7 +96,7 @@ namespace KalaWindow::Core
 	//
 
 	LIB_API extern unordered_map<u32, unique_ptr<Window>> createdWindows;
-	LIB_API extern unordered_map<Window*, WindowContent> windowContent;
+	LIB_API extern unordered_map<Window*, unique_ptr<WindowContent>> windowContent;
 
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Texture>> createdOpenGLTextures;
 	LIB_API extern unordered_map<u32, unique_ptr<OpenGL_Shader>> createdOpenGLShaders;
@@ -106,6 +106,7 @@ namespace KalaWindow::Core
 	//
 
 	LIB_API extern vector<Window*> runtimeWindows;
+	LIB_API extern vector<WindowContent*> runtimeWindowContent;
 
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
