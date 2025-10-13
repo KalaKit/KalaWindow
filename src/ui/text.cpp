@@ -93,7 +93,7 @@ namespace KalaWindow::UI
 		if (texture
 			&& texture->IsInitialized())
 		{
-			textPtr->texture = texture;
+			textPtr->render.texture = texture;
 		}
 
 		//shader is required
@@ -107,7 +107,7 @@ namespace KalaWindow::UI
 
 			return nullptr;
 		}
-		textPtr->shader = shader;
+		textPtr->render.shader = shader;
 
 		//parent is optional
 		if (parentWidget

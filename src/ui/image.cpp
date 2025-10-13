@@ -99,7 +99,7 @@ namespace KalaWindow::UI
 
 			return nullptr;
 		}
-		imagePtr->texture = texture;
+		imagePtr->render.texture = texture;
 
 		//shader is required
 		if (!shader
@@ -112,7 +112,7 @@ namespace KalaWindow::UI
 
 			return nullptr;
 		}
-		imagePtr->shader = shader;
+		imagePtr->render.shader = shader;
 
 		//parent is optional
 		if (parentWidget

@@ -188,6 +188,12 @@ namespace KalaWindow::Graphics
 				WrapAngle(rotVec.y + deltaRot.y),
 				WrapAngle(rotVec.z + deltaRot.z),
 			};
+
+			quat qx = angleAxis(radians(rotVec.x), vec3(1, 0, 0));
+			quat qy = angleAxis(radians(rotVec.y), vec3(0, 1, 0));
+			quat qz = angleAxis(radians(rotVec.z), vec3(0, 0, 1));
+
+			rotQuat = qz * qy * qx;
 		}
 
 		~Camera();
