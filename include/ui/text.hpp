@@ -29,6 +29,9 @@ namespace KalaWindow::UI
 			const mat4& view,
 			const mat4& projection) override;
 
+		void SetFontID(u32 newValue);
+		inline u32 GetFontID() const { return fontID; }
+
 		//Do not destroy manually, erase from containers.hpp instead
 		virtual ~Text();
 	private:

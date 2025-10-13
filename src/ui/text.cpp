@@ -154,6 +154,29 @@ namespace KalaWindow::UI
 		return textPtr;
 	}
 
+	void Text::SetFontID(u32 newValue)
+	{
+		if (newValue != 0)
+		{
+			Font* font{};
+			if (createdFonts.contains(newValue))
+			{
+				font = createdFonts[newValue].get();
+			}
+
+			if (font) fontID = newValue;
+		}
+		if (fontID == 0)
+		{
+			Log::Print(
+				"Cannot set Text widget '" + name + "' font to Font ID '" + to_string(fontID) + "' because it is invalid!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+	}
+
 	bool Text::Render(
 		const mat4& view,
 		const mat4& projection)

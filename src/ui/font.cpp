@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "KalaHeaders/log_utils.hpp"
+#include "KalaHeaders/file_utils.hpp"
 
 #include "ui/font.hpp"
 #include "core/containers.hpp"
@@ -20,12 +21,14 @@ using KalaWindow::Core::runtimeFonts;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
+using std::filesystem::path;
+using std::filesystem::exists;
 
 namespace KalaWindow::UI
 {
 	Font* Font::LoadFont(
-		const string& fontPath,
-		const string& name)
+		const string& name,
+		const string& fontPath)
 	{
 		u32 newID = ++globalID;
 		unique_ptr<Font> newFont = make_unique<Font>();
@@ -35,6 +38,39 @@ namespace KalaWindow::UI
 			"Loading font '" + name + "' with ID '" + to_string(newID) + "'.",
 			"FONT",
 			LogType::LOG_DEBUG);
+
+		if (!exists(fontPath))
+		{
+			Log::Print(
+				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not exist!",
+				"FONT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		if (!path(fontPath).has_extension())
+		{
+			Log::Print(
+				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not have an extension!",
+				"FONT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		string extension = path(fontPath).extension().string();
+
+		if (extension != ".otf"
+			&& extension != ".ttf")
+		{
+			Log::Print(
+				"Cannot load font '" + name + "' because it path '" + fontPath + "' does not have the supported extension '.otf' or '.ttf'!",
+				"FONT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
 
 		//<<< load font here
 

@@ -18,8 +18,8 @@ namespace KalaWindow::UI
 	public:
 		//Loads a font from disk
 		static Font* LoadFont(
-			const string& fontPath,
-			const string& name);
+			const string& name,
+			const string& fontPath);
 
 		inline bool IsInitialized() const { return isInitialized; }
 
