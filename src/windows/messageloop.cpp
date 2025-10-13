@@ -475,7 +475,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	}
 
 	WindowContent* content{};
-	if (windowContent[window])
+	if (windowContent.contains(window))
 	{
 		content = windowContent[window].get();
 	}
@@ -1281,7 +1281,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		u32 IDRef = LOWORD(msg.wParam);
 
-		if (window)
+		if (window
+			&& content)
 		{
 			MenuBar* menuBar = content->menubar.get();
 			if (menuBar)

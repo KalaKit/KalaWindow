@@ -91,6 +91,29 @@ namespace KalaWindow::Core
 
 			return nullptr;
 		}
+
+		~WindowContent()
+		{
+			widgets.clear();
+			runtimeWidgets.clear();
+			runtimeText.clear();
+			runtimeImages.clear();
+
+			menuBarEvents.clear();
+			runtimeMenuBarEvents.clear();
+
+			audioPlayers.clear();
+			runtimeAudioPlayers.clear();
+
+			cameras.clear();
+			runtimeCameras.clear();
+
+			input = nullptr;
+			
+			menubar = nullptr;
+
+			glContext = nullptr;
+		}
 	};
 
 	//

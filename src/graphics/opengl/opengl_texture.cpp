@@ -294,7 +294,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		WindowContent* content{};
-		if (windowContent[window])
+		if (windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}
@@ -479,7 +479,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		WindowContent* content{};
-		if (windowContent[window])
+		if (windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}
@@ -702,7 +702,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		WindowContent* content{};
-		if (windowContent[window])
+		if (windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}

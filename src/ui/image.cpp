@@ -48,7 +48,7 @@ namespace KalaWindow::UI
 		}
 
 		WindowContent* content{};
-		if (windowContent[window])
+		if (windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}

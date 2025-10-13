@@ -50,7 +50,7 @@ namespace KalaWindow::Graphics
 		}
 
 		WindowContent* content{};
-		if (windowContent[window])
+		if (windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}

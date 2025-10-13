@@ -226,7 +226,7 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		WindowContent* content{};
-		if (windowContent[window])
+		if (windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}
@@ -835,33 +835,6 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		WindowContent* content{};
-		if (windowContent[window])
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot shut down OpenGL because its window '" + window->GetTitle() + "' is missing from window content!",
-				"OPENGL",
-				LogType::LOG_ERROR);
-
-			return;
-		}
-
-		if (!content->glContext)
-		{
-			Log::Print(
-				"Cannot shut down OpenGL context because the target window doesn't have one!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
 		Log::Print(
 			"Destroying OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
 			"OPENGL",
@@ -875,6 +848,9 @@ namespace KalaWindow::Graphics::OpenGL
 			if (wglGetCurrentContext() == storedHGLRC) wglMakeCurrent(nullptr, nullptr);
 			wglDeleteContext(storedHGLRC);
 		}
+
+		SetHandle(NULL);
+		hdc = NULL;
 #elif __linux__
 		//TODO: DEFINE
 #endif

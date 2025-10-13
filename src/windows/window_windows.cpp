@@ -1864,31 +1864,12 @@ namespace KalaWindow::Graphics
 
 		if (window_windows.wndProc) window_windows.wndProc = NULL;
 
-		WindowContent* content{};
-		if (windowContent[this])
+		HDC hdc = GetDC(winRef);
+		if (hdc)
 		{
-			content = windowContent[this].get();
-		}
-
-		OpenGL_Context* context{};
-		if (content
-			&& content->glContext)
-		{
-			context = content->glContext.get();
-		}
-
-		if (context
-			&& context->IsInitialized()
-			&& context->IsContextValid())
-		{
-			HDC hdc = GetDC(winRef);
-			if (hdc)
-			{
-				ReleaseDC(
-					ToVar<HWND>(window_windows.hwnd),
-					hdc);
-				context->SetHandle(NULL);
-			}
+			ReleaseDC(
+				ToVar<HWND>(window_windows.hwnd),
+				hdc);
 		}
 
 		if (exeIcon)
@@ -1901,8 +1882,6 @@ namespace KalaWindow::Graphics
 			DestroyIcon(overlayIcon);
 			overlayIcon = nullptr;
 		}
-
-		windowContent.erase(this);
 
 		if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
 

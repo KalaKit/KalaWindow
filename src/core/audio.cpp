@@ -430,7 +430,7 @@ namespace KalaWindow::Core
 		}
 
 		WindowContent* content{};
-		if (windowContent[window])
+		if (windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}
@@ -622,7 +622,7 @@ namespace KalaWindow::Core
 		WindowContent* content{};
 		if (window
 			&& window->IsInitialized()
-			&& windowContent[window])
+			&& windowContent.contains(window))
 		{
 			content = windowContent[window].get();
 		}
