@@ -18,6 +18,7 @@ using KalaHeaders::LogType;
 using KalaWindow::Core::globalID;
 using KalaWindow::Core::GetValueByID;
 using KalaWindow::Core::windowContent;
+using KalaWindow::Core::createdFonts;
 using KalaWindow::Core::WindowContent;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
@@ -29,11 +30,12 @@ using std::to_string;
 namespace KalaWindow::UI
 {
 	Text* Text::Initialize(
+		const string& name,
 		u32 windowID,
 		u32 fontID,
-		u32 textureID,
 		Widget* parentWidget,
-		const string& name)
+		OpenGL_Texture* texture,
+		OpenGL_Shader* shader)
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
@@ -86,6 +88,54 @@ namespace KalaWindow::UI
 			"Loading text '" + name + "' with ID '" + to_string(newID) + "'.",
 			"TEXT",
 			LogType::LOG_DEBUG);
+
+		//texture is optional
+		if (texture
+			&& texture->IsInitialized())
+		{
+			textPtr->texture = texture;
+		}
+
+		//shader is required
+		if (!shader
+			|| !shader->IsInitialized())
+		{
+			Log::Print(
+				"Failed to load Text widget '" + name + "' because its shader context is invalid!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+		textPtr->shader = shader;
+
+		//parent is optional
+		if (parentWidget
+			&& parentWidget->IsInitialized())
+		{
+			textPtr->SetParent(parentWidget);
+		}
+
+		//font is required
+		if (fontID != 0)
+		{
+			Font* font{};
+			if (createdFonts.contains(fontID))
+			{
+				font = createdFonts[fontID].get();
+			}
+
+			if (font) textPtr->fontID = fontID;
+		}
+		if (textPtr->fontID == 0)
+		{
+			Log::Print(
+				"Failed to load Text widget '" + name + "' because its Font ID '" + to_string(fontID) + "' is invalid!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
 
 		//<<< load text here
 

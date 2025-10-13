@@ -136,13 +136,14 @@ namespace KalaWindow::Graphics::OpenGL
             }
         }
 
-        Log::Print(
-            "Creating shader '" + shaderName + "'.",
-            "OPENGL_SHADER",
-            LogType::LOG_INFO);
-
+        u32 newID = ++globalID;
         unique_ptr<OpenGL_Shader> newShader = make_unique<OpenGL_Shader>();
         OpenGL_Shader* shaderPtr = newShader.get();
+
+        Log::Print(
+            "Creating shader '" + shaderName + "' with ID '" + to_string(newID) + "'.",
+            "OPENGL_SHADER",
+            LogType::LOG_DEBUG);
 
         ShaderStage newVertStage{};
         ShaderStage newFragStage{};
@@ -502,10 +503,11 @@ namespace KalaWindow::Graphics::OpenGL
         if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
         if (geomShaderExists) shaderPtr->shaders.push_back(newGeomStage);
 
-        u32 newID = ++globalID;
-        newShader->name = shaderName;
-        newShader->ID = newID;
-        newShader->windowID = windowID;
+        shaderPtr->ID = newID;
+        shaderPtr->name = shaderName;
+        shaderPtr->windowID = windowID;
+
+        shaderPtr->isInitialized = true;
 
         createdOpenGLShaders[newID] = move(newShader);
         runtimeOpenGLShaders.push_back(shaderPtr);

@@ -48,6 +48,8 @@ namespace KalaWindow::Graphics::OpenGL
 			const string& shaderName,
 			const vector<ShaderStage>& shaderStages);
 
+		inline bool IsInitialized() const { return isInitialized; }
+
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//vertex, fragment and geometry shader compilation messages will dump their logs into the console.
 		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
@@ -171,6 +173,8 @@ namespace KalaWindow::Graphics::OpenGL
 		~OpenGL_Shader();
 	private:
 		static inline bool isVerboseLoggingEnabled{};
+
+		bool isInitialized{};
 
 		string name{};
 		u32 ID{};

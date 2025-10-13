@@ -5,25 +5,22 @@
 
 #pragma once
 
-#include <string>
-
 #include "ui/widget.hpp"
 
 namespace KalaWindow::UI
 {
-	using std::string;
-
-	class Text : public Widget
+	class LIB_API Text : public Widget
 	{
 	public:
-		//Creates a new text widget.
-		//Parent widget and texture ID are optional
+		//Initialize a new Text widget.
+		//Parent widget and texture are optional
 		static Text* Initialize(
+			const string& name,
 			u32 windowID,
 			u32 fontID,
-			u32 textureID,
 			Widget* parentWidget,
-			const string& name);
+			OpenGL_Texture* texture,
+			OpenGL_Shader* shader);
 
 		//Core render function for all widget systems, must be overridden per inherited widget.
 		//Pass mat4(1.0f) to view and pass 2D projection as ortho(0.0f, windowWidth, windowHeight, 0.0f)

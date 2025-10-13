@@ -327,6 +327,15 @@ namespace KalaWindow::Graphics::OpenGL
 		//ensure a fallback texture always exists
 		if (!fallbackTexture) LoadFallbackTexture();
 
+		u32 newID = ++globalID;
+		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
+		OpenGL_Texture* texturePtr = newTexture.get();
+
+		Log::Print(
+			"Loading texture '" + name + "' with ID '" + to_string(newID) + "'.",
+			"OPENGL_TEXTURE",
+			LogType::LOG_DEBUG);
+
 		vector<u8> data{};
 		int nrChannels{};
 		vec2 size{};
@@ -394,17 +403,13 @@ namespace KalaWindow::Graphics::OpenGL
 		// STORE DATA AND INIT TEXTURE
 		//
 
-		u32 newID = ++globalID;
-		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
-		OpenGL_Texture* texturePtr = newTexture.get();
-
-		newTexture->name = name;
-		newTexture->ID = newID;
-		newTexture->filePath = filePath;
-		newTexture->size = size,
-		newTexture->openGLID = newTextureID;
-		newTexture->type = type;
-		newTexture->format = resolvedFormat;
+		texturePtr->name = name;
+		texturePtr->ID = newID;
+		texturePtr->filePath = filePath;
+		texturePtr->size = size,
+		texturePtr->openGLID = newTextureID;
+		texturePtr->type = type;
+		texturePtr->format = resolvedFormat;
 
 		u16 clampedDepth = depth;
 		if (type == TextureType::Type_2D) clampedDepth = 1;
@@ -415,17 +420,14 @@ namespace KalaWindow::Graphics::OpenGL
 				static_cast<u16>(1), 
 				static_cast<u16>(8192));
 		}
-		newTexture->depth = clampedDepth;
+		texturePtr->depth = clampedDepth;
 
-		newTexture->mipMapLevels = GetMaxMipMapLevels(
-			newTexture->size,
+		texturePtr->mipMapLevels = GetMaxMipMapLevels(
+			texturePtr->size,
 			clampedDepth,
 			mipMapLevels);
 
-		newTexture->pixels = move(data);
-
-		createdOpenGLTextures[newID] = move(newTexture);
-		runtimeOpenGLTextures.push_back(texturePtr);
+		texturePtr->pixels = move(data);
 
 		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
@@ -438,6 +440,10 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		texturePtr->HotReload();
+		texturePtr->isInitialized = true;
+
+		createdOpenGLTextures[newID] = move(newTexture);
+		runtimeOpenGLTextures.push_back(texturePtr);
 
 		Log::Print(
 			"Loaded OpenGL texture '" + name + "' with ID '" + to_string(newID) + "'!",
@@ -511,6 +517,15 @@ namespace KalaWindow::Graphics::OpenGL
 
 		//ensure a fallback texture always exists
 		if (!fallbackTexture) LoadFallbackTexture();
+
+		u32 newID = ++globalID;
+		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
+		OpenGL_Texture* texturePtr = newTexture.get();
+
+		Log::Print(
+			"Loading cubemap texture '" + name + "' with ID '" + to_string(newID) + "'.",
+			"OPENGL_TEXTURE",
+			LogType::LOG_DEBUG);
 
 		vector<string> paths(begin(texturePaths), end(texturePaths));
 		if (!AllTextureExtensionsMatch(paths))
@@ -628,10 +643,6 @@ namespace KalaWindow::Graphics::OpenGL
 		// STORE DATA AND INIT TEXTURE
 		//
 
-		u32 newID = ++globalID;
-		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
-		OpenGL_Texture* texturePtr = newTexture.get();
-
 		texturePtr->name = name;
 		texturePtr->ID = newID;
 		texturePtr->openGLID = newTextureID;
@@ -647,9 +658,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 		texturePtr->cubePixels = move(cubePixelData);
 
-		createdOpenGLTextures[newID] = move(newTexture);
-		runtimeOpenGLTextures.push_back(texturePtr);
-
 		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
 		{
@@ -661,9 +669,13 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		texturePtr->HotReload();
+		texturePtr->isInitialized = true;
+
+		createdOpenGLTextures[newID] = move(newTexture);
+		runtimeOpenGLTextures.push_back(texturePtr);
 
 		Log::Print(
-			"Created OpenGL cube texture '" + name + "' with ID '" + to_string(newID) + "'!",
+			"Loaded OpenGL cube texture '" + name + "' with ID '" + to_string(newID) + "'!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 
@@ -734,6 +746,15 @@ namespace KalaWindow::Graphics::OpenGL
 
 		//ensure a fallback texture always exists
 		if (!fallbackTexture) LoadFallbackTexture();
+
+		u32 newID = ++globalID;
+		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
+		OpenGL_Texture* texturePtr = newTexture.get();
+
+		Log::Print(
+			"Loading 2D array texture '" + name + "' with ID '" + to_string(newID) + "'.",
+			"OPENGL_TEXTURE",
+			LogType::LOG_DEBUG);
 
 		if (!AllTextureExtensionsMatch(texturePaths))
 		{
@@ -834,10 +855,6 @@ namespace KalaWindow::Graphics::OpenGL
 		// STORE DATA AND INIT TEXTURE
 		//
 
-		u32 newID = ++globalID;
-		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
-		OpenGL_Texture* texturePtr = newTexture.get();
-
 		texturePtr->name = name;
 		texturePtr->ID = newID;
 		texturePtr->openGLID = newTextureID;
@@ -867,9 +884,10 @@ namespace KalaWindow::Graphics::OpenGL
 		}
 
 		texturePtr->HotReload();
+		texturePtr->isInitialized = true;
 
 		Log::Print(
-			"Created OpenGL 2D array texture '" + name + "' with ID '" + to_string(newID) + "'!",
+			"Loaded 2D array texture '" + name + "' with ID '" + to_string(newID) + "'!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 

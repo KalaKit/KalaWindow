@@ -82,6 +82,8 @@ namespace KalaWindow::Graphics
 	class LIB_API Texture
 	{
 	public:
+		inline bool IsInitialized() const { return isInitialized; }
+
 		//Rescale an imported texture with the chosen algorithm type
 		virtual void Rescale(
 			vec2 newSize,
@@ -143,6 +145,8 @@ namespace KalaWindow::Graphics
 		//Do not destroy manually, erase from containers.hpp instead
 		virtual ~Texture() {};
 	protected:
+		bool isInitialized{};
+
 		string name{};
 		string filePath{};
 		u32 ID{};

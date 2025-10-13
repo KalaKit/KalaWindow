@@ -17,7 +17,6 @@
 
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
-#include "core/input.hpp"
 
 namespace KalaWindow::UI
 {
@@ -29,7 +28,6 @@ namespace KalaWindow::UI
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
-	using KalaWindow::Core::MouseButton;
 
 	enum class HitTarget
 	{

@@ -29,10 +29,11 @@ using std::to_string;
 namespace KalaWindow::UI
 {
 	Image* Image::Initialize(
+		const string& name,
 		u32 windowID,
-		u32 textureID,
 		Widget* parentWidget,
-		const string& name)
+		OpenGL_Texture* texture,
+		OpenGL_Shader* shader)
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
@@ -86,6 +87,39 @@ namespace KalaWindow::UI
 			"Loading image '" + name + "' with ID '" + to_string(newID) + "'.",
 			"IMAGE",
 			LogType::LOG_DEBUG);
+
+		//texture is required
+		if (!texture
+			|| !texture->IsInitialized())
+		{
+			Log::Print(
+				"Failed to load Image widget '" + name + "' because its texture context is invalid!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+		imagePtr->texture = texture;
+
+		//shader is required
+		if (!shader
+			|| !shader->IsInitialized())
+		{
+			Log::Print(
+				"Failed to load Image widget '" + name + "' because its shader context is invalid!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+		imagePtr->shader = shader;
+
+		//parent is optional
+		if (parentWidget
+			&& parentWidget->IsInitialized())
+		{
+			imagePtr->SetParent(parentWidget);
+		}
 
 		//<<< load image here
 

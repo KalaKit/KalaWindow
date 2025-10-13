@@ -9,14 +9,17 @@
 
 namespace KalaWindow::UI
 {
-	class Image : public Widget
+	class LIB_API Image : public Widget
 	{
 	public:
+		//Initialize a new Image widget.
+		//Parent widget is optional
 		static Image* Initialize(
+			const string& name,
 			u32 windowID,
-			u32 textureID,
 			Widget* parentWidget,
-			const string& name);
+			OpenGL_Texture* texture,
+			OpenGL_Shader* shader);
 
 		//Core render function for all widget systems, must be overridden per inherited widget.
 		//Pass mat4(1.0f) to view and pass 2D projection as ortho(0.0f, windowWidth, windowHeight, 0.0f)
