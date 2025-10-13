@@ -88,24 +88,6 @@ namespace KalaWindow::UI
 		}
 	}
 
-	void Widget::SetWindowID(u32 newID)
-	{
-		//skip if ID is empty
-		if (newID == 0) return;
-		//skip if ID is the same as current
-		if (newID == ID) return;
-
-		Window* window = GetValueByID<Window>(newID);
-
-		//skip if ID doesnt lead to a real window
-		if (!window) return;
-
-		RemoveAllChildren();
-		RemoveParent();
-
-		windowID = newID;
-	}
-
 	bool Widget::IsHovered(
 		const vec3& origin,
 		const vec3& target,

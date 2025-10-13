@@ -114,7 +114,7 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 
 ## log_utils.hpp
 
-Comprehensive logger header for any logging needs - sends cout, cerr and clog messages to your console.
+Comprehensive logger header for any logging needs - sends stdout and stderr messages to your console.
 
 - can get current system time and date, formatted to chosen TimeFormat or DateFormat enum choice
 - can set default time and date format so that TIME_DEFAULT and DATE_DEFAULT always use them with full Print function
@@ -125,12 +125,12 @@ Comprehensive logger header for any logging needs - sends cout, cerr and clog me
 | Feature           | `Print(message, target, type, ...)` | `Print(message)`        |
 |-------------------|-----------------------------------------------|-------------------------|
 | Parameters        | Message + target + log type (+opts)           | Message only            |
-| Log types         | Supports INFO, DEBUG, SUCCESS, WARNING, ERROR | Not supported (always cout) |
-| Target handling   | Yes (with truncation checks)                  | No                      |
+| Log types         | Supports INFO, DEBUG, SUCCESS, WARNING, ERROR | Not supported (always stdout) |
+| Target handling   | Yes (with truncation checks)                  | Yes (with truncation checks) |
 | Time/Date stamp   | Yes (configurable)                            | No                      |
-| Output stream     | Varies by type (cout/clog/cerr)               | Always cout             |
+| Output stream     | Varies by type (stdout/stderr)                | Always stdout           |
 | Truncation checks | Message + target length                       | Message length only     |
-| Typical usage     | Detailed, tagged log for debugging/monitoring | Quick, simple console output |
+| Typical usage     | Detailed, tagged log for debugging/monitoring | Simple console output   |
 
 ### Available time format types
 

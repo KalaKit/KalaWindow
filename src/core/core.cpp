@@ -56,6 +56,7 @@ namespace KalaWindow::Core
 			"FORCE CLOSE",
 			LogType::LOG_ERROR,
 			2,
+			true,
 			TimeFormat::TIME_NONE,
 			DateFormat::DATE_NONE);
 
@@ -84,9 +85,9 @@ namespace KalaWindow::Core
 		bool useWindowShutdown,
 		const function<void()>& userShutdown)
 	{
-		Log::Print("\n====================");
-		Log::Print("\nSHUTTING DOWN KALAWINDOW");
-		Log::Print("\n====================\n");
+		Log::Print("\n====================", true);
+		Log::Print("\nSHUTTING DOWN KALAWINDOW", true);
+		Log::Print("\n====================\n", true);
 
 		if (state == ShutdownState::SHUTDOWN_CRITICAL)
 		{
@@ -129,6 +130,9 @@ namespace KalaWindow::Core
 
 		runtimeOpenGLTextures.clear();
 		runtimeOpenGLShaders.clear();
+
+		createdFonts.clear();
+		runtimeFonts.clear();
 
 		windowContent.clear();
 		createdWindows.clear();

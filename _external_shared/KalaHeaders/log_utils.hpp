@@ -8,40 +8,57 @@
 //
 // Provides:
 //   - Detailed logger - time, date, log type, origin tag
-//   - Simple logger - just a cout to the console with a single string parameter
+//   - Simple logger - just a fwrite to the console with a single string parameter
 //   - Log types - info (no log type stamp), debug (skipped in release), success, warning, error
 //   - Time stamp, date stamp accurate to system clock
 //------------------------------------------------------------------------------
 
 #pragma once
 
+#include <cstring>
+#include <ctime>
+#include <cstdio>
 #include <string>
-#include <sstream>
-#include <iostream>
 #include <chrono>
+#include <array>
+#include <algorithm>
 
 namespace KalaHeaders
 {
 	using std::string;
-	using std::ostringstream;
-	using std::cout;
-	using std::clog;
-	using std::cerr;
+	using std::string_view;
 	using std::chrono::system_clock;
 	using std::chrono::duration_cast;
+	using std::chrono::microseconds;
 	using std::chrono::milliseconds;
-	using std::setfill;
-	using std::setw;
-	using std::put_time;
-	using std::localtime;
+	using std::array;
+	using std::fwrite;
+	using std::fflush;
+	using std::clamp;
+	using std::memset;
+	using std::memcpy;
+	using std::strftime;
+	using std::snprintf;
+
+	//Final array buffer size sent to stdout/stderr.
+	//Should always be bigger than datestamp + timestamp + tag + message max length
+	constexpr size_t BUFFER_SIZE = 2200;
+	//Max allowed print message length
+	constexpr size_t MAX_MESSAGE_LENGTH = 2000;
+	//Max allowed full print tag length
+	constexpr size_t MAX_TAG_LENGTH = 50;
+	//Max allowed indentation length per message
+	constexpr size_t MAX_INDENT_LENGTH = 20;
+	//How many type + tag combinations are cached
+	constexpr size_t CACHED_TAGS_LENGTH = 50;
 
 	enum class LogType
 	{
-		LOG_INFO,    //General-purpose log message, sent to std::cout
-		LOG_DEBUG,   //Debugging message, only appears in debug builds, sent to std::clog
-		LOG_SUCCESS, //Confirmation that an operation succeeded, sent to std::cout
-		LOG_WARNING, //Non-critical issue that should be looked into, sent to std::clog
-		LOG_ERROR    //Serious issue or failure, sent to std::cerr
+		LOG_INFO,    //General-purpose log message, sent to stdout
+		LOG_DEBUG,   //Debugging message, only appears in debug builds, sent to stdout
+		LOG_SUCCESS, //Confirmation that an operation succeeded, sent to stdout
+		LOG_WARNING, //Non-critical issue that should be looked into, sent to stdout
+		LOG_ERROR    //Serious issue or failure, sent to stderr, always flushes
 	};
 	enum class TimeFormat
 	{
@@ -67,10 +84,17 @@ namespace KalaHeaders
 		DATE_FILENAME_MDY  //12-31-2025
 	};
 
+	struct CachedPrefix
+	{
+		LogType type{};
+		string target{};
+		string prefix{};
+	};
+
 	class Log
 	{
 	public:
-		static void SetDefaultTimeFormat(TimeFormat format)
+		static inline void SetDefaultTimeFormat(TimeFormat format)
 		{
 			if (format == TimeFormat::TIME_DEFAULT)
 			{
@@ -85,19 +109,19 @@ namespace KalaHeaders
 			{
 				Print(
 					"Default time format was set to TIME_NONE!"
-					"No timestamps will be printed for logs that use TIME_DEFAULT.",
+					" No timestamps will be printed for logs that use TIME_DEFAULT.",
 					"LOG",
 					LogType::LOG_WARNING);
 			}
 
 			defaultTimeFormat = format;
 		}
-		static TimeFormat GetDefaultTimeFormat()
+		static inline TimeFormat GetDefaultTimeFormat()
 		{
 			return defaultTimeFormat;
 		}
 
-		static void SetDefaultDateFormat(DateFormat format)
+		static inline void SetDefaultDateFormat(DateFormat format)
 		{
 			if (format == DateFormat::DATE_DEFAULT)
 			{
@@ -112,7 +136,7 @@ namespace KalaHeaders
 			{
 				Print(
 					"Default DATE format was set to DATE_NONE!"
-					"No date stamps will be printed for logs that use DATE_DEFAULT.",
+					" No date stamps will be printed for logs that use DATE_DEFAULT.",
 					"LOG",
 					LogType::LOG_WARNING);
 			}
@@ -124,127 +148,176 @@ namespace KalaHeaders
 			return defaultDateFormat;
 		}
 
-		//Returns current time in chosen or default format.
-		static const string& GetTime(TimeFormat timeFormat = TimeFormat::TIME_DEFAULT)
+		//Returns current time in chosen or default format
+		static inline const string& GetTime(TimeFormat timeFormat = TimeFormat::TIME_DEFAULT)
 		{
-			static string result{};
+			static thread_local string cached[static_cast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
+			static thread_local long long last_ms = -1;
+			static thread_local tm cachedLocal{};
+			static thread_local tm cachedUTC{};
+
+			static thread_local const string empty{};
 
 			if (timeFormat == TimeFormat::TIME_NONE
 				|| (timeFormat == TimeFormat::TIME_DEFAULT
-					&& defaultTimeFormat == TimeFormat::TIME_NONE))
+				&& defaultTimeFormat == TimeFormat::TIME_NONE))
 			{
-				return result;
+				return empty;
 			}
 			if (timeFormat == TimeFormat::TIME_DEFAULT)
 			{
 				return GetTime(defaultTimeFormat);
 			}
 
-			auto now = system_clock::now();
-			auto in_time_t = system_clock::to_time_t(now);
-			auto ms = duration_cast<milliseconds>(now.time_since_epoch()) % 1000;
-
-			ostringstream ss{};
-			switch (timeFormat)
+			const int idx = static_cast<int>(timeFormat);
+			const auto now = system_clock::now();
+			if (!cached[idx].empty())
 			{
-			default: break;
-			case TimeFormat::TIME_HMS:
-				ss << put_time(localtime(&in_time_t), "%H:%M:%S");
-				break;
-			case TimeFormat::TIME_HMS_MS:
-				ss << put_time(localtime(&in_time_t), "%H:%M:%S")
-					<< ':'
-					<< setw(3)
-					<< setfill('0')
-					<< ms.count();
-				break;
-			case TimeFormat::TIME_12H:
-				ss << put_time(localtime(&in_time_t), "%I:%M:%S %p");
-				break;
-			case TimeFormat::TIME_ISO_8601:
-				ss << put_time(localtime(&in_time_t), "%H:%M:%S") << "Z";
-				break;
-			case TimeFormat::TIME_FILENAME:
-				ss << put_time(localtime(&in_time_t), "%H-%M-%S");
-				break;
-			case TimeFormat::TIME_FILENAME_MS:
-				ss << put_time(localtime(&in_time_t), "%H-%M-%S")
-					<< '-'
-					<< setw(3)
-					<< setfill('0')
-					<< ms.count();
-				break;
+				auto now_ms = duration_cast<milliseconds>(now.time_since_epoch()).count();
+				if (now_ms == last_ms) return cached[idx];
 			}
 
-			result = ss.str();
-			return result;
+			const auto us_since_epoch = duration_cast<microseconds>(now.time_since_epoch()).count();
+			const auto ms_since_epoch = duration_cast<milliseconds>(now.time_since_epoch()).count();
+
+			last_ms = ms_since_epoch;
+
+			const auto in_time_t = system_clock::to_time_t(now);
+			const int ms = (us_since_epoch / 1000) % 1000; //sub-millisecond precision
+
+			localtime_s(&cachedLocal, &in_time_t);
+			gmtime_s(&cachedUTC, &in_time_t);
+
+			char buffer[32]{};
+			switch (timeFormat)
+			{
+			case TimeFormat::TIME_HMS:
+			{
+				strftime(buffer, sizeof(buffer), "%H:%M:%S", &cachedLocal);
+
+				break;
+			}
+			case TimeFormat::TIME_HMS_MS:
+			{
+				char tmp[16]{};
+				size_t length = strftime(tmp, sizeof(tmp), "%H:%M:%S", &cachedLocal);
+
+				memcpy(buffer, tmp, length);
+				buffer[length++] = ':';
+				buffer[length++] = '0' + (ms / 100) % 10;
+				buffer[length++] = '0' + (ms / 10) % 10;
+				buffer[length++] = '0' + (ms % 10);
+				buffer[length] = '\0';
+
+				break;
+			}
+			case TimeFormat::TIME_12H:
+			{
+				strftime(buffer, sizeof(buffer), "%I:%M:%S %p", &cachedLocal);
+
+				break;
+			}
+			case TimeFormat::TIME_ISO_8601:
+			{
+				strftime(buffer, sizeof(buffer), "%H:%M:%SZ", &cachedUTC);
+
+				break;
+			}
+			case TimeFormat::TIME_FILENAME:
+			{
+				strftime(buffer, sizeof(buffer), "%H-%M-%S", &cachedLocal);
+
+				break;
+			}
+			case TimeFormat::TIME_FILENAME_MS:
+			{
+				char tmp[16]{};
+				size_t length = strftime(tmp, sizeof(tmp), "%H-%M-%S", &cachedLocal);
+
+				memcpy(buffer, tmp, length);
+				buffer[length++] = '-';
+				buffer[length++] = '0' + (ms / 100) % 10;
+				buffer[length++] = '0' + (ms / 10) % 10;
+				buffer[length++] = '0' + (ms % 10);
+				buffer[length] = '\0';
+
+				break;
+			}
+			default:
+			{
+				buffer[0] = '\0';
+				break;
+			}
+			}
+
+			cached[static_cast<int>(timeFormat)] = buffer;
+			return cached[static_cast<int>(timeFormat)];
 		}
-		//Returns current date in chosen or default format.
-		static const string& GetDate(DateFormat dateFormat = DateFormat::DATE_DEFAULT)
+		//Returns current date in chosen or default format
+		static inline const string& GetDate(DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
-			static string result{};
+			static thread_local string cached[static_cast<int>(DateFormat::DATE_FILENAME_MDY) + 1];
+			static thread_local int last_yday = -1;
+			static thread_local tm cachedLocal{};
+
+			static thread_local string empty{};
 
 			if (dateFormat == DateFormat::DATE_NONE
 				|| (dateFormat == DateFormat::DATE_DEFAULT
-					&& defaultDateFormat == DateFormat::DATE_NONE))
+				&& defaultDateFormat == DateFormat::DATE_NONE))
 			{
-				return result;
+				return empty;
 			}
 			if (dateFormat == DateFormat::DATE_DEFAULT)
 			{
 				return GetDate(defaultDateFormat);
 			}
 
-			auto now = system_clock::now();
-			auto in_time_t = system_clock::to_time_t(now);
+			const int idx = static_cast<int>(dateFormat);
+			const auto now = system_clock::now();
 
-			ostringstream ss{};
+			const auto in_time_t = system_clock::to_time_t(now);
+			localtime_s(&cachedLocal, &in_time_t);
+			if (!cached[idx].empty()
+				&& cachedLocal.tm_yday == last_yday)
+			{
+				return cached[idx];
+			}
 
+			last_yday = cachedLocal.tm_yday;
+
+			char buffer[64]{};
 			switch (dateFormat)
 			{
-			default: break;
-			case DateFormat::DATE_DMY:
-				ss << put_time(localtime(&in_time_t), "%d/%m/%Y");
-				break;
-			case DateFormat::DATE_MDY:
-				ss << put_time(localtime(&in_time_t), "%m/%d/%Y");
-				break;
-			case DateFormat::DATE_ISO_8601:
-				ss << put_time(localtime(&in_time_t), "%Y-%m-%d");
-				break;
-			case DateFormat::DATE_TEXT_DMY:
-				ss << put_time(localtime(&in_time_t), "%d %B, %Y");
-				break;
-			case DateFormat::DATE_TEXT_MDY:
-				ss << put_time(localtime(&in_time_t), "%B %d, %Y");
-				break;
-			case DateFormat::DATE_FILENAME_DMY:
-				ss << put_time(localtime(&in_time_t), "%d-%B-%Y");
-				break;
-			case DateFormat::DATE_FILENAME_MDY:
-				ss << put_time(localtime(&in_time_t), "%B-%d-%Y");
-				break;
+			case DateFormat::DATE_DMY:          strftime(buffer, sizeof(buffer), "%d/%m/%Y", &cachedLocal); break;
+			case DateFormat::DATE_MDY:          strftime(buffer, sizeof(buffer), "%m/%d/%Y", &cachedLocal); break;
+			case DateFormat::DATE_ISO_8601:     strftime(buffer, sizeof(buffer), "%Y-%m-%d", &cachedLocal); break;
+			case DateFormat::DATE_TEXT_DMY:     strftime(buffer, sizeof(buffer), "%d %B, %Y", &cachedLocal); break;
+			case DateFormat::DATE_TEXT_MDY:     strftime(buffer, sizeof(buffer), "%B %d, %Y", &cachedLocal); break;
+			case DateFormat::DATE_FILENAME_DMY: strftime(buffer, sizeof(buffer), "%d-%m-%Y", &cachedLocal); break;
+			case DateFormat::DATE_FILENAME_MDY: strftime(buffer, sizeof(buffer), "%m-%d-%Y", &cachedLocal); break;
+			default:                            buffer[0] = '\0'; break;
 			}
-			result = ss.str();
 
-			return result;
+			cached[idx] = buffer;
+			return cached[idx];
 		}
 
-		//Prints a log message to the console using
-		//cout, clog or cerr depending on the log type.
+		//Prints a log message to the console using fwrite.
 		//A newline is added automatically so std::endline or \n is not needed.
-		//Full result: [DATE | TIME] [ TYPE | TARGET ] MESSAGE
-		//  - message: the actual message of this log
-		//  - target: name of the namespace, class, function or variable of this log
-		//  - type: sets the tag type, LOG_INFO has no tag
-		//  - indentation: optional leading space count in after time and date stamp
+		//  - message: the actual message of this log, clamped up to 2000 characters
+		//  - target: name of the namespace, class, function or variable of this log, clamped up to 50 characters
+		//  - type: sets the tag type, LOG_INFO has no tag, error always flushes
+		//  - indentation: optional leading space count in after time and date stamp, clamped up to 20
+		//  - flush: set to true for crash logs, diagnostics, assertion failures
 		//  - timeFormat: optional time stamp
 		//  - dateFormat: optional date stamp
-		static void Print(
-			const string& message,
-			const string& target,
+		static inline void Print(
+			string_view message,
+			string_view target,
 			LogType type,
 			unsigned int indentation = 0,
+			bool flush = false,
 			TimeFormat timeFormat = TimeFormat::TIME_DEFAULT,
 			DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
@@ -252,135 +325,183 @@ namespace KalaHeaders
 			if (type == LogType::LOG_DEBUG) return;
 #endif
 
-			if (message.empty())
+			static thread_local const string empty{};
+
+			if (message.empty()
+				|| target.empty())
 			{
-				Print(
-					"Cannot write a log message with no message!",
-					"LOG",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
-			if (target.empty())
-			{
-				Print(
-					"Cannot write a log message with no target!",
-					"LOG",
-					LogType::LOG_ERROR,
-					2);
 				return;
 			}
 
-			string safeMessage = message;
-			string safeTarget = target;
-			if (message.length() > 5000)
+			message = message.substr(0, MAX_MESSAGE_LENGTH);
+			target = target.substr(0, MAX_TAG_LENGTH);
+
+			const string& timeStamp = 
+				(timeFormat == TimeFormat::TIME_NONE)
+				? empty
+				: (timeFormat == TimeFormat::TIME_DEFAULT
+					? (defaultTimeFormat == TimeFormat::TIME_NONE 
+						? empty 
+						: GetTime(defaultTimeFormat))
+					: GetTime(timeFormat));
+
+			const string& dateStamp =
+				(dateFormat == DateFormat::DATE_NONE)
+				? empty
+				: (dateFormat == DateFormat::DATE_DEFAULT
+					? (defaultDateFormat == DateFormat::DATE_NONE
+						? empty
+						: GetDate(defaultDateFormat))
+					: GetDate(dateFormat));
+
+			const string& prefix = GetCachedPrefix(type, target);
+
+			thread_local array<char, BUFFER_SIZE> buf{};
+			char* p = buf.data();
+
+			//append [ date ] [ time ]
+			if (!dateStamp.empty())
 			{
-				Print(
-					"Log message length is too long! Message was cut off after 5000 characters.",
-					"LOG",
-					LogType::LOG_WARNING);
-				safeMessage = safeMessage.substr(0, 4997) + "...";
+				*p++ = '[';
+				*p++ = ' ';
+				memcpy(p, dateStamp.data(), dateStamp.size());
+				p += dateStamp.size();
+				*p++ = ' ';
+				*p++ = ']';
+				*p++ = ' ';
 			}
-			if (target.length() > 20)
+			if (!timeStamp.empty())
 			{
-				Print(
-					"Log target length is too long! Target was cut off after 20 characters.",
-					"LOG",
-					LogType::LOG_WARNING);
-				safeTarget = safeTarget.substr(0, 17) + "...";
-			}
-
-			string fullMessage{};
-
-			string indent(indentation, ' ');
-
-			if (dateFormat != DateFormat::DATE_NONE
-				&& defaultDateFormat != DateFormat::DATE_NONE)
-			{
-				string dateStamp = GetDate(dateFormat);
-				fullMessage += "[ " + dateStamp + " ] ";
-			}
-
-			if (timeFormat != TimeFormat::TIME_NONE
-				&& defaultTimeFormat != TimeFormat::TIME_NONE)
-			{
-				string timeStamp = GetTime(timeFormat);
-
-				fullMessage += "[ " + timeStamp + " ] ";
-				if (!indent.empty()) fullMessage += indent;
-			}
-			else
-			{
-				if (!indent.empty()) fullMessage += indent;
-			}
-
-			fullMessage += "[ ";
-
-			string logType{};
-			switch (type)
-			{
-			case LogType::LOG_DEBUG:
-				fullMessage += "DEBUG | ";
-				break;
-			case LogType::LOG_SUCCESS:
-				fullMessage += "SUCCESS | ";
-				break;
-			case LogType::LOG_WARNING:
-				fullMessage += "WARNING | ";
-				break;
-			case LogType::LOG_ERROR:
-				fullMessage += "ERROR | ";
-				break;
+				*p++ = '[';
+				*p++ = ' ';
+				memcpy(p, timeStamp.data(), timeStamp.size());
+				p += timeStamp.size();
+				*p++ = ' ';
+				*p++ = ']';
+				*p++ = ' ';
 			}
 
-			fullMessage += target + " ] " + message + "\n";
-
-			switch (type)
+			//indentation
+			if (indentation > 0)
 			{
-			case LogType::LOG_ERROR:
-				cerr << fullMessage;
-				break;
-			case LogType::LOG_WARNING:
-			case LogType::LOG_DEBUG:
-				clog << fullMessage;
-				break;
-			case LogType::LOG_INFO:
-			case LogType::LOG_SUCCESS:
-			default:
-				cout << fullMessage;
-				break;
+				unsigned int clamped = clamp(indentation, 0u, static_cast<unsigned int>(MAX_INDENT_LENGTH));
+				memset(p, ' ', clamped);
+				p += clamped;
+			}
+
+			//cached prefix
+			memcpy(p, prefix.data(), prefix.size());
+			p += prefix.size();
+
+			//message
+			memcpy(p, message.data(), message.size());
+			p += message.size();
+
+			//newline
+			*p++ = '\n';
+
+			FILE* out = (type == LogType::LOG_ERROR)
+				? stderr
+				: stdout;
+
+			const size_t length = static_cast<size_t>(p - buf.data());
+			fwrite(buf.data(), 1, length, out);
+
+			if (flush
+				|| type == LogType::LOG_ERROR)
+			{
+				fflush(out);
 			}
 		}
 
-		//Overload for the core print function.
-		//This one simply prints the message to cout with a newline at the end.
-		static void Print(const string& message)
+		//Prints a log message to the console using fwrite.
+		//A newline is added automatically so std::endline or \n is not needed.
+		//  - message: the actual message of this log
+		//  - flush: set to true for crash logs, diagnostics, assertion failures
+		static inline void Print(
+			string_view message,
+			bool flush = false)
 		{
-			if (message.empty())
-			{
-				Print(
-					"Cannot write a log message with no message!",
-					"LOG",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
+			if (message.empty()) return;
 
-			string safeMessage = message;
-			if (message.length() > 5000)
-			{
-				Print(
-					"Log message length is too long! Message was cut off after 5000 characters.",
-					"LOG",
-					LogType::LOG_DEBUG);
-				safeMessage = safeMessage.substr(0, 4997) + "...";
-			}
+			message = message.substr(0, MAX_MESSAGE_LENGTH);
 
+			thread_local array<char, BUFFER_SIZE> buf{};
+			const size_t length = message.size();
+			const size_t totalLength = length + 1; //+1 for '\n'
 
-			cout << safeMessage << "\n";
+			memcpy(buf.data(), message.data(), length);
+			buf[length] = '\n';
+
+			fwrite(buf.data(), 1, totalLength, stdout);
+			if (flush) fflush(stdout);
 		}
 	private:
 		static inline TimeFormat defaultTimeFormat = TimeFormat::TIME_HMS_MS;
 		static inline DateFormat defaultDateFormat = DateFormat::DATE_NONE;
+
+		static inline thread_local array<CachedPrefix, CACHED_TAGS_LENGTH> prefixCache{};
+		static inline thread_local size_t prefixSize{};  //total filled cached prefixes
+		static inline thread_local size_t prefixClock{}; //where to overwrite next once the cache is full
+
+		static constexpr const char* LogTypeTag[] =
+		{
+			"",           //LOG_INFO
+			"DEBUG | ",
+			"SUCCESS | ",
+			"WARNING | ",
+			"ERROR | "
+		};
+		static constexpr array<size_t, 5> LogTypeTagLength = 
+		{
+			0, 
+			8, 
+			10, 
+			10, 
+			8
+		};
+
+		static inline const string& GetCachedPrefix(
+			LogType type,
+			string_view target)
+		{
+			//search existing entries
+
+			for (size_t i = 0; i < prefixSize; ++i)
+			{
+				const auto& e = prefixCache[i];
+				if (e.type == type
+					&& e.target == target)
+				{
+					return e.prefix;
+				}
+			}
+
+			//not found, make new
+
+			const char* tag = LogTypeTag[static_cast<size_t>(type)];
+			const size_t tagLength = LogTypeTagLength[static_cast<size_t>(type)];
+			const size_t targetLength = target.size();
+
+			//"[ " + tag + target + "] " = 2 + tagLength + targetLength + 2
+
+			string built{};
+			built.resize(2 + tagLength + targetLength + 2);
+
+			char* p = built.data();
+			p[0] = '[';
+			p[1] = ' ';
+			memcpy(p + 2, tag, tagLength);
+			memcpy(p + 2 + tagLength, target.data(), targetLength);
+			p[2 + tagLength + targetLength] = ']';
+			p[3 + tagLength + targetLength] = ' ';
+
+			size_t index{};
+			if (prefixSize < prefixCache.size()) index = prefixSize++;
+			else index = (prefixClock++ % prefixCache.size());
+
+			prefixCache[index] = { type, string(target), move(built) };
+			return prefixCache[index].prefix;
+		}
 	};
 }
