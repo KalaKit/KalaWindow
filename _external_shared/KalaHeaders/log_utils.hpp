@@ -17,6 +17,7 @@
 
 #include <cstring>
 #include <ctime>
+#include <cstdio>
 #include <string>
 #include <chrono>
 #include <array>
@@ -46,7 +47,7 @@ namespace KalaHeaders
 		LOG_DEBUG,   //Debugging message, only appears in debug builds, sent to stdout
 		LOG_SUCCESS, //Confirmation that an operation succeeded, sent to stdout
 		LOG_WARNING, //Non-critical issue that should be looked into, sent to stdout
-		LOG_ERROR    //Serious issue or failure, sent to stderr, should always be flushed
+		LOG_ERROR    //Serious issue or failure, sent to stderr, always flushes
 	};
 	enum class TimeFormat
 	{
@@ -296,10 +297,10 @@ namespace KalaHeaders
 
 		//Prints a log message to the console using fwrite.
 		//A newline is added automatically so std::endline or \n is not needed.
-		//  - message: the actual message of this log
-		//  - target: name of the namespace, class, function or variable of this log
-		//  - type: sets the tag type, LOG_INFO has no tag
-		//  - indentation: optional leading space count in after time and date stamp, clamped from 0 to 10
+		//  - message: the actual message of this log, clamped up to 2000 characters
+		//  - target: name of the namespace, class, function or variable of this log, clamped up to 20 characters
+		//  - type: sets the tag type, LOG_INFO has no tag, error always flushes
+		//  - indentation: optional leading space count in after time and date stamp, clamped up to 10
 		//  - flush: set to true for crash logs, diagnostics, assertion failures
 		//  - timeFormat: optional time stamp
 		//  - dateFormat: optional date stamp
@@ -337,7 +338,7 @@ namespace KalaHeaders
 
 			string_view safeMessage{ message };
 			string_view safeTarget{ target };
-			if (message.size() > 2046) safeMessage = safeMessage.substr(0, 2046);
+			if (message.size() > 2000) safeMessage = safeMessage.substr(0, 1999);
 			if (target.size() > 20) safeTarget = safeTarget.substr(0, 19);
 
 			const string& timeStamp = (
@@ -354,7 +355,7 @@ namespace KalaHeaders
 
 			const string& prefix = GetCachedPrefix(type, safeTarget);
 
-			thread_local array<char, 2048> buf{};
+			thread_local array<char, 2100> buf{};
 			char* p = buf.data();
 
 			//append [ date ] [ time ]
@@ -405,7 +406,11 @@ namespace KalaHeaders
 			const size_t length = static_cast<size_t>(p - buf.data());
 			fwrite(buf.data(), 1, length, out);
 
-			if (flush) fflush(out);
+			if (flush
+				|| type == LogType::LOG_ERROR)
+			{
+				fflush(out);
+			}
 		}
 
 		//Prints a log message to the console using fwrite.
