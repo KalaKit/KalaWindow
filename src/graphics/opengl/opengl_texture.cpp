@@ -203,7 +203,7 @@ static u8 GetBytesPerChannel(TextureFormat format)
 	default:
 		Log::Print(
 			"GetBytesPerChannel called on invalid format! Compressed formats don't have per-channel bytes.",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -274,7 +274,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot load texture '" + name + "' because OpenGL has not been initialized!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
@@ -282,25 +282,43 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot load texture '" + name + "' because its window reference is invalid!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
 		}
 
-		WindowContent* content = windowContent[window].get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
 
-		OpenGL_Context* context = content->glContext.get();
+		if (!content)
+		{
+			Log::Print(
+				"Cannot load texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
+				"OPENGL_TEXTURE",
+				LogType::LOG_ERROR);
 
-		if (!context)
+			return nullptr;
+		}
+
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
+
+		if (!context
+			|| !context->IsInitialized()
+			|| !context->IsContextValid())
 		{
 			Log::Print(
 				"Cannot load texture '" + name + "' because its OpenGL context is invalid!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
@@ -423,7 +441,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Loaded OpenGL texture '" + name + "' with ID '" + to_string(newID) + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 
 		return texturePtr;
@@ -441,7 +459,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot load cubemap texture '" + name + "' because OpenGL has not been initialized!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
@@ -449,25 +467,43 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot load cubemap texture '" + name + "' because its window reference is invalid!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
 		}
 
-		WindowContent* content = windowContent[window].get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
 
-		OpenGL_Context* context = content->glContext.get();
+		if (!content)
+		{
+			Log::Print(
+				"Cannot load cubemap texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
+				"OPENGL_TEXTURE",
+				LogType::LOG_ERROR);
 
-		if (!context)
+			return nullptr;
+		}
+
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
+
+		if (!context
+			|| !context->IsInitialized()
+			|| !context->IsContextValid())
 		{
 			Log::Print(
 				"Cannot load cubemap texture '" + name + "' because its OpenGL context is invalid!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
@@ -481,7 +517,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Failed to load cube map texture '" + name + "' because its extensions don't match!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -527,7 +563,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 				Log::Print(
 					oss.str(),
-					"TEXTURE",
+					"OPENGL_TEXTURE",
 					LogType::LOG_ERROR,
 					2);
 
@@ -544,7 +580,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 				Log::Print(
 					oss.str(),
-					"TEXTURE",
+					"OPENGL_TEXTURE",
 					LogType::LOG_ERROR,
 					2);
 
@@ -628,7 +664,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Created OpenGL cube texture '" + name + "' with ID '" + to_string(newID) + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 
 		return texturePtr;
@@ -646,7 +682,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Cannot load 2D array texture '" + name + "' because OpenGL has not been initialized!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
@@ -654,25 +690,43 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot load 2D array texture '" + name + "' because its window reference is invalid!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
 		}
 
-		WindowContent* content = windowContent[window].get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
 
-		OpenGL_Context* context = content->glContext.get();
-
-		if (!context)
+		if (!content)
 		{
 			Log::Print(
-				"Cannot load 2D array texture '" + name + "' because its OpenGL context is invalid!",
-				"TEXTURE",
+				"Cannot load 2D array texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
+				"OPENGL_TEXTURE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
+
+		if (!context
+			|| !context->IsInitialized()
+			|| !context->IsContextValid())
+		{
+			Log::Print(
+				"Cannot load 2d array texture '" + name + "' because its OpenGL context is invalid!",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
@@ -685,7 +739,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Failed to load 2D array texture '" + name + "' because its extensions don't match!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -732,7 +786,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 				Log::Print(
 					oss.str(),
-					"TEXTURE",
+					"OPENGL_TEXTURE",
 					LogType::LOG_ERROR,
 					2);
 
@@ -816,7 +870,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Created OpenGL 2D array texture '" + name + "' with ID '" + to_string(newID) + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 
 		return texturePtr;
@@ -830,7 +884,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Fallback texture has already been assigned! Do not call this function manually.",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -900,7 +954,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Loaded fallback OpenGL texture with ID '" + to_string(newID) + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 	}
 
@@ -926,7 +980,7 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			Log::Print(
 				"Failed to resize texture '" + name + "' because its pixel data is empty or size is invalid!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -946,7 +1000,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			Log::Print(
 				oss.str(),
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -976,7 +1030,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			Log::Print(
 				oss.str(),
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -993,7 +1047,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 			Log::Print(
 				oss.str(),
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1023,7 +1077,7 @@ namespace KalaWindow::Graphics::OpenGL
 			{
 				Log::Print(
 					"Failed to resize texture '" + name + "' with resize type 'RESIZE_SRGB'!",
-					"TEXTURE",
+					"OPENGL_TEXTURE",
 					LogType::LOG_ERROR,
 					2);
 
@@ -1047,7 +1101,7 @@ namespace KalaWindow::Graphics::OpenGL
 			{
 				Log::Print(
 					"Failed to resize texture '" + name + "' with resize type 'RESIZE_LINEAR'!",
-					"TEXTURE",
+					"OPENGL_TEXTURE",
 					LogType::LOG_ERROR,
 					2);
 
@@ -1080,7 +1134,7 @@ namespace KalaWindow::Graphics::OpenGL
 			{
 				Log::Print(
 					"Failed to resize texture '" + name + "' with resize type 'RESIZE_LINEAR_FLOAT'!",
-					"TEXTURE",
+					"OPENGL_TEXTURE",
 					LogType::LOG_ERROR,
 					2);
 
@@ -1116,7 +1170,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Rescaled texture '" + name + "' to new scale '" + sizeX + "x" + sizeY + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 	}
 
@@ -1335,7 +1389,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Hot-reloaded texture '" + name + "' with '" + target + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 	}
 
@@ -1349,7 +1403,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Log::Print(
 			"Destroyed texture '" + GetName() + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
 	}
 }
@@ -1369,7 +1423,7 @@ OpenGL_Texture* InitTexture(
 	{
 		Log::Print(
 			"Texture name '" + name + "' is reserved for the fallback texture!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1387,7 +1441,7 @@ OpenGL_Texture* InitTexture(
 			{
 				Log::Print(
 					"Returning existing texture '" + name + "'.",
-					"TEXTURE",
+					"OPENGL_TEXTURE",
 					LogType::LOG_INFO);
 
 				return value.get();
@@ -1396,7 +1450,7 @@ OpenGL_Texture* InitTexture(
 
 		Log::Print(
 			"Returning fallback texture because existing texture was not found!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_WARNING);
 
 		return OpenGL_Texture::GetFallbackTexture();
@@ -1404,7 +1458,7 @@ OpenGL_Texture* InitTexture(
 
 	Log::Print(
 		"Loading texture '" + name + "'.",
-		"TEXTURE",
+		"OPENGL_TEXTURE",
 		LogType::LOG_INFO);
 
 	//
@@ -1426,7 +1480,7 @@ OpenGL_Texture* InitTexture(
 	{
 		Log::Print(
 			"Failed to get texture data from texture '" + filePath + "' for texture '" + name + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1442,7 +1496,7 @@ OpenGL_Texture* InitTexture(
 
 		Log::Print(
 			oss.str(),
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_WARNING);
 
 		if (nrChannels == 1) formatOut = TextureFormat::Format_R8;
@@ -1453,7 +1507,7 @@ OpenGL_Texture* InitTexture(
 		{
 			Log::Print(
 				"Unsupported channel count '" + to_string(nrChannels) + "' for texture '" + name + "'!",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1470,7 +1524,7 @@ OpenGL_Texture* InitTexture(
 		{
 			Log::Print(
 				"Texture '" + name + "' was loaded with an incorrect format! Channel count is '" + to_string(nrChannels) + "'",
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
@@ -1506,7 +1560,7 @@ OpenGL_Texture* InitTexture(
 
 		Log::Print(
 			oss.str(),
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1536,7 +1590,7 @@ OpenGL_Texture* InitTexture(
 
 		Log::Print(
 			oss.str(),
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1553,7 +1607,7 @@ OpenGL_Texture* InitTexture(
 
 		Log::Print(
 			oss.str(),
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1568,7 +1622,7 @@ OpenGL_Texture* InitTexture(
 	{
 		Log::Print(
 			"Non-compressed format was used for compressed texture '" + name + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1581,7 +1635,7 @@ OpenGL_Texture* InitTexture(
 	{
 		Log::Print(
 			"Compressed format was used for uncompressed texture '" + name + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1602,7 +1656,7 @@ TextureCheckResult IsValidTexture(
 	{
 		Log::Print(
 			"Cannot load a texture with no name!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1615,7 +1669,7 @@ TextureCheckResult IsValidTexture(
 	{
 		Log::Print(
 			"Cannot load a texture with no path!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1628,7 +1682,7 @@ TextureCheckResult IsValidTexture(
 	{
 		Log::Print(
 			"Texture '" + textureName + "' path '" + texturePath + "' does not exist!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1643,7 +1697,7 @@ TextureCheckResult IsValidTexture(
 	{
 		Log::Print(
 			"Texture '" + textureName + "' has no extension. You must use png, jpg or jpeg!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1656,7 +1710,7 @@ TextureCheckResult IsValidTexture(
 	{
 		Log::Print(
 			"Texture '" + textureName + "' extension '" + path(lowerFilePath).extension().string() + "' is not supported!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1671,7 +1725,7 @@ TextureCheckResult IsValidTexture(
 			|| value->GetPath() == lowerFilePath)
 		{
 			Log::Print("Texture already exists: " + textureName, 
-				"TEXTURE",
+				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR, 
 				2);
 			return TextureCheckResult::RESULT_ALREADY_EXISTS;
@@ -1723,7 +1777,7 @@ stbir_pixel_layout ToStbirLayout(
 	case TextureFormat::Format_Auto:
 		Log::Print(
 			"Unsupported resize: Format_None/Format_Auto for texture '" + textureName + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1762,7 +1816,7 @@ stbir_pixel_layout ToStbirLayout(
 
 		Log::Print(
 			"Unsupported resize: compressed format for texture '" + textureName + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
@@ -1771,7 +1825,7 @@ stbir_pixel_layout ToStbirLayout(
 	default:
 		Log::Print(
 			"Unknown TextureFormat in ToStbirLayout() for texture '" + textureName + "'!",
-			"TEXTURE",
+			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 

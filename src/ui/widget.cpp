@@ -42,14 +42,22 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		WindowContent* content = windowContent[window].get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content) return{};
 
 		if (content->runtimeWidgets.empty()) return{};
 
-		OpenGL_Context* context = content->glContext.get();
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
 
 		if (!context
-			|| !context->IsInitialized())
+			|| !context->IsInitialized()
+			|| !context->IsContextValid())
 		{
 			return{};
 		}
@@ -109,11 +117,20 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		WindowContent* content = windowContent[window].get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
 
-		OpenGL_Context* context = content->glContext.get();
+		if (!content) return false;
+
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
+
 		if (!context
-			|| !context->IsInitialized())
+			|| !context->IsInitialized()
+			|| !context->IsContextValid())
 		{
 			return false;
 		}

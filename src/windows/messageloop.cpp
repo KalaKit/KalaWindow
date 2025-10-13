@@ -307,7 +307,8 @@ namespace KalaWindow::Windows
 	{
 		Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			return DefWindowProc(
 				hwnd, 
@@ -473,8 +474,18 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		return false;
 	}
 
-	WindowContent* content = windowContent[window].get();
-	Input* input = content->input.get();
+	WindowContent* content{};
+	if (windowContent[window])
+	{
+		content = windowContent[window].get();
+	}
+
+	Input* input{};
+	if (content
+		&& content->input)
+	{
+		input = content->input.get();
+	}
 
 	/*
 	if (msg.message == 0)

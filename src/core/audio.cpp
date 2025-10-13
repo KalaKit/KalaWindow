@@ -418,10 +418,27 @@ namespace KalaWindow::Core
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Failed to create audio player '" + name + "' because its window reference is invalid!",
+				"AUDIO_PLAYER",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content)
+		{
+			Log::Print(
+				"Failed to create audio player '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
 				"AUDIO_PLAYER",
 				LogType::LOG_ERROR);
 
@@ -551,8 +568,6 @@ namespace KalaWindow::Core
 		trackPtr->ID = newID;
 		trackPtr->windowID = windowID;
 
-		WindowContent* content = windowContent[window].get();
-
 		content->audioPlayers[newID] = move(newTrack);
 		content->runtimeAudioPlayers.push_back(trackPtr);
 
@@ -603,16 +618,23 @@ namespace KalaWindow::Core
 		}
 
 		Window* window = GetValueByID<Window>(windowID);
-		WindowContent* content = windowContent[window].get();
 
-		for (const auto& [_, track] : content->audioPlayers)
+		WindowContent* content{};
+		if (window
+			&& window->IsInitialized()
+			&& windowContent[window])
 		{
-			if (track->GetName() == newName)
-			{
-				PrintNameError("an audio player with the new name already exists!");
+			content = windowContent[window].get();
+		}
 
-				return;
-			}
+		if (!content)
+		{
+			Log::Print(
+				"Failed to update audio player '" + name + "' name because its window '" + window->GetTitle() + "' is missing from window content!",
+				"AUDIO_PLAYER",
+				LogType::LOG_ERROR);
+
+			return;
 		}
 
 		name = newName;

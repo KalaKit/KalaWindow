@@ -1864,10 +1864,22 @@ namespace KalaWindow::Graphics
 
 		if (window_windows.wndProc) window_windows.wndProc = NULL;
 
-		WindowContent* content = windowContent[this].get();
-		OpenGL_Context* context = content->glContext.get();
+		WindowContent* content{};
+		if (windowContent[this])
+		{
+			content = windowContent[this].get();
+		}
 
-		if (context)
+		OpenGL_Context* context{};
+		if (content
+			&& content->glContext)
+		{
+			context = content->glContext.get();
+		}
+
+		if (context
+			&& context->IsInitialized()
+			&& context->IsContextValid())
 		{
 			HDC hdc = GetDC(winRef);
 			if (hdc)

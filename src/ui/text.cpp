@@ -47,10 +47,28 @@ namespace KalaWindow::UI
 			return nullptr;
 		}
 
-		WindowContent* content = windowContent[window].get();
-		OpenGL_Context* context = content->glContext.get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
 
-		if (!context)
+		if (!content)
+		{
+			Log::Print(
+				"Cannot load text texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
+
+		if (!context
+			|| !context->IsInitialized()
+			|| !context->IsContextValid())
 		{
 			Log::Print(
 				"Cannot load text '" + name + "' because its OpenGL context is invalid!",

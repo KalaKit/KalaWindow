@@ -36,24 +36,43 @@ namespace KalaWindow::UI
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot load image '" + name + "' because its window context is invalid!",
-				"TEXT",
+				"IMAGE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
 		}
 
-		WindowContent* content = windowContent[window].get();
-		OpenGL_Context* context = content->glContext.get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
 
-		if (!context)
+		if (!content)
+		{
+			Log::Print(
+				"Cannot load image texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
+				"IMAGE",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
+
+		if (!context
+			|| !context->IsInitialized()
+			|| !context->IsContextValid())
 		{
 			Log::Print(
 				"Cannot load image '" + name + "' because its OpenGL context is invalid!",
-				"TEXT",
+				"IMAGE",
 				LogType::LOG_ERROR);
 
 			return nullptr;
@@ -65,7 +84,7 @@ namespace KalaWindow::UI
 
 		Log::Print(
 			"Loading image '" + name + "' with ID '" + to_string(newID) + "'.",
-			"TEXT",
+			"IMAGE",
 			LogType::LOG_DEBUG);
 
 		//<<< load image here
@@ -79,7 +98,7 @@ namespace KalaWindow::UI
 
 		Log::Print(
 			"Loaded image '" + name + "' with ID '" + to_string(newID) + "'!",
-			"TEXT",
+			"IMAGE",
 			LogType::LOG_SUCCESS);
 
 		return imagePtr;

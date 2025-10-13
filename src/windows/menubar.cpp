@@ -41,10 +41,27 @@ namespace KalaWindow::Windows
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot create menu bar because its window reference is invalid!",
+				"MENUBAR",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content)
+		{
+			Log::Print(
+				"Cannot create menu bar because its window '" + window->GetTitle() + "' is missing from window content!",
 				"MENUBAR",
 				LogType::LOG_ERROR);
 
@@ -71,7 +88,6 @@ namespace KalaWindow::Windows
 		SetMenu(hwnd, hMenu);
 		DrawMenuBar(hwnd);
 
-		WindowContent* content = windowContent[window].get();
 		content->menubar = move(newMenu);
 
 		menuPtr->isInitialized = true;
@@ -88,7 +104,8 @@ namespace KalaWindow::Windows
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot check if menu bar is initialized because its window reference is invalid!",
@@ -106,7 +123,8 @@ namespace KalaWindow::Windows
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot set menu bar state because its window reference is invalid!",
@@ -150,7 +168,8 @@ namespace KalaWindow::Windows
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot check if menu bar is enabled because its window reference is invalid!",
@@ -177,10 +196,27 @@ namespace KalaWindow::Windows
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot create label for menu bar because its window reference is invalid!",
+				"MENUBAR",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content)
+		{
+			Log::Print(
+				"Cannot create label because its window '" + window->GetTitle() + "' is missing from window content!",
 				"MENUBAR",
 				LogType::LOG_ERROR);
 
@@ -254,8 +290,6 @@ namespace KalaWindow::Windows
 
 			return;
 		}
-
-		WindowContent* content = windowContent[window].get();
 
 		//leaf cant have parent that is also a leaf
 		if (type == LabelType::LABEL_LEAF
@@ -414,7 +448,8 @@ namespace KalaWindow::Windows
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot add separator to menu bar because its window reference is invalid!",
@@ -424,8 +459,23 @@ namespace KalaWindow::Windows
 			return;
 		}
 
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content)
+		{
+			Log::Print(
+				"Cannot add separator because its window '" + window->GetTitle() + "' is missing from window content!",
+				"MENUBAR",
+				LogType::LOG_ERROR);
+
+			return;
+		}
+
 		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
-		if (!window) return;
 
 		if (!isInitialized)
 		{
@@ -443,8 +493,6 @@ namespace KalaWindow::Windows
 		}
 
 		HMENU hMenu = GetMenu(hwnd);
-
-		WindowContent* content = windowContent[window].get();
 
 		for (const auto& e : content->runtimeMenuBarEvents)
 		{
@@ -583,7 +631,8 @@ namespace KalaWindow::Windows
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot destroy menu bar because its window reference is invalid!",

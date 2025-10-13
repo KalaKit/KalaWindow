@@ -215,11 +215,27 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
 				"Cannot initialize OpenGL context because it's window was not found!");
+
+			return nullptr;
+		}
+
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Cannot initialize OpenGL context because it's window '" + window->GetTitle() + "' is missing from window content!");
 
 			return nullptr;
 		}
@@ -605,7 +621,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 		contPtr->contextData = ss2.str();
 
-		WindowContent* content = windowContent[window].get();
 		content->glContext = move(newCont);
 
 		contPtr->windowID = window->GetID();
@@ -635,7 +650,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot swap OpenGL buffers because it's window was not found!",
@@ -677,7 +693,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot set OpenGL context because it's window was not found!",
@@ -722,7 +739,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot check OpenGL context validity because its window was not found!",
@@ -805,7 +823,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot shut down OpenGL context because its window was not found!",
@@ -816,7 +835,21 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		WindowContent* content = windowContent[window].get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content)
+		{
+			Log::Print(
+				"Cannot shut down OpenGL because its window '" + window->GetTitle() + "' is missing from window content!",
+				"OPENGL",
+				LogType::LOG_ERROR);
+
+			return;
+		}
 
 		if (!content->glContext)
 		{

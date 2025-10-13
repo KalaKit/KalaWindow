@@ -37,7 +37,9 @@ namespace KalaWindow::Graphics
 		const vec3& rot)
 	{
 		Window* window = GetValueByID<Window>(windowID);
-		if (!window)
+
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot create camera '" + cameraName + "' because its target window is invalid!",
@@ -47,14 +49,30 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		WindowContent* content = windowContent[window].get();
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
 
-		OpenGL_Context* context = content->glContext.get();
+		if (!content)
+		{
+			Log::Print(
+				"Cannot create camera '" + cameraName + "' because its window '" + window->GetTitle() + "' is missing from window content!",
+				"CAMERA",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+
+		OpenGL_Context* context{};
+		if (content->glContext) context = content->glContext.get();
+
 		if (!context
 			|| !context->IsInitialized())
 		{
 			Log::Print(
-				"Cannot create camera '" + cameraName + "' because the target window '" + window->GetTitle() + "' OpenGL context is invalid!",
+				"Cannot load camera because its OpenGL context is invalid!",
 				"CAMERA",
 				LogType::LOG_ERROR);
 
@@ -95,21 +113,6 @@ namespace KalaWindow::Graphics
 			LogType::LOG_SUCCESS);
 
 		return camPtr;
-	}
-
-	void Camera::SetWindowID(u32 newID)
-	{
-		//skip if ID is empty
-		if (newID == 0) return;
-		//skip if ID is the same as current
-		if (newID == ID) return;
-
-		Window* window = GetValueByID<Window>(newID);
-
-		//skip if ID doesnt lead to a real window
-		if (!window) return;
-
-		windowID = newID;
 	}
 
 	Camera::~Camera()

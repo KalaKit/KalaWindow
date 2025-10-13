@@ -76,7 +76,7 @@ namespace KalaWindow::Graphics::OpenGL
         if (!OpenGL_Global::IsInitialized())
         {
             KalaWindowCore::ForceClose(
-                "UI error",
+                "Shader error",
                 "Cannot create shader '" + shaderName + "' because OpenGL is not initialized!");
 
             return nullptr;
@@ -84,25 +84,40 @@ namespace KalaWindow::Graphics::OpenGL
 
         Window* window = GetValueByID<Window>(windowID);
 
-        if (!window)
+        if (!window
+            || !window->IsInitialized())
         {
             KalaWindowCore::ForceClose(
-                "UI error",
+                "Shader error",
                 "Cannot create shader '" + shaderName + "' because its window was not found!");
 
             return nullptr;
         }
 
-        WindowContent* content = windowContent[window].get();
+        WindowContent* content{};
+        if (windowContent[window])
+        {
+            content = windowContent[window].get();
+        }
 
-        OpenGL_Context* cont = content->glContext.get();
-
-        if (!cont
-            || (cont
-            && !cont->IsContextValid()))
+        if (!content)
         {
             KalaWindowCore::ForceClose(
-                "UI error",
+                "Shader error",
+                "Cannot create shader '" + shaderName + "' because its window '" + window->GetTitle() + "' is missing from window content!");
+
+            return nullptr;
+        }
+
+        OpenGL_Context* context{};
+        if (content->glContext) context = content->glContext.get();
+
+        if (!context
+            || !context->IsInitialized()
+            || !context->IsContextValid())
+        {
+            KalaWindowCore::ForceClose(
+                "Shader error",
                 "Cannot create shader '" + shaderName + "' because window '" + window->GetTitle() + "' has no valid OpenGL context!");
 
             return nullptr;
@@ -544,7 +559,8 @@ namespace KalaWindow::Graphics::OpenGL
 
         Window* window = GetValueByID<Window>(windowID);
 
-        if (!window)
+        if (!window
+            || !window->IsInitialized())
         {
             Log::Print(
                 "Cannot bind shader '" + name + "' because its window was not found!",
@@ -554,13 +570,28 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        WindowContent* content = windowContent[window].get();
+        WindowContent* content{};
+        if (windowContent[window])
+        {
+            content = windowContent[window].get();
+        }
 
-        OpenGL_Context* cont = content->glContext.get();
+        if (!content)
+        {
+            Log::Print(
+                "Cannot bind shader '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
+                "OPENGL_SHADER",
+                LogType::LOG_ERROR);
 
-        if (!cont
-            || (cont
-            && !cont->IsContextValid()))
+            return false;
+        }
+
+        OpenGL_Context* context{};
+        if (content->glContext) context = content->glContext.get();
+
+        if (!context
+            || !context->IsInitialized()
+            || !context->IsContextValid())
         {
             Log::Print(
                 "Cannot bind shader '" + name + "' for window '" + window->GetTitle() + "' because it has no valid OpenGL context!",
@@ -570,7 +601,7 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        u32 lastProgramID = cont->GetLastProgramID();
+        u32 lastProgramID = context->GetLastProgramID();
         u32 ID = programID;
 
         if (ID == 0)
@@ -583,8 +614,8 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        cont->MakeContextCurrent();
-        if (!cont->IsContextValid())
+        context->MakeContextCurrent();
+        if (!context->IsContextValid())
         {
             Log::Print(
                 "OpenGL shader bind failed! OpenGL context is invalid.",
@@ -654,7 +685,7 @@ namespace KalaWindow::Graphics::OpenGL
         }
 #endif
 
-        cont->SetLastProgramID(ID);
+        context->SetLastProgramID(ID);
 
         return true;
     }

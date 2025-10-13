@@ -30,8 +30,6 @@ namespace KalaWindow::Graphics
 
 		inline u32 GetID() const { return ID; }
 
-		//Swapping a window ID at runtime delinks this widget from its parent and its children
-		void SetWindowID(u32 newID);
 		inline u32 GetWindowID() const { return windowID; }
 
 		inline void SetName(const string& newName)

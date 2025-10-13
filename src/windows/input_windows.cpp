@@ -37,11 +37,27 @@ namespace KalaWindow::Core
 	{
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window) 
+		if (!window
+			|| !window->IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
 				"Input error",
 				"Failed to initialize input because its window was not found!");
+
+			return nullptr;
+		}
+
+		WindowContent* content{};
+		if (windowContent[window])
+		{
+			content = windowContent[window].get();
+		}
+
+		if (!content)
+		{
+			KalaWindowCore::ForceClose(
+				"Input error",
+				"Failed to initialize input because its window '" + window->GetTitle() + "' is missing from window content!");
 
 			return nullptr;
 		}
@@ -72,7 +88,6 @@ namespace KalaWindow::Core
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
-		WindowContent* content = windowContent[window].get();
 		content->input = move(newInput);
 
 		inputPtr->windowID = window->GetID();
@@ -362,7 +377,8 @@ namespace KalaWindow::Core
 		{
 			Window* window = GetValueByID<Window>(windowID);
 
-			if (!window)
+			if (!window
+				|| !window->IsInitialized())
 			{
 				Log::Print(
 					"Cannot set mouse lock state because its window was not found!",
@@ -427,7 +443,8 @@ namespace KalaWindow::Core
 			{
 				Window* window = GetValueByID<Window>(windowID);
 
-				if (!window)
+				if (!window
+					|| !window->IsInitialized())
 				{
 					Log::Print(
 						"Cannot set mouse lock state between focus because its window was not found!",
@@ -481,7 +498,8 @@ namespace KalaWindow::Core
 		{
 			Window* window = GetValueByID<Window>(windowID);
 
-			if (!window)
+			if (!window
+				|| !window->IsInitialized())
 			{
 				Log::Print(
 					"Cannot get window reference at input end frame update because its window was not found!",
@@ -530,7 +548,8 @@ namespace KalaWindow::Core
 
 		Window* window = GetValueByID<Window>(windowID);
 
-		if (!window)
+		if (!window
+			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Cannot shut down input context because its window was not found!",
