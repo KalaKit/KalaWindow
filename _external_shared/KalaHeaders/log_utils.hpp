@@ -15,9 +15,12 @@
 
 #pragma once
 
+#include <cstring>
+#include <ctime>
 #include <string>
 #include <chrono>
 #include <array>
+#include <algorithm>
 
 namespace KalaHeaders
 {
@@ -27,18 +30,23 @@ namespace KalaHeaders
 	using std::chrono::duration_cast;
 	using std::chrono::microseconds;
 	using std::chrono::milliseconds;
-	using std::localtime;
 	using std::array;
 	using std::fwrite;
 	using std::fflush;
+	using std::clamp;
+	using std::memset;
+	using std::memcpy;
+	using std::strftime;
+	using std::snprintf;
+	using std::gmtime;
 
 	enum class LogType
 	{
-		LOG_INFO,    //General-purpose log message, sent to std::cout
-		LOG_DEBUG,   //Debugging message, only appears in debug builds, sent to std::clog
-		LOG_SUCCESS, //Confirmation that an operation succeeded, sent to std::cout
-		LOG_WARNING, //Non-critical issue that should be looked into, sent to std::clog
-		LOG_ERROR    //Serious issue or failure, sent to std::cerr
+		LOG_INFO,    //General-purpose log message, sent to stdout
+		LOG_DEBUG,   //Debugging message, only appears in debug builds, sent to stdout
+		LOG_SUCCESS, //Confirmation that an operation succeeded, sent to stdout
+		LOG_WARNING, //Non-critical issue that should be looked into, sent to stdout
+		LOG_ERROR    //Serious issue or failure, sent to stderr, should always be flushed
 	};
 	enum class TimeFormat
 	{
@@ -131,10 +139,10 @@ namespace KalaHeaders
 		//Returns current time in chosen or default format
 		static inline const string& GetTime(TimeFormat timeFormat = TimeFormat::TIME_DEFAULT)
 		{
-			static string cached[static_cast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
-			static long long last_ms = -1;
+			static thread_local string cached[static_cast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
+			static thread_local long long last_ms = -1;
 
-			static const string empty{};
+			static thread_local const string empty{};
 
 			if (timeFormat == TimeFormat::TIME_NONE
 				|| (timeFormat == TimeFormat::TIME_DEFAULT
@@ -161,7 +169,6 @@ namespace KalaHeaders
 
 			const auto in_time_t = system_clock::to_time_t(now);
 			const int ms = (us_since_epoch / 1000) % 1000;
-			const int us = us_since_epoch % 1000000;
 
 			tm timeInfo{};
 			localtime_s(&timeInfo, &in_time_t);
@@ -170,34 +177,48 @@ namespace KalaHeaders
 			switch (timeFormat)
 			{
 			case TimeFormat::TIME_HMS:
+			{
 				strftime(buffer, sizeof(buffer), "%H:%M:%S", &timeInfo);
 				break;
+			}
 			case TimeFormat::TIME_HMS_MS:
-				{
-					char tmp[16]{};
-					strftime(tmp, sizeof(tmp), "%H:%M:%S", &timeInfo);
-					snprintf(buffer, sizeof(buffer), "%s:%03d", tmp, ms);
-				}
+			{
+				char tmp[16]{};
+				strftime(tmp, sizeof(tmp), "%H:%M:%S", &timeInfo);
+				snprintf(buffer, sizeof(buffer), "%s-%03d", tmp, ms);
+
 				break;
+			}
 			case TimeFormat::TIME_12H:
+			{
 				strftime(buffer, sizeof(buffer), "%I:%M:%S %p", &timeInfo);
 				break;
+			}
 			case TimeFormat::TIME_ISO_8601:
-				strftime(buffer, sizeof(buffer), "%H:%M:%SZ", &timeInfo);
+			{
+				tm utc{};
+				gmtime_s(&utc, &in_time_t);
+				strftime(buffer, sizeof(buffer), "%H:%M:%SZ", &utc);
 				break;
+			}
 			case TimeFormat::TIME_FILENAME:
+			{
 				strftime(buffer, sizeof(buffer), "%H-%M-%S", &timeInfo);
 				break;
+			}
 			case TimeFormat::TIME_FILENAME_MS:
-				{
-					char tmp[16]{};
-					strftime(tmp, sizeof(tmp), "%H-%M-%S", &timeInfo);
-					snprintf(buffer, sizeof(buffer), "%s:%03d", tmp, ms);
-				}
+			{
+				char tmp[16]{};
+				strftime(tmp, sizeof(tmp), "%H-%M-%S", &timeInfo);
+				snprintf(buffer, sizeof(buffer), "%s-%03d", tmp, ms);
+
 				break;
+			}
 			default:
+			{
 				buffer[0] = '\0';
 				break;
+			}
 			}
 
 			cached[static_cast<int>(timeFormat)] = buffer;
@@ -206,7 +227,7 @@ namespace KalaHeaders
 		//Returns current date in chosen or default format.
 		static inline const string& GetDate(DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
-			static string result{};
+			static thread_local string result{};
 
 			if (dateFormat == DateFormat::DATE_NONE
 				|| (dateFormat == DateFormat::DATE_DEFAULT
@@ -229,28 +250,44 @@ namespace KalaHeaders
 			switch (dateFormat)
 			{
 			case DateFormat::DATE_DMY:
+			{
 				strftime(buffer, sizeof(buffer), "%d/%m/%Y", &timeInfo);
 				break;
+			}
 			case DateFormat::DATE_MDY:
+			{
 				strftime(buffer, sizeof(buffer), "%m/%d/%Y", &timeInfo);
 				break;
+			}
 			case DateFormat::DATE_ISO_8601:
+			{
 				strftime(buffer, sizeof(buffer), "%Y-%m-%d", &timeInfo);
 				break;
+			}
 			case DateFormat::DATE_TEXT_DMY:
+			{
 				strftime(buffer, sizeof(buffer), "%d %B, %Y", &timeInfo);
 				break;
+			}
 			case DateFormat::DATE_TEXT_MDY:
+			{
 				strftime(buffer, sizeof(buffer), "%B %d, %Y", &timeInfo);
 				break;
+			}
 			case DateFormat::DATE_FILENAME_DMY:
-				strftime(buffer, sizeof(buffer), "%d-%B-%Y", &timeInfo);
+			{
+				strftime(buffer, sizeof(buffer), "%d-%m-%Y", &timeInfo);
 				break;
+			}
 			case DateFormat::DATE_FILENAME_MDY:
-				strftime(buffer, sizeof(buffer), "%B-%d-%Y", &timeInfo);
+			{
+				strftime(buffer, sizeof(buffer), "%m-%d-%Y", &timeInfo);
 				break;
+			}
 			default:
+			{
 				buffer[0] = '\0';
+			}
 			}
 
 			result.assign(buffer);;
@@ -262,7 +299,7 @@ namespace KalaHeaders
 		//  - message: the actual message of this log
 		//  - target: name of the namespace, class, function or variable of this log
 		//  - type: sets the tag type, LOG_INFO has no tag
-		//  - indentation: optional leading space count in after time and date stamp
+		//  - indentation: optional leading space count in after time and date stamp, clamped from 0 to 10
 		//  - flush: set to true for crash logs, diagnostics, assertion failures
 		//  - timeFormat: optional time stamp
 		//  - dateFormat: optional date stamp
@@ -345,8 +382,9 @@ namespace KalaHeaders
 			//indentation
 			if (indentation > 0)
 			{
-				memset(p, ' ', indentation);
-				p += indentation;
+				unsigned int clamped = clamp(indentation, 0u, 10u);
+				memset(p, ' ', clamped);
+				p += clamped;
 			}
 
 			//cached prefix
@@ -416,6 +454,14 @@ namespace KalaHeaders
 			"WARNING | ",
 			"ERROR | "
 		};
+		static constexpr array<size_t, 5> LogTypeTagLength = 
+		{
+			0, 
+			8, 
+			10, 
+			10, 
+			8
+		};
 
 		static inline const string& GetCachedPrefix(
 			LogType type,
@@ -436,7 +482,7 @@ namespace KalaHeaders
 			//not found, make new
 
 			const char* tag = LogTypeTag[static_cast<size_t>(type)];
-			const size_t tagLength = strlen(tag);
+			const size_t tagLength = LogTypeTagLength[static_cast<size_t>(type)];
 			const size_t targetLength = target.size();
 
 			//"[ " + tag + target + "] " = 2 + tagLength + targetLength + 2
