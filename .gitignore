@@ -1,7 +1,17 @@
-/debug
-/release
-/.vs
-*.pdb 
+# Default VS stuff
+out/
+.vs/
 
-//ignore vulkan shader spv files
-*.spv
+# CMake build targets
+build/
+debug/
+release/
+
+# Large files
+*.pdb
+*.obj
+*.exp
+
+# Misc
+*.spv # Vulkan shader files
+*.exe
