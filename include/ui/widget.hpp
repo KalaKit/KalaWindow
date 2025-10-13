@@ -106,11 +106,17 @@ namespace KalaWindow::UI
 		quat localRotQuat{};    //parent offset quaternion rotation
 		quat combinedRotQuat{}; //parent combined rot quat * local rot quat
 
-		vec3 size{};            //world size
-		vec3 localSize{};       //parent offset size
-		vec3 combinedSize{};    //parent combined size * local size
+		vec3 size = vec3(32.0f, 32.0f, 0.0f); //world size
+		vec3 localSize = vec3(1.0f);          //parent offset size
+		vec3 combinedSize = size;             //parent combined size * local size
 
-		array<vec3, 4> vertices{};
+		array<vec3, 4> vertices = 
+		{
+			vec3(-0.5f, -0.5f, 0.0f), //bottom-left
+			vec3(0.5f, -0.5f, 0.0f),  //bottom-right
+			vec3(0.5f,  0.5f, 0.0f),  //top-right
+			vec3(-0.5f,  0.5f, 0.0f)  //top-left
+		};
 		const array<u8, 6> indices =
 		{
 			0, 1, 2,
@@ -122,6 +128,7 @@ namespace KalaWindow::UI
 
 	struct Widget_Render
 	{
+		bool canUpdate = true;
 		bool is2D = true;
 
 		//no children render past this widget size if true
@@ -192,6 +199,13 @@ namespace KalaWindow::UI
 		virtual bool Render(
 			const mat4& view,
 			const mat4& projection) = 0;
+
+		//Skips rendering if set to false without needing to
+		//encapsulate the render function in its own render toggle
+		inline void SetUpdateState(bool newValue) { render.canUpdate = newValue; }
+		//Skips rendering if set to false without needing to
+		//encapsulate the render function in its own render toggle
+		inline bool CanUpdate() const { return render.canUpdate; }
 
 		//No children render past this widget size if true
 		inline void SetClippingState(bool newValue) { render.isClipping = newValue; }
@@ -456,15 +470,15 @@ namespace KalaWindow::UI
 		}
 
 		inline void SetSize(
-			const vec3& newPos,
+			const vec3& newSize,
 			SizeTarget sizetarget)
 		{
 			//cannot set combined size
 			if (sizetarget == SizeTarget::SIZE_COMBINED) return;
 
-			float clampedX = clamp(newPos.x, 0.01f, 10000.0f);
-			float clampedY = clamp(newPos.y, 0.01f, 10000.0f);
-			float clampedZ = clamp(newPos.z, 0.01f, 10000.0f);
+			float clampedX = clamp(newSize.x, 0.01f, 10000.0f);
+			float clampedY = clamp(newSize.y, 0.01f, 10000.0f);
+			float clampedZ = clamp(newSize.z, 0.01f, 10000.0f);
 
 			vec3 clampedSize = vec3(clampedX, clampedY, clampedZ);
 
@@ -1022,5 +1036,10 @@ namespace KalaWindow::UI
 
 		Widget_Transform transform{};
 		Widget_Render render{};
+
+		static void Create2DQuad(
+			u32& vaoOut,
+			u32& vboOut,
+			u32& eboOut);
 	};
 }

@@ -18,6 +18,9 @@ namespace KalaWindow::UI
 			const string& name,
 			u32 windowID,
 			u32 fontID,
+			const vec3& pos,
+			const vec3& rot,
+			const vec3& size,
 			Widget* parentWidget,
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);

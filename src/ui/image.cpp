@@ -11,6 +11,8 @@
 #include "ui/image.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
+#include "graphics/opengl/opengl_functions_core.hpp"
+#include "graphics/opengl/opengl_texture.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -21,6 +23,8 @@ using KalaWindow::Core::windowContent;
 using KalaWindow::Core::WindowContent;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
+using KalaWindow::Graphics::TextureFormat;
+using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::unique_ptr;
 using std::make_unique;
@@ -31,6 +35,9 @@ namespace KalaWindow::UI
 	Image* Image::Initialize(
 		const string& name,
 		u32 windowID,
+		const vec3& pos,
+		const vec3& rot,
+		const vec3& size,
 		Widget* parentWidget,
 		OpenGL_Texture* texture,
 		OpenGL_Shader* shader)
@@ -121,10 +128,17 @@ namespace KalaWindow::UI
 			imagePtr->SetParent(parentWidget);
 		}
 
-		//<<< load image here
+		Widget::Create2DQuad(
+			imagePtr->render.VAO,
+			imagePtr->render.VBO,
+			imagePtr->render.EBO);
 
 		imagePtr->ID = newID;
 		imagePtr->SetName(name);
+		imagePtr->render.canUpdate = true;
+		imagePtr->SetPos(pos, PosTarget::POS_WORLD);
+		imagePtr->SetRotVec(rot, RotTarget::ROT_WORLD);
+		imagePtr->SetSize(size, SizeTarget::SIZE_WORLD);
 
 		content->widgets[newID] = move(newImage);
 		content->runtimeWidgets.push_back(imagePtr);
@@ -142,7 +156,68 @@ namespace KalaWindow::UI
 		const mat4& view,
 		const mat4& projection)
 	{
-		return false;
+		if (!render.canUpdate) return false;
+
+		if (!render.shader)
+		{
+			Log::Print(
+				"Failed to render Image widget '" + name + "' because its shader is nullptr!",
+				"IMAGE",
+				LogType::LOG_ERROR);
+
+			return false;
+		}
+
+		if (!render.shader->Bind())
+		{
+			Log::Print(
+				"Failed to render Image widget '" + name + "' because its shader '" + render.shader->GetName() + "' failed to bind!",
+				"IMAGE",
+				LogType::LOG_ERROR);
+
+			return false;
+		}
+
+		u32 programID = render.shader->GetProgramID();
+
+		render.shader->SetMat3(programID, "uModel", GetWorldMatrix());
+		render.shader->SetMat3(programID, "uProjection", projection);
+
+		if (!render.is2D) render.shader->SetMat3(programID, "uView", view);
+		else render.shader->SetMat3(programID, "uView", mat4(1.0f));
+
+		bool isAlpha = render.opacity < 1.0f
+			&& render.texture->GetFormat() == TextureFormat::Format_RGBA8
+			|| render.texture->GetFormat() == TextureFormat::Format_RGBA16F
+			|| render.texture->GetFormat() == TextureFormat::Format_RGBA32F
+			|| render.texture->GetFormat() == TextureFormat::Format_SRGB8A8;
+
+		if (isAlpha)
+		{
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glDepthMask(GL_FALSE);
+		}
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, render.texture->GetOpenGLID());
+		render.shader->SetInt(programID, "uTexture", 0);
+
+		glBindVertexArray(render.VAO);
+		glDrawElements(
+			GL_TRIANGLES,
+			6,
+			GL_UNSIGNED_INT,
+			0);
+		glBindVertexArray(0);
+
+		if (isAlpha)
+		{
+			glDisable(GL_BLEND);
+			glDepthMask(GL_TRUE);
+		}
+
+		return true;
 	}
 
 	Image::~Image()

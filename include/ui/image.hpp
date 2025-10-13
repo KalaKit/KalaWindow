@@ -17,6 +17,9 @@ namespace KalaWindow::UI
 		static Image* Initialize(
 			const string& name,
 			u32 windowID,
+			const vec3& pos,
+			const vec3& rot,
+			const vec3& size,
 			Widget* parentWidget,
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);

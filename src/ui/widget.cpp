@@ -10,6 +10,7 @@
 #include "ui/text.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
+#include "graphics/opengl/opengl_functions_core.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -20,6 +21,7 @@ using KalaWindow::Core::windowContent;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
+using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::to_string;
 
@@ -154,14 +156,109 @@ namespace KalaWindow::UI
 		return this == hitWidgets[0];
 	}
 
+	void Widget::Create2DQuad(
+		u32& vaoOut,
+		u32& vboOut,
+		u32& eboOut)
+	{
+		struct Vertex
+		{
+			vec2 pos;
+			vec2 uv;
+		};
+
+		vector<Vertex> vertices =
+		{
+			{ vec2(-0.5f, -0.5f), vec2(0.0f, 0.0f) }, // bottom-left
+			{ vec2(0.5f, -0.5f), vec2(1.0f, 0.0f) },  // bottom-right
+			{ vec2(0.5f,  0.5f), vec2(1.0f, 1.0f) },  // top-right
+			{ vec2(-0.5f,  0.5f), vec2(0.0f, 1.0f) }  // top-left
+		};
+
+		//two triangles forming a quad
+		vector<u32> indices = { 0, 1, 2, 2, 3, 0 };
+
+		u32 vao{};
+		u32 vbo{};
+		u32 ebo{};
+
+		glGenVertexArrays(1, &vao);
+		glGenBuffers(1, &vbo);
+		glGenBuffers(1, &ebo);
+
+		glBindVertexArray(vao);
+
+		//VBO
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			vertices.size() * sizeof(Vertex),
+			vertices.data(),
+			GL_STATIC_DRAW);
+
+		//EBO
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(
+			GL_ELEMENT_ARRAY_BUFFER,
+			indices.size() * sizeof(u32),
+			indices.data(),
+			GL_STATIC_DRAW);
+
+		//position - layout 0
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(
+			0,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			sizeof(Vertex),
+			(void*)offsetof(Vertex, pos));
+
+		//uv - layout 1
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(
+			1,
+			2,
+			GL_FLOAT,
+			GL_FALSE,
+			sizeof(Vertex),
+			(void*)offsetof(Vertex, uv));
+
+		glBindVertexArray(0);
+
+		vaoOut = vao;
+		vboOut = vbo;
+		eboOut = ebo;
+	}
+
 	Widget::~Widget()
 	{
-		RemoveAllChildren();
-		RemoveParent();
-
 		Log::Print(
 			"Destroying widget '" + name + "' with ID '" + to_string(ID) + "' .",
 			"WIDGET",
 			LogType::LOG_INFO);
+
+		RemoveAllChildren();
+		RemoveParent();
+
+		u32 vao = GetVAO();
+		u32 vbo = GetVBO();
+		u32 ebo = GetEBO();
+
+		if (vao != 0)
+		{
+			glDeleteVertexArrays(1, &vao);
+			vao = 0;
+		}
+		if (vbo != 0)
+		{
+			glDeleteBuffers(1, &vbo);
+			vbo = 0;
+		}
+		if (ebo != 0)
+		{
+			glDeleteBuffers(1, &ebo);
+			ebo = 0;
+		}
 	}
 }
