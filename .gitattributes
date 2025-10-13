@@ -12,7 +12,7 @@ CMakeLists.txt linguist-detectable=true
 # Documentation is excluded
 *.md linguist-documentation
 *.txt linguist-documentation
-# docs/ linguist-documentation
+docs/ linguist-documentation
 _external_shared/*/docs/ linguist-documentation
 _external_shared/*/*.md linguist-documentation
 _external_shared/*/*.txt linguist-documentation

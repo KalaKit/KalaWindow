@@ -1,9 +1,9 @@
 # Default VS stuff
 out/
 .vs/
+build/
 
 # CMake build targets
-build/
 debug/
 release/
 
@@ -14,4 +14,3 @@ release/
 
 # Misc
 *.spv # Vulkan shader files
-*.exe
