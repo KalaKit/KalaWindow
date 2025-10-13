@@ -13,21 +13,6 @@ CMakeLists.txt linguist-detectable=true
 *.md linguist-documentation
 *.txt linguist-documentation
 docs/** linguist-documentation
-_external_shared/**/docs/** linguist-documentation
-_external_shared/**/*.md linguist-documentation
-_external_shared/**/*.txt linguist-documentation
 
-# Third-party libraries except those made by
-# Lost Empire Entertainment are excluded from stats
-stb/** linguist-vendored
-glm/** linguist-vendored
-miniaudio/** linguist-vendored
-Assimp/** linguist-vendored
-OpenGL/** linguist-vendored
-Vulkan/** linguist-vendored
-_external_shared/stb/** linguist-vendored
-_external_shared/glm/** linguist-vendored
-_external_shared/miniaudio/** linguist-vendored
-_external_shared/Assimp/** linguist-vendored
-_external_shared/OpenGL/** linguist-vendored
-_external_shared/Vulkan/** linguist-vendored
+# Third-party libraries are excluded from stats
+_external_shared/** linguist-vendored
