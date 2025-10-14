@@ -92,21 +92,6 @@ namespace KalaWindow::Graphics
 		//Rebinds the texture
 		virtual void HotReload() = 0;
 
-		//Calculates maximum reasonable mipmap levels for this texture based on texture size
-		//to prevent wasted VRAM and to avoid GL_INVALID_VALUE error
-		static u8 GetMaxMipMapLevels(vec2 size, u16 depth, u8 mipmapLevels)
-		{
-			u32 maxDim = static_cast<u32>(max({ size.x, size.y, (f32)depth }));
-			u32 maxPossibleLevels = 1u + static_cast<u32>(floor(log2(maxDim)));
-
-			u8 clamped = clamp(
-				mipmapLevels,
-				static_cast<u8>(1),
-				static_cast<u8>(maxPossibleLevels));
-
-			return clamped;
-		}
-
 		inline const string& GetName() const { return name; }
 		inline bool SetName(const string& newName)
 		{

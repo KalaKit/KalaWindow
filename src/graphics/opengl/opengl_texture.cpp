@@ -64,7 +64,8 @@ constexpr array<string_view, 4> validExtensions =
 	".ktx"
 };
 
-constexpr u8 TYPE_2D_DEPTH = 1;
+constexpr u16 TYPE_2D_DEPTH = 1;
+constexpr u16 TYPE_CUBEMAP_DEPTH = 6;
 constexpr u16 TYPE_3D_MIN_DEPTH = 256;
 constexpr u16 TYPE_3D_MAX_DEPTH = 8192;
 
@@ -708,42 +709,58 @@ namespace KalaWindow::Graphics::OpenGL
 
 		texturePtr->name = name;
 		texturePtr->ID = newID;
-		if (type == TextureType::Type_2D
-			|| type == TextureType::Type_3D)
-		{
-			texturePtr->filePath = texturePaths[0];
-		}
 		texturePtr->size = newSize;
 		texturePtr->openGLID = newTextureID;
 		texturePtr->type = type;
 		texturePtr->format = newFormat;
 
-		u16 clampedDepth = depth;
-		if (type == TextureType::Type_2D) clampedDepth = 1;
-		else
+		switch (type)
 		{
-			clampedDepth = clamp(
-				clampedDepth,
-				static_cast<u16>(1),
-				static_cast<u16>(8192));
-		}
-		texturePtr->depth = clampedDepth;
-
-		texturePtr->mipMapLevels = GetMaxMipMapLevels(
-			texturePtr->size,
-			clampedDepth,
-			mipMapLevels);
-
-		if (type == TextureType::Type_2D
-			|| type == TextureType::Type_3D)
-		{
+		case TextureType::Type_2D:
 			texturePtr->pixels = move(newData[0]);
-		}
-		else if (type == TextureType::Type_Cube)
-		{
+			texturePtr->filePath = texturePaths[0];
+			texturePtr->depth = TYPE_2D_DEPTH;
+			break;
+		case TextureType::Type_3D:
+			texturePtr->pixels = move(newData[0]);
+			texturePtr->filePath = texturePaths[0];
+			texturePtr->depth = 
+				clamp(
+					depth,
+					TYPE_3D_MIN_DEPTH,
+					TYPE_3D_MAX_DEPTH);
+			break;
+		case TextureType::Type_Cube:
 			texturePtr->cubePixels = move(newData);
+			texturePtr->depth = TYPE_CUBEMAP_DEPTH;
+			break;
+		case TextureType::Type_2DArray:
+			texturePtr->layerPixels = move(newData);
+			texturePtr->depth = texturePaths.size();
+			break;
 		}
-		else texturePtr->layerPixels = move(newData);
+
+		u32 maxDim = static_cast<u32>(max({ 
+			texturePtr->size.x, 
+			texturePtr->size.y, 
+			(f32)texturePtr->depth }));
+
+		u8 maxPossibleLevels = 1 + static_cast<u8>(floor(log2(maxDim)));
+
+		if (mipMapLevels > maxPossibleLevels)
+		{
+			Log::Print(
+				"Mipmap levels for texture '" + name + "' was '" + to_string(mipMapLevels) 
+				+ "' which is way too high for its resolution. It was reduced to '" 
+				+ to_string(maxPossibleLevels) + "' for efficiency.",
+				"OPENGL_TEXTURE",
+				LogType::LOG_WARNING);
+		}
+
+		texturePtr->mipMapLevels = clamp(
+			mipMapLevels,
+			static_cast<u8>(1),
+			maxPossibleLevels);
 
 		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
