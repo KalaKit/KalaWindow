@@ -148,12 +148,37 @@ namespace KalaWindow::Graphics::OpenGL
         bool fragShaderExists{};
         bool geomShaderExists{};
 
+        bool vertDuplicateExists{};
+        bool fragDuplicateExists{};
+        bool geomDuplicateExists{};
+
         ShaderData newVertData{};
         ShaderData newFragData{};
         ShaderData newGeomData{};
 
         for (const auto& s : shaderData)
         {
+            if (s.type == ShaderType::SHADER_VERTEX
+                && vertShaderExists)
+            {
+                vertDuplicateExists = true;
+                break;
+            }
+
+            if (s.type == ShaderType::SHADER_FRAGMENT
+                && fragShaderExists)
+            {
+                fragDuplicateExists = true;
+                break;
+            }
+
+            if (s.type == ShaderType::SHADER_GEOMETRY
+                && geomShaderExists)
+            {
+                geomDuplicateExists = true;
+                break;
+            }
+
             if (s.type == ShaderType::SHADER_VERTEX
                 && (!s.shaderData.empty()
                 || !s.shaderPath.empty()))
@@ -163,31 +188,31 @@ namespace KalaWindow::Graphics::OpenGL
                 newVertData.type = s.type;
 
                 vertShaderExists = true;
-                break;
+                continue;
             }
 
             if (s.type == ShaderType::SHADER_FRAGMENT
                 && (!s.shaderData.empty()
-                    || !s.shaderPath.empty()))
+                || !s.shaderPath.empty()))
             {
                 newFragData.shaderPath = s.shaderPath;
                 newFragData.shaderData = s.shaderData;
                 newFragData.type = s.type;
 
                 fragShaderExists = true;
-                break;
+                continue;
             }
 
             if (s.type == ShaderType::SHADER_GEOMETRY
                 && (!s.shaderData.empty()
-                    || !s.shaderPath.empty()))
+                || !s.shaderPath.empty()))
             {
                 newGeomData.shaderPath = s.shaderPath;
                 newGeomData.shaderData = s.shaderData;
                 newGeomData.type = s.type;
 
                 geomShaderExists = true;
-                break;
+                continue;
             }
         }
 
@@ -209,6 +234,30 @@ namespace KalaWindow::Graphics::OpenGL
                 LogType::LOG_ERROR);
 
             return nullptr;
+        }
+
+        if (vertDuplicateExists)
+        {
+            Log::Print(
+                "Cannot create shader '" + shaderName + "' because more than one vertex shader was added!",
+                "OPENGL_SHADER",
+                LogType::LOG_ERROR);
+        }
+
+        if (fragDuplicateExists)
+        {
+            Log::Print(
+                "Cannot create shader '" + shaderName + "' because more than one fragment shader was added!",
+                "OPENGL_SHADER",
+                LogType::LOG_ERROR);
+        }
+
+        if (geomDuplicateExists)
+        {
+            Log::Print(
+                "Cannot create shader '" + shaderName + "' because more than one geometry shader was added!",
+                "OPENGL_SHADER",
+                LogType::LOG_ERROR);
         }
 
         InitShader(newVertData);
@@ -1060,20 +1109,15 @@ bool InitShader(ShaderData& data)
     string shaderType = GetShaderTypeString(type);
     string shaderName = path(shaderPath).filename().string();
 
-    Log::Print(
-        "Loading " + shaderType + " shader: " + shaderPath,
-        "OPENGL_SHADER",
-        LogType::LOG_INFO);
-
     string shaderCodeString{};
-    if (shaderPath.empty())
+    if (!shaderPath.empty())
     {
         ifstream shaderFile(shaderData);
         if (!shaderFile.is_open())
         {
             KalaWindowCore::ForceClose(
                 "OpenGL shader error",
-                "Failed to open " + shaderType + " shader file '" + shaderName + "'!");
+                "Failed to read " + shaderType + " shader file '" + shaderName + "'!");
             return false;
         }
 
@@ -1125,6 +1169,11 @@ bool InitShader(ShaderData& data)
 
         return false;
     }
+
+    Log::Print(
+        "Compiled " + shaderType + " shader!",
+        "OPENGL_SHADER",
+        LogType::LOG_SUCCESS);
 
     return true;
 }
