@@ -916,13 +916,16 @@ void CheckShaderData(
 
     for (const auto& shader : shaderData)
     {
+        string type = GetShaderTypeString(shader.type);
+
         //shader file path or shader data must have content
-        if (shader.shaderData.empty()
+        if (shader.type != ShaderType::SHADER_NONE
+            && shader.shaderData.empty()
             && shader.shaderPath.empty())
         {
             KalaWindowCore::ForceClose(
                 "OpenGL shader error",
-                "Shader '" + shaderName + "' has no file paths or shader data to load data from!");
+                "Shader '" + shaderName + "' with type '" + type + "' has no file paths or shader data to load data from!");
 
             return;
         }

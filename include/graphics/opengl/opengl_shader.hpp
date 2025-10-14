@@ -19,6 +19,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 	enum class ShaderType
 	{
+		SHADER_NONE,
 		SHADER_VERTEX,
 		SHADER_FRAGMENT,
 		SHADER_GEOMETRY
@@ -34,7 +35,8 @@ namespace KalaWindow::Graphics::OpenGL
 		//it picks data by default if both are filled
 		string shaderData{};
 
-		ShaderType type{};
+		//assign to something else than the default 'SHADER_NONE'
+		ShaderType type = ShaderType::SHADER_NONE;
 
 		//ID of the shader, does not need to be filled by user
 		u32 ID{};
