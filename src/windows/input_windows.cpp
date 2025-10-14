@@ -101,57 +101,6 @@ namespace KalaWindow::Core
 
 		return inputPtr;
 	}
-	bool Input::IsInitialized() const
-	{
-		return isInitialized;
-	}
-
-	void Input::SetKeyState(
-		Key key,
-		bool isDown)
-	{
-		size_t index = static_cast<size_t>(key);
-
-		if (isDown
-			&& !keyDown[index])
-		{
-			keyPressed[index] = true;
-		}
-		if (!isDown
-			&& keyDown[index])
-		{
-			keyReleased[index] = true;
-		}
-
-		keyDown[index] = isDown;
-	}
-	void Input::SetMouseButtonState(
-		MouseButton button,
-		bool isDown)
-	{
-		size_t index = static_cast<size_t>(button);
-
-		if (isDown
-			&& !mouseDown[index])
-		{
-			mousePressed[index] = true;
-		}
-		if (!isDown
-			&& mouseDown[index])
-		{
-			mouseReleased[index] = true;
-		}
-
-		mouseDown[index] = isDown;
-	}
-	void Input::SetMouseButtonDoubleClickState(
-		MouseButton button,
-		bool isDown)
-	{
-		size_t index = static_cast<size_t>(button);
-
-		mouseDoubleClicked[index] = isDown;
-	}
 
 	bool Input::IsComboDown(const span<const InputCode>& codes)
 	{
@@ -234,115 +183,6 @@ namespace KalaWindow::Core
 		return true;
 	}
 
-	bool Input::IsKeyDown(Key key)
-	{
-		size_t index = static_cast<size_t>(key);
-
-		return keyDown[index];
-	}
-	bool Input::IsKeyPressed(Key key)
-	{
-		size_t index = static_cast<size_t>(key);
-
-		return keyPressed[index];
-	}
-	bool Input::IsKeyReleased(Key key)
-	{
-		size_t index = static_cast<size_t>(key);
-
-		return keyReleased[index];
-	}
-
-	bool Input::IsMouseDown(MouseButton button)
-	{
-		size_t index = static_cast<size_t>(button);
-
-		return mouseDown[index];
-	}
-	bool Input::IsMousePressed(MouseButton button)
-	{
-		size_t index = static_cast<size_t>(button);
-
-		return mousePressed[index];
-	}
-	bool Input::IsMouseReleased(MouseButton button)
-	{
-		size_t index = static_cast<size_t>(button);
-
-		return mouseReleased[index];
-	}
-
-	bool Input::IsMouseButtonDoubleClicked(MouseButton button)
-	{
-		size_t index = static_cast<size_t>(button);
-
-		return mouseDoubleClicked[index];
-	}
-
-	vec2 Input::GetMousePosition() const
-	{
-		return mousePos;
-	}
-	void Input::SetMousePosition(vec2 newMousePos)
-	{
-		mousePos = newMousePos;
-	}
-
-	vec2 Input::GetMouseDelta()
-	{
-		vec2 currMouseDelta = mouseDelta;
-
-		//reset after retrieval for per-frame delta behavior
-		mouseDelta = vec2{ 0.0f, 0.0f };
-
-		return currMouseDelta;
-	}
-	void Input::SetMouseDelta(vec2 newMouseDelta)
-	{
-		mouseDelta = newMouseDelta;
-	}
-
-	vec2 Input::GetRawMouseDelta()
-	{
-		vec2 currMouseDelta = rawMouseDelta;
-
-		//reset after retrieval for per-frame delta behavior
-		rawMouseDelta = vec2{ 0.0f, 0.0f };
-
-		return currMouseDelta;
-	}
-	void Input::SetRawMouseDelta(vec2 newRawMouseDelta)
-	{
-		rawMouseDelta = newRawMouseDelta;
-	}
-
-	float Input::GetMouseWheelDelta() const
-	{
-		return mouseWheelDelta;
-	}
-	void Input::SetMouseWheelDelta(float delta)
-	{
-		mouseWheelDelta = delta;
-	}
-
-	bool Input::IsMouseDragging()
-	{
-		bool isHoldingDragKey =
-			IsMouseDown(MouseButton::Left)
-			|| IsMouseDown(MouseButton::Right);
-
-		bool isDragging =
-			isHoldingDragKey
-			&& (mouseDelta.x != 0
-				|| mouseDelta.y != 0);
-
-		return isDragging;
-	}
-
-	bool Input::IsMouseVisible() const
-	{
-		return isMouseVisible;
-	}
 	void Input::SetMouseVisibility(bool state)
 	{
 		isMouseVisible = state;
@@ -361,10 +201,6 @@ namespace KalaWindow::Core
 		}
 	}
 
-	bool Input::IsMouseLocked() const
-	{
-		return isMouseLocked;
-	}
 	void Input::SetMouseLockState(bool state)
 	{
 		isMouseLocked = state;
@@ -411,15 +247,6 @@ namespace KalaWindow::Core
 				"INPUT",
 				LogType::LOG_INFO);
 		}
-	}
-
-	bool Input::GetKeepMouseDeltaState() const
-	{
-		return keepMouseDelta;
-	}
-	void Input::SetKeepMouseDeltaState(bool newState)
-	{
-		keepMouseDelta = newState;
 	}
 
 	void Input::SetMouseVisibilityBetweenFocus(bool state) const

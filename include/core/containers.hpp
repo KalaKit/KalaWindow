@@ -52,6 +52,9 @@ namespace KalaWindow::Core
 
 	struct LIB_API WindowContent
 	{
+		Window* parentWindow{};
+		vector<Window*> childWindows{};
+
 		unique_ptr<Input> input{};
 		unique_ptr<OpenGL_Context> glContext{};
 
@@ -94,6 +97,9 @@ namespace KalaWindow::Core
 
 		~WindowContent()
 		{
+			parentWindow = nullptr;
+			childWindows.clear();
+
 			widgets.clear();
 			runtimeWidgets.clear();
 			runtimeText.clear();
@@ -139,6 +145,224 @@ namespace KalaWindow::Core
 
 	LIB_API extern vector<OpenGL_Texture*> runtimeOpenGLTextures;
 	LIB_API extern vector<OpenGL_Shader*> runtimeOpenGLShaders;
+
+	//
+	// ADD/REMOVE/GET WINDOW
+	//
+
+	//Returns true if target window is connected
+	//to current window as a child, parent or sibling.
+	//Set recursive to true if you want deep window search
+	inline bool HasWindow(
+		Window* currentWindow,
+		Window* targetWindow,
+		bool recursive = false)
+	{
+		if (!currentWindow
+			|| !targetWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return false;
+		}
+
+		if (currentWindow == targetWindow) return true;
+
+		//check descendants
+		for (auto* c : windowContent[currentWindow]->childWindows)
+		{
+			if (c == targetWindow) return true;
+
+			if (recursive
+				&& HasWindow(c, targetWindow, true))
+			{
+				return true;
+			}
+		}
+
+		//check ancestors
+
+		Window* parent = windowContent[currentWindow]->parentWindow;
+		if (parent)
+		{
+			if (parent == targetWindow) return true;
+
+			if (recursive
+				&& HasWindow(parent, targetWindow, true))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	inline bool IsParentWindow(
+		Window* currentWindow, 
+		Window* targetWindow,
+		bool recursive = false)
+	{
+		if (!currentWindow
+			|| !targetWindow
+			|| currentWindow == targetWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return false;
+		}
+
+		Window* parent = windowContent[currentWindow]->parentWindow;
+		if (!parent) return false;
+
+		if (parent == targetWindow) return true;
+
+		if (recursive
+			&& IsParentWindow(parent, targetWindow, true))
+		{
+			return true;
+		}
+
+		return false;
+	}
+	inline Window* GetParentWindow(Window* currentWindow)
+	{
+		if (!currentWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return nullptr;
+		}
+
+		return windowContent[currentWindow]->parentWindow;
+	}
+	inline bool SetParentWindow(
+		Window* currentWindow, 
+		Window* targetWindow)
+	{
+		if (!currentWindow
+			|| !targetWindow
+			|| currentWindow == targetWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return false;
+		}
+
+		if (HasWindow(currentWindow, targetWindow, true)
+			|| HasWindow(targetWindow, currentWindow, true))
+		{
+			return false;
+		}
+
+		windowContent[currentWindow]->parentWindow = targetWindow;
+		return true;
+	}
+	inline bool RemoveParentWindow(Window* currentWindow)
+	{
+		if (!currentWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return false;
+		}
+
+		windowContent[currentWindow]->parentWindow = nullptr;
+
+		return true;
+	}
+
+	inline bool IsChildWindow(
+		Window* currentWindow,
+		Window* targetWindow,
+		bool recursive = false)
+	{
+		if (!currentWindow
+			|| !targetWindow
+			|| currentWindow == targetWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return false;
+		}
+
+		for (auto* c : windowContent[currentWindow]->childWindows)
+		{
+			if (c == targetWindow) return true;
+
+			if (recursive
+				&& IsChildWindow(c, targetWindow, true))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+	inline bool AddChildWindow(
+		Window* currentWindow, 
+		Window* targetWindow)
+	{
+		if (!currentWindow
+			|| !targetWindow
+			|| currentWindow == targetWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return false;
+		}
+
+		if (HasWindow(currentWindow, targetWindow, true)
+			|| HasWindow(targetWindow, currentWindow, true))
+		{
+			return false;
+		}
+
+		windowContent[currentWindow]->childWindows.push_back(targetWindow);
+		return true;
+	}
+	inline bool RemoveChildWindow(
+		Window* currentWindow, 
+		Window* targetWindow)
+	{
+		if (!currentWindow
+			|| !targetWindow
+			|| currentWindow == targetWindow
+			|| !windowContent.contains(currentWindow)
+			|| windowContent[currentWindow]->parentWindow == targetWindow)
+		{
+			return false;
+		}
+
+		vector<Window*>& childWindows = windowContent[currentWindow]->childWindows;
+
+		childWindows.erase(remove(
+			childWindows.begin(),
+			childWindows.end(),
+			targetWindow),
+			childWindows.end());
+
+		return true;
+	}
+
+	inline const vector<Window*>& GetAllChildWindows(Window* currentWindow)
+	{
+		if (!currentWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return{};
+		}
+
+		return windowContent[currentWindow]->childWindows;
+	}
+	inline bool RemoveAllChildWindows(Window* currentWindow)
+	{
+		if (!currentWindow
+			|| !windowContent.contains(currentWindow))
+		{
+			return false;
+		}
+
+		vector<Window*>& childWindows = windowContent[currentWindow]->childWindows;
+
+		for (auto* c : childWindows)
+		{
+			windowContent[currentWindow]->parentWindow = nullptr;
+		}
+		childWindows.clear();
+	}
 
 	//
 	// GET VALUE FROM CONTAINER BY TYPE

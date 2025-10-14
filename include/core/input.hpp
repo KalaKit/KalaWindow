@@ -176,28 +176,63 @@ namespace KalaWindow::Core
 	public:
 		static Input* Initialize(u32 windowID);
 
-		bool IsInitialized() const;
+		inline bool IsInitialized() const { return isInitialized; }
 
 		inline u32 GetID() const { return ID; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//key, mouse update messages will dump their logs into the console.
-		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
-		inline void SetTypedLetter(const string& letter) { lastLetter = letter; }
 		//Get the letter that was typed this frame
 		inline const string& GetTypedLetter() const { return lastLetter; }
+		inline void SetTypedLetter(const string& letter) { lastLetter = letter; }
 
-		void SetKeyState(
+		inline void SetKeyState(
 			Key key,
-			bool isDown);
-		void SetMouseButtonState(
+			bool isDown)
+		{
+			size_t index = static_cast<size_t>(key);
+
+			if (isDown
+				&& !keyDown[index])
+			{
+				keyPressed[index] = true;
+			}
+			if (!isDown
+				&& keyDown[index])
+			{
+				keyReleased[index] = true;
+			}
+
+			keyDown[index] = isDown;
+		}
+		inline void SetMouseButtonState(
 			MouseButton button,
-			bool isDown);
-		void SetMouseButtonDoubleClickState(
+			bool isDown)
+		{
+			size_t index = static_cast<size_t>(button);
+
+			if (isDown
+				&& !mouseDown[index])
+			{
+				mousePressed[index] = true;
+			}
+			if (!isDown
+				&& mouseDown[index])
+			{
+				mouseReleased[index] = true;
+			}
+
+			mouseDown[index] = isDown;
+		}
+		inline void SetMouseButtonDoubleClickState(
 			MouseButton button,
-			bool isDown);
+			bool isDown)
+		{
+			mouseDoubleClicked[static_cast<size_t>(button)] = isDown;
+		}
 
 		//Detect if any combination of keys and mouse buttons are down
 		bool IsComboDown(const span<const InputCode>& codes);
@@ -207,54 +242,82 @@ namespace KalaWindow::Core
 		bool IsComboReleased(const span<const InputCode>& codes);
 
 		//Is the key currently held down?
-		bool IsKeyDown(Key key);
+		inline bool IsKeyDown(Key key) { return keyDown[static_cast<size_t>(key)]; }
 		//Was the key just pressed this frame?
-		bool IsKeyPressed(Key key);
+		inline bool IsKeyPressed(Key key) { return keyPressed[static_cast<size_t>(key)]; }
 		//Was the key just released this frame?
-		bool IsKeyReleased(Key key);
+		inline bool IsKeyReleased(Key key) { return keyReleased[static_cast<size_t>(key)]; }
 
 		//Is the mouse button currently held down?
-		bool IsMouseDown(MouseButton button);
+		inline bool IsMouseDown(MouseButton button) { return mouseDown[static_cast<size_t>(button)]; }
 		//Was the mouse button just pressed this frame?
-		bool IsMousePressed(MouseButton button);
+		inline bool IsMousePressed(MouseButton button) { return mousePressed[static_cast<size_t>(button)]; }
 		//Was the mouse button just released this frame?
-		bool IsMouseReleased(MouseButton button);
+		inline bool IsMouseReleased(MouseButton button) { return mouseReleased[static_cast<size_t>(button)]; }
 
 		//Was the mouse button just double-clicked this frame?
-		bool IsMouseButtonDoubleClicked(MouseButton button);
+		inline bool IsMouseButtonDoubleClicked(MouseButton button) { return mouseDoubleClicked[static_cast<size_t>(button)]; }
 
 		//Get current mouse position in window coordinates
-		vec2 GetMousePosition() const;
-		void SetMousePosition(vec2 newMousePos);
+		inline vec2 GetMousePosition() const { return mousePos; }
+		inline void SetMousePosition(vec2 newMousePos) { mousePos = newMousePos; }
 
 		//Get mouse delta movement since last frame
-		vec2 GetMouseDelta();
-		void SetMouseDelta(vec2 newMouseDelta);
+		inline vec2 GetMouseDelta()
+		{
+			vec2 currMouseDelta = mouseDelta;
+
+			//reset after retrieval for per-frame delta behavior
+			mouseDelta = vec2{ 0.0f, 0.0f };
+
+			return currMouseDelta;
+		}
+		inline void SetMouseDelta(vec2 newMouseDelta) { mouseDelta = newMouseDelta; }
 
 		//Get mouse raw delta movement since last frame
-		vec2 GetRawMouseDelta();
-		void SetRawMouseDelta(vec2 newRawMouseDelta);
+		inline vec2 GetRawMouseDelta()
+		{
+			vec2 currMouseDelta = rawMouseDelta;
+
+			//reset after retrieval for per-frame delta behavior
+			rawMouseDelta = vec2{ 0.0f, 0.0f };
+
+			return currMouseDelta;
+		}
+		inline void SetRawMouseDelta(vec2 newRawMouseDelta) { rawMouseDelta = newRawMouseDelta; }
 
 		//Get vertical scroll wheel delta (-1 to +1)
-		float GetMouseWheelDelta() const;
-		void SetMouseWheelDelta(float delta);
+		inline float GetMouseWheelDelta() const { return mouseWheelDelta; }
+		inline void SetMouseWheelDelta(float delta) { mouseWheelDelta = delta; }
 
-		bool IsMouseDragging();
+		inline bool IsMouseDragging()
+		{
+			bool isHoldingDragKey =
+				IsMouseDown(MouseButton::Left)
+				|| IsMouseDown(MouseButton::Right);
+
+			bool isDragging =
+				isHoldingDragKey
+				&& (mouseDelta.x != 0
+				|| mouseDelta.y != 0);
+
+			return isDragging;
+		}
 
 		//Return true if cursor is not hidden.
-		bool IsMouseVisible() const;
+		inline bool IsMouseVisible() const { return isMouseVisible; }
 		//Allows to set the visibility state of the cursor, if true then the cursor is visible.
 		void SetMouseVisibility(bool isVisible);
 
 		//Return true if the cursor is locked to the center of the window.
-		bool IsMouseLocked() const;
+		inline bool IsMouseLocked() const { return isMouseLocked; }
 		//Allows to set the lock state of the cursor, if true 
 		//then the cursor is locked to the center of the window.
 		void SetMouseLockState(bool newState);
 
 		//If true, then mouse delta, raw delta and scroll delta wont be reset per frame.
-		bool GetKeepMouseDeltaState() const;
-		void SetKeepMouseDeltaState(bool newState);
+		inline bool GetKeepMouseDeltaState() const { return keepMouseDelta; }
+		inline void SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
 
 		//If true, then mouse visibility is disabled when unfocused without clearing internal flag
 		void SetMouseVisibilityBetweenFocus(bool state) const;

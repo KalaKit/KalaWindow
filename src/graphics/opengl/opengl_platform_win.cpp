@@ -769,7 +769,7 @@ namespace KalaWindow::Graphics::OpenGL
 		if (!current)
 		{
 			Log::Print(
-				"OpenGL context is null!",
+				"Cannot check OpenGL context validity for window '" + window->GetTitle() + "' because the context is null!",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);

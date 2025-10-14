@@ -183,7 +183,7 @@ namespace KalaWindow::UI
 					for (Widget* c : copy)
 					{
 						RemoveInvalidChildren(c);
-						if (c->render.is2D != newValue) w->RemoveChildByWidget(c);
+						if (c->render.is2D != newValue) w->RemoveChild(c);
 					}
 				};
 
@@ -782,28 +782,93 @@ namespace KalaWindow::UI
 		//Returns the top-most widget of this widget
 		inline Widget* GetRoot() { return parent ? parent->GetRoot() : this; }
 
-		inline bool HasParent() { return parent; }
+		//Returns true if target widget is connected
+		//to current widget as a child, parent or sibling.
+		//Set recursive to true if you want deep widget search
+		inline bool HasWidget(
+			Widget* targetWidget, 
+			bool recursive = false)
+		{ 
+			if (!targetWidget) return false;
 
-		//Assigning a new parent clears this from old parent children
-		inline void SetParent(Widget* newParent) 
+			if (this == targetWidget) return true;
+
+			//check descendants
+			for (auto* c : children)
+			{
+				if (c == targetWidget) return true;
+
+				if (recursive
+					&& c->HasWidget(targetWidget, true))
+				{
+					return true;
+				}
+			}
+
+			//check ancestors
+			if (parent)
+			{
+				if (parent == targetWidget) return true;
+
+				if (recursive 
+					&& parent->HasWidget(targetWidget, true))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		inline bool IsParent(
+			Widget* targetWidget,
+			bool recursive = false)
 		{
-			if (!newParent
-				|| newParent == this
-				|| !newParent->isInitialized
-				|| newParent->render.is2D != render.is2D
+			if (!targetWidget
+				|| this == targetWidget)
+			{
+				return false;
+			}
+
+			if (!parent) return false;
+
+			if (parent == targetWidget) return true;
+
+			if (recursive
+				&& parent->IsParent(targetWidget, true))
+			{
+				return true;
+			}
+
+			return false;
+		}
+		inline Widget* GetParent() { return parent; }
+		inline void SetParent(Widget* targetWidget)
+		{
+			if (!targetWidget
+				|| targetWidget == this
+				|| targetWidget->render.is2D != render.is2D
+				|| HasWidget(targetWidget, true)
 				|| (parent
-				&& (parent == newParent
-				|| parent->HasChildByWidget(this, true))))
+				&& (parent == targetWidget
+				|| parent->HasWidget(this, true))))
 			{
 				return;
 			}
 
+			transform.localPos = vec3(0);
+			transform.localRotVec = vec3(0);
+			transform.localRotQuat = quat(1, 0, 0, 0);
+			transform.localSize = vec3(0);
+
+			UpdateTransform();
+			if (transform.updateAABB) UpdateAABB();
+
 			//set this widget parent
-			parent = newParent;
+			parent = targetWidget;
 			//add this as new child to parent
 			parent->children.push_back(this);
 		}
-
 		inline void RemoveParent()
 		{
 			//skip if parent never even existed
@@ -822,62 +887,28 @@ namespace KalaWindow::UI
 			transform.localRotQuat = quat(1, 0, 0, 0);
 			transform.localSize = vec3(0);
 
+			UpdateTransform();
+			if (transform.updateAABB) UpdateAABB();
+
 			parent = nullptr;
 		}
 
-		inline Widget* GetParent() { return parent; }
-
-		//Returns true if this has the selected child with optional recursive calls
-		inline bool HasChildByWidget(
-			const Widget* child,
+		inline bool IsChild(
+			Widget* targetWidget,
 			bool recursive = false)
 		{
-			if (!child
-				|| child == this
-				|| !child->isInitialized
-				|| child->render.is2D != render.is2D)
+			if (!targetWidget
+				|| this == targetWidget)
 			{
 				return false;
 			}
 
-			if (!recursive)
+			for (auto* c : children)
 			{
-				return find(
-					children.begin(),
-					children.end(),
-					child) != children.end();
-			}
-
-			for (const auto& c : children)
-			{
-				if (!c || !c->isInitialized)
-				{
-					continue;
-				}
-
-				if (c == child) return true;
-
-				if (c->HasChildByWidget(child, true)) return true;
-			}
-
-			return false;
-		}
-		//Returns true if this has a child with the selected ID with optional recursive calls
-		inline bool HasChildByID(
-			u32 childID,
-			bool recursive = false)
-		{
-			//skip if this has no children
-			if (children.empty()) return false;
-
-			for (const auto& c : children)
-			{
-				if (!c || !c->isInitialized) continue;
-
-				if (c->ID == childID) return true;
+				if (c == targetWidget) return true;
 
 				if (recursive
-					&& c->HasChildByID(childID, true))
+					&& c->IsChild(targetWidget, true))
 				{
 					return true;
 				}
@@ -885,126 +916,72 @@ namespace KalaWindow::UI
 
 			return false;
 		}
-		//Returns true if this has a child at the selected index, does not accept recursive calls
-		inline bool HasChildByIndex(u32 childIndex)
+		inline void AddChild(Widget* targetWidget)
 		{
-			return !children.empty()
-				&& childIndex < children.size()
-				&& children[childIndex]
-				&& children[childIndex]->isInitialized
-				&& children[childIndex]->render.is2D == render.is2D;
-		}
-
-		inline void AddChild(Widget* newChild)
-		{
-			if (!newChild
-				|| newChild == this
-				|| !newChild->isInitialized
-				|| HasChildByWidget(newChild)
-				|| newChild->render.is2D != render.is2D)
+			if (!targetWidget
+				|| targetWidget == this
+				|| targetWidget->render.is2D != render.is2D
+				|| HasWidget(targetWidget, true)
+				|| targetWidget->HasWidget(this, true))
 			{
 				return;
 			}
+
+			targetWidget->transform.localPos = vec3(0);
+			targetWidget->transform.localRotVec = vec3(0);
+			targetWidget->transform.localRotQuat = quat(1, 0, 0, 0);
+			targetWidget->transform.localSize = vec3(0);
+
+			targetWidget->UpdateTransform();
+			if (targetWidget->transform.updateAABB) targetWidget->UpdateAABB();
 
 			//add new child
-			children.push_back(newChild);
+			children.push_back(targetWidget);
 			//set this as new child parent
-			newChild->parent = this;
+			targetWidget->parent = this;
 		}
-
-		inline void RemoveChildByWidget(Widget* child)
+		inline void RemoveChild(Widget* targetWidget)
 		{
-			if (!child
-				|| child == this
-				|| !child->isInitialized
-				|| !HasChildByWidget(child)
-				|| child->render.is2D != render.is2D)
+			if (!targetWidget
+				|| targetWidget == this
+				|| targetWidget == parent)
 			{
 				return;
 			}
 
-			if (child->parent) child->parent = nullptr;
+			targetWidget->transform.localPos = vec3(0);
+			targetWidget->transform.localRotVec = vec3(0);
+			targetWidget->transform.localRotQuat = quat(1, 0, 0, 0);
+			targetWidget->transform.localSize = vec3(0);
+
+			targetWidget->UpdateTransform();
+			if (targetWidget->transform.updateAABB) targetWidget->UpdateAABB();
+
+			if (targetWidget->parent) targetWidget->parent = nullptr;
 
 			children.erase(remove(
 				children.begin(),
 				children.end(),
-				child),
-				children.end());
-		}
-		inline void RemoveChildByID(u32 childID)
-		{
-			Widget* child = GetChildByID(childID);
-
-			if (!child) return;
-
-			child->parent = nullptr;
-
-			children.erase(remove(
-				children.begin(),
-				children.end(),
-				child),
-				children.end());
-		}
-		inline void RemoveChildByIndex(u32 childIndex)
-		{
-			Widget* child = GetChildByIndex(childIndex);
-
-			if (!child) return;
-
-			child->parent = nullptr;
-
-			children.erase(remove(
-				children.begin(),
-				children.end(),
-				child),
+				targetWidget),
 				children.end());
 		}
 
+		inline const vector<Widget*> GetAllChildren() { return children; }
 		inline void RemoveAllChildren() 
 		{ 
-			if (children.empty()) return;
+			for (auto* c : children)
+			{
+				c->transform.localPos = vec3(0);
+				c->transform.localRotVec = vec3(0);
+				c->transform.localRotQuat = quat(1, 0, 0, 0);
+				c->transform.localSize = vec3(0);
 
-			for (auto& c : children) { c->RemoveParent(); }
+				c->UpdateTransform();
+				if (c->transform.updateAABB) c->UpdateAABB();
+
+				c->parent = nullptr;
+			}
 			children.clear(); 
-		}
-
-		inline Widget* GetChildByID(u32 childID)
-		{
-			//skip if this has no children
-			if (children.empty()
-				|| !HasChildByID(childID))
-			{
-				return nullptr;
-			}
-
-			for (const auto& c : children)
-			{
-				if (c->ID == childID) return c;
-			}
-
-			return nullptr;
-		}
-		inline Widget* GetChildByIndex(u32 childIndex)
-		{
-			if (children.empty()
-				|| childIndex >= children.size())
-			{
-				return nullptr;
-			}
-
-			return children[childIndex];
-		}
-
-		inline const vector<Widget*>& GetAllChildren() 
-		{ 
-			static const vector<Widget*> empty{};
-
-			//skip if this is not initialized
-			if (!isInitialized) return empty;
-			//skip if this has no children
-			if (children.empty()) return empty;
-
-			return children; 
 		}
 
 		//Do not destroy manually, erase from containers.hpp instead

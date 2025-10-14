@@ -72,8 +72,7 @@ namespace KalaWindow::UI
 			return nullptr;
 		}
 
-		OpenGL_Context* context{};
-		if (content->glContext) context = content->glContext.get();
+		OpenGL_Context* context = content->glContext.get();
 
 		if (!context
 			|| !context->IsInitialized()
