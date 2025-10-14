@@ -6,7 +6,7 @@
 #pragma once
 
 #include <string>
-#include <vector>
+#include <array>
 
 #include "KalaHeaders/core_utils.hpp"
 
@@ -15,7 +15,7 @@
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
-	using std::vector;
+	using std::array;
 
 	enum class ShaderType
 	{
@@ -48,7 +48,7 @@ namespace KalaWindow::Graphics::OpenGL
 		static OpenGL_Shader* CreateShader(
 			u32 windowID,
 			const string& shaderName,
-			const vector<ShaderData>& shaderData);
+			const array<ShaderData, 3>& shaderData);
 
 		inline bool IsInitialized() const { return isInitialized; }
 
@@ -71,9 +71,9 @@ namespace KalaWindow::Graphics::OpenGL
 
 			switch (targetType)
 			{
-			case ShaderType::SHADER_VERTEX: return !vertData.ID != 0;
-			case ShaderType::SHADER_FRAGMENT: return !fragData.ID != 0;
-			case ShaderType::SHADER_GEOMETRY: return !geomData.ID != 0;
+			case ShaderType::SHADER_VERTEX: return vertData.ID != 0;
+			case ShaderType::SHADER_FRAGMENT: return fragData.ID != 0;
+			case ShaderType::SHADER_GEOMETRY: return geomData.ID != 0;
 			}
 
 			return false;
@@ -125,16 +125,15 @@ namespace KalaWindow::Graphics::OpenGL
 			return 0;
 		}
 
-		inline const vector<ShaderData>& GetAllShaders() const 
-		{ 
-			static const vector<ShaderData> dataOut =
-			{
-				vertData,
-				fragData,
-				geomData
-			};
+		inline const array<ShaderData, 3>& GetAllShaders() const
+		{
+			static array<ShaderData, 3> dataOut{};
 
-			return dataOut; 
+			dataOut[0] = vertData;
+			dataOut[1] = fragData;
+			dataOut[2] = geomData;
+
+			return dataOut;
 		}
 
 		bool Bind() const;

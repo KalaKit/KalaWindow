@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
+#include <array>
 #include <vector>
 #include <memory>
 
@@ -44,11 +45,12 @@ using std::unique_ptr;
 using std::make_unique;
 using std::filesystem::exists;
 using std::filesystem::path;
+using std::array;
 using std::vector;
 
 static void CheckShaderData(
     const string& shaderName,
-    const vector<ShaderData>& shaderData);
+    const array<ShaderData, 3>& shaderData);
 
 static bool CheckCompileErrors(u32 shader, const string& type);
 
@@ -73,7 +75,7 @@ namespace KalaWindow::Graphics::OpenGL
     OpenGL_Shader* OpenGL_Shader::CreateShader(
         u32 windowID,
         const string& shaderName,
-        const vector<ShaderData>& shaderData)
+        const array<ShaderData, 3>& shaderData)
     {
         if (!OpenGL_Global::IsInitialized())
         {
@@ -702,7 +704,7 @@ namespace KalaWindow::Graphics::OpenGL
         string shaderName = name;
 
         //back up old data
-        vector<ShaderData> shaders = GetAllShaders();
+        array<ShaderData, 3> shaders = GetAllShaders();
 
         for (const auto& shader : shaders)
         {
@@ -893,7 +895,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 void CheckShaderData(
     const string& shaderName,
-    const vector<ShaderData>& shaderData)
+    const array<ShaderData, 3>& shaderData)
 {
     //shader data must not be empty
     if (shaderData.empty())
@@ -905,7 +907,7 @@ void CheckShaderData(
         return;
     }
 
-    vector<string> validExtensions =
+    array<string, 3> validExtensions =
     {
         ".vert",
         ".frag",
@@ -1022,10 +1024,12 @@ bool CheckCompileErrors(u32 shader, const string& type)
         {
             if (logLength > 0)
             {
-                vector<char> infoLog(logLength);
+                const GLsizei safeLength = min(logLength, 4096);
+
+                vector<char> infoLog(safeLength);
                 glGetProgramInfoLog(
                     shader,
-                    logLength,
+                    safeLength,
                     nullptr,
                     infoLog.data());
 
@@ -1066,10 +1070,12 @@ bool CheckCompileErrors(u32 shader, const string& type)
         {
             if (logLength > 0)
             {
-                vector<char> infoLog(logLength);
+                const GLsizei safeLength = min(logLength, 4096);
+
+                vector<char> infoLog(safeLength);
                 glGetShaderInfoLog(
                     shader,
-                    logLength,
+                    safeLength,
                     nullptr,
                     infoLog.data());
 
