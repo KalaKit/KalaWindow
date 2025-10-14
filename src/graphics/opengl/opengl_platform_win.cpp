@@ -195,7 +195,7 @@ namespace KalaWindow::Graphics::OpenGL
 	//
 
 	OpenGL_Context* OpenGL_Context::Initialize(
-		u32 windowID,
+		Window* window,
 		u32 parentContext,
 		MultiSampling msaa,
 		SRGBMode srgb,
@@ -212,8 +212,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return nullptr;
 		}
-
-		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -623,7 +621,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		content->glContext = move(newCont);
 
-		contPtr->windowID = window->GetID();
+		contPtr->window = window;
 
 		contPtr->isInitialized = true;
 
@@ -647,8 +645,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return;
 		}
-
-		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -690,8 +686,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return;
 		}
-
-		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -736,8 +730,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return false;
 		}
-
-		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -820,8 +812,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return;
 		}
-
-		Window* window = GetValueByID<Window>(windowID);
 
 		if (!window
 			|| !window->IsInitialized())

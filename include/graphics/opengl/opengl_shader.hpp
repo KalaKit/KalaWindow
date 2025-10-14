@@ -17,6 +17,8 @@ namespace KalaWindow::Graphics::OpenGL
 	using std::string;
 	using std::array;
 
+	class OpenGL_Context;
+
 	enum class ShaderType
 	{
 		SHADER_NONE,
@@ -48,7 +50,7 @@ namespace KalaWindow::Graphics::OpenGL
 		//Create a new shader with up to three types of shader files.
 		//Geometry shaders are optional but vert and frag shader must always be filled
 		static OpenGL_Shader* CreateShader(
-			u32 windowID,
+			OpenGL_Context* context,
 			const string& shaderName,
 			const array<ShaderData, 3>& shaderData);
 
@@ -149,9 +151,9 @@ namespace KalaWindow::Graphics::OpenGL
 			return dataOut;
 		}
 
-		bool Bind() const;
+		bool Bind(OpenGL_Context* context) const;
 
-		bool HotReload();
+		bool HotReload(OpenGL_Context* context);
 
 		void SetBool(u32 programID, const string& name, bool value) const;
 		void SetInt(u32 programID, const string& name, i32 value) const;
@@ -174,8 +176,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 		string name{};
 		u32 ID{};
-
-		u32 windowID{};
 
 		u32 programID{};
 

@@ -161,7 +161,7 @@ static GLFormatInfo ToGLFormat(TextureFormat fmt);
 namespace KalaWindow::Graphics::OpenGL
 {
 	OpenGL_Texture* OpenGL_Texture::LoadTexture(
-		u32 windowID,
+		OpenGL_Context* context,
 		const string& name,
 		const string& path,
 		TextureType type,
@@ -171,7 +171,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		return TextureBody(
-			windowID,
+			context,
 			name,
 			{ path },
 			type,
@@ -255,7 +255,7 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 	OpenGL_Texture* OpenGL_Texture::LoadCubeMapTexture(
-		u32 windowID,
+		OpenGL_Context* context,
 		const string& name,
 		const array<string, 6>& texturePaths,
 		TextureFormat format,
@@ -263,7 +263,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		return TextureBody(
-			windowID,
+			context,
 			name,
 			{ 
 				texturePaths[0],
@@ -404,7 +404,7 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 	OpenGL_Texture* OpenGL_Texture::Load2DArrayTexture(
-		u32 windowID,
+		OpenGL_Context* context,
 		const string& name,
 		const vector<string>& texturePaths,
 		TextureFormat format,
@@ -412,7 +412,7 @@ namespace KalaWindow::Graphics::OpenGL
 		u8 mipMapLevels)
 	{
 		return TextureBody(
-			windowID,
+			context,
 			name,
 			texturePaths,
 			TextureType::Type_2DArray,
@@ -607,7 +607,7 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 	OpenGL_Texture* OpenGL_Texture::TextureBody(
-		u32 windowID,
+		OpenGL_Context* context,
 		const string& name,
 		const vector<string>& texturePaths,
 		TextureType type,
@@ -631,37 +631,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return nullptr;
 		}
-
-		Window* window = GetValueByID<Window>(windowID);
-
-		if (!window
-			|| !window->IsInitialized())
-		{
-			Log::Print(
-				"Cannot load texture '" + name + "' because its window reference is invalid!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot load texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		OpenGL_Context* context = content->glContext.get();
 
 		if (!context
 			|| !context->IsInitialized()

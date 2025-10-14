@@ -18,6 +18,8 @@ namespace KalaWindow::Graphics::OpenGL
 	using std::array;
 	using std::function;
 
+	class OpenGL_Context;
+
 	class LIB_API OpenGL_Texture : public Texture
 	{
 	public:
@@ -28,7 +30,7 @@ namespace KalaWindow::Graphics::OpenGL
 		//Returns a fallback texture if loading fails.
 		//Only supports Type_2D and Type_3D.
 		static OpenGL_Texture* LoadTexture(
-			u32 windowID,
+			OpenGL_Context* context,
 			const string& name,
 			const string& path,
 			TextureType type,
@@ -43,7 +45,7 @@ namespace KalaWindow::Graphics::OpenGL
 		//Size for each texture must match and be 1:1 aspect ratio.
 		//Only supports Type_Cube
 		static OpenGL_Texture* LoadCubeMapTexture(
-			u32 windowID,
+			OpenGL_Context* context,
 			const string& name,
 			const array<string, 6>& texturePaths,
 			TextureFormat format,
@@ -56,7 +58,7 @@ namespace KalaWindow::Graphics::OpenGL
 		//Size for each texture must match and be 1:1 aspect ratio.
 		//Only supports Type_2DArray
 		static OpenGL_Texture* Load2DArrayTexture(
-			u32 windowID,
+			OpenGL_Context* context,
 			const string& name,
 			const vector<string>& texturePaths,
 			TextureFormat format,
@@ -80,7 +82,7 @@ namespace KalaWindow::Graphics::OpenGL
 	private:
 		//Repeated header and footer of each texture init body with custom data in the middle
 		static OpenGL_Texture* TextureBody(
-			u32 windowID,
+			OpenGL_Context* context,
 			const string& name,
 			const vector<string>& texturePaths,
 			TextureType type,
