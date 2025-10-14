@@ -7,13 +7,11 @@
 
 #include <string_view>
 
-#include "KalaHeaders/core_utils.hpp"
-
 namespace KalaWindow::Graphics::OpenGL::Shader
 {
 	using std::string_view;
 
-	LIB_API inline constexpr string_view shader_text_vertex =
+	inline constexpr string_view shader_text_vertex =
 	R"(
 		#version 330 core
 
@@ -22,12 +20,12 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 
 		out vec2 TexCoord;
 
-		uniform mat4 uModel;            //pos, rot and scale as mat4
-		uniform mat4 uView = mat4(1.0); //unused for 2D
-		uniform mat4 uProjection;       //required for 2D and 3D
+		uniform mat4 uModel;      //pos, rot and scale as mat4
+		uniform mat4 uView;       //unused for 2D
+		uniform mat4 uProjection; //required for 2D and 3D
 
-		uniform float italic_skew = 0.0;    //horizontal slant factor
-		uniform float kerning_offset = 0.0; //per-glyph x-adjustment
+		uniform float italic_skew;    //horizontal slant factor
+		uniform float kerning_offset; //per-glyph x-adjustment
 		
 		void main()
 		{
@@ -44,7 +42,7 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		}
 	)";
 
-	LIB_API inline constexpr string_view shader_text_fragment =
+	inline constexpr string_view shader_text_fragment =
 	R"(
 		#version 330 core
 
@@ -52,35 +50,35 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		out vec4 FragColor;
 
 		uniform sampler2D texture0;
-		uniform bool useTexture = false;          //mark as true if you want to pass a texture
+		uniform bool useTexture; //mark as true if you want to pass a texture
 
-		uniform vec3 color = vec3(1.0, 1.0, 1.0); //blended with texture or non-texture base color
-		uniform float opacity = 1.0;              //makes this transparent if below 1.0
+		uniform vec3 color;    //blended with texture or non-texture base color
+		uniform float opacity; //makes this transparent if below 1.0
 
 		//underline
 		uniform bool underline = false;
-		uniform float underline_strength = 0.8;
-		uniform float underline_thickness = 0.0;
-		uniform float underline_offset = 0.0;
-		uniform vec3 underline_color = vec3(1.0);
+		uniform float underline_strength;
+		uniform float underline_thickness;
+		uniform float underline_offset;
+		uniform vec3 underline_color;
 
 		//stripe
-		uniform bool striped = false;
-		uniform float stripe_darkness = 0.7;
-		uniform float stripe_repeat = 2.0;
-		uniform vec2 stripe_size = vec2(8.0, 8.0);
+		uniform bool striped;
+		uniform float stripe_darkness;
+		uniform float stripe_repeat;
+		uniform vec2 stripe_size;
 
 		//shadow
-		uniform bool shadow = false;
-		uniform vec2 shadow_offset = vec2(0.0, -0.01);
-		uniform vec3 shadow_color = vec3(0.0);
-		uniform float shadow_opacity = 0.5;
+		uniform bool shadow;
+		uniform vec2 shadow_offset;
+		uniform vec3 shadow_color;
+		uniform float shadow_opacity;
 
 		//glow
-		uniform bool glow = false;
-		uniform vec3 glow_color = vec3(1.0);
-		uniform float glow_strength = 0.5;
-		uniform float glow_radius = 0.01;
+		uniform bool glow;
+		uniform vec3 glow_color;
+		uniform float glow_strength;
+		uniform float glow_radius;
 
 		vec3 ApplyUnderline(vec3 baseColor);
 		vec3 ApplyStripes(vec3 baseColor);

@@ -26,7 +26,7 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::ShaderType;
-using KalaWindow::Graphics::OpenGL::ShaderStage;
+using KalaWindow::Graphics::OpenGL::ShaderData;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
@@ -46,32 +46,34 @@ using std::filesystem::exists;
 using std::filesystem::path;
 using std::vector;
 
-enum class ShaderCheckResult
-{
-    RESULT_OK,
-    RESULT_INVALID,
-    RESULT_ALREADY_EXISTS
-};
-
-static ShaderCheckResult IsShaderValid(
+static void CheckShaderData(
     const string& shaderName,
-    const vector<ShaderStage>& shaderStages);
+    const vector<ShaderData>& shaderData);
 
 static bool CheckCompileErrors(u32 shader, const string& type);
 
-static bool InitShader(
-    ShaderType type,
-    const string& shaderPath,
-    const string& shaderData,
-    u32& programID,
-    u32& shaderID);
+static bool InitShader(ShaderData& data);
+
+static string GetShaderTypeString(ShaderType shaderType)
+{
+    static string empty{};
+
+    switch (shaderType)
+    {
+    case ShaderType::SHADER_VERTEX:   return "VERTEX";
+    case ShaderType::SHADER_FRAGMENT: return "FRAGMENT";
+    case ShaderType::SHADER_GEOMETRY: return "GEOMETRY";
+    }
+
+    return empty;
+}
 
 namespace KalaWindow::Graphics::OpenGL
 {
     OpenGL_Shader* OpenGL_Shader::CreateShader(
         u32 windowID,
         const string& shaderName,
-        const vector<ShaderStage>& shaderStages)
+        const vector<ShaderData>& shaderData)
     {
         if (!OpenGL_Global::IsInitialized())
         {
@@ -123,17 +125,10 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        ShaderCheckResult result = IsShaderValid(
-            shaderName,
-            shaderStages);
-
-        if (result == ShaderCheckResult::RESULT_INVALID) return nullptr;
-        else if (result == ShaderCheckResult::RESULT_ALREADY_EXISTS)
+        //return existing shader if it already has been created
+        for (const auto& sh : runtimeOpenGLShaders)
         {
-            for (const auto& [key, value] : createdOpenGLShaders)
-            {
-                if (value->GetName() == shaderName) return value.get();
-            }
+            if (sh->GetName() == shaderName) return sh;
         }
 
         u32 newID = ++globalID;
@@ -145,120 +140,79 @@ namespace KalaWindow::Graphics::OpenGL
             "OPENGL_SHADER",
             LogType::LOG_DEBUG);
 
-        ShaderStage newVertStage{};
-        ShaderStage newFragStage{};
-        ShaderStage newGeomStage{};
+        CheckShaderData(
+            shaderName,
+            shaderData);
 
-        for (const auto& stage : shaderStages)
+        bool vertShaderExists{};
+        bool fragShaderExists{};
+        bool geomShaderExists{};
+
+        ShaderData newVertData{};
+        ShaderData newFragData{};
+        ShaderData newGeomData{};
+
+        for (const auto& s : shaderData)
         {
-            string shaderType = GetShaderTypeName(stage.shaderType);
-            string shaderPathName = path(stage.shaderPath).filename().string();
-
-            if (stage.shaderPath.empty())
+            if (s.type == ShaderType::SHADER_VERTEX
+                && (!s.shaderData.empty()
+                || !s.shaderPath.empty()))
             {
-                string title = "OpenGL Shader Error";
-                string reason =
-                    "Shader '" + shaderName + "' with type '"
-                    + shaderType + "' has no assigned path!";
+                newVertData.shaderPath = s.shaderPath;
+                newVertData.shaderData = s.shaderData;
+                newVertData.type = s.type;
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return nullptr;
+                vertShaderExists = true;
+                break;
             }
 
-            if (!exists(stage.shaderPath))
+            if (s.type == ShaderType::SHADER_FRAGMENT
+                && (!s.shaderData.empty()
+                    || !s.shaderPath.empty()))
             {
-                string title = "OpenGL Shader Error";
-                string reason = 
-                    "Shader '" + shaderName + "' with type '"
-                    + shaderType + "' has an invalid path '" + shaderPathName + "'!";
+                newFragData.shaderPath = s.shaderPath;
+                newFragData.shaderData = s.shaderData;
+                newFragData.type = s.type;
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return nullptr;
+                fragShaderExists = true;
+                break;
             }
-            
-            switch (stage.shaderType)
+
+            if (s.type == ShaderType::SHADER_GEOMETRY
+                && (!s.shaderData.empty()
+                    || !s.shaderPath.empty()))
             {
-            case ShaderType::Shader_Vertex:
-                newVertStage.shaderPath = stage.shaderPath;
-                newVertStage.shaderText = stage.shaderText;
-                newVertStage.shaderType = stage.shaderType;
-                break;
-            case ShaderType::Shader_Fragment:
-                newFragStage.shaderPath = stage.shaderPath;
-                newFragStage.shaderText = stage.shaderText;
-                newFragStage.shaderType = stage.shaderType;
-                break;
-            case ShaderType::Shader_Geometry:
-                newGeomStage.shaderPath = stage.shaderPath;
-                newGeomStage.shaderText = stage.shaderText;
-                newGeomStage.shaderType = stage.shaderType;
+                newGeomData.shaderPath = s.shaderPath;
+                newGeomData.shaderData = s.shaderData;
+                newGeomData.type = s.type;
+
+                geomShaderExists = true;
                 break;
             }
         }
-
-        bool vertShaderExists = !newVertStage.shaderPath.empty();
-        bool fragShaderExists = !newFragStage.shaderPath.empty();
-        bool geomShaderExists = !newGeomStage.shaderPath.empty();
-
-        //
-        // CREATE AND COMPILE VERTEX SHADER
-        //
 
         if (!vertShaderExists)
         {
-            if (isVerboseLoggingEnabled)
-            {
-                Log::Print(
-                    "Skipped loading vertex shader because it was not assigned as a shader stage.",
-                    "OPENGL_SHADER",
-                    LogType::LOG_INFO);
-            }
-        }
-        else
-        {
-            if (!InitShader(
-                ShaderType::Shader_Vertex,
-                newVertStage.shaderPath,
-                newVertStage.shaderText,
-                shaderPtr->programID,
-                newVertStage.shaderID))
-            {
-                return nullptr;
-            }
-        }
+            Log::Print(
+                "Cannot create shader '" + shaderName + "' because its vertex data is missing!",
+                "OPENGL_SHADER",
+                LogType::LOG_ERROR);
 
-        //
-        // CREATE AND COMPILE FRAGMENT SHADER
-        //
+            return nullptr;
+        }
 
         if (!fragShaderExists)
         {
-            if (isVerboseLoggingEnabled)
-            {
-                Log::Print(
-                    "Skipped loading fragment shader because it was not assigned as a shader stage.",
-                    "OPENGL_SHADER",
-                    LogType::LOG_INFO);
-            }
-        }
-        else
-        {
-            if (!InitShader(
-                ShaderType::Shader_Fragment,
-                newFragStage.shaderPath,
-                newFragStage.shaderText,
-                shaderPtr->programID,
-                newFragStage.shaderID))
-            {
-                return nullptr;
-            }
+            Log::Print(
+                "Cannot create shader '" + shaderName + "' because its fragment data is missing!",
+                "OPENGL_SHADER",
+                LogType::LOG_ERROR);
+
+            return nullptr;
         }
 
-        //
-        // CREATE AND COMPILE GEOMETRY SHADER
-        //
+        InitShader(newVertData);
+        InitShader(newFragData);
 
         if (!geomShaderExists)
         {
@@ -270,18 +224,7 @@ namespace KalaWindow::Graphics::OpenGL
                     LogType::LOG_INFO);
             }
         }
-        else
-        {
-            if (!InitShader(
-                ShaderType::Shader_Geometry,
-                newGeomStage.shaderPath,
-                newGeomStage.shaderText,
-                shaderPtr->programID,
-                newGeomStage.shaderID))
-            {
-                return nullptr;
-            }
-        }
+        else InitShader(newGeomData);
 
         //
         // CREATE SHADER PROGRAM
@@ -291,15 +234,15 @@ namespace KalaWindow::Graphics::OpenGL
 
         glAttachShader(
             shaderPtr->programID, 
-            newVertStage.shaderID);
+            newVertData.ID);
         glAttachShader(
             shaderPtr->programID, 
-            newFragStage.shaderID);
+            newFragData.ID);
         if (geomShaderExists)
         {
             glAttachShader(
                 shaderPtr->programID, 
-                newGeomStage.shaderID);
+                newGeomData.ID);
         }
         glLinkProgram(shaderPtr->programID);
 
@@ -311,26 +254,26 @@ namespace KalaWindow::Graphics::OpenGL
 
         if (success != GL_TRUE)
         {
-            string vertShaderPathName = path(newVertStage.shaderPath).filename().string();
-            string fragShaderPathName = path(newFragStage.shaderPath).filename().string();
-            string geomShaderPathName = path(newGeomStage.shaderPath).filename().string();
+            string vertShaderPathName = path(newVertData.shaderPath).filename().string();
+            string fragShaderPathName = path(newFragData.shaderPath).filename().string();
+            string geomShaderPathName = path(newGeomData.shaderPath).filename().string();
 
             glDetachShader(
                 shaderPtr->programID,
-                newVertStage.shaderID);
-            glDeleteShader(newVertStage.shaderID);
+                newVertData.ID);
+            glDeleteShader(newVertData.ID);
 
             glDetachShader(
                 shaderPtr->programID,
-                newFragStage.shaderID);
-            glDeleteShader(newFragStage.shaderID);
+                newFragData.ID);
+            glDeleteShader(newFragData.ID);
 
             if (geomShaderExists)
             {
                 glDetachShader(
                     shaderPtr->programID,
-                    newGeomStage.shaderID);
-                glDeleteShader(newGeomStage.shaderID);
+                    newGeomData.ID);
+                glDeleteShader(newGeomData.ID);
             }
 
             i32 logLength = 0;
@@ -349,20 +292,20 @@ namespace KalaWindow::Graphics::OpenGL
                     log.data());
 
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Shader link failed:\n" + string(log.data()));
             }
             else
             {
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Shader linking failed, but GL_INFO_LOG_LENGTH was 0 (no error message).");
             }
 
             if (!geomShaderExists)
             {
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Failed to link vertex shader '" +
                     vertShaderPathName + "' and fragment shader '" +
                     fragShaderPathName + "' to program!");
@@ -370,7 +313,7 @@ namespace KalaWindow::Graphics::OpenGL
             else
             {
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Failed to link vertex shader '" +
                     vertShaderPathName + "', fragment shader '" +
                     fragShaderPathName + "' and geometry shader '" +
@@ -380,7 +323,10 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        //validate the shader program before using it
+        //
+        // VALIDATE THE SHADER PROGRAM BEFORE USING IT
+        //
+
         glValidateProgram(shaderPtr->programID);
         i32 validated = 0;
         glGetProgramiv(
@@ -391,20 +337,20 @@ namespace KalaWindow::Graphics::OpenGL
         {
             glDetachShader(
                 shaderPtr->programID,
-                newVertStage.shaderID);
-            glDeleteShader(newVertStage.shaderID);
+                newVertData.ID);
+            glDeleteShader(newVertData.ID);
 
             glDetachShader(
                 shaderPtr->programID,
-                newFragStage.shaderID);
-            glDeleteShader(newFragStage.shaderID);
+                newFragData.ID);
+            glDeleteShader(newFragData.ID);
 
             if (geomShaderExists)
             {
                 glDetachShader(
                     shaderPtr->programID,
-                    newGeomStage.shaderID);
-                glDeleteShader(newGeomStage.shaderID);
+                    newGeomData.ID);
+                glDeleteShader(newGeomData.ID);
             }
 
             i32 logLength = 0;
@@ -424,14 +370,14 @@ namespace KalaWindow::Graphics::OpenGL
                 string logStr(log.begin(), log.end());
 
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Shader program validation failed for shader '" + shaderName + "'! Reason:\n" + logStr);
 
                 return nullptr;
             }
 
             KalaWindowCore::ForceClose(
-                "OpenGL Shader Error",
+                "OpenGL shader error",
                 "Shader program validation failed for shader '" + shaderName + "'! No log info was provided.");
 
             return nullptr;
@@ -443,23 +389,23 @@ namespace KalaWindow::Graphics::OpenGL
         {
             glDetachShader(
                 shaderPtr->programID,
-                newVertStage.shaderID);
-            glDeleteShader(newVertStage.shaderID);
+                newVertData.ID);
+            glDeleteShader(newVertData.ID);
 
             glDetachShader(
                 shaderPtr->programID,
-                newFragStage.shaderID);
-            glDeleteShader(newFragStage.shaderID);
+                newFragData.ID);
+            glDeleteShader(newFragData.ID);
 
             if (geomShaderExists)
             {
                 glDetachShader(
                     shaderPtr->programID,
-                    newGeomStage.shaderID);
-                glDeleteShader(newGeomStage.shaderID);
+                    newGeomData.ID);
+                glDeleteShader(newGeomData.ID);
             }
 
-            string title = "OpenGL Shader Error";
+            string title = "OpenGL shader error";
             string reason = "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + shaderName + "' is not valid!";
 
             KalaWindowCore::ForceClose(title, reason);
@@ -483,25 +429,25 @@ namespace KalaWindow::Graphics::OpenGL
 
         glDetachShader(
             shaderPtr->programID,
-            newVertStage.shaderID);
-        glDeleteShader(newVertStage.shaderID);
+            newVertData.ID);
+        glDeleteShader(newVertData.ID);
 
         glDetachShader(
             shaderPtr->programID,
-            newFragStage.shaderID);
-        glDeleteShader(newFragStage.shaderID);
+            newFragData.ID);
+        glDeleteShader(newFragData.ID);
 
         if (geomShaderExists)
         {
             glDetachShader(
                 shaderPtr->programID,
-                newGeomStage.shaderID);
-            glDeleteShader(newGeomStage.shaderID);
+                newGeomData.ID);
+            glDeleteShader(newGeomData.ID);
         }
 
-        if (vertShaderExists) shaderPtr->shaders.push_back(newVertStage);
-        if (fragShaderExists) shaderPtr->shaders.push_back(newFragStage);
-        if (geomShaderExists) shaderPtr->shaders.push_back(newGeomStage);
+        if (vertShaderExists) shaderPtr->vertData = newVertData;
+        if (fragShaderExists) shaderPtr->fragData = newFragData;
+        if (geomShaderExists) shaderPtr->geomData = newGeomData;
 
         shaderPtr->ID = newID;
         shaderPtr->name = shaderName;
@@ -707,60 +653,28 @@ namespace KalaWindow::Graphics::OpenGL
         string shaderName = name;
 
         //back up old data
-        vector<ShaderStage> oldShaders = GetAllShaders();
+        vector<ShaderData> shaders = GetAllShaders();
 
-        //attempt to recreate
-
-        bool foundBadStage{};
-
-        vector<ShaderStage> stagesToReload{};
-        for (const auto& stage : oldShaders)
+        for (const auto& shader : shaders)
         {
-            if (stage.shaderPath.empty()
-                && stage.shaderText.empty())
+            if (shader.shaderPath.empty()
+                && shader.shaderData.empty())
             {
-                foundBadStage = true;
-                break;
-            }
+                Log::Print(
+                    "Hot reload failed for shader '" + shaderName
+                    + "' because one or more shader types had invalid data! Keeping old version.",
+                    "OPENGL_SHADER",
+                    LogType::LOG_ERROR,
+                    2);
 
-            if (!stage.shaderPath.empty())
-            {
-                stagesToReload.push_back(
-                    {
-                        stage.shaderType,
-                        stage.shaderPath,
-                        "",
-                        0
-                    });
+                return;
             }
-            else if (!stage.shaderText.empty())
-            {
-                stagesToReload.push_back(
-                    {
-                        stage.shaderType,
-                        "",
-                        stage.shaderText,
-                        0
-                    });
-            }
-        }
-
-        if (foundBadStage)
-        {
-            Log::Print(
-                "Hot reload failed for shader '" + shaderName 
-                + "' because one or more stages had invalid data! Keeping old version.",
-                "OPENGL_SHADER",
-                LogType::LOG_ERROR,
-                2);
-
-            return;
         }
 
         auto reloadedShader = OpenGL_Shader::CreateShader(
             windowID,
             shaderName,
-            stagesToReload);
+            shaders);
 
         if (!reloadedShader)
         {
@@ -775,7 +689,17 @@ namespace KalaWindow::Graphics::OpenGL
         }
 
         //replace internal data
-        shaders = reloadedShader->shaders;
+        for (const auto& sh : shaders)
+        {
+            if (sh.type == ShaderType::SHADER_VERTEX) vertData = sh;
+            else if (sh.type == ShaderType::SHADER_FRAGMENT) fragData = sh;
+            else if (sh.type == ShaderType::SHADER_GEOMETRY
+                && (!sh.shaderPath.empty()
+                || !sh.shaderData.empty()))
+            {
+                geomData = sh;
+            }
+        }
 
         Log::Print(
             "Shader '" + shaderName + "' was hot reloaded!",
@@ -887,30 +811,29 @@ namespace KalaWindow::Graphics::OpenGL
 
     OpenGL_Shader::~OpenGL_Shader()
     {
-        for (auto& shaderData : GetAllShaders())
-        {
-            for (auto& shaderStage : shaders)
+        auto DestroyShader = [&](u32& ID)
             {
-                if (shaderStage.shaderID != 0)
+                if (ID == 0) return;
+
+                if (programID != 0)
                 {
-                    u32 programID = GetProgramID();
-                    if (programID != 0)
-                    {
-                        glDetachShader(
-                            programID,
-                            shaderStage.shaderID);
-                    }
-                    glDeleteShader(shaderStage.shaderID);
-                    shaderStage.shaderID = 0;
+                    glDetachShader(
+                        programID,
+                        ID);
                 }
-            }
-            if (programID != 0)
-            {
-                glDeleteProgram(programID);
-                programID = 0;
-            }
+                glDeleteShader(ID);
+                ID = 0;
+            };
+
+        DestroyShader(vertData.ID);
+        DestroyShader(fragData.ID);
+        DestroyShader(geomData.ID);
+
+        if (programID != 0)
+        {
+            glDeleteProgram(programID);
+            programID = 0;
         }
-        shaders.clear();
 
         Log::Print(
             "Destroyed shader '" + GetName() + "'!",
@@ -919,51 +842,18 @@ namespace KalaWindow::Graphics::OpenGL
     }
 }
 
-ShaderCheckResult IsShaderValid(
+void CheckShaderData(
     const string& shaderName,
-    const vector<ShaderStage>& shaderStages)
+    const vector<ShaderData>& shaderData)
 {
-    //shader name must be assigned
-
-    if (shaderName.empty())
+    //shader data must not be empty
+    if (shaderData.empty())
     {
-        string title = "OpenGL Shader Error";
-        string reason = "Cannot load a shader with no name!";
+        KalaWindowCore::ForceClose(
+            "OpenGL shader error",
+            "Shader '" + shaderName + "' has no data to load!");
 
-        KalaWindowCore::ForceClose(title, reason);
-
-        return ShaderCheckResult::RESULT_INVALID;
-    }
-
-    //shader stages must not be empty
-
-    if (shaderStages.empty())
-    {
-        string title = "OpenGL Shader Error";
-        string reason = "Cannot load a shader with no stages!";
-
-        KalaWindowCore::ForceClose(title, reason);
-
-        return ShaderCheckResult::RESULT_INVALID;
-    }
-
-    //pass existing one if shader with same name already exists
-
-    for (const auto& [_, value] : createdOpenGLShaders)
-    {
-        if (value->GetName() == shaderName)
-        {
-            string reason =
-                "Shader '" + shaderName + "' already exists!";
-
-            Log::Print(
-                reason,
-                "OPENGL_SHADER",
-                LogType::LOG_ERROR,
-                2);
-
-            return ShaderCheckResult::RESULT_ALREADY_EXISTS;
-        }
+        return;
     }
 
     vector<string> validExtensions =
@@ -973,50 +863,44 @@ ShaderCheckResult IsShaderValid(
         ".geom"
     };
 
-    for (const auto& stage : shaderStages)
+    for (const auto& shader : shaderData)
     {
         //shader file path or shader data must have content
-
-        if (stage.shaderPath.empty()
-            && stage.shaderText.empty())
+        if (shader.shaderData.empty()
+            && shader.shaderPath.empty())
         {
-            string title = "OpenGL Shader Error";
-            string reason = "Cannot load shader '" + shaderName + "' with no file paths or shader data!";
+            KalaWindowCore::ForceClose(
+                "OpenGL shader error",
+                "Shader '" + shaderName + "' has no file paths or shader data to load data from!");
 
-            KalaWindowCore::ForceClose(title, reason);
-
-            return ShaderCheckResult::RESULT_INVALID;
+            return;
         }
 
-        if (!stage.shaderPath.empty())
+        if (!shader.shaderPath.empty())
         {
-            string shaderFileName = path(stage.shaderPath).filename().string();
+            string shaderFileName = path(shader.shaderPath).filename().string();
 
             //shader file path must exist
-
-            if (!exists(stage.shaderPath))
+            if (!exists(shader.shaderPath))
             {
-                string title = "OpenGL Shader Error";
-                string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' does not exist!";
+                KalaWindowCore::ForceClose(
+                    "OpenGL shader error",
+                    "Shader '" + shaderName + "' path '" + shaderFileName + "' does not exist!");
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return ShaderCheckResult::RESULT_INVALID;
+                return;
             }
 
             //shader file path must have extension
-
-            if (!path(stage.shaderPath).has_extension())
+            if (!path(shader.shaderPath).has_extension())
             {
-                string title = "OpenGL Shader Error";
-                string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has no extension. You must use .vert, .frag or .geom";
+                KalaWindowCore::ForceClose(
+                    "OpenGL shader error",
+                    "Shader '" + shaderName + "' path '" + shaderFileName + "' has no extension!");
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return ShaderCheckResult::RESULT_INVALID;
+                return;
             }
 
-            string thisExtension = path(stage.shaderPath).extension().string();
+            string thisExtension = path(shader.shaderPath).extension().string();
             bool isExtensionValid =
                 find(validExtensions.begin(),
                     validExtensions.end(),
@@ -1024,59 +908,50 @@ ShaderCheckResult IsShaderValid(
                 != validExtensions.end();
 
             //extension must be .vert, .frag or .geom
-
             if (!isExtensionValid)
             {
-                string title = "OpenGL Shader Error";
-                string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has an invalid extension '" + thisExtension + "'. Only .vert, .frag and .geom are allowed!";
+                KalaWindowCore::ForceClose(
+                    "OpenGL shader error",
+                    "Shader '" + shaderName + "' path '" + shaderFileName + "' has an invalid extension '" + thisExtension + "'!");
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return ShaderCheckResult::RESULT_INVALID;
+                return;
             }
 
             //vert type must match extension
-
-            if (stage.shaderType == ShaderType::Shader_Vertex
+            if (shader.type == ShaderType::SHADER_VERTEX
                 && thisExtension != ".vert")
             {
-                string title = "OpenGL Shader Error";
-                string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Vertex'. Type and extension must always match!";
+                KalaWindowCore::ForceClose(
+                    "OpenGL shader error",
+                    "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_VERTEX'! Only '.vert' is allowed for vertex shaders.");
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return ShaderCheckResult::RESULT_INVALID;
+                return;
             }
 
             //frag type must match extension
 
-            if (stage.shaderType == ShaderType::Shader_Fragment
+            if (shader.type == ShaderType::SHADER_FRAGMENT
                 && thisExtension != ".frag")
             {
-                string title = "OpenGL Shader Error";
-                string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Fragment'. Type and extension must always match!";
+                KalaWindowCore::ForceClose(
+                    "OpenGL shader error",
+                    "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_FRAGMENT'! Only '.frag' is allowed for fragment shaders.");
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return ShaderCheckResult::RESULT_INVALID;
+                return;
             }
 
             //geom type must match extension
-
-            if (stage.shaderType == ShaderType::Shader_Geometry
+            if (shader.type == ShaderType::SHADER_GEOMETRY
                 && thisExtension != ".geom")
             {
-                string title = "OpenGL Shader Error";
-                string reason = "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'Shader_Geometry'. Type and extension must always match!";
+                KalaWindowCore::ForceClose(
+                    "OpenGL shader error",
+                    "Shader '" + shaderName + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_GEOMETRY'! Only '.geom' is allowed for geometry shaders.");
 
-                KalaWindowCore::ForceClose(title, reason);
-
-                return ShaderCheckResult::RESULT_INVALID;
+                return;
             }
         }
     }
-
-    return ShaderCheckResult::RESULT_OK;
 }
 
 bool CheckCompileErrors(u32 shader, const string& type)
@@ -1106,13 +981,13 @@ bool CheckCompileErrors(u32 shader, const string& type)
                     infoLog.data());
 
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Shader linking failed (" + type + "):\n" + string(infoLog.data()));
             }
             else
             {
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Shader linking failed (" + type + "), but no log was returned.");
             }
             return false;
@@ -1150,13 +1025,13 @@ bool CheckCompileErrors(u32 shader, const string& type)
                     infoLog.data());
 
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Shader compilation failed (" + type + "):\n" + string(infoLog.data()));
             }
             else
             {
                 KalaWindowCore::ForceClose(
-                    "OpenGL Shader Error",
+                    "OpenGL shader error",
                     "Shader compilation failed (" + type + "), but no log was returned.");
             }
             return false;
@@ -1176,14 +1051,13 @@ bool CheckCompileErrors(u32 shader, const string& type)
     return true;
 }
 
-bool InitShader(
-    ShaderType type,
-    const string& shaderPath,
-    const string& shaderData,
-    u32& programID,
-    u32& shaderID)
+bool InitShader(ShaderData& data)
 {
-    string shaderType = OpenGL_Shader::GetShaderTypeName(type);
+    string shaderPath = data.shaderPath;
+    string shaderData = data.shaderData;
+    ShaderType type = data.type;
+
+    string shaderType = GetShaderTypeString(type);
     string shaderName = path(shaderPath).filename().string();
 
     Log::Print(
@@ -1192,13 +1066,13 @@ bool InitShader(
         LogType::LOG_INFO);
 
     string shaderCodeString{};
-    if (shaderData.empty())
+    if (shaderPath.empty())
     {
-        ifstream shaderFile(shaderPath);
+        ifstream shaderFile(shaderData);
         if (!shaderFile.is_open())
         {
             KalaWindowCore::ForceClose(
-                "OpenGL Shader Error",
+                "OpenGL shader error",
                 "Failed to open " + shaderType + " shader file '" + shaderName + "'!");
             return false;
         }
@@ -1214,45 +1088,39 @@ bool InitShader(
     GLenum shaderEnum{};
     switch (type)
     {
-    case ShaderType::Shader_Vertex:
+    case ShaderType::SHADER_VERTEX:
         shaderEnum = GL_VERTEX_SHADER; break;
-    case ShaderType::Shader_Fragment:
+    case ShaderType::SHADER_FRAGMENT:
         shaderEnum = GL_FRAGMENT_SHADER; break;
-    case ShaderType::Shader_Geometry:
+    case ShaderType::SHADER_GEOMETRY:
         shaderEnum = GL_GEOMETRY_SHADER; break;
     }
 
-    shaderID = glCreateShader(shaderEnum);
+    data.ID = glCreateShader(shaderEnum);
     glShaderSource(
-        shaderID,
+        data.ID,
         1,
         &shaderCodeChar,
         nullptr);
-    glCompileShader(shaderID);
+    glCompileShader(data.ID);
 
     string capitalShaderName{};
     switch (type)
     {
-    case ShaderType::Shader_Vertex:
+    case ShaderType::SHADER_VERTEX:
         capitalShaderName = "VERTEX"; break;
-    case ShaderType::Shader_Fragment:
+    case ShaderType::SHADER_FRAGMENT:
         capitalShaderName = "FRAGMENT"; break;
-    case ShaderType::Shader_Geometry:
+    case ShaderType::SHADER_GEOMETRY:
         capitalShaderName = "GEOMETRY"; break;
     }
 
-    if (!CheckCompileErrors(shaderID, capitalShaderName))
+    if (!CheckCompileErrors(data.ID, capitalShaderName))
     {
-        if (programID != 0)
-        {
-            glDetachShader(
-                programID,
-                shaderID);
-        }
-        glDeleteShader(shaderID);
+        glDeleteShader(data.ID);
 
         KalaWindowCore::ForceClose(
-            "OpenGL Shader Error",
+            "OpenGL shader error",
             "Failed to compile " + shaderType + " shader '" + shaderName + "'!");
 
         return false;

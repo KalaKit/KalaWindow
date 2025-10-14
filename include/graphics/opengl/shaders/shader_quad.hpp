@@ -7,13 +7,11 @@
 
 #include <string_view>
 
-#include "KalaHeaders/core_utils.hpp"
-
 namespace KalaWindow::Graphics::OpenGL::Shader
 {
 	using std::string_view;
 
-	LIB_API inline constexpr string_view shader_quad_vertex = 
+	inline constexpr string_view shader_quad_vertex = 
 	R"(
 		#version 330 core
 
@@ -22,9 +20,9 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 
 		out vec2 TexCoord;
 
-		uniform mat4 uModel;            //pos, rot and scale as mat4
-		uniform mat4 uView = mat4(1.0); //unused for 2D
-		uniform mat4 uProjection;       //required for 2D and 3D
+		uniform mat4 uModel;      //pos, rot and scale as mat4
+		uniform mat4 uView;       //unused for 2D
+		uniform mat4 uProjection; //required for 2D and 3D
 		
 		void main()
 		{
@@ -33,7 +31,7 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		}
 	)";
 
-	LIB_API inline constexpr string_view shader_quad_fragment =
+	inline constexpr string_view shader_quad_fragment =
 	R"(
 		#version 330 core
 
@@ -43,8 +41,8 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		uniform sampler2D texture0;
 		uniform bool useTexture = false;          //mark as true if you want to pass a texture
 
-		uniform vec3 color = vec3(1.0, 1.0, 1.0); //blended with texture or non-texture base color
-		uniform float opacity = 1.0;              //makes this transparent if below 1.0
+		uniform vec3 color;    //blended with texture or non-texture base color
+		uniform float opacity; //makes this transparent if below 1.0
 		
 		void main()
 		{
