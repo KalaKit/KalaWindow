@@ -6,6 +6,7 @@
 #pragma once
 
 #include <array>
+#include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
 
@@ -15,6 +16,7 @@
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::array;
+	using std::function;
 
 	class LIB_API OpenGL_Texture : public Texture
 	{
@@ -65,7 +67,7 @@ namespace KalaWindow::Graphics::OpenGL
 		//used when a texture fails to load through OpenGL_Texture::LoadTexture
 		static OpenGL_Texture* GetFallbackTexture();
 
-		virtual void Rescale(
+		virtual bool Rescale(
 			vec2 newSize,
 			TextureResizeType type = TextureResizeType::RESIZE_SRGB) override;
 
@@ -76,10 +78,22 @@ namespace KalaWindow::Graphics::OpenGL
 		//Do not destroy manually, erase from containers.hpp instead
 		~OpenGL_Texture() override;
 	private:
-		//Called once internally when any texture is created,
-		//used when a texture fails to load through OpenGL_Texture::LoadTexture.
-		//Do not call manually, this has no effect for regular texture functionality.
-		static void LoadFallbackTexture();
+		//Repeated header and footer of each texture init body with custom data in the middle
+		static OpenGL_Texture* TextureBody(
+			u32 windowID,
+			const string& name,
+			const vector<string>& texturePaths,
+			TextureType type,
+			TextureFormat format,
+			bool flipVertically,
+			u16 depth,
+			u8 mipMapLevels,
+			const function<bool(
+				u32& outTextureID,
+				vector<vector<u8>>& outData,
+				vec2& outSize,
+				TextureFormat& outFormat)>&
+			customTextureInitData);
 
 		u32 openGLID{};
 	};

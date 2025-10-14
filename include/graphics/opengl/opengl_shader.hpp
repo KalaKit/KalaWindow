@@ -60,7 +60,18 @@ namespace KalaWindow::Graphics::OpenGL
 		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
 		inline const string& GetName() const { return name; }
-		inline void SetName(const string& newName);
+		inline bool SetName(const string& newName)
+		{
+			if (newName.empty()
+				|| newName.size() > 50)
+			{
+				return false;
+			}
+
+			name = newName;
+
+			return true;
+		}
 
 		inline u32 GetID() const { return ID; }
 
@@ -140,7 +151,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		bool Bind() const;
 
-		void HotReload();
+		bool HotReload();
 
 		void SetBool(u32 programID, const string& name, bool value) const;
 		void SetInt(u32 programID, const string& name, i32 value) const;

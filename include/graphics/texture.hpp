@@ -85,7 +85,7 @@ namespace KalaWindow::Graphics
 		inline bool IsInitialized() const { return isInitialized; }
 
 		//Rescale an imported texture with the chosen algorithm type
-		virtual void Rescale(
+		virtual bool Rescale(
 			vec2 newSize,
 			TextureResizeType type = TextureResizeType::RESIZE_SRGB) = 0;
 
@@ -94,17 +94,31 @@ namespace KalaWindow::Graphics
 
 		//Calculates maximum reasonable mipmap levels for this texture based on texture size
 		//to prevent wasted VRAM and to avoid GL_INVALID_VALUE error
-		static u8 GetMaxMipMapLevels(vec2 size, u16 depth, u8 mipmapLevels);
+		static u8 GetMaxMipMapLevels(vec2 size, u16 depth, u8 mipmapLevels)
+		{
+			u32 maxDim = static_cast<u32>(max({ size.x, size.y, (f32)depth }));
+			u32 maxPossibleLevels = 1u + static_cast<u32>(floor(log2(maxDim)));
+
+			u8 clamped = clamp(
+				mipmapLevels,
+				static_cast<u8>(1),
+				static_cast<u8>(maxPossibleLevels));
+
+			return clamped;
+		}
 
 		inline const string& GetName() const { return name; }
-		inline void SetName(const string& newName)
+		inline bool SetName(const string& newName)
 		{
 			if (newName.empty()
-				|| newName.size() > 100)
+				|| newName.size() > 50)
 			{
-				return;
+				return false;
 			}
+
 			name = newName;
+
+			return true;
 		}
 
 		inline const string& GetPath() const { return filePath; }

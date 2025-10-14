@@ -56,13 +56,6 @@ using std::array;
 using std::transform;
 using std::tolower;
 
-enum class TextureCheckResult
-{
-	RESULT_OK,
-	RESULT_INVALID,
-	RESULT_ALREADY_EXISTS
-};
-
 constexpr array<string_view, 4> validExtensions =
 {
 	".png",
@@ -70,6 +63,10 @@ constexpr array<string_view, 4> validExtensions =
 	".jpeg",
 	".ktx"
 };
+
+constexpr u8 TYPE_2D_DEPTH = 1;
+constexpr u16 TYPE_3D_MIN_DEPTH = 256;
+constexpr u16 TYPE_3D_MAX_DEPTH = 8192;
 
 static u32 TEXTURE_MAX_SIZE{};
 
@@ -81,50 +78,20 @@ constexpr string_view fallbackTextureName = "FallbackTexture";
 static array<u8, 32 * 32 * 4> fallbackPixels{};
 
 //Helper that builds the full checkerboard
-static const array<u8, 32 * 32 * 4>& GetFallbackPixels()
-{
-	if (fallbackPixels[0] != 0) return fallbackPixels;
+static const array<u8, 32 * 32 * 4>& GetFallbackPixels();
 
-	constexpr int texSize = 32;
-	constexpr int blockSize = 8;
-
-	for (int y = 0; y < texSize; ++y)
-	{
-		for (int x = 0; x < texSize; ++x)
-		{
-			//determine block color - alternate every 8 pixels
-			bool isMagenta = (((x / blockSize) + (y / blockSize)) % 2 == 0);
-
-			int idx = (y * texSize + x) * 4;
-			using index_t = array<u8, 32 * 32 * 4>::size_type;
-
-			auto Push = [idx](u8 adder, u8 result)
-				{
-					fallbackPixels[static_cast<index_t>(idx) + adder] = result;
-				};
-
-			Push(0, isMagenta ? 255 : 0); //R
-			Push(1, 0);                   //G
-			Push(2, isMagenta ? 255 : 0); //B
-			Push(3, 255);                 //A
-		}
-	}
-
-	return fallbackPixels;
-}
-
-static OpenGL_Texture* InitTexture(
+static bool CheckTextureData(
 	const string& name,
 	const string& filePath,
-	TextureType type,
-	TextureFormat formatIn,
-	TextureFormat& formatOut,
 	bool flipVertically,
-	vec2& size,
-	vector<u8>& data,
-	int& nrChannels);
+	TextureType type,
+	TextureFormat format,
+	TextureFormat& outformat,
+	vec2& outSize,
+	vector<u8>& outData,
+	int& outNrChannels);
 
-static TextureCheckResult IsValidTexture(
+static bool IsValidTexture(
 	const string& textureName,
 	const string& texturePath);
 
@@ -132,29 +99,8 @@ static bool IsCorrectFormat(
 	TextureFormat format,
 	int nrChannels);
 
-static bool IsCompressed(TextureFormat f)
-{
-	return f == TextureFormat::Format_BC1 
-		|| f == TextureFormat::Format_BC3 
-		|| f == TextureFormat::Format_BC4 
-		|| f == TextureFormat::Format_BC5 
-		|| f == TextureFormat::Format_BC7;
-}
-static bool IsUncompressed(TextureFormat f)
-{
-	return f == TextureFormat::Format_R8
-		|| f == TextureFormat::Format_RG8
-		|| f == TextureFormat::Format_RGB8
-		|| f == TextureFormat::Format_RGBA8
-		|| f == TextureFormat::Format_SRGB8
-		|| f == TextureFormat::Format_SRGB8A8
-		|| f == TextureFormat::Format_R16F
-		|| f == TextureFormat::Format_RG16F
-		|| f == TextureFormat::Format_RGBA16F
-		|| f == TextureFormat::Format_R32F
-		|| f == TextureFormat::Format_RG32F
-		|| f == TextureFormat::Format_RGBA32F;
-}
+static bool IsCompressed(TextureFormat f);
+static bool IsUncompressed(TextureFormat f);
 
 static bool IsExtensionSupported(const string& filePath)
 {
@@ -181,35 +127,7 @@ static bool AllTextureExtensionsMatch(
 	return true;
 }
 
-static u8 GetBytesPerChannel(TextureFormat format)
-{
-	switch (format)
-	{
-	case TextureFormat::Format_R8:
-	case TextureFormat::Format_RG8:
-	case TextureFormat::Format_RGB8:
-	case TextureFormat::Format_RGBA8:
-	case TextureFormat::Format_SRGB8:
-	case TextureFormat::Format_SRGB8A8:
-		return 1;
-	case TextureFormat::Format_R16F:
-	case TextureFormat::Format_RG16F:
-	case TextureFormat::Format_RGBA16F:
-		return 2;
-	case TextureFormat::Format_R32F:
-	case TextureFormat::Format_RG32F:
-	case TextureFormat::Format_RGBA32F:
-		return 4;
-	default:
-		Log::Print(
-			"GetBytesPerChannel called on invalid format! Compressed formats don't have per-channel bytes.",
-			"OPENGL_TEXTURE",
-			LogType::LOG_ERROR,
-			2);
-
-		return 0;
-	}
-}
+static u8 GetBytesPerChannel(TextureFormat format);
 
 static string ToLower(string in)
 {
@@ -239,36 +157,469 @@ static GLenum ToGLTarget(TextureType type);
 
 static GLFormatInfo ToGLFormat(TextureFormat fmt);
 
-namespace KalaWindow::Graphics
-{
-	u8 Texture::GetMaxMipMapLevels(
-		vec2 size,
-		u16 depth,
-		u8 mipmapLevels)
-	{
-		u32 maxDim = static_cast<u32>(max({ size.x, size.y, (f32)depth }));
-		u32 maxPossibleLevels = 1u + static_cast<u32>(floor(log2(maxDim)));
-
-		u8 clamped = clamp(
-			mipmapLevels,
-			static_cast<u8>(1),
-			static_cast<u8>(maxPossibleLevels));
-
-		return clamped;
-	}
-}
-
 namespace KalaWindow::Graphics::OpenGL
 {
 	OpenGL_Texture* OpenGL_Texture::LoadTexture(
 		u32 windowID,
 		const string& name,
-		const string& filePath,
+		const string& path,
 		TextureType type,
 		TextureFormat format,
 		bool flipVertically,
 		u16 depth,
 		u8 mipMapLevels)
+	{
+		return TextureBody(
+			windowID,
+			name,
+			{ path },
+			type,
+			format,
+			flipVertically,
+			depth,
+			mipMapLevels,
+			[&](u32& outTextureID,
+				vector<vector<u8>>& outData,
+				vec2& outSize,
+				TextureFormat& outFormat)
+			{
+				u32 newTextureID{};
+				vector<u8> newData{};
+				vec2 newSize{};
+				TextureFormat newFormat{};
+
+				int newNrChannels{};
+
+				if (!CheckTextureData(
+					name,
+					path,
+					flipVertically,
+					type,
+					format,
+					newFormat,
+					newSize,
+					newData,
+					newNrChannels)) return false;
+
+				//
+				// BIND TEXTURE
+				//
+
+				glGenTextures(1, &newTextureID);
+
+				GLenum target = ToGLTarget(type);
+				GLFormatInfo fmt = ToGLFormat(newFormat);
+
+				glBindTexture(target, newTextureID);
+
+				glTexParameteri(
+					target,
+					GL_TEXTURE_WRAP_S,
+					GL_REPEAT);
+				glTexParameteri(
+					target,
+					GL_TEXTURE_WRAP_T,
+					GL_REPEAT);
+
+				if (target == GL_TEXTURE_3D)
+				{
+					glTexParameteri(
+						target,
+						GL_TEXTURE_WRAP_R,
+						GL_REPEAT);
+				}
+
+				//
+				// FILTERING
+				//
+
+				glTexParameteri(
+					target,
+					GL_TEXTURE_MIN_FILTER,
+					mipMapLevels > 1
+					? GL_LINEAR_MIPMAP_LINEAR
+					: GL_LINEAR);
+				glTexParameteri(
+					target,
+					GL_TEXTURE_MAG_FILTER,
+					GL_LINEAR);
+
+				outTextureID = newTextureID;
+				outData = { move(newData) };
+				outSize = newSize;
+				outFormat = newFormat;
+
+				return true;
+			});
+	}
+
+	OpenGL_Texture* OpenGL_Texture::LoadCubeMapTexture(
+		u32 windowID,
+		const string& name,
+		const array<string, 6>& texturePaths,
+		TextureFormat format,
+		bool flipVertically,
+		u8 mipMapLevels)
+	{
+		return TextureBody(
+			windowID,
+			name,
+			{ 
+				texturePaths[0],
+				texturePaths[1],
+				texturePaths[2],
+				texturePaths[3],
+				texturePaths[4],
+				texturePaths[5],
+			},
+			TextureType::Type_Cube,
+			format,
+			flipVertically,
+			6, //depth is always 6 for cubemaps
+			mipMapLevels,
+			[&](u32& outTextureID,
+				vector<vector<u8>>& outData,
+				vec2& outSize,
+				TextureFormat& outFormat)
+			{
+				u32 newTextureID{};
+				vector<vector<u8>> newData{};
+				vec2 newSize{};
+				TextureFormat newFormat{};
+
+				int newNrChannels{};
+
+				vector<string> paths(begin(texturePaths), end(texturePaths));
+				if (!AllTextureExtensionsMatch(paths))
+				{
+					Log::Print(
+						"Failed to load texture '" + name + "' because its extensions don't match!",
+						"OPENGL_TEXTURE",
+						LogType::LOG_ERROR,
+						2);
+
+					return false;
+				}
+
+				for (const auto& thisPath : texturePaths)
+				{
+					vector<u8> data{};
+					vec2 size{};
+
+					if (!CheckTextureData(
+						name,
+						thisPath,
+						flipVertically,
+						TextureType::Type_Cube,
+						format,
+						newFormat,
+						size,
+						data,
+						newNrChannels)) return false;
+
+					newData.push_back(move(data));
+
+					if (newSize == vec2(0)) newSize = size;
+
+					string sizeX = to_string(static_cast<int>(size.x));
+					string sizeY = to_string(static_cast<int>(size.y));
+
+					if (size.x != size.y)
+					{
+						ostringstream oss{};
+						oss << "failed to load texture '" << name
+							<< "' because texture '" << name << "' size x '" << sizeX << "' does not match y '" << sizeY
+							<< "'! X and Y must be exactly the same for 'Type_Cube' textures.";
+
+						Log::Print(
+							oss.str(),
+							"OPENGL_TEXTURE",
+							LogType::LOG_ERROR,
+							2);
+
+						return false;
+					}
+
+					if (size != newSize)
+					{
+						ostringstream oss{};
+						oss << "failed to load texture '" << name
+							<< "' because its size '" << sizeX << "x " << sizeY
+							<< "' does not match base size '" << to_string(newSize.x) << "x" << to_string(newSize.y)
+							<< "'! Each subtexture size must match if you want to load a 'Type_Cube' texture.";
+
+						Log::Print(
+							oss.str(),
+							"OPENGL_TEXTURE",
+							LogType::LOG_ERROR,
+							2);
+
+						return false;
+					}
+				}
+
+				//
+				// BIND TEXTURE
+				//
+
+				glGenTextures(1, &newTextureID);
+				glBindTexture(GL_TEXTURE_CUBE_MAP, newTextureID);
+
+				glTexParameteri(
+					GL_TEXTURE_CUBE_MAP,
+					GL_TEXTURE_WRAP_S,
+					GL_CLAMP_TO_EDGE);
+				glTexParameteri(
+					GL_TEXTURE_CUBE_MAP,
+					GL_TEXTURE_WRAP_T,
+					GL_CLAMP_TO_EDGE);
+				glTexParameteri(
+					GL_TEXTURE_CUBE_MAP,
+					GL_TEXTURE_WRAP_R,
+					GL_CLAMP_TO_EDGE);
+
+				//
+				// FILTERING
+				//
+
+				glTexParameteri(
+					GL_TEXTURE_CUBE_MAP,
+					GL_TEXTURE_MIN_FILTER,
+					mipMapLevels > 1
+					? GL_LINEAR_MIPMAP_LINEAR
+					: GL_LINEAR);
+				glTexParameteri(
+					GL_TEXTURE_CUBE_MAP,
+					GL_TEXTURE_MAG_FILTER,
+					GL_LINEAR);
+
+				outTextureID = newTextureID;
+				outData = move(newData);
+				outSize = newSize;
+				outFormat = newFormat;
+
+				return true;
+			});
+	}
+
+	OpenGL_Texture* OpenGL_Texture::Load2DArrayTexture(
+		u32 windowID,
+		const string& name,
+		const vector<string>& texturePaths,
+		TextureFormat format,
+		bool flipVertically,
+		u8 mipMapLevels)
+	{
+		return TextureBody(
+			windowID,
+			name,
+			texturePaths,
+			TextureType::Type_2DArray,
+			format,
+			flipVertically,
+			texturePaths.size(),
+			mipMapLevels,
+			[&](u32& outTextureID,
+				vector<vector<u8>>& outData,
+				vec2& outSize,
+				TextureFormat& outFormat)
+			{
+				u32 newTextureID{};
+				vector<vector<u8>> newData{};
+				vec2 newSize{};
+				TextureFormat newFormat{};
+
+				int newNrChannels{};
+
+				if (!AllTextureExtensionsMatch(texturePaths))
+				{
+					Log::Print(
+						"Failed to load texture '" + name + "' because its extensions don't match!",
+						"OPENGL_TEXTURE",
+						LogType::LOG_ERROR,
+						2);
+
+					return false;
+				}
+
+				for (const auto& thisPath : texturePaths)
+				{
+					vector<u8> data{};
+					vec2 size{};
+
+					if (!CheckTextureData(
+						name,
+						thisPath,
+						flipVertically,
+						TextureType::Type_2DArray,
+						format,
+						newFormat,
+						size,
+						data,
+						newNrChannels)) return false;
+
+					newData.push_back(move(data));
+
+					if (newSize == vec2(0)) newSize = size;
+
+					string sizeX = to_string(static_cast<int>(size.x));
+					string sizeY = to_string(static_cast<int>(size.y));
+
+					if (size != newSize)
+					{
+						ostringstream oss{};
+						oss << "failed to load texture '" << name
+							<< "' because its size '" << sizeX << "x " << sizeY
+							<< "' does not match base size '" << to_string(newSize.x) << "x" << to_string(newSize.y)
+							<< "'! Each subtexture size must match if you want to create a 'Type_2D_Array' texture.";
+
+						Log::Print(
+							oss.str(),
+							"OPENGL_TEXTURE",
+							LogType::LOG_ERROR,
+							2);
+
+						return false;
+					}
+				}
+
+				//
+				// BIND TEXTURE
+				//
+
+				glGenTextures(1, &newTextureID);
+				glBindTexture(GL_TEXTURE_2D_ARRAY, newTextureID);
+
+				glTexParameteri(
+					GL_TEXTURE_2D_ARRAY,
+					GL_TEXTURE_WRAP_S,
+					GL_REPEAT);
+				glTexParameteri(
+					GL_TEXTURE_2D_ARRAY,
+					GL_TEXTURE_WRAP_T,
+					GL_REPEAT);
+				glTexParameteri(
+					GL_TEXTURE_2D_ARRAY,
+					GL_TEXTURE_WRAP_R,
+					GL_CLAMP_TO_EDGE);
+
+				//
+				// FILTERING
+				//
+
+				glTexParameteri(
+					GL_TEXTURE_2D_ARRAY,
+					GL_TEXTURE_MIN_FILTER,
+					mipMapLevels > 1
+					? GL_LINEAR_MIPMAP_LINEAR
+					: GL_LINEAR);
+				glTexParameteri(
+					GL_TEXTURE_2D_ARRAY,
+					GL_TEXTURE_MAG_FILTER,
+					GL_LINEAR);
+
+				outTextureID = newTextureID;
+				outData = move(newData);
+				outSize = newSize;
+				outFormat = newFormat;
+
+				return true;
+			});
+	}
+
+	OpenGL_Texture* OpenGL_Texture::GetFallbackTexture()
+	{
+		if (!fallbackTexture)
+		{
+			while (glGetError() != GL_NO_ERROR) {} //clear old errors
+
+			unsigned int newTextureID{};
+			glGenTextures(1, &newTextureID);
+
+			glBindTexture(GL_TEXTURE_2D, newTextureID);
+
+			//reset state
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+			glTexStorage2D(
+				GL_TEXTURE_2D,
+				1,
+				GL_RGBA8,
+				32,
+				32);
+
+			glTexSubImage2D(
+				GL_TEXTURE_2D,
+				0,
+				0,
+				0,
+				32,
+				32,
+				GL_RGBA,
+				GL_UNSIGNED_BYTE,
+				GetFallbackPixels().data());
+
+			glGenerateMipmap(GL_TEXTURE_2D);
+
+			u32 newID = ++globalID;
+			unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
+			OpenGL_Texture* texturePtr = newTexture.get();
+
+			newTexture->name = string(fallbackTextureName);
+			newTexture->ID = newID;
+			newTexture->size = { 32.0f, 32.0f };
+			newTexture->openGLID = newTextureID;
+			const auto& pixelData = GetFallbackPixels();
+			newTexture->pixels.assign(pixelData.begin(), pixelData.end());
+			newTexture->type = TextureType::Type_2D;
+			newTexture->format = TextureFormat::Format_RGBA8;
+
+			string errorVal = OpenGL_Global::GetError();
+			if (!errorVal.empty())
+			{
+				KalaWindowCore::ForceClose(
+					"OpenGL texture error",
+					"Failed to load fallback texture! Reason: " + errorVal);
+
+				return nullptr;
+			}
+
+			createdOpenGLTextures[newID] = move(newTexture);
+			runtimeOpenGLTextures.push_back(texturePtr);
+
+			fallbackTexture = texturePtr;
+
+			Log::Print(
+				"Loaded fallback OpenGL texture with ID '" + to_string(newID) + "'!",
+				"OPENGL_TEXTURE",
+				LogType::LOG_DEBUG);
+
+			return fallbackTexture;
+		}
+
+		return fallbackTexture;
+	}
+
+	OpenGL_Texture* OpenGL_Texture::TextureBody(
+		u32 windowID,
+		const string& name,
+		const vector<string>& texturePaths,
+		TextureType type,
+		TextureFormat format,
+		bool flipVertically,
+		u16 depth,
+		u8 mipMapLevels,
+		const function<bool(
+			u32& outTextureID,
+			vector<vector<u8>>& outData,
+			vec2& outSize,
+			TextureFormat& outFormat)>&
+		customTextureInitData)
 	{
 		if (!OpenGL_Global::IsInitialized())
 		{
@@ -324,9 +675,6 @@ namespace KalaWindow::Graphics::OpenGL
 			return nullptr;
 		}
 
-		//ensure a fallback texture always exists
-		if (!fallbackTexture) LoadFallbackTexture();
-
 		u32 newID = ++globalID;
 		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
 		OpenGL_Texture* texturePtr = newTexture.get();
@@ -336,88 +684,47 @@ namespace KalaWindow::Graphics::OpenGL
 			"OPENGL_TEXTURE",
 			LogType::LOG_DEBUG);
 
-		vector<u8> data{};
-		int nrChannels{};
-		vec2 size{};
-
-		TextureFormat resolvedFormat = format;
-
-		OpenGL_Texture* result = InitTexture(
-			name,
-			filePath,
-			type,
-			format,
-			resolvedFormat,
-			flipVertically,
-			size,
-			data,
-			nrChannels);
-
-		if (result != nullptr) return result;
-
 		//
-		// BIND TEXTURE
+		// CALL TEXTURE BODY FUNCTION
 		//
 
-		unsigned int newTextureID{};
-		glGenTextures(1, &newTextureID);
+		u32 newTextureID{};
+		vector<vector<u8>> newData{};
+		vec2 newSize{};
+		TextureFormat newFormat{};
 
-		GLenum target = ToGLTarget(type);
-		GLFormatInfo fmt = ToGLFormat(resolvedFormat);
-
-		glBindTexture(target, newTextureID);
-
-		glTexParameteri(
-			target,
-			GL_TEXTURE_WRAP_S,
-			GL_REPEAT);
-		glTexParameteri(
-			target,
-			GL_TEXTURE_WRAP_T,
-			GL_REPEAT);
-
-		if (target == GL_TEXTURE_3D)
+		if (!customTextureInitData(
+			newTextureID,
+			newData,
+			newSize,
+			newFormat))
 		{
-			glTexParameteri(
-				target,
-				GL_TEXTURE_WRAP_R,
-				GL_REPEAT);
+			return GetFallbackTexture();
 		}
 
 		//
-		// FILTERING
-		//
-
-		glTexParameteri(
-			target,
-			GL_TEXTURE_MIN_FILTER,
-			mipMapLevels > 1
-			? GL_LINEAR_MIPMAP_LINEAR
-			: GL_LINEAR);
-		glTexParameteri(
-			target,
-			GL_TEXTURE_MAG_FILTER,
-			GL_LINEAR);
-
-		//
-		// STORE DATA AND INIT TEXTURE
+		// POST-INIT CONTENT
 		//
 
 		texturePtr->name = name;
 		texturePtr->ID = newID;
-		texturePtr->filePath = filePath;
-		texturePtr->size = size,
+		if (type == TextureType::Type_2D
+			|| type == TextureType::Type_3D)
+		{
+			texturePtr->filePath = texturePaths[0];
+		}
+		texturePtr->size = newSize;
 		texturePtr->openGLID = newTextureID;
 		texturePtr->type = type;
-		texturePtr->format = resolvedFormat;
+		texturePtr->format = newFormat;
 
 		u16 clampedDepth = depth;
 		if (type == TextureType::Type_2D) clampedDepth = 1;
 		else
 		{
 			clampedDepth = clamp(
-				clampedDepth, 
-				static_cast<u16>(1), 
+				clampedDepth,
+				static_cast<u16>(1),
 				static_cast<u16>(8192));
 		}
 		texturePtr->depth = clampedDepth;
@@ -427,7 +734,16 @@ namespace KalaWindow::Graphics::OpenGL
 			clampedDepth,
 			mipMapLevels);
 
-		texturePtr->pixels = move(data);
+		if (type == TextureType::Type_2D
+			|| type == TextureType::Type_3D)
+		{
+			texturePtr->pixels = move(newData[0]);
+		}
+		else if (type == TextureType::Type_Cube)
+		{
+			texturePtr->cubePixels = move(newData);
+		}
+		else texturePtr->layerPixels = move(newData);
 
 		string errorVal = OpenGL_Global::GetError();
 		if (!errorVal.empty())
@@ -436,10 +752,11 @@ namespace KalaWindow::Graphics::OpenGL
 				"OpenGL texture error",
 				"Failed to load texture '" + name + "'! Reason: " + errorVal);
 
-			return nullptr;
+			return GetFallbackTexture();
 		}
 
 		texturePtr->HotReload();
+
 		texturePtr->isInitialized = true;
 
 		createdOpenGLTextures[newID] = move(newTexture);
@@ -453,542 +770,7 @@ namespace KalaWindow::Graphics::OpenGL
 		return texturePtr;
 	}
 
-	OpenGL_Texture* OpenGL_Texture::LoadCubeMapTexture(
-		u32 windowID,
-		const string& name,
-		const array<string, 6>& texturePaths,
-		TextureFormat format,
-		bool flipVertically,
-		u8 mipMapLevels)
-	{
-		if (!OpenGL_Global::IsInitialized())
-		{
-			Log::Print(
-				"Cannot load cubemap texture '" + name + "' because OpenGL has not been initialized!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		Window* window = GetValueByID<Window>(windowID);
-
-		if (!window
-			|| !window->IsInitialized())
-		{
-			Log::Print(
-				"Cannot load cubemap texture '" + name + "' because its window reference is invalid!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot load cubemap texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		OpenGL_Context* context{};
-		if (content->glContext) context = content->glContext.get();
-
-		if (!context
-			|| !context->IsInitialized()
-			|| !context->IsContextValid())
-		{
-			Log::Print(
-				"Cannot load cubemap texture '" + name + "' because its OpenGL context is invalid!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		//ensure a fallback texture always exists
-		if (!fallbackTexture) LoadFallbackTexture();
-
-		u32 newID = ++globalID;
-		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
-		OpenGL_Texture* texturePtr = newTexture.get();
-
-		Log::Print(
-			"Loading cubemap texture '" + name + "' with ID '" + to_string(newID) + "'.",
-			"OPENGL_TEXTURE",
-			LogType::LOG_DEBUG);
-
-		vector<string> paths(begin(texturePaths), end(texturePaths));
-		if (!AllTextureExtensionsMatch(paths))
-		{
-			Log::Print(
-				"Failed to load cube map texture '" + name + "' because its extensions don't match!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR,
-				2);
-
-			return GetFallbackTexture();
-		}
-
-		vec2 baseSize{};
-		vector<vector<u8>> cubePixelData{};
-		TextureFormat resolvedFormat = format;
-		int nrChannels{};
-
-		for (const auto& thisPath : texturePaths)
-		{
-			vector<u8> data{};
-			vec2 size{};
-
-			OpenGL_Texture* result = InitTexture(
-				name,
-				thisPath,
-				TextureType::Type_Cube,
-				format,
-				resolvedFormat,
-				flipVertically,
-				size,
-				data,
-				nrChannels);
-
-			if (result != nullptr) return result;
-
-			cubePixelData.push_back(move(data));
-
-			if (baseSize == vec2(0)) baseSize = size;
-
-			string sizeX = to_string(static_cast<int>(size.x));
-			string sizeY = to_string(static_cast<int>(size.y));
-
-			if (size.x != size.y)
-			{
-				ostringstream oss{};
-				oss << "failed to create cube map texture '" << name
-					<< "' because texture '" << name << "' size x '" << sizeX << "' does not match y '" << sizeY
-					<< "'! X and Y must be exactly the same for 'Type_Cube' textures.";
-
-				Log::Print(
-					oss.str(),
-					"OPENGL_TEXTURE",
-					LogType::LOG_ERROR,
-					2);
-
-				return GetFallbackTexture();
-			}
-
-			if (size != baseSize)
-			{
-				ostringstream oss{};
-				oss << "failed to create cube map texture '" << name
-					<< "' because its size '" << sizeX << "x " << sizeY 
-					<< "' does not match base size '" << to_string(baseSize.x) << "x" << to_string(baseSize.y)
-					<< "'! Each subtexture size must match if you want to create a 'Type_Cube' texture.";
-
-				Log::Print(
-					oss.str(),
-					"OPENGL_TEXTURE",
-					LogType::LOG_ERROR,
-					2);
-
-				return GetFallbackTexture();
-			}
-		}
-
-		//
-		// BIND TEXTURE
-		//
-
-		unsigned int newTextureID{};
-		glGenTextures(1, &newTextureID);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, newTextureID);
-
-		glTexParameteri(
-			GL_TEXTURE_CUBE_MAP,
-			GL_TEXTURE_WRAP_S,
-			GL_CLAMP_TO_EDGE);
-		glTexParameteri(
-			GL_TEXTURE_CUBE_MAP,
-			GL_TEXTURE_WRAP_T,
-			GL_CLAMP_TO_EDGE);
-		glTexParameteri(
-			GL_TEXTURE_CUBE_MAP,
-			GL_TEXTURE_WRAP_R,
-			GL_CLAMP_TO_EDGE);
-
-		//
-		// FILTERING
-		//
-
-		glTexParameteri(
-			GL_TEXTURE_CUBE_MAP,
-			GL_TEXTURE_MIN_FILTER,
-			mipMapLevels > 1 
-				? GL_LINEAR_MIPMAP_LINEAR
-				: GL_LINEAR);
-		glTexParameteri(
-			GL_TEXTURE_CUBE_MAP,
-			GL_TEXTURE_MAG_FILTER,
-			GL_LINEAR);
-
-		//
-		// STORE DATA AND INIT TEXTURE
-		//
-
-		texturePtr->name = name;
-		texturePtr->ID = newID;
-		texturePtr->openGLID = newTextureID;
-		texturePtr->size = baseSize;
-		texturePtr->type = TextureType::Type_Cube;
-		texturePtr->format = resolvedFormat;
-		texturePtr->depth = 6; //depth is always 6 for cubemaps
-
-		texturePtr->mipMapLevels = GetMaxMipMapLevels(
-			baseSize,
-			6, //depth
-			mipMapLevels);
-
-		texturePtr->cubePixels = move(cubePixelData);
-
-		string errorVal = OpenGL_Global::GetError();
-		if (!errorVal.empty())
-		{
-			KalaWindowCore::ForceClose(
-				"OpenGL texture error",
-				"Failed to load cubemap texture '" + name + "'! Reason: " + errorVal);
-
-			return nullptr;
-		}
-
-		texturePtr->HotReload();
-		texturePtr->isInitialized = true;
-
-		createdOpenGLTextures[newID] = move(newTexture);
-		runtimeOpenGLTextures.push_back(texturePtr);
-
-		Log::Print(
-			"Loaded OpenGL cube texture '" + name + "' with ID '" + to_string(newID) + "'!",
-			"OPENGL_TEXTURE",
-			LogType::LOG_SUCCESS);
-
-		return texturePtr;
-	}
-
-	OpenGL_Texture* OpenGL_Texture::Load2DArrayTexture(
-		u32 windowID,
-		const string& name,
-		const vector<string>& texturePaths,
-		TextureFormat format,
-		bool flipVertically,
-		u8 mipMapLevels)
-	{
-		if (!OpenGL_Global::IsInitialized())
-		{
-			Log::Print(
-				"Cannot load 2D array texture '" + name + "' because OpenGL has not been initialized!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		Window* window = GetValueByID<Window>(windowID);
-
-		if (!window
-			|| !window->IsInitialized())
-		{
-			Log::Print(
-				"Cannot load 2D array texture '" + name + "' because its window reference is invalid!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot load 2D array texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		OpenGL_Context* context{};
-		if (content->glContext) context = content->glContext.get();
-
-		if (!context
-			|| !context->IsInitialized()
-			|| !context->IsContextValid())
-		{
-			Log::Print(
-				"Cannot load 2d array texture '" + name + "' because its OpenGL context is invalid!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		//ensure a fallback texture always exists
-		if (!fallbackTexture) LoadFallbackTexture();
-
-		u32 newID = ++globalID;
-		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
-		OpenGL_Texture* texturePtr = newTexture.get();
-
-		Log::Print(
-			"Loading 2D array texture '" + name + "' with ID '" + to_string(newID) + "'.",
-			"OPENGL_TEXTURE",
-			LogType::LOG_DEBUG);
-
-		if (!AllTextureExtensionsMatch(texturePaths))
-		{
-			Log::Print(
-				"Failed to load 2D array texture '" + name + "' because its extensions don't match!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR,
-				2);
-
-			return GetFallbackTexture();
-		}
-
-		vec2 baseSize{};
-		vector<vector<u8>> layerPixelData{};
-		TextureFormat resolvedFormat{};
-		int nrChannels{};
-
-		for (const auto& thisPath : texturePaths)
-		{
-			vector<u8> data{};
-			vec2 size{};
-
-			OpenGL_Texture* result = InitTexture(
-				name,
-				thisPath,
-				TextureType::Type_2DArray,
-				format,
-				resolvedFormat,
-				flipVertically,
-				size,
-				data,
-				nrChannels);
-
-			if (result != nullptr) return result;
-
-			layerPixelData.push_back(move(data));
-
-			if (baseSize == vec2(0)) baseSize = size;
-
-			string sizeX = to_string(static_cast<int>(size.x));
-			string sizeY = to_string(static_cast<int>(size.y));
-
-			if (size != baseSize)
-			{
-				ostringstream oss{};
-				oss << "failed to create 2D array texture '" << name
-					<< "' because its size '" << sizeX << "x " << sizeY
-					<< "' does not match base size '" << to_string(baseSize.x) << "x" << to_string(baseSize.y)
-					<< "'! Each subtexture size must match if you want to create a 'Type_2D_Array' texture.";
-
-				Log::Print(
-					oss.str(),
-					"OPENGL_TEXTURE",
-					LogType::LOG_ERROR,
-					2);
-
-				return GetFallbackTexture();
-			}
-		}
-
-		//
-		// BIND TEXTURE
-		//
-
-		unsigned int newTextureID{};
-		glGenTextures(1, &newTextureID);
-		glBindTexture(GL_TEXTURE_2D_ARRAY, newTextureID);
-
-		glTexParameteri(
-			GL_TEXTURE_2D_ARRAY,
-			GL_TEXTURE_WRAP_S,
-			GL_REPEAT);
-		glTexParameteri(
-			GL_TEXTURE_2D_ARRAY,
-			GL_TEXTURE_WRAP_T,
-			GL_REPEAT);
-		glTexParameteri(
-			GL_TEXTURE_2D_ARRAY,
-			GL_TEXTURE_WRAP_R,
-			GL_CLAMP_TO_EDGE);
-
-		//
-		// FILTERING
-		//
-
-		glTexParameteri(
-			GL_TEXTURE_2D_ARRAY,
-			GL_TEXTURE_MIN_FILTER,
-			mipMapLevels > 1
-			? GL_LINEAR_MIPMAP_LINEAR
-			: GL_LINEAR);
-		glTexParameteri(
-			GL_TEXTURE_2D_ARRAY,
-			GL_TEXTURE_MAG_FILTER,
-			GL_LINEAR);
-
-		//
-		// STORE DATA AND INIT TEXTURE
-		//
-
-		texturePtr->name = name;
-		texturePtr->ID = newID;
-		texturePtr->openGLID = newTextureID;
-		texturePtr->size = baseSize;
-		texturePtr->type = TextureType::Type_2DArray;
-		texturePtr->format = resolvedFormat;
-		texturePtr->depth = texturePaths.size();
-
-		texturePtr->mipMapLevels = GetMaxMipMapLevels(
-			baseSize,
-			texturePaths.size(), //size of texturePaths vector
-			mipMapLevels);
-
-		texturePtr->layerPixels = move(layerPixelData);
-
-		createdOpenGLTextures[newID] = move(newTexture);
-		runtimeOpenGLTextures.push_back(texturePtr);
-
-		string errorVal = OpenGL_Global::GetError();
-		if (!errorVal.empty())
-		{
-			KalaWindowCore::ForceClose(
-				"OpenGL texture error",
-				"Failed to create 2D array texture '" + name + "'! Reason: " + errorVal);
-
-			return nullptr;
-		}
-
-		texturePtr->HotReload();
-		texturePtr->isInitialized = true;
-
-		Log::Print(
-			"Loaded 2D array texture '" + name + "' with ID '" + to_string(newID) + "'!",
-			"OPENGL_TEXTURE",
-			LogType::LOG_SUCCESS);
-
-		return texturePtr;
-	}
-
-	void OpenGL_Texture::LoadFallbackTexture()
-	{
-		while (glGetError() != GL_NO_ERROR) {} //clear old errors
-
-		if (fallbackTexture != nullptr)
-		{
-			Log::Print(
-				"Fallback texture has already been assigned! Do not call this function manually.",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		unsigned int newTextureID{};
-		glGenTextures(1, &newTextureID);
-
-		glBindTexture(GL_TEXTURE_2D, newTextureID);
-
-		//reset state
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-
-		glTexStorage2D(
-			GL_TEXTURE_2D,
-			1,
-			GL_RGBA8,
-			32,
-			32);
-
-		glTexSubImage2D(
-			GL_TEXTURE_2D,
-			0,
-			0,
-			0,
-			32,
-			32,
-			GL_RGBA,
-			GL_UNSIGNED_BYTE,
-			GetFallbackPixels().data());
-
-		glGenerateMipmap(GL_TEXTURE_2D);
-
-		u32 newID = ++globalID;
-		unique_ptr<OpenGL_Texture> newTexture = make_unique<OpenGL_Texture>();
-		OpenGL_Texture* texturePtr = newTexture.get();
-
-		newTexture->name = string(fallbackTextureName);
-		newTexture->ID = newID;
-		newTexture->size = { 32.0f, 32.0f };
-		newTexture->openGLID = newTextureID;
-		const auto& pixelData = GetFallbackPixels();
-		newTexture->pixels.assign(pixelData.begin(), pixelData.end());
-		newTexture->type = TextureType::Type_2D;
-		newTexture->format = TextureFormat::Format_RGBA8;
-
-		createdOpenGLTextures[newID] = move(newTexture);
-		runtimeOpenGLTextures.push_back(texturePtr);
-
-		string errorVal = OpenGL_Global::GetError();
-		if (!errorVal.empty())
-		{
-			KalaWindowCore::ForceClose(
-				"OpenGL texture error",
-				"Failed to load fallback texture! Reason: " + errorVal);
-
-			return;
-		}
-
-		fallbackTexture = texturePtr;
-
-		Log::Print(
-			"Loaded fallback OpenGL texture with ID '" + to_string(newID) + "'!",
-			"OPENGL_TEXTURE",
-			LogType::LOG_SUCCESS);
-	}
-
-	OpenGL_Texture* OpenGL_Texture::GetFallbackTexture()
-	{
-		if (!fallbackTexture)
-		{
-			KalaWindowCore::ForceClose(
-				"OpenGL texture error",
-				"Failed to get fallback texture!");
-		}
-
-		return fallbackTexture;
-	}
-
-	void OpenGL_Texture::Rescale(
+	bool OpenGL_Texture::Rescale(
 		vec2 newSize,
 		TextureResizeType resizeType)
 	{
@@ -1002,7 +784,7 @@ namespace KalaWindow::Graphics::OpenGL
 				LogType::LOG_ERROR,
 				2);
 
-			return;
+			return false;
 		}
 
 		string sizeX = to_string(static_cast<int>(newSize.x));
@@ -1022,7 +804,7 @@ namespace KalaWindow::Graphics::OpenGL
 				LogType::LOG_ERROR,
 				2);
 
-			return;
+			return false;
 		}
 
 		//clamp to gpu texture resolution upper bound
@@ -1052,7 +834,7 @@ namespace KalaWindow::Graphics::OpenGL
 				LogType::LOG_ERROR,
 				2);
 
-			return;
+			return false;
 		}
 
 		if (type == TextureType::Type_Cube
@@ -1069,7 +851,7 @@ namespace KalaWindow::Graphics::OpenGL
 				LogType::LOG_ERROR,
 				2);
 
-			return;
+			return false;
 		}
 
 		vector<u8> resized(newSize.x * newSize.y * 4);
@@ -1099,7 +881,7 @@ namespace KalaWindow::Graphics::OpenGL
 					LogType::LOG_ERROR,
 					2);
 
-				return;
+				return false;
 			}
 
 			break;
@@ -1123,7 +905,7 @@ namespace KalaWindow::Graphics::OpenGL
 					LogType::LOG_ERROR,
 					2);
 
-				return;
+				return false;
 			}
 
 			break;
@@ -1156,7 +938,7 @@ namespace KalaWindow::Graphics::OpenGL
 					LogType::LOG_ERROR,
 					2);
 
-				return;
+				return false;
 			}
 
 			//convert back to u8 [0,255]
@@ -1181,7 +963,7 @@ namespace KalaWindow::Graphics::OpenGL
 				"OpenGL texture error",
 				"Failed to rescale texture '" + name + "'! Reason: " + errorVal);
 
-			return;
+			return false;
 		}
 
 		HotReload();
@@ -1190,6 +972,8 @@ namespace KalaWindow::Graphics::OpenGL
 			"Rescaled texture '" + name + "' to new scale '" + sizeX + "x" + sizeY + "'!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_SUCCESS);
+
+		return true;
 	}
 
 	void OpenGL_Texture::HotReload()
@@ -1426,17 +1210,53 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 }
 
-OpenGL_Texture* InitTexture(
+const array<u8, 32 * 32 * 4>& GetFallbackPixels()
+{
+	if (fallbackPixels[0] != 0) return fallbackPixels;
+
+	constexpr int texSize = 32;
+	constexpr int blockSize = 8;
+
+	for (int y = 0; y < texSize; ++y)
+	{
+		for (int x = 0; x < texSize; ++x)
+		{
+			//determine block color - alternate every 8 pixels
+			bool isMagenta = (((x / blockSize) + (y / blockSize)) % 2 == 0);
+
+			int idx = (y * texSize + x) * 4;
+			using index_t = array<u8, 32 * 32 * 4>::size_type;
+
+			auto Push = [idx](u8 adder, u8 result)
+				{
+					fallbackPixels[static_cast<index_t>(idx) + adder] = result;
+				};
+
+			Push(0, isMagenta ? 255 : 0); //R
+			Push(1, 0);                   //G
+			Push(2, isMagenta ? 255 : 0); //B
+			Push(3, 255);                 //A
+		}
+	}
+
+	return fallbackPixels;
+}
+
+bool CheckTextureData(
 	const string& name,
 	const string& filePath,
-	TextureType type,
-	TextureFormat formatIn,
-	TextureFormat& formatOut,
 	bool flipVertically,
-	vec2& size,
-	vector<u8>& data,
-	int& nrChannels)
+	TextureType type,
+	TextureFormat format,
+	TextureFormat& outformat,
+	vec2& outSize,
+	vector<u8>& outData,
+	int& outNrChannels)
 {
+	TextureFormat newFormat{};
+	vector<u8> newData{};
+	int newNrChannels{};
+
 	if (name == fallbackTextureName)
 	{
 		Log::Print(
@@ -1445,39 +1265,10 @@ OpenGL_Texture* InitTexture(
 			LogType::LOG_ERROR,
 			2);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
 
-	TextureCheckResult result = IsValidTexture(name, filePath);
-
-	if (result == TextureCheckResult::RESULT_INVALID) return OpenGL_Texture::GetFallbackTexture();
-	else if (result == TextureCheckResult::RESULT_ALREADY_EXISTS)
-	{
-		for (const auto& [key, value] : createdOpenGLTextures)
-		{
-			if (value->GetName() == name)
-			{
-				Log::Print(
-					"Returning existing texture '" + name + "'.",
-					"OPENGL_TEXTURE",
-					LogType::LOG_INFO);
-
-				return value.get();
-			}
-		}
-
-		Log::Print(
-			"Returning fallback texture because existing texture was not found!",
-			"OPENGL_TEXTURE",
-			LogType::LOG_WARNING);
-
-		return OpenGL_Texture::GetFallbackTexture();
-	}
-
-	Log::Print(
-		"Loading texture '" + name + "'.",
-		"OPENGL_TEXTURE",
-		LogType::LOG_INFO);
+	if (!IsValidTexture(name, filePath)) return false;
 
 	//
 	// GET TEXTURE DATA FROM FILE
@@ -1487,26 +1278,26 @@ OpenGL_Texture* InitTexture(
 	int height{};
 	stbi_set_flip_vertically_on_load(flipVertically);
 
-	unsigned char* newData = stbi_load(
+	unsigned char* stbiData = stbi_load(
 		(filePath).c_str(),
 		&width,
 		&height,
-		&nrChannels,
+		&newNrChannels,
 		0);
 
-	if (!newData)
+	if (!stbiData)
 	{
 		Log::Print(
-			"Failed to get texture data from texture '" + filePath + "' for texture '" + name + "'!",
+			"Failed to get texture data from texture path '" + filePath + "' for texture '" + name + "'!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
 
-	formatOut = formatIn;
-	if (formatOut == TextureFormat::Format_Auto)
+	newFormat = format;
+	if (newFormat == TextureFormat::Format_Auto)
 	{
 		ostringstream oss{};
 		oss << "Texture format 'Format_Auto' was used for texture '" + name + "'."
@@ -1517,53 +1308,53 @@ OpenGL_Texture* InitTexture(
 			"OPENGL_TEXTURE",
 			LogType::LOG_WARNING);
 
-		if (nrChannels == 1) formatOut = TextureFormat::Format_R8;
-		else if (nrChannels == 2) formatOut = TextureFormat::Format_RG8;
-		else if (nrChannels == 3) formatOut = TextureFormat::Format_RGB8;
-		else if (nrChannels == 4) formatOut = TextureFormat::Format_RGBA8;
+		if (newNrChannels == 1) newFormat = TextureFormat::Format_R8;
+		else if (newNrChannels == 2) newFormat = TextureFormat::Format_RG8;
+		else if (newNrChannels == 3) newFormat = TextureFormat::Format_RGB8;
+		else if (newNrChannels == 4) newFormat = TextureFormat::Format_RGBA8;
 		else
 		{
 			Log::Print(
-				"Unsupported channel count '" + to_string(nrChannels) + "' for texture '" + name + "'!",
+				"Unsupported channel count '" + to_string(newNrChannels) + "' for texture '" + name + "'!",
 				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
-			stbi_image_free(newData);
+			stbi_image_free(stbiData);
 
-			return OpenGL_Texture::GetFallbackTexture();
+			return false;
 		}
 	}
 	else
 	{
 		if (!IsCorrectFormat(
-			formatOut,
-			nrChannels))
+			newFormat,
+			newNrChannels))
 		{
 			Log::Print(
-				"Texture '" + name + "' was loaded with an incorrect format! Channel count is '" + to_string(nrChannels) + "'",
+				"Texture '" + name + "' was loaded with an incorrect format! Channel count is '" + to_string(newNrChannels) + "'",
 				"OPENGL_TEXTURE",
 				LogType::LOG_ERROR,
 				2);
 
-			stbi_image_free(newData);
+			stbi_image_free(stbiData);
 
-			return OpenGL_Texture::GetFallbackTexture();
+			return false;
 		}
 	}
 
-	u8 bpc = GetBytesPerChannel(formatOut);
+	u8 bpc = GetBytesPerChannel(newFormat);
 	if (bpc == 0)
 	{
-		stbi_image_free(newData);
+		stbi_image_free(stbiData);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
 
-	size_t dataSize = static_cast<size_t>(width) * height * nrChannels * bpc;
-	data.assign(newData, newData + dataSize);
+	size_t dataSize = static_cast<size_t>(width) * height * newNrChannels * bpc;
+	newData.assign(stbiData, stbiData + dataSize);
 
-	stbi_image_free(newData);
+	stbi_image_free(stbiData);
 
 	string widthStr = to_string(width);
 	string heightStr = to_string(height);
@@ -1582,7 +1373,7 @@ OpenGL_Texture* InitTexture(
 			LogType::LOG_ERROR,
 			2);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
 
 	//clamp to gpu texture resolution upper bound
@@ -1604,7 +1395,8 @@ OpenGL_Texture* InitTexture(
 		ostringstream oss{};
 		oss << "failed to load texture '" << name
 			<< "' because the texture size '" << widthStr << "x" << heightStr
-			<< "' is too big! Size cannot be above '" << maxSizeStr << "x" << maxSizeStr << "' pixels!";
+			<< "' is too big! Size cannot be above '" 
+			<< maxSizeStr << "x" << maxSizeStr << "' pixels!";
 
 		Log::Print(
 			oss.str(),
@@ -1612,7 +1404,7 @@ OpenGL_Texture* InitTexture(
 			LogType::LOG_ERROR,
 			2);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
 
 	if (type == TextureType::Type_Cube
@@ -1620,7 +1412,8 @@ OpenGL_Texture* InitTexture(
 	{
 		ostringstream oss{};
 		oss << "failed to resize texture '" << name
-			<< "' because the user-defined size x '" << to_string(width) << "' does not match y '" << to_string(height)
+			<< "' because the user-defined size x '" << to_string(width) 
+			<< "' does not match y '" << to_string(height)
 			<< "'! X and Y must be exactly the same for 'Type_Cube' textures.";
 
 		Log::Print(
@@ -1629,13 +1422,13 @@ OpenGL_Texture* InitTexture(
 			LogType::LOG_ERROR,
 			2);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
 
 	//texture extension must match allowed format
 
 	string extension = path(filePath).extension().string();
-	if (!IsCompressed(formatOut)
+	if (!IsCompressed(newFormat)
 		&& extension == ".ktx")
 	{
 		Log::Print(
@@ -1644,9 +1437,9 @@ OpenGL_Texture* InitTexture(
 			LogType::LOG_ERROR,
 			2);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
-	else if (!IsUncompressed(formatOut)
+	else if (!IsUncompressed(newFormat)
 		&& (extension == ".png"
 			|| extension == ".jpg"
 			|| extension == ".jpeg"))
@@ -1657,100 +1450,85 @@ OpenGL_Texture* InitTexture(
 			LogType::LOG_ERROR,
 			2);
 
-		return OpenGL_Texture::GetFallbackTexture();
+		return false;
 	}
 
-	size = vec2(width, height);
-	return nullptr;
+	outformat = newFormat;
+	outSize = vec2(width, height);
+	outData = newData;
+	outNrChannels = newNrChannels;
+
+	return true;
 }
 
-TextureCheckResult IsValidTexture(
+bool IsValidTexture(
 	const string& textureName,
 	const string& texturePath)
 {
 	//texture name must not be empty
-
-	if (textureName.empty())
+	if (textureName.empty()
+		|| textureName.length() > 50)
 	{
 		Log::Print(
-			"Cannot load a texture with no name!",
+			"Texture name cannot be empty or longer than 50 characters!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
-		return TextureCheckResult::RESULT_INVALID;
+		return false;
 	}
 
 	//texture path must not be empty
-
 	if (texturePath.empty())
 	{
 		Log::Print(
-			"Cannot load a texture with no path!",
+			"Cannot load texture '" + textureName + "' because its path is empty!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
-		return TextureCheckResult::RESULT_INVALID;
+		return false;
 	}
 
 	//texture file must exist
-
 	if (!exists(texturePath))
 	{
 		Log::Print(
-			"Texture '" + textureName + "' path '" + texturePath + "' does not exist!",
+			"Cannot load texture '" + textureName + "' because its path '" + texturePath + "' does not exist!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
-		return TextureCheckResult::RESULT_INVALID;
+		return false;
 	}
 
 	string lowerFilePath = ToLower(texturePath);
 
 	//texture file must have an extension
-
 	if (!path(lowerFilePath).has_extension())
 	{
 		Log::Print(
-			"Texture '" + textureName + "' has no extension. You must use png, jpg or jpeg!",
+			"Cannot load texture '" + textureName + "' because it has no extension!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
-		return TextureCheckResult::RESULT_INVALID;
+		return false;
 	}
 
 	//texture file must have a supported extension
-
 	if (!IsExtensionSupported(lowerFilePath))
 	{
 		Log::Print(
-			"Texture '" + textureName + "' extension '" + path(lowerFilePath).extension().string() + "' is not supported!",
+			"Cannot load texture '" + textureName + "' because its extension '" + path(lowerFilePath).extension().string() + "' is not supported!",
 			"OPENGL_TEXTURE",
 			LogType::LOG_ERROR,
 			2);
 
-		return TextureCheckResult::RESULT_INVALID;
+		return false;
 	}
 
-	//pass existing texture if one with the same name or path already exists
-
-	for (const auto& [_, value] : createdOpenGLTextures)
-	{
-		if (value->GetName() == textureName 
-			|| value->GetPath() == lowerFilePath)
-		{
-			Log::Print("Texture already exists: " + textureName, 
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR, 
-				2);
-			return TextureCheckResult::RESULT_ALREADY_EXISTS;
-		}
-	}
-
-	return TextureCheckResult::RESULT_OK;
+	return true;
 }
 
 bool IsCorrectFormat(
@@ -1781,6 +1559,60 @@ bool IsCorrectFormat(
 			|| format == TextureFormat::Format_BC3
 			|| format == TextureFormat::Format_BC7;
 	default: return false;
+	}
+}
+
+bool IsCompressed(TextureFormat f)
+{
+	return f == TextureFormat::Format_BC1
+		|| f == TextureFormat::Format_BC3
+		|| f == TextureFormat::Format_BC4
+		|| f == TextureFormat::Format_BC5
+		|| f == TextureFormat::Format_BC7;
+}
+bool IsUncompressed(TextureFormat f)
+{
+	return f == TextureFormat::Format_R8
+		|| f == TextureFormat::Format_RG8
+		|| f == TextureFormat::Format_RGB8
+		|| f == TextureFormat::Format_RGBA8
+		|| f == TextureFormat::Format_SRGB8
+		|| f == TextureFormat::Format_SRGB8A8
+		|| f == TextureFormat::Format_R16F
+		|| f == TextureFormat::Format_RG16F
+		|| f == TextureFormat::Format_RGBA16F
+		|| f == TextureFormat::Format_R32F
+		|| f == TextureFormat::Format_RG32F
+		|| f == TextureFormat::Format_RGBA32F;
+}
+
+u8 GetBytesPerChannel(TextureFormat format)
+{
+	switch (format)
+	{
+	case TextureFormat::Format_R8:
+	case TextureFormat::Format_RG8:
+	case TextureFormat::Format_RGB8:
+	case TextureFormat::Format_RGBA8:
+	case TextureFormat::Format_SRGB8:
+	case TextureFormat::Format_SRGB8A8:
+		return 1;
+	case TextureFormat::Format_R16F:
+	case TextureFormat::Format_RG16F:
+	case TextureFormat::Format_RGBA16F:
+		return 2;
+	case TextureFormat::Format_R32F:
+	case TextureFormat::Format_RG32F:
+	case TextureFormat::Format_RGBA32F:
+		return 4;
+	default:
+		Log::Print(
+			"GetBytesPerChannel called on invalid format! Compressed formats don't have per-channel bytes.",
+			"OPENGL_TEXTURE",
+			LogType::LOG_ERROR,
+			2);
+
+		return 0;
 	}
 }
 
