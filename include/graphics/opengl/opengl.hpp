@@ -9,11 +9,6 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
-namespace KalaWindow::Graphics
-{
-	class Window;
-}
-
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
@@ -100,7 +95,7 @@ namespace KalaWindow::Graphics::OpenGL
 		//parentContext determines the ID of the parent context which
 		//this context will get shaders, textures and buffers from
 		static OpenGL_Context* Initialize(
-			Window* window,
+			u32 windowID,
 			u32 parentContext,
 			MultiSampling msaa = MultiSampling::MSAA_4X,
 			SRGBMode srgb = SRGBMode::SRGB_ENABLED,
@@ -142,7 +137,7 @@ namespace KalaWindow::Graphics::OpenGL
 		bool isInitialized{};
 
 		u32 ID{};
-		Window* window{};
+		u32 windowID{};
 
 		OpenGL_Context* parentContext{};
 
