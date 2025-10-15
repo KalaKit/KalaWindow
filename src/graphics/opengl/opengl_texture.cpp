@@ -20,8 +20,8 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "graphics/texture.hpp"
+#include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
@@ -32,11 +32,14 @@ using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
+using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::globalID;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using namespace KalaWindow::Core;
 
 using std::string;
 using std::string_view;
@@ -590,8 +593,7 @@ namespace KalaWindow::Graphics::OpenGL
 				return nullptr;
 			}
 
-			createdOpenGLTextures[newID] = move(newTexture);
-			runtimeOpenGLTextures.push_back(texturePtr);
+			registry.AddContent(newID, move(newTexture));
 
 			fallbackTexture = texturePtr;
 
@@ -632,7 +634,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return nullptr;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -645,23 +647,8 @@ namespace KalaWindow::Graphics::OpenGL
 			return nullptr;
 		}
 
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot load texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-				"OPENGL_TEXTURE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		OpenGL_Context* context = content->glContext.get();
+		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
 		if (!context
 			|| !context->IsInitialized()
@@ -775,8 +762,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		texturePtr->isInitialized = true;
 
-		createdOpenGLTextures[newID] = move(newTexture);
-		runtimeOpenGLTextures.push_back(texturePtr);
+		registry.AddContent(newID, move(newTexture));
 
 		Log::Print(
 			"Loaded OpenGL texture '" + name + "' with ID '" + to_string(newID) + "'!",

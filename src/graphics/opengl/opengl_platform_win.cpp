@@ -12,7 +12,6 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl_functions_win.hpp"
@@ -23,10 +22,7 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::GetValueByID;
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::windowContent;
 using KalaWindow::Graphics::Window;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
@@ -213,7 +209,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return nullptr;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -221,21 +217,6 @@ namespace KalaWindow::Graphics::OpenGL
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
 				"Cannot initialize OpenGL context because it's window was not found!");
-
-			return nullptr;
-		}
-
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			KalaWindowCore::ForceClose(
-				"OpenGL error",
-				"Cannot initialize OpenGL context because it's window '" + window->GetTitle() + "' is missing from window content!");
 
 			return nullptr;
 		}
@@ -519,13 +500,9 @@ namespace KalaWindow::Graphics::OpenGL
 		{
 			OpenGL_Context* parentCont{};
 
-			for (const auto& content : windowContent)
+			if (registry.createdContent.contains(parentContext))
 			{
-				if (content.second->glContext->ID == parentContext)
-				{
-					parentCont = content.second->glContext.get();
-					break;
-				}
+				parentCont = registry.createdContent[parentContext].get();
 			}
 
 			if (parentCont)
@@ -621,7 +598,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		contPtr->contextData = ss2.str();
 
-		content->glContext = move(newCont);
+		registry.AddContent(newID, move(newCont));
+		window->AddValue(TargetType::TYPE_GL_CONTEXT, newID);
 
 		contPtr->windowID = window->GetID();
 
@@ -648,7 +626,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -691,7 +669,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -737,7 +715,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return false;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -821,7 +799,7 @@ namespace KalaWindow::Graphics::OpenGL
 			return;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())

@@ -11,7 +11,8 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
-#include "glm_global.hpp"
+#include "core/glm_global.hpp"
+#include "core/registry.hpp"
 
 //min is 1MB
 static constexpr u64 MIN_STREAM_SIZE = static_cast<size_t>(1 * 1024) * 1024; 
@@ -159,6 +160,8 @@ namespace KalaWindow::Core
 	class LIB_API AudioPlayer
 	{
 	public:
+		static inline Registry<AudioPlayer> registry{};
+
 		//Create a new audio player. If file size is less than or equal to 10MB
 		//then file is loaded into memory in full, otherwise it is streamed.
 		static AudioPlayer* CreateAudioPlayer(
@@ -173,6 +176,7 @@ namespace KalaWindow::Core
 		inline const string& GetPath() const { return filePath; }
 
 		inline u32 GetID() const { return ID; }
+		inline u32 GetWindowID() const { return windowID; }
 
 		//Start playing this audio player from the start
 		void Play() const;

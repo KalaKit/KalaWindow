@@ -27,7 +27,6 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/texture.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
@@ -38,6 +37,10 @@
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "windows/menubar.hpp"
+#include "graphics/camera.hpp"
+#include "ui/text.hpp"
+#include "ui/image.hpp"
+#include "core/audio.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -52,13 +55,11 @@ using KalaWindow::Windows::MessageLoop;
 using KalaWindow::Windows::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::GetValueByID;
-using KalaWindow::Core::createdOpenGLTextures;
-using KalaWindow::Core::createdWindows;
-using KalaWindow::Core::runtimeWindows;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::windowContent;
-using KalaWindow::Core::runtimeWindowContent;
+using KalaWindow::Graphics::Camera;
+using KalaWindow::Core::Input;
+using KalaWindow::UI::Text;
+using KalaWindow::UI::Image;
+using KalaWindow::Core::AudioPlayer;
 
 using std::make_unique;
 using std::move;
@@ -121,10 +122,10 @@ namespace KalaWindow::Graphics
 		HWND parentWindowRef{};
 		if (parentWindow != nullptr)
 		{
-			if (find(runtimeWindows.begin(),
-				runtimeWindows.end(),
+			if (find(registry.runtimeContent.begin(),
+				registry.runtimeContent.end(),
 				parentWindow)
-				== runtimeWindows.end())
+				== registry.runtimeContent.end())
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
@@ -242,14 +243,7 @@ namespace KalaWindow::Graphics
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
 
-		createdWindows[newID] = move(newWindow);
-		runtimeWindows.push_back(windowPtr);
-		
-		unique_ptr<WindowContent> newContent = make_unique<WindowContent>();
-		WindowContent* contentPtr = newContent.get();
-
-		windowContent[windowPtr] = move(newContent);
-		runtimeWindowContent.push_back(contentPtr);
+		registry.AddContent(newID, move(newWindow));
 
 		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
@@ -332,10 +326,9 @@ namespace KalaWindow::Graphics
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
 
-		OpenGL_Texture* tex = createdOpenGLTextures[texture].get();
+		OpenGL_Texture* tex = OpenGL_Texture::registry.GetContent(texture);
 
-		if (!texture
-			|| !tex)
+		if (!tex)
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' exe icon because the texture ID is invalid!",
@@ -427,10 +420,9 @@ namespace KalaWindow::Graphics
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
 
-		OpenGL_Texture* tex = createdOpenGLTextures[texture].get();
+		OpenGL_Texture* tex = OpenGL_Texture::registry.GetContent(texture);
 
-		if (!texture
-			|| !tex)
+		if (!tex)
 		{
 			Log::Print(
 				"Cannot set window '" + GetTitle() + "' overlay icon because the texture ID is invalid!",
@@ -1858,6 +1850,24 @@ namespace KalaWindow::Graphics
 			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
 			"WINDOW",
 			LogType::LOG_DEBUG);
+
+		parentWindow = nullptr;
+		childWindows.clear();
+		inputID = 0;
+		glContextID = 0;
+		menuBarID = 0;
+		menuBarEvents.clear();
+		audioPlayers.clear();
+		cameras.clear();
+		widgets.clear();
+
+		Text::registry.RemoveAllWindowContent(ID);
+		Image::registry.RemoveAllWindowContent(ID);
+		AudioPlayer::registry.RemoveAllWindowContent(ID);
+		Camera::registry.RemoveAllWindowContent(ID);
+		Input::registry.RemoveAllWindowContent(ID);
+		MenuBar::registry.RemoveAllWindowContent(ID);
+		OpenGL_Context::registry.RemoveAllWindowContent(ID);
 
 		HWND winRef = ToVar<HWND>(window_windows.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);

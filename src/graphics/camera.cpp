@@ -7,7 +7,7 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
+#include "core/core.hpp"
 #include "graphics/camera.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
@@ -15,11 +15,9 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::GetValueByID;
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::windowContent;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 
 using std::to_string;
@@ -36,7 +34,7 @@ namespace KalaWindow::Graphics
 		const vec3& pos,
 		const vec3& rot)
 	{
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -49,23 +47,8 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot create camera '" + cameraName + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-				"CAMERA",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		OpenGL_Context* context = content->glContext.get();
+		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
 		if (!context
 			|| !context->IsInitialized())
@@ -98,8 +81,8 @@ namespace KalaWindow::Graphics
 		f32 aspectRatio = size.x / size.y;
 		camPtr->SetAspectRatio(aspectRatio);
 
-		content->cameras[newID] = move(newCam);
-		content->runtimeCameras.push_back(camPtr);
+		registry.AddContent(newID, move(newCam));
+		window->AddValue(TargetType::TYPE_CAMERA, newID);
 
 		camPtr->ID = newID;
 		camPtr->windowID = window->GetID();

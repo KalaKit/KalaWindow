@@ -9,14 +9,12 @@
 #include "KalaHeaders/file_utils.hpp"
 
 #include "ui/font.hpp"
-#include "core/containers.hpp"
+#include "core/core.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::createdFonts;
-using KalaWindow::Core::runtimeFonts;
 
 using std::to_string;
 using std::unique_ptr;
@@ -78,8 +76,7 @@ namespace KalaWindow::UI
 		fontPtr->SetName(name);
 		fontPtr->fontPath = fontPath;
 
-		createdFonts[newID] = move(newFont);
-		runtimeFonts.push_back(fontPtr);
+		registry.AddContent(newID, move(newFont));
 
 		Log::Print(
 			"Loaded font '" + name + "' with ID '" + to_string(newID) + "'!",

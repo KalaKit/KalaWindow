@@ -9,9 +9,13 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
+#include "core/registry.hpp"
+
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
+
+	using KalaWindow::Core::Registry;
 
 	enum VSyncState
 	{
@@ -91,6 +95,8 @@ namespace KalaWindow::Graphics::OpenGL
 	class LIB_API OpenGL_Context
 	{
 	public:
+		static inline Registry<OpenGL_Context> registry{};
+
 		//Initialize a per-window OpenGL context.
 		//parentContext determines the ID of the parent context which
 		//this context will get shaders, textures and buffers from
@@ -107,6 +113,7 @@ namespace KalaWindow::Graphics::OpenGL
 		inline bool IsInitialized() const { return isInitialized; }
 
 		inline u32 GetID() const { return ID; }
+		inline u32 GetWindowID() const { return windowID; }
 
 		inline const string& GetContextData() { return contextData; }
 

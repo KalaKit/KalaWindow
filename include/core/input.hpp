@@ -12,6 +12,7 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/registry.hpp"
 
 namespace KalaWindow::Core
 {
@@ -174,11 +175,14 @@ namespace KalaWindow::Core
 	class LIB_API Input
 	{
 	public:
+		static inline Registry<Input> registry{};
+
 		static Input* Initialize(u32 windowID);
 
 		inline bool IsInitialized() const { return isInitialized; }
 
 		inline u32 GetID() const { return ID; }
+		inline u32 GetWindowID() const { return windowID; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//key, mouse update messages will dump their logs into the console.

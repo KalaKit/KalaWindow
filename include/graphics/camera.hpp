@@ -10,14 +10,19 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/registry.hpp"
 
 namespace KalaWindow::Graphics
 {
 	using std::string;
 
+	using KalaWindow::Core::Registry;
+
 	class LIB_API Camera
 	{
 	public:
+		static inline Registry<Camera> registry{};
+
 		static Camera* Initialize(
 			const string& cameraName,
 			u32 windowID,
@@ -29,7 +34,6 @@ namespace KalaWindow::Graphics
 		inline bool IsInitialized() const { return isInitialized; }
 
 		inline u32 GetID() const { return ID; }
-
 		inline u32 GetWindowID() const { return windowID; }
 
 		inline void SetName(const string& newName)

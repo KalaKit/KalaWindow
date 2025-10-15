@@ -9,13 +9,19 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
+#include "core/registry.hpp"
+
 namespace KalaWindow::UI
 {
 	using std::string;
 
+	using KalaWindow::Core::Registry;
+
 	class LIB_API Font
 	{
 	public:
+		static inline Registry<Font> registry{};
+
 		//Loads a font from disk
 		static Font* LoadFont(
 			const string& name,

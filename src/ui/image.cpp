@@ -7,8 +7,8 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "ui/image.hpp"
+#include "core/core.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
@@ -18,10 +18,8 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::GetValueByID;
-using KalaWindow::Core::windowContent;
-using KalaWindow::Core::WindowContent;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::TextureFormat;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
@@ -42,7 +40,7 @@ namespace KalaWindow::UI
 		OpenGL_Texture* texture,
 		OpenGL_Shader* shader)
 	{
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -55,23 +53,8 @@ namespace KalaWindow::UI
 			return nullptr;
 		}
 
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot load image texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-				"IMAGE",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		OpenGL_Context* context = content->glContext.get();
+		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
 		if (!context
 			|| !context->IsInitialized()
@@ -139,9 +122,8 @@ namespace KalaWindow::UI
 		imagePtr->SetRotVec(rot, RotTarget::ROT_WORLD);
 		imagePtr->SetSize(size, SizeTarget::SIZE_WORLD);
 
-		content->widgets[newID] = move(newImage);
-		content->runtimeWidgets.push_back(imagePtr);
-		content->runtimeImages.push_back(imagePtr);
+		registry.AddContent(newID, move(newImage));
+		runtimeImages.push_back(imagePtr);
 
 		Log::Print(
 			"Loaded image '" + name + "' with ID '" + to_string(newID) + "'!",

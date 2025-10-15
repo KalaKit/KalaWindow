@@ -7,8 +7,9 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
+#include "core/core.hpp"
 #include "ui/text.hpp"
+#include "ui/font.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
@@ -18,11 +19,8 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::GetValueByID;
-using KalaWindow::Core::windowContent;
-using KalaWindow::Core::createdFonts;
-using KalaWindow::Core::WindowContent;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::TextureFormat;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
@@ -44,7 +42,7 @@ namespace KalaWindow::UI
 		OpenGL_Texture* texture,
 		OpenGL_Shader* shader)
 	{
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window)
 		{
@@ -56,23 +54,8 @@ namespace KalaWindow::UI
 			return nullptr;
 		}
 
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Cannot load text texture '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-				"TEXT",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		OpenGL_Context* context = content->glContext.get();
+		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
 		if (!context
 			|| !context->IsInitialized()
@@ -125,12 +108,7 @@ namespace KalaWindow::UI
 		//font is required
 		if (fontID != 0)
 		{
-			Font* font{};
-			if (createdFonts.contains(fontID))
-			{
-				font = createdFonts[fontID].get();
-			}
-
+			Font* font = Font::registry.GetContent(fontID);
 			if (font) textPtr->fontID = fontID;
 		}
 		if (textPtr->fontID == 0)
@@ -152,9 +130,8 @@ namespace KalaWindow::UI
 		textPtr->SetRotVec(rot, RotTarget::ROT_WORLD);
 		textPtr->SetSize(size, SizeTarget::SIZE_WORLD);
 
-		content->widgets[newID] = move(newText);
-		content->runtimeWidgets.push_back(textPtr);
-		content->runtimeText.push_back(textPtr);
+		registry.AddContent(newID, move(newText));
+		runtimeText.push_back(textPtr);
 
 		Log::Print(
 			"Loaded text '" + name + "' with ID '" + to_string(newID) + "'!",
@@ -166,25 +143,18 @@ namespace KalaWindow::UI
 
 	void Text::SetFontID(u32 newValue)
 	{
-		if (newValue != 0)
-		{
-			Font* font{};
-			if (createdFonts.contains(newValue))
-			{
-				font = createdFonts[newValue].get();
-			}
-
-			if (font) fontID = newValue;
-		}
-		if (fontID == 0)
+		if (newValue == 0)
 		{
 			Log::Print(
-				"Cannot set Text widget '" + name + "' font to Font ID '" + to_string(fontID) + "' because it is invalid!",
+				"Cannot set Text widget '" + name + "' font to Font ID because it is empty!",
 				"TEXT",
 				LogType::LOG_ERROR);
 
 			return;
 		}
+
+		Font* font = Font::registry.GetContent(fontID);
+		if (font) fontID = newValue;
 	}
 
 	bool Text::Render(

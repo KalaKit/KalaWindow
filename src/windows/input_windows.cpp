@@ -12,7 +12,6 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "core/core.hpp"
 #include "core/input.hpp"
 #include "graphics/window.hpp"
@@ -20,11 +19,11 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::createdWindows;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::windowContent;
+using KalaWindow::Core::globalID;
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
+using KalaWindow::Graphics::TargetType;
 
 using std::string;
 using std::to_string;
@@ -35,7 +34,7 @@ namespace KalaWindow::Core
 {
 	Input* Input::Initialize(u32 windowID)
 	{
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -43,21 +42,6 @@ namespace KalaWindow::Core
 			KalaWindowCore::ForceClose(
 				"Input error",
 				"Failed to initialize input because its window was not found!");
-
-			return nullptr;
-		}
-
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			KalaWindowCore::ForceClose(
-				"Input error",
-				"Failed to initialize input because its window '" + window->GetTitle() + "' is missing from window content!");
 
 			return nullptr;
 		}
@@ -88,7 +72,8 @@ namespace KalaWindow::Core
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
-		content->input = move(newInput);
+		registry.AddContent(newID, move(newInput));
+		window->AddValue(TargetType::TYPE_INPUT, newID);
 
 		inputPtr->windowID = window->GetID();
 
@@ -211,7 +196,7 @@ namespace KalaWindow::Core
 		}
 		else
 		{
-			Window* window = GetValueByID<Window>(windowID);
+			Window* window = Window::registry.GetContent(windowID);
 
 			if (!window
 				|| !window->IsInitialized())
@@ -268,7 +253,7 @@ namespace KalaWindow::Core
 			}
 			else
 			{
-				Window* window = GetValueByID<Window>(windowID);
+				Window* window = Window::registry.GetContent(windowID);
 
 				if (!window
 					|| !window->IsInitialized())
@@ -323,7 +308,7 @@ namespace KalaWindow::Core
 
 		if (isMouseLocked)
 		{
-			Window* window = GetValueByID<Window>(windowID);
+			Window* window = Window::registry.GetContent(windowID);
 
 			if (!window
 				|| !window->IsInitialized())
@@ -373,7 +358,7 @@ namespace KalaWindow::Core
 			return;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())

@@ -5,7 +5,7 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
+#include "core/input.hpp"
 #include "ui/widget.hpp"
 #include "ui/text.hpp"
 #include "graphics/window.hpp"
@@ -15,11 +15,9 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::GetValueByID;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::windowContent;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
@@ -33,9 +31,7 @@ namespace KalaWindow::UI
 		const vec3& target,
 		float distance)
 	{
-		if (windowID == 0) return{};
-
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized()
@@ -44,17 +40,8 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content) return{};
-
-		if (content->runtimeWidgets.empty()) return{};
-
-		OpenGL_Context* context = content->glContext.get();
+		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
 		if (!context
 			|| !context->IsInitialized()
@@ -63,7 +50,8 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		Input* input = content->input.get();
+		u32 inputID = window->GetValue(TargetType::TYPE_INPUT).front();
+		Input* input = Input::registry.GetContent(inputID);
 
 		if (!input
 			|| !input->IsInitialized())
@@ -109,38 +97,32 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized()
 			|| window->IsIdle())
 		{
-			return false;
+			return{};
 		}
 
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content) return false;
-
-		OpenGL_Context* context = content->glContext.get();
+		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
 		if (!context
 			|| !context->IsInitialized()
 			|| !context->IsContextValid())
 		{
-			return false;
+			return{};
 		}
 
-		Input* input = content->input.get();
+		u32 inputID = window->GetValue(TargetType::TYPE_INPUT).front();
+		Input* input = Input::registry.GetContent(inputID);
 
 		if (!input
 			|| !input->IsInitialized())
 		{
-			return false;
+			return{};
 		}
 
 		const vector<Widget*>& hitWidgets = HitWidgets(

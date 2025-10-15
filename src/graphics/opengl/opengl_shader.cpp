@@ -13,7 +13,6 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl.hpp"
@@ -31,11 +30,6 @@ using KalaWindow::Graphics::OpenGL::ShaderData;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
-using KalaWindow::Core::GetValueByID;
-using KalaWindow::Core::createdOpenGLShaders;
-using KalaWindow::Core::runtimeOpenGLShaders;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::windowContent;
 
 using std::string;
 using std::to_string;
@@ -100,7 +94,7 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        Window* window = GetValueByID<Window>(windowID);
+        Window* window = Window::registry.GetContent(windowID);
 
         if (!window
             || !window->IsInitialized())
@@ -112,22 +106,8 @@ namespace KalaWindow::Graphics::OpenGL
             return nullptr;
         }
 
-        WindowContent* content{};
-        if (windowContent.contains(window))
-        {
-            content = windowContent[window].get();
-        }
-
-        if (!content)
-        {
-            KalaWindowCore::ForceClose(
-                "Shader error",
-                "Cannot create shader '" + shaderName + "' because its window '" + window->GetTitle() + "' is missing from window content!");
-
-            return nullptr;
-        }
-
-        OpenGL_Context* context = content->glContext.get();
+        u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+        OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
         if (!context
             || !context->IsInitialized()
@@ -489,8 +469,7 @@ namespace KalaWindow::Graphics::OpenGL
 
         shaderPtr->isInitialized = true;
 
-        createdOpenGLShaders[newID] = move(newShader);
-        runtimeOpenGLShaders.push_back(shaderPtr);
+        registry.AddContent(newID, move(newShader));
 
         Log::Print(
             "Created OpenGL shader '" + shaderName + "' with ID '" + to_string(newID) + "'!",
@@ -512,7 +491,7 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        Window* window = GetValueByID<Window>(windowID);
+        Window* window = Window::registry.GetContent(windowID);
 
         if (!window
             || !window->IsInitialized())
@@ -525,23 +504,8 @@ namespace KalaWindow::Graphics::OpenGL
             return false;
         }
 
-        WindowContent* content{};
-        if (windowContent.contains(window))
-        {
-            content = windowContent[window].get();
-        }
-
-        if (!content)
-        {
-            Log::Print(
-                "Cannot bind shader '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
-                "OPENGL_SHADER",
-                LogType::LOG_ERROR);
-
-            return false;
-        }
-
-        OpenGL_Context* context = content->glContext.get();
+        u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
+        OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
 
         if (!context
             || !context->IsInitialized()

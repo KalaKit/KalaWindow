@@ -12,6 +12,9 @@ namespace KalaWindow::UI
 	class LIB_API Text : public Widget
 	{
 	public:
+		static inline Registry<Text> registry{};
+		static inline vector<Text*> runtimeText{};
+
 		//Initialize a new Text widget.
 		//Parent widget and texture are optional
 		static Text* Initialize(

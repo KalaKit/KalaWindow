@@ -21,8 +21,8 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "windows/messageloop.hpp"
+#include "windows/menubar.hpp"
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
 #include "core/input.hpp"
@@ -35,6 +35,7 @@ using KalaHeaders::LogType;
 
 using KalaWindow::Windows::MessageLoop;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
@@ -49,10 +50,6 @@ using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
-using KalaWindow::Core::createdWindows;
-using KalaWindow::Core::runtimeWindows;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::windowContent;
 
 using std::string;
 using std::to_string;
@@ -474,18 +471,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		return false;
 	}
 
-	WindowContent* content{};
-	if (windowContent.contains(window))
-	{
-		content = windowContent[window].get();
-	}
-
-	Input* input{};
-	if (content
-		&& content->input)
-	{
-		input = content->input.get();
-	}
+	u32 inputID = window->GetValue(TargetType::TYPE_INPUT).front();
+	Input* input = Input::registry.GetContent(inputID);
 
 	/*
 	if (msg.message == 0)
@@ -1281,18 +1268,19 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		u32 IDRef = LOWORD(msg.wParam);
 
-		if (window
-			&& content)
+		if (window)
 		{
-			MenuBar* menuBar = content->menubar.get();
+			u32 menuBarID = window->GetValue(TargetType::TYPE_MENU_BAR).front();
+			MenuBar* menuBar = MenuBar::registry.GetContent(menuBarID);
 			if (menuBar)
 			{
-				for (const auto& e : content->runtimeMenuBarEvents)
+				const vector<MenuBarEvent> events = menuBar->GetEvents();
+				for (const auto& e : events)
 				{
-					u32 ID = e->labelID;
+					u32 ID = e.labelID;
 					if (ID == IDRef)
 					{
-						e->function();
+						e.function();
 						return true; //we handled it
 					}
 				}
@@ -1314,19 +1302,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	{
-		windowContent.erase(window);
-			
 		u32 windowID = window->GetID();
-		createdWindows.erase(windowID);
+		Window::registry.RemoveContent(windowID);
 
-		auto it = find(
-			runtimeWindows.begin(),
-			runtimeWindows.end(),
-			window);
-
-		if (it != runtimeWindows.end()) runtimeWindows.erase(it);
-
-		if (runtimeWindows.size() == 0)
+		if (Window::registry.runtimeContent.empty())
 		{
 			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		}
@@ -1337,7 +1316,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//full shutdown if all windows were destroyed
 	case WM_DESTROY:
 	{
-		if (createdWindows.size() == 0) PostQuitMessage(0);
+		if (Window::registry.runtimeContent.empty()) PostQuitMessage(0);
 
 		return true; //we handled it
 	}

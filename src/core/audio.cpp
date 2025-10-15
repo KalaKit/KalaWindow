@@ -16,7 +16,6 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "core/audio.hpp"
 #include "core/core.hpp"
 #include "graphics/window.hpp"
@@ -24,12 +23,11 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
+using KalaWindow::Core::globalID;
 using KalaWindow::Core::Audio;
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::windowContent;
-using KalaWindow::Core::WindowContent;
-using KalaWindow::Core::GetValueByID;
 using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::TargetType;
 
 using std::unordered_map;
 using std::string;
@@ -416,29 +414,13 @@ namespace KalaWindow::Core
 		const string& name,
 		const string& filePath)
 	{
-		Window* window = GetValueByID<Window>(windowID);
+		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
 		{
 			Log::Print(
 				"Failed to create audio player '" + name + "' because its window reference is invalid!",
-				"AUDIO_PLAYER",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
-		WindowContent* content{};
-		if (windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Failed to create audio player '" + name + "' because its window '" + window->GetTitle() + "' is missing from window content!",
 				"AUDIO_PLAYER",
 				LogType::LOG_ERROR);
 
@@ -568,8 +550,8 @@ namespace KalaWindow::Core
 		trackPtr->ID = newID;
 		trackPtr->windowID = windowID;
 
-		content->audioPlayers[newID] = move(newTrack);
-		content->runtimeAudioPlayers.push_back(trackPtr);
+		registry.AddContent(newID, move(newTrack));
+		window->AddValue(TargetType::TYPE_AUDIO_PLAYER, newID);
 
 		Log::Print(
 			"Created audio file '" + name + "' with ID '" + to_string(newID) + "'!",
@@ -613,26 +595,6 @@ namespace KalaWindow::Core
 		if (newName.size() > 20)
 		{
 			PrintNameError("the new name is too long! You must use 20 characters or less.");
-
-			return;
-		}
-
-		Window* window = GetValueByID<Window>(windowID);
-
-		WindowContent* content{};
-		if (window
-			&& window->IsInitialized()
-			&& windowContent.contains(window))
-		{
-			content = windowContent[window].get();
-		}
-
-		if (!content)
-		{
-			Log::Print(
-				"Failed to update audio player '" + name + "' name because its window '" + window->GetTitle() + "' is missing from window content!",
-				"AUDIO_PLAYER",
-				LogType::LOG_ERROR);
 
 			return;
 		}

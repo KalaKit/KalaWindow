@@ -13,6 +13,8 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
+#include "core/registry.hpp"
+
 namespace KalaWindow::Windows
 {
 	using std::string;
@@ -20,6 +22,8 @@ namespace KalaWindow::Windows
 	using std::unordered_map;
 	using std::vector;
 	using std::unique_ptr;
+
+	using KalaWindow::Core::Registry;
 
 	enum class LabelType
 	{
@@ -43,11 +47,16 @@ namespace KalaWindow::Windows
 	class LIB_API MenuBar
 	{
 	public:
+		static inline Registry<MenuBar> registry{};
+
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window
 		static MenuBar* CreateMenuBar(u32 windowID);
 
 		bool IsInitialized() const;
+
+		inline u32 GetID() const { return ID; }
+		inline u32 GetWindowID() const { return windowID; }
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//branch and leaf creation will dump their logs into the console.
@@ -74,6 +83,8 @@ namespace KalaWindow::Windows
 			const string& parentRef,
 			const string& labelRef = "") const;
 
+		inline const vector<MenuBarEvent>& GetEvents() const { return events; }
+
 		//Destroy the existing menu bar inside the window
 		~MenuBar();
 	private:
@@ -84,5 +95,7 @@ namespace KalaWindow::Windows
 
 		u32 ID{};
 		u32 windowID{};
+
+		vector<MenuBarEvent> events{};
 	};
 }

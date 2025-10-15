@@ -13,6 +13,7 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/registry.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -20,6 +21,8 @@ namespace KalaWindow::Graphics
 	using std::function;
 	using std::vector;
 	using std::array;
+
+	using KalaWindow::Core::Registry;
 
 	enum class DpiContext
 	{
@@ -35,6 +38,17 @@ namespace KalaWindow::Graphics
 
 		//always as 96 DPI, blurry on high DPI screens, fastest performance
 		DPI_UNAWARE
+	};
+
+	enum class TargetType
+	{
+		TYPE_INPUT,
+		TYPE_GL_CONTEXT,
+		TYPE_MENU_BAR,
+		TYPE_MENU_BAR_EVENT,
+		TYPE_AUDIO_PLAYER,
+		TYPE_CAMERA,
+		TYPE_WIDGET
 	};
 
 	//Supported states the window can go to
@@ -96,6 +110,8 @@ namespace KalaWindow::Graphics
 	class LIB_API Window
 	{
 	public:
+		static inline Registry<Window> registry{};
+
 		//Create a new window with an optional choice to attach a parent window.
 		//Assign a parent window to display this window as a child of that window.
 		//Set window state to your preferred version, like hidden at startup etc.
@@ -281,6 +297,333 @@ namespace KalaWindow::Graphics
 		inline const WindowData& GetWindowData() const { return window_x11; }
 #endif
 
+		//
+		// WINDOW CONTAINER
+		//
+
+		inline vector<u32> GetValue(TargetType targetType) const
+		{
+			switch (targetType)
+			{
+			case TargetType::TYPE_INPUT:          return { inputID }; break;
+			case TargetType::TYPE_GL_CONTEXT:     return { glContextID }; break;
+			case TargetType::TYPE_MENU_BAR:       return { menuBarID }; break;
+			case TargetType::TYPE_MENU_BAR_EVENT: return menuBarEvents; break;
+			case TargetType::TYPE_AUDIO_PLAYER:   return audioPlayers; break;
+			case TargetType::TYPE_CAMERA:         return cameras; break;
+			case TargetType::TYPE_WIDGET:         return widgets; break;
+			}
+
+			return{};
+		}
+		inline bool AddValue(
+			TargetType targetType,
+			u32 targetValue)
+		{
+			auto AddSingleValue = [](u32 targetValue, u32& targetPosition)
+				{
+					if (targetValue == 0) return false;
+					targetPosition = targetValue;
+					return true;
+				};
+
+			auto AddContainerValue = [](u32 targetValue, auto& targetContainer)
+				{
+					if (targetValue == 0) return false;
+
+					if (find(targetContainer.begin(),
+						targetContainer.end(),
+						targetValue)
+						!= targetContainer.end())
+					{
+						return false;
+					}
+
+					targetContainer.push_back(targetValue);
+
+					return true;
+				};
+
+			switch (targetType)
+			{
+			case TargetType::TYPE_INPUT:
+			{
+				return AddSingleValue(targetValue, inputID);
+			}
+			case TargetType::TYPE_GL_CONTEXT:
+			{
+				return AddSingleValue(targetValue, glContextID);
+			}
+			case TargetType::TYPE_MENU_BAR:
+			{
+				return AddSingleValue(targetValue, menuBarID);
+			}
+			case TargetType::TYPE_MENU_BAR_EVENT:
+			{
+				return AddContainerValue(targetValue, menuBarEvents);
+			}
+			case TargetType::TYPE_AUDIO_PLAYER:
+			{
+				return AddContainerValue(targetValue, audioPlayers);
+			}
+			case TargetType::TYPE_CAMERA:
+			{
+				return AddContainerValue(targetValue, cameras);
+			}
+			case TargetType::TYPE_WIDGET:
+			{
+				return AddContainerValue(targetValue, widgets);
+			}
+			}
+
+			return false;
+		}
+		inline bool RemoveValue(
+			TargetType targetType,
+			u32 targetValue)
+		{
+			auto RemoveSingleValue = [](u32 targetValue, u32& targetPosition)
+				{
+					if (targetValue == 0
+						|| targetPosition != targetValue)
+					{
+						return false;
+					}
+
+					targetPosition = 0;
+					return true;
+				};
+
+			auto RemoveContainerValue = [](u32 targetValue, auto& targetContainer)
+				{
+					if (targetValue == 0) return false;
+
+					targetContainer.erase(remove(
+						targetContainer.begin(),
+						targetContainer.end(),
+						targetValue),
+						targetContainer.end());
+
+					return true;
+				};
+
+			switch (targetType)
+			{
+			case TargetType::TYPE_INPUT:
+			{
+				return RemoveSingleValue(targetValue, inputID);
+			}
+			case TargetType::TYPE_GL_CONTEXT:
+			{
+				return RemoveSingleValue(targetValue, glContextID);
+			}
+			case TargetType::TYPE_MENU_BAR:
+			{
+				return RemoveSingleValue(targetValue, menuBarID);
+			}
+			case TargetType::TYPE_MENU_BAR_EVENT:
+			{
+				return RemoveContainerValue(targetValue, menuBarEvents);
+			}
+			case TargetType::TYPE_AUDIO_PLAYER:
+			{
+				return RemoveContainerValue(targetValue, audioPlayers);
+			}
+			case TargetType::TYPE_CAMERA:
+			{
+				return RemoveContainerValue(targetValue, cameras);
+			}
+			case TargetType::TYPE_WIDGET:
+			{
+				return RemoveContainerValue(targetValue, widgets);
+			}
+			}
+
+			return false;
+		}
+		inline void CleanContainer(TargetType targetType)
+		{
+			switch (targetType)
+			{
+			case TargetType::TYPE_INPUT:
+			case TargetType::TYPE_GL_CONTEXT:
+			case TargetType::TYPE_MENU_BAR:
+			{
+				break;
+			}
+			case TargetType::TYPE_MENU_BAR_EVENT: menuBarEvents.clear(); break;
+			case TargetType::TYPE_AUDIO_PLAYER:   audioPlayers.clear(); break;
+			case TargetType::TYPE_CAMERA:         cameras.clear(); break;
+			case TargetType::TYPE_WIDGET:         widgets.clear(); break;
+			}
+		}
+
+		//
+		// WINDOW HIERARCHY
+		//
+
+		//Returns the top-most window of this window
+		inline Window* GetRoot() { return parentWindow ? parentWindow->GetRoot() : this; }
+
+		//Returns true if target window is connected
+		//to current window as a child, parent or sibling.
+		//Set recursive to true if you want deep window search
+		inline bool HasWindow(
+			Window* targetWindow,
+			bool recursive = false)
+		{
+			if (!targetWindow) return false;
+
+			if (this == targetWindow) return true;
+
+			//check descendants
+			for (auto* c : childWindows)
+			{
+				if (c == targetWindow) return true;
+
+				if (recursive
+					&& c->HasWindow(targetWindow, true))
+				{
+					return true;
+				}
+			}
+
+			//check ancestors
+			if (parentWindow)
+			{
+				if (parentWindow == targetWindow) return true;
+
+				if (recursive
+					&& HasWindow(targetWindow, true))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		inline bool IsParentWindow(
+			Window* targetWindow,
+			bool recursive = false)
+		{
+			if (!targetWindow
+				|| this == targetWindow)
+			{
+				return false;
+			}
+
+			if (!parentWindow) return false;
+
+			if (parentWindow == targetWindow) return true;
+
+			if (recursive
+				&& IsParentWindow(targetWindow, true))
+			{
+				return true;
+			}
+
+			return false;
+		}
+		inline Window* GetParentWindow(Window* currentWindow) { return parentWindow; }
+		inline bool SetParentWindow(Window* targetWindow)
+		{
+			if (!targetWindow
+				|| this == targetWindow
+				|| HasWindow(targetWindow, true)
+				|| targetWindow->HasWindow(this, true)
+				|| (parentWindow
+				&& (parentWindow == targetWindow
+				|| parentWindow->HasWindow(this, true))))
+			{
+				return false;
+			}
+
+			parentWindow = targetWindow;
+			parentWindow->childWindows.push_back(this);
+
+			return true;
+		}
+		inline bool RemoveParentWindow()
+		{
+			if (!parentWindow) return false;
+
+			vector<Window*>& parentChildren = parentWindow->childWindows;
+
+			parentChildren.erase(remove(
+				parentChildren.begin(),
+				parentChildren.end(),
+				this),
+				parentChildren.end());
+
+			parentWindow = nullptr;
+
+			return true;
+		}
+
+		inline bool IsChildWindow(
+			Window* targetWindow,
+			bool recursive = false)
+		{
+			if (!targetWindow
+				|| this == targetWindow)
+			{
+				return false;
+			}
+
+			for (auto* c : childWindows)
+			{
+				if (c == targetWindow) return true;
+
+				if (recursive
+					&& c->IsChildWindow(targetWindow, true))
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+		inline bool AddChildWindow(Window* targetWindow)
+		{
+			if (!targetWindow
+				|| this == targetWindow
+				|| HasWindow(targetWindow, true)
+				|| targetWindow->HasWindow(this, true))
+			{
+				return false;
+			}
+
+			childWindows.push_back(targetWindow);
+			return true;
+		}
+		inline bool RemoveChildWindow(Window* targetWindow)
+		{
+			if (!targetWindow
+				|| this == targetWindow
+				|| parentWindow == targetWindow)
+			{
+				return false;
+			}
+
+			if (targetWindow->parentWindow) targetWindow->parentWindow = nullptr;
+
+			childWindows.erase(remove(
+				childWindows.begin(),
+				childWindows.end(),
+				targetWindow),
+				childWindows.end());
+
+			return true;
+		}
+
+		inline const vector<Window*>& GetAllChildWindows() { return childWindows; }
+		inline void RemoveAllChildWindows()
+		{
+			for (auto* c : childWindows) c->parentWindow = nullptr;
+			childWindows.clear();
+		}
+
 		//Do not destroy manually, erase from containers.hpp instead
 		~Window();
 	private:
@@ -311,7 +654,15 @@ namespace KalaWindow::Graphics
 
 		vector<string> lastDraggedFiles{}; //The path of the last files which were dragged onto this window
 
-		//platform-specific variables
+		Window* parentWindow{};
+		vector<Window*> childWindows{};
+		u32 inputID{};
+		u32 glContextID{};
+		u32 menuBarID{};
+		vector<u32> menuBarEvents{};
+		vector<u32> audioPlayers{};
+		vector<u32> cameras{};
+		vector<u32> widgets{};
 
 #ifdef _WIN32
 		WindowData window_windows{}; //The windows data of this window

@@ -15,6 +15,9 @@ namespace KalaWindow::Core
 	using std::string;
 	using std::function;
 
+	//The ID that is bumped by every object in KalaWindow when it needs a new ID
+	static inline u32 globalID{};
+
 	enum class ShutdownState
 	{
 		SHUTDOWN_CLEAN,   //Regular exit (exit)

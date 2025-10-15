@@ -11,6 +11,7 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/registry.hpp"
 #include "graphics/texture.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
@@ -18,9 +19,13 @@ namespace KalaWindow::Graphics::OpenGL
 	using std::array;
 	using std::function;
 
+	using KalaWindow::Core::Registry;
+
 	class LIB_API OpenGL_Texture : public Texture
 	{
 	public:
+		static inline Registry<OpenGL_Texture> registry{};
+
 		//Load a new texture from an external file.
 		//Depth is always clamped to 1 for Type_2D,
 		//it is a power of 4 for Type_3D and is clamped internally from 256 to 8192.

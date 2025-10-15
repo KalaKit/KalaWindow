@@ -15,14 +15,14 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/containers.hpp"
 #include "core/core.hpp"
+#include "core/audio.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
-#include "graphics/texture.hpp"
-#include "core/audio.hpp"
+#include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/window_global.hpp"
+#include "ui/font.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -31,11 +31,12 @@ using KalaHeaders::DateFormat;
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
-using KalaWindow::Graphics::Texture;
+using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
+using KalaWindow::UI::Font;
 
 using std::abort;
 using std::quick_exit;
@@ -125,18 +126,10 @@ namespace KalaWindow::Core
 
 		if (Audio::IsInitialized()) Audio::Shutdown();
 
-		createdOpenGLTextures.clear();
-		createdOpenGLShaders.clear();
-
-		runtimeOpenGLTextures.clear();
-		runtimeOpenGLShaders.clear();
-
-		createdFonts.clear();
-		runtimeFonts.clear();
-
-		windowContent.clear();
-		createdWindows.clear();
-		runtimeWindows.clear();
+		OpenGL_Texture::registry.RemoveAllContent();
+		OpenGL_Shader::registry.RemoveAllContent();
+		Font::registry.RemoveAllContent();
+		Window::registry.RemoveAllContent();
 
 #ifdef _WIN32
 		timeEndPeriod(1);

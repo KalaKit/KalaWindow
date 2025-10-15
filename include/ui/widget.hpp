@@ -14,6 +14,7 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/registry.hpp"
 
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
@@ -25,6 +26,8 @@ namespace KalaWindow::UI
 	using std::clamp;
 	using std::function;
 	using std::array;
+
+	using KalaWindow::Core::Registry;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -165,6 +168,9 @@ namespace KalaWindow::UI
 
 		inline bool IsInitialized() const { return isInitialized; }
 
+		inline u32 GetID() const { return ID; }
+		inline u32 GetWindowID() const { return windowID; }
+
 		//Toggle between 2D and 3D state, sets to 2D if true.
 		//Delinks parent and children that don't match the new coordinate state
 		inline void Set2DState(bool newValue)
@@ -211,10 +217,6 @@ namespace KalaWindow::UI
 		inline void SetClippingState(bool newValue) { render.isClipping = newValue; }
 		//No children render past this widget size if true
 		inline bool IsClipping() const { return render.isClipping; }
-
-		inline u32 GetID() const { return ID; }
-
-		inline u32 GetWindowID() const { return windowID; }
 
 		inline void SetName(const string& newName)
 		{
@@ -843,17 +845,18 @@ namespace KalaWindow::UI
 			return false;
 		}
 		inline Widget* GetParent() { return parent; }
-		inline void SetParent(Widget* targetWidget)
+		inline bool SetParent(Widget* targetWidget)
 		{
 			if (!targetWidget
 				|| targetWidget == this
 				|| targetWidget->render.is2D != render.is2D
 				|| HasWidget(targetWidget, true)
+				|| targetWidget->HasWidget(this, true)
 				|| (parent
 				&& (parent == targetWidget
 				|| parent->HasWidget(this, true))))
 			{
-				return;
+				return false;
 			}
 
 			transform.localPos = vec3(0);
@@ -868,11 +871,13 @@ namespace KalaWindow::UI
 			parent = targetWidget;
 			//add this as new child to parent
 			parent->children.push_back(this);
+
+			return true;
 		}
-		inline void RemoveParent()
+		inline bool RemoveParent()
 		{
 			//skip if parent never even existed
-			if (!parent) return;
+			if (!parent) return false;
 
 			vector<Widget*>& parentChildren = parent->children;
 
@@ -891,6 +896,8 @@ namespace KalaWindow::UI
 			if (transform.updateAABB) UpdateAABB();
 
 			parent = nullptr;
+
+			return true;
 		}
 
 		inline bool IsChild(
@@ -935,9 +942,7 @@ namespace KalaWindow::UI
 			targetWidget->UpdateTransform();
 			if (targetWidget->transform.updateAABB) targetWidget->UpdateAABB();
 
-			//add new child
 			children.push_back(targetWidget);
-			//set this as new child parent
 			targetWidget->parent = this;
 		}
 		inline void RemoveChild(Widget* targetWidget)
