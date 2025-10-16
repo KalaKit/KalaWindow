@@ -483,18 +483,19 @@ namespace KalaHeaders
 			const size_t tagLength = LogTypeTagLength[static_cast<size_t>(type)];
 			const size_t targetLength = target.size();
 
-			//"[ " + tag + target + "] " = 2 + tagLength + targetLength + 2
+			//"[ " + tag + " | " + target + "] " 
 
 			string built{};
-			built.resize(2 + tagLength + targetLength + 2);
+			built.resize(2 + tagLength + targetLength + 3);
 
 			char* p = built.data();
 			p[0] = '[';
 			p[1] = ' ';
 			memcpy(p + 2, tag, tagLength);
 			memcpy(p + 2 + tagLength, target.data(), targetLength);
-			p[2 + tagLength + targetLength] = ']';
-			p[3 + tagLength + targetLength] = ' ';
+			p[2 + tagLength + targetLength] = ' '; 
+			p[3 + tagLength + targetLength] = ']';
+			p[4 + tagLength + targetLength] = ' ';
 
 			size_t index{};
 			if (prefixSize < prefixCache.size()) index = prefixSize++;
