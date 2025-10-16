@@ -46,7 +46,6 @@ namespace KalaWindow::Graphics
 		TYPE_INPUT,        //single instance ID
 		TYPE_GL_CONTEXT,   //single instance ID
 		TYPE_MENU_BAR,     //single instance ID
-		TYPE_AUDIO_PLAYER, //vector of IDs
 		TYPE_CAMERA,       //vector of IDs
 		TYPE_WIDGET        //vector of IDs
 	};
@@ -318,7 +317,6 @@ namespace KalaWindow::Graphics
 			switch (targetType)
 			{
 			default: return{};
-			case TargetType::TYPE_AUDIO_PLAYER:   return audioPlayers; break;
 			case TargetType::TYPE_CAMERA:         return cameras; break;
 			case TargetType::TYPE_WIDGET:         return widgets; break;
 			}
@@ -366,10 +364,6 @@ namespace KalaWindow::Graphics
 			case TargetType::TYPE_MENU_BAR:
 			{
 				return AddSingleValue(targetValue, menuBarID);
-			}
-			case TargetType::TYPE_AUDIO_PLAYER:
-			{
-				return AddContainerValue(targetValue, audioPlayers);
 			}
 			case TargetType::TYPE_CAMERA:
 			{
@@ -426,10 +420,6 @@ namespace KalaWindow::Graphics
 			{
 				return RemoveSingleValue(targetValue, menuBarID);
 			}
-			case TargetType::TYPE_AUDIO_PLAYER:
-			{
-				return RemoveContainerValue(targetValue, audioPlayers);
-			}
 			case TargetType::TYPE_CAMERA:
 			{
 				return RemoveContainerValue(targetValue, cameras);
@@ -452,7 +442,6 @@ namespace KalaWindow::Graphics
 			{
 				break;
 			}
-			case TargetType::TYPE_AUDIO_PLAYER:   audioPlayers.clear(); break;
 			case TargetType::TYPE_CAMERA:         cameras.clear(); break;
 			case TargetType::TYPE_WIDGET:         widgets.clear(); break;
 			}
@@ -660,7 +649,6 @@ namespace KalaWindow::Graphics
 		u32 inputID{};
 		u32 glContextID{};
 		u32 menuBarID{};
-		vector<u32> audioPlayers{};
 		vector<u32> cameras{};
 		vector<u32> widgets{};
 

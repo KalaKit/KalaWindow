@@ -410,23 +410,9 @@ namespace KalaWindow::Core
 	//
 
 	AudioPlayer* AudioPlayer::CreateAudioPlayer(
-		u32 windowID,
 		const string& name,
 		const string& filePath)
 	{
-		Window* window = Window::registry.GetContent(windowID);
-
-		if (!window
-			|| !window->IsInitialized())
-		{
-			Log::Print(
-				"Failed to create audio player '" + name + "' because its window reference is invalid!",
-				"AUDIO_PLAYER",
-				LogType::LOG_ERROR);
-
-			return nullptr;
-		}
-
 		if (!CheckInitState("create audio player '" + name + "'")) return nullptr;
 
 		if (!exists(filePath))
@@ -548,10 +534,8 @@ namespace KalaWindow::Core
 		trackPtr->name = name;
 		trackPtr->filePath = filePath;
 		trackPtr->ID = newID;
-		trackPtr->windowID = windowID;
 
 		registry.AddContent(newID, move(newTrack));
-		window->AddValue(TargetType::TYPE_AUDIO_PLAYER, newID);
 
 		Log::Print(
 			"Created audio file '" + name + "' with ID '" + to_string(newID) + "'!",

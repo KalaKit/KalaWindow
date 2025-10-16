@@ -1853,20 +1853,19 @@ namespace KalaWindow::Graphics
 
 		parentWindow = nullptr;
 		childWindows.clear();
-		inputID = 0;
-		glContextID = 0;
-		menuBarID = 0;
-		audioPlayers.clear();
-		cameras.clear();
-		widgets.clear();
 
 		Text::registry.RemoveAllWindowContent(ID);
 		Image::registry.RemoveAllWindowContent(ID);
-		AudioPlayer::registry.RemoveAllWindowContent(ID);
 		Camera::registry.RemoveAllWindowContent(ID);
 		Input::registry.RemoveAllWindowContent(ID);
 		MenuBar::registry.RemoveAllWindowContent(ID);
 		OpenGL_Context::registry.RemoveAllWindowContent(ID);
+
+		inputID = 0;
+		glContextID = 0;
+		menuBarID = 0;
+		cameras.clear();
+		widgets.clear();
 
 		HWND winRef = ToVar<HWND>(window_windows.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);

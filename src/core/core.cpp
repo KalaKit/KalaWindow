@@ -29,6 +29,7 @@ using KalaHeaders::LogType;
 using KalaHeaders::TimeFormat;
 using KalaHeaders::DateFormat;
 
+using KalaWindow::Core::AudioPlayer;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -125,7 +126,7 @@ namespace KalaWindow::Core
 		}
 
 		if (Audio::IsInitialized()) Audio::Shutdown();
-
+		AudioPlayer::registry.RemoveAllContent();
 		OpenGL_Texture::registry.RemoveAllContent();
 		OpenGL_Shader::registry.RemoveAllContent();
 		Font::registry.RemoveAllContent();
