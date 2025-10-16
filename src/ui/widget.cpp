@@ -40,8 +40,8 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
-		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
+		vector<OpenGL_Context*> contexts = OpenGL_Context::registry.GetAllWindowContent(windowID);
+		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context
 			|| !context->IsInitialized()
@@ -50,8 +50,8 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		u32 inputID = window->GetValue(TargetType::TYPE_INPUT).front();
-		Input* input = Input::registry.GetContent(inputID);
+		vector<Input*> inputs = Input::registry.GetAllWindowContent(windowID);
+		Input* input = inputs.empty() ? nullptr : inputs.front();
 
 		if (!input
 			|| !input->IsInitialized())
@@ -106,8 +106,8 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
-		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
+		vector<OpenGL_Context*> contexts = OpenGL_Context::registry.GetAllWindowContent(windowID);
+		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context
 			|| !context->IsInitialized()
@@ -116,8 +116,8 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		u32 inputID = window->GetValue(TargetType::TYPE_INPUT).front();
-		Input* input = Input::registry.GetContent(inputID);
+		vector<Input*> inputs = Input::registry.GetAllWindowContent(windowID);
+		Input* input = inputs.empty() ? nullptr : inputs.front();
 
 		if (!input
 			|| !input->IsInitialized())

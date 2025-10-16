@@ -1856,7 +1856,6 @@ namespace KalaWindow::Graphics
 		inputID = 0;
 		glContextID = 0;
 		menuBarID = 0;
-		menuBarEvents.clear();
 		audioPlayers.clear();
 		cameras.clear();
 		widgets.clear();

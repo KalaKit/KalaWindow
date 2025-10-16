@@ -471,8 +471,9 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		return false;
 	}
 
-	u32 inputID = window->GetValue(TargetType::TYPE_INPUT).front();
-	Input* input = Input::registry.GetContent(inputID);
+	u32 windowID = window->GetID();
+	vector<Input*> inputs = Input::registry.GetAllWindowContent(windowID);
+	Input* input = inputs.empty() ? nullptr : inputs.front();
 
 	/*
 	if (msg.message == 0)
@@ -1270,8 +1271,9 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (window)
 		{
-			u32 menuBarID = window->GetValue(TargetType::TYPE_MENU_BAR).front();
-			MenuBar* menuBar = MenuBar::registry.GetContent(menuBarID);
+			vector<MenuBar*> menuBars = MenuBar::registry.GetAllWindowContent(windowID);
+			MenuBar* menuBar = menuBars.empty() ? nullptr : menuBars.front();
+
 			if (menuBar)
 			{
 				const vector<MenuBarEvent> events = menuBar->GetEvents();

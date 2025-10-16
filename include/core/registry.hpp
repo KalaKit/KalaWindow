@@ -20,15 +20,21 @@ namespace KalaWindow::Core
 	using std::find;
 	using std::remove;
 	using std::remove_if;
+	using std::is_class_v;
 
+	//Stores unique_ptrs and non-owning pointers of class T for ID-based lookups,
+	//should always be stored as 'static inline Registry<T>'
 	template<typename T>
+	requires is_class_v<T>
 	struct LIB_API Registry
 	{
+		//Owner container with ID as key
 		static inline unordered_map<u32, unique_ptr<T>> createdContent{};
+		//Runtime non-owning pointers container
 		static inline vector<T*> runtimeContent{};
 
 		//Returns true if the window owns the ID
-		static bool IsOwner(
+		static inline bool IsOwner(
 			u32 windowID,
 			u32 targetID)
 		{
@@ -40,7 +46,7 @@ namespace KalaWindow::Core
 		}
 
 		//Get non-owning value by ID
-		static T* GetContent(u32 targetID)
+		static inline T* GetContent(u32 targetID)
 		{
 			auto it = createdContent.find(targetID);
 			return it != createdContent.end()
@@ -49,7 +55,7 @@ namespace KalaWindow::Core
 		}
 
 		//Add a new unique ptr and its ID to the containers
-		static bool AddContent(
+		static inline bool AddContent(
 			u32 targetID,
 			unique_ptr<T> targetContent)
 		{
@@ -68,7 +74,7 @@ namespace KalaWindow::Core
 		}
 
 		//Remove content by ID from containers
-		static bool RemoveContent(u32 targetID)
+		static inline bool RemoveContent(u32 targetID)
 		{
 			createdContent.erase(targetID);
 
@@ -77,12 +83,13 @@ namespace KalaWindow::Core
 					[&](T* p)
 					{
 						return p && p->GetID() == targetID;
-					}));
+					}),
+				runtimeContent.end());
 
 			return true;
 		}
 		//Remove content by non-owning pointer from containers
-		static bool RemoveContent(T* targetPtr)
+		static inline bool RemoveContent(T* targetPtr)
 		{
 			if (!targetPtr) return false;
 
@@ -113,8 +120,33 @@ namespace KalaWindow::Core
 			return true;
 		}
 
-		//Remove all content by window ID from containers
-		static void RemoveAllWindowContent(u32 windowID)
+		//Get all content as non-owning pointers by window ID from containers.
+		//Requires target class inside createdContent and runtimeContent
+		//to have the 'u32 GetWindowID()' function.
+		//Should not be used for externally created registries
+		//because the Window class does not accept new IDs
+		template<typename U = T>
+			requires requires(U& u) { u.GetWindowID(); }
+		static inline vector<T*> GetAllWindowContent(u32 windowID)
+		{
+			vector<T*> out{};
+
+			for (const auto& v : runtimeContent)
+			{
+				if (v->GetWindowID() == windowID) out.push_back(v);
+			}
+
+			return out;
+		}
+
+		//Remove all content by window ID from containers.
+		//Requires target class inside createdContent and runtimeContent
+		//to have the 'u32 GetWindowID()' function.
+		//Should not be used for externally created registries
+		//because the Window class does not accept new IDs
+		template<typename U = T>
+			requires requires(U& u) { u.GetWindowID(); }
+		static inline void RemoveAllWindowContent(u32 windowID)
 		{
 			for (auto it = createdContent.begin(); it != createdContent.end();)
 			{
@@ -135,7 +167,7 @@ namespace KalaWindow::Core
 		}
 
 		//Clear all content from containers
-		static void RemoveAllContent()
+		static inline void RemoveAllContent()
 		{
 			createdContent.clear();
 			runtimeContent.clear();

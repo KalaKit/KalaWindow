@@ -647,8 +647,8 @@ namespace KalaWindow::Graphics::OpenGL
 			return nullptr;
 		}
 
-		u32 glID = window->GetValue(TargetType::TYPE_GL_CONTEXT).front();
-		OpenGL_Context* context = OpenGL_Context::registry.GetContent(glID);
+		vector<OpenGL_Context*> contexts = OpenGL_Context::registry.GetAllWindowContent(windowID);
+		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context
 			|| !context->IsInitialized()

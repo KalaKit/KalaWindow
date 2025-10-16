@@ -923,7 +923,7 @@ namespace KalaWindow::UI
 
 			return false;
 		}
-		inline void AddChild(Widget* targetWidget)
+		inline bool AddChild(Widget* targetWidget)
 		{
 			if (!targetWidget
 				|| targetWidget == this
@@ -931,7 +931,7 @@ namespace KalaWindow::UI
 				|| HasWidget(targetWidget, true)
 				|| targetWidget->HasWidget(this, true))
 			{
-				return;
+				return false;
 			}
 
 			targetWidget->transform.localPos = vec3(0);
@@ -944,14 +944,16 @@ namespace KalaWindow::UI
 
 			children.push_back(targetWidget);
 			targetWidget->parent = this;
+
+			return true;
 		}
-		inline void RemoveChild(Widget* targetWidget)
+		inline bool RemoveChild(Widget* targetWidget)
 		{
 			if (!targetWidget
 				|| targetWidget == this
 				|| targetWidget == parent)
 			{
-				return;
+				return false;
 			}
 
 			targetWidget->transform.localPos = vec3(0);
@@ -969,6 +971,8 @@ namespace KalaWindow::UI
 				children.end(),
 				targetWidget),
 				children.end());
+
+			return true;
 		}
 
 		inline const vector<Widget*> GetAllChildren() { return children; }
