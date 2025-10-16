@@ -27,8 +27,11 @@
 #include "graphics/window_global.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
-#include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl.hpp"
+#include "graphics/opengl/opengl_functions_core.hpp"
+#include "ui/text.hpp"
+#include "ui/image.hpp"
+#include "graphics/camera.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -44,12 +47,16 @@ using KalaWindow::Windows::MenuBar;
 using KalaWindow::Windows::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Global;
+using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 using KalaWindow::Core::Key;
 using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
+using KalaWindow::UI::Text;
+using KalaWindow::UI::Image;
+using KalaWindow::Graphics::Camera;
 
 using std::string;
 using std::to_string;
@@ -1304,7 +1311,15 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	//destroy current window if user clicked X button or pressed Alt + F4
 	case WM_CLOSE:
 	{
-		u32 windowID = window->GetID();
+		string windowName = window->GetTitle();
+
+		Text::registry.RemoveAllWindowContent(windowID);
+		Image::registry.RemoveAllWindowContent(windowID);
+		Camera::registry.RemoveAllWindowContent(windowID);
+		Input::registry.RemoveAllWindowContent(windowID);
+		MenuBar::registry.RemoveAllWindowContent(windowID);
+		OpenGL_Context::registry.RemoveAllWindowContent(windowID);
+
 		Window::registry.RemoveContent(windowID);
 
 		if (Window::registry.runtimeContent.empty())

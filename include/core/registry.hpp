@@ -76,8 +76,6 @@ namespace KalaWindow::Core
 		//Remove content by ID from containers
 		static inline bool RemoveContent(u32 targetID)
 		{
-			createdContent.erase(targetID);
-
 			runtimeContent.erase(
 				remove_if(runtimeContent.begin(), runtimeContent.end(),
 					[&](T* p)
@@ -85,6 +83,8 @@ namespace KalaWindow::Core
 						return p && p->GetID() == targetID;
 					}),
 				runtimeContent.end());
+
+			createdContent.erase(targetID);
 
 			return true;
 		}

@@ -18,63 +18,39 @@
 #include <shellapi.h>
 
 #include <algorithm>
-#include <functional>
 #include <memory>
-#include <filesystem>
 #include <sstream>
 #include <string>
 #include <vector>
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "graphics/opengl/opengl.hpp"
-#include "graphics/texture.hpp"
-#include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
-#include "windows/messageloop.hpp"
+#include "windows/menubar.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
-#include "windows/menubar.hpp"
-#include "graphics/camera.hpp"
-#include "ui/text.hpp"
-#include "ui/image.hpp"
-#include "core/audio.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Graphics::OpenGL::OpenGL_Context;
-using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Windows::MessageLoop;
 using KalaWindow::Windows::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
-using KalaWindow::Graphics::Camera;
-using KalaWindow::Core::Input;
-using KalaWindow::UI::Text;
-using KalaWindow::UI::Image;
-using KalaWindow::Core::AudioPlayer;
 
 using std::make_unique;
 using std::move;
 using std::to_string;
-using std::find_if;
-using std::function;
-using std::exception;
 using std::unique_ptr;
 using std::clamp;
-using std::filesystem::path;
-using std::filesystem::exists;
 using std::ostringstream;
 using std::wstring;
 using std::string;
-using std::string_view;
 using std::vector;
 
 constexpr u16 MAX_TITLE_LENGTH = 512;
@@ -244,6 +220,11 @@ namespace KalaWindow::Graphics
 		DragAcceptFiles(newHwnd, TRUE);
 
 		registry.AddContent(newID, move(newWindow));
+		if (parentWindow)
+		{
+			parentWindow->AddChildWindow(windowPtr);
+			windowPtr->SetParentWindow(parentWindow);
+		}
 
 		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
@@ -1851,15 +1832,13 @@ namespace KalaWindow::Graphics
 			"WINDOW",
 			LogType::LOG_DEBUG);
 
-		parentWindow = nullptr;
-		childWindows.clear();
+		if (parentWindow)
+		{
+			parentWindow->RemoveChildWindow(this);
+			RemoveParentWindow();
+		}
 
-		Text::registry.RemoveAllWindowContent(ID);
-		Image::registry.RemoveAllWindowContent(ID);
-		Camera::registry.RemoveAllWindowContent(ID);
-		Input::registry.RemoveAllWindowContent(ID);
-		MenuBar::registry.RemoveAllWindowContent(ID);
-		OpenGL_Context::registry.RemoveAllWindowContent(ID);
+		childWindows.clear();
 
 		inputID = 0;
 		glContextID = 0;
