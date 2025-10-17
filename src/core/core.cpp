@@ -49,6 +49,8 @@ static function<void()> userRegularShutdown;
 
 namespace KalaWindow::Core
 {
+	u32 globalID{};
+
 	void KalaWindowCore::ForceClose(
 		const string& title,
 		const string& reason)

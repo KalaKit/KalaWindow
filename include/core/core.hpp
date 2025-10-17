@@ -16,7 +16,7 @@ namespace KalaWindow::Core
 	using std::function;
 
 	//The ID that is bumped by every object in KalaWindow when it needs a new ID
-	static inline u32 globalID{};
+	extern u32 globalID;
 
 	enum class ShutdownState
 	{
