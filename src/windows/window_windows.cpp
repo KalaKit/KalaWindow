@@ -25,16 +25,22 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
+#include "graphics/opengl/opengl.hpp"
+#include "graphics/opengl/opengl_texture.hpp"
 #include "windows/menubar.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
+#include "ui/text.hpp"
+#include "ui/image.hpp"
+#include "graphics/camera.hpp"
+#include "core/input.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
+using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
 using KalaWindow::Graphics::TextureType;
 using KalaWindow::Graphics::TextureFormat;
@@ -42,6 +48,10 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Windows::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
+using KalaWindow::UI::Text;
+using KalaWindow::UI::Image;
+using KalaWindow::Graphics::Camera;
+using KalaWindow::Core::Input;
 
 using std::make_unique;
 using std::move;
@@ -1821,6 +1831,20 @@ namespace KalaWindow::Graphics
 			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
 			DispatchMessage(&msg);  //send the message to the window procedure
 		}
+	}
+
+	void Window::CloseWindow()
+	{
+		RemoveAllChildWindows();
+
+		Text::registry.RemoveAllWindowContent(ID);
+		Image::registry.RemoveAllWindowContent(ID);
+		Camera::registry.RemoveAllWindowContent(ID);
+		Input::registry.RemoveAllWindowContent(ID);
+		MenuBar::registry.RemoveAllWindowContent(ID);
+		OpenGL_Context::registry.RemoveAllWindowContent(ID);
+
+		Window::registry.RemoveContent(ID);
 	}
 
 	Window::~Window()

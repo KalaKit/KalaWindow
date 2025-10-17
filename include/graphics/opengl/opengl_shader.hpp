@@ -171,7 +171,7 @@ namespace KalaWindow::Graphics::OpenGL
 		void SetMat3(u32 programID, const string& name, const mat3& mat) const;
 		void SetMat4(u32 programID, const string& name, const mat4& mat) const;
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		~OpenGL_Shader();
 	private:
 		static inline bool isVerboseLoggingEnabled{};

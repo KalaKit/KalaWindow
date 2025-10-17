@@ -281,7 +281,7 @@ namespace KalaWindow::Core
 		void SetMaxRange(f32 newMaxRange) const;
 		f32 GetMaxRange() const;
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		~AudioPlayer();
 	private:
 		string name{};

@@ -993,7 +993,7 @@ namespace KalaWindow::UI
 			children.clear(); 
 		}
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		virtual ~Widget();
 	protected:
 		bool isInitialized{};

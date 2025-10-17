@@ -555,7 +555,8 @@ namespace KalaWindow::Graphics
 			bool recursive = false)
 		{
 			if (!targetWindow
-				|| this == targetWindow)
+				|| this == targetWindow
+				|| parentWindow == this)
 			{
 				return false;
 			}
@@ -590,12 +591,11 @@ namespace KalaWindow::Graphics
 		{
 			if (!targetWindow
 				|| this == targetWindow
-				|| parentWindow == targetWindow)
+				|| parentWindow == targetWindow
+				|| targetWindow->parentWindow != this)
 			{
 				return false;
 			}
-
-			if (targetWindow->parentWindow) targetWindow->parentWindow = nullptr;
 
 			childWindows.erase(remove(
 				childWindows.begin(),
@@ -603,17 +603,22 @@ namespace KalaWindow::Graphics
 				targetWindow),
 				childWindows.end());
 
+			targetWindow->CloseWindow();
+
 			return true;
 		}
 
 		inline const vector<Window*>& GetAllChildWindows() { return childWindows; }
 		inline void RemoveAllChildWindows()
 		{
-			for (auto* c : childWindows) c->parentWindow = nullptr;
+			for (auto* c : childWindows) c->CloseWindow();
 			childWindows.clear();
 		}
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Clear the content of this window and erase it from its registry
+		inline void CloseWindow();
+
+		//Do not destroy manually, erase from registry instead
 		~Window();
 	private:
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized

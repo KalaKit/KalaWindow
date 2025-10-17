@@ -44,7 +44,7 @@ namespace KalaWindow::UI
 
 		inline const string& GetPath() const { return fontPath; }
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		~Font();
 	private:
 		bool isInitialized{};

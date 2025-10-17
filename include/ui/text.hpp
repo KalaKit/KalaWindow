@@ -38,7 +38,7 @@ namespace KalaWindow::UI
 		void SetFontID(u32 newValue);
 		inline u32 GetFontID() const { return fontID; }
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		virtual ~Text();
 	private:
 		u32 fontID{};

@@ -80,7 +80,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		inline u32 GetOpenGLID() const { return openGLID; }
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		~OpenGL_Texture() override;
 	private:
 		//Repeated header and footer of each texture init body with custom data in the middle

@@ -102,6 +102,12 @@ namespace KalaWindow::Core
 				return false;
 			}
 
+			runtimeContent.erase(remove(
+				runtimeContent.begin(),
+				runtimeContent.end(),
+				targetPtr),
+				runtimeContent.end());
+
 			for (auto it = createdContent.begin(); it != createdContent.end(); ++it)
 			{
 				if (it->second.get() == targetPtr)
@@ -110,12 +116,6 @@ namespace KalaWindow::Core
 					break;
 				}
 			}
-
-			runtimeContent.erase(remove(
-				runtimeContent.begin(),
-				runtimeContent.end(),
-				targetPtr),
-				runtimeContent.end());
 
 			return true;
 		}
@@ -148,6 +148,14 @@ namespace KalaWindow::Core
 			requires requires(U& u) { u.GetWindowID(); }
 		static inline void RemoveAllWindowContent(u32 windowID)
 		{
+			runtimeContent.erase(remove_if(
+				runtimeContent.begin(),
+				runtimeContent.end(),
+				[&](T* c)
+				{
+					return c && c->GetWindowID() == windowID;
+				}), runtimeContent.end());
+
 			for (auto it = createdContent.begin(); it != createdContent.end();)
 			{
 				if (it->second->GetWindowID() == windowID)
@@ -156,14 +164,6 @@ namespace KalaWindow::Core
 				}
 				else ++it;
 			}
-
-			runtimeContent.erase(remove_if(
-				runtimeContent.begin(),
-				runtimeContent.end(),
-				[&](T* c)
-				{
-					return c && c->GetWindowID() == windowID;
-				}), runtimeContent.end());
 		}
 
 		//Clear all content from containers

@@ -141,7 +141,7 @@ namespace KalaWindow::Graphics
 		inline TextureType GetType() const { return type; }
 		inline TextureFormat GetFormat() const { return format; }
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		virtual ~Texture() {};
 	protected:
 		bool isInitialized{};

@@ -34,7 +34,7 @@ namespace KalaWindow::UI
 			const mat4& view,
 			const mat4& projection) override;
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		virtual ~Image();
 	};
 }

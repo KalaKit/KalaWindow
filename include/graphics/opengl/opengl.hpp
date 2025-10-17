@@ -137,7 +137,7 @@ namespace KalaWindow::Graphics::OpenGL
 		inline void SetLastProgramID(u32 newID) { lastProgramID = newID; }
 		inline const u32 GetLastProgramID() const { return lastProgramID; }
 
-		//Do not destroy manually, erase from containers.hpp instead
+		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();
 	private:
 #ifdef _WIN32
