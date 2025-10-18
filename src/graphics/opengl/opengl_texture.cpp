@@ -1199,16 +1199,16 @@ namespace KalaWindow::Graphics::OpenGL
 
 	OpenGL_Texture::~OpenGL_Texture()
 	{
+		Log::Print(
+			"Destroying texture '" + name + "' with ID '" + to_string(ID) + "'.",
+			"OPENGL_TEXTURE",
+			LogType::LOG_INFO);
+
 		if (openGLID != 0)
 		{
 			glDeleteTextures(1, &openGLID);
 			openGLID = 0;
 		}
-
-		Log::Print(
-			"Destroyed texture '" + GetName() + "'!",
-			"OPENGL_TEXTURE",
-			LogType::LOG_SUCCESS);
 	}
 }
 

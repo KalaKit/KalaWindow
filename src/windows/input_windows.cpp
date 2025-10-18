@@ -350,7 +350,7 @@ namespace KalaWindow::Core
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Cannot shut down input context because it is not initialized!",
+				"Cannot destroy input with ID '" + to_string(ID) + "' because it is not initialized!",
 				"INPUT",
 				LogType::LOG_ERROR,
 				2);
@@ -364,7 +364,7 @@ namespace KalaWindow::Core
 			|| !window->IsInitialized())
 		{
 			Log::Print(
-				"Cannot shut down input context because its window was not found!",
+				"Cannot destroy input with ID '" + to_string(ID) + "' because its window was not found!",
 				"INPUT",
 				LogType::LOG_ERROR,
 				2);
@@ -373,7 +373,7 @@ namespace KalaWindow::Core
 		}
 
 		Log::Print(
-			"Destroying input context for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
+			"Destroying input with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
 			"INPUT",
 			LogType::LOG_DEBUG);
 

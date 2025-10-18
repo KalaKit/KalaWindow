@@ -14,8 +14,6 @@
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
-#include "core/registry.hpp"
-
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 
@@ -26,8 +24,6 @@ namespace KalaWindow::UI
 	using std::clamp;
 	using std::function;
 	using std::array;
-
-	using KalaWindow::Core::Registry;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -168,6 +164,13 @@ namespace KalaWindow::UI
 
 		inline bool IsInitialized() const { return isInitialized; }
 
+		//Core render function for all widget systems, must be overridden per inherited widget.
+		//Pass mat4(1.0f) to view and pass 2D projection as ortho(0.0f, windowWidth, windowHeight, 0.0f)
+		//if you want 2D UI, otherwise this widget element is drawn in 3D space
+		virtual bool Render(
+			const mat4& view,
+			const mat4& projection) = 0;
+
 		inline u32 GetID() const { return ID; }
 		inline u32 GetWindowID() const { return windowID; }
 
@@ -198,13 +201,6 @@ namespace KalaWindow::UI
 			render.is2D = newValue;
 		}
 		inline bool Is2D() const { return render.is2D; }
-
-		//Core render function for all widget systems, must be overridden per inherited widget.
-		//Pass mat4(1.0f) to view and pass 2D projection as ortho(0.0f, windowWidth, windowHeight, 0.0f)
-		//if you want 2D UI, otherwise this widget element is drawn in 3D space
-		virtual bool Render(
-			const mat4& view,
-			const mat4& projection) = 0;
 
 		//Skips rendering if set to false without needing to
 		//encapsulate the render function in its own render toggle
@@ -994,7 +990,7 @@ namespace KalaWindow::UI
 		}
 
 		//Do not destroy manually, erase from registry instead
-		virtual ~Widget();
+		virtual ~Widget() = 0;
 	protected:
 		bool isInitialized{};
 

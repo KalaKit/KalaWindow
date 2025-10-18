@@ -6,9 +6,12 @@
 #pragma once
 
 #include "ui/widget.hpp"
+#include "core/registry.hpp"
 
 namespace KalaWindow::UI
 {
+	using KalaWindow::Core::Registry;
+
 	class LIB_API Image : public Widget
 	{
 	public:
@@ -35,6 +38,6 @@ namespace KalaWindow::UI
 			const mat4& projection) override;
 
 		//Do not destroy manually, erase from registry instead
-		virtual ~Image();
+		virtual ~Image() override;
 	};
 }

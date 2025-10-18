@@ -317,8 +317,8 @@ namespace KalaWindow::Graphics
 			switch (targetType)
 			{
 			default: return{};
-			case TargetType::TYPE_CAMERA:         return cameras; break;
-			case TargetType::TYPE_WIDGET:         return widgets; break;
+			case TargetType::TYPE_CAMERA: return cameras; break;
+			case TargetType::TYPE_WIDGET: return widgets; break;
 			}
 
 			return{};
@@ -442,8 +442,8 @@ namespace KalaWindow::Graphics
 			{
 				break;
 			}
-			case TargetType::TYPE_CAMERA:         cameras.clear(); break;
-			case TargetType::TYPE_WIDGET:         widgets.clear(); break;
+			case TargetType::TYPE_CAMERA: cameras.clear(); break;
+			case TargetType::TYPE_WIDGET: widgets.clear(); break;
 			}
 		}
 

@@ -211,34 +211,5 @@ namespace KalaWindow::UI
 		eboOut = ebo;
 	}
 
-	Widget::~Widget()
-	{
-		Log::Print(
-			"Destroying widget '" + name + "' with ID '" + to_string(ID) + "' .",
-			"WIDGET",
-			LogType::LOG_INFO);
-
-		RemoveAllChildren();
-		RemoveParent();
-
-		u32 vao = GetVAO();
-		u32 vbo = GetVBO();
-		u32 ebo = GetEBO();
-
-		if (vao != 0)
-		{
-			glDeleteVertexArrays(1, &vao);
-			vao = 0;
-		}
-		if (vbo != 0)
-		{
-			glDeleteBuffers(1, &vbo);
-			vbo = 0;
-		}
-		if (ebo != 0)
-		{
-			glDeleteBuffers(1, &ebo);
-			ebo = 0;
-		}
-	}
+	Widget::~Widget() {}
 }

@@ -6,9 +6,12 @@
 #pragma once
 
 #include "ui/widget.hpp"
+#include "core/registry.hpp"
 
 namespace KalaWindow::UI
 {
+	using KalaWindow::Core::Registry;
+
 	class LIB_API Text : public Widget
 	{
 	public:
@@ -39,7 +42,7 @@ namespace KalaWindow::UI
 		inline u32 GetFontID() const { return fontID; }
 
 		//Do not destroy manually, erase from registry instead
-		virtual ~Text();
+		virtual ~Text() override;
 	private:
 		u32 fontID{};
 	};

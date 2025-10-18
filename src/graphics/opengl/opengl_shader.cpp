@@ -771,6 +771,11 @@ namespace KalaWindow::Graphics::OpenGL
 
     OpenGL_Shader::~OpenGL_Shader()
     {
+        Log::Print(
+            "Destroying shader '" + name + "' with ID '" + to_string(ID) + "'.",
+            "OPENGL_SHADER",
+            LogType::LOG_INFO);
+
         auto DestroyShader = [&](u32& ID)
             {
                 if (ID == 0) return;
@@ -794,11 +799,6 @@ namespace KalaWindow::Graphics::OpenGL
             glDeleteProgram(programID);
             programID = 0;
         }
-
-        Log::Print(
-            "Destroyed shader '" + GetName() + "'!",
-            "OPENGL_SHADER",
-            LogType::LOG_SUCCESS);
     }
 }
 

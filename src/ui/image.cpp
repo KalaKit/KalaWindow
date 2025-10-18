@@ -116,14 +116,18 @@ namespace KalaWindow::UI
 			imagePtr->render.EBO);
 
 		imagePtr->ID = newID;
+		imagePtr->windowID = windowID;
 		imagePtr->SetName(name);
 		imagePtr->render.canUpdate = true;
 		imagePtr->SetPos(pos, PosTarget::POS_WORLD);
 		imagePtr->SetRotVec(rot, RotTarget::ROT_WORLD);
 		imagePtr->SetSize(size, SizeTarget::SIZE_WORLD);
 
+		imagePtr->isInitialized = true;
+
 		registry.AddContent(newID, move(newImage));
 		runtimeImages.push_back(imagePtr);
+		window->AddValue(TargetType::TYPE_WIDGET, newID);
 
 		Log::Print(
 			"Loaded image '" + name + "' with ID '" + to_string(newID) + "'!",
@@ -203,6 +207,57 @@ namespace KalaWindow::UI
 
 	Image::~Image()
 	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot destroy widget '" + name + "' with ID '" + to_string(ID) + "' because it is not initialized!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
 
+			return;
+		}
+
+		Window* window = Window::registry.GetContent(windowID);
+
+		if (!window
+			|| !window->IsInitialized())
+		{
+			Log::Print(
+				"Cannot destroy widget '" + name + "' with ID '" + to_string(ID) + "' because its window was not found!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		Log::Print(
+			"Destroying widget '" + name + "' with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
+			"WIDGET",
+			LogType::LOG_INFO);
+
+		RemoveAllChildren();
+		RemoveParent();
+
+		u32 vao = GetVAO();
+		u32 vbo = GetVBO();
+		u32 ebo = GetEBO();
+
+		if (vao != 0)
+		{
+			glDeleteVertexArrays(1, &vao);
+			vao = 0;
+		}
+		if (vbo != 0)
+		{
+			glDeleteBuffers(1, &vbo);
+			vbo = 0;
+		}
+		if (ebo != 0)
+		{
+			glDeleteBuffers(1, &ebo);
+			ebo = 0;
+		}
 	}
 }

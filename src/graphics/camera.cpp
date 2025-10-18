@@ -84,6 +84,7 @@ namespace KalaWindow::Graphics
 		registry.AddContent(newID, move(newCam));
 		window->AddValue(TargetType::TYPE_CAMERA, newID);
 
+		camPtr->name = cameraName;
 		camPtr->ID = newID;
 		camPtr->windowID = window->GetID();
 
@@ -99,8 +100,33 @@ namespace KalaWindow::Graphics
 
 	Camera::~Camera()
 	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot destroy camera '" + name + "' with ID '" + to_string(ID) + "' because it is not initialized!",
+				"CAMERA",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		Window* window = Window::registry.GetContent(windowID);
+
+		if (!window
+			|| !window->IsInitialized())
+		{
+			Log::Print(
+				"Cannot destroy camera '" + name + "' with ID '" + to_string(ID) + "' because its window was not found!",
+				"CAMERA",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
 		Log::Print(
-			"Destroying camera '" + name + "' with ID '" + to_string(ID) + "'.",
+			"Destroying camera '" + name + "' with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
 			"CAMERA",
 			LogType::LOG_INFO);
 	}

@@ -577,13 +577,24 @@ namespace KalaWindow::Windows
 
 	MenuBar::~MenuBar()
 	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot destroy menu bar with ID '" + to_string(ID) + "' because it is not initialized!",
+				"MENUBAR",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
 		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
 		{
 			Log::Print(
-				"Cannot destroy menu bar because its window reference is invalid!",
+				"Cannot destroy menu bar with ID '" + to_string(ID) + "' because its window was not found!",
 				"MENUBAR",
 				LogType::LOG_ERROR);
 
@@ -591,17 +602,6 @@ namespace KalaWindow::Windows
 		}
 
 		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
-
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Cannot destroy menu bar for window '" + window->GetTitle() + "' because it hasn't created one!",
-				"MENUBAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
 
 		events.clear();
 
@@ -613,14 +613,6 @@ namespace KalaWindow::Windows
 
 		//and finally destroy the menu handle itself
 		DestroyMenu(hMenu);
-
-		ostringstream oss{};
-		oss << "Destroyed menu bar in window '" << window->GetTitle() << "'!";
-
-		Log::Print(
-			oss.str(),
-			"MENUBAR",
-			LogType::LOG_SUCCESS);
 	}
 }
 
