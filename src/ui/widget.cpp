@@ -11,6 +11,8 @@
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
+#include "ui/image.hpp"
+#include "ui/text.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -22,23 +24,27 @@ using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::to_string;
+using std::back_inserter;
 
 namespace KalaWindow::UI
 {
-	vector<Widget*> Widget::HitWidgets(
-		u32 windowID,
-		const vec3& origin,
-		const vec3& target,
-		float distance)
+	vector<Widget*> Widget::HitWidgets(u32 windowID)
 	{
 		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
-			|| !window->IsInitialized()
-			|| window->IsIdle())
+			|| !window->IsInitialized())
 		{
+			Log::Print(
+				"Cannot get hit widgets because the window is invalid!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
 			return{};
 		}
+
+		if (window->IsIdle()) return{};
 
 		vector<OpenGL_Context*> contexts = OpenGL_Context::registry.GetAllWindowContent(windowID);
 		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
@@ -47,6 +53,12 @@ namespace KalaWindow::UI
 			|| !context->IsInitialized()
 			|| !context->IsContextValid())
 		{
+			Log::Print(
+				"Cannot get hit widgets because the window '" + window->GetTitle() + "' OpenGL context is invalid!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
 			return{};
 		}
 
@@ -56,55 +68,90 @@ namespace KalaWindow::UI
 		if (!input
 			|| !input->IsInitialized())
 		{
+			Log::Print(
+				"Cannot get hit widgets because the window '" + window->GetTitle() + "' input context is invalid!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
 			return{};
 		}
 
 		vec2 mousePos = input->GetMousePosition();
 
+		//
+		// 2D HIT TEST
+		//
+
 		vector<Widget*> hitWidgets{};
 
-		if (origin == vec3(0)
-			&& target == vec3(0)
-			&& distance == 0.0f)
-		{
-			//
-			// 2D HIT TEST
-			//
-		}
-		else
-		{
-			if (distance <= 0.1f
-				|| origin == target)
-			{
-				return{};
-			}
+		vector<Widget*> existingWidgets{};
+		vector<Image*> images = Image::registry.GetAllWindowContent(windowID);
+		vector<Text*> text = Text::registry.GetAllWindowContent(windowID);
 
-			//
-			// 3D HIT TEST
-			//
+		existingWidgets.reserve(images.size() + text.size());
+		std::transform(images.begin(), images.end(), back_inserter(existingWidgets),
+			[](Image* i) { return static_cast<Widget*>(i); });
+		std::transform(text.begin(), text.end(), back_inserter(existingWidgets),
+			[](Text* t) { return static_cast<Widget*>(t); });
+
+		for (auto& w : existingWidgets)
+		{
+			if (!w->isInteractable) continue;
+
+			if (w->IsMouseInsideImage(mousePos))
+			{
+				hitWidgets.push_back(w);
+			}
 		}
+
+		sort(hitWidgets.begin(), hitWidgets.end(),
+			[](Widget* a, Widget* b)
+			{
+				return a->zOrder < b->zOrder;
+			});
+
+		return hitWidgets;
 	}
 
-	bool Widget::IsHovered(
-		const vec3& origin,
-		const vec3& target,
-		float distance) const
+	bool Widget::IsHovered() const
 	{
-		if (!isInitialized
-			|| !isInteractable
-			|| windowID == 0)
+		if (!isInteractable)
 		{
+			Log::Print(
+				"Cannot check widget '" + name + "' hover state because it is not interactable!",
+				"WIDGET",
+				LogType::LOG_DEBUG);
+
+			return false;
+		}
+
+		if (windowID == 0)
+		{
+			Log::Print(
+				"Cannot check widget '" + name + "' hover state because its window ID is 0!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
 			return false;
 		}
 
 		Window* window = Window::registry.GetContent(windowID);
 
 		if (!window
-			|| !window->IsInitialized()
-			|| window->IsIdle())
+			|| !window->IsInitialized())
 		{
-			return{};
+			Log::Print(
+				"Cannot check widget '" + name + "' hover state because its window is invalid!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
 		}
+
+		if (window->IsIdle()) return false;
 
 		vector<OpenGL_Context*> contexts = OpenGL_Context::registry.GetAllWindowContent(windowID);
 		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
@@ -113,7 +160,13 @@ namespace KalaWindow::UI
 			|| !context->IsInitialized()
 			|| !context->IsContextValid())
 		{
-			return{};
+			Log::Print(
+				"Cannot check widget '" + name + "' hover state because the window '" + window->GetTitle() + "' OpenGL context is invalid!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
 		}
 
 		vector<Input*> inputs = Input::registry.GetAllWindowContent(windowID);
@@ -122,14 +175,16 @@ namespace KalaWindow::UI
 		if (!input
 			|| !input->IsInitialized())
 		{
-			return{};
+			Log::Print(
+				"Cannot check widget '" + name + "' hover state because the window '" + window->GetTitle() + "' input context is invalid!",
+				"WIDGET",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
 		}
 
-		const vector<Widget*>& hitWidgets = HitWidgets(
-			windowID,
-			origin, 
-			target, 
-			distance);
+		const vector<Widget*>& hitWidgets = HitWidgets(windowID);
 
 		if (hitWidgets.empty()) return false;
 

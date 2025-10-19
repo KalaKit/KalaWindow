@@ -18,6 +18,7 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
+using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::TargetType;
@@ -197,7 +198,12 @@ namespace KalaWindow::UI
 
 		u32 programID = render.shader->GetProgramID();
 
-		render.shader->SetMat3(programID, "uModel", GetWorldMatrix());
+		mat3 matrix2D = Matrix2D(
+			transform.combinedPos,
+			transform.combinedRot,
+			transform.combinedSize);
+
+		render.shader->SetMat3(programID, "uModel", matrix2D);
 		render.shader->SetMat3(programID, "uProjection", projection);
 
 		bool isOpaque = render.opacity = 1.0f;
