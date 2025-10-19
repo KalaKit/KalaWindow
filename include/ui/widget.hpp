@@ -10,10 +10,7 @@
 #include <algorithm>
 #include <functional>
 #include <array>
-#include <sstream>
-
 #include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/log_utils.hpp"
 
 #include "core/glm_global.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
@@ -26,10 +23,6 @@ namespace KalaWindow::UI
 	using std::clamp;
 	using std::function;
 	using std::array;
-	using std::ostringstream;
-
-	using KalaHeaders::Log;
-	using KalaHeaders::LogType;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -51,10 +44,6 @@ namespace KalaWindow::UI
 		POS_WORLD, //get/set world position
 		POS_LOCAL, //get/set position relative to parent
 
-		//get/set position relative to anchor,
-		//only works if anchor point is set to ANCHOR_CUSTOM
-		POS_ANCHOR,
-
 		POS_COMBINED //get position affected by anchor and parent
 	};
 	enum class RotTarget
@@ -72,17 +61,6 @@ namespace KalaWindow::UI
 		SIZE_COMBINED //get size affected by parent
 	};
 
-	enum class AnchorTarget
-	{
-		ANCHOR_NONE,         //disable anchoring
-		ANCHOR_TOP_LEFT,     //lock anchor position to top left corner of world pos
-		ANCHOR_TOP_RIGHT,    //lock anchor position to top right corner of world pos
-		ANCHOR_BOTTOM_LEFT,  //lock anchor position to bottom left corner of world pos
-		ANCHOR_BOTTOM_RIGHT, //lock anchor position to bottom right corner of world pos
-		ANCHOR_CENTER,       //lock anchor position to center of world pos
-		ANCHOR_CUSTOM        //for using as alternative of local pos for any parent or non-parent widget
-	};
-
 	enum class ActionTarget
 	{
 		ACTION_PRESSED,  //pressed mouse button while hovering over widget
@@ -95,16 +73,8 @@ namespace KalaWindow::UI
 
 	struct Widget_Transform
 	{
-		//helps avoid calling heavy hitter functions every frame
-		bool isDirty = true;
-		//if true, then the UI is scaled by base height
-		bool canScale = false;
-
-		AnchorTarget anchorTarget = AnchorTarget::ANCHOR_TOP_LEFT;
-
 		vec2 worldPos{};      //world position unaffected by other values
 		vec2 localPos{};      //parent offset position, unused if anchor is valid
-		vec2 anchorPos{};     //anchor offset position
 		vec2 combinedPos{};   //final position relative to parent and anchor
 
 		f32 worldRot{};       //world euler rotation in degrees, unaffected by other values
@@ -114,8 +84,6 @@ namespace KalaWindow::UI
 		vec2 worldSize{};     //world size unaffected by other values
 		vec2 localSize{};     //parent offset size
 		vec2 combinedSize{};  //final size relative to parent
-
-		vec2 viewportSize{};
 
 		const array<vec2, 4> vertices = 
 		{
@@ -196,82 +164,12 @@ namespace KalaWindow::UI
 		// TRANSFORM
 		//
 
-		inline void SetDirtyState(bool newValue) { transform.isDirty = newValue; }
-		inline bool IsDirty() const { return transform.isDirty; }
-
-		//If true, then the UI is scaled by base height
-		inline void SetScaleState(bool newValue) { transform.canScale = newValue; }
-		//If true, then the UI is scaled by base height
-		inline bool CanScale() const { return transform.canScale; }
-
-		//Sets the current viewport size used for controlling how large UI appears relative to this height
-		inline void SetViewportSize(vec2 newValue)
-		{
-			vec2 clamped = clamp(newValue, vec2(1.0f), vec2(10000.0f));
-			transform.viewportSize = clamped;
-		}
-		//Returns the current viewport size used for position and size normalization
-		inline vec2 GetViewportSize() const { return transform.viewportSize; }
-
-		inline void SetAnchorTarget(AnchorTarget newValue)
-		{ 
-			switch (newValue)
-			{
-			case AnchorTarget::ANCHOR_NONE:
-			case AnchorTarget::ANCHOR_CENTER:
-			{
-				transform.anchorPos = vec2(0.0f);
-				break;
-			}
-			case AnchorTarget::ANCHOR_TOP_LEFT:
-			{
-				transform.anchorPos = vec2(
-					0.5f * transform.worldSize.x,
-					0.5f * transform.worldSize.y);
-				break;
-			}
-			case AnchorTarget::ANCHOR_TOP_RIGHT:
-			{
-				transform.anchorPos = vec2(
-					-0.5f * transform.worldSize.x,
-					0.5f * transform.worldSize.y);
-				break;
-			}
-			case AnchorTarget::ANCHOR_BOTTOM_LEFT:
-			{
-				transform.anchorPos = vec2(
-					0.5f * transform.worldSize.x,
-					-0.5f * transform.worldSize.y);
-				break;
-			}
-			case AnchorTarget::ANCHOR_BOTTOM_RIGHT:
-			{
-				transform.anchorPos = vec2(
-					-0.5f * transform.worldSize.x,
-					-0.5f * transform.worldSize.y);
-				break;
-			}
-			}
-
-			transform.anchorTarget = newValue;
-
-			transform.isDirty = true;
-			UpdateTransform();
-		}
-
 		inline void SetPos(
 			const vec2 newPos,
 			PosTarget posTarget)
 		{
 			//cannot set combined pos
 			if (posTarget == PosTarget::POS_COMBINED) return;
-
-			//cannot set anchor pos if anchor point is not custom
-			if (transform.anchorTarget != AnchorTarget::ANCHOR_CUSTOM
-				&& posTarget == PosTarget::POS_ANCHOR)
-			{
-				return;
-			}
 
 			f32 clampedX = clamp(newPos.x, -10000.0f, 10000.0f);
 			f32 clampedY = clamp(newPos.y, -10000.0f, 10000.0f);
@@ -282,10 +180,8 @@ namespace KalaWindow::UI
 			{
 			case PosTarget::POS_WORLD:  transform.worldPos  = clampedPos; break;
 			case PosTarget::POS_LOCAL:  transform.localPos  = clampedPos; break;
-			case PosTarget::POS_ANCHOR: transform.anchorPos = clampedPos; break;
 			}
 
-			transform.isDirty = true;
 			UpdateTransform();
 		}
 		inline const vec2 GetPos(PosTarget posTarget) const 
@@ -296,7 +192,6 @@ namespace KalaWindow::UI
 			{
 			case PosTarget::POS_WORLD:      return transform.worldPos; break;
 			case PosTarget::POS_LOCAL:      return transform.localPos; break;
-			case PosTarget::POS_ANCHOR:     return transform.anchorPos; break;
 			case PosTarget::POS_COMBINED:   return transform.combinedPos; break;
 			}
 
@@ -311,7 +206,6 @@ namespace KalaWindow::UI
 			if (angle < 0.0f) angle += 360.0f;
 			transform.worldRot = angle;
 
-			transform.isDirty = true;
 			UpdateTransform();
 		}
 
@@ -330,7 +224,6 @@ namespace KalaWindow::UI
 			case RotTarget::ROT_LOCAL: transform.localRot = clamped; break;
 			}
 
-			transform.isDirty = true;
 			UpdateTransform();
 		}
 		inline const f32 GetRot(RotTarget rotTarget) const
@@ -365,7 +258,6 @@ namespace KalaWindow::UI
 			case SizeTarget::SIZE_LOCAL: transform.localSize = clampedSize; break;
 			}
 
-			transform.isDirty = true;
 			UpdateTransform();
 		}
 		inline const vec2 GetSize(SizeTarget sizeTarget) const 
@@ -394,8 +286,6 @@ namespace KalaWindow::UI
 		//Called automatically when any pos, rot or size type is updated
 		inline void UpdateTransform()
 		{
-			if (!transform.isDirty) return;
-
 			//
 			// ROTATION
 			//
@@ -416,25 +306,6 @@ namespace KalaWindow::UI
 			// POSITION
 			//
 
-			vec2 localOffset{};
-			bool useUnparentedLocalOffset = false;
-			
-			if (transform.anchorTarget == AnchorTarget::ANCHOR_TOP_LEFT
-				|| transform.anchorTarget == AnchorTarget::ANCHOR_TOP_RIGHT
-				|| transform.anchorTarget == AnchorTarget::ANCHOR_BOTTOM_RIGHT
-				|| transform.anchorTarget == AnchorTarget::ANCHOR_BOTTOM_LEFT
-				|| transform.anchorTarget == AnchorTarget::ANCHOR_CENTER
-
-				//custom anchor pos
-				|| (transform.anchorTarget == AnchorTarget::ANCHOR_CUSTOM
-				&& (transform.anchorPos.x != 0.0f
-				|| transform.anchorPos.y != 0.0f)))
-			{
-				localOffset = transform.anchorPos;
-				useUnparentedLocalOffset = true;
-			}
-			else localOffset = transform.localPos;
-
 			if (parent)
 			{
 				f32 rads = radians(parent->transform.combinedRot);
@@ -444,46 +315,15 @@ namespace KalaWindow::UI
 					{ -sin(rads), cos(rads) }
 				};
 
-				vec2 rotOffset = rotMat * localOffset;
+				vec2 rotOffset = rotMat * transform.localPos;
 				transform.combinedPos = 
 					parent->transform.combinedPos 
 					+ transform.worldPos
 					+ rotOffset;
 			}
-			else
-			{
-				transform.combinedPos = transform.worldPos;
-				if (useUnparentedLocalOffset) transform.combinedPos += localOffset;
-			}
-
-			ostringstream oss{};
-
-			oss << "\nlooking at widget '" + name + "' in UpdateTransform()\n"
-				<< "    world pos:  " << transform.worldPos.x << ", " << transform.worldPos.y << "\n"
-				<< "    world rot:  " << transform.worldRot << "\n"
-				<< "    world size: " << transform.worldSize.x << ", " << transform.worldSize.y << "\n"
-
-				<< "===========================================\n"
-
-				<< "    local pos:  " << transform.localPos.x << ", " << transform.localPos.y << "\n"
-				<< "    local rot:  " << transform.localRot << "\n"
-				<< "    local size: " << transform.localSize.x << ", " << transform.localSize.y << "\n"
-				
-				<< "===========================================\n"
-				
-				<< "    anchored pos:  " << transform.anchorPos.x << ", " << transform.anchorPos.y << "\n"
-				<< "    combined pos:  " << transform.combinedPos.x << ", " << transform.combinedPos.y << "\n"
-				<< "    combined rot:  " << transform.combinedRot << "\n"
-				<< "    combined size: " << transform.combinedSize.x << ", " << transform.combinedSize.y << "\n";
-
-			Log::Print(
-				oss.str(),
-				"WIDGET",
-				LogType::LOG_DEBUG);
+			else transform.combinedPos = transform.worldPos;
 
 			UpdateCorners();
-
-			transform.isDirty = false;
 		}
 
 		//
@@ -761,7 +601,6 @@ namespace KalaWindow::UI
 			transform.localRot = 0.0f;
 			transform.localSize = vec3(0);
 
-			transform.isDirty = true;
 			UpdateTransform();
 
 			//set this widget parent
@@ -788,7 +627,6 @@ namespace KalaWindow::UI
 			transform.localRot = 0.0f;
 			transform.localSize = vec3(0);
 
-			transform.isDirty = true;
 			UpdateTransform();
 
 			parent = nullptr;
@@ -833,7 +671,6 @@ namespace KalaWindow::UI
 			targetWidget->transform.localRot = 0.0f;
 			targetWidget->transform.localSize = vec3(0);
 
-			targetWidget->transform.isDirty = true;
 			targetWidget->UpdateTransform();
 
 			children.push_back(targetWidget);
@@ -854,7 +691,6 @@ namespace KalaWindow::UI
 			targetWidget->transform.localRot = 0.0f;
 			targetWidget->transform.localSize = vec3(0);
 
-			targetWidget->transform.isDirty = true;
 			targetWidget->UpdateTransform();
 
 			if (targetWidget->parent) targetWidget->parent = nullptr;
@@ -877,7 +713,6 @@ namespace KalaWindow::UI
 				c->transform.localRot = 0.0f;
 				c->transform.localSize = vec3(0);
 
-				c->transform.isDirty = true;
 				c->UpdateTransform();
 
 				c->parent = nullptr;
@@ -888,9 +723,6 @@ namespace KalaWindow::UI
 		//Do not destroy manually, erase from registry instead
 		virtual ~Widget() = 0;
 	protected:
-		//used for ui scaling, affects UI size
-		static inline f32 baseHeight = 1080.0f;
-
 		inline void UpdateCorners()
 		{
 			f32 r = radians(transform.combinedRot);
@@ -899,25 +731,19 @@ namespace KalaWindow::UI
 
 			mat2 rot = { { c, -s }, { s, c } };
 
-			vec2 basePos = parent
-				? transform.worldPos + transform.localPos
-				: transform.worldPos;
-
+			vec2 p = transform.combinedPos;
 			f32 w = transform.combinedSize.x;
 			f32 h = transform.combinedSize.y;
 
 			array<vec2, 4> local =
 			{
-				vec2(0.0f, 0.0f), //top-left
-				vec2(w,    0.0f), //top-right
-				vec2(w,    h),    //bottom-right
-				vec2(0.0f, h)     //bottom-left
+				vec2(-0.5f * w, -0.5f * h), //top-left
+				vec2( 0.5f * w, -0.5f * h), //top-right
+				vec2( 0.5f * w,  0.5f * h), //bottom-right
+				vec2(-0.5f * w,  0.5f * h)  //bottom-left
 			};
 
-			for (size_t i = 0; i < 4; ++i)
-			{
-				transform.corners[i] = basePos + rot * local[i];
-			}
+			for (size_t i = 0; i < 4; ++i) transform.corners[i] = p + rot * local[i];
 		}
 
 		bool isInitialized{};
