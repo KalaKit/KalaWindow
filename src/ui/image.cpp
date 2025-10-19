@@ -33,9 +33,9 @@ namespace KalaWindow::UI
 	Image* Image::Initialize(
 		const string& name,
 		u32 windowID,
-		const vec3& pos,
-		const vec3& rot,
-		const vec3& size,
+		const vec2 pos,
+		const float rot,
+		const vec2 size,
 		Widget* parentWidget,
 		OpenGL_Texture* texture,
 		OpenGL_Shader* shader)
@@ -120,7 +120,7 @@ namespace KalaWindow::UI
 		imagePtr->SetName(name);
 		imagePtr->render.canUpdate = true;
 		imagePtr->SetPos(pos, PosTarget::POS_WORLD);
-		imagePtr->SetRotVec(rot, RotTarget::ROT_WORLD);
+		imagePtr->SetRot(rot, RotTarget::ROT_WORLD);
 		imagePtr->SetSize(size, SizeTarget::SIZE_WORLD);
 
 		imagePtr->isInitialized = true;
@@ -137,9 +137,7 @@ namespace KalaWindow::UI
 		return imagePtr;
 	}
 
-	bool Image::Render(
-		const mat4& view,
-		const mat4& projection)
+	bool Image::Render(const mat3& projection)
 	{
 		if (!render.canUpdate) return false;
 
@@ -168,14 +166,16 @@ namespace KalaWindow::UI
 		render.shader->SetMat3(programID, "uModel", GetWorldMatrix());
 		render.shader->SetMat3(programID, "uProjection", projection);
 
-		if (!render.is2D) render.shader->SetMat3(programID, "uView", view);
-		else render.shader->SetMat3(programID, "uView", mat4(1.0f));
-
-		bool isAlpha = render.opacity < 1.0f
-			&& render.texture->GetFormat() == TextureFormat::Format_RGBA8
+		bool isOpaque = render.opacity = 1.0f;
+		bool isTransparentTexture = render.texture
+			&& (render.texture->GetFormat() == TextureFormat::Format_RGBA8
 			|| render.texture->GetFormat() == TextureFormat::Format_RGBA16F
 			|| render.texture->GetFormat() == TextureFormat::Format_RGBA32F
-			|| render.texture->GetFormat() == TextureFormat::Format_SRGB8A8;
+			|| render.texture->GetFormat() == TextureFormat::Format_SRGB8A8);
+
+		bool isAlpha =
+			isOpaque
+			|| isTransparentTexture;
 
 		if (isAlpha)
 		{
@@ -184,9 +184,17 @@ namespace KalaWindow::UI
 			glDepthMask(GL_FALSE);
 		}
 
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, render.texture->GetOpenGLID());
-		render.shader->SetInt(programID, "uTexture", 0);
+		render.shader->SetVec3(programID, "uColor", render.color);
+		render.shader->SetFloat(programID, "uOpacity", render.opacity);
+
+		if (render.texture)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, render.texture->GetOpenGLID());
+			render.shader->SetInt(programID, "uTexture", 0);
+			render.shader->SetBool(programID, "uUseTexture", true);
+		}
+		else render.shader->SetBool(programID, "uUseTexture", false);
 
 		glBindVertexArray(render.VAO);
 		glDrawElements(

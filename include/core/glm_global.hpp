@@ -65,37 +65,26 @@ inline T clampGLM(const T& x, const U& minVal, const V& maxVal)
 	return glm::clamp(x, minVal, maxVal);
 }
 
-//Return projection in 2D orthographic space based off of window client rect size.
-//Positions 2D objects in top-left origin like UI
-inline mat3 Projection2D(vec2 clientRectSize)
-{
-	float w = clientRectSize.x;
-	float h = clientRectSize.y;
-
-	mat3 proj(1.0f);
-
-	proj[0][0] = 2.0f / w;  //X scale
-	proj[1][1] = -2.0f / h; //Y scale (flip Y so 0 is top)
-	proj[2][0] = -1.0f;     //move X origin to left edge
-	proj[2][1] = 1.0f;      //move Y origin to top edge
-
-	return proj;
-}
-
-//Return projection in 2D orthographic space based off of custom viewports.
-//Positions 2D objects in top-left origin like UI
+//Return projection in 2D orthographic space based on a viewport region.
+//Positions 2D objects in top-left origin like UI.
+//Use base height to adjust how UI scales depending on window size
 inline mat3 Projection2D(
-	float left, 
-	float right, 
-	float top, 
-	float bottom)
+	const vec2 viewportSize, 
+	const float baseHeight)
 {
+	float w = viewportSize.x;
+	float h = viewportSize.y;
+	float scale = h / baseHeight;
+
 	mat3 proj(1.0f);
 
-	proj[0][0] = 2.0f / (right - left);
-	proj[1][1] = 2.0f / (top - bottom); //flip Y
-	proj[2][0] = -(right + left) / (right - left);
-	proj[2][1] = -(top + bottom) / (top - bottom);
+	//scale pixels into clip space [-1, 1]
+	proj[0][0] = 2.0f / (w / scale);  //X scale
+	proj[1][1] = -2.0f / (h / scale); //Y scale (flipped)
+
+	//move origin to top-left instead of center
+	proj[2][0] = -1.0f;
+	proj[2][1] = 1.0;
 
 	return proj;
 }
@@ -104,15 +93,17 @@ inline mat3 Projection2D(
 inline mat3 Translate2D(mat3& model, vec2 pos)
 {
 	mat3 trans(1.0f);
-	trans[2] = vec3(pos, 1.0f);
+	trans[2][0] = pos.x;
+	trans[2][1] = pos.y;
 	return model * trans;
 }
 
-//Rotate model in 2D orthographic space
-inline mat3 Rotate2D(mat3& model, float radians)
+//Rotate model in 2D orthographic space with degrees
+inline mat3 Rotate2D(mat3& model, float degrees)
 {
-	float c = cos(radians);
-	float s = sin(radians);
+	float r = radians(degrees);
+	float c = cos(r);
+	float s = sin(r);
 
 	mat3 rot(
 		c, s, 0.0f,

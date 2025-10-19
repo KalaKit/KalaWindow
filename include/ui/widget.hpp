@@ -92,29 +92,25 @@ namespace KalaWindow::UI
 
 		AnchorPoint anchorPoint{};
 
-		vec3 pos{};             //world position
-		vec3 localPos{};        //parent offset position
-		vec3 anchorPos{};       //anchor offset position
-		vec3 combinedPos{};     //parent pos + (parent quat * local pos)
+		vec2 pos{};             //world position
+		vec2 localPos{};        //parent offset position
+		vec2 anchorPos{};       //anchor offset position
+		vec2 combinedPos{};     //parent pos + (parent quat * local pos)
 
-		vec3 rotVec{};          //euler rotation
-		vec3 localRotVec{};     //parent offset euler rotation
-		vec3 combinedRotVec{};  //ToEuler(combined rot quat)
+		float rot{};          //euler rotation
+		float localRot{};     //parent offset euler rotation
+		float combinedRot{};  //world and local rotation combination
 
-		quat rotQuat{};         //quaternion rotation
-		quat localRotQuat{};    //parent offset quaternion rotation
-		quat combinedRotQuat{}; //parent combined rot quat * local rot quat
+		vec2 size = vec2(32.0f, 32.0f); //world size
+		vec2 localSize = vec3(1.0f);    //parent offset size
+		vec2 combinedSize = size;       //parent combined size * local size
 
-		vec3 size = vec3(32.0f, 32.0f, 0.0f); //world size
-		vec3 localSize = vec3(1.0f);          //parent offset size
-		vec3 combinedSize = size;             //parent combined size * local size
-
-		array<vec3, 4> vertices = 
+		array<vec2, 4> vertices = 
 		{
-			vec3(-0.5f, -0.5f, 0.0f), //bottom-left
-			vec3(0.5f, -0.5f, 0.0f),  //bottom-right
-			vec3(0.5f,  0.5f, 0.0f),  //top-right
-			vec3(-0.5f,  0.5f, 0.0f)  //top-left
+			vec2(-0.5f, -0.5f), //bottom-left
+			vec2(0.5f, -0.5f),  //bottom-right
+			vec2(0.5f,  0.5f),  //top-right
+			vec2(-0.5f,  0.5f)  //top-left
 		};
 		const array<u8, 6> indices =
 		{
@@ -122,7 +118,7 @@ namespace KalaWindow::UI
 			2, 3, 0
 		};
 
-		array<vec3, 2> aabb{};
+		array<vec2, 2> aabb{};
 	};
 
 	struct Widget_Render
@@ -164,12 +160,8 @@ namespace KalaWindow::UI
 
 		inline bool IsInitialized() const { return isInitialized; }
 
-		//Core render function for all widget systems, must be overridden per inherited widget.
-		//Pass mat4(1.0f) to view and pass 2D projection as ortho(0.0f, windowWidth, windowHeight, 0.0f)
-		//if you want 2D UI, otherwise this widget element is drawn in 3D space
-		virtual bool Render(
-			const mat4& view,
-			const mat4& projection) = 0;
+		//Core render function for all widget systems, must be overridden per inherited widget
+		virtual bool Render(const mat3& projection) = 0;
 
 		inline u32 GetID() const { return ID; }
 		inline u32 GetWindowID() const { return windowID; }
@@ -287,7 +279,7 @@ namespace KalaWindow::UI
 		}
 
 		inline void SetPos(
-			const vec3& newPos,
+			const vec2 newPos,
 			PosTarget posTarget)
 		{
 			//cannot set combined pos
@@ -302,9 +294,8 @@ namespace KalaWindow::UI
 
 			float clampedX = clamp(newPos.x, -10000.0f, 10000.0f);
 			float clampedY = clamp(newPos.y, -10000.0f, 10000.0f);
-			float clampedZ = clamp(newPos.z, -10000.0f, 10000.0f);
 
-			vec3 clampedPos = vec3(clampedX, clampedY, clampedZ);
+			vec2 clampedPos = vec2(clampedX, clampedY);
 
 			switch (posTarget)
 			{
@@ -317,9 +308,9 @@ namespace KalaWindow::UI
 			UpdateTransform();
 			if (transform.updateAABB) UpdateAABB();
 		}
-		inline const vec3& GetPos(PosTarget posTarget) const 
+		inline const vec2 GetPos(PosTarget posTarget) const 
 		{ 
-			static const vec3 empty{};
+			static const vec2 empty{};
 
 			switch (posTarget)
 			{
@@ -333,64 +324,36 @@ namespace KalaWindow::UI
 		}
 
 		//Safely wraps within allowed bounds
-		inline void AddRot(const vec3& deltaRot)
+		inline void AddRot(float deltaRot)
 		{
-			auto WrapAngle = [](f32 angle)
-				{
-					angle = fmodf(angle, 360.0f);
-					if (angle < 0.0f) angle += 360.0f;
-					return angle;
-				};
-
-			transform.rotVec =
-			{
-				WrapAngle(transform.rotVec.x + deltaRot.x),
-				WrapAngle(transform.rotVec.y + deltaRot.y),
-				WrapAngle(transform.rotVec.z + deltaRot.z),
-			};
-
-			quat qx = angleAxis(radians(transform.rotVec.x), vec3(1, 0, 0));
-			quat qy = angleAxis(radians(transform.rotVec.y), vec3(0, 1, 0));
-			quat qz = angleAxis(radians(transform.rotVec.z), vec3(0, 0, 1));
-
-			transform.rotQuat = qz * qy * qx;
+			f32 angle = transform.rot + deltaRot;
+			angle = fmodf(angle, 360.0f);
+			if (angle < 0.0f) angle += 360.0f;
+			transform.rot = angle;
 
 			UpdateTransform();
 			if (transform.updateAABB) UpdateAABB();
 		}
 
-		inline void SetRotVec(
-			const vec3& newRot,
+		inline void SetRot(
+			const float newRot,
 			RotTarget rotTarget)
 		{
 			//cannot set combined vec rot
 			if (rotTarget == RotTarget::ROT_COMBINED) return;
 
-			vec3 clamped(
-				clamp(newRot.x, -359.99f, 359.99f),
-				clamp(newRot.y, -359.99f, 359.99f),
-				clamp(newRot.z, -359.99f, 359.99f));
-
-			vec3 clampedVec = vec3(clamped.x, clamped.y, clamped.z);
-
-			quat qx = angleAxis(radians(clamped.x), vec3(1, 0, 0));
-			quat qy = angleAxis(radians(clamped.y), vec3(0, 1, 0));
-			quat qz = angleAxis(radians(clamped.z), vec3(0, 0, 1));
-
-			quat clampedQuat = qz * qy * qx;
+			float clamped = clamp(newRot, 0.0f, 359.99f);
 
 			switch (rotTarget)
 			{
 			case RotTarget::ROT_WORLD:
 			{
-				transform.rotVec = clampedVec;
-				transform.rotQuat = clampedQuat;
+				transform.rot = clamped;
 				break;
 			}
 			case RotTarget::ROT_LOCAL:
 			{
-				transform.localRotVec = clampedVec;
-				transform.localRotQuat = clampedQuat;
+				transform.localRot = clamped;
 				break;
 			}
 			}
@@ -398,77 +361,22 @@ namespace KalaWindow::UI
 			UpdateTransform();
 			if (transform.updateAABB) UpdateAABB();
 		}
-		inline const vec3& GetRotVec(RotTarget rotTarget) const
+		inline const float GetRot(RotTarget rotTarget) const
 		{
-			static const vec3 empty{};
+			static const float empty{};
 
 			switch (rotTarget)
 			{
-			case RotTarget::ROT_WORLD:    return transform.rotVec; break;
-			case RotTarget::ROT_LOCAL:    return transform.localRotVec; break;
-			case RotTarget::ROT_COMBINED: return transform.combinedRotVec; break;
-			}
-
-			return empty;
-		}
-
-		inline void SetRotQuat(
-			const quat& newRot,
-			RotTarget rotTarget)
-		{
-			//cannot set combined quat rot
-			if (rotTarget == RotTarget::ROT_COMBINED) return;
-
-			vec3 eulerDeg = degrees(eulerAngles(newRot));
-
-			vec3 clamped(
-				clamp(eulerDeg.x, -359.99f, 359.99f),
-				clamp(eulerDeg.y, -359.99f, 359.99f),
-				clamp(eulerDeg.z, -359.99f, 359.99f));
-
-			vec3 clampedVec = vec3(clamped.x, clamped.y, clamped.z);
-
-			quat qx = angleAxis(radians(clamped.x), vec3(1, 0, 0));
-			quat qy = angleAxis(radians(clamped.y), vec3(0, 1, 0));
-			quat qz = angleAxis(radians(clamped.z), vec3(0, 0, 1));
-
-			quat clampedQuat = qz * qy * qx;
-
-			switch (rotTarget)
-			{
-			case RotTarget::ROT_WORLD:
-			{
-				transform.rotVec = clampedVec;
-				transform.rotQuat = clampedQuat;
-				break;
-			}
-			case RotTarget::ROT_LOCAL:
-			{
-				transform.localRotVec = clampedVec;
-				transform.localRotQuat = clampedQuat;
-				break;
-			}
-			}
-
-			UpdateTransform();
-			if (transform.updateAABB) UpdateAABB();
-		}
-		inline const quat& GetRotQuat(RotTarget rotTarget) const 
-		{ 
-			static const quat empty{};
-
-			switch (rotTarget)
-			{
-			case RotTarget::ROT_WORLD:    return transform.rotQuat; break;
-			case RotTarget::ROT_LOCAL:    return transform.localRotQuat; break;
-			case RotTarget::ROT_COMBINED: return transform.combinedRotQuat; break;
+			case RotTarget::ROT_WORLD:    return transform.rot; break;
+			case RotTarget::ROT_LOCAL:    return transform.localRot; break;
+			case RotTarget::ROT_COMBINED: return transform.combinedRot; break;
 			}
 
 			return empty;
 		}
 
 		inline void SetSize(
-			const vec3& newSize,
+			const vec2 newSize,
 			SizeTarget sizetarget)
 		{
 			//cannot set combined size
@@ -476,9 +384,8 @@ namespace KalaWindow::UI
 
 			float clampedX = clamp(newSize.x, 0.01f, 10000.0f);
 			float clampedY = clamp(newSize.y, 0.01f, 10000.0f);
-			float clampedZ = clamp(newSize.z, 0.01f, 10000.0f);
 
-			vec3 clampedSize = vec3(clampedX, clampedY, clampedZ);
+			vec2 clampedSize = vec2(clampedX, clampedY);
 
 			switch (sizetarget)
 			{
@@ -489,9 +396,9 @@ namespace KalaWindow::UI
 			UpdateTransform();
 			if (transform.updateAABB) UpdateAABB();
 		}
-		inline const vec3& GetSize(SizeTarget sizeTarget) const 
+		inline const vec2 GetSize(SizeTarget sizeTarget) const 
 		{ 
-			static const vec3 empty{};
+			static const vec2 empty{};
 
 			switch (sizeTarget)
 			{
@@ -503,63 +410,61 @@ namespace KalaWindow::UI
 			return empty;
 		};
 
-		inline void SetVerticeValue(u8 index, const vec3& newValue)
+		inline void SetVerticeValue(u8 index, const vec2& newValue)
 		{
-			if (index > 3) return;
+			if (index > 2) return;
 
 			float clampedX = clamp(newValue.x, -10000.0f, 10000.0f);
 			float clampedY = clamp(newValue.y, -10000.0f, 10000.0f);
-			float clampedZ = clamp(newValue.z, -10000.0f, 10000.0f);
 
-			transform.vertices[index] = vec3(clampedX, clampedY, clampedZ);
+			transform.vertices[index] = vec2(clampedX, clampedY);
 
 			if (transform.updateAABB) UpdateAABB();
 		}
-		inline const vec3& GetVerticeValue(u8 index)
+		inline const vec2& GetVerticeValue(u8 index)
 		{
-			static const vec3 empty{};
+			static const vec2 empty{};
 
-			return index <= 3 ? transform.vertices[index] : empty;
+			return index <= 2 ? transform.vertices[index] : empty;
 		}
 
-		inline void SetVertices(const array<vec3, 4>& newValue)
+		inline void SetVertices(const array<vec2, 4>& newValue)
 		{
-			array<vec3, 4> clamped = newValue;
+			array<vec2, 4> clamped = newValue;
 
 			for (auto& v : clamped)
 			{
 				float clampedX = clamp(v.x, -10000.0f, 10000.0f);
 				float clampedY = clamp(v.y, -10000.0f, 10000.0f);
-				float clampedZ = clamp(v.z, -10000.0f, 10000.0f);
 
-				v = vec3(clampedX, clampedY, clampedZ);
+				v = vec2(clampedX, clampedY);
 			}
 
 			transform.vertices = clamped;
 
 			if (transform.updateAABB) UpdateAABB();
 		}
-		inline const array<vec3, 4>& GetVertices() const { return transform.vertices; };
+		inline const array<vec2, 4>& GetVertices() const { return transform.vertices; };
 		inline const array<u8, 6>& GetIndices() const { return transform.indices; }
 
 		//Called automatically when rotation, size or vertices are updated
 		inline void UpdateAABB()
 		{
-			mat4 world = GetWorldMatrix();
+			mat3 model = GetWorldMatrix();
 
-			vec3 boxMin(FLT_MAX);
-			vec3 boxMax(-FLT_MAX);
+			vec2 boxMin(FLT_MAX);
+			vec2 boxMax(-FLT_MAX);
 
 			for (const auto& v : transform.vertices)
 			{
-				vec3 worldV = vec3(world * vec4(v, 1.0f));
+				vec2 worldV = vec2(model * vec3(v, 1.0f));
 				boxMin = min(boxMin, worldV);
 				boxMax = max(boxMax, worldV);
 			}
 
 			transform.aabb = { boxMin, boxMax };
 		}
-		inline const array<vec3, 2>& GetAABB() const { return transform.aabb; }
+		inline const array<vec2, 2>& GetAABB() const { return transform.aabb; }
 
 		//Called automatically when any pos, rot or size type is updated
 		inline void UpdateTransform()
@@ -568,49 +473,54 @@ namespace KalaWindow::UI
 			// ROTATION
 			//
 
-			if (parent) transform.combinedRotQuat = parent->transform.combinedRotQuat * transform.localRotQuat;
-			else transform.combinedRotQuat = transform.rotQuat;
-			transform.combinedRotVec = degrees(eulerAngles(transform.combinedRotQuat));
+			if (parent) transform.combinedRot 
+				= parent->transform.combinedRot 
+				+ transform.localRot;
+			else transform.combinedRot = transform.localRot;
 
 			//
 			// SIZE
 			//
 
-			if (parent) transform.combinedSize = parent->transform.combinedSize * transform.localSize;
+			if (parent) transform.combinedSize 
+				= parent->transform.combinedSize 
+				* transform.localSize;
 			else transform.combinedSize = transform.size;
 
 			//
 			// POSITION
 			//
 
-			vec3 localOffset = (
+			vec2 localOffset = (
 				transform.anchorPoint == AnchorPoint::ANCHOR_CUSTOM
 				&& (transform.anchorPos.x != 0.0f
-					|| transform.anchorPos.y != 0.0f
-					|| transform.anchorPos.z != 0.0f))
+				|| transform.anchorPos.y != 0.0f))
 				? transform.anchorPos
 				: transform.localPos;
 
 			if (parent)
 			{
-				vec3 rotatedOffset =
-					parent->transform.combinedRotQuat
-					* (parent->transform.combinedSize * localOffset);
+				float rads = radians(parent->transform.combinedRot);
+				mat2 rotMat =
+				{
+					{ cos(rads), sin(rads) },
+					{ -sin(rads), cos(rads) }
+				};
 
-				transform.combinedPos = parent->transform.combinedPos + rotatedOffset;
+				vec2 rotOffset = rotMat * (parent->transform.combinedSize * localOffset);
+				transform.combinedPos = parent->transform.combinedPos + rotOffset;
 			}
 			else transform.combinedPos = transform.pos;
 		}
 
-		inline mat4 GetWorldMatrix() const
+		inline mat3 GetWorldMatrix() const
 		{
-			mat4 m(1.0f);
+			mat3 model(1.0);
+			model = Translate2D(model, transform.combinedPos);
+			model = Rotate2D(model, transform.combinedRot);
+			model = Scale2D(model, transform.combinedSize);
 
-			m = translate(m, transform.combinedPos);
-			m *= mat4_cast(transform.combinedRotQuat);
-			m = scale(m, transform.combinedSize);
-
-			return m;
+			return model;
 		}
 
 		//
@@ -856,8 +766,7 @@ namespace KalaWindow::UI
 			}
 
 			transform.localPos = vec3(0);
-			transform.localRotVec = vec3(0);
-			transform.localRotQuat = quat(1, 0, 0, 0);
+			transform.localRot = 0.0f;
 			transform.localSize = vec3(0);
 
 			UpdateTransform();
@@ -884,8 +793,7 @@ namespace KalaWindow::UI
 				parentChildren.end());
 
 			transform.localPos = vec3(0);
-			transform.localRotVec = vec3(0);
-			transform.localRotQuat = quat(1, 0, 0, 0);
+			transform.localRot = 0.0f;
 			transform.localSize = vec3(0);
 
 			UpdateTransform();
@@ -931,8 +839,7 @@ namespace KalaWindow::UI
 			}
 
 			targetWidget->transform.localPos = vec3(0);
-			targetWidget->transform.localRotVec = vec3(0);
-			targetWidget->transform.localRotQuat = quat(1, 0, 0, 0);
+			targetWidget->transform.localRot = 0.0f;
 			targetWidget->transform.localSize = vec3(0);
 
 			targetWidget->UpdateTransform();
@@ -953,8 +860,7 @@ namespace KalaWindow::UI
 			}
 
 			targetWidget->transform.localPos = vec3(0);
-			targetWidget->transform.localRotVec = vec3(0);
-			targetWidget->transform.localRotQuat = quat(1, 0, 0, 0);
+			targetWidget->transform.localRot = 0.0f;
 			targetWidget->transform.localSize = vec3(0);
 
 			targetWidget->UpdateTransform();
@@ -977,8 +883,7 @@ namespace KalaWindow::UI
 			for (auto* c : children)
 			{
 				c->transform.localPos = vec3(0);
-				c->transform.localRotVec = vec3(0);
-				c->transform.localRotQuat = quat(1, 0, 0, 0);
+				c->transform.localRot = 0.0f;
 				c->transform.localSize = vec3(0);
 
 				c->UpdateTransform();

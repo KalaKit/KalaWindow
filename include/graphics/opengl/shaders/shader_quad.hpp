@@ -15,18 +15,18 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 	R"(
 		#version 330 core
 
-		layout (location = 0) in vec3 aPos;
+		layout (location = 0) in vec2 aPos;
 		layout (location = 1) in vec2 aTexCoord;
 
 		out vec2 TexCoord;
 
-		uniform mat4 uModel;      //pos, rot and scale as mat4
-		uniform mat4 uView;       //unused for 2D
-		uniform mat4 uProjection; //required for 2D and 3D
+		uniform mat3 uModel;
+		uniform mat3 uProjection;
 		
 		void main()
 		{
-			gl_Position = uProjection * uView * uModel * vec4(aPos, 1.0);
+			vec3 worldPos = uProjection * uModel * vec3(aPos, 1.0);
+			gl_Position = vec4(worldPos.xy, 0.0, 1.0);
 			TexCoord = aTexCoord;
 		}
 	)";
@@ -38,21 +38,21 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		in vec2 TexCoord;
 		out vec4 FragColor;
 
-		uniform sampler2D texture0;
-		uniform bool useTexture = false;          //mark as true if you want to pass a texture
+		uniform sampler2D uTexture0;
+		uniform bool uUseTexture = false; //mark as true if you want to pass a texture
 
-		uniform vec3 color;    //blended with texture or non-texture base color
-		uniform float opacity; //makes this transparent if below 1.0
+		uniform vec3 uColor;    //blended with texture or non-texture base color
+		uniform float uOpacity; //makes this transparent if below 1.0
 		
 		void main()
 		{
-			float safeOpacity = clamp(opacity, 0.0, 1.0);
-			vec3 safeColor = clamp(color, 0.0, 1.0);
+			float safeOpacity = clamp(uOpacity, 0.0, 1.0);
+			vec3 safeColor = clamp(uColor, 0.0, 1.0);
 
 			if (safeOpacity < 0.1) discard;
 
 			vec4 texColor = vec4(1.0);
-			if (useTexture) texColor = texture(texture0, TexCoord);
+			if (uUseTexture) texColor = texture(uTexture0, TexCoord);
 
 			FragColor = vec4(texColor.rgb * safeColor, texColor.a * safeOpacity);
 		}

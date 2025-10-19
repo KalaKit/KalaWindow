@@ -15,21 +15,20 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 	R"(
 		#version 330 core
 
-		layout (location = 0) in vec3 aPos;
+		layout (location = 0) in vec2 aPos;
 		layout (location = 1) in vec2 aTexCoord;
 
 		out vec2 TexCoord;
 
-		uniform mat4 uModel;      //pos, rot and scale as mat4
-		uniform mat4 uView;       //unused for 2D
-		uniform mat4 uProjection; //required for 2D and 3D
+		uniform mat3 uModel;
+		uniform mat3 uProjection;
 
 		uniform float italic_skew;    //horizontal slant factor
 		uniform float kerning_offset; //per-glyph x-adjustment
 		
 		void main()
 		{
-			vec3 pos = aPos;
+			vec2 pos = aPos;
 			
 			//apply kerning (horizontal shift)
 			pos.x += kerning_offset;
@@ -37,7 +36,8 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 			//apply italic skew (shear on x based on y)
 			pos.x += pos.y * italic_skew;
 
-			gl_Position = uProjection * uView * uModel * vec4(pos, 1.0);
+			vec3 worldPos = uProjection * uModel * vec3(pos, 1.0);
+			gl_Position = vec4(worldPos.xy, 0.0, 1.0);
 			TexCoord = aTexCoord;
 		}
 	)";

@@ -275,11 +275,11 @@ namespace KalaWindow::Graphics
 			u8 maxProgress) const;
 
 		//Correctly handle aspect ratio during window resize for camera
-		inline void TriggerResize() const { if (resizeCallback) resizeCallback(); }
+		inline void TriggerResize() { if (resizeCallback) resizeCallback(); }
 		inline void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
 
 		//Ensure content is redrawn while window is being resized
-		inline void TriggerRedraw() const { if (redrawCallback) redrawCallback(); }
+		inline void TriggerRedraw() { if (redrawCallback) redrawCallback(); }
 		inline void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
 #ifdef _WIN32
