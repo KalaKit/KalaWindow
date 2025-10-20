@@ -98,7 +98,8 @@ namespace KalaWindow::UI
 			2, 3, 0
 		};
 
-		array<vec2, 4> corners{};
+		vec2 aabbOffset{};
+		array<vec2, 2> aabb{};
 	};
 
 	struct Widget_Render
@@ -274,13 +275,20 @@ namespace KalaWindow::UI
 			return empty;
 		};
 
+		inline void SetAABBOffset(vec2 newValue)
+		{
+			vec2 clamped = clamp(newValue, vec2(-10000.0f), vec2(10000.0f));
+			transform.aabbOffset = clamped;
+		}
+		inline vec2 GetAABBOffset() const { return transform.aabbOffset; }
+
 		inline const array<vec2, 4>& GetVertices() const { return transform.vertices; };
 		inline const array<u8, 6>& GetIndices() const { return transform.indices; }
 
-		inline const array<vec2, 4>& GetCorners() 
+		inline const array<vec2, 2>& GetAABB() 
 		{ 
-			UpdateCorners();
-			return transform.corners; 
+			UpdateAABB();
+			return transform.aabb; 
 		}
 
 		//Called automatically when any pos, rot or size type is updated
@@ -323,7 +331,7 @@ namespace KalaWindow::UI
 			}
 			else transform.combinedPos = transform.worldPos;
 
-			UpdateCorners();
+			UpdateAABB();
 		}
 
 		//
@@ -382,45 +390,6 @@ namespace KalaWindow::UI
 		inline void SetInteractableState(bool newValue) { isInteractable = newValue; }
 		//Skip hit testing if true
 		inline bool IsInteractable() const { return isInteractable; }
-
-		inline bool IsMouseInsideImage(const vec2 mouse)
-		{
-			UpdateCorners();
-
-			auto PointInTriangle = [](
-				const vec2& p,
-				const vec2& a,
-				const vec2& b,
-				const vec2& c)
-				{
-					auto cross2D = [](vec2 u, vec2 v)
-						{
-							return u.x * v.y - u.y * v.x;
-						};
-
-					f32 c1 = cross2D(b - a, p - a);
-					f32 c2 = cross2D(c - b, p - b);
-					f32 c3 = cross2D(a - c, p - c);
-
-					return (
-						c1 >= 0
-						&& c2 >= 0
-						&& c3 >= 0)
-						|| (c1 <= 0
-						&& c2 <= 0
-						&& c3 <= 0);
-				};
-
-			return
-				PointInTriangle(mouse,
-					transform.corners[0],
-					transform.corners[1],
-					transform.corners[2])
-				|| PointInTriangle(mouse,
-					transform.corners[0],
-					transform.corners[2],
-					transform.corners[3]);
-		};
 
 		//If the cursor is over this widget and this widget is not
 		//covered entirely or partially by another widget then this returns true
@@ -723,27 +692,12 @@ namespace KalaWindow::UI
 		//Do not destroy manually, erase from registry instead
 		virtual ~Widget() = 0;
 	protected:
-		inline void UpdateCorners()
+		inline void UpdateAABB()
 		{
-			f32 r = radians(transform.combinedRot);
-			f32 c = cos(r);
-			f32 s = sin(r);
+			vec2 half = transform.combinedSize * 0.5f;
 
-			mat2 rot = { { c, -s }, { s, c } };
-
-			vec2 p = transform.combinedPos;
-			f32 w = transform.combinedSize.x;
-			f32 h = transform.combinedSize.y;
-
-			array<vec2, 4> local =
-			{
-				vec2(-0.5f * w, -0.5f * h), //top-left
-				vec2( 0.5f * w, -0.5f * h), //top-right
-				vec2( 0.5f * w,  0.5f * h), //bottom-right
-				vec2(-0.5f * w,  0.5f * h)  //bottom-left
-			};
-
-			for (size_t i = 0; i < 4; ++i) transform.corners[i] = p + rot * local[i];
+			transform.aabb[0] = transform.combinedPos - half + transform.aabbOffset; //min
+			transform.aabb[1] = transform.combinedPos + half + transform.aabbOffset; //max
 		}
 
 		bool isInitialized{};

@@ -99,7 +99,10 @@ namespace KalaWindow::UI
 		{
 			if (!w->isInteractable) continue;
 
-			if (w->IsMouseInsideImage(mousePos))
+			if (mousePos.x >= w->transform.aabb[0].x
+				&& mousePos.x <= w->transform.aabb[1].x
+				&& mousePos.y >= w->transform.aabb[0].y
+				&& mousePos.y <= w->transform.aabb[1].y)
 			{
 				hitWidgets.push_back(w);
 			}
