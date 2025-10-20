@@ -164,12 +164,12 @@ namespace KalaWindow::UI
 
 		u32 programID = render.shader->GetProgramID();
 
-		mat3 matrix2D = Matrix2D(
-			transform.combinedPos,
-			transform.combinedRot,
-			transform.combinedSize);
+		mat3 model = mat3(1.0f);
+		model = Translate2D(model, transform.combinedPos);
+		model = Rotate2D(model, transform.combinedRot);
+		model = Scale2D(model, transform.combinedSize);
 
-		render.shader->SetMat3(programID, "uModel", matrix2D);
+		render.shader->SetMat3(programID, "uModel", model);
 		render.shader->SetMat3(programID, "uProjection", projection);
 
 		bool isOpaque = render.opacity = 1.0f;

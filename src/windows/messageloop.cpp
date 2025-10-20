@@ -1177,15 +1177,15 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		if (window->IsResizable())
 		{
-			vec2 clientRectSize = window->GetFramebufferSize();
+			vec2 fbSize = window->GetFramebufferSize();
 
 			if (OpenGL_Global::IsInitialized())
 			{
 				glViewport(
 					0,
 					0,
-					(GLsizei)clientRectSize.x,
-					(GLsizei)clientRectSize.y);
+					(GLsizei)fbSize.x,
+					(GLsizei)fbSize.y);
 			}
 
 			window->TriggerResize();
