@@ -197,6 +197,8 @@ namespace KalaWindow::Core
 			Key key,
 			bool isDown)
 		{
+			if (key == Key::KeyCount) return;
+
 			size_t index = static_cast<size_t>(key);
 
 			if (isDown
@@ -213,10 +215,12 @@ namespace KalaWindow::Core
 			keyDown[index] = isDown;
 		}
 		inline void SetMouseButtonState(
-			MouseButton button,
+			MouseButton mouseButton,
 			bool isDown)
 		{
-			size_t index = static_cast<size_t>(button);
+			if (mouseButton == MouseButton::MouseButtonCount) return;
+
+			size_t index = static_cast<size_t>(mouseButton);
 
 			if (isDown
 				&& !mouseDown[index])
@@ -232,10 +236,12 @@ namespace KalaWindow::Core
 			mouseDown[index] = isDown;
 		}
 		inline void SetMouseButtonDoubleClickState(
-			MouseButton button,
+			MouseButton mouseButton,
 			bool isDown)
 		{
-			mouseDoubleClicked[static_cast<size_t>(button)] = isDown;
+			if (mouseButton == MouseButton::MouseButtonCount) return;
+
+			mouseDoubleClicked[static_cast<size_t>(mouseButton)] = isDown;
 		}
 
 		//Detect if any combination of keys and mouse buttons are down
@@ -245,22 +251,35 @@ namespace KalaWindow::Core
 		//Detect if any combination of keys and mouse buttons are released
 		bool IsComboReleased(const span<const InputCode>& codes);
 
-		//Is the key currently held down?
-		inline bool IsKeyDown(Key key) { return keyDown[static_cast<size_t>(key)]; }
-		//Was the key just pressed this frame?
+		//Is the key currently held down
+		inline bool IsKeyHeld(Key key) { return keyDown[static_cast<size_t>(key)]; }
+		//Was the key just pressed this frame
 		inline bool IsKeyPressed(Key key) { return keyPressed[static_cast<size_t>(key)]; }
-		//Was the key just released this frame?
+		//Was the key just released this frame
 		inline bool IsKeyReleased(Key key) { return keyReleased[static_cast<size_t>(key)]; }
 
-		//Is the mouse button currently held down?
-		inline bool IsMouseDown(MouseButton button) { return mouseDown[static_cast<size_t>(button)]; }
-		//Was the mouse button just pressed this frame?
-		inline bool IsMousePressed(MouseButton button) { return mousePressed[static_cast<size_t>(button)]; }
-		//Was the mouse button just released this frame?
-		inline bool IsMouseReleased(MouseButton button) { return mouseReleased[static_cast<size_t>(button)]; }
+		//Is the mouse button currently held down
+		inline bool IsMouseButtonHeld(MouseButton mouseButton) { return mouseDown[static_cast<size_t>(mouseButton)]; }
+		//Was the mouse button just pressed this frame
+		inline bool IsMouseButtonPressed(MouseButton mouseButton) { return mousePressed[static_cast<size_t>(mouseButton)]; }
+		//Was the mouse button just released this frame
+		inline bool IsMouseButtonReleased(MouseButton mouseButton) { return mouseReleased[static_cast<size_t>(mouseButton)]; }
 
-		//Was the mouse button just double-clicked this frame?
-		inline bool IsMouseButtonDoubleClicked(MouseButton button) { return mouseDoubleClicked[static_cast<size_t>(button)]; }
+		//Was the mouse button just double-clicked this frame
+		inline bool IsMouseButtonDoubleClicked(MouseButton mouseButton) { return mouseDoubleClicked[static_cast<size_t>(mouseButton)]; }
+
+		//Is the mouse button currently dragging
+		inline bool IsMouseButtonDragging(MouseButton mouseButton)
+		{
+			bool isHoldingDragKey = IsMouseButtonHeld(mouseButton);
+
+			bool isDragging =
+				isHoldingDragKey
+				&& (mouseDelta.x != 0
+				|| mouseDelta.y != 0);
+
+			return isDragging;
+		}
 
 		//Get current mouse position in window coordinates
 		inline vec2 GetMousePosition() const { return mousePos; }
@@ -291,22 +310,8 @@ namespace KalaWindow::Core
 		inline void SetRawMouseDelta(vec2 newRawMouseDelta) { rawMouseDelta = newRawMouseDelta; }
 
 		//Get vertical scroll wheel delta (-1 to +1)
-		inline float GetMouseWheelDelta() const { return mouseWheelDelta; }
-		inline void SetMouseWheelDelta(float delta) { mouseWheelDelta = delta; }
-
-		inline bool IsMouseDragging()
-		{
-			bool isHoldingDragKey =
-				IsMouseDown(MouseButton::Left)
-				|| IsMouseDown(MouseButton::Right);
-
-			bool isDragging =
-				isHoldingDragKey
-				&& (mouseDelta.x != 0
-				|| mouseDelta.y != 0);
-
-			return isDragging;
-		}
+		inline float GetScrollwheelDelta() const { return mouseWheelDelta; }
+		inline void SetScrollwheelDelta(float delta) { mouseWheelDelta = delta; }
 
 		//Return true if cursor is not hidden.
 		inline bool IsMouseVisible() const { return isMouseVisible; }

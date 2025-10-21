@@ -194,6 +194,50 @@ namespace KalaWindow::UI
 		return this == hitWidgets[0];
 	}
 
+	void Widget::PollEvents(Input* input)
+	{
+		if (event.function_button_pressed
+			&& ((event.keyPressed != Key::Unknown
+			&& input->IsKeyPressed(event.keyPressed))
+			|| (event.mousePressed != MouseButton::Unknown
+			&& input->IsMouseButtonPressed(event.mousePressed))))
+		{
+			event.function_button_pressed();
+		}
+		if (event.function_button_released
+			&& ((event.keyReleased != Key::Unknown
+			&& input->IsKeyReleased(event.keyReleased))
+			|| (event.mouseReleased != MouseButton::Unknown
+			&& input->IsMouseButtonReleased(event.mouseReleased))))
+		{
+			event.function_button_released();
+		}
+		if (event.function_button_held
+			&& ((event.keyHeld != Key::Unknown
+			&& input->IsKeyHeld(event.keyHeld))
+			|| (event.mouseHeld != MouseButton::Unknown
+			&& input->IsMouseButtonHeld(event.mouseHeld))))
+		{
+			event.function_button_held();
+		}
+		if (event.function_mouse_dragged
+			&& event.mouseDragged != MouseButton::Unknown
+			&& input->IsMouseButtonDragging(event.mouseDragged))
+		{
+			event.function_mouse_dragged();
+		}
+		if (event.function_mouse_hovered
+			&& IsHovered())
+		{
+			event.function_mouse_hovered();
+		}
+		if (event.function_mouse_scrolled)
+		{
+			float swDelta = input->GetScrollwheelDelta();
+			if (swDelta != 0) event.function_mouse_scrolled();
+		}
+	}
+
 	void Widget::Create2DQuad(
 		u32& vaoOut,
 		u32& vboOut,

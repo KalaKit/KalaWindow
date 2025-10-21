@@ -94,9 +94,9 @@ namespace KalaWindow::Core
 		for (const auto& c : codes)
 		{
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyDown(static_cast<Key>(c.code)))
+				&& !IsKeyHeld(static_cast<Key>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseDown(static_cast<MouseButton>(c.code))))
+				&& !IsMouseButtonHeld(static_cast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -115,9 +115,9 @@ namespace KalaWindow::Core
 		{
 			const auto& c = *it;
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyDown(static_cast<Key>(c.code)))
+				&& !IsKeyHeld(static_cast<Key>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseDown(static_cast<MouseButton>(c.code))))
+				&& !IsMouseButtonHeld(static_cast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -128,7 +128,7 @@ namespace KalaWindow::Core
 		if ((c.type == InputCode::Type::Key
 			&& !IsKeyPressed(static_cast<Key>(c.code)))
 			|| (c.type == InputCode::Type::Mouse
-			&& !IsMousePressed(static_cast<MouseButton>(c.code))))
+			&& !IsMouseButtonPressed(static_cast<MouseButton>(c.code))))
 		{
 			return false;
 		}
@@ -147,9 +147,9 @@ namespace KalaWindow::Core
 		{
 			const auto& c = *it;
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyDown(static_cast<Key>(c.code)))
+				&& !IsKeyHeld(static_cast<Key>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseDown(static_cast<MouseButton>(c.code))))
+				&& !IsMouseButtonHeld(static_cast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -160,7 +160,7 @@ namespace KalaWindow::Core
 		if ((c.type == InputCode::Type::Key
 			&& !IsKeyReleased(static_cast<Key>(c.code)))
 			|| (c.type == InputCode::Type::Mouse
-			&& !IsMouseReleased(static_cast<MouseButton>(c.code))))
+			&& !IsMouseButtonReleased(static_cast<MouseButton>(c.code))))
 		{
 			return false;
 		}

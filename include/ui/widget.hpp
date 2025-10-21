@@ -10,9 +10,11 @@
 #include <algorithm>
 #include <functional>
 #include <array>
+
 #include "KalaHeaders/core_utils.hpp"
 
 #include "core/glm_global.hpp"
+#include "core/input.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 
@@ -26,6 +28,9 @@ namespace KalaWindow::UI
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
+	using KalaWindow::Core::Input;
+	using KalaWindow::Core::Key;
+	using KalaWindow::Core::MouseButton;
 
 	constexpr u16 MAX_Z_ORDER = 1024;
 
@@ -63,12 +68,12 @@ namespace KalaWindow::UI
 
 	enum class ActionTarget
 	{
-		ACTION_PRESSED,  //pressed mouse button while hovering over widget
-		ACTION_RELEASED, //released mouse button while hovering over widget
-		ACTION_HELD,     //held mouse button while hovering over widget
+		ACTION_PRESSED,  //pressed key or mouse button
+		ACTION_RELEASED, //released key or mouse button
+		ACTION_HELD,     //held key or mouse button
 		ACTION_HOVERED,  //hovered cursor over widget
-		ACTION_DRAGGED,  //held mouse button and moved mouse while hovering over widget
-		ACTION_SCROLLED  //moved scrollwheel while hovering over widget
+		ACTION_DRAGGED,  //held mouse button and moved mouse
+		ACTION_SCROLLED  //used scrollwheel
 	};
 
 	struct Widget_Transform
@@ -118,6 +123,27 @@ namespace KalaWindow::UI
 
 		OpenGL_Shader* shader{};
 		OpenGL_Texture* texture{};
+	};
+
+	struct Widget_Event
+	{
+		function<void()> function_button_pressed{};
+		Key keyPressed{};
+		MouseButton mousePressed{};
+
+		function<void()> function_button_released{};
+		Key keyReleased{};
+		MouseButton mouseReleased{};
+
+		function<void()> function_button_held{};
+		Key keyHeld{};
+		MouseButton mouseHeld{};
+
+		function<void()> function_mouse_dragged{};
+		MouseButton mouseDragged{};
+
+		function<void()> function_mouse_hovered{};
+		function<void()> function_mouse_scrolled{};
 	};
 
 	class LIB_API Widget
@@ -395,36 +421,177 @@ namespace KalaWindow::UI
 		//covered entirely or partially by another widget then this returns true
 		bool IsHovered() const;
 
-		inline void SetAction(
+		//Accepts mouse buttons for pressed, released, held and dragged events.
+		//Use 'SetMouseHoverEvent()' and 'SetMouseScrollEvent()' to assign those events
+		inline void SetMouseEvent(
 			const function<void()>& newValue,
+			MouseButton mouseButton,
 			ActionTarget actionTarget)
 		{
-			//skip if function is invalid
-			if (!newValue) return;
+			if (!newValue
+				|| mouseButton == MouseButton::MouseButtonCount)
+			{
+				return;
+			}
 
 			switch (actionTarget)
 			{
-			case ActionTarget::ACTION_PRESSED:  function_mouse_pressed = newValue; break;
-			case ActionTarget::ACTION_RELEASED: function_mouse_released = newValue; break;
-			case ActionTarget::ACTION_HELD:     function_mouse_held = newValue; break;
-			case ActionTarget::ACTION_HOVERED:  function_mouse_hovered = newValue; break;
-			case ActionTarget::ACTION_DRAGGED:  function_mouse_dragged = newValue; break;
-			case ActionTarget::ACTION_SCROLLED: function_mouse_scrolled = newValue; break;
+			case ActionTarget::ACTION_PRESSED:
+			{
+				event.keyPressed = Key::Unknown;
+				event.mousePressed = mouseButton;
+
+				event.function_button_pressed = newValue;
+				break;
+			}
+			case ActionTarget::ACTION_RELEASED:
+			{
+				event.keyReleased = Key::Unknown;
+				event.mouseReleased = mouseButton;
+
+				event.function_button_released = newValue;
+				break;
+			}
+			case ActionTarget::ACTION_HELD:
+			{
+				event.keyHeld = Key::Unknown;
+				event.mouseHeld = mouseButton;
+
+				event.function_button_held = newValue;
+				break;
+			}
+			case ActionTarget::ACTION_DRAGGED:
+			{
+				event.mouseDragged = mouseButton;
+
+				event.function_mouse_dragged = newValue;
+				break;
+			}
 			}
 		}
-
-		inline void RunAction(ActionTarget actionTarget) const
+		//Assigns mouse hovered event
+		inline void SetMouseHoverEvent(const function<void()>& newValue)
+		{
+			if (!newValue) return;
+			event.function_mouse_hovered = newValue;
+		}
+		//Assigns mouse scrolled event
+		inline void SetMouseScrollEvent(const function<void()>& newValue)
+		{
+			if (!newValue) return;
+			event.function_mouse_scrolled = newValue;
+		}
+		//Returns which mouse button is attached to what event, ignores hovered and scrolled events
+		inline MouseButton GetMouseEventButton(ActionTarget actionTarget) const
 		{
 			switch (actionTarget)
 			{
-			case ActionTarget::ACTION_PRESSED:  if (function_mouse_pressed) function_mouse_pressed(); break;
-			case ActionTarget::ACTION_RELEASED: if (function_mouse_released) function_mouse_released(); break;
-			case ActionTarget::ACTION_HELD:     if (function_mouse_held) function_mouse_held(); break;
-			case ActionTarget::ACTION_HOVERED:  if (function_mouse_hovered) function_mouse_hovered(); break;
-			case ActionTarget::ACTION_DRAGGED:  if (function_mouse_dragged) function_mouse_dragged(); break;
-			case ActionTarget::ACTION_SCROLLED: if (function_mouse_scrolled) function_mouse_scrolled(); break;
+			case ActionTarget::ACTION_PRESSED:  return event.mousePressed;
+			case ActionTarget::ACTION_RELEASED: return event.mouseReleased;
+			case ActionTarget::ACTION_HELD:     return event.mouseHeld;
+			case ActionTarget::ACTION_DRAGGED:  return event.mouseDragged;
+			}
+
+			return MouseButton::Unknown;
+		}
+
+		//Accepts keyboard keys for pressed, released and held events, ignores all other events
+		inline void SetKeyEvent(
+			const function<void()>& newValue,
+			Key key,
+			ActionTarget actionTarget)
+		{
+			if (!newValue
+				|| key == Key::KeyCount)
+			{
+				return;
+			}
+
+			switch (actionTarget)
+			{
+			case ActionTarget::ACTION_PRESSED: 	event.function_button_pressed = newValue; break;
+			case ActionTarget::ACTION_RELEASED: event.function_button_released = newValue; break;
+			case ActionTarget::ACTION_HELD:     event.function_button_held = newValue; break;
 			}
 		}
+		//Returns which key is attached to what key event, ignores dragged, hovered and scrolled events
+		inline Key GetKeyEventButton(ActionTarget actionTarget) const
+		{
+			switch (actionTarget)
+			{
+			case ActionTarget::ACTION_PRESSED:  return event.keyPressed;
+			case ActionTarget::ACTION_RELEASED: return event.keyReleased;
+			case ActionTarget::ACTION_HELD:     return event.keyHeld;
+			}
+
+			return Key::Unknown;
+		}
+
+		//Clears target event function and its buttons
+		inline void ClearEvent(ActionTarget actionTarget)
+		{
+			switch (actionTarget)
+			{
+			case ActionTarget::ACTION_PRESSED:
+			{
+				event.keyPressed = Key::Unknown;
+				event.mousePressed = MouseButton::Unknown;
+				event.function_button_pressed = nullptr;
+
+				break;
+			}
+			case ActionTarget::ACTION_RELEASED:
+			{
+				event.keyReleased = Key::Unknown;
+				event.mouseReleased = MouseButton::Unknown;
+				event.function_button_released = nullptr;
+
+				break;
+			}
+			case ActionTarget::ACTION_HELD:
+			{
+				event.keyHeld = Key::Unknown;
+				event.mouseHeld = MouseButton::Unknown;
+				event.function_button_held = nullptr;
+
+				break;
+			}
+			case ActionTarget::ACTION_DRAGGED:
+			{
+				event.mouseDragged = MouseButton::Unknown;
+				event.function_mouse_dragged = nullptr;
+
+				break;
+			}
+			case ActionTarget::ACTION_HOVERED:  event.function_mouse_hovered = nullptr; break;
+			case ActionTarget::ACTION_SCROLLED: event.function_mouse_scrolled = nullptr; break;
+			}
+		}
+		//Removes all event functions and resets their attached buttons
+		inline void ClearAllEvents()
+		{
+			event.keyPressed = Key::Unknown;
+			event.mousePressed = MouseButton::Unknown;
+			event.function_button_pressed = nullptr;
+
+			event.keyReleased = Key::Unknown;
+			event.mouseReleased = MouseButton::Unknown;
+			event.function_button_released = nullptr;
+
+			event.keyHeld = Key::Unknown;
+			event.mouseHeld = MouseButton::Unknown;
+			event.function_button_held = nullptr;
+
+			event.mouseDragged = MouseButton::Unknown;
+			event.function_mouse_dragged = nullptr;
+
+			event.function_mouse_hovered = nullptr;
+
+			event.function_mouse_scrolled = nullptr;
+		}
+
+		//Poll the events that have attached functions once this frame
+		void PollEvents(Input* input);
 
 		//
 		// GRAPHICS
@@ -714,18 +881,13 @@ namespace KalaWindow::UI
 		u16 zOrder{};
 
 		bool isInteractable = true;
-		function<void()> function_mouse_pressed{};
-		function<void()> function_mouse_released{};
-		function<void()> function_mouse_held{};
-		function<void()> function_mouse_hovered{};
-		function<void()> function_mouse_dragged{};
-		function<void()> function_mouse_scrolled{};
 
 		Widget* parent{};
 		vector<Widget*> children{};
 
 		Widget_Transform transform{};
 		Widget_Render render{};
+		Widget_Event event{};
 
 		static void Create2DQuad(
 			u32& vaoOut,

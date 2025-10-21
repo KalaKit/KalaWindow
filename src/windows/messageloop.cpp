@@ -649,107 +649,8 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (delta > 0) scroll = +1.0f;
 		else if (delta < 0) scroll = -1.0f;
 
-		if (input) input->SetMouseWheelDelta(scroll);
+		if (input) input->SetScrollwheelDelta(scroll);
 
-		return false;
-	}
-
-	//
-	// MOUSE DOUBLE CLICK
-	//
-
-	case WM_LBUTTONDBLCLK:
-	{
-		if (input)
-		{
-			input->SetMouseButtonDoubleClickState(
-				MouseButton::Left,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected left mouse key double click.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_RBUTTONDBLCLK:
-	{
-		if (input)
-		{
-			input->SetMouseButtonDoubleClickState(
-				MouseButton::Right,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected right mouse key double click.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_MBUTTONDBLCLK:
-	{
-		if (input)
-		{
-			input->SetMouseButtonDoubleClickState(
-				MouseButton::Right,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected middle mouse key double click.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_XBUTTONDBLCLK:
-	{
-		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
-
-		if (input)
-		{
-			if (button == XBUTTON1)
-			{
-				input->SetMouseButtonDoubleClickState(
-					MouseButton::X1,
-					true);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x1 mouse key double click.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-			if (button == XBUTTON2)
-			{
-				input->SetMouseButtonDoubleClickState(
-					MouseButton::X2,
-					true);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x2 mouse key double click.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-		}
 		return false;
 	}
 
@@ -945,6 +846,107 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 				{
 					Log::Print(
 						"Detected x2 mouse key up.",
+						"INPUT",
+						LogType::LOG_INFO);
+				}
+			}
+		}
+		return false;
+	}
+
+	//
+	// MOUSE DOUBLE CLICK
+	//
+
+	//TODO: figure out if double click timing delay slows down single clicks
+
+	case WM_LBUTTONDBLCLK:
+	{
+		if (input)
+		{
+			input->SetMouseButtonDoubleClickState(
+				MouseButton::Left,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected left mouse key double click.",
+					"INPUT",
+					LogType::LOG_INFO);
+			}
+		}
+
+		return false;
+	}
+	case WM_RBUTTONDBLCLK:
+	{
+		if (input)
+		{
+			input->SetMouseButtonDoubleClickState(
+				MouseButton::Right,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected right mouse key double click.",
+					"INPUT",
+					LogType::LOG_INFO);
+			}
+		}
+
+		return false;
+	}
+	case WM_MBUTTONDBLCLK:
+	{
+		if (input)
+		{
+			input->SetMouseButtonDoubleClickState(
+				MouseButton::Right,
+				true);
+
+			if (Input::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Detected middle mouse key double click.",
+					"INPUT",
+					LogType::LOG_INFO);
+			}
+		}
+
+		return false;
+	}
+	case WM_XBUTTONDBLCLK:
+	{
+		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
+
+		if (input)
+		{
+			if (button == XBUTTON1)
+			{
+				input->SetMouseButtonDoubleClickState(
+					MouseButton::X1,
+					true);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x1 mouse key double click.",
+						"INPUT",
+						LogType::LOG_INFO);
+				}
+			}
+			if (button == XBUTTON2)
+			{
+				input->SetMouseButtonDoubleClickState(
+					MouseButton::X2,
+					true);
+
+				if (Input::IsVerboseLoggingEnabled())
+				{
+					Log::Print(
+						"Detected x2 mouse key double click.",
 						"INPUT",
 						LogType::LOG_INFO);
 				}
