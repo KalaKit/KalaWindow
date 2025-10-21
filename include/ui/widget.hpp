@@ -46,24 +46,25 @@ namespace KalaWindow::UI
 
 	enum class PosTarget
 	{
-		POS_WORLD, //get/set world position
-		POS_LOCAL, //get/set position relative to parent
+		POS_WORLD,    //position relative to window center
+		POS_LOCAL,    //position added on top of world position if the widget has a parent
 
-		POS_COMBINED //get position affected by anchor and parent
+		POS_COMBINED, //final position after combining world and local position
+		POS_ORIGINAL  //original position before moving to window center
 	};
 	enum class RotTarget
 	{
-		ROT_WORLD,   //get/set world rotation
-		ROT_LOCAL,   //get/set rotation relative to parent
+		ROT_WORLD,   //rotation of this widget
+		ROT_LOCAL,   //rotation added on top of world rotation if the widget has a parent
 
-		ROT_COMBINED //get rotation affected by parent
+		ROT_COMBINED //final rotation after combining world and local rotation
 	};
 	enum class SizeTarget
 	{
-		SIZE_WORLD,   //get/set world size
-		SIZE_LOCAL,   //get/set size relative to parent
+		SIZE_WORLD,   //size of this widget
+		SIZE_LOCAL,   //size added on top of world position if the widget has a parent
 
-		SIZE_COMBINED //get size affected by parent
+		SIZE_COMBINED //final position after combining world and local position
 	};
 
 	enum class ActionTarget
@@ -78,17 +79,22 @@ namespace KalaWindow::UI
 
 	struct Widget_Transform
 	{
-		vec2 worldPos{};      //world position unaffected by other values
-		vec2 localPos{};      //parent offset position, unused if anchor is valid
-		vec2 combinedPos{};   //final position relative to parent and anchor
+		vec2 worldPos{};     //position relative to window center
+		vec2 localPos{};     //position added on top of world position if the widget has a parent
+		vec2 combinedPos{};  //final position after combining world and local position
+		vec2 originalPos{};  //original position before moving to window center
 
-		f32 worldRot{};       //world euler rotation in degrees, unaffected by other values
-		f32 localRot{};       //parent offset euler rotation
-		f32 combinedRot{};    //final rotation relative to parent
+		f32 worldRot{};      //rotation of this widget
+		f32 localRot{};      //rotation added on top of world rotation if the widget has a parent
+		f32 combinedRot{};   //final rotation after combining world and local rotation
 
-		vec2 worldSize{};     //world size unaffected by other values
-		vec2 localSize{};     //parent offset size
-		vec2 combinedSize{};  //final size relative to parent
+		vec2 worldSize{};    //size of this widget
+		vec2 localSize{};    //size added on top of world position if the widget has a parent
+		vec2 combinedSize{}; //final position after combining world and local position
+
+		vec2 lastViewportSize{};    //Last frame viewport size, if it doesn't match current one then 'UpdateTransform()' is called
+		vec2 viewportSize{};        //the size of the target window or viewport to render this widget inside of
+		float baseHeight = 1080.0f; //used for affecting the Y position of the AABB relative to the viewport size
 
 		const array<vec2, 4> vertices = 
 		{
@@ -103,7 +109,6 @@ namespace KalaWindow::UI
 			2, 3, 0
 		};
 
-		vec2 aabbOffset{};
 		array<vec2, 2> aabb{};
 	};
 
@@ -158,8 +163,11 @@ namespace KalaWindow::UI
 
 		inline bool IsInitialized() const { return isInitialized; }
 
-		//Core render function for all widget systems, must be overridden per inherited widget
-		virtual bool Render(const mat3& projection) = 0;
+		//Render the widget. Pass viewport size so that the widget can be
+		//positioned to the window center and offset from that with world pos
+		virtual bool Render(
+			const mat3& projection,
+			const vec2 viewportSize) = 0;
 
 		inline u32 GetID() const { return ID; }
 		inline u32 GetWindowID() const { return windowID; }
@@ -191,12 +199,23 @@ namespace KalaWindow::UI
 		// TRANSFORM
 		//
 
+		inline void SetBaseHeight(f32 newValue)
+		{
+			f32 clamped = clamp(newValue, 1.0f, 4320.0f);
+			transform.baseHeight = clamped;
+		}
+		inline f32 GetBaseHeight() const { return transform.baseHeight; }
+
 		inline void SetPos(
 			const vec2 newPos,
 			PosTarget posTarget)
 		{
-			//cannot set combined pos
-			if (posTarget == PosTarget::POS_COMBINED) return;
+			//cannot set combined or original pos
+			if (posTarget == PosTarget::POS_COMBINED
+				|| posTarget == PosTarget::POS_ORIGINAL)
+			{
+				return;
+			}
 
 			f32 clampedX = clamp(newPos.x, -10000.0f, 10000.0f);
 			f32 clampedY = clamp(newPos.y, -10000.0f, 10000.0f);
@@ -217,9 +236,10 @@ namespace KalaWindow::UI
 
 			switch (posTarget)
 			{
-			case PosTarget::POS_WORLD:      return transform.worldPos; break;
-			case PosTarget::POS_LOCAL:      return transform.localPos; break;
-			case PosTarget::POS_COMBINED:   return transform.combinedPos; break;
+			case PosTarget::POS_WORLD:    return transform.worldPos; break;
+			case PosTarget::POS_LOCAL:    return transform.localPos; break;
+			case PosTarget::POS_COMBINED: return transform.combinedPos; break;
+			case PosTarget::POS_ORIGINAL: return transform.originalPos; break;
 			}
 
 			return empty;
@@ -301,13 +321,6 @@ namespace KalaWindow::UI
 			return empty;
 		};
 
-		inline void SetAABBOffset(vec2 newValue)
-		{
-			vec2 clamped = clamp(newValue, vec2(-10000.0f), vec2(10000.0f));
-			transform.aabbOffset = clamped;
-		}
-		inline vec2 GetAABBOffset() const { return transform.aabbOffset; }
-
 		inline const array<vec2, 4>& GetVertices() const { return transform.vertices; };
 		inline const array<u8, 6>& GetIndices() const { return transform.indices; }
 
@@ -351,11 +364,12 @@ namespace KalaWindow::UI
 
 				vec2 rotOffset = rotMat * transform.localPos;
 				transform.combinedPos = 
-					parent->transform.combinedPos 
+					parent->transform.combinedPos
+					+ transform.originalPos
 					+ transform.worldPos
 					+ rotOffset;
 			}
-			else transform.combinedPos = transform.worldPos;
+			else transform.combinedPos = transform.originalPos + transform.worldPos;
 
 			UpdateAABB();
 		}
@@ -861,10 +875,30 @@ namespace KalaWindow::UI
 	protected:
 		inline void UpdateAABB()
 		{
+			vec2 size = transform.combinedSize;
+			float normalizedHeight = transform.viewportSize.y / transform.baseHeight;
+
+			vec2 offset = vec2(0.0f, -(size.y * 0.7f * normalizedHeight));
+
 			vec2 half = transform.combinedSize * 0.5f;
 
-			transform.aabb[0] = transform.combinedPos - half + transform.aabbOffset; //min
-			transform.aabb[1] = transform.combinedPos + half + transform.aabbOffset; //max
+			transform.aabb[0] = transform.combinedPos - half + offset; //min
+			transform.aabb[1] = transform.combinedPos + half + offset; //max
+		}
+
+		//Ensures the widget is centered
+		inline void UpdateOriginalPosition()
+		{
+			vec2 center = transform.viewportSize * 0.5f;
+			vec2 correctPos = vec2(center.x * 1.0f, center.y * 1.5f);
+
+			if (transform.originalPos != correctPos) transform.originalPos = correctPos;
+
+			if (transform.lastViewportSize != transform.viewportSize)
+			{
+				UpdateTransform();
+				transform.lastViewportSize = transform.viewportSize;
+			}
 		}
 
 		bool isInitialized{};

@@ -39,7 +39,7 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	//Set OpenGL debug callback
 	LIB_API extern PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback;
 
-	// Returns the last error flag raised
+	//Returns the last error flag raised
 	LIB_API extern PFNGLGETERRORPROC glGetError;
 
 	//
@@ -94,299 +94,299 @@ namespace KalaWindow::Graphics::OpenGLFunctions
 	//Defines an array of generic vertex attribute data
 	LIB_API extern PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 
-	// Tells OpenGL which faces to not render before fragment shading
+	//Tells OpenGL which faces to not render before fragment shading
 	LIB_API extern PFNGLCULLFACEPROC glCullFace;
 
 	//
 	// SHADERS
 	//
 
-	// Attaches a shader object to a program
+	//Attaches a shader object to a program
 	LIB_API extern PFNGLATTACHSHADERPROC glAttachShader;
 
-	// Compiles a shader object
+	//Compiles a shader object
 	LIB_API extern PFNGLCOMPILESHADERPROC glCompileShader;
 
-	// Creates a new shader program object
+	//Creates a new shader program object
 	LIB_API extern PFNGLCREATEPROGRAMPROC glCreateProgram;
 
-	// Creates a shader object of the specified type (GL_VERTEX_SHADER, etc.)
+	//Creates a shader object of the specified type (GL_VERTEX_SHADER, etc.)
 	LIB_API extern PFNGLCREATESHADERPROC glCreateShader;
 
-	// Deletes a shader object
+	//Deletes a shader object
 	LIB_API extern PFNGLDELETESHADERPROC glDeleteShader;
 
-	// Deletes a program object
+	//Deletes a program object
 	LIB_API extern PFNGLDELETEPROGRAMPROC glDeleteProgram;
 
-	// Detaches a shader object from a program
+	//Detaches a shader object from a program
 	LIB_API extern PFNGLDETACHSHADERPROC glDetachShader;
 
-	// Retrieves information about an active attribute variable
+	//Retrieves information about an active attribute variable
 	LIB_API extern PFNGLGETACTIVEATTRIBPROC glGetActiveAttrib;
 
-	// Returns the attribute location within a shader program
+	//Returns the attribute location within a shader program
 	LIB_API extern PFNGLGETATTRIBLOCATIONPROC glGetAttribLocation;
 
-	// Retrieves a parameter from a program object
+	//Retrieves a parameter from a program object
 	LIB_API extern PFNGLGETPROGRAMIVPROC glGetProgramiv;
 
-	// Returns the information log for a program object
+	//Returns the information log for a program object
 	LIB_API extern PFNGLGETPROGRAMINFOLOGPROC glGetProgramInfoLog;
 
-	// Retrieves a parameter from a shader object
+	//Retrieves a parameter from a shader object
 	LIB_API extern PFNGLGETSHADERIVPROC glGetShaderiv;
 
-	// Returns the information log for a shader object
+	//Returns the information log for a shader object
 	LIB_API extern PFNGLGETSHADERINFOLOGPROC glGetShaderInfoLog;
 
-	// Links a program object
+	//Links a program object
 	LIB_API extern PFNGLLINKPROGRAMPROC glLinkProgram;
 
-	// Sets the source code for a shader
+	//Sets the source code for a shader
 	LIB_API extern PFNGLSHADERSOURCEPROC glShaderSource;
 
-	// Activates a shader program for rendering
+	//Activates a shader program for rendering
 	LIB_API extern PFNGLUSEPROGRAMPROC glUseProgram;
 
-	// Validates a program object to see if it's executable
+	//Validates a program object to see if it's executable
 	LIB_API extern PFNGLVALIDATEPROGRAMPROC glValidateProgram;
 
-	// Returns whether a given program name is a valid program object
+	//Returns whether a given program name is a valid program object
 	LIB_API extern PFNGLISPROGRAMPROC glIsProgram;
 
 	//
 	// UNIFORMS
 	//
 
-	// Retrieves the location of a uniform variable within a shader program
+	//Retrieves the location of a uniform variable within a shader program
 	LIB_API extern PFNGLGETUNIFORMLOCATIONPROC glGetUniformLocation;
 
-	// Find block index by name
+	//Find block index by name
 	LIB_API extern PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex;
 
-	// Bind block index to binding point
+	//Bind block index to binding point
 	LIB_API extern PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
 
-	// Sets a single float uniform value
+	//Sets a single float uniform value
 	LIB_API extern PFNGLUNIFORM1FPROC glUniform1f;
 
-	// Sets a single integer uniform value
+	//Sets a single integer uniform value
 	LIB_API extern PFNGLUNIFORM1IPROC glUniform1i;
 
-	// Sets a vec2 uniform (2 float components)
+	//Sets a vec2 uniform (2 float components)
 	LIB_API extern PFNGLUNIFORM2FPROC glUniform2f;
 
-	// Sets a vec2 uniform from an array of values
+	//Sets a vec2 uniform from an array of values
 	LIB_API extern PFNGLUNIFORM2FVPROC glUniform2fv;
 
-	// Sets a vec3 uniform (3 float components)
+	//Sets a vec3 uniform (3 float components)
 	LIB_API extern PFNGLUNIFORM3FPROC glUniform3f;
 
-	// Sets a vec3 uniform from an array of values
+	//Sets a vec3 uniform from an array of values
 	LIB_API extern PFNGLUNIFORM3FVPROC glUniform3fv;
 
-	// Sets a vec4 uniform (4 float components)
+	//Sets a vec4 uniform (4 float components)
 	LIB_API extern PFNGLUNIFORM4FPROC glUniform4f;
 
-	// Sets a vec4 uniform from an array of values
+	//Sets a vec4 uniform from an array of values
 	LIB_API extern PFNGLUNIFORM4FVPROC glUniform4fv;
 
-	// Sets a 2×2 matrix uniform from an array of floats
+	//Sets a 2×2 matrix uniform from an array of floats
 	LIB_API extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix2fv;
 
-	// Sets a 3×3 matrix uniform from an array of floats
+	//Sets a 3×3 matrix uniform from an array of floats
 	LIB_API extern PFNGLUNIFORMMATRIX3FVPROC glUniformMatrix3fv;
 
-	// Sets a 4×4 matrix uniform from an array of floats
+	//Sets a 4×4 matrix uniform from an array of floats
 	LIB_API extern PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 
 	//
 	// TEXTURES
 	//
 
-	// Binds a named texture to a texturing target
+	//Binds a named texture to a texturing target
 	LIB_API extern PFNGLBINDTEXTUREPROC glBindTexture;
 
-	// Activates the specified texture unit
+	//Activates the specified texture unit
 	LIB_API extern PFNGLACTIVETEXTUREPROC glActiveTexture;
 
-	// Deletes one or more named textures
+	//Deletes one or more named textures
 	LIB_API extern PFNGLDELETETEXTURESPROC glDeleteTextures;
 
-	// Generates mipmaps for the currently bound texture
+	//Generates mipmaps for the currently bound texture
 	LIB_API extern PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
-	// Generates texture object names
+	//Generates texture object names
 	LIB_API extern PFNGLGENTEXTURESPROC glGenTextures;
 
-	// Generates texture object names
+	//Generates texture object names
 	LIB_API extern PFNGLGENTEXTURESPROC glGenTextures;
 
-	// Specifies a 2D texture image
+	//Specifies a 2D texture image
 	LIB_API extern PFNGLTEXIMAGE2DPROC glTexImage2D;
 
-	// Specifies a 3D texture image
+	//Specifies a 3D texture image
 	LIB_API extern PFNGLTEXIMAGE3DPROC glTexImage3D;
 
-	// Specifies a compressed 2D texture image
+	//Specifies a compressed 2D texture image
 	LIB_API extern PFNGLCOMPRESSEDTEXIMAGE2DPROC glCompressedTexImage2D;
 
-	// Specifies a compressed 3D or array texture image
+	//Specifies a compressed 3D or array texture image
 	LIB_API extern PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D;
 
-	// Allocates immutable storage for a 2D texture or cube map (all mip levels)
+	//Allocates immutable storage for a 2D texture or cube map (all mip levels)
 	LIB_API extern PFNGLTEXSTORAGE2DPROC glTexStorage2D;
 
-	// Allocates immutable storage for a 3D texture or 2D texture array (all mip levels)
+	//Allocates immutable storage for a 3D texture or 2D texture array (all mip levels)
 	LIB_API extern PFNGLTEXSTORAGE3DPROC glTexStorage3D;
 
-	// Specifies a subregion of a 2D texture image (upload pixels into an allocated level)
+	//Specifies a subregion of a 2D texture image (upload pixels into an allocated level)
 	LIB_API extern PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
 
-	// Specifies a subregion of a 3D or array texture image (upload pixels into an allocated level)
+	//Specifies a subregion of a 3D or array texture image (upload pixels into an allocated level)
 	LIB_API extern PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
 
-	// Specifies a subregion of a compressed 2D texture image (upload compressed blocks into an allocated level)
+	//Specifies a subregion of a compressed 2D texture image (upload compressed blocks into an allocated level)
 	LIB_API extern PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC glCompressedTexSubImage2D;
 
-	// Specifies a subregion of a compressed 3D or array texture image (upload compressed blocks into an allocated level)
+	//Specifies a subregion of a compressed 3D or array texture image (upload compressed blocks into an allocated level)
 	LIB_API extern PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC glCompressedTexSubImage3D;
 
-	// Sets integer texture parameters for the currently bound texture
+	//Sets integer texture parameters for the currently bound texture
 	LIB_API extern PFNGLTEXPARAMETERIPROC glTexParameteri;
 
-	// Sets integer/vector texture parameters for the currently bound texture
+	//Sets integer/vector texture parameters for the currently bound texture
 	LIB_API extern PFNGLTEXPARAMETERIVPROC glTexParameteriv;
 
-	// Sets float texture parameters for the currently bound texture
+	//Sets float texture parameters for the currently bound texture
 	LIB_API extern PFNGLTEXPARAMETERFPROC glTexParameterf;
 
-	// Sets float/vector texture parameters for the currently bound texture
+	//Sets float/vector texture parameters for the currently bound texture
 	LIB_API extern PFNGLTEXPARAMETERFVPROC glTexParameterfv;
 
-	// Tells OpenGL how to step through rows of integer pixel data
+	//Tells OpenGL how to step through rows of integer pixel data
 	LIB_API extern PFNGLPIXELSTOREIPROC glPixelStorei;
 
-	// Tells OpenGL how to step through rows of float pixel data
+	//Tells OpenGL how to step through rows of float pixel data
 	LIB_API extern PFNGLPIXELSTOREFPROC glPixelStoref;
 
 	//
 	// FRAMEBUFFERS AND RENDERBUFFERS
 	//
 
-	// Binds a renderbuffer to the renderbuffer target
+	//Binds a renderbuffer to the renderbuffer target
 	LIB_API extern PFNGLBINDRENDERBUFFERPROC glBindRenderbuffer;
 
-	// Binds a framebuffer to a framebuffer target
+	//Binds a framebuffer to a framebuffer target
 	LIB_API extern PFNGLBINDFRAMEBUFFERPROC glBindFramebuffer;
 
-	// Binds a buffer object to a binding point that shaders can use
+	//Binds a buffer object to a binding point that shaders can use
 	LIB_API extern PFNGLBINDBUFFERBASEPROC glBindBufferBase;
 
-	// Checks the completeness status of a framebuffer
+	//Checks the completeness status of a framebuffer
 	LIB_API extern PFNGLCHECKFRAMEBUFFERSTATUSPROC glCheckFramebufferStatus;
 
-	// Attaches a renderbuffer to a framebuffer attachment point
+	//Attaches a renderbuffer to a framebuffer attachment point
 	LIB_API extern PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer;
 
-	// Attaches a 2D texture image to a framebuffer attachment point
+	//Attaches a 2D texture image to a framebuffer attachment point
 	LIB_API extern PFNGLFRAMEBUFFERTEXTURE2DPROC glFramebufferTexture2D;
 
-	// Generates renderbuffer object names
+	//Generates renderbuffer object names
 	LIB_API extern PFNGLGENRENDERBUFFERSPROC glGenRenderbuffers;
 
-	// Generates framebuffer object names
+	//Generates framebuffer object names
 	LIB_API extern PFNGLGENFRAMEBUFFERSPROC glGenFramebuffers;
 
-	// Establishes data storage format and dimensions for a renderbuffer
+	//Establishes data storage format and dimensions for a renderbuffer
 	LIB_API extern PFNGLRENDERBUFFERSTORAGEPROC glRenderbufferStorage;
 
-	// Sets the comparison function used for depth testing
+	//Sets the comparison function used for depth testing
 	LIB_API extern PFNGLDEPTHFUNCPROC glDepthFunc;
 
-	// Toggles writing to the depth buffer
+	//Toggles writing to the depth buffer
 	LIB_API extern PFNGLDEPTHMASKPROC glDepthMask;
 
-	// Sets the constant blend color used with blending factors
+	//Sets the constant blend color used with blending factors
 	LIB_API extern PFNGLBLENDCOLORPROC glBlendColor;
 
-	// Sets the blending factors used to combine source and destination colors
+	//Sets the blending factors used to combine source and destination colors
 	LIB_API extern PFNGLBLENDFUNCPROC glBlendFunc;
 
-	// Sets the blending factors used to combine source and destination colors for a specific color buffer
+	//Sets the blending factors used to combine source and destination colors for a specific color buffer
 	LIB_API extern PFNGLBLENDFUNCIPROC glBlendFunci;
 
-	// Sets the blend equation used to combine source and destination colors
+	//Sets the blend equation used to combine source and destination colors
 	LIB_API extern PFNGLBLENDEQUATIONPROC glBlendEquation;
 
-	// Sets the per-render-target blend equation used to combine source and destination colors
+	//Sets the per-render-target blend equation used to combine source and destination colors
 	LIB_API extern PFNGLBLENDEQUATIONIPROC glBlendEquationi;
 
-	// Sets the blend equation used to combine source and destination colors
-	// as well as RGB and Alpha channels
+	//Sets the blend equation used to combine source and destination colors
+	//as well as RGB and Alpha channels
 	LIB_API extern PFNGLBLENDEQUATIONSEPARATEPROC glBlendEquationSeparate;
 
-	// Sets the per-render-target blend equation used to combine source and destination colors
-	// as well as RGB and Alpha channels
+	//Sets the per-render-target blend equation used to combine source and destination colors
+	//as well as RGB and Alpha channels
 	LIB_API extern PFNGLBLENDEQUATIONSEPARATEIPROC glBlendEquationSeparatei;
 
-	// Sets the stencil test function, reference value and mask
+	//Sets the stencil test function, reference value and mask
 	LIB_API extern PFNGLSTENCILFUNCPROC glStencilFunc;
 
-	// Sets the stencil test function separately for front and back faces
+	//Sets the stencil test function separately for front and back faces
 	LIB_API extern PFNGLSTENCILFUNCSEPARATEPROC glStencilFuncSeparate;
 
-	// Sets the bitmask that controls which bits of the stencil buffer can be written
+	//Sets the bitmask that controls which bits of the stencil buffer can be written
 	LIB_API extern PFNGLSTENCILMASKPROC glStencilMask;
 
-	// Sets which bits of the stencil buffer can be written, separately per face
+	//Sets which bits of the stencil buffer can be written, separately per face
 	LIB_API extern PFNGLSTENCILMASKSEPARATEPROC glStencilMaskSeparate;
 
-	// Sets the action to take on stencil failure, depth test failure and depth test pass
+	//Sets the action to take on stencil failure, depth test failure and depth test pass
 	LIB_API extern PFNGLSTENCILOPPROC glStencilOp;
 
-	// Sets stencil operations separately for front and back faces
+	//Sets stencil operations separately for front and back faces
 	LIB_API extern PFNGLSTENCILOPSEPARATEPROC glStencilOpSeparate;
 
 	//
 	// FRAME AND RENDER STATE
 	//
 
-	// Clears buffers to preset values
+	//Clears buffers to preset values
 	LIB_API extern PFNGLCLEARPROC glClear;
 
-	// Specifies the clear color for color buffers
+	//Specifies the clear color for color buffers
 	LIB_API extern PFNGLCLEARCOLORPROC glClearColor;
 
-	// Enables a specific OpenGL capability
+	//Enables a specific OpenGL capability
 	LIB_API extern PFNGLENABLEPROC glEnable;
 
-	// Disables a specific OpenGL capability
+	//Disables a specific OpenGL capability
 	LIB_API extern PFNGLDISABLEPROC glDisable;
 
-	// Tells OpenGL how to decide which polygons are front-facing
+	//Tells OpenGL how to decide which polygons are front-facing
 	LIB_API extern PFNGLFRONTFACEPROC glFrontFace;
 
-	// Retrieves bool-valued parameters
+	//Retrieves bool-valued parameters
 	LIB_API extern PFNGLGETBOOLEANVPROC glGetBooleanv;
 
-	// Retrieves integer-valued parameters
+	//Retrieves integer-valued parameters
 	LIB_API extern PFNGLGETINTEGERVPROC glGetIntegerv;
 
-	// Retrieves float-valued parameters
+	//Retrieves float-valued parameters
 	LIB_API extern PFNGLGETFLOATVPROC glGetFloatv;
 
-	// Retrieves double-valued parameters
+	//Retrieves double-valued parameters
 	LIB_API extern PFNGLGETDOUBLEVPROC glGetDoublev;
 
-	// Returns a string describing the current GL connection
+	//Returns a string describing the current GL connection
 	LIB_API extern PFNGLGETSTRINGPROC glGetString;
 
-	// Returns a string extension for the given index
+	//Returns a string extension for the given index
 	LIB_API extern PFNGLGETSTRINGIPROC glGetStringi;
 
-	// Sets the viewport transformation dimensions
+	//Sets the viewport transformation dimensions
 	LIB_API extern PFNGLVIEWPORTPROC glViewport;
 
 	class LIB_API OpenGL_Functions_Core

@@ -30,8 +30,11 @@ namespace KalaWindow::UI
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);
 
-		//Core render function for all widget systems, must be overridden per inherited widget
-		virtual bool Render(const mat3& projection) override;
+		//Render the image. Pass viewport size so that the image can be
+		//positioned to the window center and offset from that with world pos
+		virtual bool Render(
+			const mat3& projection,
+			const vec2 viewportSize) override;
 
 		//Do not destroy manually, erase from registry instead
 		virtual ~Image() override;

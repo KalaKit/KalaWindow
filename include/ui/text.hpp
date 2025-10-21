@@ -31,8 +31,11 @@ namespace KalaWindow::UI
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);
 
-		//Core render function for all widget systems, must be overridden per inherited widget
-		virtual bool Render(const mat3& projection) override;
+		//Render the text. Pass viewport size so that the text can be
+		//positioned to the window center and offset from that with world pos
+		virtual bool Render(
+			const mat3& projection,
+			const vec2 viewportSize) override;
 
 		void SetFontID(u32 newValue);
 		inline u32 GetFontID() const { return fontID; }

@@ -138,7 +138,9 @@ namespace KalaWindow::UI
 		return imagePtr;
 	}
 
-	bool Image::Render(const mat3& projection)
+	bool Image::Render(
+		const mat3& projection,
+		const vec2 viewportSize)
 	{
 		if (!render.canUpdate) return false;
 
@@ -161,6 +163,11 @@ namespace KalaWindow::UI
 
 			return false;
 		}
+
+		vec2 clampedVP = clamp(viewportSize, vec2(1), vec2(10000));
+		transform.viewportSize = clampedVP;
+
+		UpdateOriginalPosition();
 
 		u32 programID = render.shader->GetProgramID();
 
