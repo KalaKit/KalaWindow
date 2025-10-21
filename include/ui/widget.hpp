@@ -426,9 +426,9 @@ namespace KalaWindow::UI
 		// INTERACTION
 		//
 
-		//Skip hit testing if true
+		//Skip hit testing and event polling if true
 		inline void SetInteractableState(bool newValue) { isInteractable = newValue; }
-		//Skip hit testing if true
+		//Skip hit testing and event polling if true
 		inline bool IsInteractable() const { return isInteractable; }
 
 		//If the cursor is over this widget and this widget is not
@@ -604,7 +604,8 @@ namespace KalaWindow::UI
 			event.function_mouse_scrolled = nullptr;
 		}
 
-		//Poll the events that have attached functions once this frame
+		//Poll the events that have attached functions once this frame,
+		//skipped internally if 'isInteractable' is false
 		void PollEvents(Input* input);
 
 		//

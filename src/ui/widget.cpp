@@ -196,6 +196,12 @@ namespace KalaWindow::UI
 
 	void Widget::PollEvents(Input* input)
 	{
+		if (!input
+			&& !isInteractable)
+		{
+			return;
+		}
+
 		if (event.function_button_pressed
 			&& ((event.keyPressed != Key::Unknown
 			&& input->IsKeyPressed(event.keyPressed))
