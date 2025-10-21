@@ -108,7 +108,7 @@ namespace KalaWindow::UI
 		if (parentWidget
 			&& parentWidget->IsInitialized())
 		{
-			imagePtr->SetParent(parentWidget);
+			imagePtr->hierarchy.SetParent(imagePtr, parentWidget);
 		}
 
 		Widget::Create2DQuad(
@@ -258,8 +258,8 @@ namespace KalaWindow::UI
 			"WIDGET",
 			LogType::LOG_INFO);
 
-		RemoveAllChildren();
-		RemoveParent();
+		hierarchy.RemoveAllChildren();
+		hierarchy.RemoveParent(this);
 
 		u32 vao = GetVAO();
 		u32 vbo = GetVBO();

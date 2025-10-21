@@ -12,6 +12,7 @@
 #include <array>
 
 #include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/hierarchy_utils.hpp"
 
 #include "core/glm_global.hpp"
 #include "core/input.hpp"
@@ -25,6 +26,8 @@ namespace KalaWindow::UI
 	using std::clamp;
 	using std::function;
 	using std::array;
+
+	using KalaHeaders::Hierarchy;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -156,6 +159,8 @@ namespace KalaWindow::UI
 	public:
 		//Returns all hit widgets at mouse position sorted by highest Z first
 		static vector<Widget*> HitWidgets(u32 windowID);
+
+		Hierarchy<Widget> hierarchy;
 
 		//
 		// CORE
@@ -337,15 +342,15 @@ namespace KalaWindow::UI
 			// ROTATION
 			//
 
-			transform.combinedRot = parent
-				? parent->transform.combinedRot + transform.worldRot + transform.localRot
+			transform.combinedRot = hierarchy.parent
+				? hierarchy.parent->transform.combinedRot + transform.worldRot + transform.localRot
 			    : transform.worldRot;
 
 			//
 			// SIZE
 			//
 
-			transform.combinedSize = parent
+			transform.combinedSize = hierarchy.parent
 				? transform.worldSize + transform.localSize
 			    : transform.worldSize;
 
@@ -353,9 +358,9 @@ namespace KalaWindow::UI
 			// POSITION
 			//
 
-			if (parent)
+			if (hierarchy.parent)
 			{
-				f32 rads = radians(parent->transform.combinedRot);
+				f32 rads = radians(hierarchy.parent->transform.combinedRot);
 				mat2 rotMat =
 				{
 					{ cos(rads), sin(rads) },
@@ -364,7 +369,7 @@ namespace KalaWindow::UI
 
 				vec2 rotOffset = rotMat * transform.localPos;
 				transform.combinedPos = 
-					parent->transform.combinedPos
+					hierarchy.parent->transform.combinedPos
 					+ transform.originalPos
 					+ transform.worldPos
 					+ rotOffset;
@@ -667,208 +672,15 @@ namespace KalaWindow::UI
 		inline void ClearTexture() { render.texture = nullptr; }
 		inline const OpenGL_Texture* GetTexture() const { return render.texture; }
 
-		//
-		// PARENT-CHILD HIERARCHY
-		//
-
-		//Returns the top-most widget of this widget
-		inline Widget* GetRoot() { return parent ? parent->GetRoot() : this; }
-
-		//Returns true if target widget is connected
-		//to current widget as a child, parent or sibling.
-		//Set recursive to true if you want deep widget search
-		inline bool HasWidget(
-			Widget* targetWidget, 
-			bool recursive = false)
-		{ 
-			if (!targetWidget) return false;
-
-			if (this == targetWidget) return true;
-
-			//check descendants
-			for (auto* c : children)
-			{
-				if (c == targetWidget) return true;
-
-				if (recursive
-					&& c->HasWidget(targetWidget, true))
-				{
-					return true;
-				}
-			}
-
-			//check ancestors
-			if (parent)
-			{
-				if (parent == targetWidget) return true;
-
-				if (recursive 
-					&& parent->HasWidget(targetWidget, true))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		inline bool IsParent(
-			Widget* targetWidget,
-			bool recursive = false)
+		//Should be called whenever a parent or child is added or removed from this widget
+		//to ensure this widget local values are refreshed
+		inline void ResetWidgetAfterHierarchyUpdate()
 		{
-			if (!targetWidget
-				|| this == targetWidget)
-			{
-				return false;
-			}
-
-			if (!parent) return false;
-
-			if (parent == targetWidget) return true;
-
-			if (recursive
-				&& parent->IsParent(targetWidget, true))
-			{
-				return true;
-			}
-
-			return false;
-		}
-		inline Widget* GetParent() { return parent; }
-		inline bool SetParent(Widget* targetWidget)
-		{
-			if (!targetWidget
-				|| targetWidget == this
-				|| HasWidget(targetWidget, true)
-				|| targetWidget->HasWidget(this, true)
-				|| (parent
-				&& (parent == targetWidget
-				|| parent->HasWidget(this, true))))
-			{
-				return false;
-			}
-
 			transform.localPos = vec3(0);
 			transform.localRot = 0.0f;
 			transform.localSize = vec3(0);
 
 			UpdateTransform();
-
-			//set this widget parent
-			parent = targetWidget;
-			//add this as new child to parent
-			parent->children.push_back(this);
-
-			return true;
-		}
-		inline bool RemoveParent()
-		{
-			//skip if parent never even existed
-			if (!parent) return false;
-
-			vector<Widget*>& parentChildren = parent->children;
-
-			parentChildren.erase(remove(
-				parentChildren.begin(),
-				parentChildren.end(),
-				this),
-				parentChildren.end());
-
-			transform.localPos = vec3(0);
-			transform.localRot = 0.0f;
-			transform.localSize = vec3(0);
-
-			UpdateTransform();
-
-			parent = nullptr;
-
-			return true;
-		}
-
-		inline bool IsChild(
-			Widget* targetWidget,
-			bool recursive = false)
-		{
-			if (!targetWidget
-				|| this == targetWidget)
-			{
-				return false;
-			}
-
-			for (auto* c : children)
-			{
-				if (c == targetWidget) return true;
-
-				if (recursive
-					&& c->IsChild(targetWidget, true))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-		inline bool AddChild(Widget* targetWidget)
-		{
-			if (!targetWidget
-				|| targetWidget == this
-				|| HasWidget(targetWidget, true)
-				|| targetWidget->HasWidget(this, true))
-			{
-				return false;
-			}
-
-			targetWidget->transform.localPos = vec3(0);
-			targetWidget->transform.localRot = 0.0f;
-			targetWidget->transform.localSize = vec3(0);
-
-			targetWidget->UpdateTransform();
-
-			children.push_back(targetWidget);
-			targetWidget->parent = this;
-
-			return true;
-		}
-		inline bool RemoveChild(Widget* targetWidget)
-		{
-			if (!targetWidget
-				|| targetWidget == this
-				|| targetWidget == parent)
-			{
-				return false;
-			}
-
-			targetWidget->transform.localPos = vec3(0);
-			targetWidget->transform.localRot = 0.0f;
-			targetWidget->transform.localSize = vec3(0);
-
-			targetWidget->UpdateTransform();
-
-			if (targetWidget->parent) targetWidget->parent = nullptr;
-
-			children.erase(remove(
-				children.begin(),
-				children.end(),
-				targetWidget),
-				children.end());
-
-			return true;
-		}
-
-		inline const vector<Widget*> GetAllChildren() { return children; }
-		inline void RemoveAllChildren() 
-		{ 
-			for (auto* c : children)
-			{
-				c->transform.localPos = vec3(0);
-				c->transform.localRot = 0.0f;
-				c->transform.localSize = vec3(0);
-
-				c->UpdateTransform();
-
-				c->parent = nullptr;
-			}
-			children.clear(); 
 		}
 
 		//Do not destroy manually, erase from registry instead
@@ -916,9 +728,6 @@ namespace KalaWindow::UI
 		u16 zOrder{};
 
 		bool isInteractable = true;
-
-		Widget* parent{};
-		vector<Widget*> children{};
 
 		Widget_Transform transform{};
 		Widget_Render render{};

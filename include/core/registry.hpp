@@ -25,7 +25,7 @@ namespace KalaWindow::Core
 	//Stores unique_ptrs and non-owning pointers of class T for ID-based lookups,
 	//should always be stored as 'static inline Registry<T>'
 	template<typename T>
-	requires is_class_v<T>
+		requires is_class_v<T>
 	struct LIB_API Registry
 	{
 		//Owner container with ID as key
@@ -34,6 +34,12 @@ namespace KalaWindow::Core
 		static inline vector<T*> runtimeContent{};
 
 		//Returns true if the window owns the ID
+		//Requires target class inside createdContent and runtimeContent
+		//to have the 'u32 GetWindowID()' function.
+		//Should not be used for externally created registries
+		//because the Window class does not accept new IDs
+		template<typename U = T>
+			requires requires(U& u) { u.GetWindowID(); }
 		static inline bool IsOwner(
 			u32 windowID,
 			u32 targetID)

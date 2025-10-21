@@ -103,7 +103,7 @@ namespace KalaWindow::UI
 		if (parentWidget
 			&& parentWidget->IsInitialized())
 		{
-			textPtr->SetParent(parentWidget);
+			textPtr->hierarchy.SetParent(textPtr, parentWidget);
 		}
 
 		//font is required
@@ -292,8 +292,8 @@ namespace KalaWindow::UI
 			"WIDGET",
 			LogType::LOG_INFO);
 
-		RemoveAllChildren();
-		RemoveParent();
+		hierarchy.RemoveAllChildren();
+		hierarchy.RemoveParent(this);
 
 		u32 vao = GetVAO();
 		u32 vbo = GetVBO();
