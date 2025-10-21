@@ -74,6 +74,8 @@ namespace KalaWindow::UI
 		unique_ptr<Text> newText = make_unique<Text>();
 		Text* textPtr = newText.get();
 
+		textPtr->hierarchy.thisObject = textPtr;
+
 		Log::Print(
 			"Loading text '" + name + "' with ID '" + to_string(newID) + "'.",
 			"TEXT",
@@ -103,7 +105,7 @@ namespace KalaWindow::UI
 		if (parentWidget
 			&& parentWidget->IsInitialized())
 		{
-			textPtr->hierarchy.SetParent(textPtr, parentWidget);
+			textPtr->hierarchy.SetParent(parentWidget);
 		}
 
 		//font is required
@@ -293,7 +295,7 @@ namespace KalaWindow::UI
 			LogType::LOG_INFO);
 
 		hierarchy.RemoveAllChildren();
-		hierarchy.RemoveParent(this);
+		hierarchy.RemoveParent();
 
 		u32 vao = GetVAO();
 		u32 vbo = GetVBO();

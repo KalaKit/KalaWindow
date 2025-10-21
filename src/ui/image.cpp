@@ -78,6 +78,8 @@ namespace KalaWindow::UI
 			"IMAGE",
 			LogType::LOG_DEBUG);
 
+		imagePtr->hierarchy.thisObject = imagePtr;
+
 		//texture is required
 		if (!texture
 			|| !texture->IsInitialized())
@@ -108,7 +110,7 @@ namespace KalaWindow::UI
 		if (parentWidget
 			&& parentWidget->IsInitialized())
 		{
-			imagePtr->hierarchy.SetParent(imagePtr, parentWidget);
+			imagePtr->hierarchy.SetParent(parentWidget);
 		}
 
 		Widget::Create2DQuad(
@@ -259,7 +261,7 @@ namespace KalaWindow::UI
 			LogType::LOG_INFO);
 
 		hierarchy.RemoveAllChildren();
-		hierarchy.RemoveParent(this);
+		hierarchy.RemoveParent();
 
 		u32 vao = GetVAO();
 		u32 vbo = GetVBO();

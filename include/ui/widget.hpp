@@ -200,6 +200,17 @@ namespace KalaWindow::UI
 		}
 		inline const string& GetName() const { return name; }
 
+		//Should be called whenever a parent or child is added or removed from this widget
+		//to ensure this widget local values are refreshed
+		inline void ResetWidgetAfterHierarchyUpdate()
+		{
+			transform.localPos = vec3(0);
+			transform.localRot = 0.0f;
+			transform.localSize = vec3(0);
+
+			UpdateTransform();
+		}
+
 		//
 		// TRANSFORM
 		//
@@ -671,17 +682,6 @@ namespace KalaWindow::UI
 		}
 		inline void ClearTexture() { render.texture = nullptr; }
 		inline const OpenGL_Texture* GetTexture() const { return render.texture; }
-
-		//Should be called whenever a parent or child is added or removed from this widget
-		//to ensure this widget local values are refreshed
-		inline void ResetWidgetAfterHierarchyUpdate()
-		{
-			transform.localPos = vec3(0);
-			transform.localRot = 0.0f;
-			transform.localSize = vec3(0);
-
-			UpdateTransform();
-		}
 
 		//Do not destroy manually, erase from registry instead
 		virtual ~Widget() = 0;

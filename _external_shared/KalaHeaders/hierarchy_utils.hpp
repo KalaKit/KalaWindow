@@ -6,8 +6,10 @@
 // This is free source code, and you are welcome to redistribute it under certain conditions.
 // Read LICENSE.md for more information.
 // 
-// You must name each Hierarchy struct as 'hierarchy',
-// this is a limit of C++ templates so there is no way around it.
+// Requirements: 
+//   - You must name each Hierarchy struct as 'hierarchy', 
+//     this is a limit of C++ templates so there is no way around it
+//   - You must assign 'thisObject' as the class this struct is attached to
 //
 // Provides:
 //   - parent-child hierarchy management
@@ -29,7 +31,13 @@ namespace KalaHeaders
 		requires is_class_v<T>
 	struct Hierarchy
 	{
+		//The class this object hierarchy is used by
+		T* thisObject{};
+
+		//The parent of this object
 		T* parent{};
+
+		//All the children of this object
 		vector<T*> children{};
 
 		//Returns the top-most parent of this target
@@ -39,11 +47,14 @@ namespace KalaHeaders
 		//to current target as a child, parent or sibling.
 		//Set recursive to true if you want deep target search
 		inline bool HasTarget(
-			T* thisObject,
 			T* targetObject,
 			bool recursive = false)
 		{
-			if (!targetObject) return false;
+			if (!thisObject
+				|| !targetObject)
+			{
+				return false;
+			}
 
 			if (thisObject == targetObject) return true;
 
@@ -53,7 +64,7 @@ namespace KalaHeaders
 				if (c == targetObject) return true;
 
 				if (recursive
-					&& c->hierarchy.HasTarget(c, targetObject, true))
+					&& c->hierarchy.HasTarget(targetObject, true))
 				{
 					return true;
 				}
@@ -65,7 +76,7 @@ namespace KalaHeaders
 				if (parent == targetObject) return true;
 
 				if (recursive
-					&& parent->hierarchy.HasTarget(parent, targetObject, true))
+					&& parent->hierarchy.HasTarget(targetObject, true))
 				{
 					return true;
 				}
@@ -74,11 +85,11 @@ namespace KalaHeaders
 			return false;
 		}
 		inline bool IsParent(
-			T* thisObject,
 			T* targetObject,
 			bool recursive = false)
 		{
-			if (!targetObject
+			if (!thisObject
+				|| !targetObject
 				|| thisObject == targetObject)
 			{
 				return false;
@@ -97,17 +108,16 @@ namespace KalaHeaders
 			return false;
 		}
 		inline T* GetParent() { return parent; }
-		inline bool SetParent(
-			T* thisObject,
-			T* targetObject)
+		inline bool SetParent(T* targetObject)
 		{
-			if (!targetObject
+			if (!thisObject
+				|| !targetObject
 				|| targetObject == thisObject
-				|| HasTarget(thisObject, targetObject, true)
-				|| targetObject->hierarchy.HasTarget(targetObject, thisObject, true)
+				|| HasTarget(targetObject, true)
+				|| targetObject->hierarchy.HasTarget(thisObject, true)
 				|| (parent
 				&& (parent == targetObject
-				|| parent->hierarchy.HasTarget(parent, thisObject, true))))
+				|| parent->hierarchy.HasTarget(thisObject, true))))
 			{
 				return false;
 			}
@@ -119,10 +129,14 @@ namespace KalaHeaders
 
 			return true;
 		}
-		inline bool RemoveParent(T* thisObject)
+		inline bool RemoveParent()
 		{
 			//skip if parent never even existed
-			if (!parent) return false;
+			if (!thisObject
+				|| !parent)
+			{
+				return false;
+			}
 
 			vector<T*>& parentChildren = parent->hierarchy.children;
 
@@ -137,11 +151,11 @@ namespace KalaHeaders
 			return true;
 		}
 		inline bool IsChild(
-			T* thisObject,
 			T* targetObject,
 			bool recursive = false)
 		{
-			if (!targetObject
+			if (!thisObject
+				|| !targetObject
 				|| thisObject == targetObject)
 			{
 				return false;
@@ -160,14 +174,13 @@ namespace KalaHeaders
 
 			return false;
 		}
-		inline bool AddChild(
-			T* thisObject,
-			T* targetObject)
+		inline bool AddChild(T* targetObject)
 		{
-			if (!targetObject
+			if (!thisObject
+				|| !targetObject
 				|| targetObject == thisObject
-				|| HasTarget(thisObject, targetObject, true)
-				|| targetObject->hierarchy.HasTarget(targetObject, thisObject, true))
+				|| HasTarget(targetObject, true)
+				|| targetObject->hierarchy.HasTarget(thisObject, true))
 			{
 				return false;
 			}
@@ -177,11 +190,10 @@ namespace KalaHeaders
 
 			return true;
 		}
-		inline bool RemoveChild(
-			T* thisObject,
-			T* targetObject)
+		inline bool RemoveChild(T* targetObject)
 		{
-			if (!targetObject
+			if (!thisObject
+				|| !targetObject
 				|| targetObject == thisObject
 				|| (parent
 				&& targetObject == parent))
@@ -200,9 +212,15 @@ namespace KalaHeaders
 			return true;
 		}
 
-		inline const vector<T*>& GetAllChildren() { return children; }
+		inline const vector<T*>& GetAllChildren() 
+		{
+			static const vector<T*> empty{};
+			return thisObject ? children : empty;
+		}
 		inline void RemoveAllChildren()
 		{
+			if (!thisObject) return;
+
 			for (auto* c : children) c->hierarchy.parent = nullptr;
 			children.clear();
 		}

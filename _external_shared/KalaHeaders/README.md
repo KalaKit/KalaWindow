@@ -163,11 +163,11 @@ Comprehensive logger header for any logging needs - sends stdout and stderr mess
 
 ## Hierarchy utils
 
-- parent-child hierarchy management
-- fast lookup through recursive traversal across parents, children and siblings
+Provides parent-child hierarchy management and fast lookup through recursive traversal across parents, children and siblings
 
-You must name each Hierarchy struct as 'hierarchy',
-this is a limit of C++ templates so there is no way around it.
+ Requirements: 
+- You must name each Hierarchy struct as 'hierarchy', this is a limit of C++ templates so there is no way around it
+- You must assign 'thisObject' as the class this struct is attached to
 
 ### Available date format types
 
