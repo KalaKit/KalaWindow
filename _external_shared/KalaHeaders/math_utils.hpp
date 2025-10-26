@@ -812,6 +812,47 @@ namespace KalaHeaders
 			return todegrees(keuler3{ pitch, yaw, roll });
 		}
 
+		//2D ortographic projection (screen-space),
+		//top-left origin, Y-down projection for UI
+		inline kmat3 ortho(const kvec2 viewport)
+		{
+			f32 left = 0.0f;
+			f32 right = viewport.x;
+			f32 bottom = viewport.y;
+			f32 top = 0.0f;
+
+			f32 rl = right - left;
+			f32 tb = top - bottom;
+
+			return
+			{
+				2.0f / rl, 0.0f,      -(right + left) / rl,
+				0.0f,      2.0f / tb, -(top + bottom) / tb,
+				0.0f,      0.0f,       1.0f
+			};
+		}
+
+		//3D perpective projection (view-space),
+		//bottom-left origin, Y-up projection for OpenGL
+		inline kmat4 perspective(
+			const kvec2 viewport,
+			f32 fovDeg, 
+			f32 zNear, 
+			f32 zFar)
+		{
+			f32 aspect = viewport.x / viewport.y;
+			f32 f = 1.0f / tan(toradians(fovDeg) * 0.5f);
+			f32 fn = zFar - zNear;
+
+			return
+			{
+				f / aspect, 0.0f,  0.0f,                 0.0f,
+				0.0f,       f,     0.0f,                 0.0f,
+				0.0f,       0.0f, -(zFar + zNear) / fn, -(2.0f * zFar * zNear) / fn,
+				0.0f,       0.0f, -1.0f,                 0.0f
+			};
+		}
+
 		inline kmat3 translate(
 			const kmat3& m, 
 			const kvec2& v)
