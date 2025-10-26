@@ -1261,28 +1261,30 @@ namespace KalaHeaders
 		return deg;
 	}
 
-	//2D ortographic projection (screen-space),
-	//top-left origin, Y-down projection for UI
-	inline kmat3 ortho(const kvec2 viewport)
+	//ortographic projection, top-left origin, Y-down projection
+	inline kmat4 ortho(const kvec2 viewport)
 	{
 		f32 left = 0.0f;
 		f32 right = viewport.x;
 		f32 bottom = viewport.y;
 		f32 top = 0.0f;
 
+		f32 near = 0.1f;
+		f32 far = 100.0f;
+
 		f32 rl = right - left;
 		f32 tb = top - bottom;
 
 		return
 		{
-			2.0f / rl, 0.0f,      -(right + left) / rl,
-			0.0f,      2.0f / tb, -(top + bottom) / tb,
-			0.0f,      0.0f,       1.0f
+			2.0f / rl, 0.0f,       0.0f,                -(right + left) / rl,
+			0.0f,      2.0f / tb,  0.0f,                -(top + bottom) / tb,
+			0.0f,      0.0f,      -2.0f / (far - near), -(far + near) / (far - near),
+			0.0f,      0.0f,       0.0f,                 1.0f
 		};
 	}
 
-	//3D perpective projection (view-space),
-	//bottom-left origin, Y-up projection for OpenGL
+	//perpective projection, bottom-left origin, Y-up projection
 	inline kmat4 perspective(
 		const kvec2 viewport,
 		f32 fovDeg,
