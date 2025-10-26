@@ -31,8 +31,8 @@ namespace KalaWindow::Graphics
 		u32 windowID,
 		f32 fov,
 		f32 speed,
-		const vec3& pos,
-		const vec3& rot)
+		const kvec3& pos,
+		const kvec3& rot)
 	{
 		Window* window = Window::registry.GetContent(windowID);
 
@@ -75,9 +75,9 @@ namespace KalaWindow::Graphics
 
 		camPtr->SetPos(pos);
 		camPtr->SetRotVec(rot);
-		camPtr->UpdateCameraRotation(vec2(0));
+		camPtr->UpdateCameraRotation(kvec2(0));
 
-		vec2 size = window->GetFramebufferSize();
+		kvec2 size = window->GetFramebufferSize();
 		f32 aspectRatio = size.x / size.y;
 		camPtr->SetAspectRatio(aspectRatio);
 

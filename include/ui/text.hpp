@@ -24,9 +24,9 @@ namespace KalaWindow::UI
 			const string& name,
 			u32 windowID,
 			u32 fontID,
-			const vec2 pos,
+			const kvec2 pos,
 			const float rot,
-			const vec2 size,
+			const kvec2 size,
 			Widget* parentWidget,
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);
@@ -34,8 +34,8 @@ namespace KalaWindow::UI
 		//Render the text. Pass viewport size so that the text can be
 		//positioned to the window center and offset from that with world pos
 		virtual bool Render(
-			const mat3& projection,
-			const vec2 viewportSize) override;
+			const kmat3& projection,
+			const kvec2 viewportSize) override;
 
 		void SetFontID(u32 newValue);
 		inline u32 GetFontID() const { return fontID; }

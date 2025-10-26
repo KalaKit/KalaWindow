@@ -9,6 +9,7 @@
 #include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/math_utils.hpp"
 
 namespace KalaWindow::Core
 {

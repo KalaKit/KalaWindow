@@ -5,11 +5,16 @@
 
 #pragma once
 
+#include "KalaHeaders/math_utils.hpp"
+
 #include "ui/widget.hpp"
 #include "core/registry.hpp"
 
 namespace KalaWindow::UI
 {
+	using KalaHeaders::kvec2;
+	using KalaHeaders::kmat3;
+
 	using KalaWindow::Core::Registry;
 
 	class LIB_API Image : public Widget
@@ -23,9 +28,9 @@ namespace KalaWindow::UI
 		static Image* Initialize(
 			const string& name,
 			u32 windowID,
-			const vec2 pos,
+			const kvec2 pos,
 			const float rot,
-			const vec2 size,
+			const kvec2 size,
 			Widget* parentWidget,
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);
@@ -33,8 +38,8 @@ namespace KalaWindow::UI
 		//Render the image. Pass viewport size so that the image can be
 		//positioned to the window center and offset from that with world pos
 		virtual bool Render(
-			const mat3& projection,
-			const vec2 viewportSize) override;
+			const kmat3& projection,
+			const kvec2 viewportSize) override;
 
 		//Do not destroy manually, erase from registry instead
 		virtual ~Image() override;

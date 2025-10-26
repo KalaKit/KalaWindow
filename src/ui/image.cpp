@@ -14,6 +14,10 @@
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 
+using KalaHeaders::translate;
+using KalaHeaders::rotate;
+using KalaHeaders::scale;
+using KalaHeaders::kclamp;
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
@@ -34,9 +38,9 @@ namespace KalaWindow::UI
 	Image* Image::Initialize(
 		const string& name,
 		u32 windowID,
-		const vec2 pos,
+		const kvec2 pos,
 		const float rot,
-		const vec2 size,
+		const kvec2 size,
 		Widget* parentWidget,
 		OpenGL_Texture* texture,
 		OpenGL_Shader* shader)
@@ -141,8 +145,8 @@ namespace KalaWindow::UI
 	}
 
 	bool Image::Render(
-		const mat3& projection,
-		const vec2 viewportSize)
+		const kmat3& projection,
+		const kvec2 viewportSize)
 	{
 		if (!render.canUpdate) return false;
 
@@ -166,17 +170,17 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		vec2 clampedVP = clamp(viewportSize, vec2(1), vec2(10000));
+		kvec2 clampedVP = kclamp(viewportSize, kvec2(1), kvec2(10000));
 		transform.viewportSize = clampedVP;
 
 		UpdateOriginalPosition();
 
 		u32 programID = render.shader->GetProgramID();
 
-		mat3 model = mat3(1.0f);
-		model = Translate2D(model, transform.combinedPos);
-		model = Rotate2D(model, transform.combinedRot);
-		model = Scale2D(model, transform.combinedSize);
+		kmat3 model = kmat3(1.0f);
+		model = translate(model, transform.combinedPos);
+		model = rotate(model, transform.combinedRot);
+		model = scale(model, transform.combinedSize);
 
 		render.shader->SetMat3(programID, "uModel", model);
 		render.shader->SetMat3(programID, "uProjection", projection);

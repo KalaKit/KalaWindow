@@ -701,7 +701,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetVec2(
         u32 programID,
         const string& name, 
-        const vec2& value) const
+        const kvec2& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform2fv(
@@ -712,7 +712,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetVec3(
         u32 programID,
         const string& name, 
-        const vec3& value) const
+        const kvec3& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform3fv(
@@ -723,7 +723,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetVec4(
         u32 programID,
         const string& name, 
-        const vec4& value) const
+        const kvec4& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform4fv(
@@ -735,38 +735,38 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetMat2(
         u32 programID,
         const string& name, 
-        const mat2& mat) const
+        const kmat2& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix2fv(
             loc, 
             1, 
             GL_FALSE, 
-            &mat[0].x);
+            &mat.m00);
     }
     void OpenGL_Shader::SetMat3(
         u32 programID,
         const string& name, 
-        const mat3& mat) const
+        const kmat3& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix3fv(
             loc, 
             1, 
             GL_FALSE, 
-            &mat[0].x);
+            &mat.m00);
     }
     void OpenGL_Shader::SetMat4(
         u32 programID,
         const string& name, 
-        const mat4& mat) const
+        const kmat4& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix4fv(
             loc, 
             1, 
             GL_FALSE, 
-            &mat[0].x);
+            &mat.m00);
     }
 
     OpenGL_Shader::~OpenGL_Shader()

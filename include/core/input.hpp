@@ -10,8 +10,8 @@
 #include <string>
 
 #include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/math_utils.hpp"
 
-#include "core/glm_global.hpp"
 #include "core/registry.hpp"
 
 namespace KalaWindow::Core
@@ -21,6 +21,8 @@ namespace KalaWindow::Core
 	using std::prev;
 	using std::span;
 	using std::string;
+
+	using KalaHeaders::kvec2;
 
 	enum class Key : uint32_t
 	{
@@ -282,32 +284,32 @@ namespace KalaWindow::Core
 		}
 
 		//Get current mouse position in window coordinates
-		inline vec2 GetMousePosition() const { return mousePos; }
-		inline void SetMousePosition(vec2 newMousePos) { mousePos = newMousePos; }
+		inline kvec2 GetMousePosition() const { return mousePos; }
+		inline void SetMousePosition(kvec2 newMousePos) { mousePos = newMousePos; }
 
 		//Get mouse delta movement since last frame
-		inline vec2 GetMouseDelta()
+		inline kvec2 GetMouseDelta()
 		{
-			vec2 currMouseDelta = mouseDelta;
+			kvec2 currMouseDelta = mouseDelta;
 
 			//reset after retrieval for per-frame delta behavior
-			mouseDelta = vec2{ 0.0f, 0.0f };
+			mouseDelta = kvec2{ 0.0f, 0.0f };
 
 			return currMouseDelta;
 		}
-		inline void SetMouseDelta(vec2 newMouseDelta) { mouseDelta = newMouseDelta; }
+		inline void SetMouseDelta(kvec2 newMouseDelta) { mouseDelta = newMouseDelta; }
 
 		//Get mouse raw delta movement since last frame
-		inline vec2 GetRawMouseDelta()
+		inline kvec2 GetRawMouseDelta()
 		{
-			vec2 currMouseDelta = rawMouseDelta;
+			kvec2 currMouseDelta = rawMouseDelta;
 
 			//reset after retrieval for per-frame delta behavior
-			rawMouseDelta = vec2{ 0.0f, 0.0f };
+			rawMouseDelta = kvec2{ 0.0f, 0.0f };
 
 			return currMouseDelta;
 		}
-		inline void SetRawMouseDelta(vec2 newRawMouseDelta) { rawMouseDelta = newRawMouseDelta; }
+		inline void SetRawMouseDelta(kvec2 newRawMouseDelta) { rawMouseDelta = newRawMouseDelta; }
 
 		//Get vertical scroll wheel delta (-1 to +1)
 		inline float GetScrollwheelDelta() const { return mouseWheelDelta; }
@@ -386,9 +388,9 @@ namespace KalaWindow::Core
 		bool isMouseLocked = false;
 		bool keepMouseDelta = false;
 
-		vec2 mousePos = vec2{ 0.0f, 0.0f };
-		vec2 mouseDelta = vec2{ 0.0f, 0.0f };
-		vec2 rawMouseDelta = vec2{ 0.0f, 0.0f };
+		kvec2 mousePos = kvec2{ 0.0f, 0.0f };
+		kvec2 mouseDelta = kvec2{ 0.0f, 0.0f };
+		kvec2 rawMouseDelta = kvec2{ 0.0f, 0.0f };
 
 		float mouseWheelDelta = 0.0f;
 	};

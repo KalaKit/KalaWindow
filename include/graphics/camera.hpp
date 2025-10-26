@@ -8,13 +8,25 @@
 #include <string>
 
 #include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/math_utils.hpp"
 
-#include "core/glm_global.hpp"
 #include "core/registry.hpp"
 
 namespace KalaWindow::Graphics
 {
 	using std::string;
+
+	using KalaHeaders::kvec2;
+	using KalaHeaders::kvec3;
+	using KalaHeaders::kmat4;
+	using KalaHeaders::kquat;
+	using KalaHeaders::cross;
+	using KalaHeaders::radians;
+	using KalaHeaders::normalize;
+	using KalaHeaders::lookat;
+	using KalaHeaders::toeuler3;
+	using KalaHeaders::angleaxis;
+	using KalaHeaders::wrap;
 
 	using KalaWindow::Core::Registry;
 
@@ -28,8 +40,8 @@ namespace KalaWindow::Graphics
 			u32 windowID,
 			f32 fov,
 			f32 speed,
-			const vec3& pos = vec3(0),
-			const vec3& rot = vec3(0, 0, 90.0f));
+			const kvec3& pos = kvec3(0),
+			const kvec3& rot = kvec3(0, 0, 90.0f));
 
 		inline bool IsInitialized() const { return isInitialized; }
 
@@ -50,13 +62,13 @@ namespace KalaWindow::Graphics
 		inline const string& GetName() { return name; }
 
 		//Handle camera rotation based off of mouse movement
-		void UpdateCameraRotation(vec2 delta)
+		void UpdateCameraRotation(kvec2 delta)
 		{
 			rotVec.y += delta.x * sensitivity; //yaw
 			rotVec.x -= delta.y * sensitivity; //pitch
 
 			//prevent absurdly high positive or negative numbers
-			rotVec.y = fmod(rotVec.y, 360.0f);
+			rotVec.y = wrap(rotVec.y);
 
 			//clamp to avoid flipping
 			rotVec.x = clamp(rotVec.x, -89.99f, 89.99f);
@@ -68,15 +80,15 @@ namespace KalaWindow::Graphics
 			front.z = sin(radians(rotVec.y)) * cos(radians(rotVec.x));
 			front = normalize(front);
 
-			right = normalize(cross(front, vec3(0.0f, 1.0f, 0.0f)));
+			right = normalize(cross(front, kvec3(0.0f, 1.0f, 0.0f)));
 
-			//update quat after euler stuff is done
+			//update kquat after euler stuff is done
 
-			quat qx = angleAxis(radians(rotVec.x), vec3(1, 0, 0));
-			quat qy = angleAxis(radians(rotVec.y), vec3(0, 1, 0));
-			quat qz = angleAxis(radians(rotVec.z), vec3(0, 0, 1));
+			kquat qx = angleaxis(radians(rotVec.x), kvec3(1, 0, 0));
+			kquat qy = angleaxis(radians(rotVec.y), kvec3(0, 1, 0));
+			kquat qz = angleaxis(radians(rotVec.z), kvec3(0, 0, 1));
 
-			rotQuat = normalize(qz * qy * qx);
+			rotquat = normalize(qz * qy * qx);
 		}
 
 		inline void SetFOV(f32 newFOV)
@@ -116,20 +128,20 @@ namespace KalaWindow::Graphics
 		}
 		inline f32 GetSensitivity() const { return sensitivity; }
 
-		mat4 GetViewMatrix() const
+		kmat4 GetViewMatrix() const
 		{
-			return lookAt(pos, pos + front, up);
+			return lookat(pos, pos + front, up);
 		};
 
-		inline const vec3& GetUp() const { return up; }
+		inline const kvec3& GetUp() const { return up; }
 
-		inline void SetFront(const vec3& newFront) { front = newFront; }
-		inline const vec3& GetFront() const { return front; }
+		inline void SetFront(const kvec3& newFront) { front = newFront; }
+		inline const kvec3& GetFront() const { return front; }
 
-		inline void SetRight(const vec3& newRight) { right = newRight; }
-		inline const vec3& GetRight() const { return right; }
+		inline void SetRight(const kvec3& newRight) { right = newRight; }
+		inline const kvec3& GetRight() const { return right; }
 
-		inline void SetPos(const vec3& newPos)
+		inline void SetPos(const kvec3& newPos)
 		{
 			pos =
 			{
@@ -138,66 +150,59 @@ namespace KalaWindow::Graphics
 				clamp(newPos.z, -10000.0f, 10000.0f)
 			};
 		}
-		inline const vec3& GetPos() const { return pos; }
+		inline const kvec3& GetPos() const { return pos; }
 
-		inline void SetRotVec(const vec3& newRot)
+		inline void SetRotVec(const kvec3& newRot)
 		{
-			vec3 clamped(
-				clamp(newRot.x, -359.99f, 359.99f),
-				clamp(newRot.y, -359.99f, 359.99f),
-				clamp(newRot.z, -359.99f, 359.99f));
-
-			rotVec = vec3(clamped.x, clamped.y, clamped.z);
-
-			quat qx = angleAxis(radians(clamped.x), vec3(1, 0, 0));
-			quat qy = angleAxis(radians(clamped.y), vec3(0, 1, 0));
-			quat qz = angleAxis(radians(clamped.z), vec3(0, 0, 1));
-
-			rotQuat = qz * qy * qx;
-		}
-		inline const vec3& GetRotVec() const { return rotVec; }
-
-		inline void SetRotQuat(const quat& newRot)
-		{
-			vec3 eulerDeg = degrees(eulerAngles(newRot));
-
-			vec3 clamped(
-				clamp(eulerDeg.x, -359.99f, 359.99f),
-				clamp(eulerDeg.y, -359.99f, 359.99f),
-				clamp(eulerDeg.z, -359.99f, 359.99f));
+			kvec3 clamped = newRot;
+			clamped.x = wrap(clamped.x);
+			clamped.y = wrap(clamped.y);
+			clamped.z = wrap(clamped.z);
 
 			rotVec = clamped;
 
-			quat qx = angleAxis(radians(clamped.x), vec3(1, 0, 0));
-			quat qy = angleAxis(radians(clamped.y), vec3(0, 1, 0));
-			quat qz = angleAxis(radians(clamped.z), vec3(0, 0, 1));
+			kquat qx = angleaxis(radians(clamped.x), kvec3(1, 0, 0));
+			kquat qy = angleaxis(radians(clamped.y), kvec3(0, 1, 0));
+			kquat qz = angleaxis(radians(clamped.z), kvec3(0, 0, 1));
 
-			rotQuat = qz * qy * qx;
+			rotquat = qz * qy * qx;
 		}
-		inline const quat& GetRotQuat() const { return rotQuat; }
+		inline const kvec3& GetRotVec() const { return rotVec; }
+
+		inline void Setrotquat(const kquat& newRot)
+		{
+			kvec3 eulerDeg = degrees(toeuler3(newRot));
+
+			kvec3 clamped = eulerDeg;
+			clamped.x = wrap(clamped.x);
+			clamped.y = wrap(clamped.y);
+			clamped.z = wrap(clamped.z);
+
+			rotVec = clamped;
+
+			kquat qx = angleaxis(radians(clamped.x), kvec3(1, 0, 0));
+			kquat qy = angleaxis(radians(clamped.y), kvec3(0, 1, 0));
+			kquat qz = angleaxis(radians(clamped.z), kvec3(0, 0, 1));
+
+			rotquat = qz * qy * qx;
+		}
+		inline const kquat& Getrotquat() const { return rotquat; }
 
 		//Safely wraps within allowed bounds
-		inline void AddRot(const vec3& deltaRot)
+		inline void AddRot(const kvec3& deltaRot)
 		{
-			auto WrapAngle = [](f32 angle)
-				{
-					angle = fmodf(angle, 360.0f);
-					if (angle < 0.0f) angle += 360.0f;
-					return angle;
-				};
-
 			rotVec =
 			{
-				WrapAngle(rotVec.x + deltaRot.x),
-				WrapAngle(rotVec.y + deltaRot.y),
-				WrapAngle(rotVec.z + deltaRot.z),
+				wrap(rotVec.x + deltaRot.x),
+				wrap(rotVec.y + deltaRot.y),
+				wrap(rotVec.z + deltaRot.z),
 			};
 
-			quat qx = angleAxis(radians(rotVec.x), vec3(1, 0, 0));
-			quat qy = angleAxis(radians(rotVec.y), vec3(0, 1, 0));
-			quat qz = angleAxis(radians(rotVec.z), vec3(0, 0, 1));
+			kquat qx = angleaxis(radians(rotVec.x), kvec3(1, 0, 0));
+			kquat qy = angleaxis(radians(rotVec.y), kvec3(0, 1, 0));
+			kquat qz = angleaxis(radians(rotVec.z), kvec3(0, 0, 1));
 
-			rotQuat = qz * qy * qx;
+			rotquat = qz * qy * qx;
 		}
 
 		~Camera();
@@ -218,12 +223,12 @@ namespace KalaWindow::Graphics
 		f32 farClip = 512.0;
 		f32 sensitivity = 0.1f;
 
-		vec3 up = vec3(0.0f, 1.0f, 0.0f);
-		vec3 front = vec3(0.0f, 0.0f, -1.0f);
-		vec3 right = vec3(1.0f, 0.0f, 0.0f);
+		kvec3 up = kvec3(0.0f, 1.0f, 0.0f);
+		kvec3 front = kvec3(0.0f, 0.0f, -1.0f);
+		kvec3 right = kvec3(1.0f, 0.0f, 0.0f);
 
-		vec3 pos{};
-		vec3 rotVec{};
-		quat rotQuat{};
+		kvec3 pos{};
+		kvec3 rotVec{};
+		kquat rotquat{};
 	};
 }

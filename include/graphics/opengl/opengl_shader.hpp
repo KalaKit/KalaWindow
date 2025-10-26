@@ -9,14 +9,21 @@
 #include <array>
 
 #include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/math_utils.hpp"
 
-#include "core/glm_global.hpp"
 #include "core/registry.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
 	using std::array;
+
+	using KalaHeaders::kvec2;
+	using KalaHeaders::kvec3;
+	using KalaHeaders::kvec4;
+	using KalaHeaders::kmat2;
+	using KalaHeaders::kmat3;
+	using KalaHeaders::kmat4;
 
 	using KalaWindow::Core::Registry;
 
@@ -163,13 +170,13 @@ namespace KalaWindow::Graphics::OpenGL
 		void SetInt(u32 programID, const string& name, i32 value) const;
 		void SetFloat(u32 programID, const string& name, f32 value) const;
 
-		void SetVec2(u32 programID, const string& name, const vec2& value) const;
-		void SetVec3(u32 programID, const string& name, const vec3& value) const;
-		void SetVec4(u32 programID, const string& name, const vec4& value) const;
+		void SetVec2(u32 programID, const string& name, const kvec2& value) const;
+		void SetVec3(u32 programID, const string& name, const kvec3& value) const;
+		void SetVec4(u32 programID, const string& name, const kvec4& value) const;
 
-		void SetMat2(u32 programID, const string& name, const mat2& mat) const;
-		void SetMat3(u32 programID, const string& name, const mat3& mat) const;
-		void SetMat4(u32 programID, const string& name, const mat4& mat) const;
+		void SetMat2(u32 programID, const string& name, const kmat2& mat) const;
+		void SetMat3(u32 programID, const string& name, const kmat3& mat) const;
+		void SetMat4(u32 programID, const string& name, const kmat4& mat) const;
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Shader();

@@ -12,6 +12,7 @@
 #include <memory>
 
 #include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/math_utils.hpp"
 
 #include "core/registry.hpp"
 

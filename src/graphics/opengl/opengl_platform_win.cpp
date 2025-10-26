@@ -18,6 +18,8 @@
 #include "graphics/window.hpp"
 #include "core/core.hpp"
 
+using KalaHeaders::kvec2;
+
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
@@ -538,7 +540,7 @@ namespace KalaWindow::Graphics::OpenGL
 		wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size
-		vec2 framebufferSize = window->GetFramebufferSize();
+		kvec2 framebufferSize = window->GetFramebufferSize();
 		glViewport(
 			0,
 			0,
