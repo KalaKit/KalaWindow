@@ -10,25 +10,7 @@ Macros and cross platform import/export
 - inline macros for forceinline and noinline
 - deprecated macro
 - debug assert macro (assertions are compiled out completely in release)
-
-Shorthands for math variables and overrideable cross-platform templates for converting between uintptr_t and pointers/integrals/enums
-
-### Shorthands
-
-| Alias | Underlying type | Size (bits) | Range / Notes                                    |
-|-------|-----------------|-------------|--------------------------------------------------|
-| **sst** | `SSIZE_T` (Win32) / `ssize_t` (POSIX) | 64 | Signed size type (≈ –9e18 to +9e18) |
-| **st**  | `size_t`       | 64          | Unsigned size type (0 to ~1.8e19)                |
-| **u8**  | `uint8_t`      | 8           | 0 to 255                                         |
-| **u16** | `uint16_t`     | 16          | 0 to 65,535                                      |
-| **u32** | `uint32_t`     | 32          | 0 to 4,294,967,295                               |
-| **u64** | `uint64_t`     | 64          | 0 to ~1.8e19 (also useful for handles/pointers)  |
-| **i8**  | `int8_t`       | 8           | –128 to 127                                      |
-| **i16** | `int16_t`      | 16          | –32,768 to 32,767                                |
-| **i32** | `int32_t`      | 32          | –2,147,483,648 to 2,147,483,647                  |
-| **i64** | `int64_t`      | 64          | –9e18 to +9e18                                   |
-| **f32** | `float`        | 32          | ~6 decimal digits precision                      |
-| **f64** | `double`       | 64          | ~15 decimal digits precision                     |
+- overrideable cross-platform templates for converting between uintptr_t and pointers/integrals/enums
 
 ### Templates
 
@@ -42,6 +24,15 @@ Shorthands for math variables and overrideable cross-platform templates for conv
 | `FromVar<T>(T h)`       | enum `T` → `uintptr_t`           | `is_enum_v<T>`         | Turn an enum/enum flag into a raw handle value |
 
 ---
+
+## math_utils.hpp
+
+Provides:
+- shorthands for math variables
+- GLM-like containers for kvec2, kvec3, kvec4, kmat2, kmat3, kmat4
+- kquat as quaternion (kvec4) and keuler as eulerangles (kvec2/kvec3)
+- operators and helpers for all kvec, kmat, keuler and kquat types
+- kmat containers as column-major and scalar form
 
 ## string_utils.hpp
 
