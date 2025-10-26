@@ -129,9 +129,6 @@ namespace KalaHeaders
 		origin /= safeDivisor;
 	}
 
-	//Lerps two scalar floats by t
-	inline f32 lerp_s(f32 a, f32 b, f32 t) { return a + (b - a) * t; }
-
 	//
 	// KVEC
 	//
@@ -696,14 +693,6 @@ namespace KalaHeaders
 
 			return *this;
 		}
-
-		//
-		// KEULER
-		//
-
-		//
-		// KQUAT
-		//
 	};
 
 	using kvec2 = kvec<2>; //Vector: x, y
@@ -1050,6 +1039,14 @@ namespace KalaHeaders
 			};
 		}
 
+		//Linear interpolation between two floats by t
+		inline f32 lerp(
+			f32 a, 
+			f32 b, 
+			f32 t) 
+		{ 
+			return a + (b - a) * t; 
+		}
 		//Linear interpolation between two kvec2s by t
 		inline kvec2 lerp(
 			const kvec2 a,
@@ -1058,8 +1055,8 @@ namespace KalaHeaders
 		{
 			return
 			{
-				lerp_s(a.x, b.x, t),
-				lerp_s(a.y, b.y, t)
+				lerp(a.x, b.x, t),
+				lerp(a.y, b.y, t)
 			};
 		}
 		//Linear interpolation between two kvec3s by t
@@ -1070,9 +1067,9 @@ namespace KalaHeaders
 		{
 			return
 			{
-				lerp_s(a.x, b.x, t),
-				lerp_s(a.y, b.y, t),
-				lerp_s(a.z, b.z, t)
+				lerp(a.x, b.x, t),
+				lerp(a.y, b.y, t),
+				lerp(a.z, b.z, t)
 			};
 		}
 		//Linear interpolation between two kvec4s by t
@@ -1083,14 +1080,31 @@ namespace KalaHeaders
 		{
 			return
 			{
-				lerp_s(a.x, b.x, t),
-				lerp_s(a.y, b.y, t),
-				lerp_s(a.z, b.z, t),
-				lerp_s(a.w, b.w, t)
+				lerp(a.x, b.x, t),
+				lerp(a.y, b.y, t),
+				lerp(a.z, b.z, t),
+				lerp(a.w, b.w, t)
 			};
 		}
 
-		//Spherical linear interpolation between two kvec2s by t
+		//Spherical linear interpolation between two non-normalized floats by t
+		inline f32 slerp(
+			f32 a,
+			f32 b,
+			f32 t)
+		{
+			if (a == b) return a;
+
+			f32 dotAB = clamp(a * b, -1.0f, 1.0f);
+			f32 theta = acos(dotAB) * t;
+
+			f32 sinTheta = sin(theta);
+			f32 w1 = sin((1.0f - t) * theta);
+			f32 w2 = sin(t * theta);
+
+			return (a * w1 + b * w2) / sinTheta;
+		}
+		//Spherical linear interpolation between two non-normalized kvec2s by t
 		inline kvec2 slerp(
 			const kvec2 a,
 			const kvec2 b,
@@ -1104,7 +1118,7 @@ namespace KalaHeaders
 			kvec2 rel = normalize(nb - na * dotAB);
 			return na * cos(theta) + rel * sin(theta);
 		}
-		//Spherical linear interpolation between two kvec3s by t
+		//Spherical linear interpolation between two non-normalized kvec3s by t
 		inline kvec3 slerp(
 			const kvec3 a,
 			const kvec3 b,
@@ -1118,7 +1132,7 @@ namespace KalaHeaders
 			kvec3 rel = normalize(nb - na * dotAB);
 			return na * cos(theta) + rel * sin(theta);
 		}
-		//Spherical linear interpolation between two kvec4s by t
+		//Spherical linear interpolation between two non-normalized kvec4s by t
 		inline kvec4 slerp(
 			const kvec4 a,
 			const kvec4 b,
