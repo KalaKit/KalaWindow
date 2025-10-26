@@ -29,9 +29,8 @@ Macros and cross platform import/export
 
 Provides:
 - shorthands for math variables
-- GLM-like containers for kvec2, kvec3, kvec4, kmat2, kmat3, kmat4
-- kquat as quaternion (kvec4) and keuler as eulerangles (kvec2/kvec3)
-- operators and helpers for all kvec, kmat, keuler and kquat types
+- GLM-like containers as kvec2, kvec3, kvec4, kmat2, kmat3, kmat4, kquat (kvec4)
+- operators and helpers for kvec, kmat and kquat types
 - kmat containers as column-major and scalar form
 
 ## string_utils.hpp

@@ -8,10 +8,9 @@
 //
 // Provides:
 //   - shorthands for math variables
-//   - GLM-like containers for vec2, vec3, vec4, mat2, mat3, mat4
-//   - kquat as quaternion and keuler as eulerangles
-//   - operators and helpers for all kvec, kmat, keuler and kquat types
-//   - mat containers as column-major and scalar form
+//   - GLM-like containers as kvec2, kvec3, kvec4, kmat2, kmat3, kmat4, kquat (kvec4)
+//   - operators and helpers for kvec, kmat and kquat types
+//   - kmat containers as column-major and scalar form
 //------------------------------------------------------------------------------
 
 #pragma once
