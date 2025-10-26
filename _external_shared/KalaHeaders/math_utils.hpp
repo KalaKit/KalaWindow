@@ -32,6 +32,7 @@ using std::clamp;
 using std::min;
 using std::max;
 using std::fmod;
+using std::fabsf;
 
 //
 // DEFINE SHORTHANDS FOR SAFE MATH VARIABLES
@@ -119,7 +120,7 @@ namespace KalaHeaders
 		f32 origin,
 		f32 divisor)
 	{
-		const f32 safeDivisor = (divisor != 0) ? divisor : 1.0f;
+		const f32 safeDivisor = (fabsf(divisor) > epsilon) ? divisor : 1.0f;
 		return origin / safeDivisor;
 	}
 	//Used for compound division and prevents division by 0, mutates origin instead of returning result
@@ -127,7 +128,7 @@ namespace KalaHeaders
 		f32& origin,
 		f32 divisor)
 	{
-		const f32 safeDivisor = (divisor != 0) ? divisor : 1.0f;
+		const f32 safeDivisor = (fabsf(divisor) > epsilon) ? divisor : 1.0f;
 		origin /= safeDivisor;
 	}
 
@@ -320,6 +321,14 @@ namespace KalaHeaders
 		if constexpr (N == 4) return { func(v.x, s), func(v.y, s), func(v.z, s), func(v.w, s) };
 	}
 
+	template<typename F, size_t N>
+	constexpr kvec<N> apply_scalar(const kvec<N>& v1, const kvec<N>& v2, F func)
+	{
+		if constexpr (N == 2) return { func(v1.x, v2.x), func(v1.y, v2.y) };
+		if constexpr (N == 3) return { func(v1.x, v2.x), func(v1.y, v2.y), func(v1.z, v2.z) };
+		if constexpr (N == 4) return { func(v1.x, v2.x), func(v1.y, v2.y), func(v1.z, v2.z), func(v1.w, v2.w) };
+	}
+
 	//add
 
 	template<size_t N> 
@@ -332,7 +341,52 @@ namespace KalaHeaders
 		requires (N >= 2 && N <= 4)
 	inline kvec<N> operator+(f32 s, const kvec<N>& v)
 	{
-		return apply_scalar(v, s, [](f32 a, f32 b) { return b + a; });
+		return apply_scalar(v, s, [](f32 a, f32 b) { return a + b; });
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N> operator+(const kvec<N> v1, const kvec<N>& v2)
+	{
+		return apply_scalar(v1, v2, [](f32 a, f32 b) { return a + b; });
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1> operator+(const kvec<N1>& a, const kvec<N2>& b)
+	{
+		kvec<N1> r = a;
+
+		r.x += b.x;
+		r.y += b.y;
+		if constexpr (N2 >= 3 && N1 >= 3) r.z += b.z;
+		if constexpr (N2 == 4 && N1 == 4) r.w += b.w;
+
+		return r;
+	}
+
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator+=(kvec<N>& v, f32 s)
+	{
+		v = apply_scalar(v, s, [](f32 a, f32 b) { return a + b; });
+		return v;
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator+=(kvec<N>& v1, const kvec<N>& v2)
+	{
+		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return a + b; });
+		return v1;
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1>& operator+=(kvec<N1>& a, const kvec<N2>& b)
+	{
+		a.x += b.x;
+		a.y += b.y;
+		if constexpr (N2 >= 3 && N1 >= 3) a.z += b.z;
+		if constexpr (N2 == 4 && N1 == 4) a.w += b.w;
+
+		return a;
 	}
 
 	//subtract
@@ -347,7 +401,52 @@ namespace KalaHeaders
 		requires (N >= 2 && N <= 4)
 	inline kvec<N> operator-(f32 s, const kvec<N>& v)
 	{
-		return apply_scalar(v, s, [](f32 a, f32 b) { return b - a; });
+		return apply_scalar(v, s, [](f32 a, f32 b) { return a - b; });
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N> operator-(const kvec<N> v1, const kvec<N>& v2)
+	{
+		return apply_scalar(v1, v2, [](f32 a, f32 b) { return a - b; });
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1> operator-(const kvec<N1>& a, const kvec<N2>& b)
+	{
+		kvec<N1> r = a;
+
+		r.x -= b.x;
+		r.y -= b.y;
+		if constexpr (N2 >= 3 && N1 >= 3) r.z -= b.z;
+		if constexpr (N2 == 4 && N1 == 4) r.w -= b.w;
+
+		return r;
+	}
+
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator-=(kvec<N>& v, f32 s)
+	{
+		v = apply_scalar(v, s, [](f32 a, f32 b) { return a - b; });
+		return v;
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator-=(kvec<N>& v1, const kvec<N>& v2)
+	{
+		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return a - b; });
+		return v1;
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1>& operator-=(kvec<N1>& a, const kvec<N2>& b)
+	{
+		a.x -= b.x;
+		a.y -= b.y;
+		if constexpr (N2 >= 3 && N1 >= 3) a.z -= b.z;
+		if constexpr (N2 == 4 && N1 == 4) a.w -= b.w;
+
+		return a;
 	}
 
 	//multiply
@@ -362,7 +461,52 @@ namespace KalaHeaders
 		requires (N >= 2 && N <= 4)
 	inline kvec<N> operator*(f32 s, const kvec<N>& v)
 	{
-		return apply_scalar(v, s, [](f32 a, f32 b) { return b * a; });
+		return apply_scalar(v, s, [](f32 a, f32 b) { return a * b; });
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N> operator*(const kvec<N> v1, const kvec<N>& v2)
+	{
+		return apply_scalar(v1, v2, [](f32 a, f32 b) { return a * b; });
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1> operator*(const kvec<N1>& a, const kvec<N2>& b)
+	{
+		kvec<N1> r = a;
+
+		r.x *= b.x;
+		r.y *= b.y;
+		if constexpr (N2 >= 3 && N1 >= 3) r.z *= b.z;
+		if constexpr (N2 == 4 && N1 == 4) r.w *= b.w;
+
+		return r;
+	}
+
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator*=(kvec<N>& v, f32 s)
+	{
+		v = apply_scalar(v, s, [](f32 a, f32 b) { return a * b; });
+		return v;
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator*=(kvec<N>& v1, const kvec<N>& v2)
+	{
+		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return a * b; });
+		return v1;
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1>& operator*=(kvec<N1>& a, const kvec<N2>& b)
+	{
+		a.x *= b.x;
+		a.y *= b.y;
+		if constexpr (N2 >= 3 && N1 >= 3) a.z *= b.z;
+		if constexpr (N2 == 4 && N1 == 4) a.w *= b.w;
+
+		return a;
 	}
 
 	//divide
@@ -371,13 +515,58 @@ namespace KalaHeaders
 		requires (N >= 2 && N <= 4)
 	inline kvec<N> operator/(const kvec<N>& v, f32 s)
 	{
-		return apply_scalar(v, s, [](f32 a, f32 b) { return a / b; });
+		return apply_scalar(v, s, [](f32 a, f32 b) { return safediv_a(a, b); });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
 	inline kvec<N> operator/(f32 s, const kvec<N>& v)
 	{
-		return apply_scalar(v, s, [](f32 a, f32 b) { return b / a; });
+		return apply_scalar(v, s, [](f32 a, f32 b) { return safediv_a(a, b); });
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N> operator/(const kvec<N> v1, const kvec<N>& v2)
+	{
+		return apply_scalar(v1, v2, [](f32 a, f32 b) { return safediv_a(a, b); });
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1> operator/(const kvec<N1>& a, const kvec<N2>& b)
+	{
+		kvec<N1> r = a;
+
+		r.x = safediv_a(r.x, b.x);
+		r.y = safediv_a(r.y, b.y);
+		if constexpr (N2 >= 3 && N1 >= 3) r.z = safediv_a(r.z, b.z);
+		if constexpr (N2 == 4 && N1 == 4) r.w = safediv_a(r.w, b.w);
+
+		return r;
+	}
+
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator/=(kvec<N>& v, f32 s)
+	{
+		v = apply_scalar(v, s, [](f32 a, f32 b) { return safediv_c(a, b); });
+		return v;
+	}
+	template<size_t N>
+		requires (N >= 2 && N <= 4)
+	inline kvec<N>& operator/=(kvec<N>& v1, const kvec<N>& v2)
+	{
+		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return safediv_c(a, b); });
+		return v1;
+	}
+	template<size_t N1, size_t N2>
+		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
+	inline kvec<N1>& operator/=(kvec<N1>& a, const kvec<N2>& b)
+	{
+		safediv_c(a.x, b.x);
+		safediv_c(a.y, b.y);
+		if constexpr (N2 >= 3 && N1 >= 3) safediv_c(a.z, b.z);
+		if constexpr (N2 == 4 && N1 == 4) safediv_c(a.w, b.w);
+
+		return a;
 	}
 
 	//
