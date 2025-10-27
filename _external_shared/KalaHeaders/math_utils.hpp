@@ -1132,7 +1132,8 @@ namespace KalaHeaders
 		if (trace > 0.0f)
 		{
 			f32 s = 0.5f / sqrt(trace + 1.0f);
-			return {
+			return 
+			{
 				(m.m21 - m.m12) * s,
 				(m.m02 - m.m20) * s,
 				(m.m10 - m.m01) * s,
@@ -1142,7 +1143,8 @@ namespace KalaHeaders
 		else if (m.m00 > m.m11 && m.m00 > m.m22)
 		{
 			f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
-			return {
+			return 
+			{
 				0.25f * s,
 				(m.m01 + m.m10) / s,
 				(m.m02 + m.m20) / s,
@@ -1152,7 +1154,8 @@ namespace KalaHeaders
 		else if (m.m11 > m.m22)
 		{
 			f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
-			return {
+			return 
+			{
 				(m.m01 + m.m10) / s,
 				0.25f * s,
 				(m.m12 + m.m21) / s,
@@ -1162,7 +1165,8 @@ namespace KalaHeaders
 		else
 		{
 			f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
-			return {
+			return 
+			{
 				(m.m02 + m.m20) / s,
 				(m.m12 + m.m21) / s,
 				0.25f * s,
@@ -1177,7 +1181,8 @@ namespace KalaHeaders
 		if (trace > 0.0f)
 		{
 			f32 s = 0.5f / sqrt(trace + 1.0f);
-			return {
+			return 
+			{
 				(m.m21 - m.m12) * s,
 				(m.m02 - m.m20) * s,
 				(m.m10 - m.m01) * s,
@@ -1187,7 +1192,8 @@ namespace KalaHeaders
 		else if (m.m00 > m.m11 && m.m00 > m.m22)
 		{
 			f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
-			return {
+			return 
+			{
 				0.25f * s,
 				(m.m01 + m.m10) / s,
 				(m.m02 + m.m20) / s,
@@ -1197,7 +1203,8 @@ namespace KalaHeaders
 		else if (m.m11 > m.m22)
 		{
 			f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
-			return {
+			return 
+			{
 				(m.m01 + m.m10) / s,
 				0.25f * s,
 				(m.m12 + m.m21) / s,
@@ -1207,7 +1214,8 @@ namespace KalaHeaders
 		else
 		{
 			f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
-			return {
+			return 
+			{
 				(m.m02 + m.m20) / s,
 				(m.m12 + m.m21) / s,
 				0.25f * s,
@@ -1269,18 +1277,18 @@ namespace KalaHeaders
 		f32 bottom = viewport.y;
 		f32 top = 0.0f;
 
-		f32 near = 0.1f;
-		f32 far = 100.0f;
+		f32 zNear = 0.1f;
+		f32 zFar = 100.0f;
 
 		f32 rl = right - left;
 		f32 tb = top - bottom;
 
 		return
 		{
-			2.0f / rl, 0.0f,       0.0f,                -(right + left) / rl,
-			0.0f,      2.0f / tb,  0.0f,                -(top + bottom) / tb,
-			0.0f,      0.0f,      -2.0f / (far - near), -(far + near) / (far - near),
-			0.0f,      0.0f,       0.0f,                 1.0f
+			2.0f / rl,  0.0f,         0.0f,                  -(right + left) / rl,
+			0.0f,      -(2.0f / tb),  0.0f,                  -(top + bottom) / tb,
+			0.0f,       0.0f,        -2.0f / (zFar - zNear), -(zFar + zNear) / (zFar - zNear),
+			0.0f,       0.0f,         0.0f,                   1.0f
 		};
 	}
 
