@@ -145,7 +145,7 @@ namespace KalaWindow::UI
 	}
 
 	bool Image::Render(
-		const kmat3& projection,
+		const kmat4& projection,
 		const kvec2 viewportSize)
 	{
 		if (!render.canUpdate) return false;
@@ -177,13 +177,13 @@ namespace KalaWindow::UI
 
 		u32 programID = render.shader->GetProgramID();
 
-		kmat3 model = kmat3(1.0f);
+		kmat4 model = kmat4(1.0f);
 		model = translate(model, transform.combinedPos);
 		model = rotate(model, transform.combinedRot);
 		model = scale(model, transform.combinedSize);
 
-		render.shader->SetMat3(programID, "uModel", model);
-		render.shader->SetMat3(programID, "uProjection", projection);
+		render.shader->SetMat4(programID, "uModel", model);
+		render.shader->SetMat4(programID, "uProjection", projection);
 
 		bool isOpaque = render.opacity = 1.0f;
 		bool isTransparentTexture = render.texture

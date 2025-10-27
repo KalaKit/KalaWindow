@@ -34,7 +34,7 @@ namespace KalaWindow::UI
 		//Render the text. Pass viewport size so that the text can be
 		//positioned to the window center and offset from that with world pos
 		virtual bool Render(
-			const kmat3& projection,
+			const kmat4& projection,
 			const kvec2 viewportSize) override;
 
 		void SetFontID(u32 newValue);

@@ -38,7 +38,7 @@ namespace KalaWindow::UI
 		//Render the image. Pass viewport size so that the image can be
 		//positioned to the window center and offset from that with world pos
 		virtual bool Render(
-			const kmat3& projection,
+			const kmat4& projection,
 			const kvec2 viewportSize) override;
 
 		//Do not destroy manually, erase from registry instead

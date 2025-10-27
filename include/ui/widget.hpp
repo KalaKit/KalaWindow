@@ -28,7 +28,7 @@ namespace KalaWindow::UI
 	using KalaHeaders::kvec2;
 	using KalaHeaders::kvec3;
 	using KalaHeaders::kmat2;
-	using KalaHeaders::kmat3;
+	using KalaHeaders::kmat4;
 	using KalaHeaders::radians;
 	using KalaHeaders::wrap;
 	using KalaHeaders::Hierarchy;
@@ -175,7 +175,7 @@ namespace KalaWindow::UI
 		//Render the widget. Pass viewport size so that the widget can be
 		//positioned to the window center and offset from that with world pos
 		virtual bool Render(
-			const kmat3& projection,
+			const kmat4& projection,
 			const kvec2 viewportSize) = 0;
 
 		inline u32 GetID() const { return ID; }

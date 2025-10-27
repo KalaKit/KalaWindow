@@ -20,8 +20,8 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 
 		out vec2 TexCoord;
 
-		uniform mat3 uModel;
-		uniform mat3 uProjection;
+		uniform mat4 uModel;
+		uniform mat4 uProjection;
 
 		uniform float italic_skew;    //horizontal slant factor
 		uniform float kerning_offset; //per-glyph x-adjustment
@@ -36,8 +36,12 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 			//apply italic skew (shear on x based on y)
 			pos.x += pos.y * italic_skew;
 
-			vec3 worldPos = uProjection * uModel * vec3(pos, 1.0);
-			gl_Position = vec4(worldPos.xy, 0.0, 1.0);
+			//identity view matrix
+			mat4 view = mat4(1.0);
+
+			vec4 worldPos = uProjection * view * uModel * vec4(pos, 0.0, 1.0);
+			gl_Position = vec4(worldPos);
+
 			TexCoord = aTexCoord;
 		}
 	)";
