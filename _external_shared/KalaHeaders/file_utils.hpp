@@ -13,6 +13,8 @@
 //   - binary I/O - read/write data for binary files with vector of bytes or buffer + size
 //------------------------------------------------------------------------------
 
+//TODO: add checks for file locked, file read only, no write/read permissions for file, disk space full
+
 #pragma once
 
 #include <string>

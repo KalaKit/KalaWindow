@@ -807,21 +807,21 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 			{
-				this->m00 += m.m00; this->m01 += m.m01;
-				this->m10 += m.m10; this->m11 += m.m11;
+				this->m00 += m.m00; this->m10 += m.m10;
+				this->m01 += m.m01; this->m11 += m.m11;
 			}
 			if constexpr (N == 3)
 			{
-				this->m00 += m.m00; this->m01 += m.m01; this->m02 += m.m02;
-				this->m10 += m.m10; this->m11 += m.m11; this->m12+= m.m12;
-				this->m20 += m.m20; this->m21 += m.m21; this->m22 += m.m22;
+				this->m00 += m.m00; this->m10 += m.m10; this->m20 += m.m20;
+				this->m01 += m.m01; this->m11 += m.m11; this->m21 += m.m21;
+				this->m02 += m.m02; this->m12 += m.m12; this->m22 += m.m22;
 			}
 			if constexpr (N == 4)
 			{
-				this->m00 += m.m00; this->m01 += m.m01; this->m02 += m.m02; this->m03 += m.m03;
-				this->m10 += m.m10; this->m11 += m.m11; this->m12 += m.m12; this->m13 += m.m13;
-				this->m20 += m.m20; this->m21 += m.m21; this->m22 += m.m22; this->m23 += m.m23;
-				this->m30 += m.m30; this->m31 += m.m31; this->m32 += m.m32; this->m33 += m.m33;
+				this->m00 += m.m00; this->m10 += m.m10; this->m20 += m.m20; this->m30 += m.m30;
+				this->m01 += m.m01; this->m11 += m.m11; this->m21 += m.m21; this->m31 += m.m31;
+				this->m02 += m.m02; this->m12 += m.m12; this->m22 += m.m22; this->m32 += m.m32;
+				this->m03 += m.m03; this->m13 += m.m13; this->m23 += m.m23; this->m33 += m.m33;
 			}
 
 			return *this;
@@ -830,21 +830,21 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 			{
-				this->m00 += s; this->m01 += s;
-				this->m10 += s; this->m11 += s;
+				this->m00 += s; this->m10 += s;
+				this->m01 += s; this->m11 += s;
 			}
 			if constexpr (N == 3)
 			{
-				this->m00 += s; this->m01 += s; this->m02 += s;
-				this->m10 += s; this->m11 += s; this->m12 += s;
-				this->m20 += s; this->m21 += s; this->m22 += s;
+				this->m00 += s; this->m10 += s; this->m20 += s;
+				this->m01 += s; this->m11 += s; this->m21 += s;
+				this->m02 += s; this->m12 += s; this->m22 += s;
 			}
 			if constexpr (N == 4)
 			{
-				this->m00 += s; this->m01 += s; this->m02 += s; this->m03 += s;
-				this->m10 += s; this->m11 += s; this->m12 += s; this->m13 += s;
-				this->m20 += s; this->m21 += s; this->m22 += s; this->m23 += s;
-				this->m30 += s; this->m31 += s; this->m32 += s; this->m33 += s;
+				this->m00 += s; this->m10 += s; this->m20 += s; this->m30 += s;
+				this->m01 += s; this->m11 += s; this->m21 += s; this->m31 += s;
+				this->m02 += s; this->m12 += s; this->m22 += s; this->m32 += s;
+				this->m03 += s; this->m13 += s; this->m23 += s; this->m33 += s;
 			}
 
 			return *this;
@@ -854,21 +854,21 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 			{
-				this->m00 -= m.m00; this->m01 -= m.m01;
-				this->m10 -= m.m10; this->m11 -= m.m11;
+				this->m00 -= m.m00; this->m10 -= m.m10;
+				this->m01 -= m.m01; this->m11 -= m.m11;
 			}
 			if constexpr (N == 3)
 			{
-				this->m00 -= m.m00; this->m01 -= m.m01; this->m02 -= m.m02;
-				this->m10 -= m.m10; this->m11 -= m.m11; this->m12 -= m.m12;
-				this->m20 -= m.m20; this->m21 -= m.m21; this->m22 -= m.m22;
+				this->m00 -= m.m00; this->m10 -= m.m10; this->m20 -= m.m20;
+				this->m01 -= m.m01; this->m11 -= m.m11; this->m21 -= m.m21;
+				this->m02 -= m.m02; this->m12 -= m.m12; this->m22 -= m.m22;
 			}
 			if constexpr (N == 4)
 			{
-				this->m00 -= m.m00; this->m01 -= m.m01; this->m02 -= m.m02; this->m03 -= m.m03;
-				this->m10 -= m.m10; this->m11 -= m.m11; this->m12 -= m.m12; this->m13 -= m.m13;
-				this->m20 -= m.m20; this->m21 -= m.m21; this->m22 -= m.m22; this->m23 -= m.m23;
-				this->m30 -= m.m30; this->m31 -= m.m31; this->m32 -= m.m32; this->m33 -= m.m33;
+				this->m00 -= m.m00; this->m10 -= m.m10; this->m20 -= m.m20; this->m30 -= m.m30;
+				this->m01 -= m.m01; this->m11 -= m.m11; this->m21 -= m.m21; this->m31 -= m.m31;
+				this->m02 -= m.m02; this->m12 -= m.m12; this->m22 -= m.m22; this->m32 -= m.m32;
+				this->m03 -= m.m03; this->m13 -= m.m13; this->m23 -= m.m23; this->m33 -= m.m33;
 			}
 
 			return *this;
@@ -877,21 +877,21 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 			{
-				this->m00 -= s; this->m01 -= s;
-				this->m10 -= s; this->m11 -= s;
+				this->m00 -= s; this->m10 -= s;
+				this->m01 -= s; this->m11 -= s;
 			}
 			if constexpr (N == 3)
 			{
-				this->m00 -= s; this->m01 -= s; this->m02 -= s;
-				this->m10 -= s; this->m11 -= s; this->m12 -= s;
-				this->m20 -= s; this->m21 -= s; this->m22 -= s;
+				this->m00 -= s; this->m10 -= s; this->m20 -= s;
+				this->m01 -= s; this->m11 -= s; this->m21 -= s;
+				this->m02 -= s; this->m12 -= s; this->m22 -= s;
 			}
 			if constexpr (N == 4)
 			{
-				this->m00 -= s; this->m01 -= s; this->m02 -= s; this->m03 -= s;
-				this->m10 -= s; this->m11 -= s; this->m12 -= s; this->m13 -= s;
-				this->m20 -= s; this->m21 -= s; this->m22 -= s; this->m23 -= s;
-				this->m30 -= s; this->m31 -= s; this->m32 -= s; this->m33 -= s;
+				this->m00 -= s; this->m10 -= s; this->m20 -= s; this->m30 -= s;
+				this->m01 -= s; this->m11 -= s; this->m21 -= s; this->m31 -= s;
+				this->m02 -= s; this->m12 -= s; this->m22 -= s; this->m32 -= s;
+				this->m03 -= s; this->m13 -= s; this->m23 -= s; this->m33 -= s;
 			}
 
 			return *this;
@@ -901,58 +901,58 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 			{
-				const f32 a00 = this->m00, a01 = this->m01;
-				const f32 a10 = this->m10, a11 = this->m11;
+				const f32 a00 = this->m00, a10 = this->m10;
+				const f32 a01 = this->m01, a11 = this->m11;
 
-				this->m00 = a00 * m.m00 + a10 * m.m01;
-				this->m01 = a01 * m.m00 + a11 * m.m01;
+				this->m00 = a00 * m.m00 + a01 * m.m10;
+				this->m10 = a10 * m.m00 + a11 * m.m10;
 
-				this->m10 = a00 * m.m10 + a10 * m.m11;
-				this->m11 = a01 * m.m10 + a11 * m.m11;
+				this->m01 = a00 * m.m01 + a01 * m.m11;
+				this->m11 = a10 * m.m01 + a11 * m.m11;
 			}
 			if constexpr (N == 3)
 			{
-				const f32 a00 = this->m00, a01 = this->m01, a02 = this->m02;
-				const f32 a10 = this->m10, a11 = this->m11, a12 = this->m12;
-				const f32 a20 = this->m20, a21 = this->m21, a22 = this->m22;
+				const f32 a00 = this->m00, a10 = this->m10, a20 = this->m20;
+				const f32 a01 = this->m01, a11 = this->m11, a21 = this->m21;
+				const f32 a02 = this->m02, a12 = this->m12, a22 = this->m22;
 
 				this->m00 = a00 * m.m00 + a01 * m.m10 + a02 * m.m20;
-				this->m01 = a00 * m.m01 + a01 * m.m11 + a02 * m.m21;
-				this->m02 = a00 * m.m02 + a01 * m.m12 + a02 * m.m22;
-
 				this->m10 = a10 * m.m00 + a11 * m.m10 + a12 * m.m20;
-				this->m11 = a10 * m.m01 + a11 * m.m11 + a12 * m.m21;
-				this->m12 = a10 * m.m02 + a11 * m.m12 + a12 * m.m22;
-
 				this->m20 = a20 * m.m00 + a21 * m.m10 + a22 * m.m20;
+
+				this->m01 = a00 * m.m01 + a01 * m.m11 + a02 * m.m21;
+				this->m11 = a10 * m.m01 + a11 * m.m11 + a12 * m.m21;
 				this->m21 = a20 * m.m01 + a21 * m.m11 + a22 * m.m21;
+
+				this->m02 = a00 * m.m02 + a01 * m.m12 + a02 * m.m22;
+				this->m12 = a10 * m.m02 + a11 * m.m12 + a12 * m.m22;
 				this->m22 = a20 * m.m02 + a21 * m.m12 + a22 * m.m22;
 			}
 			if constexpr (N == 4)
 			{
-				const f32 a00 = this->m00, a01 = this->m01, a02 = this->m02, a03 = this->m03;
-				const f32 a10 = this->m10, a11 = this->m11, a12 = this->m12, a13 = this->m13;
-				const f32 a20 = this->m20, a21 = this->m21, a22 = this->m22, a23 = this->m23;
-				const f32 a30 = this->m30, a31 = this->m31, a32 = this->m32, a33 = this->m33;
+				const f32 a00 = this->m00, a10 = this->m10, a20 = this->m20, a30 = this->m30;
+				const f32 a01 = this->m01, a11 = this->m11, a21 = this->m21, a31 = this->m31;
+				const f32 a02 = this->m02, a12 = this->m12, a22 = this->m22, a32 = this->m32;
+				const f32 a03 = this->m03, a13 = this->m13, a23 = this->m23, a33 = this->m33;
 
 				this->m00 = a00 * m.m00 + a01 * m.m10 + a02 * m.m20 + a03 * m.m30;
-				this->m01 = a00 * m.m01 + a01 * m.m11 + a02 * m.m21 + a03 * m.m31;
-				this->m02 = a00 * m.m02 + a01 * m.m12 + a02 * m.m22 + a03 * m.m32;
-				this->m03 = a00 * m.m03 + a01 * m.m13 + a02 * m.m23 + a03 * m.m33;
-
 				this->m10 = a10 * m.m00 + a11 * m.m10 + a12 * m.m20 + a13 * m.m30;
-				this->m11 = a10 * m.m01 + a11 * m.m11 + a12 * m.m21 + a13 * m.m31;
-				this->m12 = a10 * m.m02 + a11 * m.m12 + a12 * m.m22 + a13 * m.m32;
-				this->m13 = a10 * m.m03 + a11 * m.m13 + a12 * m.m23 + a13 * m.m33;
-
 				this->m20 = a20 * m.m00 + a21 * m.m10 + a22 * m.m20 + a23 * m.m30;
-				this->m21 = a20 * m.m01 + a21 * m.m11 + a22 * m.m21 + a23 * m.m31;
-				this->m22 = a20 * m.m02 + a21 * m.m12 + a22 * m.m22 + a23 * m.m32;
-				this->m23 = a20 * m.m03 + a21 * m.m13 + a22 * m.m23 + a23 * m.m33;
-
 				this->m30 = a30 * m.m00 + a31 * m.m10 + a32 * m.m20 + a33 * m.m30;
+
+				this->m01 = a00 * m.m01 + a01 * m.m11 + a02 * m.m21 + a03 * m.m31;
+				this->m11 = a10 * m.m01 + a11 * m.m11 + a12 * m.m21 + a13 * m.m31;
+				this->m21 = a20 * m.m01 + a21 * m.m11 + a22 * m.m21 + a23 * m.m31;
 				this->m31 = a30 * m.m01 + a31 * m.m11 + a32 * m.m21 + a33 * m.m31;
+
+				this->m02 = a00 * m.m02 + a01 * m.m12 + a02 * m.m22 + a03 * m.m32;
+				this->m12 = a10 * m.m02 + a11 * m.m12 + a12 * m.m22 + a13 * m.m32;
+				this->m22 = a20 * m.m02 + a21 * m.m12 + a22 * m.m22 + a23 * m.m32;
 				this->m32 = a30 * m.m02 + a31 * m.m12 + a32 * m.m22 + a33 * m.m32;
+
+				this->m03 = a00 * m.m03 + a01 * m.m13 + a02 * m.m23 + a03 * m.m33;
+				this->m13 = a10 * m.m03 + a11 * m.m13 + a12 * m.m23 + a13 * m.m33;
+				this->m23 = a20 * m.m03 + a21 * m.m13 + a22 * m.m23 + a23 * m.m33;
 				this->m33 = a30 * m.m03 + a31 * m.m13 + a32 * m.m23 + a33 * m.m33;
 			}
 
@@ -962,21 +962,21 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 			{
-				this->m00 *= s; this->m01 *= s;
-				this->m10 *= s; this->m11 *= s;
+				this->m00 *= s; this->m10 *= s;
+				this->m01 *= s; this->m11 *= s;
 			}
 			if constexpr (N == 3)
 			{
-				this->m00 *= s; this->m01 *= s; this->m02 *= s;
-				this->m10 *= s; this->m11 *= s; this->m12 *= s;
-				this->m20 *= s; this->m21 *= s; this->m22 *= s;
+				this->m00 *= s; this->m10 *= s; this->m20 *= s;
+				this->m01 *= s; this->m11 *= s; this->m21 *= s;
+				this->m02 *= s; this->m12 *= s; this->m22 *= s;
 			}
 			if constexpr (N == 4)
 			{
-				this->m00 *= s; this->m01 *= s; this->m02 *= s; this->m03 *= s;
-				this->m10 *= s; this->m11 *= s; this->m12 *= s; this->m13 *= s;
-				this->m20 *= s; this->m21 *= s; this->m22 *= s; this->m23 *= s;
-				this->m30 *= s; this->m31 *= s; this->m32 *= s; this->m33 *= s;
+				this->m00 *= s; this->m10 *= s; this->m20 *= s; this->m30 *= s;
+				this->m01 *= s; this->m11 *= s; this->m21 *= s; this->m31 *= s;
+				this->m02 *= s; this->m12 *= s; this->m22 *= s; this->m32 *= s;
+				this->m03 *= s; this->m13 *= s; this->m23 *= s; this->m33 *= s;
 			}
 
 			return *this;
@@ -991,21 +991,21 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 			{
-				this->m00 = safediv_c(this->m00, s); this->m01 = safediv_c(this->m01, s);
-				this->m10 = safediv_c(this->m10, s); this->m11 = safediv_c(this->m11, s);
+				this->m00 = safediv_c(this->m00, s); this->m10 = safediv_c(this->m10, s);
+				this->m01 = safediv_c(this->m01, s); this->m11 = safediv_c(this->m11, s);
 			}
 			if constexpr (N == 3)
 			{
-				this->m00 = safediv_c(this->m00, s); this->m01 = safediv_c(this->m01, s); this->m02 = safediv_c(this->m02, s);
-				this->m10 = safediv_c(this->m10, s); this->m11 = safediv_c(this->m11, s); this->m12 = safediv_c(this->m12, s);
-				this->m20 = safediv_c(this->m20, s); this->m21 = safediv_c(this->m21, s); this->m22 = safediv_c(this->m22, s);
+				this->m00 = safediv_c(this->m00, s); this->m10 = safediv_c(this->m10, s); this->m20 = safediv_c(this->m20, s);
+				this->m01 = safediv_c(this->m01, s); this->m11 = safediv_c(this->m11, s); this->m21 = safediv_c(this->m21, s);
+				this->m02 = safediv_c(this->m02, s); this->m12 = safediv_c(this->m12, s); this->m22 = safediv_c(this->m22, s);
 			}
 			if constexpr (N == 4)
 			{
-				this->m00 = safediv_c(this->m00, s); this->m01 = safediv_c(this->m01, s); this->m02 = safediv_c(this->m02, s); this->m03 = safediv_c(this->m03, s);
-				this->m10 = safediv_c(this->m10, s); this->m11 = safediv_c(this->m11, s); this->m12 = safediv_c(this->m12, s); this->m13 = safediv_c(this->m13, s);
-				this->m20 = safediv_c(this->m20, s); this->m21 = safediv_c(this->m21, s); this->m22 = safediv_c(this->m22, s); this->m23 = safediv_c(this->m23, s);
-				this->m30 = safediv_c(this->m30, s); this->m31 = safediv_c(this->m31, s); this->m32 = safediv_c(this->m32, s); this->m33 = safediv_c(this->m33, s);
+				this->m00 = safediv_c(this->m00, s); this->m10 = safediv_c(this->m10, s); this->m20 = safediv_c(this->m20, s); this->m30 = safediv_c(this->m30, s);
+				this->m01 = safediv_c(this->m01, s); this->m11 = safediv_c(this->m11, s); this->m21 = safediv_c(this->m21, s); this->m31 = safediv_c(this->m31, s);
+				this->m02 = safediv_c(this->m02, s); this->m12 = safediv_c(this->m12, s); this->m22 = safediv_c(this->m22, s); this->m32 = safediv_c(this->m32, s);
+				this->m03 = safediv_c(this->m03, s); this->m13 = safediv_c(this->m13, s); this->m23 = safediv_c(this->m23, s); this->m33 = safediv_c(this->m33, s);
 			}
 
 			return *this;
@@ -1020,25 +1020,25 @@ namespace KalaHeaders
 	{
 		if constexpr (N == 2)
 			return 
-			{
-				m.m00 * v.x + m.m01 * v.y,
-				m.m10 * v.x + m.m11 * v.y
-			};
+		{
+			m.m00 * v.x + m.m10 * v.y,
+			m.m01 * v.x + m.m11 * v.y
+		};
 		if constexpr (N == 3)
 			return 
-			{
-				m.m00 * v.x + m.m01 * v.y + m.m02 * v.z,
-				m.m10 * v.x + m.m11 * v.y + m.m12 * v.z,
-				m.m20 * v.x + m.m21 * v.y + m.m22 * v.z
-			};
+		{
+			m.m00 * v.x + m.m10 * v.y + m.m20 * v.z,
+			m.m01 * v.x + m.m11 * v.y + m.m21 * v.z,
+			m.m02 * v.x + m.m12 * v.y + m.m22 * v.z
+		};
 		if constexpr (N == 4)
 			return 
-			{
-				m.m00 * v.x + m.m01 * v.y + m.m02 * v.z + m.m03 * v.w,
-				m.m10 * v.x + m.m11 * v.y + m.m12 * v.z + m.m13 * v.w,
-				m.m20 * v.x + m.m21 * v.y + m.m22 * v.z + m.m23 * v.w,
-				m.m30 * v.x + m.m31 * v.y + m.m32 * v.z + m.m33 * v.w
-			};
+		{
+			m.m00 * v.x + m.m10 * v.y + m.m20 * v.z + m.m30 * v.w,
+			m.m01 * v.x + m.m11 * v.y + m.m21 * v.z + m.m31 * v.w,
+			m.m02 * v.x + m.m12 * v.y + m.m22 * v.z + m.m32 * v.w,
+			m.m03 * v.x + m.m13 * v.y + m.m23 * v.z + m.m33 * v.w
+		};
 	}
 
 	using vec2 = vec<2>; //Vector: x, y
@@ -1158,135 +1158,125 @@ namespace KalaHeaders
 	//Converts mat3 to quat
 	inline quat toquat(const mat3& m)
 	{
-		f32 trace = m.m00 + m.m11 + m.m22;
+		const f32 trace = m.m00 + m.m11 + m.m22;
+		quat q{};
+
 		if (trace > 0.0f)
 		{
-			f32 s = 0.5f / sqrt(trace + 1.0f);
-			return 
-			{
-				(m.m21 - m.m12) * s,
-				(m.m02 - m.m20) * s,
-				(m.m10 - m.m01) * s,
-				0.25f / s
-			};
+			const f32 s = 0.5f / sqrt(trace + 1.0f);
+			q.w = 0.25f / s;
+			q.x = (m.m21 - m.m12) * s;
+			q.y = (m.m02 - m.m20) * s;
+			q.z = (m.m10 - m.m01) * s;
 		}
 		else if (m.m00 > m.m11 && m.m00 > m.m22)
 		{
-			f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
-			return 
-			{
-				0.25f * s,
-				(m.m01 + m.m10) / s,
-				(m.m02 + m.m20) / s,
-				(m.m21 - m.m12) / s
-			};
+			const f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
+			q.w = (m.m21 - m.m12) / s;
+			q.x = 0.25f * s;
+			q.y = (m.m10 + m.m01) / s;
+			q.z = (m.m20 + m.m02) / s;
 		}
 		else if (m.m11 > m.m22)
 		{
-			f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
-			return 
-			{
-				(m.m01 + m.m10) / s,
-				0.25f * s,
-				(m.m12 + m.m21) / s,
-				(m.m02 - m.m20) / s
-			};
+			const f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
+			q.w = (m.m02 - m.m20) / s;
+			q.x = (m.m10 + m.m01) / s;
+			q.y = 0.25f * s;
+			q.z = (m.m21 + m.m12) / s;
 		}
 		else
 		{
-			f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
-			return 
-			{
-				(m.m02 + m.m20) / s,
-				(m.m12 + m.m21) / s,
-				0.25f * s,
-				(m.m10 - m.m01) / s
-			};
+			const f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
+			q.w = (m.m10 - m.m01) / s;
+			q.x = (m.m20 + m.m02) / s;
+			q.y = (m.m21 + m.m12) / s;
+			q.z = 0.25f * s;
 		}
+
+		return q;
 	}
 	//Converts mat4 to quat
 	inline quat toquat(const mat4& m)
 	{
-		f32 trace = m.m00 + m.m11 + m.m22;
+		const f32 trace = m.m00 + m.m11 + m.m22;
+		quat q{};
+
 		if (trace > 0.0f)
 		{
-			f32 s = 0.5f / sqrt(trace + 1.0f);
-			return 
-			{
-				(m.m21 - m.m12) * s,
-				(m.m02 - m.m20) * s,
-				(m.m10 - m.m01) * s,
-				0.25f / s
-			};
+			const f32 s = 0.5f / sqrt(trace + 1.0f);
+			q.w = 0.25f / s;
+			q.x = (m.m21 - m.m12) * s;
+			q.y = (m.m02 - m.m20) * s;
+			q.z = (m.m10 - m.m01) * s;
 		}
 		else if (m.m00 > m.m11 && m.m00 > m.m22)
 		{
-			f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
-			return 
-			{
-				0.25f * s,
-				(m.m01 + m.m10) / s,
-				(m.m02 + m.m20) / s,
-				(m.m21 - m.m12) / s
-			};
+			const f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
+			q.w = (m.m21 - m.m12) / s;
+			q.x = 0.25f * s;
+			q.y = (m.m10 + m.m01) / s;
+			q.z = (m.m20 + m.m02) / s;
 		}
 		else if (m.m11 > m.m22)
 		{
-			f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
-			return 
-			{
-				(m.m01 + m.m10) / s,
-				0.25f * s,
-				(m.m12 + m.m21) / s,
-				(m.m02 - m.m20) / s
-			};
+			const f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
+			q.w = (m.m02 - m.m20) / s;
+			q.x = (m.m10 + m.m01) / s;
+			q.y = 0.25f * s;
+			q.z = (m.m21 + m.m12) / s;
 		}
 		else
 		{
-			f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
-			return 
-			{
-				(m.m02 + m.m20) / s,
-				(m.m12 + m.m21) / s,
-				0.25f * s,
-				(m.m10 - m.m01) / s
-			};
+			const f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
+			q.w = (m.m10 - m.m01) / s;
+			q.x = (m.m20 + m.m02) / s;
+			q.y = (m.m21 + m.m12) / s;
+			q.z = 0.25f * s;
 		}
+
+		return q;
 	}
 
 	//Converts quat to mat3
 	inline mat3 tomat3(const quat& q)
 	{
-		f32 x2 = q.x + q.x;
-		f32 y2 = q.y + q.y;
-		f32 z2 = q.z + q.z;
+		const f32 xx = q.x * q.x;
+		const f32 yy = q.y * q.y;
+		const f32 zz = q.z * q.z;
+		const f32 xy = q.x * q.y;
+		const f32 xz = q.x * q.z;
+		const f32 yz = q.y * q.z;
+		const f32 wx = q.w * q.x;
+		const f32 wy = q.w * q.y;
+		const f32 wz = q.w * q.z;
 
-		f32 xx = q.x * x2;
-		f32 yy = q.y * y2;
-		f32 zz = q.z * z2;
-		f32 xy = q.x * y2;
-		f32 xz = q.x * z2;
-		f32 yz = q.y * z2;
-		f32 wx = q.w * x2;
-		f32 wy = q.w * y2;
-		f32 wz = q.w * z2;
-
-		return
+		return 
 		{
-			1.0f - (yy + zz), xy + wz,           xz - wy,
-			xy - wz,          1.0f - (xx + zz),  yz + wx,
-			xz + wy,          yz - wx,           1.0f - (xx + yy)
+			1.0f - 2.0f * (yy + zz),  2.0f * (xy + wz),      2.0f * (xz - wy),
+			2.0f * (xy - wz),         1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx),
+			2.0f * (xz + wy),         2.0f * (yz - wx),      1.0f - 2.0f * (xx + yy)
 		};
 	}
 	//Converts quat to mat4
 	inline mat4 tomat4(const quat& q)
 	{
-		mat3 r = tomat3(q);
-		return {
-			r.m00, r.m01, r.m02, 0.0f,
-			r.m10, r.m11, r.m12, 0.0f,
-			r.m20, r.m21, r.m22, 0.0f,
-			0.0f,  0.0f,  0.0f,  1.0f
+		const f32 xx = q.x * q.x;
+		const f32 yy = q.y * q.y;
+		const f32 zz = q.z * q.z;
+		const f32 xy = q.x * q.y;
+		const f32 xz = q.x * q.z;
+		const f32 yz = q.y * q.z;
+		const f32 wx = q.w * q.x;
+		const f32 wy = q.w * q.y;
+		const f32 wz = q.w * q.z;
+
+		return 
+		{
+			1.0f - 2.0f * (yy + zz), 2.0f * (xy + wz),        2.0f * (xz - wy),        0.0f,
+			2.0f * (xy - wz),        1.0f - 2.0f * (xx + zz), 2.0f * (yz + wx),        0.0f,
+			2.0f * (xz + wy),        2.0f * (yz - wx),        1.0f - 2.0f * (xx + yy), 0.0f,
+			0.0f,                    0.0f,                    0.0f,                    1.0f
 		};
 	}
 
@@ -1298,7 +1288,7 @@ namespace KalaHeaders
 			m.m00, m.m10, 0.0f, 0.0f,
 			m.m01, m.m11, 0.0f, 0.0f,
 			0.0f,  0.0f,  1.0f, 0.0f,
-			m.m02, m.m12, 0.0f,  1.0f
+			m.m02, m.m12, 0.0f, 1.0f
 		};
 	}
 
@@ -1314,23 +1304,24 @@ namespace KalaHeaders
 	//ortographic projection, bottom-left origin, Y-up projection
 	inline mat4 ortho(const vec2 viewport)
 	{
-		f32 left = 0.0f;
-		f32 right = viewport.x;
-		f32 top = viewport.y;
-		f32 bottom = 0.0f;
+		const f32 left = 0.0f;
+		const f32 right = viewport.x;
+		const f32 bottom = 0.0f;
+		const f32 top = viewport.y;
 
-		f32 zNear = 0.1f;
-		f32 zFar = 100.0f;
+		const f32 zNear = -1.0f;
+		const f32 zFar = 1.0f;
 
-		f32 rl = right - left;
-		f32 tb = top - bottom;
+		const f32 rl = right - left;
+		const f32 tb = top - bottom;
+		const f32 fn = zFar - zNear;
 
-		return
+		return 
 		{
-			2.0f / rl, 0.0f,       0.0f,                  -(right + left) / rl,
-			0.0f,      2.0f / tb,  0.0f,                  -(top + bottom) / tb,
-			0.0f,      0.0f,      -2.0f / (zFar - zNear), -(zFar + zNear) / (zFar - zNear),
-			0.0f,      0.0f,       0.0f,                   1.0f
+			2.0f / rl,            0.0f,                 0.0f,                0.0f,
+			0.0f,                 2.0f / tb,            0.0f,                0.0f,
+			0.0f,                 0.0f,                -2.0f / fn,           0.0f,
+		   -(right + left) / rl, -(top + bottom) / tb, -(zFar + zNear) / fn, 1.0f
 		};
 	}
 
@@ -1341,16 +1332,15 @@ namespace KalaHeaders
 		f32 zNear,
 		f32 zFar)
 	{
-		f32 aspect = viewport.x / viewport.y;
-		f32 f = 1.0f / tan(radians(fovDeg) * 0.5f);
-		f32 fn = zFar - zNear;
+		const f32 aspect = viewport.x / viewport.y;
+		const f32 f = 1.0f / tan(radians(fovDeg) * 0.5f);
+		const f32 fn = zFar - zNear;
 
-		return
-		{
-			f / aspect, 0.0f,  0.0f,                 0.0f,
-			0.0f,       f,     0.0f,                 0.0f,
-			0.0f,       0.0f, -(zFar + zNear) / fn, -(2.0f * zFar * zNear) / fn,
-			0.0f,       0.0f, -1.0f,                 0.0f
+		return {
+			f / aspect, 0.0f,  0.0f,                        0.0f,
+			0.0f,       f,     0.0f,                        0.0f,
+			0.0f,       0.0f, -(zFar + zNear) / fn,        -1.0f,
+			0.0f,       0.0f, -(2.0f * zFar * zNear) / fn,  0.0f
 		};
 	}
 
@@ -1415,9 +1405,8 @@ namespace KalaHeaders
 		const vec2 v)
 	{
 		mat3 t = m;
-		t.m20 += m.m00 * v.x + m.m10 * v.y;
-		t.m21 += m.m01 * v.x + m.m11 * v.y;
-
+		t.m02 += v.x;
+		t.m12 += v.y;
 		return t;
 	}
 	//Move in 3D space
@@ -1426,9 +1415,9 @@ namespace KalaHeaders
 		const vec3& v)
 	{
 		mat4 t = m;
-		t.m30 += m.m00 * v.x + m.m10 * v.x + m.m20 * v.z;
-		t.m31 += m.m01 * v.x + m.m11 * v.x + m.m21 * v.z;
-		t.m32 += m.m02 * v.x + m.m12 * v.x + m.m22 * v.z;
+		t.m30 += v.x;
+		t.m31 += v.y;
+		t.m32 += v.z;
 
 		return t;
 	}
@@ -1442,13 +1431,14 @@ namespace KalaHeaders
 		const f32 c = cos(rad);
 		const f32 s = sin(rad);
 
-		mat3 r = {
-			c, -s, 0.0f,
-			s,  c, 0.0f,
-			0.0f, 0.0f, 1.0f
+		mat3 r = 
+		{
+			 c,    s,    0.0f,
+			-s,    c,    0.0f,
+			 0.0f, 0.0f, 1.0f
 		};
 
-		return m * r;
+		return r * m;
 	}
 	//Rotate around any non-normalized euler axis with euler degrees in 3D
 	inline mat4 rotate(
@@ -1461,50 +1451,43 @@ namespace KalaHeaders
 		const f32 s = sin(rad);
 		const f32 ic = 1.0f - c;
 
-		vec3 axis_normalized = normalize(axis);
+		const vec3 a = normalize(axis);
+		const f32 x = a.x;
+		const f32 y = a.y;
+		const f32 z = a.z;
 
-		const f32
-			x = axis_normalized.x,
-			y = axis_normalized.y,
-			z = axis_normalized.z;
-
-		mat4 r =
+		mat4 r = 
 		{
-			c + x * x * ic,  x * y * ic - z * s,  x * z * ic + y * s,  0.0f,
-			y * x * ic + z * s,   c + y * y * ic, y * z * ic - x * s,  0.0f,
-			z * x * ic - y * s,   z * y * ic + x * s,  c + z * z * ic, 0.0f,
-			0.0f,                 0.0f,                0.0f,                1.0f
+			c + x * x * ic,     x * y * ic + z * s, x * z * ic - y * s, 0.0f,
+			y * x * ic - z * s, c + y * y * ic,     y * z * ic + x * s, 0.0f,
+			z * x * ic + y * s, z * y * ic - x * s, c + z * z * ic,     0.0f,
+			0.0f,               0.0f,               0.0f,               1.0f
 		};
 
-		return m * r;
+		return r * m;
 	}
 	//Rotate with quaternion in 3D
 	inline mat4 rotate(const mat4& m, const quat& q)
 	{
+		const f32 xx = q.x * q.x;
+		const f32 yy = q.y * q.y;
+		const f32 zz = q.z * q.z;
+		const f32 xy = q.x * q.y;
+		const f32 xz = q.x * q.z;
+		const f32 yz = q.y * q.z;
+		const f32 wx = q.w * q.x;
+		const f32 wy = q.w * q.y;
+		const f32 wz = q.w * q.z;
+
 		mat4 r = 
 		{
-			1 - 2 * q.y * q.y - 2 * q.z * q.z,  
-			2 * q.x * q.y - 2 * q.z * q.w,      
-			2 * q.x * q.z + 2 * q.y * q.w,      
-			0.0f,
-
-			2 * q.x * q.y + 2 * q.z * q.w,      
-			1 - 2 * q.x * q.x - 2 * q.z * q.z,  
-			2 * q.y * q.z - 2 * q.x * q.w,      
-			0.0f,
-
-			2 * q.x * q.z - 2 * q.y * q.w,      
-			2 * q.y * q.z + 2 * q.x * q.w,      
-			1 - 2 * q.x * q.x - 2 * q.y * q.y,  
-			0.0f,
-
-			0.0f,                
-			0.0f,               
-			0.0f,              
-			1.0f
+			1 - 2 * (yy + zz), 2 * (xy + wz),     2 * (xz - wy),     0.0f,
+			2 * (xy - wz),     1 - 2 * (xx + zz), 2 * (yz + wx),     0.0f,
+			2 * (xz + wy),     2 * (yz - wx),     1 - 2 * (xx + yy), 0.0f,
+			0.0f,              0.0f,              0.0f,              1.0f
 		};
-
-		return m * r;
+		  
+		return r * m;
 	}
 
 	//Scale in 2D space
@@ -1513,9 +1496,9 @@ namespace KalaHeaders
 		const vec2 v)
 	{
 		mat3 s = m;
-		s.m00 *= v.x; s.m01 *= v.x;
-		s.m10 *= v.y; s.m11 *= v.y;
-
+		s.m00 *= v.x; s.m10 *= v.x; s.m20 *= v.x;
+		s.m01 *= v.y; s.m11 *= v.y; s.m21 *= v.y;
+		
 		return s;
 	}
 	//Scale in 3D space
@@ -1524,10 +1507,10 @@ namespace KalaHeaders
 		const vec3& v)
 	{
 		mat4 s = m;
-		s.m00 *= v.x; s.m01 *= v.x; s.m02 *= v.x;
-		s.m10 *= v.y; s.m11 *= v.y; s.m12 *= v.y;
-		s.m20 *= v.z; s.m21 *= v.z; s.m22 *= v.z;
-
+		s.m00 *= v.x; s.m10 *= v.x; s.m20 *= v.x; s.m30 *= v.x;
+		s.m01 *= v.y; s.m11 *= v.y; s.m21 *= v.y; s.m31 *= v.y;
+		s.m02 *= v.z; s.m12 *= v.z; s.m22 *= v.z; s.m32 *= v.z;
+		
 		return s;
 	}
 
@@ -1609,16 +1592,13 @@ namespace KalaHeaders
 		vec3 s = normalize(cross(f, up));
 		vec3 u = cross(s, f);
 
-		mat4 m(1.0f);
-		m.m00 = s.x; m.m01 = u.x; m.m02 = -f.x;
-		m.m10 = s.y; m.m11 = u.y; m.m12 = -f.y;
-		m.m20 = s.z; m.m21 = u.z; m.m22 = -f.z;
-
-		m.m30 = -dot(s, origin);
-		m.m31 = -dot(u, origin);
-		m.m32 =  dot(f, origin);
-
-		return m;
+		return 
+		{
+			 s.x,             u.x,            -f.x,           0.0f,
+			 s.y,             u.y,            -f.y,           0.0f,
+			 s.z,             u.z,            -f.z,           0.0f,
+			-dot(s, origin), -dot(u, origin), dot(f, origin), 1.0f
+		};
 	}
 
 	//Linear interpolation between two floats by t
