@@ -609,23 +609,23 @@ namespace KalaHeaders
 	template<>
 	struct mat_storage<2>
 	{
-		f32 m00 = 1.0f, m01{};
-		f32 m10{},      m11 = 1.0f;
+		f32 m00 = 1.0f, m10{};
+		f32 m01{},      m11 = 1.0f;
 	};
 	template<>
 	struct mat_storage<3>
 	{
-		f32 m00 = 1.0f, m01{},      m02{};
-		f32 m10{},      m11 = 1.0f, m12{};
-		f32 m20{},      m21{},      m22 = 1.0f;
+		f32 m00 = 1.0f, m10{},      m20{};
+		f32 m01{},      m11 = 1.0f, m21{};
+		f32 m02{},      m12{},      m22 = 1.0f;
 	};
 	template<>
 	struct mat_storage<4>
 	{
-		f32 m00 = 1.0f, m01{},      m02{},      m03{};
-		f32 m10{},      m11 = 1.0f, m12{},      m13{};
-		f32 m20{},      m21{},      m22 = 1.0f, m23{};
-		f32 m30{},      m31{},      m32{},      m33 = 1.0f;
+		f32 m00 = 1.0f, m10{},      m20{},      m30{};
+		f32 m01{},      m11 = 1.0f, m21{},      m31{};
+		f32 m02{},      m12{},      m22 = 1.0f, m32{};
+		f32 m03{},      m13{},      m23{},      m33 = 1.0f;
 	};
 
 	template <size_t N>
@@ -640,10 +640,10 @@ namespace KalaHeaders
 			requires (N == 2)
 			: mat_storage<N>{ _m, _m, _m, _m } {}
 		constexpr mat(
-			f32 _m00, f32 _m01,
-			f32 _m10, f32 _m11)
+			f32 _m00, f32 _m10,
+			f32 _m01, f32 _m11)
 			requires (N == 2)
-			: mat_storage<N>{ _m00, _m01, _m10, _m11 } {}
+			: mat_storage<N>{ _m00, _m10, _m01, _m11 } {}
 
 		constexpr mat(
 			f32 _m)
@@ -655,16 +655,16 @@ namespace KalaHeaders
 				_m, _m, _m
 			} {}
 		constexpr mat(
-			f32 _m00, f32 _m01, f32 _m02,
-			f32 _m10, f32 _m11, f32 _m12,
-			f32 _m20, f32 _m21, f32 _m22)
+			f32 _m00, f32 _m10, f32 _m20,
+			f32 _m01, f32 _m11, f32 _m21,
+			f32 _m02, f32 _m12, f32 _m22)
 			requires (N == 3)
-			: mat_storage<N>
-			{
-				_m00, _m01, _m02,
-				_m10, _m11, _m12,
-				_m20, _m21, _m22 
+			: mat_storage<N>{
+				_m00, _m10, _m20,
+				_m01, _m11, _m21,
+				_m02, _m12, _m22
 			} {}
+
 
 		constexpr mat(
 			f32 _m)
@@ -677,17 +677,16 @@ namespace KalaHeaders
 				_m, _m, _m, _m
 			} {}
 		constexpr mat(
-			f32 _m00, f32 _m01, f32 _m02, f32 _m03,
-			f32 _m10, f32 _m11, f32 _m12, f32 _m13,
-			f32 _m20, f32 _m21, f32 _m22, f32 _m23,
-			f32 _m30, f32 _m31, f32 _m32, f32 _m33)
+			f32 _m00, f32 _m10, f32 _m20, f32 _m30,
+			f32 _m01, f32 _m11, f32 _m21, f32 _m31,
+			f32 _m02, f32 _m12, f32 _m22, f32 _m32,
+			f32 _m03, f32 _m13, f32 _m23, f32 _m33)
 			requires (N == 4)
-			: mat_storage<N>
-			{
-				_m00, _m01, _m02, _m03,
-				_m10, _m11, _m12, _m13,
-				_m20, _m21, _m22, _m23,
-				_m30, _m31, _m32, _m33
+			: mat_storage<N>{
+				_m00, _m10, _m20, _m30,
+				_m01, _m11, _m21, _m31,
+				_m02, _m12, _m22, _m32,
+				_m03, _m13, _m23, _m33
 			} {}
 
 		using storage = mat_storage<N>;
@@ -1291,36 +1290,15 @@ namespace KalaHeaders
 		};
 	}
 
-	//Converts mat2 to mat3
-	inline mat3 tomat3(const mat2& m)
-	{
-		return 
-		{
-			m.m00, m.m01, 0.0f,
-			m.m10, m.m11, 0.0f,
-			0.0f,  0.0f,  1.0f
-		};
-	}
-	//Converts mat2 to mat4
-	inline mat4 tomat4(const mat2& m)
-	{
-		return
-		{
-			m.m00, m.m01, 0.0f, 0.0f,
-			m.m10, m.m11, 0.0f, 0.0f,
-			0.0f,  0.0f,  1.0f, 0.0f,
-			0.0f,  0.0f,  0.0f,  1.0f
-		};
-	}
-	//Converts mat3 to mat4
+	//Converts a 2D matrix to 3D
 	inline mat4 tomat4(const mat3& m)
 	{
 		return
 		{
-			m.m00, m.m01, m.m02, 0.0f,
-			m.m10, m.m11, m.m12, 0.0f,
-			m.m20, m.m21, m.m22, 0.0f,
-			0.0f,  0.0f,  0.0f,  1.0f
+			m.m00, m.m10, 0.0f, 0.0f,
+			m.m01, m.m11, 0.0f, 0.0f,
+			0.0f,  0.0f,  1.0f, 0.0f,
+			m.m02, m.m12, 0.0f,  1.0f
 		};
 	}
 
@@ -1333,13 +1311,13 @@ namespace KalaHeaders
 		return deg;
 	}
 
-	//ortographic projection, top-left origin, Y-down projection
+	//ortographic projection, bottom-left origin, Y-up projection
 	inline mat4 ortho(const vec2 viewport)
 	{
 		f32 left = 0.0f;
 		f32 right = viewport.x;
-		f32 bottom = viewport.y;
-		f32 top = 0.0f;
+		f32 top = viewport.y;
+		f32 bottom = 0.0f;
 
 		f32 zNear = 0.1f;
 		f32 zFar = 100.0f;
@@ -1349,10 +1327,10 @@ namespace KalaHeaders
 
 		return
 		{
-			2.0f / rl,  0.0f,         0.0f,                  -(right + left) / rl,
-			0.0f,      -(2.0f / tb),  0.0f,                  -(top + bottom) / tb,
-			0.0f,       0.0f,        -2.0f / (zFar - zNear), -(zFar + zNear) / (zFar - zNear),
-			0.0f,       0.0f,         0.0f,                   1.0f
+			2.0f / rl, 0.0f,       0.0f,                  -(right + left) / rl,
+			0.0f,      2.0f / tb,  0.0f,                  -(top + bottom) / tb,
+			0.0f,      0.0f,      -2.0f / (zFar - zNear), -(zFar + zNear) / (zFar - zNear),
+			0.0f,      0.0f,       0.0f,                   1.0f
 		};
 	}
 
@@ -1437,8 +1415,8 @@ namespace KalaHeaders
 		const vec2 v)
 	{
 		mat3 t = m;
-		t.m20 += v.x;
-		t.m21 += v.y;
+		t.m20 += m.m00 * v.x + m.m10 * v.y;
+		t.m21 += m.m01 * v.x + m.m11 * v.y;
 
 		return t;
 	}
@@ -1448,9 +1426,9 @@ namespace KalaHeaders
 		const vec3& v)
 	{
 		mat4 t = m;
-		t.m30 += v.x;
-		t.m31 += v.y;
-		t.m32 += v.z;
+		t.m30 += m.m00 * v.x + m.m10 * v.x + m.m20 * v.z;
+		t.m31 += m.m01 * v.x + m.m11 * v.x + m.m21 * v.z;
+		t.m32 += m.m02 * v.x + m.m12 * v.x + m.m22 * v.z;
 
 		return t;
 	}
@@ -1535,8 +1513,8 @@ namespace KalaHeaders
 		const vec2 v)
 	{
 		mat3 s = m;
-		s.m00 *= v.x;
-		s.m11 *= v.y;
+		s.m00 *= v.x; s.m01 *= v.x;
+		s.m10 *= v.y; s.m11 *= v.y;
 
 		return s;
 	}
@@ -1546,9 +1524,9 @@ namespace KalaHeaders
 		const vec3& v)
 	{
 		mat4 s = m;
-		s.m00 *= v.x;
-		s.m11 *= v.y;
-		s.m22 *= v.z;
+		s.m00 *= v.x; s.m01 *= v.x; s.m02 *= v.x;
+		s.m10 *= v.y; s.m11 *= v.y; s.m12 *= v.y;
+		s.m20 *= v.z; s.m21 *= v.z; s.m22 *= v.z;
 
 		return s;
 	}

@@ -12,7 +12,6 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "ui/image.hpp"
-#include "ui/text.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;

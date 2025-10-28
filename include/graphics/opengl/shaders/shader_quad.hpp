@@ -25,10 +25,9 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		
 		void main()
 		{
-			//identity view matrix
-			mat4 view = mat4(1.0);
+			//view matrix is identity and unused
 
-			vec4 worldPos = uProjection * view * uModel * vec4(aPos, 0.0, 1.0);
+			vec4 worldPos = uProjection * uModel * vec4(aPos, 0.0, 1.0);
 			gl_Position = vec4(worldPos);
 
 			TexCoord = aTexCoord;
