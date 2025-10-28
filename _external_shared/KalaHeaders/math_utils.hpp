@@ -9,7 +9,7 @@
 // Provides:
 //   - shorthands for math variables
 //   - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat (vec4)
-//   - operators and helpers for kvec, mat and quat types
+//   - operators and helpers for vec, mat and quat types
 //   - mat containers as column-major and scalar form
 //------------------------------------------------------------------------------
 
@@ -133,143 +133,143 @@ namespace KalaHeaders
 	}
 
 	//
-	// KVEC
+	// VEC
 	//
 
 	template<size_t N>
-	struct kvec_storage;
+	struct vec_storage;
 
 	template<>
-	struct kvec_storage<2> { f32 x{}, y{}; };
+	struct vec_storage<2> { f32 x{}, y{}; };
 	template<>
-	struct kvec_storage<3> { f32 x{}, y{}, z{}; };
+	struct vec_storage<3> { f32 x{}, y{}, z{}; };
 	template<>
-	struct kvec_storage<4> { f32 x{}, y{}, z{}, w{}; };
+	struct vec_storage<4> { f32 x{}, y{}, z{}, w{}; };
 
 	template <size_t N>
-	struct kvec : public kvec_storage<N>
+	struct vec : public vec_storage<N>
 	{
 		static_assert(N >= 2 && N <= 4, "kvec can only have 2, 3, or 4 components.");
 
-		constexpr kvec() = default;
+		constexpr vec() = default;
 
 		//vec2
 
-		constexpr kvec(f32 _x)
+		constexpr vec(f32 _x)
 			requires (N == 2)
-			: kvec_storage<N>{ _x, _x } {}
-		constexpr kvec(f32 _x, f32 _y)
+			: vec_storage<N>{ _x, _x } {}
+		constexpr vec(f32 _x, f32 _y)
 			requires (N == 2)
-			: kvec_storage<N>{ _x, _y } {}
+			: vec_storage<N>{ _x, _y } {}
 
 		//vec3
 
-		constexpr kvec(f32 _x)
+		constexpr vec(f32 _x)
 			requires (N == 3)
-			: kvec_storage<N>{ _x, _x, _x } {}
-		constexpr kvec(f32 _x, f32 _y, f32 _z)
+			: vec_storage<N>{ _x, _x, _x } {}
+		constexpr vec(f32 _x, f32 _y, f32 _z)
 			requires (N == 3)
-			: kvec_storage<N>{ _x, _y, _z } {}
+			: vec_storage<N>{ _x, _y, _z } {}
 
-		constexpr kvec(const kvec<2>& _v, f32 _z)
+		constexpr vec(const vec<2>& _v, f32 _z)
 			requires (N == 3)
-			: kvec_storage<N>{ _v.x, _v.y, _z } {}
-		constexpr kvec(f32 _x, const kvec<2>& _v)
+			: vec_storage<N>{ _v.x, _v.y, _z } {}
+		constexpr vec(f32 _x, const vec<2>& _v)
 			requires (N == 3)
-			: kvec_storage<N>{ _x, _v.x, _v.y } {}
+			: vec_storage<N>{ _x, _v.x, _v.y } {}
 
 		//vec4
 
-		constexpr kvec(f32 _x)
+		constexpr vec(f32 _x)
 			requires (N == 4)
-			: kvec_storage<N>{ _x, _x, _x, _x } {}
-		constexpr kvec(f32 _x, f32 _y, f32 _z, f32 _w)
+			: vec_storage<N>{ _x, _x, _x, _x } {}
+		constexpr vec(f32 _x, f32 _y, f32 _z, f32 _w)
 			requires (N == 4)
-			: kvec_storage<N>{ _x, _y, _z, _w } {}
+			: vec_storage<N>{ _x, _y, _z, _w } {}
 
-		constexpr kvec(const kvec<2>& _v, f32 _z, f32 _w)
+		constexpr vec(const vec<2>& _v, f32 _z, f32 _w)
 			requires (N == 4)
-			: kvec_storage<N>{ _v.x, _v.y, _z, _w } {}
-		constexpr kvec(f32 _x, const kvec<2>& _v, f32 _w)
+			: vec_storage<N>{ _v.x, _v.y, _z, _w } {}
+		constexpr vec(f32 _x, const vec<2>& _v, f32 _w)
 			requires (N == 4)
-			: kvec_storage<N>{ _x, _v.x, _v.y, _w } {}
-		constexpr kvec(f32 _x, f32 _y, const kvec<2>& _v)
+			: vec_storage<N>{ _x, _v.x, _v.y, _w } {}
+		constexpr vec(f32 _x, f32 _y, const vec<2>& _v)
 			requires (N == 4)
-			: kvec_storage<N>{ _x, _y, _v.x, _v.y } {}
+			: vec_storage<N>{ _x, _y, _v.x, _v.y } {}
 
-		constexpr kvec(const kvec<3>& _v, f32 _w)
+		constexpr vec(const vec<3>& _v, f32 _w)
 			requires (N == 4)
-			: kvec_storage<N>{ _v.x, _v.y, _v.z, _w } {}
-		constexpr kvec(f32 _x, const kvec<3>& _v)
+			: vec_storage<N>{ _v.x, _v.y, _v.z, _w } {}
+		constexpr vec(f32 _x, const vec<3>& _v)
 			requires (N == 4)
-			: kvec_storage<N>{ _x, _v.x, _v.y, _v.z } {}
+			: vec_storage<N>{ _x, _v.x, _v.y, _v.z } {}
 
-		using storage = kvec_storage<N>;
+		using storage = vec_storage<N>;
 
 		//
 		// ARITHMETIC OPERATORS
 		//
 
-		constexpr kvec operator+(const kvec& v) const 
+		constexpr vec operator+(const vec& v) const 
 		{ 
 			if constexpr (N == 2) return { this->x + v.x, this->y + v.y };
 			if constexpr (N == 3) return { this->x + v.x, this->y + v.y, this->z + v.z };
 			if constexpr (N == 4) return { this->x + v.x, this->y + v.y, this->z + v.z, this->w + v.w };
 		}
-		constexpr kvec operator+(f32 s) const
+		constexpr vec operator+(f32 s) const
 		{
 			if constexpr (N == 2) return { this->x + s, this->y + s };
 			if constexpr (N == 3) return { this->x + s, this->y + s, this->z + s };
 			if constexpr (N == 4) return { this->x + s, this->y + s, this->z + s, this->w + s };
 		}
 
-		constexpr kvec operator-(const kvec& v) const
+		constexpr vec operator-(const vec& v) const
 		{ 
 			if constexpr (N == 2) return { this->x - v.x, this->y - v.y };
 			if constexpr (N == 3) return { this->x - v.x, this->y - v.y, this->z - v.z };
 			if constexpr (N == 4) return { this->x - v.x, this->y - v.y, this->z - v.z, this->w - v.w };
 		}
-		constexpr kvec operator-(f32 s) const
+		constexpr vec operator-(f32 s) const
 		{
 			if constexpr (N == 2) return { this->x - s, this->y - s };
 			if constexpr (N == 3) return { this->x - s, this->y - s, this->z - s };
 			if constexpr (N == 4) return { this->x - s, this->y - s, this->z - s, this->w - s };
 		}
 
-		constexpr kvec operator*(const kvec& v) const
+		constexpr vec operator*(const vec& v) const
 		{ 
 			if constexpr (N == 2) return { this->x * v.x, this->y * v.y };
 			if constexpr (N == 3) return { this->x * v.x, this->y * v.y, this->z * v.z };
 			if constexpr (N == 4) return { this->x * v.x, this->y * v.y, this->z * v.z, this->w * v.w };
 		}
-		constexpr kvec operator*(f32 s) const
+		constexpr vec operator*(f32 s) const
 		{
 			if constexpr (N == 2) return { this->x * s, this->y * s };
 			if constexpr (N == 3) return { this->x * s, this->y * s, this->z * s };
 			if constexpr (N == 4) return { this->x * s, this->y * s, this->z * s, this->w * s };
 		}
 
-		constexpr kvec operator/(const kvec& v) const
+		constexpr vec operator/(const vec& v) const
 		{
 			if constexpr (N == 2) return { safediv_a(this->x, v.x), safediv_a(this->y, v.y) };
 			if constexpr (N == 3) return { safediv_a(this->x, v.x), safediv_a(this->y, v.y), safediv_a(this->z, v.z) };
 			if constexpr (N == 4) return { safediv_a(this->x, v.x), safediv_a(this->y, v.y), safediv_a(this->z, v.z), safediv_a(this->w, v.w) };
 		}
-		constexpr kvec operator/(f32 s) const
+		constexpr vec operator/(f32 s) const
 		{ 
 			if constexpr (N == 2) return { safediv_a(this->x, s), safediv_a(this->y, s) };
 			if constexpr (N == 3) return { safediv_a(this->x, s), safediv_a(this->y, s), safediv_a(this->z, s) };
 			if constexpr (N == 4) return { safediv_a(this->x, s), safediv_a(this->y, s), safediv_a(this->z, s), safediv_a(this->w, s) };
 		}
 
-		constexpr kvec operator-() const
+		constexpr vec operator-() const
 		{ 
 			if constexpr (N == 2) return { -this->x, -this->y };
 			if constexpr (N == 3) return { -this->x, -this->y, -this->z };
 			if constexpr (N == 4) return { -this->x, -this->y, -this->z, -this->w };
 		}
 
-		constexpr bool operator==(const kvec& v) const
+		constexpr bool operator==(const vec& v) const
 		{
 			if constexpr (N == 2) return 
 				abs(this->x - v.x) < epsilon
@@ -284,58 +284,58 @@ namespace KalaHeaders
 				&& abs(this->z - v.z) < epsilon
 				&& abs(this->w - v.w) < epsilon;
 		}
-		constexpr bool operator!=(const kvec& v) const { return !(*this == v); }
+		constexpr bool operator!=(const vec& v) const { return !(*this == v); }
 
 		//
 		// COMPOUND OPERATORS
 		//
 
-		constexpr kvec& operator+=(const kvec& v)
+		constexpr vec& operator+=(const vec& v)
 		{ 
 			if constexpr (N == 2) { this->x += v.x; this->y += v.y; return *this; }
 			if constexpr (N == 3) { this->x += v.x; this->y += v.y; this->z += v.z; return *this; }
 			if constexpr (N == 4) { this->x += v.x; this->y += v.y; this->z += v.z; this->w += v.w; return *this; }
 		}
-		constexpr kvec& operator+=(f32 s)
+		constexpr vec& operator+=(f32 s)
 		{
 			if constexpr (N == 2) { this->x += s; this->y += s; return *this; }
 			if constexpr (N == 3) { this->x += s; this->y += s; this->z += s; return *this; }
 			if constexpr (N == 4) { this->x += s; this->y += s; this->z += s; this->w += s; return *this; }
 		}
 
-		constexpr kvec& operator-=(const kvec& v)
+		constexpr vec& operator-=(const vec& v)
 		{ 
 			if constexpr (N == 2) { this->x -= v.x; this->y -= v.y; return *this; }
 			if constexpr (N == 3) { this->x -= v.x; this->y -= v.y; this->z -= v.z; return *this; }
 			if constexpr (N == 4) { this->x -= v.x; this->y -= v.y; this->z -= v.z; this->w -= v.w; return *this; }
 		}
-		constexpr kvec& operator-=(f32 s)
+		constexpr vec& operator-=(f32 s)
 		{
 			if constexpr (N == 2) { this->x -= s; this->y -= s; return *this; }
 			if constexpr (N == 3) { this->x -= s; this->y -= s; this->z -= s; return *this; }
 			if constexpr (N == 4) { this->x -= s; this->y -= s; this->z -= s; this->w -= s; return *this; }
 		}
 
-		constexpr kvec& operator*=(const kvec& v)
+		constexpr vec& operator*=(const vec& v)
 		{
 			if constexpr (N == 2) { this->x *= v.x; this->y *= v.y; return *this; }
 			if constexpr (N == 3) { this->x *= v.x; this->y *= v.y; this->z *= v.z; return *this; }
 			if constexpr (N == 4) { this->x *= v.x; this->y *= v.y; this->z *= v.z; this->w *= v.w; return *this; }
 		}
-		constexpr kvec& operator*=(f32 s)
+		constexpr vec& operator*=(f32 s)
 		{
 			if constexpr (N == 2) { this->x *= s; this->y *= s; return *this; }
 			if constexpr (N == 3) { this->x *= s; this->y *= s; this->z *= s; return *this; }
 			if constexpr (N == 4) { this->x *= s; this->y *= s; this->z *= s; this->w *= s; return *this; }
 		}
 
-		constexpr kvec& operator/=(const kvec& v)
+		constexpr vec& operator/=(const vec& v)
 		{ 
 			if constexpr (N == 2) { safediv_c(this->x, v.x); safediv_c(this->y, v.y); return *this; }
 			if constexpr (N == 3) { safediv_c(this->x, v.x); safediv_c(this->y, v.y); safediv_c(this->z, v.z); return *this; }
 			if constexpr (N == 4) { safediv_c(this->x, v.x); safediv_c(this->y, v.y); safediv_c(this->z, v.z); safediv_c(this->w, v.w); return *this; }
 		}
-		constexpr kvec& operator/=(f32 s)
+		constexpr vec& operator/=(f32 s)
 		{ 
 			if constexpr (N == 2) { safediv_c(this->x, s); safediv_c(this->y, s); return *this; }
 			if constexpr (N == 3) { safediv_c(this->x, s); safediv_c(this->y, s); safediv_c(this->z, s); return *this; }
@@ -344,7 +344,7 @@ namespace KalaHeaders
 	};
 
 	template<typename F, size_t N>
-	constexpr kvec<N> apply_scalar(const kvec<N>& v, f32 s, F func)
+	constexpr vec<N> apply_scalar(const vec<N>& v, f32 s, F func)
 	{
 		if constexpr (N == 2) return { func(v.x, s), func(v.y, s) };
 		if constexpr (N == 3) return { func(v.x, s), func(v.y, s), func(v.z, s) };
@@ -352,7 +352,7 @@ namespace KalaHeaders
 	}
 
 	template<typename F, size_t N>
-	constexpr kvec<N> apply_scalar(const kvec<N>& v1, const kvec<N>& v2, F func)
+	constexpr vec<N> apply_scalar(const vec<N>& v1, const vec<N>& v2, F func)
 	{
 		if constexpr (N == 2) return { func(v1.x, v2.x), func(v1.y, v2.y) };
 		if constexpr (N == 3) return { func(v1.x, v2.x), func(v1.y, v2.y), func(v1.z, v2.z) };
@@ -363,27 +363,27 @@ namespace KalaHeaders
 
 	template<size_t N> 
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator+(const kvec<N>& v, f32 s)
+	constexpr vec<N> operator+(const vec<N>& v, f32 s)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a + b; });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator+(f32 s, const kvec<N>& v)
+	constexpr vec<N> operator+(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a + b; });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator+(const kvec<N> v1, const kvec<N>& v2)
+	constexpr vec<N> operator+(const vec<N> v1, const vec<N>& v2)
 	{
 		return apply_scalar(v1, v2, [](f32 a, f32 b) { return a + b; });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1> operator+(const kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1> operator+(const vec<N1>& a, const vec<N2>& b)
 	{
-		kvec<N1> r = a;
+		vec<N1> r = a;
 
 		r.x += b.x;
 		r.y += b.y;
@@ -395,21 +395,21 @@ namespace KalaHeaders
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator+=(kvec<N>& v, f32 s)
+	constexpr vec<N>& operator+=(vec<N>& v, f32 s)
 	{
 		v = apply_scalar(v, s, [](f32 a, f32 b) { return a + b; });
 		return v;
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator+=(kvec<N>& v1, const kvec<N>& v2)
+	constexpr vec<N>& operator+=(vec<N>& v1, const vec<N>& v2)
 	{
 		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return a + b; });
 		return v1;
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1>& operator+=(kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1>& operator+=(vec<N1>& a, const vec<N2>& b)
 	{
 		a.x += b.x;
 		a.y += b.y;
@@ -423,27 +423,27 @@ namespace KalaHeaders
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator-(const kvec<N>& v, f32 s)
+	constexpr vec<N> operator-(const vec<N>& v, f32 s)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a - b; });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator-(f32 s, const kvec<N>& v)
+	constexpr vec<N> operator-(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a - b; });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator-(const kvec<N> v1, const kvec<N>& v2)
+	constexpr vec<N> operator-(const vec<N> v1, const vec<N>& v2)
 	{
 		return apply_scalar(v1, v2, [](f32 a, f32 b) { return a - b; });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1> operator-(const kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1> operator-(const vec<N1>& a, const vec<N2>& b)
 	{
-		kvec<N1> r = a;
+		vec<N1> r = a;
 
 		r.x -= b.x;
 		r.y -= b.y;
@@ -455,21 +455,21 @@ namespace KalaHeaders
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator-=(kvec<N>& v, f32 s)
+	constexpr vec<N>& operator-=(vec<N>& v, f32 s)
 	{
 		v = apply_scalar(v, s, [](f32 a, f32 b) { return a - b; });
 		return v;
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator-=(kvec<N>& v1, const kvec<N>& v2)
+	constexpr vec<N>& operator-=(vec<N>& v1, const vec<N>& v2)
 	{
 		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return a - b; });
 		return v1;
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1>& operator-=(kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1>& operator-=(vec<N1>& a, const vec<N2>& b)
 	{
 		a.x -= b.x;
 		a.y -= b.y;
@@ -483,27 +483,27 @@ namespace KalaHeaders
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator*(const kvec<N>& v, f32 s)
+	constexpr vec<N> operator*(const vec<N>& v, f32 s)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a * b; });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator*(f32 s, const kvec<N>& v)
+	constexpr vec<N> operator*(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a * b; });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator*(const kvec<N> v1, const kvec<N>& v2)
+	constexpr vec<N> operator*(const vec<N> v1, const vec<N>& v2)
 	{
 		return apply_scalar(v1, v2, [](f32 a, f32 b) { return a * b; });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1> operator*(const kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1> operator*(const vec<N1>& a, const vec<N2>& b)
 	{
-		kvec<N1> r = a;
+		vec<N1> r = a;
 
 		r.x *= b.x;
 		r.y *= b.y;
@@ -515,21 +515,21 @@ namespace KalaHeaders
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator*=(kvec<N>& v, f32 s)
+	constexpr vec<N>& operator*=(vec<N>& v, f32 s)
 	{
 		v = apply_scalar(v, s, [](f32 a, f32 b) { return a * b; });
 		return v;
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator*=(kvec<N>& v1, const kvec<N>& v2)
+	constexpr vec<N>& operator*=(vec<N>& v1, const vec<N>& v2)
 	{
 		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return a * b; });
 		return v1;
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1>& operator*=(kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1>& operator*=(vec<N1>& a, const vec<N2>& b)
 	{
 		a.x *= b.x;
 		a.y *= b.y;
@@ -543,27 +543,27 @@ namespace KalaHeaders
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator/(const kvec<N>& v, f32 s)
+	constexpr vec<N> operator/(const vec<N>& v, f32 s)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return safediv_a(a, b); });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator/(f32 s, const kvec<N>& v)
+	constexpr vec<N> operator/(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return safediv_a(a, b); });
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N> operator/(const kvec<N> v1, const kvec<N>& v2)
+	constexpr vec<N> operator/(const vec<N> v1, const vec<N>& v2)
 	{
 		return apply_scalar(v1, v2, [](f32 a, f32 b) { return safediv_a(a, b); });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1> operator/(const kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1> operator/(const vec<N1>& a, const vec<N2>& b)
 	{
-		kvec<N1> r = a;
+		vec<N1> r = a;
 
 		r.x = safediv_a(r.x, b.x);
 		r.y = safediv_a(r.y, b.y);
@@ -575,21 +575,21 @@ namespace KalaHeaders
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator/=(kvec<N>& v, f32 s)
+	constexpr vec<N>& operator/=(vec<N>& v, f32 s)
 	{
 		v = apply_scalar(v, s, [](f32 a, f32 b) { return safediv_c(a, b); });
 		return v;
 	}
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr kvec<N>& operator/=(kvec<N>& v1, const kvec<N>& v2)
+	constexpr vec<N>& operator/=(vec<N>& v1, const vec<N>& v2)
 	{
 		v1 = apply_scalar(v1, v2, [](f32 a, f32 b) { return safediv_c(a, b); });
 		return v1;
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr kvec<N1>& operator/=(kvec<N1>& a, const kvec<N2>& b)
+	constexpr vec<N1>& operator/=(vec<N1>& a, const vec<N2>& b)
 	{
 		safediv_c(a.x, b.x);
 		safediv_c(a.y, b.y);
@@ -600,7 +600,7 @@ namespace KalaHeaders
 	}
 
 	//
-	// mat
+	// MAT
 	//
 
 	template<size_t N>
@@ -1013,11 +1013,11 @@ namespace KalaHeaders
 		}
 	};
 
-	//multiply mat by same kvec
+	//multiply mat by same vec
 
 	template<size_t N>
 		requires(N >= 2 && N <= 4)
-	constexpr kvec<N> operator*(const mat<N>& m, const kvec<N>& v)
+	constexpr vec<N> operator*(const mat<N>& m, const vec<N>& v)
 	{
 		if constexpr (N == 2)
 			return 
@@ -1042,11 +1042,11 @@ namespace KalaHeaders
 			};
 	}
 
-	using vec2 = kvec<2>; //Vector: x, y
-	using vec3 = kvec<3>; //Vector: x, y, z
-	using vec4 = kvec<4>; //Vector: x, y, z, w
+	using vec2 = vec<2>; //Vector: x, y
+	using vec3 = vec<3>; //Vector: x, y, z
+	using vec4 = vec<4>; //Vector: x, y, z, w
 
-	using quat = kvec<4>; //Quaternion: x, y, z, w
+	using quat = vec<4>; //Quaternion: x, y, z, w
 
 	using mat2 = mat<2>; //Matrix: m00 - m11
 	using mat3 = mat<3>; //Matrix: m00 - m22
@@ -1063,7 +1063,7 @@ namespace KalaHeaders
 	const vec3 ROT_ROLL  = { 0, 0, 1 };
 
 	//
-	// HELPER FUNCTIONS USING DEFINED mat AND KVEC CONTAINERS
+	// HELPER FUNCTIONS USING DEFINED mat AND vec CONTAINERS
 	//
 
 	//Convert degrees to radians

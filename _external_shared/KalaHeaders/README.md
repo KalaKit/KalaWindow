@@ -30,7 +30,7 @@ Macros and cross platform import/export
 Provides:
 - shorthands for math variables
 - vec2, vec3, vec4, mat2, mat3, mat4, quat (vec4)
-- operators and helpers for kvec, mat and quat types
+- operators and helpers for vec, mat and quat types
 - mat containers as column-major and scalar form
 
 ## string_utils.hpp

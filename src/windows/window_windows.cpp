@@ -35,7 +35,6 @@
 #include "ui/text.hpp"
 #include "ui/image.hpp"
 #include "graphics/camera.hpp"
-#include "core/input.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
