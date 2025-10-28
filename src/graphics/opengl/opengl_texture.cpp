@@ -27,7 +27,7 @@
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "core/core.hpp"
 
-using KalaHeaders::kvec2;
+using KalaHeaders::vec2;
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -93,7 +93,7 @@ static bool CheckTextureData(
 	TextureType type,
 	TextureFormat format,
 	TextureFormat& outformat,
-	kvec2& outSize,
+	vec2& outSize,
 	vector<u8>& outData,
 	int& outNrChannels);
 
@@ -186,12 +186,12 @@ namespace KalaWindow::Graphics::OpenGL
 			mipMapLevels,
 			[&](u32& outTextureID,
 				vector<vector<u8>>& outData,
-				kvec2& outSize,
+				vec2& outSize,
 				TextureFormat& outFormat)
 			{
 				u32 newTextureID{};
 				vector<u8> newData{};
-				kvec2 newSize{};
+				vec2 newSize{};
 				TextureFormat newFormat{};
 
 				int newNrChannels{};
@@ -285,12 +285,12 @@ namespace KalaWindow::Graphics::OpenGL
 			mipMapLevels,
 			[&](u32& outTextureID,
 				vector<vector<u8>>& outData,
-				kvec2& outSize,
+				vec2& outSize,
 				TextureFormat& outFormat)
 			{
 				u32 newTextureID{};
 				vector<vector<u8>> newData{};
-				kvec2 newSize{};
+				vec2 newSize{};
 				TextureFormat newFormat{};
 
 				int newNrChannels{};
@@ -310,7 +310,7 @@ namespace KalaWindow::Graphics::OpenGL
 				for (const auto& thisPath : texturePaths)
 				{
 					vector<u8> data{};
-					kvec2 size{};
+					vec2 size{};
 
 					if (!CheckTextureData(
 						name,
@@ -325,7 +325,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 					newData.push_back(move(data));
 
-					if (newSize == kvec2(0)) newSize = size;
+					if (newSize == vec2(0)) newSize = size;
 
 					string sizeX = to_string(static_cast<int>(size.x));
 					string sizeY = to_string(static_cast<int>(size.y));
@@ -427,12 +427,12 @@ namespace KalaWindow::Graphics::OpenGL
 			mipMapLevels,
 			[&](u32& outTextureID,
 				vector<vector<u8>>& outData,
-				kvec2& outSize,
+				vec2& outSize,
 				TextureFormat& outFormat)
 			{
 				u32 newTextureID{};
 				vector<vector<u8>> newData{};
-				kvec2 newSize{};
+				vec2 newSize{};
 				TextureFormat newFormat{};
 
 				int newNrChannels{};
@@ -451,7 +451,7 @@ namespace KalaWindow::Graphics::OpenGL
 				for (const auto& thisPath : texturePaths)
 				{
 					vector<u8> data{};
-					kvec2 size{};
+					vec2 size{};
 
 					if (!CheckTextureData(
 						name,
@@ -466,7 +466,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 					newData.push_back(move(data));
 
-					if (newSize == kvec2(0)) newSize = size;
+					if (newSize == vec2(0)) newSize = size;
 
 					string sizeX = to_string(static_cast<int>(size.x));
 					string sizeY = to_string(static_cast<int>(size.y));
@@ -622,7 +622,7 @@ namespace KalaWindow::Graphics::OpenGL
 		const function<bool(
 			u32& outTextureID,
 			vector<vector<u8>>& outData,
-			kvec2& outSize,
+			vec2& outSize,
 			TextureFormat& outFormat)>&
 		customTextureInitData)
 	{
@@ -679,7 +679,7 @@ namespace KalaWindow::Graphics::OpenGL
 
 		u32 newTextureID{};
 		vector<vector<u8>> newData{};
-		kvec2 newSize{};
+		vec2 newSize{};
 		TextureFormat newFormat{};
 
 		if (!customTextureInitData(
@@ -775,7 +775,7 @@ namespace KalaWindow::Graphics::OpenGL
 	}
 
 	bool OpenGL_Texture::Rescale(
-		kvec2 newSize,
+		vec2 newSize,
 		TextureResizeType resizeType)
 	{
 		if (pixels.empty()
@@ -1253,7 +1253,7 @@ bool CheckTextureData(
 	TextureType type,
 	TextureFormat format,
 	TextureFormat& outformat,
-	kvec2& outSize,
+	vec2& outSize,
 	vector<u8>& outData,
 	int& outNrChannels)
 {
@@ -1458,7 +1458,7 @@ bool CheckTextureData(
 	}
 
 	outformat = newFormat;
-	outSize = kvec2(width, height);
+	outSize = vec2(width, height);
 	outData = newData;
 	outNrChannels = newNrChannels;
 

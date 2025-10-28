@@ -701,7 +701,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetVec2(
         u32 programID,
         const string& name, 
-        const kvec2& value) const
+        const vec2& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform2fv(
@@ -712,7 +712,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetVec3(
         u32 programID,
         const string& name, 
-        const kvec3& value) const
+        const vec3& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform3fv(
@@ -723,7 +723,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetVec4(
         u32 programID,
         const string& name, 
-        const kvec4& value) const
+        const vec4& value) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniform4fv(
@@ -735,7 +735,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetMat2(
         u32 programID,
         const string& name, 
-        const kmat2& mat) const
+        const mat2& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix2fv(
@@ -747,7 +747,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetMat3(
         u32 programID,
         const string& name, 
-        const kmat3& mat) const
+        const mat3& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix3fv(
@@ -759,7 +759,7 @@ namespace KalaWindow::Graphics::OpenGL
     void OpenGL_Shader::SetMat4(
         u32 programID,
         const string& name, 
-        const kmat4& mat) const
+        const mat4& mat) const
     {
         auto loc = glGetUniformLocation(programID, name.c_str());
         glUniformMatrix4fv(

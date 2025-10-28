@@ -11,7 +11,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/registry.hpp"
+#include "utils/registry.hpp"
 
 //min is 1MB
 static constexpr u64 MIN_STREAM_SIZE = static_cast<size_t>(1 * 1024) * 1024; 
@@ -25,7 +25,9 @@ namespace KalaWindow::Core
 	using std::filesystem::path;
 	using std::filesystem::is_regular_file;
 
-	using KalaHeaders::kvec3;
+	using KalaHeaders::vec3;
+
+	using KalaWindow::Utils::Registry;
 
 	//Stores data for managing directional audio hearing/playback
 	struct AudioCone
@@ -122,27 +124,27 @@ namespace KalaWindow::Core
 
 		//Set audio listener up direction
 		static void SetWorldUp(
-			const kvec3& up,
+			const vec3& up,
 			u32 ID = 0);
-		static kvec3 GetWorldUp(u32 ID = 0);
+		static vec3 GetWorldUp(u32 ID = 0);
 
 		//Set audio listener position
 		static void SetPosition(
-			const kvec3& pos,
+			const vec3& pos,
 			u32 ID = 0);
-		static kvec3 GetPosition(u32 ID = 0);
+		static vec3 GetPosition(u32 ID = 0);
 
 		//Set audio listener velocity
 		static void SetVelocity(
-			const kvec3& vel,
+			const vec3& vel,
 			u32 ID = 0);
-		static kvec3 GetVelocity(u32 ID = 0);
+		static vec3 GetVelocity(u32 ID = 0);
 
 		//Set audio listener direction
 		static void SetDirection(
-			const kvec3& pos,
+			const vec3& pos,
 			u32 ID = 0);
-		static kvec3 GetDirection(u32 ID = 0);
+		static vec3 GetDirection(u32 ID = 0);
 
 		//Set audio listener cone values.
 		//Inner cone angle and outer cone angle are internally clamped from 0.0f to 359.99f.
@@ -229,16 +231,16 @@ namespace KalaWindow::Core
 		f32 GetPan() const;
 
 		//Set audio playback position
-		void SetPosition(const kvec3& pos) const;
-		kvec3 GetPosition() const;
+		void SetPosition(const vec3& pos) const;
+		vec3 GetPosition() const;
 
 		//Set audio playback velocity
-		void SetVelocity(const kvec3& vel) const;
-		kvec3 GetVelocity() const;
+		void SetVelocity(const vec3& vel) const;
+		vec3 GetVelocity() const;
 
 		//Set audio player direction
-		void SetDirection(const kvec3& pos) const;
-		kvec3 GetDirection() const;
+		void SetDirection(const vec3& pos) const;
+		vec3 GetDirection() const;
 
 		//Set audio player cone values.
 		//Inner cone angle and outer cone angle are internally clamped from 0.0f to 359.99f.

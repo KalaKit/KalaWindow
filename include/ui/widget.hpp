@@ -25,12 +25,18 @@ namespace KalaWindow::UI
 	using std::function;
 	using std::array;
 
-	using KalaHeaders::kvec2;
-	using KalaHeaders::kvec3;
-	using KalaHeaders::kmat2;
-	using KalaHeaders::kmat4;
+	using KalaHeaders::vec2;
+	using KalaHeaders::vec3;
+	using KalaHeaders::mat2;
+	using KalaHeaders::mat3;
+	using KalaHeaders::mat4;
 	using KalaHeaders::radians;
 	using KalaHeaders::wrap;
+	using KalaHeaders::translate;
+	using KalaHeaders::rotate;
+	using KalaHeaders::scale;
+	using KalaHeaders::kclamp;
+	using KalaHeaders::tomat4;
 	using KalaHeaders::Hierarchy;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
@@ -86,29 +92,29 @@ namespace KalaWindow::UI
 
 	struct Widget_Transform
 	{
-		kvec2 worldPos{};     //position relative to window center
-		kvec2 localPos{};     //position added on top of world position if the widget has a parent
-		kvec2 combinedPos{};  //final position after combining world and local position
-		kvec2 originalPos{};  //original position before moving to window center
+		vec2 worldPos{};     //position relative to window center
+		vec2 localPos{};     //position added on top of world position if the widget has a parent
+		vec2 combinedPos{};  //final position after combining world and local position
+		vec2 originalPos{};  //original position before moving to window center
 
 		f32 worldRot{};      //rotation of this widget
 		f32 localRot{};      //rotation added on top of world rotation if the widget has a parent
 		f32 combinedRot{};   //final rotation after combining world and local rotation
 
-		kvec2 worldSize{};    //size of this widget
-		kvec2 localSize{};    //size added on top of world position if the widget has a parent
-		kvec2 combinedSize{}; //final position after combining world and local position
+		vec2 worldSize{};    //size of this widget
+		vec2 localSize{};    //size added on top of world position if the widget has a parent
+		vec2 combinedSize{}; //final position after combining world and local position
 
-		kvec2 lastViewportSize{};    //Last frame viewport size, if it doesn't match current one then 'UpdateTransform()' is called
-		kvec2 viewportSize{};        //the size of the target window or viewport to render this widget inside of
+		vec2 lastViewportSize{};    //Last frame viewport size, if it doesn't match current one then 'UpdateTransform()' is called
+		vec2 viewportSize{};        //the size of the target window or viewport to render this widget inside of
 		float baseHeight = 1080.0f; //used for affecting the Y position of the AABB relative to the viewport size
 
-		const array<kvec2, 4> vertices = 
+		const array<vec2, 4> vertices = 
 		{
-			kvec2(-0.5f,  0.5f), //top-left
-			kvec2(0.5f,  0.5f),  //top-right
-			kvec2(0.5f, -0.5f),  //bottom-right
-			kvec2(-0.5f, -0.5f)  //bottom-left
+			vec2(-0.5f,  0.5f), //top-left
+			vec2(0.5f,  0.5f),  //top-right
+			vec2(0.5f, -0.5f),  //bottom-right
+			vec2(-0.5f, -0.5f)  //bottom-left
 		};
 		const array<u8, 6> indices =
 		{
@@ -116,7 +122,7 @@ namespace KalaWindow::UI
 			2, 3, 0
 		};
 
-		array<kvec2, 2> aabb{};
+		array<vec2, 2> aabb{};
 	};
 
 	struct Widget_Render
@@ -126,7 +132,7 @@ namespace KalaWindow::UI
 		//no children render past this widget size if true
 		bool isClipping{};
 
-		kvec3 color = kvec3(1.0f);
+		vec3 color = vec3(1.0f);
 		f32 opacity = 1.0f;
 
 		u32 VAO{};
@@ -175,8 +181,8 @@ namespace KalaWindow::UI
 		//Render the widget. Pass viewport size so that the widget can be
 		//positioned to the window center and offset from that with world pos
 		virtual bool Render(
-			const kmat4& projection,
-			const kvec2 viewportSize) = 0;
+			const mat4& projection,
+			const vec2 viewportSize) = 0;
 
 		inline u32 GetID() const { return ID; }
 		inline u32 GetWindowID() const { return windowID; }
@@ -208,9 +214,9 @@ namespace KalaWindow::UI
 		//to ensure this widget local values are refreshed
 		inline void ResetWidgetAfterHierarchyUpdate()
 		{
-			transform.localPos = kvec2(0);
+			transform.localPos = vec2(0);
 			transform.localRot = 0.0f;
-			transform.localSize = kvec2(0);
+			transform.localSize = vec2(0);
 
 			UpdateTransform();
 
@@ -228,7 +234,7 @@ namespace KalaWindow::UI
 		inline f32 GetBaseHeight() const { return transform.baseHeight; }
 
 		inline void SetPos(
-			const kvec2 newPos,
+			const vec2 newPos,
 			PosTarget posTarget)
 		{
 			//cannot set combined or original pos
@@ -241,7 +247,7 @@ namespace KalaWindow::UI
 			f32 clampedX = clamp(newPos.x, -10000.0f, 10000.0f);
 			f32 clampedY = clamp(newPos.y, -10000.0f, 10000.0f);
 
-			kvec2 clampedPos = kvec2(clampedX, clampedY);
+			vec2 clampedPos = vec2(clampedX, clampedY);
 
 			switch (posTarget)
 			{
@@ -251,9 +257,9 @@ namespace KalaWindow::UI
 
 			UpdateTransform();
 		}
-		inline const kvec2 GetPos(PosTarget posTarget) const 
+		inline const vec2 GetPos(PosTarget posTarget) const 
 		{ 
-			static const kvec2 empty{};
+			static const vec2 empty{};
 
 			switch (posTarget)
 			{
@@ -306,7 +312,7 @@ namespace KalaWindow::UI
 		}
 
 		inline void SetSize(
-			const kvec2 newSize,
+			const vec2 newSize,
 			SizeTarget sizetarget)
 		{
 			//cannot set combined size
@@ -315,7 +321,7 @@ namespace KalaWindow::UI
 			f32 clampedX = clamp(newSize.x, 0.01f, 10000.0f);
 			f32 clampedY = clamp(newSize.y, 0.01f, 10000.0f);
 
-			kvec2 clampedSize = kvec2(clampedX, clampedY);
+			vec2 clampedSize = vec2(clampedX, clampedY);
 
 			switch (sizetarget)
 			{
@@ -325,9 +331,9 @@ namespace KalaWindow::UI
 
 			UpdateTransform();
 		}
-		inline const kvec2 GetSize(SizeTarget sizeTarget) const 
+		inline const vec2 GetSize(SizeTarget sizeTarget) const 
 		{ 
-			static const kvec2 empty{};
+			static const vec2 empty{};
 
 			switch (sizeTarget)
 			{
@@ -339,10 +345,10 @@ namespace KalaWindow::UI
 			return empty;
 		};
 
-		inline const array<kvec2, 4>& GetVertices() const { return transform.vertices; };
+		inline const array<vec2, 4>& GetVertices() const { return transform.vertices; };
 		inline const array<u8, 6>& GetIndices() const { return transform.indices; }
 
-		inline const array<kvec2, 2>& GetAABB() 
+		inline const array<vec2, 2>& GetAABB() 
 		{ 
 			UpdateAABB();
 			return transform.aabb; 
@@ -374,13 +380,13 @@ namespace KalaWindow::UI
 			if (hierarchy.parent)
 			{
 				f32 rads = radians(hierarchy.parent->transform.combinedRot);
-				kmat2 rotMat =
+				mat2 rotMat =
 				{
 					cos(rads), sin(rads),
 					-sin(rads), cos(rads)
 				};
 
-				kvec2 rotOffset = rotMat * transform.localPos;
+				vec2 rotOffset = rotMat * transform.localPos;
 				transform.combinedPos = 
 					hierarchy.parent->transform.combinedPos
 					+ transform.originalPos
@@ -630,15 +636,15 @@ namespace KalaWindow::UI
 		// GRAPHICS
 		//
 
-		inline void SetNormalizedColor(const kvec3& newValue)
+		inline void SetNormalizedColor(const vec3& newValue)
 		{
 			f32 clampX = clamp(newValue.x, 0.0f, 1.0f);
 			f32 clampY = clamp(newValue.y, 0.0f, 1.0f);
 			f32 clampZ = clamp(newValue.z, 0.0f, 1.0f);
 
-			render.color = kvec3(clampX, clampY, clampZ);
+			render.color = vec3(clampX, clampY, clampZ);
 		}
-		inline void SetRGBColor(const kvec3& newValue)
+		inline void SetRGBColor(const vec3& newValue)
 		{
 			int clampX = clamp(static_cast<int>(newValue.x), 0, 255);
 			int clampY = clamp(static_cast<int>(newValue.y), 0, 255);
@@ -648,17 +654,17 @@ namespace KalaWindow::UI
 			f32 normalizedY = static_cast<f32>(clampY) / 255;
 			f32 normalizedZ = static_cast<f32>(clampZ) / 255;
 
-			render.color = kvec3(normalizedX, normalizedY, normalizedZ);
+			render.color = vec3(normalizedX, normalizedY, normalizedZ);
 		}
 
-		inline const kvec3& GetNormalizedColor() const { return render.color; }
-		inline kvec3 GetRGBColor() const
+		inline const vec3& GetNormalizedColor() const { return render.color; }
+		inline vec3 GetRGBColor() const
 		{
 			int rgbX = static_cast<int>(render.color.x * 255);
 			int rgbY = static_cast<int>(render.color.y * 255);
 			int rgbZ = static_cast<int>(render.color.z * 255);
 
-			return kvec3(rgbX, rgbY, rgbZ);
+			return vec3(rgbX, rgbY, rgbZ);
 		}
 
 		inline void SetOpacity(f32 newValue)
@@ -690,12 +696,12 @@ namespace KalaWindow::UI
 	protected:
 		inline void UpdateAABB()
 		{
-			kvec2 size = transform.combinedSize;
+			vec2 size = transform.combinedSize;
 			float normalizedHeight = transform.viewportSize.y / transform.baseHeight;
 
-			kvec2 offset = kvec2(0.0f, -(size.y * 0.7f * normalizedHeight));
+			vec2 offset = vec2(0.0f, -(size.y * 0.7f * normalizedHeight));
 
-			kvec2 half = transform.combinedSize * 0.5f;
+			vec2 half = transform.combinedSize * 0.5f;
 
 			transform.aabb[0] = transform.combinedPos - half + offset; //min
 			transform.aabb[1] = transform.combinedPos + half + offset; //max
@@ -704,8 +710,8 @@ namespace KalaWindow::UI
 		//Ensures the widget is centered
 		inline void UpdateOriginalPosition()
 		{
-			kvec2 center = transform.viewportSize * 0.5f;
-			kvec2 correctPos = kvec2(center.x * 1.0f, center.y * 1.5f);
+			vec2 center = transform.viewportSize * 0.5f;
+			vec2 correctPos = vec2(center.x * 1.0f, center.y * 1.5f);
 
 			if (transform.originalPos != correctPos) transform.originalPos = correctPos;
 

@@ -37,7 +37,7 @@
 #include "graphics/camera.hpp"
 #include "core/input.hpp"
 
-using KalaHeaders::kvec2;
+using KalaHeaders::vec2;
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
@@ -83,7 +83,7 @@ namespace KalaWindow::Graphics
 {
 	Window* Window::Initialize(
 		const string& title,
-		kvec2 size,
+		vec2 size,
 		Window* parentWindow,
 		WindowState state,
 		DpiContext context)
@@ -680,7 +680,7 @@ namespace KalaWindow::Graphics
 		return WindowRounding::ROUNDING_NONE;
 	}
 
-	void Window::SetClientRectSize(kvec2 newSize) const
+	void Window::SetClientRectSize(vec2 newSize) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
@@ -721,7 +721,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	kvec2 Window::GetClientRectSize() const
+	vec2 Window::GetClientRectSize() const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return{};
@@ -729,14 +729,14 @@ namespace KalaWindow::Graphics
 		RECT rect{};
 		GetClientRect(window, &rect);
 
-		return kvec2
+		return vec2
 		{
 			static_cast<float>(rect.right - rect.left),
 			static_cast<float>(rect.bottom - rect.top)
 		};
 	}
 
-	void Window::SetOuterSize(kvec2 newSize) const
+	void Window::SetOuterSize(vec2 newSize) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
@@ -761,7 +761,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	kvec2 Window::GetOuterSize() const
+	vec2 Window::GetOuterSize() const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return{};
@@ -769,14 +769,14 @@ namespace KalaWindow::Graphics
 		RECT rect{};
 		GetWindowRect(window, &rect);
 
-		return kvec2
+		return vec2
 		{
 			static_cast<float>(rect.right - rect.left),
 			static_cast<float>(rect.bottom - rect.top)
 		};
 	}
 
-	void Window::SetFramebufferSize(kvec2 newSize) const
+	void Window::SetFramebufferSize(vec2 newSize) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
@@ -820,7 +820,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	kvec2 Window::GetFramebufferSize() const
+	vec2 Window::GetFramebufferSize() const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return{};
@@ -838,14 +838,14 @@ namespace KalaWindow::Graphics
 			dpi,
 			96);
 
-		return kvec2
+		return vec2
 		{
 			static_cast<float>(width),
 			static_cast<float>(height)
 		};
 	}
 
-	void Window::SetPosition(kvec2 newPosition) const
+	void Window::SetPosition(vec2 newPosition) const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
@@ -870,7 +870,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	kvec2 Window::GetPosition() const
+	vec2 Window::GetPosition() const
 	{
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return{};
@@ -878,14 +878,14 @@ namespace KalaWindow::Graphics
 		RECT rect{};
 		if (GetWindowRect(window, &rect))
 		{
-			return kvec2
+			return vec2
 			{ 
 				static_cast<float>(rect.left),
 				static_cast<float>(rect.top)
 			};
 		}
 
-		return kvec2{ 0, 0 };
+		return vec2{ 0, 0 };
 	}
 
 	void Window::SetAlwaysOnTopState(bool state) const
@@ -1457,8 +1457,8 @@ namespace KalaWindow::Graphics
 		}
 		else
 		{
-			if (oldPos == kvec2()) oldPos = kvec2(100.0f, 100.0f);
-			if (oldSize == kvec2()) oldSize = kvec2(800.0f, 600.0f);
+			if (oldPos == vec2()) oldPos = vec2(100.0f, 100.0f);
+			if (oldSize == vec2()) oldSize = vec2(800.0f, 600.0f);
 			if (oldStyle == 0) oldStyle = 0b11111; //enable all flags
 
 			//rebuild style from saved flags
@@ -1506,8 +1506,8 @@ namespace KalaWindow::Graphics
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return false;
 
-		kvec2 pos = GetPosition();
-		kvec2 size = GetOuterSize();
+		vec2 pos = GetPosition();
+		vec2 size = GetOuterSize();
 
 		//expand to monitor bounds
 
@@ -1917,7 +1917,7 @@ void UpdateIdleState(Window* window, bool& isIdle)
 HICON SetUpIcon(OpenGL_Texture* texture)
 {
 	string name = texture->GetName();
-	kvec2 size = texture->GetSize();
+	vec2 size = texture->GetSize();
 	string sizeX = to_string(static_cast<int>(size.x));
 	string sizeY = to_string(static_cast<int>(size.y));
 

@@ -77,7 +77,7 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		kvec2 mousePos = input->GetMousePosition();
+		vec2 mousePos = input->GetMousePosition();
 
 		//
 		// 2D HIT TEST
@@ -251,16 +251,16 @@ namespace KalaWindow::UI
 	{
 		struct Vertex
 		{
-			kvec2 pos;
-			kvec2 uv;
+			vec2 pos;
+			vec2 uv;
 		};
 
 		vector<Vertex> vertices =
 		{
-			{ kvec2(-0.5f, -0.5f), kvec2(0.0f, 0.0f) }, // bottom-left
-			{ kvec2(0.5f, -0.5f), kvec2(1.0f, 0.0f) },  // bottom-right
-			{ kvec2(0.5f,  0.5f), kvec2(1.0f, 1.0f) },  // top-right
-			{ kvec2(-0.5f,  0.5f), kvec2(0.0f, 1.0f) }  // top-left
+			{ vec2(-0.5f, -0.5f), vec2(0.0f, 0.0f) }, // bottom-left
+			{ vec2(0.5f, -0.5f), vec2(1.0f, 0.0f) },  // bottom-right
+			{ vec2(0.5f,  0.5f), vec2(1.0f, 1.0f) },  // top-right
+			{ vec2(-0.5f,  0.5f), vec2(0.0f, 1.0f) }  // top-left
 		};
 
 		//two triangles forming a quad

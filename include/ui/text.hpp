@@ -6,11 +6,11 @@
 #pragma once
 
 #include "ui/widget.hpp"
-#include "core/registry.hpp"
+#include "utils/registry.hpp"
 
 namespace KalaWindow::UI
 {
-	using KalaWindow::Core::Registry;
+	using KalaWindow::Utils::Registry;
 
 	class LIB_API Text : public Widget
 	{
@@ -24,9 +24,9 @@ namespace KalaWindow::UI
 			const string& name,
 			u32 windowID,
 			u32 fontID,
-			const kvec2 pos,
+			const vec2 pos,
 			const float rot,
-			const kvec2 size,
+			const vec2 size,
 			Widget* parentWidget,
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);
@@ -34,8 +34,8 @@ namespace KalaWindow::UI
 		//Render the text. Pass viewport size so that the text can be
 		//positioned to the window center and offset from that with world pos
 		virtual bool Render(
-			const kmat4& projection,
-			const kvec2 viewportSize) override;
+			const mat4& projection,
+			const vec2 viewportSize) override;
 
 		void SetFontID(u32 newValue);
 		inline u32 GetFontID() const { return fontID; }

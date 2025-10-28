@@ -9,11 +9,12 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <type_traits>
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-namespace KalaWindow::Core
+namespace KalaWindow::Utils
 {
 	using std::unordered_map;
 	using std::vector;

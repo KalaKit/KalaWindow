@@ -31,7 +31,7 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 
-using KalaHeaders::kvec2;
+using KalaHeaders::vec2;
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
@@ -614,7 +614,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 	case WM_MOUSEMOVE:
 	{
-		kvec2 newPos =
+		vec2 newPos =
 		{
 			float(GET_X_LPARAM(msg.lParam)),
 			float(GET_Y_LPARAM(msg.lParam))
@@ -623,9 +623,9 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (input)
 		{
 			//get the old position before updating
-			kvec2 oldPos = input->GetMousePosition();
+			vec2 oldPos = input->GetMousePosition();
 
-			kvec2 delta =
+			vec2 delta =
 			{
 				newPos.x - oldPos.x,
 				newPos.y - oldPos.y
@@ -988,7 +988,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 		if (mouse.usFlags == MOUSE_MOVE_RELATIVE
 			&& input)
 		{
-			kvec2 newMouseRawDelta = input->GetRawMouseDelta();
+			vec2 newMouseRawDelta = input->GetRawMouseDelta();
 
 			newMouseRawDelta.x += mouse.lLastX;
 			newMouseRawDelta.y += mouse.lLastY;
@@ -1181,7 +1181,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	{
 		if (window->IsResizable())
 		{
-			kvec2 fbSize = window->GetFramebufferSize();
+			vec2 fbSize = window->GetFramebufferSize();
 
 			if (OpenGL_Global::IsInitialized())
 			{
@@ -1231,7 +1231,7 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 
 		if (OpenGL_Global::IsInitialized())
 		{
-			kvec2 framebufferSize = window->GetFramebufferSize();
+			vec2 framebufferSize = window->GetFramebufferSize();
 
 			glViewport(
 				0,

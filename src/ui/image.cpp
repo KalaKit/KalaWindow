@@ -14,10 +14,6 @@
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 
-using KalaHeaders::translate;
-using KalaHeaders::rotate;
-using KalaHeaders::scale;
-using KalaHeaders::kclamp;
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
@@ -38,9 +34,9 @@ namespace KalaWindow::UI
 	Image* Image::Initialize(
 		const string& name,
 		u32 windowID,
-		const kvec2 pos,
+		const vec2 pos,
 		const float rot,
-		const kvec2 size,
+		const vec2 size,
 		Widget* parentWidget,
 		OpenGL_Texture* texture,
 		OpenGL_Shader* shader)
@@ -145,8 +141,8 @@ namespace KalaWindow::UI
 	}
 
 	bool Image::Render(
-		const kmat4& projection,
-		const kvec2 viewportSize)
+		const mat4& projection,
+		const vec2 viewportSize)
 	{
 		if (!render.canUpdate) return false;
 
@@ -170,19 +166,19 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		kvec2 clampedVP = kclamp(viewportSize, kvec2(1), kvec2(10000));
+		vec2 clampedVP = kclamp(viewportSize, vec2(1), vec2(10000));
 		transform.viewportSize = clampedVP;
 
 		UpdateOriginalPosition();
 
 		u32 programID = render.shader->GetProgramID();
 
-		kmat4 model = kmat4(1.0f);
+		mat3 model{};
 		model = translate(model, transform.combinedPos);
 		model = rotate(model, transform.combinedRot);
 		model = scale(model, transform.combinedSize);
 
-		render.shader->SetMat4(programID, "uModel", model);
+		render.shader->SetMat4(programID, "uModel", tomat4(model));
 		render.shader->SetMat4(programID, "uProjection", projection);
 
 		bool isOpaque = render.opacity = 1.0f;

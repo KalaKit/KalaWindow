@@ -10,13 +10,13 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/registry.hpp"
+#include "utils/registry.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
 
-	using KalaWindow::Core::Registry;
+	using KalaWindow::Utils::Registry;
 
 	enum VSyncState
 	{

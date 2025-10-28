@@ -14,7 +14,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/registry.hpp"
+#include "utils/registry.hpp"
 
 namespace KalaWindow::Windows
 {
@@ -24,7 +24,7 @@ namespace KalaWindow::Windows
 	using std::vector;
 	using std::unique_ptr;
 
-	using KalaWindow::Core::Registry;
+	using KalaWindow::Utils::Registry;
 
 	enum class LabelType
 	{

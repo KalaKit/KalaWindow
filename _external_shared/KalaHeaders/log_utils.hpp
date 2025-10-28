@@ -42,9 +42,9 @@ namespace KalaHeaders
 
 	//Final array buffer size sent to stdout/stderr.
 	//Should always be bigger than datestamp + timestamp + tag + message max length
-	constexpr size_t BUFFER_SIZE = 2200;
+	constexpr size_t BUFFER_SIZE = 5200;
 	//Max allowed print message length
-	constexpr size_t MAX_MESSAGE_LENGTH = 2000;
+	constexpr size_t MAX_MESSAGE_LENGTH = 5000;
 	//Max allowed full print tag length
 	constexpr size_t MAX_TAG_LENGTH = 50;
 	//Max allowed indentation length per message

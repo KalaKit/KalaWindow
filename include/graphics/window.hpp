@@ -13,7 +13,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/registry.hpp"
+#include "utils/registry.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -22,9 +22,9 @@ namespace KalaWindow::Graphics
 	using std::vector;
 	using std::array;
 
-	using KalaHeaders::kvec2;
+	using KalaHeaders::vec2;
 
-	using KalaWindow::Core::Registry;
+	using KalaWindow::Utils::Registry;
 
 	enum class DpiContext
 	{
@@ -120,7 +120,7 @@ namespace KalaWindow::Graphics
 		//window dpi state affects performance and quality of the framebuffer
 		static Window* Initialize(
 			const string& title,
-			kvec2 size,
+			vec2 size,
 			Window* parentWindow = nullptr,
 			WindowState state = WindowState::WINDOW_NORMAL,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
@@ -168,26 +168,26 @@ namespace KalaWindow::Graphics
 		WindowRounding GetWindowRoundingState() const;
 
 		//Set logical window size (client area, in DPI-independent units)
-		void SetClientRectSize(kvec2 newSize) const;
-		kvec2 GetClientRectSize() const;
+		void SetClientRectSize(vec2 newSize) const;
+		vec2 GetClientRectSize() const;
 
 		//Set full window size (including borders)
-		void SetOuterSize(kvec2 newSize) const;
-		kvec2 GetOuterSize() const;
+		void SetOuterSize(vec2 newSize) const;
+		vec2 GetOuterSize() const;
 
 		//Set dpi-accurate framebuffer size
-		void SetFramebufferSize(kvec2 newSize) const;
-		kvec2 GetFramebufferSize() const;
+		void SetFramebufferSize(vec2 newSize) const;
+		vec2 GetFramebufferSize() const;
 
 		//Set window position
-		void SetPosition(kvec2 newPos) const;
-		kvec2 GetPosition() const;
+		void SetPosition(vec2 newPos) const;
+		vec2 GetPosition() const;
 
-		inline void SetMaxSize(kvec2 newMaxSize) { maxSize = newMaxSize; }
-		inline kvec2 GetMaxSize() const { return maxSize; }
+		inline void SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
+		inline vec2 GetMaxSize() const { return maxSize; }
 
-		inline void SetMinSize(kvec2 newMinSize) { minSize = newMinSize; }
-		inline kvec2 GetMinSize() const { return minSize; }
+		inline void SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
+		inline vec2 GetMinSize() const { return minSize; }
 
 		//If true, then this window is gonna go idle and reduces cpu and gpu
 		//cycles by waiting for messageloop messages before updating the exe.
@@ -632,11 +632,11 @@ namespace KalaWindow::Graphics
 
 		bool isExclusiveFullscreen = false;
 
-		kvec2 maxSize = kvec2{ 7680, 4320 }; //The maximum size this window can become
-		kvec2 minSize = kvec2{ 400, 300 };   //The minimum size this window can become
+		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
+		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become
 
-		kvec2 oldPos{};        //Stored pre-fullscreen window pos
-		kvec2 oldSize{};       //Stored pre-fullscreen window size
+		vec2 oldPos{};        //Stored pre-fullscreen window pos
+		vec2 oldSize{};       //Stored pre-fullscreen window size
 		//0 - WS_CAPTION
 		//1 - WS_THICKFRAME
 		//2 - WS_MINIMIZEBOX

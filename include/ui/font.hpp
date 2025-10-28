@@ -10,13 +10,13 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/registry.hpp"
+#include "utils/registry.hpp"
 
 namespace KalaWindow::UI
 {
 	using std::string;
 
-	using KalaWindow::Core::Registry;
+	using KalaWindow::Utils::Registry;
 
 	class LIB_API Font
 	{

@@ -8,9 +8,9 @@
 //
 // Provides:
 //   - shorthands for math variables
-//   - GLM-like containers as kvec2, kvec3, kvec4, kmat2, kmat3, kmat4, kquat (kvec4)
-//   - operators and helpers for kvec, kmat and kquat types
-//   - kmat containers as column-major and scalar form
+//   - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat (vec4)
+//   - operators and helpers for kvec, mat and quat types
+//   - mat containers as column-major and scalar form
 //------------------------------------------------------------------------------
 
 #pragma once
@@ -153,12 +153,16 @@ namespace KalaHeaders
 
 		constexpr kvec() = default;
 
+		//vec2
+
 		constexpr kvec(f32 _x)
 			requires (N == 2)
 			: kvec_storage<N>{ _x, _x } {}
 		constexpr kvec(f32 _x, f32 _y)
 			requires (N == 2)
 			: kvec_storage<N>{ _x, _y } {}
+
+		//vec3
 
 		constexpr kvec(f32 _x)
 			requires (N == 3)
@@ -167,12 +171,38 @@ namespace KalaHeaders
 			requires (N == 3)
 			: kvec_storage<N>{ _x, _y, _z } {}
 
+		constexpr kvec(const kvec<2>& _v, f32 _z)
+			requires (N == 3)
+			: kvec_storage<N>{ _v.x, _v.y, _z } {}
+		constexpr kvec(f32 _x, const kvec<2>& _v)
+			requires (N == 3)
+			: kvec_storage<N>{ _x, _v.x, _v.y } {}
+
+		//vec4
+
 		constexpr kvec(f32 _x)
 			requires (N == 4)
 			: kvec_storage<N>{ _x, _x, _x, _x } {}
 		constexpr kvec(f32 _x, f32 _y, f32 _z, f32 _w)
 			requires (N == 4)
 			: kvec_storage<N>{ _x, _y, _z, _w } {}
+
+		constexpr kvec(const kvec<2>& _v, f32 _z, f32 _w)
+			requires (N == 4)
+			: kvec_storage<N>{ _v.x, _v.y, _z, _w } {}
+		constexpr kvec(f32 _x, const kvec<2>& _v, f32 _w)
+			requires (N == 4)
+			: kvec_storage<N>{ _x, _v.x, _v.y, _w } {}
+		constexpr kvec(f32 _x, f32 _y, const kvec<2>& _v)
+			requires (N == 4)
+			: kvec_storage<N>{ _x, _y, _v.x, _v.y } {}
+
+		constexpr kvec(const kvec<3>& _v, f32 _w)
+			requires (N == 4)
+			: kvec_storage<N>{ _v.x, _v.y, _v.z, _w } {}
+		constexpr kvec(f32 _x, const kvec<3>& _v)
+			requires (N == 4)
+			: kvec_storage<N>{ _x, _v.x, _v.y, _v.z } {}
 
 		using storage = kvec_storage<N>;
 
@@ -570,89 +600,89 @@ namespace KalaHeaders
 	}
 
 	//
-	// KMAT
+	// mat
 	//
 
 	template<size_t N>
-	struct kmat_storage;
+	struct mat_storage;
 
 	template<>
-	struct kmat_storage<2>
+	struct mat_storage<2>
 	{
-		f32 m00{}, m01{};
-		f32 m10{}, m11{};
+		f32 m00 = 1.0f, m01{};
+		f32 m10{},      m11 = 1.0f;
 	};
 	template<>
-	struct kmat_storage<3>
+	struct mat_storage<3>
 	{
-		f32 m00{}, m01{}, m02{};
-		f32 m10{}, m11{}, m12{};
-		f32 m20{}, m21{}, m22{};
+		f32 m00 = 1.0f, m01{},      m02{};
+		f32 m10{},      m11 = 1.0f, m12{};
+		f32 m20{},      m21{},      m22 = 1.0f;
 	};
 	template<>
-	struct kmat_storage<4>
+	struct mat_storage<4>
 	{
-		f32 m00{}, m01{}, m02{}, m03{};
-		f32 m10{}, m11{}, m12{}, m13{};
-		f32 m20{}, m21{}, m22{}, m23{};
-		f32 m30{}, m31{}, m32{}, m33{};
+		f32 m00 = 1.0f, m01{},      m02{},      m03{};
+		f32 m10{},      m11 = 1.0f, m12{},      m13{};
+		f32 m20{},      m21{},      m22 = 1.0f, m23{};
+		f32 m30{},      m31{},      m32{},      m33 = 1.0f;
 	};
 
 	template <size_t N>
-	struct kmat : public kmat_storage<N>
+	struct mat : public mat_storage<N>
 	{
-		static_assert(N >= 2 && N <= 4, "kmat can only have 2, 3, or 4 components.");
+		static_assert(N >= 2 && N <= 4, "mat can only have 2, 3, or 4 components.");
 
-		constexpr kmat() = default;
+		constexpr mat() = default;
 
-		constexpr kmat(
+		constexpr mat(
 			f32 _m)
 			requires (N == 2)
-			: kmat_storage<N>{ _m, _m, _m, _m } {}
-		constexpr kmat(
+			: mat_storage<N>{ _m, _m, _m, _m } {}
+		constexpr mat(
 			f32 _m00, f32 _m01,
 			f32 _m10, f32 _m11)
 			requires (N == 2)
-			: kmat_storage<N>{ _m00, _m01, _m10, _m11 } {}
+			: mat_storage<N>{ _m00, _m01, _m10, _m11 } {}
 
-		constexpr kmat(
+		constexpr mat(
 			f32 _m)
 			requires (N == 3)
-			: kmat_storage<N>
+			: mat_storage<N>
 			{
 				_m, _m, _m,
 				_m, _m, _m,
 				_m, _m, _m
 			} {}
-		constexpr kmat(
+		constexpr mat(
 			f32 _m00, f32 _m01, f32 _m02,
 			f32 _m10, f32 _m11, f32 _m12,
 			f32 _m20, f32 _m21, f32 _m22)
 			requires (N == 3)
-			: kmat_storage<N>
+			: mat_storage<N>
 			{
 				_m00, _m01, _m02,
 				_m10, _m11, _m12,
 				_m20, _m21, _m22 
 			} {}
 
-		constexpr kmat(
+		constexpr mat(
 			f32 _m)
 			requires (N == 4)
-			: kmat_storage<N>
+			: mat_storage<N>
 			{
 				_m, _m, _m, _m,
 				_m, _m, _m, _m,
 				_m, _m, _m, _m,
 				_m, _m, _m, _m
 			} {}
-		constexpr kmat(
+		constexpr mat(
 			f32 _m00, f32 _m01, f32 _m02, f32 _m03,
 			f32 _m10, f32 _m11, f32 _m12, f32 _m13,
 			f32 _m20, f32 _m21, f32 _m22, f32 _m23,
 			f32 _m30, f32 _m31, f32 _m32, f32 _m33)
 			requires (N == 4)
-			: kmat_storage<N>
+			: mat_storage<N>
 			{
 				_m00, _m01, _m02, _m03,
 				_m10, _m11, _m12, _m13,
@@ -660,75 +690,75 @@ namespace KalaHeaders
 				_m30, _m31, _m32, _m33
 			} {}
 
-		using storage = kmat_storage<N>;
+		using storage = mat_storage<N>;
 
 		//
 		// ARITHMETIC OPERATORS
 		//
 
-		constexpr kmat operator+(const kmat& m) const
+		constexpr mat operator+(const mat& m) const
 		{
-			kmat r = *this;
+			mat r = *this;
 			r += m;
 
 			return r;
 		}
-		constexpr kmat operator+(f32 s) const
+		constexpr mat operator+(f32 s) const
 		{
-			kmat r = *this;
+			mat r = *this;
 			r += s;
 
 			return r;
 		}
 
-		constexpr kmat operator-(const kmat& m) const
+		constexpr mat operator-(const mat& m) const
 		{
-			kmat r = *this;
+			mat r = *this;
 			r -= m;
 
 			return r;
 		}
-		constexpr kmat operator-(f32 s) const
+		constexpr mat operator-(f32 s) const
 		{
-			kmat r = *this;
+			mat r = *this;
 			r -= s;
 
 			return r;
 		}
 
-		constexpr kmat operator*(const kmat& m) const
+		constexpr mat operator*(const mat& m) const
 		{
-			kmat r = *this;
+			mat r = *this;
 			r *= m;
 
 			return r;
 		}
-		constexpr kmat operator*(f32 s) const
+		constexpr mat operator*(f32 s) const
 		{
-			kmat r = *this;
+			mat r = *this;
 			r *= s;
 
 			return r;
 		}
 
-		constexpr kmat operator/(const kmat& m) const { return *this * inverse(m); }
-		constexpr kmat operator/(f32 s) const
+		constexpr mat operator/(const mat& m) const { return *this * inverse(m); }
+		constexpr mat operator/(f32 s) const
 		{ 
-			kmat r = *this;
+			mat r = *this;
 			r /= s;
 
 			return r;
 		}
 
-		constexpr kmat operator-() const
+		constexpr mat operator-() const
 		{ 
-			kmat r = *this; 
+			mat r = *this; 
 			r *= -1.0f; 
 
 			return r; 
 		}
 
-		constexpr bool operator==(const kmat& m) const
+		constexpr bool operator==(const mat& m) const
 		{
 			if constexpr (N == 2)
 				return
@@ -768,13 +798,13 @@ namespace KalaHeaders
 				&& (abs(this->m32 - m.m32) < epsilon)
 				&& (abs(this->m33 - m.m33) < epsilon);
 		}
-		constexpr bool operator!=(const kmat& m) const { return !(*this == m); }
+		constexpr bool operator!=(const mat& m) const { return !(*this == m); }
 
 		//
 		// COMPOUND OPERATORS
 		//
 
-		constexpr kmat& operator+=(const kmat& m)
+		constexpr mat& operator+=(const mat& m)
 		{
 			if constexpr (N == 2)
 			{
@@ -797,7 +827,7 @@ namespace KalaHeaders
 
 			return *this;
 		}
-		constexpr kmat& operator+=(f32 s)
+		constexpr mat& operator+=(f32 s)
 		{
 			if constexpr (N == 2)
 			{
@@ -821,7 +851,7 @@ namespace KalaHeaders
 			return *this;
 		}
 
-		constexpr kmat& operator-=(const kmat& m)
+		constexpr mat& operator-=(const mat& m)
 		{
 			if constexpr (N == 2)
 			{
@@ -844,7 +874,7 @@ namespace KalaHeaders
 
 			return *this;
 		}
-		constexpr kmat& operator-=(f32 s)
+		constexpr mat& operator-=(f32 s)
 		{
 			if constexpr (N == 2)
 			{
@@ -868,7 +898,7 @@ namespace KalaHeaders
 			return *this;
 		}
 
-		constexpr kmat& operator*=(const kmat& m)
+		constexpr mat& operator*=(const mat& m)
 		{
 			if constexpr (N == 2)
 			{
@@ -929,7 +959,7 @@ namespace KalaHeaders
 
 			return *this;
 		}
-		constexpr kmat& operator*=(f32 s)
+		constexpr mat& operator*=(f32 s)
 		{
 			if constexpr (N == 2)
 			{
@@ -953,12 +983,12 @@ namespace KalaHeaders
 			return *this;
 		}
 
-		constexpr kmat& operator/=(const kmat& m)
+		constexpr mat& operator/=(const mat& m)
 		{ 
 			*this = *this * inverse(m);
 			return *this;
 		}
-		constexpr kmat& operator/=(f32 s)
+		constexpr mat& operator/=(f32 s)
 		{
 			if constexpr (N == 2)
 			{
@@ -983,11 +1013,11 @@ namespace KalaHeaders
 		}
 	};
 
-	//multiply kmat by same kvec
+	//multiply mat by same kvec
 
 	template<size_t N>
 		requires(N >= 2 && N <= 4)
-	constexpr kvec<N> operator*(const kmat<N>& m, const kvec<N>& v)
+	constexpr kvec<N> operator*(const mat<N>& m, const kvec<N>& v)
 	{
 		if constexpr (N == 2)
 			return 
@@ -1012,44 +1042,44 @@ namespace KalaHeaders
 			};
 	}
 
-	using kvec2 = kvec<2>; //Vector: x, y
-	using kvec3 = kvec<3>; //Vector: x, y, z
-	using kvec4 = kvec<4>; //Vector: x, y, z, w
+	using vec2 = kvec<2>; //Vector: x, y
+	using vec3 = kvec<3>; //Vector: x, y, z
+	using vec4 = kvec<4>; //Vector: x, y, z, w
 
-	using kquat = kvec<4>; //Quaternion: x, y, z, w
+	using quat = kvec<4>; //Quaternion: x, y, z, w
 
-	using kmat2 = kmat<2>; //Matrix: m00 - m11
-	using kmat3 = kmat<3>; //Matrix: m00 - m22
-	using kmat4 = kmat<4>; //Matrix: m00 - m33
+	using mat2 = mat<2>; //Matrix: m00 - m11
+	using mat3 = mat<3>; //Matrix: m00 - m22
+	using mat4 = mat<4>; //Matrix: m00 - m33
 
-	const kvec3 GRAVITY = { 0.0f, -9.81f, 0.0f };
+	const vec3 GRAVITY = { 0.0f, -9.81f, 0.0f };
 
-	const kvec3 DIR_RIGHT = { 1, 0,  0 };
-	const kvec3 DIR_UP    = { 0, 1,  0 };
-	const kvec3 DIR_FRONT = { 0, 0, -1 };
+	const vec3 DIR_RIGHT = { 1, 0,  0 };
+	const vec3 DIR_UP    = { 0, 1,  0 };
+	const vec3 DIR_FRONT = { 0, 0, -1 };
 
-	const kvec3 ROT_PITCH = { 1, 0, 0 };
-	const kvec3 ROT_YAW   = { 0, 1, 0 };
-	const kvec3 ROT_ROLL  = { 0, 0, 1 };
+	const vec3 ROT_PITCH = { 1, 0, 0 };
+	const vec3 ROT_YAW   = { 0, 1, 0 };
+	const vec3 ROT_ROLL  = { 0, 0, 1 };
 
 	//
-	// HELPER FUNCTIONS USING DEFINED KMAT AND KVEC CONTAINERS
+	// HELPER FUNCTIONS USING DEFINED mat AND KVEC CONTAINERS
 	//
 
 	//Convert degrees to radians
 	inline f32 radians(f32 deg) { return deg * 0.017453f; }
 	//Convert degrees to radians
-	inline kvec2 radians(const kvec2 v)
+	inline vec2 radians(const vec2 v)
 	{
 		return { radians(v.x), radians(v.y) };
 	}
 	//Convert degrees to radians
-	inline kvec3 radians(const kvec3& v)
+	inline vec3 radians(const vec3& v)
 	{
 		return { radians(v.x), radians(v.y), radians(v.z) };
 	}
 	//Convert degrees to radians
-	inline kvec4 radians(const kvec4& v)
+	inline vec4 radians(const vec4& v)
 	{
 		return { radians(v.x), radians(v.y), radians(v.z), radians(v.w) };
 	}
@@ -1057,23 +1087,23 @@ namespace KalaHeaders
 	//Convert radians to degrees
 	inline f32 degrees(f32 rad) { return rad * 57.295780f; }
 	//Convert radians to degrees
-	inline kvec2 degrees(const kvec2 v)
+	inline vec2 degrees(const vec2 v)
 	{
 		return { degrees(v.x), degrees(v.y) };
 	}
 	//Convert radians to degrees
-	inline kvec3 degrees(const kvec3& v)
+	inline vec3 degrees(const vec3& v)
 	{
 		return { degrees(v.x), degrees(v.y), degrees(v.z) };
 	}
 	//Convert radians to degrees
-	inline kvec4 degrees(const kvec4& v)
+	inline vec4 degrees(const vec4& v)
 	{
 		return { degrees(v.x), degrees(v.y), degrees(v.z), degrees(v.w) };
 	}
 
 	//Converts 2D euler (degrees) to quaternion
-	inline kquat toquat(const kvec2 euler)
+	inline quat toquat(const vec2 euler)
 	{
 		f32 half = radians(euler.y * 0.5f);
 		f32 cz = cos(half);
@@ -1083,9 +1113,9 @@ namespace KalaHeaders
 		return { 0.0f, 0.0f, sz, cz };
 	}
 	//Converts 3D euler (degrees) to quaternion
-	inline kquat toquat(const kvec3& euler)
+	inline quat toquat(const vec3& euler)
 	{
-		kvec3 r = radians(euler) * 0.5f;
+		vec3 r = radians(euler) * 0.5f;
 
 		f32 cx = cos(r.x), sx = sin(r.x);
 		f32 cy = cos(r.y), sy = sin(r.y);
@@ -1100,14 +1130,15 @@ namespace KalaHeaders
 		};
 	}
 
-	//Converts kquat to 2D euler (degrees)
-	inline kvec2 toeuler2(const kquat& q)
+	//Converts quat to 2D euler (degrees)
+	inline f32 toeuler2(const quat& q)
 	{
-		f32 yaw = atan2(2.0f * (q.w * q.z), 1.0f - 2.0f * (q.z * q.z));
-		return kvec2(0.0f, degrees(yaw));
+		return degrees(atan2(
+			2.0f * (q.w * q.z + q.x * q.y),
+			1.0f - 2.0f * (q.y * q.y + q.z * q.z)));
 	}
-	//Converts kquat to 3D euler (degrees)
-	inline kvec3 toeuler3(const kquat& q)
+	//Converts quat to 3D euler (degrees)
+	inline vec3 toeuler3(const quat& q)
 	{
 		f32 sinr_cosp = 2.0f * (q.w * q.x + q.y * q.z);
 		f32 cosr_cosp = 1.0f - 2.0f * (q.x * q.x + q.y * q.y);
@@ -1122,11 +1153,11 @@ namespace KalaHeaders
 		f32 cosy_cosp = 1.0f - 2.0f * (q.y * q.y + q.z * q.z);
 		f32 roll = atan2(siny_cosp, cosy_cosp);
 
-		return degrees(kvec3{ pitch, yaw, roll });
+		return degrees(vec3{ pitch, yaw, roll });
 	}
 
-	//Converts kmat3 to quat
-	inline kquat toquat(const kmat3& m)
+	//Converts mat3 to quat
+	inline quat toquat(const mat3& m)
 	{
 		f32 trace = m.m00 + m.m11 + m.m22;
 		if (trace > 0.0f)
@@ -1174,8 +1205,8 @@ namespace KalaHeaders
 			};
 		}
 	}
-	//Converts kmat4 to quat
-	inline kquat toquat(const kmat4& m)
+	//Converts mat4 to quat
+	inline quat toquat(const mat4& m)
 	{
 		f32 trace = m.m00 + m.m11 + m.m22;
 		if (trace > 0.0f)
@@ -1224,8 +1255,8 @@ namespace KalaHeaders
 		}
 	}
 
-	//Converts kquat to kmat3
-	inline kmat3 tomat3(const kquat& q)
+	//Converts quat to mat3
+	inline mat3 tomat3(const quat& q)
 	{
 		f32 x2 = q.x + q.x;
 		f32 y2 = q.y + q.y;
@@ -1248,14 +1279,47 @@ namespace KalaHeaders
 			xz + wy,          yz - wx,           1.0f - (xx + yy)
 		};
 	}
-	//Converts kquat to kmat4
-	inline kmat4 tomat4(const kquat& q)
+	//Converts quat to mat4
+	inline mat4 tomat4(const quat& q)
 	{
-		kmat3 r = tomat3(q);
+		mat3 r = tomat3(q);
 		return {
 			r.m00, r.m01, r.m02, 0.0f,
 			r.m10, r.m11, r.m12, 0.0f,
 			r.m20, r.m21, r.m22, 0.0f,
+			0.0f,  0.0f,  0.0f,  1.0f
+		};
+	}
+
+	//Converts mat2 to mat3
+	inline mat3 tomat3(const mat2& m)
+	{
+		return 
+		{
+			m.m00, m.m01, 0.0f,
+			m.m10, m.m11, 0.0f,
+			0.0f,  0.0f,  1.0f
+		};
+	}
+	//Converts mat2 to mat4
+	inline mat4 tomat4(const mat2& m)
+	{
+		return
+		{
+			m.m00, m.m01, 0.0f, 0.0f,
+			m.m10, m.m11, 0.0f, 0.0f,
+			0.0f,  0.0f,  1.0f, 0.0f,
+			0.0f,  0.0f,  0.0f,  1.0f
+		};
+	}
+	//Converts mat3 to mat4
+	inline mat4 tomat4(const mat3& m)
+	{
+		return
+		{
+			m.m00, m.m01, m.m02, 0.0f,
+			m.m10, m.m11, m.m12, 0.0f,
+			m.m20, m.m21, m.m22, 0.0f,
 			0.0f,  0.0f,  0.0f,  1.0f
 		};
 	}
@@ -1270,7 +1334,7 @@ namespace KalaHeaders
 	}
 
 	//ortographic projection, top-left origin, Y-down projection
-	inline kmat4 ortho(const kvec2 viewport)
+	inline mat4 ortho(const vec2 viewport)
 	{
 		f32 left = 0.0f;
 		f32 right = viewport.x;
@@ -1293,8 +1357,8 @@ namespace KalaHeaders
 	}
 
 	//perpective projection, bottom-left origin, Y-up projection
-	inline kmat4 perspective(
-		const kvec2 viewport,
+	inline mat4 perspective(
+		const vec2 viewport,
 		f32 fovDeg,
 		f32 zNear,
 		f32 zFar)
@@ -1312,155 +1376,23 @@ namespace KalaHeaders
 		};
 	}
 
-	inline kmat3 translate(
-		const kmat3& m,
-		const kvec2 v)
-	{
-		kmat3 t = m;
-		t.m20 += v.x;
-		t.m21 += v.y;
-
-		return t;
-	}
-	inline kmat4 translate(
-		const kmat4& m,
-		const kvec2& v)
-	{
-		kmat4 t = m;
-		t.m30 += v.x;
-		t.m31 += v.y;
-
-		return t;
-	}
-	inline kmat4 translate(
-		const kmat4& m,
-		const kvec3& v)
-	{
-		kmat4 t = m;
-		t.m30 += v.x;
-		t.m31 += v.y;
-		t.m32 += v.z;
-
-		return t;
-	}
-
-	inline kmat2 rotate(f32 deg)
-	{
-		f32 r = radians(deg);
-		f32 c = cos(r);
-		f32 s = sin(r);
-
-		return { c, -s, s, c };
-	}
-	inline kmat3 rotate(
-		const kmat3& m,
-		f32 deg)
-	{
-		f32 rad = radians(deg);
-		const f32 c = cos(rad);
-		const f32 s = sin(rad);
-
-		kmat3 r = {
-			c, -s, 0.0f,
-			s,  c, 0.0f,
-			0.0f, 0.0f, 1.0f
-		};
-
-		return m * r;
-	}
-	inline kmat4 rotate(
-		const kmat4& m,
-		f32 deg)
-	{
-		f32 rad = radians(deg);
-		const f32 c = cos(rad);
-		const f32 s = sin(rad);
-
-		kmat4 r =
-		{
-			c,    -s,    0.0f, 0.0f,
-			s,     c,    0.0f, 0.0f,
-			0.0f,  0.0f, 1.0f, 0.0f,
-			0.0f,  0.0f, 0.0f, 1.0f
-		};
-
-		return m * r;
-	}
-	inline kmat4 rotate(
-		const kmat4& m,
-		f32 deg,
-		const kvec3& axis)
-	{
-		f32 rad = radians(deg);
-		const f32 c = cos(rad);
-		const f32 s = sin(rad);
-		const f32 ic = 1.0f - c;
-
-		const f32
-			x = axis.x,
-			y = axis.y,
-			z = axis.z;
-
-		kmat4 r =
-		{
-			c + x * x * ic,  x * y * ic - z * s,  x * z * ic + y * s,  0.0f,
-			y * x * ic + z * s,   c + y * y * ic, y * z * ic - x * s,  0.0f,
-			z * x * ic - y * s,   z * y * ic + x * s,  c + z * z * ic, 0.0f,
-			0.0f,                 0.0f,                0.0f,                1.0f
-		};
-
-		return m * r;
-	}
-
-	inline kmat3 scale(
-		const kmat3& m,
-		const kvec2 v)
-	{
-		kmat3 s = m;
-		s.m00 *= v.x;
-		s.m11 *= v.y;
-
-		return s;
-	}
-	inline kmat4 scale(
-		const kmat4& m,
-		const kvec2 v)
-	{
-		kmat4 s = m;
-		s.m00 *= v.x;
-		s.m11 *= v.y;
-
-		return s;
-	}
-	inline kmat4 scale(
-		const kmat4& m,
-		const kvec3& v)
-	{
-		kmat4 s = m;
-		s.m00 *= v.x;
-		s.m11 *= v.y;
-		s.m22 *= v.z;
-
-		return s;
-	}
-
-	//Computes kvec2 magnitude (distance from a)
-	inline f32 length(const kvec2 v)
+	//Computes vec2 magnitude (distance from a)
+	inline f32 length(const vec2 v)
 	{
 		return sqrt(
 			v.x * v.x
 			+ v.y * v.y);
 	}
-	//Computes kvec3 magnitude (distance from a)
-	inline f32 length(const kvec3& v)
+	//Computes vec3 magnitude (distance from a)
+	inline f32 length(const vec3& v)
 	{
 		return sqrt(
 			v.x * v.x
 			+ v.y * v.y
 			+ v.z * v.z);
 	}
-	//Computes kvec4 magnitude (distance from a)
-	inline f32 length(const kvec4& v)
+	//Computes vec4 magnitude (distance from a)
+	inline f32 length(const vec4& v)
 	{
 		return sqrt(
 			v.x * v.x
@@ -1469,26 +1401,26 @@ namespace KalaHeaders
 			+ v.w * v.w);
 	}
 
-	//Returns unit-length version of kvec2
-	inline kvec2 normalize(const kvec2 v)
+	//Returns unit-length version of vec2
+	inline vec2 normalize(const vec2 v)
 	{
 		f32 len = length(v);
-		return (len != 0.0f) ? v / len : kvec2{};
+		return (len != 0.0f) ? v / len : vec2{};
 	}
-	//Returns unit-length version of kvec3
-	inline kvec3 normalize(const kvec3& v)
+	//Returns unit-length version of vec3
+	inline vec3 normalize(const vec3& v)
 	{
 		f32 len = length(v);
-		return (len != 0.0f) ? v / len : kvec3{};
+		return (len != 0.0f) ? v / len : vec3{};
 	}
-	//Returns unit-length version of kvec4
-	inline kvec4 normalize(const kvec4& v)
+	//Returns unit-length version of vec4
+	inline vec4 normalize(const vec4& v)
 	{
 		f32 len = length(v);
-		return (len != 0.0f) ? v / len : kvec4{};
+		return (len != 0.0f) ? v / len : vec4{};
 	}
 	//Normalizes a quaternion
-	inline kquat normalize_quat(const kquat& q)
+	inline quat normalize_quat(const quat& q)
 	{
 		f32 len = sqrt(
 			q.x * q.x
@@ -1499,44 +1431,166 @@ namespace KalaHeaders
 		return q / len;
 	}
 
+	//Move in 2D space
+	inline mat3 translate(
+		const mat3& m,
+		const vec2 v)
+	{
+		mat3 t = m;
+		t.m20 += v.x;
+		t.m21 += v.y;
+
+		return t;
+	}
+	//Move in 3D space
+	inline mat4 translate(
+		const mat4& m,
+		const vec3& v)
+	{
+		mat4 t = m;
+		t.m30 += v.x;
+		t.m31 += v.y;
+		t.m32 += v.z;
+
+		return t;
+	}
+
+	//Rotate around Z axis with euler degrees in 2D
+	inline mat3 rotate(
+		const mat3& m,
+		f32 deg)
+	{
+		f32 rad = radians(deg);
+		const f32 c = cos(rad);
+		const f32 s = sin(rad);
+
+		mat3 r = {
+			c, -s, 0.0f,
+			s,  c, 0.0f,
+			0.0f, 0.0f, 1.0f
+		};
+
+		return m * r;
+	}
+	//Rotate around any non-normalized euler axis with euler degrees in 3D
+	inline mat4 rotate(
+		const mat4& m,
+		f32 deg,
+		const vec3& axis)
+	{
+		f32 rad = radians(deg);
+		const f32 c = cos(rad);
+		const f32 s = sin(rad);
+		const f32 ic = 1.0f - c;
+
+		vec3 axis_normalized = normalize(axis);
+
+		const f32
+			x = axis_normalized.x,
+			y = axis_normalized.y,
+			z = axis_normalized.z;
+
+		mat4 r =
+		{
+			c + x * x * ic,  x * y * ic - z * s,  x * z * ic + y * s,  0.0f,
+			y * x * ic + z * s,   c + y * y * ic, y * z * ic - x * s,  0.0f,
+			z * x * ic - y * s,   z * y * ic + x * s,  c + z * z * ic, 0.0f,
+			0.0f,                 0.0f,                0.0f,                1.0f
+		};
+
+		return m * r;
+	}
+	//Rotate with quaternion in 3D
+	inline mat4 rotate(const mat4& m, const quat& q)
+	{
+		mat4 r = 
+		{
+			1 - 2 * q.y * q.y - 2 * q.z * q.z,  
+			2 * q.x * q.y - 2 * q.z * q.w,      
+			2 * q.x * q.z + 2 * q.y * q.w,      
+			0.0f,
+
+			2 * q.x * q.y + 2 * q.z * q.w,      
+			1 - 2 * q.x * q.x - 2 * q.z * q.z,  
+			2 * q.y * q.z - 2 * q.x * q.w,      
+			0.0f,
+
+			2 * q.x * q.z - 2 * q.y * q.w,      
+			2 * q.y * q.z + 2 * q.x * q.w,      
+			1 - 2 * q.x * q.x - 2 * q.y * q.y,  
+			0.0f,
+
+			0.0f,                
+			0.0f,               
+			0.0f,              
+			1.0f
+		};
+
+		return m * r;
+	}
+
+	//Scale in 2D space
+	inline mat3 scale(
+		const mat3& m,
+		const vec2 v)
+	{
+		mat3 s = m;
+		s.m00 *= v.x;
+		s.m11 *= v.y;
+
+		return s;
+	}
+	//Scale in 3D space
+	inline mat4 scale(
+		const mat4& m,
+		const vec3& v)
+	{
+		mat4 s = m;
+		s.m00 *= v.x;
+		s.m11 *= v.y;
+		s.m22 *= v.z;
+
+		return s;
+	}
+
 	//Vector pointing from one position to another
-	inline kvec2 direction(
-		const kvec2 a, 
-		const kvec2 b)
+	inline vec2 direction(
+		const vec2 a, 
+		const vec2 b)
 	{
 		return normalize(b - a);
 	}
 	//Vector pointing from one position to another
-	inline kvec3 direction(
-		const kvec3& a, 
-		const kvec3& b)
+	inline vec3 direction(
+		const vec3& a, 
+		const vec3& b)
 	{
 		return normalize(b - a);
 	}
 
-	//Measures alignment between two kvec2s
+	//Measures alignment between two vec2s
 	inline f32 dot(
-		const kvec2 a,
-		const kvec2 b)
+		const vec2 a,
+		const vec2 b)
 	{
 		return
 			a.x * b.x
 			+ a.y * b.y;
 	}
-	//Measures alignment between two kvec3s
+	//Measures alignment between two vec3s
 	inline f32 dot(
-		const kvec3& a,
-		const kvec3& b)
+		const vec3& a,
+		const vec3& b)
 	{
 		return
 			a.x * b.x
 			+ a.y * b.y
 			+ a.z * b.z;
 	}
-	//Measures alignment between two kvec4s
+	//Measures alignment between two vec4s
 	inline f32 dot(
-		const kvec4& a,
-		const kvec4& b)
+		const vec4& a,
+		const vec4& b)
 	{
 		return
 			a.x * b.x
@@ -1547,19 +1601,19 @@ namespace KalaHeaders
 
 	//Returns the perpendicular magnitude in 2D
 	inline f32 cross(
-		const kvec2 a,
-		const kvec2 b)
+		const vec2 a,
+		const vec2 b)
 	{
 		return
 			a.x * b.y
 			- a.y * b.x;
 	}
-	//Returns the normal kvec3 in 3D
-	inline kvec3 cross(
-		const kvec3& a,
-		const kvec3& b)
+	//Returns the normal vec3 in 3D
+	inline vec3 cross(
+		const vec3& a,
+		const vec3& b)
 	{
-		return kvec3
+		return vec3
 		{
 			a.y * b.z - a.z * b.y,
 			a.z * b.x - a.x * b.z,
@@ -1568,16 +1622,16 @@ namespace KalaHeaders
 	}
 
 	//Turns position/orientation into a view transform
-	inline kmat4 lookat(
-		const kvec3& origin, 
-		const kvec3& target, 
-		const kvec3& up)
+	inline mat4 lookat(
+		const vec3& origin, 
+		const vec3& target, 
+		const vec3& up)
 	{
-		kvec3 f = normalize(target - origin);
-		kvec3 s = normalize(cross(f, up));
-		kvec3 u = cross(s, f);
+		vec3 f = normalize(target - origin);
+		vec3 s = normalize(cross(f, up));
+		vec3 u = cross(s, f);
 
-		kmat4 m(1.0f);
+		mat4 m(1.0f);
 		m.m00 = s.x; m.m01 = u.x; m.m02 = -f.x;
 		m.m10 = s.y; m.m11 = u.y; m.m12 = -f.y;
 		m.m20 = s.z; m.m21 = u.z; m.m22 = -f.z;
@@ -1597,10 +1651,10 @@ namespace KalaHeaders
 	{
 		return a + (b - a) * t;
 	}
-	//Linear interpolation between two kvec2s by t
-	inline kvec2 lerp(
-		const kvec2 a,
-		const kvec2 b,
+	//Linear interpolation between two vec2s by t
+	inline vec2 lerp(
+		const vec2 a,
+		const vec2 b,
 		f32 t)
 	{
 		return
@@ -1609,10 +1663,10 @@ namespace KalaHeaders
 			lerp(a.y, b.y, t)
 		};
 	}
-	//Linear interpolation between two kvec3s by t
-	inline kvec3 lerp(
-		const kvec3& a,
-		const kvec3& b,
+	//Linear interpolation between two vec3s by t
+	inline vec3 lerp(
+		const vec3& a,
+		const vec3& b,
 		f32 t)
 	{
 		return
@@ -1622,10 +1676,10 @@ namespace KalaHeaders
 			lerp(a.z, b.z, t)
 		};
 	}
-	//Linear interpolation between two kvec4s by t
-	inline kvec4 lerp(
-		const kvec4& a,
-		const kvec4& b,
+	//Linear interpolation between two vec4s by t
+	inline vec4 lerp(
+		const vec4& a,
+		const vec4& b,
 		f32 t)
 	{
 		return
@@ -1654,42 +1708,42 @@ namespace KalaHeaders
 
 		return (a * w1 + b * w2) / sinTheta;
 	}
-	//Spherical linear interpolation between two non-normalized kvec2s by t
-	inline kvec2 slerp(
-		const kvec2 a,
-		const kvec2 b,
+	//Spherical linear interpolation between two non-normalized vec2s by t
+	inline vec2 slerp(
+		const vec2 a,
+		const vec2 b,
 		f32 t)
 	{
-		kvec2 na = normalize(a);
-		kvec2 nb = normalize(b);
+		vec2 na = normalize(a);
+		vec2 nb = normalize(b);
 		f32 dotAB = clamp(dot(na, nb), -1.0f, 1.0f);
 
 		f32 theta = acos(dotAB) * t;
-		kvec2 rel = normalize(nb - na * dotAB);
+		vec2 rel = normalize(nb - na * dotAB);
 		return na * cos(theta) + rel * sin(theta);
 	}
-	//Spherical linear interpolation between two non-normalized kvec3s by t
-	inline kvec3 slerp(
-		const kvec3& a,
-		const kvec3& b,
+	//Spherical linear interpolation between two non-normalized vec3s by t
+	inline vec3 slerp(
+		const vec3& a,
+		const vec3& b,
 		f32 t)
 	{
-		kvec3 na = normalize(a);
-		kvec3 nb = normalize(b);
+		vec3 na = normalize(a);
+		vec3 nb = normalize(b);
 		f32 dotAB = clamp(dot(na, nb), -1.0f, 1.0f);
 
 		f32 theta = acos(dotAB) * t;
-		kvec3 rel = normalize(nb - na * dotAB);
+		vec3 rel = normalize(nb - na * dotAB);
 		return na * cos(theta) + rel * sin(theta);
 	}
-	//Spherical linear interpolation between two non-normalized kvec4s by t
-	inline kvec4 slerp(
-		const kvec4& a,
-		const kvec4& b,
+	//Spherical linear interpolation between two non-normalized vec4s by t
+	inline vec4 slerp(
+		const vec4& a,
+		const vec4& b,
 		f32 t)
 	{
-		kvec4 na = normalize(a);
-		kvec4 nb = normalize(b);
+		vec4 na = normalize(a);
+		vec4 nb = normalize(b);
 		f32 dotAB = clamp(dot(na, nb), -1.0f, 1.0f);
 
 		//ensure shortest path
@@ -1719,10 +1773,10 @@ namespace KalaHeaders
 		return t * t * (3.0f - 2.0f * t);
 	}
 
-	inline kvec2 smoothstep(
-		const kvec2 edge0,
-		const kvec2 edge1,
-		const kvec2 x)
+	inline vec2 smoothstep(
+		const vec2 edge0,
+		const vec2 edge1,
+		const vec2 x)
 	{
 		return
 		{
@@ -1730,10 +1784,10 @@ namespace KalaHeaders
 			smoothstep(edge0.y, edge1.y, x.y)
 		};
 	}
-	inline kvec3 smoothstep(
-		const kvec3& edge0,
-		const kvec3& edge1,
-		const kvec3& x)
+	inline vec3 smoothstep(
+		const vec3& edge0,
+		const vec3& edge1,
+		const vec3& x)
 	{
 		return
 		{
@@ -1742,10 +1796,10 @@ namespace KalaHeaders
 			smoothstep(edge0.z, edge1.z, x.z)
 		};
 	}
-	inline kvec4 smoothstep(
-		const kvec4& edge0,
-		const kvec4& edge1,
-		const kvec4& x)
+	inline vec4 smoothstep(
+		const vec4& edge0,
+		const vec4& edge1,
+		const vec4& x)
 	{
 		return
 		{
@@ -1756,11 +1810,11 @@ namespace KalaHeaders
 		};
 	}
 
-	//Restricts a kvec2 to given ranges
-	inline kvec2 kclamp(
-		const kvec2 v,
-		const kvec2 min,
-		const kvec2 max)
+	//Restricts a vec2 to given ranges
+	inline vec2 kclamp(
+		const vec2 v,
+		const vec2 min,
+		const vec2 max)
 	{
 		return
 		{
@@ -1768,11 +1822,11 @@ namespace KalaHeaders
 			clamp(v.y, min.y, max.y)
 		};
 	}
-	//Restricts a kvec3 to given ranges
-	inline kvec3 kclamp(
-		const kvec3& v,
-		const kvec3& min,
-		const kvec3& max)
+	//Restricts a vec3 to given ranges
+	inline vec3 kclamp(
+		const vec3& v,
+		const vec3& min,
+		const vec3& max)
 	{
 		return
 		{
@@ -1781,11 +1835,11 @@ namespace KalaHeaders
 			clamp(v.z, min.z, max.z)
 		};
 	}
-	//Restricts a kvec4 to given ranges
-	inline kvec4 kclamp(
-		const kvec4& v,
-		const kvec4& min,
-		const kvec4& max)
+	//Restricts a vec4 to given ranges
+	inline vec4 kclamp(
+		const vec4& v,
+		const vec4& min,
+		const vec4& max)
 	{
 		return
 		{
@@ -1796,20 +1850,20 @@ namespace KalaHeaders
 		};
 	}
 
-	//Uses std::sqrt and returns unit-accurate distance between two kvec2s
+	//Uses std::sqrt and returns unit-accurate distance between two vec2s
 	inline f32 distancesqrt(
-		const kvec2 a, 
-		const kvec2 b)
+		const vec2 a, 
+		const vec2 b)
 	{
 		f32 dx = a.x - b.x;
 		f32 dy = a.y - b.y;
 
 		return sqrt(dx * dx + dy * dy);
 	}
-	//Uses std::sqrt and returns unit-accurate distance between two kvec3s
+	//Uses std::sqrt and returns unit-accurate distance between two vec3s
 	inline f32 distancesqrt(
-		const kvec3& a, 
-		const kvec3& b)
+		const vec3& a, 
+		const vec3& b)
 	{
 		f32 dx = a.x - b.x;
 		f32 dy = a.y - b.y;
@@ -1817,10 +1871,10 @@ namespace KalaHeaders
 
 		return sqrt(dx * dx + dy * dy + dz * dz);
 	}
-	//Uses std::sqrt and returns unit-accurate distance between two kvec4s
+	//Uses std::sqrt and returns unit-accurate distance between two vec4s
 	inline f32 distancesqrt(
-		const kvec4& a, 
-		const kvec4& b)
+		const vec4& a, 
+		const vec4& b)
 	{
 		f32 dx = a.x - b.x;
 		f32 dy = a.y - b.y;
@@ -1830,20 +1884,20 @@ namespace KalaHeaders
 		return sqrt(dx * dx + dy * dy + dz * dz + dw * dw);
 	}
 
-	//Does not use std::sqrt and returns squared distance between two kvec2s
+	//Does not use std::sqrt and returns squared distance between two vec2s
 	inline f32 distancefast(
-		const kvec2 a, 
-		const kvec2 b)
+		const vec2 a, 
+		const vec2 b)
 	{
 		f32 dx = a.x - b.x;
 		f32 dy = a.y - b.y;
 
 		return dx * dx + dy * dy;
 	}
-	//Does not use std::sqrt and returns squared distance between two kvec3s
+	//Does not use std::sqrt and returns squared distance between two vec3s
 	inline f32 distancefast(
-		const kvec3& a, 
-		const kvec3& b)
+		const vec3& a, 
+		const vec3& b)
 	{
 		f32 dx = a.x - b.x;
 		f32 dy = a.y - b.y;
@@ -1851,10 +1905,10 @@ namespace KalaHeaders
 
 		return dx * dx + dy * dy + dz * dz;
 	}
-	//Does not use std::sqrt and returns squared distance between two kvec4s
+	//Does not use std::sqrt and returns squared distance between two vec4s
 	inline f32 distancefast(
-		const kvec4& a, 
-		const kvec4& b)
+		const vec4& a, 
+		const vec4& b)
 	{
 		f32 dx = a.x - b.x;
 		f32 dy = a.y - b.y;
@@ -1864,35 +1918,35 @@ namespace KalaHeaders
 		return dx * dx + dy * dy + dz * dz + dw * dw;
 	}
 
-	inline kvec3 reflect(
-		const kvec3& I, 
-		const kvec3& N)
+	inline vec3 reflect(
+		const vec3& I, 
+		const vec3& N)
 	{
 		return I - 2.0f * dot(I, N) * N;
 	}
 
 	//Takes in non-normalized positions and returns angle in degrees (0..180),
-	//uses kvec2 a as the reference direction
+	//uses vec2 a as the reference direction
 	inline f32 angle(
-		const kvec2 a,
-		const kvec2 b)
+		const vec2 a,
+		const vec2 b)
 	{
-		kvec2 na = normalize(a);
-		kvec2 nb = normalize(b);
+		vec2 na = normalize(a);
+		vec2 nb = normalize(b);
 
 		f32 d = clamp(dot(na, nb), -1.0f, 1.0f);
 		return degrees(acos(d));
 	}
 	//Takes in non-normalized positions and returns angle in degrees (0..180),
-	//uses kvec3 a as the reference direction
+	//uses vec3 a as the reference direction
 	inline f32 angle(
-		const kvec3& a,
-		const kvec3& b,
-		const kvec3& axis)
+		const vec3& a,
+		const vec3& b,
+		const vec3& axis)
 	{
-		kvec3 na = normalize(a);
-		kvec3 nb = normalize(b);
-		kvec3 ax = normalize(axis);
+		vec3 na = normalize(a);
+		vec3 nb = normalize(b);
+		vec3 ax = normalize(axis);
 
 		//project onto plane perpendicular to the axis
 		na -= ax * dot(na, ax);
@@ -1906,13 +1960,13 @@ namespace KalaHeaders
 	}
 
 	//Takes in non-normalized positions and returns signed angle in degrees (-180..180),
-	//uses kvec2 a as the reference direction
+	//uses vec2 a as the reference direction
 	inline f32 angle_s(
-		const kvec2 a,
-		const kvec2 b)
+		const vec2 a,
+		const vec2 b)
 	{
-		kvec2 na = normalize(a);
-		kvec2 nb = normalize(b);
+		vec2 na = normalize(a);
+		vec2 nb = normalize(b);
 
 		f32 rad = atan2(nb.y, nb.x) - atan2(na.y, na.x);
 		f32 deg = degrees(rad);
@@ -1923,15 +1977,15 @@ namespace KalaHeaders
 		return deg;
 	}
 	//Takes in non-normalized positions and returns signed angle in degrees (-180..180),
-	//uses kvec3 a as the reference direction
+	//uses vec3 a as the reference direction
 	inline f32 angle_s(
-		const kvec3& a,
-		const kvec3& b,
-		const kvec3& axis)
+		const vec3& a,
+		const vec3& b,
+		const vec3& axis)
 	{
-		kvec3 na = normalize(a);
-		kvec3 nb = normalize(b);
-		kvec3 ax = normalize(axis);
+		vec3 na = normalize(a);
+		vec3 nb = normalize(b);
+		vec3 ax = normalize(axis);
 
 		//project onto plane perpendicular to the axis
 		na -= ax * dot(na, ax);
@@ -1945,13 +1999,13 @@ namespace KalaHeaders
 	}
 
 	//Takes in non-normalized positions and returns full angle in degrees (0..360),
-	//uses kvec2 a as the reference direction
+	//uses vec2 a as the reference direction
 	inline f32 angle_f(
-		const kvec2 a,
-		const kvec2 b)
+		const vec2 a,
+		const vec2 b)
 	{
-		kvec2 na = normalize(a);
-		kvec2 nb = normalize(b);
+		vec2 na = normalize(a);
+		vec2 nb = normalize(b);
 
 		f32 rad = atan2(nb.y, nb.x) - atan2(na.y, na.x);
 		f32 deg = degrees(rad);
@@ -1961,11 +2015,11 @@ namespace KalaHeaders
 		return deg;
 	}
 	//Takes in non-normalized positions and returns full angle in degrees (0..360),
-	//uses kvec3 a as the reference direction
+	//uses vec3 a as the reference direction
 	inline f32 angle_f(
-		const kvec3& a,
-		const kvec3& b,
-		const kvec3& axis)
+		const vec3& a,
+		const vec3& b,
+		const vec3& axis)
 	{
 		f32 deg = angle_s(a, b, axis);
 		if (deg < 0.0f) deg += 360.0f;
@@ -1973,15 +2027,15 @@ namespace KalaHeaders
 	}
 
 	//Takes in a non-normalized axis and returns a quaternion that rotates around angle and axis
-	inline kquat angleaxis(
+	inline quat angleaxis(
 		f32 angle, 
-		const kvec3& axis)
+		const vec3& axis)
 	{
-		kvec3 na = normalize(axis);
+		vec3 na = normalize(axis);
 		f32 half = angle * 0.5f;
 		f32 s = sin(half);
 
-		return normalize(kquat
+		return normalize(quat
 			{
 				na.x * s,
 				na.y * s,
@@ -1990,23 +2044,23 @@ namespace KalaHeaders
 			});
 	}
 
-	//Projects kvec2 a onto kvec2 b
-	inline kvec2 project(
-		const kvec2 a, 
-		const kvec2 b)
+	//Projects vec2 a onto vec2 b
+	inline vec2 project(
+		const vec2 a, 
+		const vec2 b)
 	{
 		return (dot(a, b) / dot(b, b)) * b;
 	}
-	//Projects kvec3 a onto kvec3 b
-	inline kvec3 project(
-		const kvec3& a, 
-		const kvec3& b)
+	//Projects vec3 a onto vec3 b
+	inline vec3 project(
+		const vec3& a, 
+		const vec3& b)
 	{
 		return (dot(a, b) / dot(b, b)) * b;
 	}
 
-	//Returns neutral matrix of a kmat2 (no transform)
-	constexpr kmat2 identity2()
+	//Returns neutral matrix of a mat2 (no transform)
+	constexpr mat2 identity2()
 	{
 		return
 		{
@@ -2014,8 +2068,8 @@ namespace KalaHeaders
 			0.0f, 1.0f
 		};
 	}
-	//Returns neutral matrix of a kmat3 (no transform)
-	constexpr kmat3 identity3()
+	//Returns neutral matrix of a mat3 (no transform)
+	constexpr mat3 identity3()
 	{
 		return
 		{
@@ -2024,8 +2078,8 @@ namespace KalaHeaders
 			0.0f, 0.0f, 1.0f
 		};
 	}
-	//Returns neutral matrix of a kmat4 (no transform)
-	constexpr kmat4 identity4()
+	//Returns neutral matrix of a mat4 (no transform)
+	constexpr mat4 identity4()
 	{
 		return
 		{
@@ -2036,5 +2090,5 @@ namespace KalaHeaders
 		};
 	}
 
-	constexpr kquat identity_quat() { return { 0, 0, 0, 1 }; }
+	constexpr quat identity_quat() { return { 0, 0, 0, 1 }; }
 }

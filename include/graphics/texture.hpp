@@ -16,7 +16,7 @@ namespace KalaWindow::Graphics
 	using std::string;
 	using std::vector;
 
-	using KalaHeaders::kvec2;
+	using KalaHeaders::vec2;
 
 	//Texture internal data type
 	enum class TextureType
@@ -87,7 +87,7 @@ namespace KalaWindow::Graphics
 
 		//Rescale an imported texture with the chosen algorithm type
 		virtual bool Rescale(
-			kvec2 newSize,
+			vec2 newSize,
 			TextureResizeType type = TextureResizeType::RESIZE_SRGB) = 0;
 
 		//Rebinds the texture
@@ -111,7 +111,7 @@ namespace KalaWindow::Graphics
 
 		inline u32 GetID() const { return ID; }
 
-		inline kvec2 GetSize() const { return size; }
+		inline vec2 GetSize() const { return size; }
 		inline u16 GetDepth() const { return depth; }
 		inline u8 GetMipMapLevels() const { return mipMapLevels; }
 
@@ -151,7 +151,7 @@ namespace KalaWindow::Graphics
 		string filePath{};
 		u32 ID{};
 
-		kvec2 size{};
+		vec2 size{};
 		u16 depth = 1;
 		u8 mipMapLevels = 1;
 		vector<u8> pixels{};              //2D/3D

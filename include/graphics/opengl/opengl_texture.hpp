@@ -11,7 +11,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/registry.hpp"
+#include "utils/registry.hpp"
 #include "graphics/texture.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
@@ -19,9 +19,9 @@ namespace KalaWindow::Graphics::OpenGL
 	using std::array;
 	using std::function;
 
-	using KalaHeaders::kvec2;
+	using KalaHeaders::vec2;
 
-	using KalaWindow::Core::Registry;
+	using KalaWindow::Utils::Registry;
 
 	class LIB_API OpenGL_Texture : public Texture
 	{
@@ -75,7 +75,7 @@ namespace KalaWindow::Graphics::OpenGL
 		static OpenGL_Texture* GetFallbackTexture();
 
 		virtual bool Rescale(
-			kvec2 newSize,
+			vec2 newSize,
 			TextureResizeType type = TextureResizeType::RESIZE_SRGB) override;
 
 		virtual void HotReload() override;
@@ -98,7 +98,7 @@ namespace KalaWindow::Graphics::OpenGL
 			const function<bool(
 				u32& outTextureID,
 				vector<vector<u8>>& outData,
-				kvec2& outSize,
+				vec2& outSize,
 				TextureFormat& outFormat)>&
 			customTextureInitData);
 

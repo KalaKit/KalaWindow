@@ -194,7 +194,7 @@ namespace KalaWindow::Core
 	}
 
 	void AudioListener::SetPosition(
-		const kvec3& pos,
+		const vec3& pos,
 		u32 ID)
 	{
 		if (!CheckInitState("set listener position", true)) return;
@@ -221,19 +221,19 @@ namespace KalaWindow::Core
 				LogType::LOG_INFO);
 		}
 	}
-	kvec3 AudioListener::GetPosition(u32 ID)
+	vec3 AudioListener::GetPosition(u32 ID)
 	{
-		if (!CheckInitState("get listener position", true)) return kvec3();
+		if (!CheckInitState("get listener position", true)) return vec3();
 
 		ma_vec3f pos = ma_engine_listener_get_position(
 			&engine,
 			ID);
 
-		return kvec3(pos.x, pos.y, pos.z);
+		return vec3(pos.x, pos.y, pos.z);
 	}
 
 	void AudioListener::SetWorldUp(
-		const kvec3& up,
+		const vec3& up,
 		u32 ID)
 	{
 		if (!CheckInitState("set listener up", true)) return;
@@ -260,19 +260,19 @@ namespace KalaWindow::Core
 				LogType::LOG_INFO);
 		}
 	}
-	kvec3 AudioListener::GetWorldUp(u32 ID)
+	vec3 AudioListener::GetWorldUp(u32 ID)
 	{
-		if (!CheckInitState("get listener up", true)) return kvec3();
+		if (!CheckInitState("get listener up", true)) return vec3();
 
 		ma_vec3f up = ma_engine_listener_get_world_up(
 			&engine,
 			ID);
 
-		return kvec3(up.x, up.y, up.z);
+		return vec3(up.x, up.y, up.z);
 	}
 
 	void AudioListener::SetVelocity(
-		const kvec3& vel,
+		const vec3& vel,
 		u32 ID)
 	{
 		if (!CheckInitState("set listener velocity", true)) return;
@@ -299,19 +299,19 @@ namespace KalaWindow::Core
 				LogType::LOG_INFO);
 		}
 	}
-	kvec3 AudioListener::GetVelocity(u32 ID)
+	vec3 AudioListener::GetVelocity(u32 ID)
 	{
-		if (!CheckInitState("get listener velocity", true)) return kvec3();
+		if (!CheckInitState("get listener velocity", true)) return vec3();
 
 		ma_vec3f pos = ma_engine_listener_get_velocity(
 			&engine,
 			ID);
 
-		return kvec3(pos.x, pos.y, pos.z);
+		return vec3(pos.x, pos.y, pos.z);
 	}
 
 	void AudioListener::SetDirection(
-		const kvec3& dir,
+		const vec3& dir,
 		u32 ID)
 	{
 		if (!CheckInitState("set listener direction", true)) return;
@@ -338,15 +338,15 @@ namespace KalaWindow::Core
 				LogType::LOG_INFO);
 		}
 	}
-	kvec3 AudioListener::GetDirection(u32 ID)
+	vec3 AudioListener::GetDirection(u32 ID)
 	{
-		if (!CheckInitState("get listener direction", true)) return kvec3();
+		if (!CheckInitState("get listener direction", true)) return vec3();
 
 		ma_vec3f front = ma_engine_listener_get_direction(
 			&engine,
 			ID);
 
-		return kvec3(front.x, front.y, front.z);
+		return vec3(front.x, front.y, front.z);
 	}
 
 	void AudioListener::SetConeData(
@@ -986,7 +986,7 @@ namespace KalaWindow::Core
 			: PanMode::PanMode_Pan;
 	}
 
-	void AudioPlayer::SetPosition(const kvec3& pos) const
+	void AudioPlayer::SetPosition(const vec3& pos) const
 	{
 		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' player position",
@@ -1015,20 +1015,20 @@ namespace KalaWindow::Core
 				LogType::LOG_INFO);
 		}
 	}
-	kvec3 AudioPlayer::GetPosition() const
+	vec3 AudioPlayer::GetPosition() const
 	{
 		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' player position",
 			ID);
 
-		if (!pData) return kvec3(0);
+		if (!pData) return vec3(0);
 
 		ma_vec3f pos = ma_sound_get_position(&pData->sound);
 
-		return kvec3(pos.x, pos.y, pos.z);
+		return vec3(pos.x, pos.y, pos.z);
 	}
 
-	void AudioPlayer::SetVelocity(const kvec3& vel) const
+	void AudioPlayer::SetVelocity(const vec3& vel) const
 	{
 		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' player velocity",
@@ -1057,20 +1057,20 @@ namespace KalaWindow::Core
 				LogType::LOG_INFO);
 		}
 	}
-	kvec3 AudioPlayer::GetVelocity() const
+	vec3 AudioPlayer::GetVelocity() const
 	{
 		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' player velocity",
 			ID);
 
-		if (!pData) return kvec3(0);
+		if (!pData) return vec3(0);
 
 		ma_vec3f pos = ma_sound_get_velocity(&pData->sound);
 
-		return kvec3(pos.x, pos.y, pos.z);
+		return vec3(pos.x, pos.y, pos.z);
 	}
 
-	void AudioPlayer::SetDirection(const kvec3& dir) const
+	void AudioPlayer::SetDirection(const vec3& dir) const
 	{
 		PlayerData* pData = CommonChecker(
 			"set audio player '" + name + "' player direction",
@@ -1099,17 +1099,17 @@ namespace KalaWindow::Core
 				LogType::LOG_INFO);
 		}
 	}
-	kvec3 AudioPlayer::GetDirection() const
+	vec3 AudioPlayer::GetDirection() const
 	{
 		PlayerData* pData = CommonChecker(
 			"get audio player '" + name + "' direction",
 			ID);
 
-		if (!pData) return kvec3();
+		if (!pData) return vec3();
 
 		ma_vec3f front = ma_sound_get_direction(&pData->sound);
 
-		return kvec3(front.x, front.y, front.z);
+		return vec3(front.x, front.y, front.z);
 	}
 	
 	void AudioPlayer::SetConeData(const AudioCone& cone) const
