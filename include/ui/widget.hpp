@@ -184,7 +184,8 @@ namespace KalaWindow::UI
 		inline const array<vec2, 4>& GetVertices() const { return render.vertices; };
 		inline const array<u8, 6>& GetIndices() const { return render.indices; }
 
-		inline const array<vec2, 2>& GetAABB() 
+		inline Transform2D& GetTransform() { return transform; }
+		inline const array<vec2, 2>& GetAABB()
 		{ 
 			UpdateAABB();
 			return render.aabb; 

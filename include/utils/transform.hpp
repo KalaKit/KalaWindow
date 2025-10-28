@@ -54,11 +54,11 @@ namespace KalaWindow::Utils
 		SIZE_COMBINED //final position after combining world and local position
 	};
 
-	class LIB_API Transform2D
+	class Transform2D
 	{
 	public:
 		//Incrementally moves over time
-		inline void AddPos(
+		static inline void AddPos(
 			const vec2 pos_delta,
 			PosTarget posTarget,
 			const Transform2D& parent = Transform2D{})
@@ -84,7 +84,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Snaps to given position
-		inline void SetPos(
+		static inline void SetPos(
 			const vec2 pos_new,
 			PosTarget posTarget,
 			const Transform2D& parent = Transform2D{})
@@ -105,7 +105,7 @@ namespace KalaWindow::Utils
 
 			UpdateTransform(parent);
 		}
-		inline const vec2 GetPos(PosTarget posTarget) const
+		static inline const vec2 GetPos(PosTarget posTarget)
 		{
 			static const vec2 empty{};
 
@@ -120,7 +120,7 @@ namespace KalaWindow::Utils
 		}
 
 		//Takes in rotation in euler (degrees) and incrementally rotates over time
-		inline void AddRot(
+		static inline void AddRot(
 			float rot_delta,
 			RotTarget rotTarget,
 			const Transform2D& parent = Transform2D{})
@@ -143,7 +143,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Takes in rotation in euler (degrees) and snaps to given rotation
-		inline void SetRot(
+		static inline void SetRot(
 			const f32 rot_new,
 			RotTarget rotTarget,
 			const Transform2D& parent = Transform2D{})
@@ -162,7 +162,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Returns rotation in euler (degrees)
-		inline const f32 GetRot(RotTarget rotTarget) const
+		static inline const f32 GetRot(RotTarget rotTarget)
 		{
 			static const f32 empty{};
 
@@ -177,7 +177,7 @@ namespace KalaWindow::Utils
 		}
 
 		//Incrementally scales over time
-		inline void AddSize(
+		static inline void AddSize(
 			const vec2 size_delta,
 			SizeTarget sizeTarget,
 			const Transform2D& parent = Transform2D{})
@@ -203,7 +203,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Snaps to given size
-		inline void SetSize(
+		static inline void SetSize(
 			const vec2 size_new,
 			SizeTarget sizeTarget,
 			const Transform2D& parent = Transform2D{})
@@ -224,7 +224,7 @@ namespace KalaWindow::Utils
 
 			UpdateTransform(parent);
 		}
-		inline const vec2 GetSize(SizeTarget sizeTarget) const
+		static inline const vec2 GetSize(SizeTarget sizeTarget)
 		{
 			static const vec2 empty{};
 
@@ -239,7 +239,7 @@ namespace KalaWindow::Utils
 		};
 	private:
 		//Updates combined pos, rot and size relative to local and optional parent values
-		inline void UpdateTransform(const Transform2D& parent)
+		static inline void UpdateTransform(const Transform2D& parent)
 		{
 			if (parent.pos_combined != 0.0f)
 			{
@@ -281,11 +281,11 @@ namespace KalaWindow::Utils
 		static inline vec2 size_combined{};
 	};
 
-	class LIB_API Transform3D
+	class Transform3D
 	{
 	public:
 		//Incrementally moves over time
-		inline void AddPos(
+		static inline void AddPos(
 			const vec3& pos_delta,
 			PosTarget posTarget,
 			const Transform3D& parent = Transform3D{})
@@ -311,7 +311,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Snaps to given position
-		inline void SetPos(
+		static inline void SetPos(
 			const vec3& pos_new,
 			PosTarget posTarget,
 			const Transform3D& parent = Transform3D{})
@@ -332,7 +332,7 @@ namespace KalaWindow::Utils
 
 			UpdateTransform(parent);
 		}
-		inline const vec3 GetPos(PosTarget posTarget) const
+		static inline const vec3 GetPos(PosTarget posTarget)
 		{
 			static const vec3 empty{};
 
@@ -347,7 +347,7 @@ namespace KalaWindow::Utils
 		}
 
 		//Takes in rotation in euler (degrees) and incrementally rotates over time
-		inline void AddRot(
+		static inline void AddRot(
 			const vec3& rot_delta,
 			RotTarget rotTarget,
 			const Transform3D& parent = Transform3D{})
@@ -377,7 +377,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Takes in rotation in euler (degrees) and snaps to given rotation
-		inline void SetRot(
+		static inline void SetRot(
 			const vec3& rot_new,
 			RotTarget rotTarget,
 			const Transform3D& parent = Transform3D{})
@@ -399,7 +399,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Takes in rotation in quaternion and snaps to given rotation
-		inline void SetRot(
+		static inline void SetRot(
 			const quat& rot_new,
 			RotTarget rotTarget,
 			const Transform3D& parent = Transform3D{})
@@ -418,7 +418,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Returns rotation in euler (degrees)
-		inline const vec3 GetRotEuler(RotTarget rotTarget) const
+		static inline const vec3 GetRotEuler(RotTarget rotTarget)
 		{
 			switch (rotTarget)
 			{
@@ -429,7 +429,7 @@ namespace KalaWindow::Utils
 			}
 		}
 		//Returns quaternion rotation
-		inline const quat GetRotQuat(RotTarget rotTarget) const
+		static inline const quat GetRotQuat(RotTarget rotTarget)
 		{
 			switch (rotTarget)
 			{
@@ -441,7 +441,7 @@ namespace KalaWindow::Utils
 		}
 
 		//Incrementally scales over time
-		inline void AddSize(
+		static inline void AddSize(
 			const vec3& size_delta,
 			SizeTarget sizeTarget,
 			const Transform3D& parent = Transform3D{})
@@ -467,7 +467,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Snaps to given scale
-		inline void SetSize(
+		static inline void SetSize(
 			const vec3& size_new,
 			SizeTarget sizeTarget,
 			const Transform3D& parent = Transform3D{})
@@ -488,7 +488,7 @@ namespace KalaWindow::Utils
 
 			UpdateTransform(parent);
 		}
-		inline const vec3 GetSize(SizeTarget sizeTarget) const
+		static inline const vec3 GetSize(SizeTarget sizeTarget)
 		{
 			static const vec3 empty{};
 
@@ -503,7 +503,7 @@ namespace KalaWindow::Utils
 		};
 	private:
 		//Updates combined pos, rot and size relative to local and optional parent values
-		inline void UpdateTransform(const Transform3D& parent)
+		static inline void UpdateTransform(const Transform3D& parent)
 		{
 			if (parent.pos_combined != 0.0f)
 			{
