@@ -130,9 +130,9 @@ namespace KalaWindow::UI
 		textPtr->windowID = windowID;
 		textPtr->SetName(name);
 		textPtr->render.canUpdate = true;
-		textPtr->SetPos(pos, PosTarget::POS_WORLD);
-		textPtr->SetRot(rot, RotTarget::ROT_WORLD);
-		textPtr->SetSize(size, SizeTarget::SIZE_WORLD);
+		textPtr->transform.SetPos(pos, PosTarget::POS_WORLD);
+		textPtr->transform.SetRot(rot, RotTarget::ROT_WORLD);
+		textPtr->transform.SetSize(size, SizeTarget::SIZE_WORLD);
 
 		textPtr->isInitialized = true;
 
@@ -200,17 +200,12 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		vec2 clampedVP = kclamp(viewportSize, vec2(1), vec2(10000));
-		transform.viewportSize = clampedVP;
-
-		UpdateOriginalPosition();
-
 		u32 programID = render.shader->GetProgramID();
 
 		mat3 model{};
-		model = translate(model, transform.combinedPos);
-		model = rotate(model, transform.combinedRot);
-		model = scale(model, transform.combinedSize);
+		model = translate(model, transform.GetPos(PosTarget::POS_COMBINED));
+		model = rotate(model, transform.GetRot(RotTarget::ROT_COMBINED));
+		model = scale(model, transform.GetSize(SizeTarget::SIZE_COMBINED));
 
 		render.shader->SetMat4(programID, "uModel", tomat4(model));
 		render.shader->SetMat4(programID, "uProjection", projection);
