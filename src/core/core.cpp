@@ -9,9 +9,9 @@
 #else
 //TODO: ADD LINUX EQUIVALENT
 #endif
-
 #include <functional>
 #include <cstdint>
+#include <chrono>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -44,12 +44,30 @@ using std::quick_exit;
 using std::function;
 using std::exception;
 using std::to_string;
+using std::chrono::steady_clock;
+using std::chrono::time_point;
+using std::chrono::duration;
 
 static function<void()> userRegularShutdown;
 
 namespace KalaWindow::Core
 {
 	u32 globalID{};
+
+	void KalaWindowCore::UpdateDeltaTime()
+	{
+		auto now = steady_clock::now();
+		static time_point<steady_clock> lastFrameTime = now;
+
+		duration<f64> delta = now - lastFrameTime;
+		lastFrameTime = now;
+
+		//unscaled, unclamped
+		frameTime = delta.count();
+
+		//regular deltatime
+		deltaTime = clamp(delta.count(), 0.0, 0.1);
+	}
 
 	void KalaWindowCore::ForceClose(
 		const string& title,

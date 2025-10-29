@@ -1,6 +1,6 @@
 # KalaWindow Library Naming Scheme
 
-KalaWindow distributes prebuilt binaries with human-readable names so you can always tell which version and build configuration you are using. KWnd is the official shorthand for KalaWindow.
+KalaWindow distributes prebuilt binaries with human-readable names so you can always tell which version and build configuration you are using. KalaWindow is the official shorthand for KalaWindow.
 
 ## Versioning
 
@@ -20,18 +20,18 @@ KalaWindow distributes prebuilt binaries with human-readable names so you can al
 
 | Filename pattern | Meaning                |
 |------------------|------------------------|
-| KWndXX.dll       | Release DLL            |
-| KWndXXd.dll      | Debug DLL              |
-| KWndXX.lib       | Release import library |
-| KWndXXd.lib      | Debug import library   |
-| _KWndXX.dll      | In development DLL     |
+| KalaWindowXX.dll       | Release DLL            |
+| KalaWindowXXd.dll      | Debug DLL              |
+| KalaWindowXX.lib       | Release import library |
+| KalaWindowXXd.lib      | Debug import library   |
+| _KalaWindowXX.dll      | In development DLL     |
 
 ## Linux examples
 
 | Filename pattern | Meaning                      |
 |------------------|------------------------------|
-| libKWndXX.so     | Release shared object        |
-| libKWndXXd.so    | Debug shared object          |
-| libKWndXX.a      | Release static library       |
-| libKWndXXd.a     | Debug static library         |
-| _libKWndXX.so    | In development shared object |
+| libKalaWindowXX.so     | Release shared object        |
+| libKalaWindowXXd.so    | Debug shared object          |
+| libKalaWindowXX.a      | Release static library       |
+| libKalaWindowXXd.a     | Debug static library         |
+| _libKalaWindowXX.so    | In development shared object |

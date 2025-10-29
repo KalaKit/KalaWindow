@@ -28,6 +28,12 @@ namespace KalaWindow::Core
 	class LIB_API KalaWindowCore
 	{
 	public:
+		static f64 GetDeltaTime() { return deltaTime; }
+		static f64 GetFrameTime() { return frameTime; }
+
+		//Update deltatime and frametime
+		static void UpdateDeltaTime();
+
 		//Use this when you absolutely need a hard crash at this very moment.
 		//Aborts and doesn't clean up data.
 		[[noreturn]] static void ForceClose(
@@ -59,5 +65,8 @@ namespace KalaWindow::Core
 			ShutdownState state,
 			bool useWindowShutdown = true,
 			const function<void()>& userShutdown = nullptr);
+	private:
+		static inline f64 deltaTime{};
+		static inline f64 frameTime{};
 	};
 }

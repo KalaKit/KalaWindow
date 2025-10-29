@@ -10,27 +10,27 @@
 
 //copy readme
 origin: readme.md
-target: ..@Circuit-chan@_external_shared@KalaWindow@readme.md, ..@Elypso-engine@_external_shared@KalaWindow@readme.md, ..@Elypso-hub@_external_shared@KalaWindow@readme.md, ..@KalaServer@_external_shared@KalaWindow@readme.md
+target: ..@Circuit-chan@_external_shared@KalaWindow@readme.md, ..@Elypso-engine@_external_shared@KalaWindow@readme.md, ..@Elypso-hub@_external_shared@KalaWindow@readme.md
 action: forcecopy
 
 //copy license
 origin: LICENSE.md
-target: ..@Circuit-chan@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@KalaServer@_external_shared@KalaWindow@LICENSE.md
+target: ..@Circuit-chan@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-hub@_external_shared@KalaWindow@LICENSE.md
 action: forcecopy
 
 //copy logo
 origin: logo.png
-target: ..@Circuit-chan@_external_shared@KalaWindow@logo.png, ..@Elypso-engine@_external_shared@KalaWindow@logo.png, ..@Elypso-hub@_external_shared@KalaWindow@logo.png, ..@KalaServer@_external_shared@KalaWindow@logo.png
+target: ..@Circuit-chan@_external_shared@KalaWindow@logo.png, ..@Elypso-engine@_external_shared@KalaWindow@logo.png, ..@Elypso-hub@_external_shared@KalaWindow@logo.png
 action: forcecopy
 
 //copy include files
 origin: include
-target: ..@Circuit-chan@_external_shared@KalaWindow@include, ..@Elypso-engine@_external_shared@KalaWindow@include, ..@Elypso-hub@_external_shared@KalaWindow@include, ..@KalaServer@_external_shared@KalaWindow@include
+target: ..@Circuit-chan@_external_shared@KalaWindow@include, ..@Elypso-engine@_external_shared@KalaWindow@include, ..@Elypso-hub@_external_shared@KalaWindow@include
 action: forcecopy
 
 //copy docs
 origin: docs
-target: ..@Circuit-chan@_external_shared@KalaWindow@docs, ..@Elypso-engine@_external_shared@KalaWindow@docs, ..@Elypso-hub@_external_shared@KalaWindow@docs, ..@KalaServer@_external_shared@KalaWindow@docs
+target: ..@Circuit-chan@_external_shared@KalaWindow@docs, ..@Elypso-engine@_external_shared@KalaWindow@docs, ..@Elypso-hub@_external_shared@KalaWindow@docs
 action: forcecopy
 
 //
@@ -38,28 +38,28 @@ action: forcecopy
 //
 
 //copy debug dll
-origin: debug@_KWnd03d.dll
-target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KWnd03d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KWnd03d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KWnd03d.dll, ..@KalaServer@_external_shared@KalaWindow@debug@_KWnd03d.dll
+origin: debug@_KalaWindow03d.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow03d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow03d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow03d.dll
 action: forcecopy
 
 //copy debug lib
-origin: debug@_KWnd03d.lib
-target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KWnd03d.lib, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KWnd03d.lib, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KWnd03d.lib, ..@KalaServer@_external_shared@KalaWindow@debug@_KWnd03d.lib
+origin: debug@_KalaWindow03d.lib
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow03d.lib, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow03d.lib, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow03d.lib
 action: forcecopy
 
 //copy debug pdb
-origin: debug@_KWnd03d.pdb
-target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KWnd03d.pdb, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KWnd03d.pdb, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KWnd03d.pdb, ..@KalaServer@_external_shared@KalaWindow@debug@_KWnd03d.pdb
+origin: debug@_KalaWindow03d.pdb
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow03d.pdb, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow03d.pdb, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow03d.pdb
 action: forcecopy
 
 //copy release dll
-origin: release@_KWnd03.dll
-target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KWnd03.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@_KWnd03.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@_KWnd03.dll, ..@KalaServer@_external_shared@KalaWindow@release@_KWnd03.dll
+origin: release@_KalaWindow03.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.dll
 action: forcecopy
 
 //copy release lib
-origin: release@_KWnd03.lib
-target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KWnd03.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@_KWnd03.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@_KWnd03.lib, ..@KalaServer@_external_shared@KalaWindow@release@_KWnd03.lib
+origin: release@_KalaWindow03.lib
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.lib
 action: forcecopy
 
 //
@@ -68,20 +68,20 @@ action: forcecopy
 
 //KalaHeaders
 origin: _external_shared@KalaHeaders
-target: ..@Circuit-chan@_external_shared@KalaHeaders, ..@Elypso-engine@_external_shared@KalaHeaders, ..@Elypso-hub@_external_shared@KalaHeaders, ..@KalaServer@_external_shared@KalaHeaders
+target: ..@Circuit-chan@_external_shared@KalaHeaders, ..@Elypso-engine@_external_shared@KalaHeaders, ..@Elypso-hub@_external_shared@KalaHeaders
 action: copy
 
 //miniaudio
 origin: _external_shared@miniaudio
-target: ..@Circuit-chan@_external_shared@miniaudio, ..@Elypso-engine@_external_shared@miniaudio, ..@Elypso-hub@_external_shared@miniaudio, ..@KalaServer@_external_shared@miniaudio
+target: ..@Circuit-chan@_external_shared@miniaudio, ..@Elypso-engine@_external_shared@miniaudio, ..@Elypso-hub@_external_shared@miniaudio
 action: copy
 
 //OpenGL
 origin: _external_shared@OpenGL
-target: ..@Circuit-chan@_external_shared@OpenGL, ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL, ..@KalaServer@_external_shared@OpenGL
+target: ..@Circuit-chan@_external_shared@OpenGL, ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL
 action: copy
 
 //stb
 origin: _external_shared@stb
-target: ..@Circuit-chan@_external_shared@stb, ..@Elypso-engine@_external_shared@stb, ..@Elypso-hub@_external_shared@stb, ..@KalaServer@_external_shared@stb
+target: ..@Circuit-chan@_external_shared@stb, ..@Elypso-engine@_external_shared@stb, ..@Elypso-hub@_external_shared@stb
 action: copy

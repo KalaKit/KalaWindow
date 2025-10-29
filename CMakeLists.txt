@@ -1,9 +1,9 @@
 cmake_minimum_required(VERSION 3.29.2)
 
-set(KALAWINDOW_VERSION "KalaWindow 0.3 Alpha")
-set(KALAWINDOW_VERSION_NUMBER 0.3.0.0)
+set(PROGRAM_VERSION "KalaWindow 0.3 Alpha")
+set(PROGRAM_VERSION_NUMBER 0.3.0.0)
 
-project("KalaWindow" VERSION ${KALAWINDOW_VERSION_NUMBER} LANGUAGES C CXX)
+project("KalaWindow" VERSION ${PROGRAM_VERSION_NUMBER} LANGUAGES C CXX)
 
 # Adds a '_' prefix in front of the created binary files if set to TRUE
 set(KALA_PRERELEASE TRUE)
@@ -20,11 +20,8 @@ endif()
 # Platform Detection
 if (WIN32)
     message(STATUS "[KALAWINDOW] Platform = Windows")
-elseif(UNIX)
-    find_package(X11 REQUIRED)
-    message(STATUS "[KALAWINDOW] Platform = Linux")
 else()
-    message(FATAL_ERROR "[KALAWINDOW] Unsupported platform. Must be Windows or Linux.")
+    message(FATAL_ERROR "[KALAWINDOW] Unsupported platform. Only Windows is supported.")
 endif()
 
 # Build Type Detection
@@ -41,29 +38,18 @@ find_package(OpenGL REQUIRED)
 # find_package(Vulkan REQUIRED)
 
 # Paths
-set(WINDOW_SRC_DIR "${CMAKE_SOURCE_DIR}/src")
-set(WINDOW_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
+set(SRC_DIR "${CMAKE_SOURCE_DIR}/src")
+set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 set(EXT_SHARED_DIR "${CMAKE_SOURCE_DIR}/_external_shared")
 
 # Source Files
-set(WINDOW_SRC_FILES)
-
-file(GLOB WINDOW_SRC CONFIGURE_DEPENDS
-    ${WINDOW_SRC_DIR}/*.cpp
-    ${WINDOW_SRC_DIR}/core/*.cpp
-	${WINDOW_SRC_DIR}/opengl/*.cpp
-	${WINDOW_SRC_DIR}/vulkan/*.cpp
-	${WINDOW_SRC_DIR}/graphics/*.cpp
-	${WINDOW_SRC_DIR}/graphics/opengl/*.cpp
-	${WINDOW_SRC_DIR}/graphics/vulkan/*.cpp
-	${WINDOW_SRC_DIR}/windows/*.cpp
-	${WINDOW_SRC_DIR}/linux/*.cpp
-	${WINDOW_SRC_DIR}/ui/*.cpp
+file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
+    "${SRC_DIR}/*.cpp"
+    "${SRC_DIR}/*/*.cpp"
 )
-list(APPEND WINDOW_SRC_FILES ${WINDOW_SRC})
 
 # SHARED LIBRARY (.dll)
-add_library(KalaWindow SHARED ${WINDOW_SRC_FILES})
+add_library(KalaWindow SHARED ${SOURCE_FILES})
 
 # Enable C++ exception handling semantics for MSVC
 if (MSVC)
@@ -88,7 +74,7 @@ endif()
 
 # Set output name with renderer suffix and debug postfix
 set_target_properties(KalaWindow PROPERTIES
-	OUTPUT_NAME "${KALA_PREFIX}KWnd${KALA_VERSION}${KALA_SUFFIX}"
+	OUTPUT_NAME "${KALA_PREFIX}KalaWindow${KALA_VERSION}${KALA_SUFFIX}"
 )
 
 file(GLOB_RECURSE HEADERS configure_depends
@@ -96,7 +82,7 @@ file(GLOB_RECURSE HEADERS configure_depends
 )
 target_sources(KalaWindow PRIVATE ${HEADERS})
 target_include_directories(KalaWindow PRIVATE 
-	${WINDOW_INCLUDE_DIR}
+	${INCLUDE_DIR}
 	${EXT_SHARED_DIR}
 )
 
@@ -111,59 +97,56 @@ target_compile_definitions(KalaWindow PRIVATE
 # Link libraries
 target_link_libraries(KalaWindow PRIVATE
 	OpenGL::GL
-	${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib)
+	${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib
+)
 	
 # Expose version string
 add_compile_definitions(
-	KALAWINDOW_VERSION="${KALAWINDOW_VERSION}"
+	PROGRAM_VERSION="${PROGRAM_VERSION}"
 )
 	
 # Set Windows Details tab data
-if (WIN32)
-	if (IS_RELEASE)
-		if (KALA_PRERELEASE)
-			set(FILEFLAGS "0x02") # Release + PreRelease
-		else()
-			set(FILEFLAGS "0x00") # Pure Release
-		endif()
+if (IS_RELEASE)
+	if (KALA_PRERELEASE)
+		set(FILEFLAGS "0x02") # Release + PreRelease
 	else()
-		if (KALA_PRERELEASE)
-			set(FILEFLAGS "0x03") # Debug + PreRelease
-		else()
-			set(FILEFLAGS "0x01") # Pure Debug
-		endif()
+		set(FILEFLAGS "0x00") # Pure Release
 	endif()
-	
-	set(FILETYPE 0x2)    # 0x1 - executable, 0x2 - dynamic-link library
-	set(FILESUBTYPE 0x0) # 0x0 = normal DLL, only change if you're making drivers/fonts
-
-	# Public fields displayed in Windows Explorer
-	set(FILE_DESCRIPTION  "Multimedia Framework Library")
-	set(FILE_VERSION
-		"${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}")
-	set(PRODUCT_NAME      "KalaWindow")
-	set(PRODUCT_VERSION
-		"${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}")
-	set(COMPANY_NAME      "Lost Empire Entertainment")
-	set(LEGAL_COPYRIGHT   "(C) 2025 Lost Empire Entertainment")
-	set(LEGAL_TRADEMARKS  "Trademark of Lost Empire Entertainment")
-	set(ORIGINAL_FILENAME "${KALA_PREFIX}KWnd${KALA_VERSION}${KALA_SUFFIX}")
-
-	# Private/optional fields
-	set(INTERNAL_NAME  "${ORIGINAL_FILENAME}")
-	set(COMMENTS       "${PRODUCT_NAME}")
-	set(PRIVATE_BUILD  "${PRODUCT_NAME}")
-	set(SPECIAL_BUILD  "${PRODUCT_NAME}")
-
-	# Generate version.rc
-	configure_file(
-		${CMAKE_SOURCE_DIR}/version.rc.in
-		${CMAKE_BINARY_DIR}/version.rc
-		@ONLY
-	)
-
-    target_sources(KalaWindow PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
+else()
+	if (KALA_PRERELEASE)
+		set(FILEFLAGS "0x03") # Debug + PreRelease
+	else()
+		set(FILEFLAGS "0x01") # Pure Debug
+	endif()
 endif()
+
+set(FILETYPE 0x2)    # 0x1 - executable, 0x2 - dynamic-link library
+set(FILESUBTYPE 0x0) # 0x0 = normal DLL, only change if you're making drivers/fonts
+
+# Public fields displayed in Windows Explorer
+set(FILE_DESCRIPTION  "Multimedia Framework Library")
+set(FILE_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}")
+set(PRODUCT_NAME      "KalaWindow")
+set(PRODUCT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}")
+set(COMPANY_NAME      "Lost Empire Entertainment")
+set(LEGAL_COPYRIGHT   "(C) 2025 Lost Empire Entertainment")
+set(LEGAL_TRADEMARKS  "Trademark of Lost Empire Entertainment")
+set(ORIGINAL_FILENAME "${KALA_PREFIX}KWnd${KALA_VERSION}${KALA_SUFFIX}")
+
+# Private/optional fields
+set(INTERNAL_NAME  "${ORIGINAL_FILENAME}")
+set(COMMENTS       "${PRODUCT_NAME}")
+set(PRIVATE_BUILD  "${PRODUCT_NAME}")
+set(SPECIAL_BUILD  "${PRODUCT_NAME}")
+
+# Generate version.rc
+configure_file(
+	${CMAKE_SOURCE_DIR}/version.rc.in
+	${CMAKE_BINARY_DIR}/version.rc
+	@ONLY
+)
+
+target_sources(KalaWindow PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
 
 # Copy important files
 set(COPY_TARGETS README.md LICENSE.md logo.png)
