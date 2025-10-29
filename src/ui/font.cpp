@@ -15,12 +15,15 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::globalID;
+using KalaFont::ImportKalaFont;
 
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
 using std::filesystem::path;
 using std::filesystem::exists;
+using std::filesystem::is_regular_file;
+using std::move;
 
 namespace KalaWindow::UI
 {
@@ -42,35 +45,49 @@ namespace KalaWindow::UI
 			Log::Print(
 				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not exist!",
 				"FONT",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
-
-		if (!path(fontPath).has_extension())
+		
+		path correctFontPath = path(fontPath);
+		
+		if (!is_regular_file(correctFontPath))
 		{
 			Log::Print(
 				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not have an extension!",
 				"FONT",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
 
-		string extension = path(fontPath).extension().string();
-
-		if (extension != ".otf"
-			&& extension != ".ttf")
+		if (correctFontPath.extension() != ".kfont")
 		{
 			Log::Print(
-				"Cannot load font '" + name + "' because it path '" + fontPath + "' does not have the supported extension '.otf' or '.ttf'!",
+				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not have the supported extension '.kfont'!",
 				"FONT",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
 
-		//<<< load font here
+		vector<GlyphResult> result{};
+		if (!ImportKalaFont(correctFontPath, result))
+		{
+			Log::Print(
+				"Failed to load font '" + name + "'!",
+				"FONT",
+				LogType::LOG_ERROR,
+				2);
+				
+			return nullptr;
+		}
+		
+		fontPtr->result = move(result);
 
 		fontPtr->ID = newID;
 		fontPtr->SetName(name);
@@ -80,7 +97,7 @@ namespace KalaWindow::UI
 
 		Log::Print(
 			"Loaded font '" + name + "' with ID '" + to_string(newID) + "'!",
-			"WINDOW",
+			"FONT",
 			LogType::LOG_SUCCESS);
 
 		return fontPtr;

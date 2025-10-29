@@ -6,17 +6,21 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
 #include "utils/registry.hpp"
+#include "ui/import_kfont.hpp"
 
 namespace KalaWindow::UI
 {
 	using std::string;
+	using std::vector;
 
 	using KalaWindow::Utils::Registry;
+	using KalaFont::GlyphResult;
 
 	class LIB_API Font
 	{
@@ -44,6 +48,8 @@ namespace KalaWindow::UI
 		inline const string& GetName() const { return name; }
 
 		inline const string& GetPath() const { return fontPath; }
+		
+		inline vector<GlyphResult>& GetGlyphData() { return result; } 
 
 		//Do not destroy manually, erase from registry instead
 		~Font();
@@ -52,6 +58,8 @@ namespace KalaWindow::UI
 
 		string name{};
 		string fontPath{};
+		
+		vector<GlyphResult> result{};
 
 		u32 ID{};
 	};

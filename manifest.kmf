@@ -54,12 +54,12 @@ action: forcecopy
 
 //copy release dll
 origin: release@_KalaWindow03.dll
-target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@SolinIDE@_external_shared@KalaWindow@release@_KalaWindow03d.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@SolinIDE@_external_shared@KalaWindow@release@_KalaWindow03.dll
 action: forcecopy
 
 //copy release lib
 origin: release@_KalaWindow03.lib
-target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@SolinIDE@_external_shared@KalaWindow@release@_KalaWindow03d.lib
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@SolinIDE@_external_shared@KalaWindow@release@_KalaWindow03.lib
 action: forcecopy
 
 //
