@@ -17,7 +17,7 @@
 #include "core/input.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
-#include "utils/transform.hpp"
+#include "utils/transform2d.hpp"
 
 namespace KalaWindow::UI
 {
@@ -33,9 +33,7 @@ namespace KalaWindow::UI
 	using KalaHeaders::mat4;
 	using KalaHeaders::radians;
 	using KalaHeaders::wrap;
-	using KalaHeaders::translate;
-	using KalaHeaders::rotate;
-	using KalaHeaders::scale;
+	using KalaHeaders::createumodel;
 	using KalaHeaders::kclamp;
 	using KalaHeaders::tomat4;
 	using KalaHeaders::Hierarchy;
@@ -176,15 +174,15 @@ namespace KalaWindow::UI
 		//to ensure this widget local values are refreshed
 		inline void ResetWidgetAfterHierarchyUpdate()
 		{
-			transform.SetPos(vec2(0.0f), PosTarget::POS_LOCAL);
-			transform.SetRot(0.0f, RotTarget::ROT_LOCAL);
-			transform.SetSize(0.0f, SizeTarget::SIZE_LOCAL);
+			transform->SetPos(vec2(0.0f), PosTarget::POS_LOCAL);
+			transform->SetRot(0.0f, RotTarget::ROT_LOCAL);
+			transform->SetSize(0.0f, SizeTarget::SIZE_LOCAL);
 		}
 
 		inline const array<vec2, 4>& GetVertices() const { return render.vertices; };
 		inline const array<u8, 6>& GetIndices() const { return render.indices; }
 
-		inline Transform2D& GetTransform() { return transform; }
+		inline Transform2D* GetTransform() { return transform; }
 		inline const array<vec2, 2>& GetAABB()
 		{ 
 			UpdateAABB();
@@ -489,8 +487,8 @@ namespace KalaWindow::UI
 	protected:
 		inline void UpdateAABB()
 		{
-			vec2 pos = transform.GetPos(PosTarget::POS_COMBINED);
-			vec2 size = transform.GetSize(SizeTarget::SIZE_COMBINED);
+			vec2 pos = transform->GetPos(PosTarget::POS_COMBINED);
+			vec2 size = transform->GetSize(SizeTarget::SIZE_COMBINED);
 
 			f32 tempHeight = 1080.0f;
 
@@ -517,7 +515,7 @@ namespace KalaWindow::UI
 
 		bool isInteractable = true;
 
-		Transform2D transform{};
+		Transform2D* transform{};
 		Widget_Render render{};
 		Widget_Event event{};
 

@@ -126,13 +126,15 @@ namespace KalaWindow::UI
 
 		//TODO: load text here
 
+		textPtr->transform = Transform2D::Initialize();
+
 		textPtr->ID = newID;
 		textPtr->windowID = windowID;
 		textPtr->SetName(name);
 		textPtr->render.canUpdate = true;
-		textPtr->transform.SetPos(pos, PosTarget::POS_WORLD);
-		textPtr->transform.SetRot(rot, RotTarget::ROT_WORLD);
-		textPtr->transform.SetSize(size, SizeTarget::SIZE_WORLD);
+		textPtr->transform->SetPos(pos, PosTarget::POS_WORLD);
+		textPtr->transform->SetRot(rot, RotTarget::ROT_WORLD);
+		textPtr->transform->SetSize(size, SizeTarget::SIZE_WORLD);
 
 		textPtr->isInitialized = true;
 
@@ -202,12 +204,13 @@ namespace KalaWindow::UI
 
 		u32 programID = render.shader->GetProgramID();
 
-		mat3 model{};
-		model = translate(model, transform.GetPos(PosTarget::POS_COMBINED));
-		model = rotate(model, transform.GetRot(RotTarget::ROT_COMBINED));
-		model = scale(model, transform.GetSize(SizeTarget::SIZE_COMBINED));
+		vec2 pos = transform->GetPos(PosTarget::POS_COMBINED);
+		float rot = transform->GetRot(RotTarget::ROT_COMBINED);
+		vec2 size = transform->GetSize(SizeTarget::SIZE_COMBINED);
 
-		render.shader->SetMat4(programID, "uModel", tomat4(model));
+		mat4 model = createumodel(pos, rot, size);
+
+		render.shader->SetMat4(programID, "uModel", model);
 		render.shader->SetMat4(programID, "uProjection", projection);
 
 		bool isOpaque = render.opacity = 1.0f;

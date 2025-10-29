@@ -1304,25 +1304,25 @@ namespace KalaHeaders
 	//ortographic projection, bottom-left origin, Y-up projection
 	inline mat4 ortho(const vec2 viewport)
 	{
-		const f32 left = 0.0f;
-		const f32 right = viewport.x;
-		const f32 bottom = 0.0f;
-		const f32 top = viewport.y;
+		const float left = 0.0f;
+		const float right = viewport.x;
+		const float bottom = 0.0f;
+		const float top = viewport.y;
+		const float zNear = -1.0f;
+		const float zFar = 1.0f;
 
-		const f32 zNear = -1.0f;
-		const f32 zFar = 1.0f;
+		const float rl = right - left;
+		const float tb = top - bottom;
+		const float fn = zFar - zNear;
 
-		const f32 rl = right - left;
-		const f32 tb = top - bottom;
-		const f32 fn = zFar - zNear;
+		mat4 m{};
 
-		return 
-		{
-			2.0f / rl,            0.0f,                 0.0f,                0.0f,
-			0.0f,                 2.0f / tb,            0.0f,                0.0f,
-			0.0f,                 0.0f,                -2.0f / fn,           0.0f,
-		   -(right + left) / rl, -(top + bottom) / tb, -(zFar + zNear) / fn, 1.0f
-		};
+		m.m00 = 2.0f / rl;            m.m10 = 0.0f;                 m.m20 = 0.0f;                 m.m30 = 0.0f;
+		m.m01 = 0.0f;                 m.m11 = 2.0f / tb;            m.m21 = 0.0f;                 m.m31 = 0.0f;
+		m.m02 = 0.0f;                 m.m12 = 0.0f;                 m.m22 = -2.0f / fn;           m.m32 = 0.0f;
+		m.m03 = -(right + left) / rl; m.m13 = -(top + bottom) / tb; m.m23 = -(zFar + zNear) / fn; m.m33 = 1.0f;
+
+		return m;
 	}
 
 	//perpective projection, bottom-left origin, Y-up projection
@@ -1336,12 +1336,14 @@ namespace KalaHeaders
 		const f32 f = 1.0f / tan(radians(fovDeg) * 0.5f);
 		const f32 fn = zFar - zNear;
 
-		return {
-			f / aspect, 0.0f,  0.0f,                        0.0f,
-			0.0f,       f,     0.0f,                        0.0f,
-			0.0f,       0.0f, -(zFar + zNear) / fn,        -1.0f,
-			0.0f,       0.0f, -(2.0f * zFar * zNear) / fn,  0.0f
-		};
+		mat4 m{};
+
+		m.m00 = f / aspect; m.m10 = 0.0f; m.m20 = 0.0f;                 m.m30 = 0.0f;
+		m.m01 = 0.0f;       m.m11 = f;    m.m21 = 0.0f;                 m.m31 = 0.0f;
+		m.m02 = 0.0f;       m.m12 = 0.0f; m.m22 = -(zFar + zNear) / fn; m.m32 = -(2.0f * zFar * zNear) / fn;
+		m.m03 = 0.0f;       m.m13 = 0.0f; m.m23 = -1.0f;                m.m33 = 0.0f;
+
+		return m;
 	}
 
 	//Computes vec2 magnitude (distance from a)
@@ -1399,119 +1401,65 @@ namespace KalaHeaders
 		return q / len;
 	}
 
-	//Move in 2D space
-	inline mat3 translate(
-		const mat3& m,
-		const vec2 v)
+	//Returns a valid 2D uModel for vertex shaders
+	inline mat4 createumodel(
+		const vec2 pos,
+		const f32 rotDeg,
+		const vec2 size)
 	{
-		mat3 t = m;
-		t.m02 += v.x;
-		t.m12 += v.y;
-		return t;
-	}
-	//Move in 3D space
-	inline mat4 translate(
-		const mat4& m,
-		const vec3& v)
-	{
-		mat4 t = m;
-		t.m30 += v.x;
-		t.m31 += v.y;
-		t.m32 += v.z;
+		f32 r = radians(rotDeg);
+		f32 c = cos(r);
+		f32 s = sin(r);
 
-		return t;
+		mat4 m{};
+
+		m.m00 = c * size.x; m.m10 = -s * size.x; m.m20 = 0.0f; m.m30 = 0.0f;
+		m.m01 = s * size.y; m.m11 =  c * size.y; m.m21 = 0.0f; m.m31 = 0.0f;
+		m.m02 = 0.0f;       m.m12 = 0.0f;        m.m22 = 1.0f; m.m32 = 0.0f;
+		m.m03 = pos.x;      m.m13 = pos.y;       m.m23 = 0.0f; m.m33 = 1.0f;
+
+		return m;
 	}
 
-	//Rotate around Z axis with euler degrees in 2D
-	inline mat3 rotate(
-		const mat3& m,
-		f32 deg)
+	//Returns a valid 3D uModel for vertex shaders
+	inline mat4 createumodel(
+		const vec3& pos, 
+		const quat& rot, 
+		const vec3& size)
 	{
-		f32 rad = radians(deg);
-		const f32 c = cos(rad);
-		const f32 s = sin(rad);
+		f32 xx = rot.x * rot.x;
+		f32 yy = rot.y * rot.y;
+		f32 zz = rot.z * rot.z;
+		f32 xy = rot.x * rot.y;
+		f32 xz = rot.x * rot.z;
+		f32 yz = rot.y * rot.z;
+		f32 wx = rot.w * rot.x;
+		f32 wy = rot.w * rot.y;
+		f32 wz = rot.w * rot.z;
 
-		mat3 r = 
-		{
-			 c,    s,    0.0f,
-			-s,    c,    0.0f,
-			 0.0f, 0.0f, 1.0f
-		};
+		mat4 m{};
 
-		return r * m;
-	}
-	//Rotate around any non-normalized euler axis with euler degrees in 3D
-	inline mat4 rotate(
-		const mat4& m,
-		f32 deg,
-		const vec3& axis)
-	{
-		f32 rad = radians(deg);
-		const f32 c = cos(rad);
-		const f32 s = sin(rad);
-		const f32 ic = 1.0f - c;
+		m.m00 = (1.0f - 2.0f * (yy + zz)) * size.x;
+		m.m10 = (2.0f * (xy - wz)) * size.x;
+		m.m20 = (2.0f * (yz + wy)) * size.x;
+		m.m30 = 0.0f;
 
-		const vec3 a = normalize(axis);
-		const f32 x = a.x;
-		const f32 y = a.y;
-		const f32 z = a.z;
+		m.m01 = (2.0f * (xy + wz)) * size.y;
+		m.m11 = (1.0f - 2.0f * (xx + zz)) * size.y;
+		m.m21 = (2.0f * (yz - wx)) * size.y;
+		m.m31 = 0.0f;
 
-		mat4 r = 
-		{
-			c + x * x * ic,     x * y * ic + z * s, x * z * ic - y * s, 0.0f,
-			y * x * ic - z * s, c + y * y * ic,     y * z * ic + x * s, 0.0f,
-			z * x * ic + y * s, z * y * ic - x * s, c + z * z * ic,     0.0f,
-			0.0f,               0.0f,               0.0f,               1.0f
-		};
+		m.m02 = (2.0f * (xz - wy)) * size.z;
+		m.m12 = (2.0f * (yz + wx)) * size.z;
+		m.m22 = (1.0f - 2.0f * (xx + yy)) * size.z;
+		m.m32 = 0.0f;
 
-		return r * m;
-	}
-	//Rotate with quaternion in 3D
-	inline mat4 rotate(const mat4& m, const quat& q)
-	{
-		const f32 xx = q.x * q.x;
-		const f32 yy = q.y * q.y;
-		const f32 zz = q.z * q.z;
-		const f32 xy = q.x * q.y;
-		const f32 xz = q.x * q.z;
-		const f32 yz = q.y * q.z;
-		const f32 wx = q.w * q.x;
-		const f32 wy = q.w * q.y;
-		const f32 wz = q.w * q.z;
+		m.m03 = pos.x;
+		m.m13 = pos.y;
+		m.m23 = pos.z;
+		m.m33 = 1.0f;
 
-		mat4 r = 
-		{
-			1 - 2 * (yy + zz), 2 * (xy + wz),     2 * (xz - wy),     0.0f,
-			2 * (xy - wz),     1 - 2 * (xx + zz), 2 * (yz + wx),     0.0f,
-			2 * (xz + wy),     2 * (yz - wx),     1 - 2 * (xx + yy), 0.0f,
-			0.0f,              0.0f,              0.0f,              1.0f
-		};
-		  
-		return r * m;
-	}
-
-	//Scale in 2D space
-	inline mat3 scale(
-		const mat3& m,
-		const vec2 v)
-	{
-		mat3 s = m;
-		s.m00 *= v.x; s.m10 *= v.x; s.m20 *= v.x;
-		s.m01 *= v.y; s.m11 *= v.y; s.m21 *= v.y;
-		
-		return s;
-	}
-	//Scale in 3D space
-	inline mat4 scale(
-		const mat4& m,
-		const vec3& v)
-	{
-		mat4 s = m;
-		s.m00 *= v.x; s.m10 *= v.x; s.m20 *= v.x; s.m30 *= v.x;
-		s.m01 *= v.y; s.m11 *= v.y; s.m21 *= v.y; s.m31 *= v.y;
-		s.m02 *= v.z; s.m12 *= v.z; s.m22 *= v.z; s.m32 *= v.z;
-		
-		return s;
+		return m;
 	}
 
 	//Vector pointing from one position to another

@@ -19,6 +19,7 @@ namespace KalaWindow::Utils
 	using std::unordered_map;
 	using std::vector;
 	using std::unique_ptr;
+	using std::make_unique;
 	using std::find;
 	using std::remove;
 	using std::remove_if;

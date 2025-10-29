@@ -5,8 +5,12 @@
 
 #pragma once
 
-#include "KalaHeaders/core_utils.hpp"
+#include <memory>
+
 #include "KalaHeaders/math_utils.hpp"
+
+#include "utils/registry.hpp"
+#include "core/core.hpp"
 
 constexpr f32 MAX_POS = 10000.0f;
 constexpr f32 MIN_POS = -10000.0f;
@@ -16,21 +20,17 @@ constexpr f32 MIN_SIZE = 0.01f;
 
 namespace KalaWindow::Utils
 {
-	using KalaHeaders::vec2;
 	using KalaHeaders::vec3;
 	using KalaHeaders::vec4;
-	using KalaHeaders::mat2;
-	using KalaHeaders::mat3;
 	using KalaHeaders::mat4;
 	using KalaHeaders::quat;
-	using KalaHeaders::radians;
 	using KalaHeaders::wrap;
 	using KalaHeaders::kclamp;
-	using KalaHeaders::rotate;
-	using KalaHeaders::toeuler2;
 	using KalaHeaders::toeuler3;
 	using KalaHeaders::toquat;
 	using KalaHeaders::normalize;
+
+	using KalaWindow::Core::globalID;
 
 	enum class PosTarget
 	{
@@ -54,238 +54,26 @@ namespace KalaWindow::Utils
 		SIZE_COMBINED //final position after combining world and local position
 	};
 
-	class Transform2D
-	{
-	public:
-		//Incrementally moves over time
-		static inline void AddPos(
-			const vec2 pos_delta,
-			PosTarget posTarget,
-			const Transform2D& parent = Transform2D{})
-		{
-			//cannot set combined pos
-			if (posTarget == PosTarget::POS_COMBINED) return;
-
-			vec2 base = (posTarget == PosTarget::POS_WORLD)
-				? pos_world
-				: pos_local;
-
-			vec2 pos_clamped = kclamp(
-				base + pos_delta,
-				vec2(MIN_POS),
-				vec2(MAX_POS));
-
-			switch (posTarget)
-			{
-			case PosTarget::POS_WORLD:  pos_world = pos_clamped; break;
-			case PosTarget::POS_LOCAL:  pos_local = pos_clamped; break;
-			}
-
-			UpdateTransform(parent);
-		}
-		//Snaps to given position
-		static inline void SetPos(
-			const vec2 pos_new,
-			PosTarget posTarget,
-			const Transform2D& parent = Transform2D{})
-		{
-			//cannot set combined pos
-			if (posTarget == PosTarget::POS_COMBINED) return;
-
-			vec2 pos_clamped = kclamp(
-				pos_new, 
-				vec2(MIN_POS), 
-				vec2(MAX_POS));
-
-			switch (posTarget)
-			{
-			case PosTarget::POS_WORLD:  pos_world = pos_clamped; break;
-			case PosTarget::POS_LOCAL:  pos_local = pos_clamped; break;
-			}
-
-			UpdateTransform(parent);
-		}
-		static inline const vec2 GetPos(PosTarget posTarget)
-		{
-			static const vec2 empty{};
-
-			switch (posTarget)
-			{
-			case PosTarget::POS_WORLD:    return pos_world; break;
-			case PosTarget::POS_LOCAL:    return pos_local; break;
-			case PosTarget::POS_COMBINED: return pos_combined; break;
-			}
-
-			return empty;
-		}
-
-		//Takes in rotation in euler (degrees) and incrementally rotates over time
-		static inline void AddRot(
-			float rot_delta,
-			RotTarget rotTarget,
-			const Transform2D& parent = Transform2D{})
-		{
-			//cannot set combined vec rot
-			if (rotTarget == RotTarget::ROT_COMBINED) return;
-
-			f32 base = (rotTarget == RotTarget::ROT_WORLD)
-				? rot_world
-				: rot_local;
-
-			f32 rot_clamped = wrap(base + rot_delta);
-
-			switch (rotTarget)
-			{
-			case RotTarget::ROT_WORLD: rot_world = rot_clamped; break;
-			case RotTarget::ROT_LOCAL: rot_local = rot_clamped; break;
-			}
-
-			UpdateTransform(parent);
-		}
-		//Takes in rotation in euler (degrees) and snaps to given rotation
-		static inline void SetRot(
-			const f32 rot_new,
-			RotTarget rotTarget,
-			const Transform2D& parent = Transform2D{})
-		{
-			//cannot set combined vec rot
-			if (rotTarget == RotTarget::ROT_COMBINED) return;
-
-			f32 rot_clamped = wrap(rot_new);
-
-			switch (rotTarget)
-			{
-			case RotTarget::ROT_WORLD: rot_world = rot_clamped; break;
-			case RotTarget::ROT_LOCAL: rot_local = rot_clamped; break;
-			}
-
-			UpdateTransform(parent);
-		}
-		//Returns rotation in euler (degrees)
-		static inline const f32 GetRot(RotTarget rotTarget)
-		{
-			static const f32 empty{};
-
-			switch (rotTarget)
-			{
-			case RotTarget::ROT_WORLD:    return rot_world; break;
-			case RotTarget::ROT_LOCAL:    return rot_local; break;
-			case RotTarget::ROT_COMBINED: return rot_combined; break;
-			}
-
-			return empty;
-		}
-
-		//Incrementally scales over time
-		static inline void AddSize(
-			const vec2 size_delta,
-			SizeTarget sizeTarget,
-			const Transform2D& parent = Transform2D{})
-		{
-			//cannot set combined size
-			if (sizeTarget == SizeTarget::SIZE_COMBINED) return;
-
-			vec2 base = (sizeTarget == SizeTarget::SIZE_WORLD)
-				? size_world
-				: size_local;
-
-			vec2 size_clamped = kclamp(
-				base + size_delta,
-				vec2(MIN_SIZE),
-				vec2(MAX_SIZE));
-
-			switch (sizeTarget)
-			{
-			case SizeTarget::SIZE_WORLD: size_world = size_clamped; break;
-			case SizeTarget::SIZE_LOCAL: size_local = size_clamped; break;
-			}
-
-			UpdateTransform(parent);
-		}
-		//Snaps to given size
-		static inline void SetSize(
-			const vec2 size_new,
-			SizeTarget sizeTarget,
-			const Transform2D& parent = Transform2D{})
-		{
-			//cannot set combined size
-			if (sizeTarget == SizeTarget::SIZE_COMBINED) return;
-
-			vec2 size_clamped = kclamp(
-				size_new, 
-				vec2(MIN_SIZE), 
-				vec2(MAX_SIZE));
-
-			switch (sizeTarget)
-			{
-			case SizeTarget::SIZE_WORLD: size_world = size_clamped; break;
-			case SizeTarget::SIZE_LOCAL: size_local = size_clamped; break;
-			}
-
-			UpdateTransform(parent);
-		}
-		static inline const vec2 GetSize(SizeTarget sizeTarget)
-		{
-			static const vec2 empty{};
-
-			switch (sizeTarget)
-			{
-			case SizeTarget::SIZE_WORLD:      return size_world; break;
-			case SizeTarget::SIZE_LOCAL:      return size_local; break;
-			case SizeTarget::SIZE_COMBINED:   return size_combined; break;
-			}
-
-			return empty;
-		};
-	private:
-		//Updates combined pos, rot and size relative to local and optional parent values
-		static inline void UpdateTransform(const Transform2D& parent)
-		{
-			if (parent.pos_combined != 0.0f)
-			{
-				rot_combined = parent.rot_combined + rot_world + rot_local;
-				size_combined = parent.size_combined * size_world * size_local;
-
-				f32 rads = radians(parent.rot_combined);
-				mat3 rot_mat =
-				{
-					cos(rads), -sin(rads), 0.0f,
-					sin(rads),  cos(rads), 0.0f,
-					0.0f,       0.0f,      1.0f
-				};
-
-				vec3 rot_offset = vec3(rot_mat * vec3(pos_local, 1.0f));
-				pos_combined =
-					parent.pos_combined
-					+ pos_world
-					+ vec2(rot_offset.x, rot_offset.y);
-			}
-			else
-			{
-				rot_combined = rot_world;
-				size_combined = size_world;
-				pos_combined = pos_world;
-			}
-		}
-
-		static inline vec2 pos_world{};
-		static inline vec2 pos_local{};
-		static inline vec2 pos_combined{};
-
-		static inline f32 rot_world{};
-		static inline f32 rot_local{};
-		static inline f32 rot_combined{};
-
-		static inline vec2 size_world{};
-		static inline vec2 size_local{};
-		static inline vec2 size_combined{};
-	};
-
 	class Transform3D
 	{
 	public:
+		static inline Registry<Transform3D> registry{};
+
+		static inline Transform3D* Initialize()
+		{
+			unique_ptr<Transform3D> newTransform = make_unique<Transform3D>();
+			Transform3D* transformPtr = newTransform.get();
+
+			transformPtr->size_world = vec3(1.0f);
+
+			u32 newID = ++globalID;
+			registry.AddContent(newID, move(newTransform));
+
+			return transformPtr;
+		}
+
 		//Incrementally moves over time
-		static inline void AddPos(
+		inline void AddPos(
 			const vec3& pos_delta,
 			PosTarget posTarget,
 			const Transform3D& parent = Transform3D{})
@@ -294,7 +82,7 @@ namespace KalaWindow::Utils
 			if (posTarget == PosTarget::POS_COMBINED) return;
 
 			vec3 base = (posTarget == PosTarget::POS_WORLD)
-				? pos_world 
+				? pos_world
 				: pos_local;
 
 			vec3 pos_clamped = kclamp(
@@ -311,7 +99,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Snaps to given position
-		static inline void SetPos(
+		inline void SetPos(
 			const vec3& pos_new,
 			PosTarget posTarget,
 			const Transform3D& parent = Transform3D{})
@@ -320,8 +108,8 @@ namespace KalaWindow::Utils
 			if (posTarget == PosTarget::POS_COMBINED) return;
 
 			vec3 pos_clamped = kclamp(
-				pos_new, 
-				vec3(MIN_POS), 
+				pos_new,
+				vec3(MIN_POS),
 				vec3(MAX_POS));
 
 			switch (posTarget)
@@ -332,7 +120,7 @@ namespace KalaWindow::Utils
 
 			UpdateTransform(parent);
 		}
-		static inline const vec3 GetPos(PosTarget posTarget)
+		inline const vec3& GetPos(PosTarget posTarget) const
 		{
 			static const vec3 empty{};
 
@@ -347,7 +135,7 @@ namespace KalaWindow::Utils
 		}
 
 		//Takes in rotation in euler (degrees) and incrementally rotates over time
-		static inline void AddRot(
+		inline void AddRot(
 			const vec3& rot_delta,
 			RotTarget rotTarget,
 			const Transform3D& parent = Transform3D{})
@@ -377,7 +165,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Takes in rotation in euler (degrees) and snaps to given rotation
-		static inline void SetRot(
+		inline void SetRot(
 			const vec3& rot_new,
 			RotTarget rotTarget,
 			const Transform3D& parent = Transform3D{})
@@ -386,8 +174,8 @@ namespace KalaWindow::Utils
 			if (rotTarget == RotTarget::ROT_COMBINED) return;
 
 			vec3 rot_clamped = vec3(
-				wrap(rot_new.x), 
-				wrap(rot_new.y), 
+				wrap(rot_new.x),
+				wrap(rot_new.y),
 				wrap(rot_new.z));
 
 			switch (rotTarget)
@@ -399,7 +187,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Takes in rotation in quaternion and snaps to given rotation
-		static inline void SetRot(
+		inline void SetRot(
 			const quat& rot_new,
 			RotTarget rotTarget,
 			const Transform3D& parent = Transform3D{})
@@ -418,7 +206,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Returns rotation in euler (degrees)
-		static inline const vec3 GetRotEuler(RotTarget rotTarget)
+		inline const vec3& GetRotEuler(RotTarget rotTarget) const
 		{
 			switch (rotTarget)
 			{
@@ -429,7 +217,7 @@ namespace KalaWindow::Utils
 			}
 		}
 		//Returns quaternion rotation
-		static inline const quat GetRotQuat(RotTarget rotTarget)
+		inline const quat& GetRotQuat(RotTarget rotTarget) const
 		{
 			switch (rotTarget)
 			{
@@ -441,7 +229,7 @@ namespace KalaWindow::Utils
 		}
 
 		//Incrementally scales over time
-		static inline void AddSize(
+		inline void AddSize(
 			const vec3& size_delta,
 			SizeTarget sizeTarget,
 			const Transform3D& parent = Transform3D{})
@@ -467,7 +255,7 @@ namespace KalaWindow::Utils
 			UpdateTransform(parent);
 		}
 		//Snaps to given scale
-		static inline void SetSize(
+		inline void SetSize(
 			const vec3& size_new,
 			SizeTarget sizeTarget,
 			const Transform3D& parent = Transform3D{})
@@ -476,8 +264,8 @@ namespace KalaWindow::Utils
 			if (sizeTarget == SizeTarget::SIZE_COMBINED) return;
 
 			vec3 size_clamped = kclamp(
-				size_new, 
-				vec3(MIN_SIZE), 
+				size_new,
+				vec3(MIN_SIZE),
 				vec3(MAX_SIZE));
 
 			switch (sizeTarget)
@@ -488,7 +276,7 @@ namespace KalaWindow::Utils
 
 			UpdateTransform(parent);
 		}
-		static inline const vec3 GetSize(SizeTarget sizeTarget)
+		inline const vec3& GetSize(SizeTarget sizeTarget) const
 		{
 			static const vec3 empty{};
 
@@ -503,12 +291,35 @@ namespace KalaWindow::Utils
 		};
 	private:
 		//Updates combined pos, rot and size relative to local and optional parent values
-		static inline void UpdateTransform(const Transform3D& parent)
+		inline void UpdateTransform(const Transform3D& parent)
 		{
 			if (parent.pos_combined != 0.0f)
 			{
 				rot_combined = parent.rot_combined * rot_world * rot_local;
 				size_combined = parent.size_combined * size_world * size_local;
+
+				auto rotate = [](const mat4& m, const quat& q)
+					{
+						const f32 xx = q.x * q.x;
+						const f32 yy = q.y * q.y;
+						const f32 zz = q.z * q.z;
+						const f32 xy = q.x * q.y;
+						const f32 xz = q.x * q.z;
+						const f32 yz = q.y * q.z;
+						const f32 wx = q.w * q.x;
+						const f32 wy = q.w * q.y;
+						const f32 wz = q.w * q.z;
+
+						mat4 r =
+						{
+							1 - 2 * (yy + zz), 2 * (xy + wz),     2 * (xz - wy),     0.0f,
+							2 * (xy - wz),     1 - 2 * (xx + zz), 2 * (yz + wx),     0.0f,
+							2 * (xz + wy),     2 * (yz - wx),     1 - 2 * (xx + yy), 0.0f,
+							0.0f,              0.0f,              0.0f,              1.0f
+						};
+
+						return r * m;
+					};
 
 				mat4 rot_mat = rotate(mat4(1.0f), parent.rot_combined);
 
@@ -523,22 +334,22 @@ namespace KalaWindow::Utils
 			}
 			else
 			{
+				pos_combined = pos_world;
 				rot_combined = rot_world;
 				size_combined = size_world;
-				pos_combined = pos_world;
 			}
 		}
 
-		static inline vec3 pos_world{};
-		static inline vec3 pos_local{};
-		static inline vec3 pos_combined{};
+		vec3 pos_world{};
+		vec3 pos_local{};
+		vec3 pos_combined{};
 
-		static inline quat rot_world{};
-		static inline quat rot_local{};
-		static inline quat rot_combined{};
+		quat rot_world{};
+		quat rot_local{};
+		quat rot_combined{};
 
-		static inline vec3 size_world{};
-		static inline vec3 size_local{};
-		static inline vec3 size_combined{};
+		vec3 size_world{};
+		vec3 size_local{};
+		vec3 size_combined{};
 	};
 }
