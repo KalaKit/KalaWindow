@@ -35,11 +35,8 @@ namespace KalaWindow::UI
 			OpenGL_Texture* texture,
 			OpenGL_Shader* shader);
 
-		//Render the image. Pass viewport size so that the image can be
-		//positioned to the window center and offset from that with world pos
-		virtual bool Render(
-			const mat4& projection,
-			const vec2 viewportSize) override;
+		//Render the image
+		virtual bool Render(const mat4& projection) override;
 
 		//Do not destroy manually, erase from registry instead
 		virtual ~Image() override;

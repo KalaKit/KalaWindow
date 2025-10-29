@@ -138,11 +138,29 @@ namespace KalaWindow::UI
 
 		inline bool IsInitialized() const { return isInitialized; }
 
-		//Render the widget. Pass viewport size so that the widget can be
-		//positioned to the window center and offset from that with world pos
-		virtual bool Render(
-			const mat4& projection,
-			const vec2 viewportSize) = 0;
+		virtual bool Render(const mat4& projection) = 0;
+
+		//Adjusts widget position relative to viewport size and offset,
+		//offset at {1.0f, 1.0f} means the widget is centered, {0.0f, 0.0f} moves it to the bottom left corner
+		inline void MoveWidget(
+			vec2 viewportSize,
+			vec2 offset = vec2(1.0f))
+		{
+			if (!transform
+				|| viewportSize <= vec2(1.0f))
+			{
+				return;
+			}
+
+			vec2 offsetClamped = kclamp(
+				offset, 
+				vec2(-0.5f), 
+				vec2(2.5f));
+
+			transform->SetPos(
+				vec2(viewportSize * offsetClamped * 0.5f), 
+				PosTarget::POS_WORLD);
+		}
 
 		inline u32 GetID() const { return ID; }
 		inline u32 GetWindowID() const { return windowID; }

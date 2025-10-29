@@ -262,6 +262,31 @@ namespace KalaHeaders
 			if constexpr (N == 4) return { safediv_a(this->x, s), safediv_a(this->y, s), safediv_a(this->z, s), safediv_a(this->w, s) };
 		}
 
+		constexpr bool operator<(f32 s) const
+		{
+			if constexpr (N == 2) return { this->x < s && this->y < s };
+			if constexpr (N == 3) return { this->x < s && this->y < s && this->z < s };
+			if constexpr (N == 4) return { this->x < s && this->y < s && this->z < s && this->w < s };
+		}
+		constexpr bool operator>(f32 s) const
+		{
+			if constexpr (N == 2) return { this->x > s && this->y > s };
+			if constexpr (N == 3) return { this->x > s && this->y > s && this->z > s };
+			if constexpr (N == 4) return { this->x > s && this->y > s && this->z > s && this->w > s };
+		}
+		constexpr bool operator<(const vec& s) const
+		{
+			if constexpr (N == 2) return { this->x < s.x && this->y < s.y };
+			if constexpr (N == 3) return { this->x < s.x && this->y < s.y && this->z < s.z };
+			if constexpr (N == 4) return { this->x < s.x && this->y < s.y && this->z < s.z && this->w < s.w };
+		}
+		constexpr bool operator>(const vec& s) const
+		{
+			if constexpr (N == 2) return { this->x > s.x && this->y > s.y };
+			if constexpr (N == 3) return { this->x > s.x && this->y > s.y && this->z > s.z };
+			if constexpr (N == 4) return { this->x > s.x && this->y > s.y && this->z > s.z && this->w > s.w };
+		}
+
 		constexpr vec operator-() const
 		{ 
 			if constexpr (N == 2) return { -this->x, -this->y };
@@ -340,6 +365,31 @@ namespace KalaHeaders
 			if constexpr (N == 2) { safediv_c(this->x, s); safediv_c(this->y, s); return *this; }
 			if constexpr (N == 3) { safediv_c(this->x, s); safediv_c(this->y, s); safediv_c(this->z, s); return *this; }
 			if constexpr (N == 4) { safediv_c(this->x, s); safediv_c(this->y, s); safediv_c(this->z, s); safediv_c(this->w, s); return *this; }
+		}
+
+		constexpr bool operator<=(f32 s) const
+		{
+			if constexpr (N == 2) return { this->x <= s && this->y <= s };
+			if constexpr (N == 3) return { this->x <= s && this->y <= s && this->z <= s };
+			if constexpr (N == 4) return { this->x <= s && this->y <= s && this->z <= s && this->w <= s };
+		}
+		constexpr bool operator>=(f32 s) const
+		{
+			if constexpr (N == 2) return { this->x >= s && this->y >= s };
+			if constexpr (N == 3) return { this->x >= s && this->y >= s && this->z >= s };
+			if constexpr (N == 4) return { this->x >= s && this->y >= s && this->z >= s && this->w >= s };
+		}
+		constexpr bool operator<=(const vec& s) const
+		{
+			if constexpr (N == 2) return { this->x <= s.x && this->y <= s.y };
+			if constexpr (N == 3) return { this->x <= s.x && this->y <= s.y && this->z <= s.z };
+			if constexpr (N == 4) return { this->x <= s.x && this->y <= s.y && this->z <= s.z && this->w <= s.w };
+		}
+		constexpr bool operator>=(const vec& s) const
+		{
+			if constexpr (N == 2) return { this->x >= s.x && this->y >= s.y };
+			if constexpr (N == 3) return { this->x >= s.x && this->y >= s.y && this->z >= s.z };
+			if constexpr (N == 4) return { this->x >= s.x && this->y >= s.y && this->z >= s.z && this->w >= s.w };
 		}
 	};
 
@@ -749,6 +799,91 @@ namespace KalaHeaders
 			return r;
 		}
 
+		constexpr mat operator<(f32 s) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 < s; this->m10 < s;
+				this->m01 < s; this->m11 < s;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 < s; this->m10 < s; this->m20 < s;
+				this->m01 < s; this->m11 < s; this->m21 < s;
+				this->m02 < s; this->m12 < s; this->m22 < s;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 < s; this->m10 < s; this->m20 < s; this->m30 < s;
+				this->m01 < s; this->m11 < s; this->m21 < s; this->m31 < s;
+				this->m02 < s; this->m12 < s; this->m22 < s; this->m32 < s;
+				this->m03 < s; this->m13 < s; this->m23 < s; this->m33 < s;
+			}
+		}
+		constexpr mat operator>(f32 s) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 > s; this->m10 > s;
+				this->m01 > s; this->m11 > s;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 > s; this->m10 > s; this->m20 > s;
+				this->m01 > s; this->m11 > s; this->m21 > s;
+				this->m02 > s; this->m12 > s; this->m22 > s;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 > s; this->m10 > s; this->m20 > s; this->m30 > s;
+				this->m01 > s; this->m11 > s; this->m21 > s; this->m31 > s;
+				this->m02 > s; this->m12 > s; this->m22 > s; this->m32 > s;
+				this->m03 > s; this->m13 > s; this->m23 > s; this->m33 > s;
+			}
+		}
+		constexpr mat operator<(const mat& m) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 < m.m00; this->m10 < m.m10;
+				this->m01 < m.m01; this->m11 < m.m11;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 < m.m00; this->m10 < m.m10; this->m10 < m.m20;
+				this->m01 < m.m01; this->m11 < m.m11; this->m10 < m.m21;
+				this->m01 < m.m02; this->m11 < m.m12; this->m10 < m.m22;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 < m.m00; this->m10 < m.m10; this->m10 < m.m20; this->m10 < m.m30;
+				this->m01 < m.m01; this->m11 < m.m11; this->m10 < m.m21; this->m10 < m.m31;
+				this->m01 < m.m02; this->m11 < m.m12; this->m10 < m.m22; this->m10 < m.m32;
+				this->m01 < m.m03; this->m11 < m.m13; this->m10 < m.m23; this->m10 < m.m33;
+			}
+		}
+		constexpr mat operator>(const mat& m) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 > m.m00; this->m10 > m.m10;
+				this->m01 > m.m01; this->m11 > m.m11;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 > m.m00; this->m10 > m.m10; this->m10 > m.m20;
+				this->m01 > m.m01; this->m11 > m.m11; this->m10 > m.m21;
+				this->m01 > m.m02; this->m11 > m.m12; this->m10 > m.m22;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 > m.m00; this->m10 > m.m10; this->m10 > m.m20; this->m10 > m.m30;
+				this->m01 > m.m01; this->m11 > m.m11; this->m10 > m.m21; this->m10 > m.m31;
+				this->m01 > m.m02; this->m11 > m.m12; this->m10 > m.m22; this->m10 > m.m32;
+				this->m01 > m.m03; this->m11 > m.m13; this->m10 > m.m23; this->m10 > m.m33;
+			}
+		}
+
 		constexpr mat operator-() const
 		{ 
 			mat r = *this; 
@@ -1009,6 +1144,91 @@ namespace KalaHeaders
 			}
 
 			return *this;
+		}
+
+		constexpr mat operator<=(f32 s) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 <= s; this->m10 <= s;
+				this->m01 <= s; this->m11 <= s;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 <= s; this->m10 <= s; this->m20 <= s;
+				this->m01 <= s; this->m11 <= s; this->m21 <= s;
+				this->m02 <= s; this->m12 <= s; this->m22 <= s;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 <= s; this->m10 <= s; this->m20 <= s; this->m30 <= s;
+				this->m01 <= s; this->m11 <= s; this->m21 <= s; this->m31 <= s;
+				this->m02 <= s; this->m12 <= s; this->m22 <= s; this->m32 <= s;
+				this->m03 <= s; this->m13 <= s; this->m23 <= s; this->m33 <= s;
+			}
+		}
+		constexpr mat operator>=(f32 s) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 >= s; this->m10 >= s;
+				this->m01 >= s; this->m11 >= s;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 >= s; this->m10 >= s; this->m20 >= s;
+				this->m01 >= s; this->m11 >= s; this->m21 >= s;
+				this->m02 >= s; this->m12 >= s; this->m22 >= s;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 >= s; this->m10 >= s; this->m20 >= s; this->m30 >= s;
+				this->m01 >= s; this->m11 >= s; this->m21 >= s; this->m31 >= s;
+				this->m02 >= s; this->m12 >= s; this->m22 >= s; this->m32 >= s;
+				this->m03 >= s; this->m13 >= s; this->m23 >= s; this->m33 >= s;
+			}
+		}
+		constexpr mat operator<=(const mat& m) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 <= m.m00; this->m10 <= m.m10;
+				this->m01 <= m.m01; this->m11 <= m.m11;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 <= m.m00; this->m10 <= m.m10; this->m10 <= m.m20;
+				this->m01 <= m.m01; this->m11 <= m.m11; this->m10 <= m.m21;
+				this->m01 <= m.m02; this->m11 <= m.m12; this->m10 <= m.m22;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 <= m.m00; this->m10 <= m.m10; this->m10 <= m.m20; this->m10 <= m.m30;
+				this->m01 <= m.m01; this->m11 <= m.m11; this->m10 <= m.m21; this->m10 <= m.m31;
+				this->m01 <= m.m02; this->m11 <= m.m12; this->m10 <= m.m22; this->m10 <= m.m32;
+				this->m01 <= m.m03; this->m11 <= m.m13; this->m10 <= m.m23; this->m10 <= m.m33;
+			}
+		}
+		constexpr mat operator>=(const mat& m) const
+		{
+			if constexpr (N == 2)
+			{
+				this->m00 >= m.m00; this->m10 >= m.m10;
+				this->m01 >= m.m01; this->m11 >= m.m11;
+			}
+			if constexpr (N == 3)
+			{
+				this->m00 >= m.m00; this->m10 >= m.m10; this->m10 >= m.m20;
+				this->m01 >= m.m01; this->m11 >= m.m11; this->m10 >= m.m21;
+				this->m01 >= m.m02; this->m11 >= m.m12; this->m10 >= m.m22;
+			}
+			if constexpr (N == 4)
+			{
+				this->m00 >= m.m00; this->m10 >= m.m10; this->m10 >= m.m20; this->m10 >= m.m30;
+				this->m01 >= m.m01; this->m11 >= m.m11; this->m10 >= m.m21; this->m10 >= m.m31;
+				this->m01 >= m.m02; this->m11 >= m.m12; this->m10 >= m.m22; this->m10 >= m.m32;
+				this->m01 >= m.m03; this->m11 >= m.m13; this->m10 >= m.m23; this->m10 >= m.m33;
+			}
 		}
 	};
 

@@ -142,9 +142,7 @@ namespace KalaWindow::UI
 		return imagePtr;
 	}
 
-	bool Image::Render(
-		const mat4& projection,
-		const vec2 viewportSize)
+	bool Image::Render(const mat4& projection)
 	{
 		if (!render.canUpdate) return false;
 
