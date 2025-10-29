@@ -1429,6 +1429,29 @@ namespace KalaHeaders
 
 		return{};
 	}
+	
+	inline uint8_t ReadU8(
+		const vector<uint8_t>& data,
+		size_t offset)
+	{
+		return data[offset];
+	}
+	inline uint16_t ReadU16(
+		const vector<uint8_t>& data,
+		size_t offset)
+	{
+		return (data[offset] << 8)
+			| data[offset + 1];
+	}
+	inline uint32_t ReadU32(
+		const vector<uint8_t>& data,
+		size_t offset)
+	{
+		return (data[offset] << 24)
+			| (data[offset + 1] << 16)
+			| (data[offset + 2] << 8)
+			| (data[offset + 3]);
+	}
 
 	//Return all start and end of defined string in a binary
 	inline string GetRangeByValue(
