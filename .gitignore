@@ -2,10 +2,15 @@
 out/
 .vs/
 build/
+*VSInheritEnvironments.txt
 
-# CMake build targets
-debug/
-release/
+# Build process
+*.ninja_deps
+*.ninja_log
+*build.ninja
+cmake*
+cpack*
+*.cmake/
 
 # Large files
 *.pdb
@@ -14,3 +19,6 @@ release/
 
 # Misc
 *.spv # Vulkan shader files
+*.exe
+*.ilk
+*.log
