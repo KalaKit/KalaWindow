@@ -23,8 +23,8 @@ namespace KalaWindow::UI
 {
 	using std::string;
 	using std::vector;
-	using std::function;
 	using std::array;
+	using std::function;
 
 	using KalaHeaders::vec2;
 	using KalaHeaders::vec3;
@@ -84,14 +84,14 @@ namespace KalaWindow::UI
 		u32 VBO{};
 		u32 EBO{};
 
-		const array<vec2, 4> vertices =
+		vector<vec2> vertices =
 		{
 			vec2(-0.5f,  0.5f), //top-left
 			vec2(0.5f,  0.5f),  //top-right
 			vec2(0.5f, -0.5f),  //bottom-right
 			vec2(-0.5f, -0.5f)  //bottom-left
 		};
-		const array<u8, 6> indices =
+		vector<u32> indices =
 		{
 			0, 1, 2,
 			2, 3, 0
@@ -196,9 +196,12 @@ namespace KalaWindow::UI
 			transform->SetRot(0.0f, RotTarget::ROT_LOCAL);
 			transform->SetSize(0.0f, SizeTarget::SIZE_LOCAL);
 		}
+		
+		inline void SetVertices(const vector<vec2>& newVertices) { render.vertices = newVertices; }
+		inline void SetIndices(const vector<u32>& newIndices) { render.indices = newIndices; }
 
-		inline const array<vec2, 4>& GetVertices() const { return render.vertices; };
-		inline const array<u8, 6>& GetIndices() const { return render.indices; }
+		inline const vector<vec2>& GetVertices() const { return render.vertices; };
+		inline const vector<u32>& GetIndices() const { return render.indices; }
 
 		inline Transform2D* GetTransform() { return transform; }
 		inline const array<vec2, 2>& GetAABB()
@@ -537,7 +540,9 @@ namespace KalaWindow::UI
 		Widget_Render render{};
 		Widget_Event event{};
 
-		static void Create2DQuad(
+		static void CreateWidgetGeometry(
+			const vector<vec2>& vertices,
+			const vector<u32>& indices,
 			u32& vaoOut,
 			u32& vboOut,
 			u32& eboOut);

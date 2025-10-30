@@ -5,6 +5,7 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
+#include "core/core.hpp"
 #include "core/input.hpp"
 #include "ui/widget.hpp"
 #include "ui/text.hpp"
@@ -16,6 +17,7 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
+using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::TargetType;
@@ -24,6 +26,8 @@ using namespace KalaWindow::Graphics::OpenGLFunctions;
 
 using std::to_string;
 using std::back_inserter;
+using std::min;
+using std::max;
 
 namespace KalaWindow::UI
 {
@@ -243,48 +247,66 @@ namespace KalaWindow::UI
 		}
 	}
 
-	void Widget::Create2DQuad(
+	void Widget::CreateWidgetGeometry(
+		const vector<vec2>& vertices,
+		const vector<u32>& indices,
 		u32& vaoOut,
 		u32& vboOut,
 		u32& eboOut)
 	{
+		if (vertices.empty()
+			|| indices.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"Widget error",
+				"Failed to create widget geometry because vertices or indices were unassigned!");	
+		}
+		
 		struct Vertex
 		{
 			vec2 pos;
 			vec2 uv;
 		};
-
-		vector<Vertex> vertices =
+		
+		vector<Vertex> verts{};
+		verts.reserve(vertices.size());
+		
+		vec2 minPos = vertices[0];
+		vec2 maxPos = vertices[0];
+		for (const auto& v : vertices)
 		{
-			{ vec2(-0.5f, -0.5f), vec2(0.0f, 0.0f) }, // bottom-left
-			{ vec2(0.5f, -0.5f), vec2(1.0f, 0.0f) },  // bottom-right
-			{ vec2(0.5f,  0.5f), vec2(1.0f, 1.0f) },  // top-right
-			{ vec2(-0.5f,  0.5f), vec2(0.0f, 1.0f) }  // top-left
-		};
+			minPos.x = min(minPos.x, v.x);
+			minPos.y = min(minPos.y, v.y);
+			maxPos.x = max(maxPos.x, v.x);
+			maxPos.y = max(maxPos.y, v.y);
+		}
 
-		//two triangles forming a quad
-		vector<u32> indices = { 0, 1, 2, 2, 3, 0 };
+		vec2 size = maxPos - minPos;
+		if (size.x == 0.0f) size.x = 1.0f;
+		if (size.y == 0.0f) size.y = 1.0f;
+		
+		for (const auto& v : vertices)
+		{
+			vec2 uv = (v - minPos) / size;
+			verts.push_back({ v, uv });
+		}
 
-		u32 vao{};
-		u32 vbo{};
-		u32 ebo{};
+		glGenVertexArrays(1, &vaoOut);
+		glGenBuffers(1, &vboOut);
+		glGenBuffers(1, &eboOut);
 
-		glGenVertexArrays(1, &vao);
-		glGenBuffers(1, &vbo);
-		glGenBuffers(1, &ebo);
-
-		glBindVertexArray(vao);
+		glBindVertexArray(vaoOut);
 
 		//VBO
-		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBindBuffer(GL_ARRAY_BUFFER, vboOut);
 		glBufferData(
 			GL_ARRAY_BUFFER,
-			vertices.size() * sizeof(Vertex),
-			vertices.data(),
+			verts.size() * sizeof(Vertex),
+			verts.data(),
 			GL_STATIC_DRAW);
 
 		//EBO
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboOut);
 		glBufferData(
 			GL_ELEMENT_ARRAY_BUFFER,
 			indices.size() * sizeof(u32),
@@ -312,10 +334,6 @@ namespace KalaWindow::UI
 			(void*)offsetof(Vertex, uv));
 
 		glBindVertexArray(0);
-
-		vaoOut = vao;
-		vboOut = vbo;
-		eboOut = ebo;
 	}
 
 	Widget::~Widget() {}

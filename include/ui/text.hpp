@@ -23,6 +23,7 @@ namespace KalaWindow::UI
 		static Text* Initialize(
 			const string& name,
 			u32 windowID,
+			u32 glyphIndex,
 			u32 fontID,
 			const vec2 pos,
 			const float rot,

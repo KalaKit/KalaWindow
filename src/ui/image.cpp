@@ -113,7 +113,9 @@ namespace KalaWindow::UI
 			imagePtr->hierarchy.SetParent(parentWidget);
 		}
 
-		Widget::Create2DQuad(
+		Widget::CreateWidgetGeometry(
+			imagePtr->render.vertices,
+			imagePtr->render.indices,
 			imagePtr->render.VAO,
 			imagePtr->render.VBO,
 			imagePtr->render.EBO);
@@ -178,7 +180,8 @@ namespace KalaWindow::UI
 		render.shader->SetMat4(programID, "uProjection", projection);
 
 		bool isOpaque = render.opacity = 1.0f;
-		bool isTransparentTexture = render.texture
+		bool isTransparentTexture = 
+			render.texture
 			&& (render.texture->GetFormat() == TextureFormat::Format_RGBA8
 			|| render.texture->GetFormat() == TextureFormat::Format_RGBA16F
 			|| render.texture->GetFormat() == TextureFormat::Format_RGBA32F
@@ -210,7 +213,7 @@ namespace KalaWindow::UI
 		glBindVertexArray(render.VAO);
 		glDrawElements(
 			GL_TRIANGLES,
-			6,
+			render.indices.size(),
 			GL_UNSIGNED_INT,
 			0);
 		glBindVertexArray(0);

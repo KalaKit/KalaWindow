@@ -35,6 +35,7 @@ namespace KalaWindow::UI
 	Text* Text::Initialize(
 		const string& name,
 		u32 windowID,
+		u32 glyphIndex,
 		u32 fontID,
 		const vec2 pos,
 		const float rot,
@@ -109,12 +110,19 @@ namespace KalaWindow::UI
 		}
 
 		//font is required
-		if (fontID != 0)
+		Font* font{};
+		if (fontID == 0) 
 		{
-			Font* font = Font::registry.GetContent(fontID);
-			if (font) textPtr->fontID = fontID;
+			Log::Print(
+				"Failed to load Text widget '" + name + "' because its Font ID '" + to_string(fontID) + "' is unassigned!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
 		}
-		if (textPtr->fontID == 0)
+		
+		font = Font::registry.GetContent(fontID);
+		if (!font)
 		{
 			Log::Print(
 				"Failed to load Text widget '" + name + "' because its Font ID '" + to_string(fontID) + "' is invalid!",
@@ -123,8 +131,38 @@ namespace KalaWindow::UI
 
 			return nullptr;
 		}
+		
+		textPtr->fontID = fontID;
 
-		//TODO: load text here
+		vector<GlyphResult> glyphs = font->GetGlyphData();
+		if (glyphIndex >= glyphs.size())
+		{
+			Log::Print(
+				"Failed to load Text widget '" + name + "' because the Glyph index '" + to_string(glyphIndex) + "' is out of range!",
+				"TEXT",
+				LogType::LOG_ERROR);
+
+			return nullptr;
+		}
+		
+		const auto& glyph = glyphs[glyphIndex];
+
+		vector<vec2> correctVertices{};
+		correctVertices.reserve(glyph.vertices.size() / 2);
+		for (size_t i = 0; i < glyph.vertices.size(); i += 2)
+		{
+			correctVertices.emplace_back(glyph.vertices[i], glyph.vertices[i + 1]);
+		}
+		
+		textPtr->render.vertices = move(correctVertices);
+		textPtr->render.indices = glyph.indices;
+
+		Widget::CreateWidgetGeometry(
+			textPtr->render.vertices,
+			textPtr->render.indices,
+			textPtr->render.VAO,
+			textPtr->render.VBO,
+			textPtr->render.EBO);
 
 		textPtr->transform = Transform2D::Initialize();
 
@@ -180,16 +218,6 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		if (!render.texture)
-		{
-			Log::Print(
-				"Failed to render Text widget '" + name + "' because its texture is nullptr!",
-				"TEXT",
-				LogType::LOG_ERROR);
-
-			return false;
-		}
-
 		if (!render.shader->Bind())
 		{
 			Log::Print(
@@ -212,7 +240,8 @@ namespace KalaWindow::UI
 		render.shader->SetMat4(programID, "uProjection", projection);
 
 		bool isOpaque = render.opacity = 1.0f;
-		bool isTransparentTexture = render.texture
+		bool isTransparentTexture = 
+			render.texture
 			&& (render.texture->GetFormat() == TextureFormat::Format_RGBA8
 			|| render.texture->GetFormat() == TextureFormat::Format_RGBA16F
 			|| render.texture->GetFormat() == TextureFormat::Format_RGBA32F
@@ -244,7 +273,7 @@ namespace KalaWindow::UI
 		glBindVertexArray(render.VAO);
 		glDrawElements(
 			GL_TRIANGLES,
-			6,
+			render.indices.size(),
 			GL_UNSIGNED_INT,
 			0);
 		glBindVertexArray(0);

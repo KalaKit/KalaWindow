@@ -245,8 +245,8 @@ namespace KalaFont
 			
 			u32 vertexCount{};
 			ReadU32(vertexCount);
-			glyph.vertices.resize(vertexCount);
-			for (u32 i = 0; i < vertexCount; ++i)
+			glyph.vertices.resize(vertexCount * 2);
+			for (u32 i = 0; i < vertexCount * 2; ++i)
 			{
 				ReadF32(glyph.vertices[i]);
 			}

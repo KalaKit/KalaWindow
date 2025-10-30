@@ -82,7 +82,7 @@ namespace KalaWindow::Core
 			TimeFormat::TIME_NONE,
 			DateFormat::DATE_NONE);
 
-		DEBUG_ASSERT(false && reason.c_str());
+		__debugbreak();
 
 #ifndef _DEBUG
 		if (Window_Global::CreatePopup(
