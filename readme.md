@@ -55,6 +55,7 @@ Some **KalaWindow** headers pull in official GL extension headers:
 Send me an email at `sanderveski@gmail.com` or message me on discord at `greenlaser` if you want your game or program you made with **KalaWindow** to be listed here
 
 - [Circuit Chan](https://github.com/lost-empire-entertainment/circuit-chan)
+- [Solin](https://github.com/lost-empire-entertainment/solin)
 
 ---
 
