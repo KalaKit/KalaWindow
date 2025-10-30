@@ -262,33 +262,38 @@ namespace KalaWindow::UI
 				"Failed to create widget geometry because vertices or indices were unassigned!");	
 		}
 		
+		bool isText = vertices.size() > 4;
+		
 		struct Vertex
 		{
 			vec2 pos;
 			vec2 uv;
 		};
-		
 		vector<Vertex> verts{};
-		verts.reserve(vertices.size());
 		
-		vec2 minPos = vertices[0];
-		vec2 maxPos = vertices[0];
-		for (const auto& v : vertices)
-		{
-			minPos.x = min(minPos.x, v.x);
-			minPos.y = min(minPos.y, v.y);
-			maxPos.x = max(maxPos.x, v.x);
-			maxPos.y = max(maxPos.y, v.y);
-		}
+		if (!isText)
+		{			
+			verts.reserve(vertices.size());
+			
+			vec2 minPos = vertices[0];
+			vec2 maxPos = vertices[0];
+			for (const auto& v : vertices)
+			{
+				minPos.x = min(minPos.x, v.x);
+				minPos.y = min(minPos.y, v.y);
+				maxPos.x = max(maxPos.x, v.x);
+				maxPos.y = max(maxPos.y, v.y);
+			}
 
-		vec2 size = maxPos - minPos;
-		if (size.x == 0.0f) size.x = 1.0f;
-		if (size.y == 0.0f) size.y = 1.0f;
-		
-		for (const auto& v : vertices)
-		{
-			vec2 uv = (v - minPos) / size;
-			verts.push_back({ v, uv });
+			vec2 size = maxPos - minPos;
+			if (size.x == 0.0f) size.x = 1.0f;
+			if (size.y == 0.0f) size.y = 1.0f;
+			
+			for (const auto& v : vertices)
+			{
+				vec2 uv = (v - minPos) / size;
+				verts.push_back({ v, uv });
+			}	
 		}
 
 		glGenVertexArrays(1, &vaoOut);
@@ -299,11 +304,22 @@ namespace KalaWindow::UI
 
 		//VBO
 		glBindBuffer(GL_ARRAY_BUFFER, vboOut);
-		glBufferData(
-			GL_ARRAY_BUFFER,
-			verts.size() * sizeof(Vertex),
-			verts.data(),
-			GL_STATIC_DRAW);
+		if (isText)
+		{
+			glBufferData(
+				GL_ARRAY_BUFFER,
+				vertices.size() * sizeof(vec2),
+				vertices.data(),
+				GL_STATIC_DRAW);
+		}
+		else
+		{
+			glBufferData(
+				GL_ARRAY_BUFFER,
+				verts.size() * sizeof(Vertex),
+				verts.data(),
+				GL_STATIC_DRAW);
+		}
 
 		//EBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboOut);
