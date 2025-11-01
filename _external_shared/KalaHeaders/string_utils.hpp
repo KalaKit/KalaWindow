@@ -117,6 +117,56 @@ namespace KalaHeaders
 
 		return true;
 	}
+	
+	//Split origin into a vector of chunks between each splitter,
+	//keep strings between two tokens as a single string with preserved tokens
+	inline vector<string> TokenizeString(
+		const string& origin,
+		char token,
+		const string& splitter)
+	{
+		//return nothing if origin is empty
+		if (origin.empty()) return{};
+		
+		vector<string> result{};
+		string current{};
+		bool inQuotes{};
+		size_t i = 0;
+		
+		while (i < origin.size())
+		{
+			char c = origin[i];
+			
+			if (c == token)
+			{
+				inQuotes = !inQuotes;
+				current += c; //keep the token itself
+				++i;
+				continue;
+			}
+			
+			if (!inQuotes
+				&& origin.compare(i, splitter.size(), splitter) == 0)
+			{
+				if (!current.empty())
+				{
+					result.emplace_back(current);
+					current.clear();
+				}
+				
+				i += splitter.size();
+				continue;
+			}
+			
+			current += c;
+			++i;
+		}
+		
+		if (!current.empty()) result.emplace_back(current);
+		
+		return result;
+	}
+	
 
 	//Split origin into a vector of chunks between each splitter
 	inline vector<string> SplitString(

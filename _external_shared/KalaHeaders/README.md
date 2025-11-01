@@ -40,6 +40,7 @@ Various string conversions and functions to improve workflow with string operati
 | Function             | Description                                                         |
 |----------------------|---------------------------------------------------------------------|
 | CompareStrings       | Compare origin to target with optional case sensitivity toggle      |
+| TokenizeString       | Split origin into a vector of chunks between each splitter, keep strings between two tokens as a single string with preserved tokens |
 | SplitString          | Split origin into a vector of chunks between each splitter          |
 | JoinString           | Join all elements of a vector into a single string with a delimiter |
 | TrimString           | Remove leading and trailing whitespace characters from origin       |
