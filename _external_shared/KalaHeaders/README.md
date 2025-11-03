@@ -76,11 +76,8 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 | GetFileSize          | Get the size of the target file in bytes |
 | GetDirectorySize     | Get the size of the target directory in bytes |
 | GetTextFileLineCount | Get the count of lines in a text file |
-| GetPathName          | Get the filename of the target (with extension) |
 | GetPathStem          | Get the stem (filename without extension) of the target |
-| GetPathParent        | Get the parent directory of the target |
 | SetPathExtension     | Set the extension of the target |
-| GetPathExtension     | Get the extension of the target |
 
 ### Text I/O
 
@@ -175,3 +172,10 @@ Provides parent-child hierarchy management and fast lookup through recursive tra
 | RemoveChild       | Removes child B from A |
 | GetAllChildren    | Returns all children of A |
 | RemoveAllChildren | Removes all children of A |
+
+## Audio converters
+
+These headers provide simple C++ conversion from common audio formats to raw PCM data.
+
+Supported formats:
+- .wav

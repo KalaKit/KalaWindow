@@ -8,12 +8,10 @@
 //
 // Provides:
 //   - file management - create file, create directory, list directory contents, rename, delete, copy, move
-//   - file metadata - file size, directory size, line count, get filename (stem + extension), get stem, get parent, get/set extension
+//   - file metadata - file size, directory size, line count, set extension
 //   - text I/O - read/write data for text files with vector of string lines or string blob
 //   - binary I/O - read/write data for binary files with vector of bytes or buffer + size
 //------------------------------------------------------------------------------
-
-//TODO: add checks for file locked, file read only, no write/read permissions for file, disk space full
 
 #pragma once
 
@@ -59,6 +57,8 @@ namespace KalaHeaders
 	using std::filesystem::file_size;
 	using std::filesystem::recursive_directory_iterator;
 	using std::filesystem::directory_iterator;
+	using std::filesystem::status;
+	using std::filesystem::perms;
 
 	enum class FileType
 	{
@@ -128,6 +128,22 @@ namespace KalaHeaders
 		{
 			oss << "Failed to create new file at path '" << target
 				<< "' because it already exists!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target.parent_path());
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+		
+		if (!canWrite)
+		{
+			oss << "Failed to create target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
 		}
@@ -239,6 +255,22 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
+		auto fileStatus = status(target.parent_path());
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+		
+		if (!canWrite)
+		{
+			oss << "Failed to create directory '" << target << "' because of insufficient write permissions!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -271,6 +303,22 @@ namespace KalaHeaders
 		if (!is_directory(target))
 		{
 			oss << "Failed to list paths from target '" << target << "' because it is not a directory!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to list directory contents from target '" << target << "' because of insufficient read permissions!";
 
 			return oss.str();
 		}
@@ -332,6 +380,22 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
+		auto fileStatus = status(target.parent_path());
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+
+		if (!canWrite)
+		{
+			oss << "Failed to rename target '" << target << "' because of insufficient write permissions!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -359,6 +423,22 @@ namespace KalaHeaders
 		{
 			oss << "Failed to delete target '"
 				<< target << "' because it does not exist!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target.parent_path());
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+
+		if (!canWrite)
+		{
+			oss << "Failed to delete target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
 		}
@@ -420,6 +500,38 @@ namespace KalaHeaders
 		{
 			oss << "Failed to copy origin '" << origin << "' to '"
 				<< target << "' because origin is a file but target is empty!";
+
+			return oss.str();
+		}
+		
+		auto fileStatusOrigin = status(origin.parent_path());
+		auto filePermsOrigin = fileStatusOrigin.permissions();
+		
+		bool canWriteOrigin = (filePermsOrigin & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+
+		if (!canWriteOrigin)
+		{
+			oss << "Failed to copy origin '" << origin << "' to target '" << target << "' because of insufficient write permissions for origin!";
+
+			return oss.str();
+		}
+		
+		auto fileStatusTarget = status(target.parent_path());
+		auto filePermsTarget = fileStatusTarget.permissions();
+		
+		bool canWriteTarget = (filePermsTarget & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+
+		if (!canWriteTarget)
+		{
+			oss << "Failed to copy origin '" << origin << "' to target '" << target << "' because of insufficient write permissions for target!";
 
 			return oss.str();
 		}
@@ -501,6 +613,38 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
+		auto fileStatusOrigin = status(origin.parent_path());
+		auto filePermsOrigin = fileStatusOrigin.permissions();
+		
+		bool canWriteOrigin = (filePermsOrigin & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+
+		if (!canWriteOrigin)
+		{
+			oss << "Failed to move origin '" << origin << "' to target '" << target << "' because of insufficient write permissions for origin!";
+
+			return oss.str();
+		}
+		
+		auto fileStatusTarget = status(target.parent_path());
+		auto filePermsTarget = fileStatusTarget.permissions();
+		
+		bool canWriteTarget = (filePermsTarget & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+
+		if (!canWriteTarget)
+		{
+			oss << "Failed to move origin '" << origin << "' to target '" << target << "' because of insufficient write permissions for target!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -541,6 +685,22 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
+		auto fileStatus = status(target.parent_path());
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to get file size from target '" << target << "' because of insufficient read permissions!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -573,6 +733,22 @@ namespace KalaHeaders
 		if (!is_directory(target))
 		{
 			oss << "Failed to get target directory '" << target << "' size because it is not a directory!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to get directory size from target '" << target << "' because of insufficient read permissions!";
 
 			return oss.str();
 		}
@@ -629,6 +805,22 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to get text file line count from target '" << target << "' because of insufficient read permissions!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -676,72 +868,6 @@ namespace KalaHeaders
 		return{};
 	}
 
-	//Get the filename of the target (with extension)
-	inline string GetPathName(
-		const path& target,
-		string& outName)
-	{
-		ostringstream oss{};
-
-		if (!exists(target))
-		{
-			oss << "Failed to get target '"
-				<< target << "' name because it does not exist!";
-
-			return oss.str();
-		}
-
-		outName = target.filename().string();
-
-		return{};
-	}
-	//Get the stem (filename without extension) of the target
-	inline string GetPathStem(
-		const path& target,
-		string& outStem)
-	{
-		ostringstream oss{};
-
-		if (!exists(target))
-		{
-			oss << "Failed to get target '"
-				<< target << "' stem because it does not exist!";
-
-			return oss.str();
-		}
-
-		outStem = target.stem().string();
-
-		return{};
-	}
-
-	//Get the parent directory of the target
-	inline string GetPathParent(
-		const path& target,
-		string& outParent)
-	{
-		ostringstream oss{};
-
-		if (!exists(target))
-		{
-			oss << "Failed to get target '"
-				<< target << "' parent path because it does not exist!";
-
-			return oss.str();
-		}
-		if (!target.has_parent_path())
-		{
-			oss << "Failed to get parent path for target '"
-				<< target << "' because it does not have a parent!";
-
-			return oss.str();
-		}
-
-		outParent = target.parent_path().string();
-
-		return{};
-	}
-
 	//Set the extension of the target
 	inline string SetPathExtension(
 		const path& target,
@@ -761,6 +887,22 @@ namespace KalaHeaders
 		{
 			oss << "Failed to set extension for target '"
 				<< target << "' because it is not a regular file!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+		
+		if (!canWrite)
+		{
+			oss << "Failed to set path extension for target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
 		}
@@ -794,32 +936,6 @@ namespace KalaHeaders
 
 		return{};
 	}
-	//Get the extension of the target
-	inline string GetPathExtension(
-		const path& target,
-		string& outExtension)
-	{
-		ostringstream oss{};
-
-		if (!exists(target))
-		{
-			oss << "Failed to get target '"
-				<< target << "' extension because it does not exist!";
-
-			return oss.str();
-		}
-		if (!is_regular_file(target))
-		{
-			oss << "Failed to get extension for target '"
-				<< target << "' because it is not a regular file!";
-
-			return oss.str();
-		}
-
-		outExtension = target.extension().string();
-
-		return{};
-	}
 
 	//
 	// TEXT I/O
@@ -844,6 +960,22 @@ namespace KalaHeaders
 		if (inText.empty())
 		{
 			oss << "Failed to write text to target '" << target << "' because inText string is empty!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+		
+		if (!canWrite)
+		{
+			oss << "Failed to write text to target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
 		}
@@ -916,6 +1048,22 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to get text from target '" << target << "' because of insufficient read permissions!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -985,6 +1133,22 @@ namespace KalaHeaders
 		if (inLines.empty())
 		{
 			oss << "Failed to write lines to target '" << target << "' because inLines vector is empty!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+		
+		if (!canWrite)
+		{
+			oss << "Failed to write lines to target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
 		}
@@ -1061,6 +1225,22 @@ namespace KalaHeaders
 		if (!is_regular_file(target))
 		{
 			oss << "Failed to read lines from target '" << target << "' because it is not a regular file!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to read lines from target '" << target << "' because of insufficient read permissions!";
 
 			return oss.str();
 		}
@@ -1213,6 +1393,22 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canWrite = (filePerms & (
+			perms::owner_write
+			| perms::group_write
+			| perms::others_write))  
+			!= perms::none;
+		
+		if (!canWrite)
+		{
+			oss << "Failed to write binary lines to target '" << target << "' because of insufficient write permissions!";
+
+			return oss.str();
+		}
 
 		try
 		{
@@ -1303,6 +1499,22 @@ namespace KalaHeaders
 		if (!is_regular_file(target))
 		{
 			oss << "Failed to read binary from target '" << target << "' because it is not a regular file!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to read binary lines from target '" << target << "' because of insufficient read permissions!";
 
 			return oss.str();
 		}
@@ -1473,9 +1685,26 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
 		if (inData.empty())
 		{
 			oss << "Failed to get binary data range from target '" << target << "' because input string was empty!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to get range by value from target '" << target << "' because of insufficient read permissions!";
 
 			return oss.str();
 		}
@@ -1632,9 +1861,26 @@ namespace KalaHeaders
 
 			return oss.str();
 		}
+		
 		if (inData.empty())
 		{
 			oss << "Failed to get binary data range from target '" << target << "' because input vector was empty!";
+
+			return oss.str();
+		}
+		
+		auto fileStatus = status(target);
+		auto filePerms = fileStatus.permissions();
+		
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))  
+			!= perms::none;
+		
+		if (!canRead)
+		{
+			oss << "Failed to get range by value from target '" << target << "' because of insufficient read permissions!";
 
 			return oss.str();
 		}
