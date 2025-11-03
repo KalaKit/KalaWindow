@@ -14,5 +14,6 @@ These libraries are used for various purposes, their licenses are included in th
 |----------------------------------------------------------------------|------------------------------------------------------|
 | [stb](https://github.com/nothings/stb)                               | Various image and text editing headers and others.   |
 | [MiniAudio](https://github.com/mackron/miniaudio)                    | Plays and records audio on multiple platforms.       |
+| [FreeType](https://github.com/freetype/freetype)                     | OTF/TTF font parser.                                 |
 | [OpenGL headers](https://github.com/KhronosGroup/OpenGL-Registry)    | Headers used for OpenGL functionality                |
 | [Vulkan tools and headers](https://www.lunarg.com/vulkan-sdk/)       | Tools and headers used for Vulkan functionality      |

@@ -76,6 +76,11 @@ origin: _external_shared@miniaudio
 target: ..@Circuit-chan@_external_shared@miniaudio, ..@Elypso-engine@_external_shared@miniaudio, ..@Elypso-hub@_external_shared@miniaudio, ..@Solin@_external_shared@miniaudio
 action: copy
 
+//freetype
+origin: _external_shared@freetype
+target: ..@Circuit-chan@_external_shared@freetype, ..@Elypso-engine@_external_shared@freetype, ..@Elypso-hub@_external_shared@freetype, ..@Solin@_external_shared@freetype
+action: copy
+
 //OpenGL
 origin: _external_shared@OpenGL
 target: ..@Circuit-chan@_external_shared@OpenGL, ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL, ..@Solin@_external_shared@OpenGL
