@@ -59,6 +59,13 @@ namespace KalaHeaders
 	using std::filesystem::directory_iterator;
 	using std::filesystem::status;
 	using std::filesystem::perms;
+	
+	using u8 = uint8_t;
+	using u16 = uint16_t;
+	using u32 = uint32_t;
+	using i8 = int8_t;
+	using i16 = int16_t;
+	using i32 = int32_t;
 
 	enum class FileType
 	{
@@ -1642,21 +1649,21 @@ namespace KalaHeaders
 		return{};
 	}
 	
-	inline uint8_t ReadU8(
-		const vector<uint8_t>& data,
+	inline u8 ReadU8(
+		const vector<u8>& data,
 		size_t offset)
 	{
 		return data[offset];
 	}
-	inline uint16_t ReadU16(
-		const vector<uint8_t>& data,
+	inline u16 ReadU16(
+		const vector<u8>& data,
 		size_t offset)
 	{
 		return (data[offset] << 8)
 			| data[offset + 1];
 	}
-	inline uint32_t ReadU32(
-		const vector<uint8_t>& data,
+	inline u32 ReadU32(
+		const vector<u8>& data,
 		size_t offset)
 	{
 		return (data[offset] << 24)
@@ -1664,7 +1671,32 @@ namespace KalaHeaders
 			| (data[offset + 2] << 8)
 			| (data[offset + 3]);
 	}
-
+	
+	inline i8 ReadI8(
+		const vector<u8>& data,
+		size_t offset)
+	{
+		return static_cast<i8>(data[offset]);
+	}
+	inline i16 ReadI16(
+		const vector<u8>& data,
+		size_t offset)
+	{
+		return static_cast<i16>(
+			(data[offset] << 8)
+			| data[offset + 1]);
+	}
+	inline i32 ReadI32(
+		const vector<u8>& data,
+		size_t offset)
+	{
+		return static_cast<i32>(
+			(data[offset] << 24)
+			| (data[offset + 1] << 16)
+			| (data[offset + 2] << 8)
+			| (data[offset + 3]));
+	}
+	
 	//Return all start and end of defined string in a binary
 	inline string GetRangeByValue(
 		const path& target,

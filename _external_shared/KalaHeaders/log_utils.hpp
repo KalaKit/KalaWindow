@@ -39,18 +39,19 @@ namespace KalaHeaders
 	using std::memcpy;
 	using std::strftime;
 	using std::snprintf;
+	
+	using u8 = uint8_t;
+	using u16 = uint16_t;
+	using u32 = uint32_t;
 
-	//Final array buffer size sent to stdout/stderr.
-	//Should always be bigger than datestamp + timestamp + tag + message max length
-	constexpr size_t BUFFER_SIZE = 5200;
 	//Max allowed print message length
-	constexpr size_t MAX_MESSAGE_LENGTH = 5000;
+	constexpr u16 MAX_MESSAGE_LENGTH = 2000;
 	//Max allowed full print tag length
-	constexpr size_t MAX_TAG_LENGTH = 50;
+	constexpr u8 MAX_TAG_LENGTH = 50;
 	//Max allowed indentation length per message
-	constexpr size_t MAX_INDENT_LENGTH = 20;
+	constexpr u8 MAX_INDENT_LENGTH = 20;
 	//How many type + tag combinations are cached
-	constexpr size_t CACHED_TAGS_LENGTH = 50;
+	constexpr u8 CACHED_TAGS_LENGTH = 50;
 
 	enum class LogType
 	{
@@ -325,7 +326,7 @@ namespace KalaHeaders
 			if (type == LogType::LOG_DEBUG) return;
 #endif
 
-			static thread_local const string empty{};
+			thread_local const string empty{};
 
 			if (message.empty()
 				|| target.empty())
@@ -333,7 +334,7 @@ namespace KalaHeaders
 				return;
 			}
 
-			message = message.substr(0, MAX_MESSAGE_LENGTH);
+			string trimmed = TrimUTF8(message);
 			target = target.substr(0, MAX_TAG_LENGTH);
 
 			const string& timeStamp = 
@@ -356,8 +357,7 @@ namespace KalaHeaders
 
 			const string& prefix = GetCachedPrefix(type, target);
 
-			thread_local array<char, BUFFER_SIZE> buf{};
-			char* p = buf.data();
+			char* p = logBuffer.data();
 
 			//append [ date ] [ time ]
 			if (!dateStamp.empty())
@@ -384,7 +384,11 @@ namespace KalaHeaders
 			//indentation
 			if (indentation > 0)
 			{
-				unsigned int clamped = clamp(indentation, 0u, static_cast<unsigned int>(MAX_INDENT_LENGTH));
+				unsigned int clamped = clamp(
+					indentation,
+					0u,
+					static_cast<unsigned int>(MAX_INDENT_LENGTH));
+					
 				memset(p, ' ', clamped);
 				p += clamped;
 			}
@@ -393,9 +397,9 @@ namespace KalaHeaders
 			memcpy(p, prefix.data(), prefix.size());
 			p += prefix.size();
 
-			//message
-			memcpy(p, message.data(), message.size());
-			p += message.size();
+			//trimmed message
+			memcpy(p, trimmed.data(), trimmed.size());
+			p += trimmed.size();
 
 			//newline
 			*p++ = '\n';
@@ -404,8 +408,8 @@ namespace KalaHeaders
 				? stderr
 				: stdout;
 
-			const size_t length = static_cast<size_t>(p - buf.data());
-			fwrite(buf.data(), 1, length, out);
+			const size_t length = static_cast<size_t>(p - logBuffer.data());
+			fwrite(logBuffer.data(), 1, length, out);
 
 			if (flush
 				|| type == LogType::LOG_ERROR)
@@ -424,25 +428,56 @@ namespace KalaHeaders
 		{
 			if (message.empty()) return;
 
-			message = message.substr(0, MAX_MESSAGE_LENGTH);
+			string trimmed = TrimUTF8(message);
 
-			thread_local array<char, BUFFER_SIZE> buf{};
-			const size_t length = message.size();
+			const size_t length = trimmed.size();
 			const size_t totalLength = length + 1; //+1 for '\n'
 
-			memcpy(buf.data(), message.data(), length);
-			buf[length] = '\n';
+			memcpy(logBuffer.data(), trimmed.data(), length);
+			logBuffer[length] = '\n';
 
-			fwrite(buf.data(), 1, totalLength, stdout);
+			fwrite(logBuffer.data(), 1, totalLength, stdout);
 			if (flush) fflush(stdout);
 		}
 	private:
 		static inline TimeFormat defaultTimeFormat = TimeFormat::TIME_HMS_MS;
 		static inline DateFormat defaultDateFormat = DateFormat::DATE_NONE;
+		
+		//Message length + headroom for tag, date stamp, time stamp and indent
+		static inline thread_local array<char, MAX_MESSAGE_LENGTH + 256> logBuffer{};
 
 		static inline thread_local array<CachedPrefix, CACHED_TAGS_LENGTH> prefixCache{};
 		static inline thread_local size_t prefixSize{};  //total filled cached prefixes
 		static inline thread_local size_t prefixClock{}; //where to overwrite next once the cache is full
+		
+		static inline string TrimUTF8(string_view s)
+		{
+			size_t bytes = 0;
+			size_t chars = 0;
+			
+			while (bytes < s.size() 
+				&& chars < MAX_MESSAGE_LENGTH)
+			{
+				unsigned char c = static_cast<unsigned char>(s[bytes]);
+				
+				size_t charLen = 
+					(c < 0x80) ? 1 
+					: (c < 0xE0) ? 2 
+					: (c < 0xF0) ? 3 
+					: 4;
+					
+				if (bytes + charLen > s.size()) break; //incomplete char
+				
+				bytes += charLen;
+				++chars;
+			}
+			
+			string result(s.data(), bytes);
+			
+			if (bytes < s.size()) result.append("\n[TRIMMED LONG MESSAGE]");
+			
+			return result;
+		};
 
 		static constexpr const char* LogTypeTag[] =
 		{
