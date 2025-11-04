@@ -43,15 +43,6 @@ set(INCLUDE_DIR "${CMAKE_SOURCE_DIR}/include")
 
 set(EXT_SHARED_DIR "${CMAKE_SOURCE_DIR}/_external_shared")
 
-set(EXT_FREETYPE_DIR "${EXT_SHARED_DIR}/FreeType")
-
-# Library Paths
-if(IS_RELEASE)
-    set(FREETYPE_LIBRARY_PATH "${EXT_FREETYPE_DIR}/release/freetype.lib")
-else()
-    set(FREETYPE_LIBRARY_PATH "${EXT_FREETYPE_DIR}/debug/freetyped.lib")
-endif()
-
 # Source Files
 file(GLOB_RECURSE SOURCE_FILES CONFIGURE_DEPENDS
     "${SRC_DIR}/*.cpp"
@@ -108,7 +99,6 @@ target_compile_definitions(KalaWindow PRIVATE
 target_link_libraries(KalaWindow PRIVATE
 	OpenGL::GL
 	${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib
-	${FREETYPE_LIBRARY_PATH}
 )
 	
 # Expose version string
@@ -158,35 +148,6 @@ configure_file(
 )
 
 target_sources(KalaWindow PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
-
-# Copy external binaries
-if(IS_RELEASE)
-	set(BIN_FREETYPE "${EXT_FREETYPE_DIR}/release")
-else()
-	set(BIN_FREETYPE "${EXT_FREETYPE_DIR}/debug")
-endif()
-
-if (IS_RELEASE)
-	file(GLOB BIN_FILES
-		"${BIN_FREETYPE}/*.dll"
-	)
-else()
-	file(GLOB BIN_FILES
-		"${BIN_FREETYPE}/*.dll"
-		"${BIN_FREETYPE}/*.pdb"
-	)
-endif()
-
-set(BIN_TARGET_DIR "$<TARGET_FILE_DIR:KalaWindow>")
-
-foreach(BIN_FILE ${BIN_FILES})
-    get_filename_component(BIN_NAME ${BIN_FILE} NAME)
-    add_custom_command(TARGET KalaWindow POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy 
-			"${BIN_FILE}"
-			"${BIN_TARGET_DIR}/${BIN_NAME}"
-    )
-endforeach()
 
 # Copy important files
 set(COPY_TARGETS README.md LICENSE.md logo.png)
