@@ -23,7 +23,9 @@ namespace KalaHeaders
 	using std::search;
 	using std::transform;
 	using std::toupper;
-	using std::tolower;	
+	using std::tolower;
+	using std::isdigit;
+	using std::isspace;
 
 	//
 	// CONVERSION FUNCTIONS
@@ -302,6 +304,32 @@ namespace KalaHeaders
 			});
 
 		return result;
+	}
+	
+	//Returns true if the string has one or more numbers
+	inline bool HasAnyNumber(const string& origin)
+	{
+		for (unsigned char c : origin) if (isdigit(c)) return true;
+		
+		return false;
+	}
+	//Returns true if the string has one or more non-number characters
+	inline bool HasAnyNonNumber(const string& origin)
+	{
+		for (unsigned char c : origin) if (!isdigit(c)) return true;
+		
+		return false;
+	}
+	//Returns true if the string has one or more white-space characters
+	//  - ' '
+	//  - '\t'
+	//  - '\n'
+	//  - '\r'
+	inline bool HasAnyWhiteSpace(const string& origin)
+	{
+		for (unsigned char c : origin) if (isspace(c)) return true;
+		
+		return false;
 	}
 
 	//Check if origin starts with target

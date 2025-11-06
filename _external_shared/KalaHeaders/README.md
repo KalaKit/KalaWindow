@@ -173,9 +173,6 @@ Provides parent-child hierarchy management and fast lookup through recursive tra
 | GetAllChildren    | Returns all children of A |
 | RemoveAllChildren | Removes all children of A |
 
-## Audio converters
+## Import ktf
 
-These headers provide simple C++ conversion from common audio formats to raw PCM data.
-
-Supported formats:
-- .wav
+This header is solely responsible for parsing and importing data from ktf (KalaText File) files. Use the 'ImportKTF' function to import a new ktf file.

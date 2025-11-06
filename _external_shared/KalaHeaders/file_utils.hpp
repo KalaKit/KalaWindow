@@ -1649,52 +1649,188 @@ namespace KalaHeaders
 		return{};
 	}
 	
+	inline void WriteU8(
+		vector<u8>& data,
+		size_t offset,
+		u8 value)
+	{
+		//append data to the end of the file
+		if (offset == static_cast<size_t>(-1))
+		{
+			data.push_back(value);
+			return;
+		}
+		
+		//writes at target offset, auto-resizes if needed
+		if (offset >= data.size()) data.resize(offset + 1);
+		
+		data[offset] = value;
+	}
+	inline void WriteU16(
+		vector<u8>& data,
+		size_t offset,
+		u16 value)
+	{
+		//append data to the end of the file
+		if (offset == static_cast<size_t>(-1))
+		{
+			data.push_back(static_cast<u8>(value & 0xFF));
+			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
+			return;
+		}
+		
+		//writes at target offset, auto-resizes if needed
+		if (offset + 1 >= data.size()) data.resize(offset + 2);
+		
+		data[offset]     = static_cast<u8>(value & 0xFF);
+		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
+	}
+	inline void WriteU32(
+		vector<u8>& data,
+		size_t offset,
+		u32 value)
+	{
+		//append data to the end of the file
+		if (offset == static_cast<size_t>(-1))
+		{
+			data.push_back(static_cast<u8>(value & 0xFF));
+			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
+			data.push_back(static_cast<u8>((value >> 16) & 0xFF));
+			data.push_back(static_cast<u8>((value >> 24) & 0xFF));
+			return;
+		}
+		
+		//writes at target offset, auto-resizes if needed
+		if (offset + 3 >= data.size()) data.resize(offset + 4);
+		
+		data[offset]     = static_cast<u8>(value & 0xFF);
+		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
+		data[offset + 2] = static_cast<u8>((value >> 16) & 0xFF);
+		data[offset + 3] = static_cast<u8>((value >> 24) & 0xFF);
+	}
+	
 	inline u8 ReadU8(
 		const vector<u8>& data,
 		size_t offset)
 	{
-		return data[offset];
+		return (offset >= data.size())
+			? 0x00
+			: static_cast<u8>(data[offset]);
 	}
 	inline u16 ReadU16(
 		const vector<u8>& data,
 		size_t offset)
 	{
-		return (data[offset] << 8)
-			| data[offset + 1];
+		return (offset + 1 >= data.size())
+			? 0x0000
+			: static_cast<u16>(data[offset])
+			| static_cast<u16>(data[offset + 1]) << 8;
 	}
 	inline u32 ReadU32(
 		const vector<u8>& data,
 		size_t offset)
 	{
-		return (data[offset] << 24)
-			| (data[offset + 1] << 16)
-			| (data[offset + 2] << 8)
-			| (data[offset + 3]);
+		return (offset + 3 >= data.size())
+			? 0x00000000
+			: static_cast<u32>(data[offset])
+			| static_cast<u32>(data[offset + 1]) << 8
+			| static_cast<u32>(data[offset + 2]) << 16
+			| static_cast<u32>(data[offset + 3]) << 24;
+	}
+	
+	inline void WriteI8(
+		vector<u8>& data,
+		size_t offset,
+		i8 value)
+	{
+		//append data to the end of the file
+		if (offset == static_cast<size_t>(-1))
+		{
+			data.push_back(static_cast<u8>(value));
+			return;
+		}
+		
+		//writes at target offset, auto-resizes if needed
+		if (offset >= data.size()) data.resize(offset + 1);
+		
+		data[offset] = value;
+	}
+	inline void WriteI16(
+		vector<u8>& data,
+		size_t offset,
+		i16 value)
+	{
+		//append data to the end of the file
+		if (offset == static_cast<size_t>(-1))
+		{
+			data.push_back(static_cast<u8>(value & 0xFF));
+			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
+			return;
+		}
+		
+		//writes at target offset, auto-resizes if needed
+		if (offset + 1 >= data.size()) data.resize(offset + 2);
+		
+		data[offset]     = static_cast<u8>(value & 0xFF);
+		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
+	}
+	inline void WriteI32(
+		vector<u8>& data,
+		size_t offset,
+		i32 value)
+	{
+		//append data to the end of the file
+		if (offset == static_cast<size_t>(-1))
+		{
+			data.push_back(static_cast<u8>(value & 0xFF));
+			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
+			data.push_back(static_cast<u8>((value >> 16) & 0xFF));
+			data.push_back(static_cast<u8>((value >> 24) & 0xFF));
+			return;
+		}
+		
+		//writes at target offset, auto-resizes if needed
+		if (offset + 3 >= data.size()) data.resize(offset + 4);
+		
+		data[offset]     = static_cast<u8>(value & 0xFF);
+		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
+		data[offset + 2] = static_cast<u8>((value >> 16) & 0xFF);
+		data[offset + 3] = static_cast<u8>((value >> 24) & 0xFF);
 	}
 	
 	inline i8 ReadI8(
 		const vector<u8>& data,
 		size_t offset)
 	{
-		return static_cast<i8>(data[offset]);
+		return (offset >= data.size())
+			? 0
+			: static_cast<i8>(data[offset]);
 	}
 	inline i16 ReadI16(
 		const vector<u8>& data,
 		size_t offset)
 	{
-		return static_cast<i16>(
-			(data[offset] << 8)
-			| data[offset + 1]);
+		if (offset + 1 >= data.size()) return 0;
+		
+		u16 value =
+			static_cast<u16>(data[offset])
+			| static_cast<u16>(data[offset + 1]) << 8;
+			
+		return static_cast<i16>(value);
 	}
 	inline i32 ReadI32(
 		const vector<u8>& data,
 		size_t offset)
 	{
-		return static_cast<i32>(
-			(data[offset] << 24)
-			| (data[offset + 1] << 16)
-			| (data[offset + 2] << 8)
-			| (data[offset + 3]));
+		if (offset + 3 >= data.size()) return 0;
+		
+		u32 value =
+			static_cast<u32>(data[offset])
+			| static_cast<u32>(data[offset + 1]) << 8
+			| static_cast<u32>(data[offset + 2]) << 16
+			| static_cast<u32>(data[offset + 3]) << 24;
+			
+		return static_cast<i32>(value);
 	}
 	
 	//Return all start and end of defined string in a binary
