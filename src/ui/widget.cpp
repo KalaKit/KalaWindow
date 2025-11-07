@@ -250,6 +250,7 @@ namespace KalaWindow::UI
 	void Widget::CreateWidgetGeometry(
 		const vector<vec2>& vertices,
 		const vector<u32>& indices,
+		const vector<u32>& uvs,
 		u32& vaoOut,
 		u32& vboOut,
 		u32& eboOut)
@@ -262,8 +263,6 @@ namespace KalaWindow::UI
 				"Failed to create widget geometry because vertices or indices were unassigned!");	
 		}
 		
-		bool isText = vertices.size() > 4;
-		
 		struct Vertex
 		{
 			vec2 pos;
@@ -271,29 +270,29 @@ namespace KalaWindow::UI
 		};
 		vector<Vertex> verts{};
 		
+		bool isText = uvs.empty();
+		
 		if (!isText)
-		{			
-			verts.reserve(vertices.size());
-			
-			vec2 minPos = vertices[0];
-			vec2 maxPos = vertices[0];
-			for (const auto& v : vertices)
+		{		
+			if (vertices.size() < 4
+				|| uvs.size() < 8)
 			{
-				minPos.x = min(minPos.x, v.x);
-				minPos.y = min(minPos.y, v.y);
-				maxPos.x = max(maxPos.x, v.x);
-				maxPos.y = max(maxPos.y, v.y);
+				KalaWindowCore::ForceClose(
+					"Widget error",
+					"Did not get enough vertices or uvs!");	
 			}
-
-			vec2 size = maxPos - minPos;
-			if (size.x == 0.0f) size.x = 1.0f;
-			if (size.y == 0.0f) size.y = 1.0f;
+	
+			verts.resize(vertices.size());
 			
-			for (const auto& v : vertices)
-			{
-				vec2 uv = (v - minPos) / size;
-				verts.push_back({ v, uv });
-			}	
+			verts[0].pos = vertices[0];
+			verts[1].pos = vertices[1];
+			verts[2].pos = vertices[2];
+			verts[3].pos = vertices[3];
+	
+			verts[0].uv = vec2(uvs[0], uvs[1]);
+			verts[1].uv = vec2(uvs[2], uvs[3]);
+			verts[2].uv = vec2(uvs[4], uvs[5]);
+			verts[3].uv = vec2(uvs[6], uvs[7]);
 		}
 
 		glGenVertexArrays(1, &vaoOut);

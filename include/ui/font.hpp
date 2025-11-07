@@ -10,17 +10,20 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
+#include "KalaHeaders/import_ktf.hpp"
 
 #include "utils/registry.hpp"
-#include "ui/import_kfont.hpp"
 
 namespace KalaWindow::UI
 {
 	using std::string;
 	using std::vector;
 
+	using KalaHeaders::GlyphHeader;
+	using KalaHeaders::GlyphTable;
+	using KalaHeaders::GlyphBlock;
+
 	using KalaWindow::Utils::Registry;
-	using KalaFont::GlyphResult;
 
 	class LIB_API Font
 	{
@@ -49,7 +52,9 @@ namespace KalaWindow::UI
 
 		inline const string& GetPath() const { return fontPath; }
 		
-		inline vector<GlyphResult>& GetGlyphData() { return result; } 
+		inline const GlyphHeader& GetGlyphHeader() const { return header; }
+		inline const vector<GlyphTable>& GetGlyphTables() const { return tables; }
+		inline const vector<GlyphBlock>& GetGlyphBlocks() const { return blocks; }
 
 		//Do not destroy manually, erase from registry instead
 		~Font();
@@ -59,7 +64,9 @@ namespace KalaWindow::UI
 		string name{};
 		string fontPath{};
 		
-		vector<GlyphResult> result{};
+		GlyphHeader header{};
+		vector<GlyphTable> tables{};
+		vector<GlyphBlock> blocks{};
 
 		u32 ID{};
 	};

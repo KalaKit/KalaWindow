@@ -7,15 +7,21 @@
 
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/file_utils.hpp"
+#include "KalaHeaders/import_ktf.hpp"
 
 #include "ui/font.hpp"
 #include "core/core.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
+using KalaHeaders::ImportKTF;
+using KalaHeaders::ResultToString;
+using KalaHeaders::ImportResult;
+using KalaHeaders::GlyphHeader;
+using KalaHeaders::GlyphTable;
+using KalaHeaders::GlyphBlock;
 
 using KalaWindow::Core::globalID;
-using KalaFont::ImportKalaFont;
 
 using std::to_string;
 using std::unique_ptr;
@@ -40,55 +46,30 @@ namespace KalaWindow::UI
 			"FONT",
 			LogType::LOG_DEBUG);
 
-		if (!exists(fontPath))
+		GlyphHeader header{};
+		vector<GlyphTable> tables{};
+		vector<GlyphBlock> blocks{};
+		
+		ImportResult result = ImportKTF(
+			path(fontPath),
+			header,
+			tables,
+			blocks);
+			
+		if (result != ImportResult::RESULT_SUCCESS)
 		{
 			Log::Print(
-				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not exist!",
+				"Failed to import font from path '" + fontPath + "'! Reason: " + ResultToString(result),
 				"FONT",
 				LogType::LOG_ERROR,
 				2);
-
+			
 			return nullptr;
 		}
 		
-		path correctFontPath = path(fontPath);
-		
-		if (!is_regular_file(correctFontPath))
-		{
-			Log::Print(
-				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not have an extension!",
-				"FONT",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
-		if (correctFontPath.extension() != ".kfont")
-		{
-			Log::Print(
-				"Cannot load font '" + name + "' because its path '" + fontPath + "' does not have the supported extension '.kfont'!",
-				"FONT",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
-		vector<GlyphResult> result{};
-		if (!ImportKalaFont(correctFontPath, result))
-		{
-			Log::Print(
-				"Failed to load font '" + name + "'!",
-				"FONT",
-				LogType::LOG_ERROR,
-				2);
-				
-			return nullptr;
-		}
-		
-		fontPtr->result = move(result);
-
+		fontPtr->header = move(header);
+		fontPtr->tables = move(tables);
+		fontPtr->blocks = move(blocks);
 		fontPtr->ID = newID;
 		fontPtr->SetName(name);
 		fontPtr->fontPath = fontPath;

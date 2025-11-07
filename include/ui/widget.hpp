@@ -543,6 +543,7 @@ namespace KalaWindow::UI
 		static void CreateWidgetGeometry(
 			const vector<vec2>& vertices,
 			const vector<u32>& indices,
+			const vector<u32>& uvs,
 			u32& vaoOut,
 			u32& vboOut,
 			u32& eboOut);

@@ -6,6 +6,7 @@
 #include <memory>
 
 #include "KalaHeaders/log_utils.hpp"
+#include "KalaHeaders/import_ktf.hpp"
 
 #include "core/core.hpp"
 #include "ui/text.hpp"
@@ -17,6 +18,9 @@
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
+using KalaHeaders::GlyphHeader;
+using KalaHeaders::GlyphTable;
+using KalaHeaders::GlyphBlock;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
@@ -134,7 +138,8 @@ namespace KalaWindow::UI
 		
 		textPtr->fontID = fontID;
 
-		vector<GlyphResult> glyphs = font->GetGlyphData();
+		const GlyphHeader& header = font->GetGlyphHeader();
+		vector<GlyphBlock> glyphs = font->GetGlyphBlocks();
 		if (glyphIndex >= glyphs.size())
 		{
 			Log::Print(
@@ -146,20 +151,58 @@ namespace KalaWindow::UI
 		}
 		
 		const auto& glyph = glyphs[glyphIndex];
-
-		vector<vec2> correctVertices{};
-		correctVertices.reserve(glyph.vertices.size() / 2);
-		for (size_t i = 0; i < glyph.vertices.size(); i += 2)
-		{
-			correctVertices.emplace_back(glyph.vertices[i], glyph.vertices[i + 1]);
-		}
 		
-		textPtr->render.vertices = move(correctVertices);
-		textPtr->render.indices = glyph.indices;
+		glGenTextures(1, &textPtr->textureID);
+		glBindTexture(GL_TEXTURE_2D, textPtr->textureID);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		
+		glTexImage2D(
+			GL_TEXTURE_2D,
+			0,
+			GL_RED,
+			glyph.width,
+			glyph.height,
+			0,
+			GL_RED,
+			GL_UNSIGNED_BYTE,
+			glyph.rawPixels.data());
+		
+		vector<vec2> verts{};
+		verts.push_back(vec2(glyph.vertices[0][0], glyph.vertices[0][1]));
+		verts.push_back(vec2(glyph.vertices[1][0], glyph.vertices[1][1]));
+		verts.push_back(vec2(glyph.vertices[2][0], glyph.vertices[2][1]));
+		verts.push_back(vec2(glyph.vertices[3][0], glyph.vertices[3][1]));
+		
+		vector<u32> inds{};
+		inds.push_back(static_cast<u32>(header.indices[0]));
+		inds.push_back(static_cast<u32>(header.indices[1]));
+		inds.push_back(static_cast<u32>(header.indices[2]));
+		inds.push_back(static_cast<u32>(header.indices[3]));
+		inds.push_back(static_cast<u32>(header.indices[4]));
+		inds.push_back(static_cast<u32>(header.indices[5]));
+		
+		vector<u32> uvs{};
+		uvs.push_back(static_cast<u32>(header.uvs[0][0]));
+		uvs.push_back(static_cast<u32>(header.uvs[0][1]));
+		uvs.push_back(static_cast<u32>(header.uvs[1][0]));
+		uvs.push_back(static_cast<u32>(header.uvs[1][1]));
+		uvs.push_back(static_cast<u32>(header.uvs[2][0]));
+		uvs.push_back(static_cast<u32>(header.uvs[2][1]));
+		uvs.push_back(static_cast<u32>(header.uvs[3][0]));
+		uvs.push_back(static_cast<u32>(header.uvs[3][1]));
+		
+		textPtr->render.vertices = verts;
+		textPtr->render.indices = inds;
 
 		Widget::CreateWidgetGeometry(
 			textPtr->render.vertices,
 			textPtr->render.indices,
+			uvs,
 			textPtr->render.VAO,
 			textPtr->render.VBO,
 			textPtr->render.EBO);
@@ -265,6 +308,13 @@ namespace KalaWindow::UI
 		{
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, render.texture->GetOpenGLID());
+			render.shader->SetInt(programID, "uTexture", 0);
+			render.shader->SetBool(programID, "uUseTexture", true);
+		}
+		else if (textureID != 0)
+		{
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, textureID);
 			render.shader->SetInt(programID, "uTexture", 0);
 			render.shader->SetBool(programID, "uUseTexture", true);
 		}

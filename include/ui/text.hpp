@@ -42,5 +42,6 @@ namespace KalaWindow::UI
 		virtual ~Text() override;
 	private:
 		u32 fontID{};
+		u32 textureID{};
 	};
 }
