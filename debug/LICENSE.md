@@ -1,5 +1,4 @@
-KalaWindow library repository
-https://github.com/KalaKit/KalaWindow
+[KalaWindow source repository](https://github.com/KalaKit/KalaWindow)
 
 ---
 

@@ -6,6 +6,7 @@
 #pragma once
 
 #include <array>
+#include <vector>
 #include <span>
 #include <string>
 
@@ -17,6 +18,7 @@
 namespace KalaWindow::Core
 {
 	using std::array;
+	using std::vector;
 	using std::fill;
 	using std::prev;
 	using std::span;
@@ -246,6 +248,92 @@ namespace KalaWindow::Core
 			if (mouseButton == MouseButton::MouseButtonCount) return;
 
 			mouseDoubleClicked[static_cast<size_t>(mouseButton)] = isDown;
+		}
+		
+		//Get the keys currently pressed this frame
+		inline vector<Key> GetPressedKeys()
+		{
+			vector<Key> result{};
+			
+			for (size_t i = 0; i < keyPressed.size(); ++i)
+			{
+				if (keyPressed[i]) result.push_back(static_cast<Key>(i));
+			}
+			
+			return result;
+		}
+		//Get the keys currently held this frame
+		inline vector<Key> GetHeldKeys()
+		{
+			vector<Key> result{};
+			
+			for (size_t i = 0; i < keyDown.size(); ++i)
+			{
+				if (keyDown[i]) result.push_back(static_cast<Key>(i));
+			}
+			
+			return result;
+		}
+		//Get the keys released this frame
+		inline vector<Key> GetReleasedKeys()
+		{
+			vector<Key> result{};
+			
+			for (size_t i = 0; i < keyReleased.size(); ++i)
+			{
+				if (keyReleased[i]) result.push_back(static_cast<Key>(i));
+			}
+			
+			return result;
+		}
+		
+		//Get the mouse buttons currently pressed this frame
+		inline vector<MouseButton> GetPressedMouseButtons()
+		{
+			vector<MouseButton> result{};
+			
+			for (size_t i = 0; i < mousePressed.size(); ++i)
+			{
+				if (mousePressed[i]) result.push_back(static_cast<MouseButton>(i));
+			}
+			
+			return result;
+		}
+		//Get the mouse buttons currently held this frame
+		inline vector<MouseButton> GetHeldMouseButtons()
+		{
+			vector<MouseButton> result{};
+			
+			for (size_t i = 0; i < mouseDown.size(); ++i)
+			{
+				if (mouseDown[i]) result.push_back(static_cast<MouseButton>(i));
+			}
+			
+			return result;
+		}
+		//Get the mouse buttons released this frame
+		inline vector<MouseButton> GetReleasedMouseButtons()
+		{
+			vector<MouseButton> result{};
+			
+			for (size_t i = 0; i < mouseReleased.size(); ++i)
+			{
+				if (mouseReleased[i]) result.push_back(static_cast<MouseButton>(i));
+			}
+			
+			return result;
+		}
+		//Get the mouse buttons double-clicked this frame
+		inline vector<MouseButton> GetDoubleClickedMouseButtons()
+		{
+			vector<MouseButton> result{};
+			
+			for (size_t i = 0; i < mouseDoubleClicked.size(); ++i)
+			{
+				if (mouseDoubleClicked[i]) result.push_back(static_cast<MouseButton>(i));
+			}
+			
+			return result;
 		}
 
 		//Detect if any combination of keys and mouse buttons are down

@@ -220,7 +220,6 @@ namespace KalaWindow::UI
 		textPtr->isInitialized = true;
 
 		registry.AddContent(newID, move(newText));
-		runtimeText.push_back(textPtr);
 		window->AddValue(TargetType::TYPE_WIDGET, newID);
 
 		Log::Print(

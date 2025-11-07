@@ -134,7 +134,6 @@ namespace KalaWindow::UI
 		imagePtr->isInitialized = true;
 
 		registry.AddContent(newID, move(newImage));
-		runtimeImages.push_back(imagePtr);
 		window->AddValue(TargetType::TYPE_WIDGET, newID);
 
 		Log::Print(

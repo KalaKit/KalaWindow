@@ -21,7 +21,6 @@ namespace KalaWindow::UI
 	{
 	public:
 		static inline Registry<Image> registry{};
-		static inline vector<Image*> runtimeImages{};
 
 		//Initialize a new Image widget.
 		//Parent widget is optional
