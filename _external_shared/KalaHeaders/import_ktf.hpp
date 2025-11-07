@@ -150,10 +150,10 @@ namespace KalaHeaders
 		//uv of this glyph
 		array<array<u8, 2>, 4> uvs = 
 		{{
-		    {0, 1},  //top-left
-			{1, 1},  //top-right
-			{1, 0},  //bottom-right
-			{0, 0}   //bottom-left
+		    {0, 0},  //top-left
+			{1, 0},  //top-right
+			{1, 1},  //bottom-right
+			{0, 1}   //bottom-left
 		}};       
 		u32 glyphTableSize{};     //glyph search table size in bytes
 		u32 glyphBlockSize{};     //glyph payload block size in bytes
