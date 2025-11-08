@@ -40,6 +40,17 @@ namespace KalaWindow::UI
 		//Render the text
 		virtual bool Render(const mat4& projection) override;
 
+		inline void AddChar(u32 newValue) { text.push_back(newValue); }
+		inline void AddTab()
+		{ 
+			for (int i = 0; i < 4; ++i)
+			{
+				text.push_back(static_cast<u32>(' '));
+			}
+		}
+		inline void AddNewLine() { text.push_back(static_cast<u32>('\n')); }
+		inline void RemoveCharFromBack() { if (!text.empty()) text.pop_back(); }
+		
 		inline void SetText(const vector<u32>& newValue) { text = newValue; }
 		inline vector<u32>& GetText() { return text; }
 		

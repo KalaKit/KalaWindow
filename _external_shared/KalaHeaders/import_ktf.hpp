@@ -17,10 +17,10 @@
 Offset | Size | Field
 -------|------|--------------------------------------------
 0      | 4    | KTF magic word, always 'K', 'T', 'F', '\0' aka '0x0046544B'
-4      | 1    | version, always '1'
+4      | 1    | ktf binary version
 5      | 1    | type, '1' for bitmap, '2' for glyph
-6      | 2    | height of all glyphs in pixels
-8      | 4    | number of glyphs, max is 1024 glyphs
+6      | 2    | height of glyphs passed during export, ranging from 10 to 100
+8      | 4    | max number of allowed glyphs, max is 1024
 12     | 1    | first indice, always '0'
 13     | 1    | second indice, always '1'
 14     | 1    | third indice, always '2'
@@ -31,15 +31,15 @@ Offset | Size | Field
 20     | 2    | top-right uv position (x, y)
 22     | 2    | bottom-right uv position (x, y)
 24     | 2    | bottom-left uv position (x, y)
-26     | 4    | glyph table size in bytes
-30     | 4    | glyph block size in bytes, max is 1024MB
+26     | 4    | glyph table size in bytes max is 12 KB
+30     | 4    | glyph block size in bytes, max is 1024 KB
 
 # KTF binary glyph table for glyph export-import
 
 Offset | Size | Field
 -------|------|--------------------------------------------
 ??     | 4    | character code in unicode
-??+4   | 4    | absolutre offset from start of file relative to its glyph block start
+??+4   | 4    | absolute offset from start of file relative to its glyph block start
 ??+8   | 4    | size of the glyh block (info + payload)
 
 # KTF binary glyph block for glyph export-import
@@ -116,11 +116,11 @@ namespace KalaHeaders
 	//Max allowed glyphs for bitmap and glyph exporting
 	constexpr u16 MAX_GLYPH_COUNT = 1024u;
 	
-	//Max allowed total glyph table size in bytes for bitmap and glyph exporting
+	//Max allowed total glyph table size in bytes for bitmap and glyph exporting (12 KB)
 	constexpr u32 MAX_GLYPH_TABLE_SIZE = 12288u;
 	
-	//Max allowed total glyph blocks size in bytes for bitmap and glyph exporting (1024MB)
-	constexpr u32 MAX_GLYPH_BLOCK_SIZE = 1073741824u;
+	//Max allowed total glyph blocks size in bytes for bitmap and glyph exporting (1024 KB)
+	constexpr u32 MAX_GLYPH_BLOCK_SIZE = 1048576u;
 	
 	constexpr u32 MIN_TOTAL_SIZE = 
 		CORRECT_GLYPH_HEADER_SIZE
@@ -133,12 +133,12 @@ namespace KalaHeaders
 		+ MAX_GLYPH_TABLE_SIZE 
 		+ MAX_GLYPH_BLOCK_SIZE;
 	
-	//Cannot be lower than this amount of pixels for FreeType importer
+	//Min allowed glyph height
 	constexpr u8 MIN_GLYPH_HEIGHT = 10;
-	//Cannot be higher than this amount of pixels for FreeType importer
+	//Max allowed glyph height
 	constexpr u8 MAX_GLYPH_HEIGHT = 100;
 	
-	//The main header for glyph export-import
+	//The main header at the top of each ktf file
 	struct GlyphHeader
 	{
 		u32 magic = KTF_MAGIC;    //'K', 'T', 'F', '\0'
@@ -159,7 +159,7 @@ namespace KalaHeaders
 		u32 glyphBlockSize{};     //glyph payload block size in bytes
 	};
 
-	//The search table for glyph export-import
+	//The table that helps look up glyphs individually
 	struct GlyphTable
 	{
 		u32 charCode{};    //glyph character code in unicode
@@ -167,7 +167,7 @@ namespace KalaHeaders
 		u32 blockSize{};   //size of the glyph block (info + payload)
 	};
 		
-	//The font payload table for glyph export-import
+	//The block containing data of each glyph
 	struct GlyphBlock
 	{
 		u32 charCode{};                     //glyph character code in unicode
@@ -203,14 +203,14 @@ namespace KalaHeaders
 		RESULT_UNSUPPORTED_FILE_SIZE       = 7,  //Always assume total size is atleast 52 bytes
 		
 		RESULT_INVALID_MAGIC               = 8,  //magic must be 'KTF\0'
-		RESULT_INVALID_VERSION             = 9,  //version must be '1'
+		RESULT_INVALID_VERSION             = 9,  //version must match
 		RESULT_INVALID_TYPE                = 10, //type must be '1' or '2'
 		RESULT_INVALID_GLYPH_HEIGHT        = 11, //glyph height must be within range
 		RESULT_INVALID_GLYPH_HEADER_SIZE   = 12, //found a glyph header that wasnt the correct size
 		RESULT_INVALID_GLYPH_TABLE_SIZE    = 13, //found a glyph table that wasnt the correct size
 		RESULT_INVALID_GLYPH_BLOCK_SIZE    = 14, //found a glyph block that was less or more than the allowed size
-		RESULT_INVALID_GLYPH_COUNT         = 15, //glyph count was above 1024
-		RESULT_CORRUPTED_BLOCK_OFFSET      = 16  //offset + block size is higher than file size
+		RESULT_INVALID_GLYPH_COUNT         = 15, //total glyph count was above allowed max glyph count
+		RESULT_UNEXPECTED_EOF              = 16  //file reached end sooner than expected
 	};
 	
 	inline string ResultToString(ImportResult result)
@@ -252,8 +252,8 @@ namespace KalaHeaders
 			return "RESULT_INVALID_GLYPH_BLOCK_SIZE";
 		case ImportResult::RESULT_INVALID_GLYPH_COUNT:
 			return "RESULT_INVALID_GLYPH_COUNT";
-		case ImportResult::RESULT_CORRUPTED_BLOCK_OFFSET:
-			return "RESULT_CORRUPTED_BLOCK_OFFSET";
+		case ImportResult::RESULT_UNEXPECTED_EOF:
+			return "RESULT_UNEXPECTED_EOF";
 		}
 		
 		return "RESULT_UNKNOWN";
@@ -366,8 +366,8 @@ namespace KalaHeaders
 				return ImportResult::RESULT_INVALID_GLYPH_COUNT;
 			}
 			
-			memcpy(&header.indices[0],     rawData.data() + 12, sizeof(u8) * 6);
-			memcpy(&header.uvs[0][0],      rawData.data() + 18, sizeof(u8) * 8);
+			memcpy(&header.indices[0], rawData.data() + 12, sizeof(u8) * 6);
+			memcpy(&header.uvs[0][0],  rawData.data() + 18, sizeof(u8) * 8);
 
 			memcpy(&header.glyphTableSize, rawData.data() + 26, sizeof(u32));
 			if (header.glyphTableSize < CORRECT_GLYPH_TABLE_SIZE
@@ -394,9 +394,9 @@ namespace KalaHeaders
 			{
 				GlyphTable t{};
 				
-				memcpy(&t.charCode, rawData.data() + i + 0, sizeof(u32));
+				memcpy(&t.charCode,    rawData.data() + i + 0, sizeof(u32));
 				memcpy(&t.blockOffset, rawData.data() + i + 4, sizeof(u32));
-				memcpy(&t.blockSize, rawData.data() + i + 8, sizeof(u32));
+				memcpy(&t.blockSize,   rawData.data() + i + 8, sizeof(u32));
 				
 				tables.push_back(t);
 			}
@@ -413,7 +413,7 @@ namespace KalaHeaders
 				
 				if (t.blockOffset + t.blockSize > fileSize)
 				{
-					return ImportResult::RESULT_CORRUPTED_BLOCK_OFFSET;
+					return ImportResult::RESULT_UNEXPECTED_EOF;
 				}
 				
 				memcpy(&b.charCode, rawData.data() + offset + 0, sizeof(u32));
@@ -431,7 +431,7 @@ namespace KalaHeaders
 				
 				if (offset + static_cast<u32>(RAW_PIXEL_DATA_OFFSET) + b.rawPixelSize > fileSize)
 				{
-					return ImportResult::RESULT_CORRUPTED_BLOCK_OFFSET;
+					return ImportResult::RESULT_UNEXPECTED_EOF;
 				}
 				
 				//raw pixel data

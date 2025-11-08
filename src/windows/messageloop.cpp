@@ -30,6 +30,7 @@
 #include "core/core.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
+#include "ui/text.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
@@ -51,6 +52,7 @@ using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
+using KalaWindow::UI::Text;
 
 using std::string;
 using std::to_string;
@@ -290,7 +292,10 @@ static Key TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 	return Key::Unknown;
 }
 
-static bool ProcessMessage(const MSG& msg, Window* window);
+static bool ProcessMessage(
+	const MSG& msg,
+	Window* window,
+	Text* activeText);
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
@@ -410,7 +415,7 @@ namespace KalaWindow::Windows
 		msgObj.lParam = lParam;
 
 		//return false if we handled the message ourselves
-		if (ProcessMessage(msgObj, window)) return false;
+		if (ProcessMessage(msgObj, window, activeText)) return false;
 
 		return DefWindowProc(
 			hwnd, 
@@ -459,7 +464,10 @@ static LRESULT CursorTest(
 	return HTCLIENT;
 }
 
-static bool ProcessMessage(const MSG& msg, Window* window)
+static bool ProcessMessage(
+	const MSG& msg,
+	Window* window,
+	Text* activeText)
 {
 	if (!window)
 	{
@@ -513,33 +521,10 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 	case WM_UNICHAR:
 	case WM_CHAR:
 	{
-		if (input)
+		if (input
+			&& activeText)
 		{
-			wstring wstr(1, static_cast<wchar_t>(msg.wParam));
-			string sstr = ToShort(wstr);
-
-			if (sstr == "\t")
-			{
-				sstr = " ";
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Converted 'tab' to four spaces.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected char '" + sstr + "'",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-
-			input->SetTypedLetter(sstr);
+			activeText->AddChar(static_cast<u32>(msg.wParam));
 		}
 
 		return true; //we handled it
@@ -572,6 +557,22 @@ static bool ProcessMessage(const MSG& msg, Window* window)
 			input->SetKeyState(
 				key,
 				true);
+				
+			if (activeText)
+			{
+				switch (msg.wParam)
+				{
+					case VK_BACK:
+						activeText->RemoveCharFromBack();
+						break;
+					case VK_TAB:
+						activeText->AddTab();
+						break;
+					case VK_RETURN:
+						activeText->AddNewLine();
+						break;
+				}
+			}
 		}
 
 		return false;
