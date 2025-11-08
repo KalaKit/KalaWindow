@@ -1,16 +1,11 @@
 # Default VS stuff
 out/
-.vs/
 build/
-*VSInheritEnvironments.txt
+.vs/
 
-# Build process
-*.ninja_deps
-*.ninja_log
-*build.ninja
-cmake*
-cpack*
-*.cmake/
+# Release and Debug in root folder
+/release/
+/debug/
 
 # Large files
 *.pdb
