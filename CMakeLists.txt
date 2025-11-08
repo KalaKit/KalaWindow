@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.29.2)
 
-set(PROGRAM_VERSION "KalaWindow 0.3 Alpha")
-set(PROGRAM_VERSION_NUMBER 0.3.0.0)
+set(PROGRAM_VERSION "KalaWindow 1.0")
+set(PROGRAM_VERSION_NUMBER 1.0.0.0)
 
 project("KalaWindow" VERSION ${PROGRAM_VERSION_NUMBER} LANGUAGES C CXX)
 
@@ -62,10 +62,7 @@ set(KALA_PREFIX "")
 if (KALA_PRERELEASE)
 	set(KALA_PREFIX "_")
 endif()
-	
-# Get version
-set(KALA_VERSION "${PROJECT_VERSION_MAJOR}${PROJECT_VERSION_MINOR}")
-	
+		
 # Get suffix
 if (IS_RELEASE)
 	set(KALA_SUFFIX "")
@@ -75,7 +72,7 @@ endif()
 
 # Set output name with renderer suffix and debug postfix
 set_target_properties(KalaWindow PROPERTIES
-	OUTPUT_NAME "${KALA_PREFIX}KalaWindow${KALA_VERSION}${KALA_SUFFIX}"
+	OUTPUT_NAME "${KALA_PREFIX}KalaWindow${PROJECT_VERSION_MAJOR}${KALA_SUFFIX}"
 )
 
 file(GLOB_RECURSE HEADERS configure_depends

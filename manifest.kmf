@@ -38,28 +38,28 @@ action: forcecopy
 //
 
 //copy debug dll
-origin: debug@_KalaWindow03d.dll
-target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow03d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow03d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow03d.dll, ..@Solin@_external_shared@KalaWindow@debug@_KalaWindow03d.dll
+origin: debug@_KalaWindow1d.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow03d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow03d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow1d.dll, ..@Solin@_external_shared@KalaWindow@debug@_KalaWindow1d.dll
 action: forcecopy
 
 //copy debug lib
-origin: debug@_KalaWindow03d.lib
-target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow03d.lib, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow03d.lib, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow03d.lib, ..@Solin@_external_shared@KalaWindow@debug@_KalaWindow03d.lib
+origin: debug@_KalaWindow1d.lib
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow1d.lib, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow1d.lib, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow1d.lib, ..@Solin@_external_shared@KalaWindow@debug@_KalaWindow1d.lib
 action: forcecopy
 
 //copy debug pdb
-origin: debug@_KalaWindow03d.pdb
-target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow03d.pdb, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow03d.pdb, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow03d.pdb, ..@Solin@_external_shared@KalaWindow@debug@_KalaWindow03d.pdb
+origin: debug@_KalaWindow1d.pdb
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@_KalaWindow1d.pdb, ..@Elypso-engine@_external_shared@KalaWindow@debug@_KalaWindow1d.pdb, ..@Elypso-hub@_external_shared@KalaWindow@debug@_KalaWindow1d.pdb, ..@Solin@_external_shared@KalaWindow@debug@_KalaWindow1d.pdb
 action: forcecopy
 
 //copy release dll
-origin: release@_KalaWindow03.dll
-target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.dll, ..@Solin@_external_shared@KalaWindow@release@_KalaWindow03.dll
+origin: release@_KalaWindow1.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow1.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow1.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow1.dll, ..@Solin@_external_shared@KalaWindow@release@_KalaWindow1.dll
 action: forcecopy
 
 //copy release lib
-origin: release@_KalaWindow03.lib
-target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow03.lib, ..@Solin@_external_shared@KalaWindow@release@_KalaWindow03.lib
+origin: release@_KalaWindow1.lib
+target: ..@Circuit-chan@_external_shared@KalaWindow@release@_KalaWindow1.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@_KalaWindow1.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@_KalaWindow1.lib, ..@Solin@_external_shared@KalaWindow@release@_KalaWindow1.lib
 action: forcecopy
 
 //
