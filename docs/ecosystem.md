@@ -7,8 +7,6 @@ the clis:
 - kalamove
 - kaladata
 - kalafont
-- kalaglyph
-- kalamodel
 
 Note: All clis follow the same original cli template which means all clis follow the same cli command system and can also accept system commands through the run command.
 
@@ -98,26 +96,6 @@ Stores various formats in bulk inside a custom binary, either uncompressed or wi
 Compiles .ttf and .otf fonts into .ktf (kalatype font) - a runtime-ready bitmap or per-glyph binary of vertices, indices, uvs and other relevant data related to the font that was passed. Locks to one base height and strips out all metadata of the original font file.
 
 Uses FreeType to help with font parsing.
-
----
-
-## KalaGlyph
-
-Compiles .png, .jpg and .jpeg images into .kgm (kalaglyph map) - a runtime-ready glyph map binary of vertices, indices, uvs and other relevant data related to the original images that were passed. Locks to one base height and strips out all metadata of the original image files.
-
-Uses stb_image to help with image parsing.
-
-Note: This is a concept, it has not yet started development.
-
----
-
-## KalaModel
-
-Compiles .fbx, .obj and .gltf models into .kmm (kalamodel map) - a runtime-ready model map binary of vertices, indices and other relevant data related to the original models that were passed.
-
-Uses Assimp to help with font parsing.
-
-Note: This is a concept, it has not yet started development.
 
 ---
 
