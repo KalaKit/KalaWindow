@@ -123,7 +123,9 @@ Note: This is a concept, it has not yet started development.
 
 ## KalaServer
 
-A single .lib and .dll that can be attached to any executable or cli. Provides the networking stack required for sending and receiving packets for any server-related needs. Can autoban spammers, obvious bots trying to reach sensitive files etc.
+A single .lib and .dll with no runtime of its own that can be attached to any executable or cli. Does not depend on KalaWindow, runs completely standalone from it. 
+
+Provides the networking stack required for sending and receiving packets for any server-related needs. Can autoban spammers, obvious bots trying to reach sensitive files etc.
 
 Also provides a framework for hosting websites. Can route root path to any path inside its own root so the original path is unreachable by the end user if they try to look what files are accessible.
 
@@ -133,8 +135,11 @@ Uses completely original code with help from WinSock and CloudFlare Tunnel, does
 
 ## KalaWindow
 
-A single .lib and .dll that can be attached to any executable or cli. Provides the multimedia framework library stack required for running executables with graphics on Windows and Linux. Locked to OpenGL 3.3 and Vulkan 1.3. Linux and Vulkan support have not yet been added but will be added in a future release.
+A single .lib and .dll with no runtime of its own that can be attached to any executable or cli.
 
+Provides the multimedia framework library stack required for running executables with graphics on Windows and Linux. Locked to OpenGL 3.3 and Vulkan 1.3. Linux and Vulkan support have not yet been added but will be added in a future release.
+
+Can be ran headless, does not require a window to run any executable as a CLI if needed.
 
 Provides:
   - windowing with message loop
