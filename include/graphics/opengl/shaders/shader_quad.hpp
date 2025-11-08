@@ -41,7 +41,7 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 		in vec2 TexCoord;
 		out vec4 FragColor;
 
-		uniform sampler2D uTexture0;
+		uniform sampler2D uTexture;
 		uniform bool uUseTexture = false; //mark as true if you want to pass a texture
 
 		uniform vec3 uColor;    //blended with texture or non-texture base color
@@ -55,7 +55,7 @@ namespace KalaWindow::Graphics::OpenGL::Shader
 			if (safeOpacity < 0.1) discard;
 
 			vec4 texColor = vec4(1.0);
-			if (uUseTexture) texColor = texture(uTexture0, TexCoord);
+			if (uUseTexture) texColor = texture(uTexture, TexCoord);
 
 			FragColor = vec4(texColor.rgb * safeColor, texColor.a * safeOpacity);
 		}

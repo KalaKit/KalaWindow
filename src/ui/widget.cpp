@@ -270,30 +270,25 @@ namespace KalaWindow::UI
 		};
 		vector<Vertex> verts{};
 		
-		bool isText = uvs.empty();
-		
-		if (!isText)
-		{		
-			if (vertices.size() < 4
-				|| uvs.size() < 8)
-			{
-				KalaWindowCore::ForceClose(
-					"Widget error",
-					"Did not get enough vertices or uvs!");	
-			}
-	
-			verts.resize(vertices.size());
-			
-			verts[0].pos = vertices[0];
-			verts[1].pos = vertices[1];
-			verts[2].pos = vertices[2];
-			verts[3].pos = vertices[3];
-	
-			verts[0].uv = vec2(uvs[0], uvs[1]);
-			verts[1].uv = vec2(uvs[2], uvs[3]);
-			verts[2].uv = vec2(uvs[4], uvs[5]);
-			verts[3].uv = vec2(uvs[6], uvs[7]);
+		if (vertices.size() < 4
+			|| uvs.size() < 8)
+		{
+			KalaWindowCore::ForceClose(
+				"Widget error",
+				"Did not get enough vertices or uvs!");	
 		}
+	
+		verts.resize(vertices.size());
+		
+		verts[0].pos = vertices[0];
+		verts[1].pos = vertices[1];
+		verts[2].pos = vertices[2];
+		verts[3].pos = vertices[3];
+	
+		verts[0].uv = vec2(uvs[0], uvs[1]);
+		verts[1].uv = vec2(uvs[2], uvs[3]);
+		verts[2].uv = vec2(uvs[4], uvs[5]);
+		verts[3].uv = vec2(uvs[6], uvs[7]);
 
 		glGenVertexArrays(1, &vaoOut);
 		glGenBuffers(1, &vboOut);
@@ -303,22 +298,11 @@ namespace KalaWindow::UI
 
 		//VBO
 		glBindBuffer(GL_ARRAY_BUFFER, vboOut);
-		if (isText)
-		{
-			glBufferData(
-				GL_ARRAY_BUFFER,
-				vertices.size() * sizeof(vec2),
-				vertices.data(),
-				GL_STATIC_DRAW);
-		}
-		else
-		{
-			glBufferData(
-				GL_ARRAY_BUFFER,
-				verts.size() * sizeof(Vertex),
-				verts.data(),
-				GL_STATIC_DRAW);
-		}
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			verts.size() * sizeof(Vertex),
+			verts.data(),
+			GL_STATIC_DRAW);
 
 		//EBO
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, eboOut);

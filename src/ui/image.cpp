@@ -116,7 +116,12 @@ namespace KalaWindow::UI
 		Widget::CreateWidgetGeometry(
 			imagePtr->render.vertices,
 			imagePtr->render.indices,
-			{},
+			{
+				0, 1,
+				1, 1,
+				1, 0,
+				0, 0
+			},
 			imagePtr->render.VAO,
 			imagePtr->render.VBO,
 			imagePtr->render.EBO);
