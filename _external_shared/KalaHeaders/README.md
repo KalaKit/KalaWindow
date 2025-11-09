@@ -149,42 +149,6 @@ Comprehensive logger header for any logging needs - sends stdout and stderr mess
 
 ---
 
-## Registry utils
-
-Provides:
-  - parent-child hierarchy management
-  - fast lookup through recursive traversal across parents, children and siblings
-  - ownership and access for handling classes and structs at runtime
-  
-Requirements: 
-  - You must name each Registry struct as 'registry', this is a limit of C++ templates so there is no way around it
-
-### Registry
-
-| Function         | Description              |
-|------------------|--------------------------|
-| GetContent       | Get non-owning value by ID |
-| AddContent       | Add a new unique ptr and its ID to the containers |
-| RemoveContent    | Remove content by ID from containers |
-| RemoveContent    | Remove content by non-owning pointer from containers |
-| RemoveAllContent | Clear all content from containers |
-
-### Hierarchy
-
-| Function          | Description              |
-|-------------------|--------------------------|
-| GetRoot           | Gets the top-most parent |
-| HasTarget         | Returns true if A has B, can check recursively |
-| IsParent          | Returns true if B is the parent of A, can check recursively |
-| GetParent         | Returns the parent of A |
-| SetParent         | Sets the parent of A |
-| RemoveParent      | Removes the parent from A |
-| IsChild           | Returns true if B is a child of A, can check recursively |
-| AddChild          | Adds new child to A |
-| RemoveChild       | Removes child B from A |
-| GetAllChildren    | Returns all children of A |
-| RemoveAllChildren | Removes all children of A |
-
 ## Import ktf
 
 This header is solely responsible for parsing and importing data from ktf (KalaText File) files. Use the 'ImportKTF' function to import a new ktf file.

@@ -12,12 +12,12 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
-#include "KalaHeaders/registry_utils.hpp"
 
 #include "core/input.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
 #include "utils/transform2d.hpp"
+#include "utils/registry.hpp"
 
 namespace KalaWindow::UI
 {
@@ -36,7 +36,6 @@ namespace KalaWindow::UI
 	using KalaHeaders::createumodel;
 	using KalaHeaders::kclamp;
 	using KalaHeaders::tomat4;
-	using KalaHeaders::Registry;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -47,6 +46,7 @@ namespace KalaWindow::UI
 	using KalaWindow::Utils::PosTarget;
 	using KalaWindow::Utils::RotTarget;
 	using KalaWindow::Utils::SizeTarget;
+	using KalaWindow::Utils::Registry;
 
 	constexpr u16 MAX_Z_ORDER = 1024;
 

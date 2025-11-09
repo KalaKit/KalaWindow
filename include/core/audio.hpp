@@ -10,7 +10,8 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
-#include "KalaHeaders/registry_utils.hpp"
+
+#include "utils/registry.hpp"
 
 //min is 1MB
 static constexpr u64 MIN_STREAM_SIZE = static_cast<size_t>(1 * 1024) * 1024; 
@@ -26,7 +27,7 @@ namespace KalaWindow::Core
 
 	using KalaHeaders::vec3;
 
-	using KalaHeaders::Registry;
+	using KalaWindow::Utils::Registry;
 
 	//Stores data for managing directional audio hearing/playback
 	struct AudioCone

@@ -11,7 +11,7 @@
 #include "graphics/camera.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
-#include "utils/registry_window.hpp"
+#include "utils/registry.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -20,7 +20,7 @@ using KalaWindow::Core::globalID;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
-using KalaWindow::Utils::GetAllWindowContent;
+using KalaWindow::Utils::Registry;
 
 using std::to_string;
 using std::unique_ptr;
@@ -49,10 +49,7 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		vector<OpenGL_Context*> contexts = GetAllWindowContent(
-			OpenGL_Context::registry.runtimeContent,
-			windowID);
-			
+		vector<OpenGL_Context*> contexts = Registry<OpenGL_Context>::GetAllWindowContent(windowID);
 		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context

@@ -13,7 +13,7 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "ui/image.hpp"
-#include "utils/registry_window.hpp"
+#include "utils/registry.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -24,7 +24,7 @@ using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using KalaWindow::Utils::GetAllWindowContent;
+using KalaWindow::Utils::Registry;
 
 using std::to_string;
 using std::back_inserter;
@@ -51,10 +51,7 @@ namespace KalaWindow::UI
 
 		if (window->IsIdle()) return{};
 
-		vector<OpenGL_Context*> contexts = GetAllWindowContent(
-			OpenGL_Context::registry.runtimeContent,
-			windowID);
-			
+		vector<OpenGL_Context*> contexts = Registry<OpenGL_Context>::GetAllWindowContent(windowID);
 		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context
@@ -70,10 +67,7 @@ namespace KalaWindow::UI
 			return{};
 		}
 
-		vector<Input*> inputs = GetAllWindowContent(
-			Input::registry.runtimeContent,
-			windowID);
-			
+		vector<Input*> inputs = Registry<Input>::GetAllWindowContent(windowID);
 		Input* input = inputs.empty() ? nullptr : inputs.front();
 
 		if (!input
@@ -97,9 +91,7 @@ namespace KalaWindow::UI
 		vector<Widget*> hitWidgets{};
 
 		vector<Widget*> existingWidgets{};
-		vector<Widget*> widgets = GetAllWindowContent(
-			Widget::registry.runtimeContent,
-			windowID);
+		vector<Widget*> widgets = Registry<Widget>::GetAllWindowContent(windowID);
 
 		for (auto& w : existingWidgets)
 		{
@@ -162,10 +154,7 @@ namespace KalaWindow::UI
 
 		if (window->IsIdle()) return false;
 
-		vector<OpenGL_Context*> contexts = GetAllWindowContent(
-			OpenGL_Context::registry.runtimeContent,
-			windowID);
-			
+		vector<OpenGL_Context*> contexts = Registry<OpenGL_Context>::GetAllWindowContent(windowID);
 		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context
@@ -181,10 +170,7 @@ namespace KalaWindow::UI
 			return false;
 		}
 
-		vector<Input*> inputs = GetAllWindowContent(
-			Input::registry.runtimeContent,
-			windowID);
-			
+		vector<Input*> inputs = Registry<Input>::GetAllWindowContent(windowID);
 		Input* input = inputs.empty() ? nullptr : inputs.front();
 
 		if (!input

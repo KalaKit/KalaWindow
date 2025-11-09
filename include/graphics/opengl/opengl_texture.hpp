@@ -10,8 +10,8 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
-#include "KalaHeaders/registry_utils.hpp"
 
+#include "utils/registry.hpp"
 #include "graphics/texture.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
@@ -20,7 +20,8 @@ namespace KalaWindow::Graphics::OpenGL
 	using std::function;
 
 	using KalaHeaders::vec2;
-	using KalaHeaders::Registry;
+	
+	using KalaWindow::Utils::Registry;
 
 	class LIB_API OpenGL_Texture : public Texture
 	{

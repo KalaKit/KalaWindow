@@ -6,8 +6,8 @@
 #pragma once
 
 #include "KalaHeaders/math_utils.hpp"
-#include "KalaHeaders/registry_utils.hpp"
 
+#include "utils/registry.hpp"
 #include "core/core.hpp"
 
 constexpr f32 MAX_POS = 10000.0f;
@@ -27,8 +27,8 @@ namespace KalaWindow::Utils
 	using KalaHeaders::radians;
 	using KalaHeaders::wrap;
 	using KalaHeaders::kclamp;
-	using KalaHeaders::Registry;
-
+	
+	using KalaWindow::Utils::Registry;
 	using KalaWindow::Core::globalID;
 
 	enum class PosTarget
