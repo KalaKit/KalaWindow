@@ -16,7 +16,6 @@
 #include "KalaHeaders/log_utils.hpp"
 
 #include "core/core.hpp"
-#include "core/audio.hpp"
 #include "graphics/window.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
@@ -29,7 +28,6 @@ using KalaHeaders::LogType;
 using KalaHeaders::TimeFormat;
 using KalaHeaders::DateFormat;
 
-using KalaWindow::Core::AudioPlayer;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -82,9 +80,9 @@ namespace KalaWindow::Core
 			TimeFormat::TIME_NONE,
 			DateFormat::DATE_NONE);
 
+#ifdef _DEBUG
 		__debugbreak();
-
-#ifndef _DEBUG
+#else
 		if (Window_Global::CreatePopup(
 			title,
 			reason,
@@ -145,8 +143,6 @@ namespace KalaWindow::Core
 			}
 		}
 
-		if (Audio::IsInitialized()) Audio::Shutdown();
-		AudioPlayer::registry.RemoveAllContent();
 		OpenGL_Texture::registry.RemoveAllContent();
 		OpenGL_Shader::registry.RemoveAllContent();
 		Font::registry.RemoveAllContent();

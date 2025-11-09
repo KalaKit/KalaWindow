@@ -71,11 +71,6 @@ origin: _external_shared@KalaHeaders
 target: ..@Circuit-chan@_external_shared@KalaHeaders, ..@Elypso-engine@_external_shared@KalaHeaders, ..@Elypso-hub@_external_shared@KalaHeaders, ..@Solin@_external_shared@KalaHeaders
 action: copy
 
-//miniaudio
-origin: _external_shared@miniaudio
-target: ..@Circuit-chan@_external_shared@miniaudio, ..@Elypso-engine@_external_shared@miniaudio, ..@Elypso-hub@_external_shared@miniaudio, ..@Solin@_external_shared@miniaudio
-action: copy
-
 //OpenGL
 origin: _external_shared@OpenGL
 target: ..@Circuit-chan@_external_shared@OpenGL, ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL, ..@Solin@_external_shared@OpenGL

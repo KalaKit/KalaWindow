@@ -16,7 +16,6 @@ Features built into **KalaWindow**:
 - OpenGl 3.3 context
 - shader system with compilation and hot reload (recompile shaders at runtime)
 - texture system with hot reload (can modify raw pixel data for each texture)
-- audio framework through MiniAudio wrapper
 
 ---
 
