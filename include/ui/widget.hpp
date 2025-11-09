@@ -12,7 +12,7 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
-#include "KalaHeaders/hierarchy_utils.hpp"
+#include "KalaHeaders/registry_utils.hpp"
 
 #include "core/input.hpp"
 #include "graphics/opengl/opengl_shader.hpp"
@@ -36,7 +36,7 @@ namespace KalaWindow::UI
 	using KalaHeaders::createumodel;
 	using KalaHeaders::kclamp;
 	using KalaHeaders::tomat4;
-	using KalaHeaders::Hierarchy;
+	using KalaHeaders::Registry;
 
 	using KalaWindow::Graphics::OpenGL::OpenGL_Shader;
 	using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
@@ -127,10 +127,10 @@ namespace KalaWindow::UI
 	class LIB_API Widget
 	{
 	public:
+		static inline Registry<Widget> registry{};
+	
 		//Returns all hit widgets at mouse position sorted by highest Z first
 		static vector<Widget*> HitWidgets(u32 windowID);
-
-		Hierarchy<Widget> hierarchy;
 
 		//
 		// CORE

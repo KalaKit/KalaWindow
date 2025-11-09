@@ -31,6 +31,7 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "ui/text.hpp"
+#include "utils/registry_window.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
@@ -53,6 +54,7 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
 using KalaWindow::UI::Text;
+using KalaWindow::Utils::GetAllWindowContent;
 
 using std::string;
 using std::to_string;
@@ -481,7 +483,10 @@ static bool ProcessMessage(
 	}
 
 	u32 windowID = window->GetID();
-	vector<Input*> inputs = Input::registry.GetAllWindowContent(windowID);
+	vector<Input*> inputs = GetAllWindowContent(
+		Input::registry.runtimeContent,
+		windowID);
+		
 	Input* input = inputs.empty() ? nullptr : inputs.front();
 
 	/*
@@ -1275,7 +1280,10 @@ static bool ProcessMessage(
 
 		if (window)
 		{
-			vector<MenuBar*> menuBars = MenuBar::registry.GetAllWindowContent(windowID);
+			vector<MenuBar*> menuBars = GetAllWindowContent(
+				MenuBar::registry.runtimeContent,
+				windowID);
+				
 			MenuBar* menuBar = menuBars.empty() ? nullptr : menuBars.front();
 
 			if (menuBar)

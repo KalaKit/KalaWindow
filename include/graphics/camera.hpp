@@ -9,8 +9,7 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
-
-#include "utils/registry.hpp"
+#include "KalaHeaders/registry_utils.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -27,8 +26,7 @@ namespace KalaWindow::Graphics
 	using KalaHeaders::toeuler3;
 	using KalaHeaders::angleaxis;
 	using KalaHeaders::wrap;
-
-	using KalaWindow::Utils::Registry;
+	using KalaHeaders::Registry;
 
 	class LIB_API Camera
 	{

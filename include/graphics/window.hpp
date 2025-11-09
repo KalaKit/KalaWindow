@@ -12,8 +12,7 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
-
-#include "utils/registry.hpp"
+#include "KalaHeaders/registry_utils.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -24,7 +23,7 @@ namespace KalaWindow::Graphics
 
 	using KalaHeaders::vec2;
 
-	using KalaWindow::Utils::Registry;
+	using KalaHeaders::Registry;
 
 	enum class DpiContext
 	{

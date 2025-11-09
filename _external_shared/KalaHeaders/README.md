@@ -149,15 +149,27 @@ Comprehensive logger header for any logging needs - sends stdout and stderr mess
 
 ---
 
-## Hierarchy utils
+## Registry utils
 
-Provides parent-child hierarchy management and fast lookup through recursive traversal across parents, children and siblings
+Provides:
+  - parent-child hierarchy management
+  - fast lookup through recursive traversal across parents, children and siblings
+  - ownership and access for handling classes and structs at runtime
+  
+Requirements: 
+  - You must name each Registry struct as 'registry', this is a limit of C++ templates so there is no way around it
 
- Requirements: 
-- You must name each Hierarchy struct as 'hierarchy', this is a limit of C++ templates so there is no way around it
-- You must assign 'thisObject' as the class this struct is attached to
+### Registry
 
-### Available date format types
+| Function         | Description              |
+|------------------|--------------------------|
+| GetContent       | Get non-owning value by ID |
+| AddContent       | Add a new unique ptr and its ID to the containers |
+| RemoveContent    | Remove content by ID from containers |
+| RemoveContent    | Remove content by non-owning pointer from containers |
+| RemoveAllContent | Clear all content from containers |
+
+### Hierarchy
 
 | Function          | Description              |
 |-------------------|--------------------------|

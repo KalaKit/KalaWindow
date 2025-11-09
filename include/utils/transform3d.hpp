@@ -8,8 +8,8 @@
 #include <memory>
 
 #include "KalaHeaders/math_utils.hpp"
+#include "KalaHeaders/registry_utils.hpp"
 
-#include "utils/registry.hpp"
 #include "core/core.hpp"
 
 constexpr f32 MAX_POS = 10000.0f;
@@ -20,6 +20,9 @@ constexpr f32 MIN_SIZE = 0.01f;
 
 namespace KalaWindow::Utils
 {
+	using std::unique_ptr;
+	using std::make_unique;
+	
 	using KalaHeaders::vec3;
 	using KalaHeaders::vec4;
 	using KalaHeaders::mat4;
@@ -29,6 +32,7 @@ namespace KalaWindow::Utils
 	using KalaHeaders::toeuler3;
 	using KalaHeaders::toquat;
 	using KalaHeaders::normalize;
+	using KalaHeaders::Registry;
 
 	using KalaWindow::Core::globalID;
 

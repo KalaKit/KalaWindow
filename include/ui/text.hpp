@@ -9,20 +9,15 @@
 #include "KalaHeaders/import_ktf.hpp"
 
 #include "ui/widget.hpp"
-#include "utils/registry.hpp"
 
 namespace KalaWindow::UI
 {
 	using KalaHeaders::kclamp;
 	using KalaHeaders::GlyphBlock;
-	
-	using KalaWindow::Utils::Registry;
 
 	class LIB_API Text : public Widget
 	{
 	public:
-		static inline Registry<Text> registry{};
-
 		//Initialize a new Text widget.
 		//Parent widget and texture are optional
 		static Text* Initialize(

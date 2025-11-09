@@ -11,8 +11,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 #include "KalaHeaders/import_ktf.hpp"
-
-#include "utils/registry.hpp"
+#include "KalaHeaders/registry_utils.hpp"
 
 namespace KalaWindow::UI
 {
@@ -22,8 +21,7 @@ namespace KalaWindow::UI
 	using KalaHeaders::GlyphHeader;
 	using KalaHeaders::GlyphTable;
 	using KalaHeaders::GlyphBlock;
-
-	using KalaWindow::Utils::Registry;
+	using KalaHeaders::Registry;
 
 	class LIB_API Font
 	{

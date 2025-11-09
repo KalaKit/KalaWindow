@@ -35,6 +35,7 @@
 #include "ui/text.hpp"
 #include "ui/image.hpp"
 #include "graphics/camera.hpp"
+#include "utils/registry_window.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
@@ -52,6 +53,7 @@ using KalaWindow::UI::Text;
 using KalaWindow::UI::Image;
 using KalaWindow::Graphics::Camera;
 using KalaWindow::Core::Input;
+using KalaWindow::Utils::RemoveAllWindowContent;
 
 using std::make_unique;
 using std::move;
@@ -1837,14 +1839,34 @@ namespace KalaWindow::Graphics
 	{
 		RemoveAllChildWindows();
 
-		Text::registry.RemoveAllWindowContent(ID);
-		Image::registry.RemoveAllWindowContent(ID);
-		Camera::registry.RemoveAllWindowContent(ID);
-		Input::registry.RemoveAllWindowContent(ID);
-		MenuBar::registry.RemoveAllWindowContent(ID);
-		OpenGL_Context::registry.RemoveAllWindowContent(ID);
+		RemoveAllWindowContent(
+			Text::registry.createdContent,
+			Text::registry.runtimeContent,
+			ID);
+		RemoveAllWindowContent(
+			Image::registry.createdContent,
+			Image::registry.runtimeContent,
+			ID);
+		RemoveAllWindowContent(
+			Camera::registry.createdContent,
+			Camera::registry.runtimeContent,
+			ID);
+		RemoveAllWindowContent(
+			Input::registry.createdContent,
+			Input::registry.runtimeContent,
+			ID);
+		RemoveAllWindowContent(
+			MenuBar::registry.createdContent,
+			MenuBar::registry.runtimeContent,
+			ID);
+		RemoveAllWindowContent(
+			OpenGL_Context::registry.createdContent,
+			OpenGL_Context::registry.runtimeContent,
+			ID);
 
-		Window::registry.RemoveContent(ID);
+		Window::registry.RemoveContent(
+			this,
+			ID);
 	}
 
 	Window::~Window()

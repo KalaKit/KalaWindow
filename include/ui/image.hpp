@@ -8,20 +8,15 @@
 #include "KalaHeaders/math_utils.hpp"
 
 #include "ui/widget.hpp"
-#include "utils/registry.hpp"
 
 namespace KalaWindow::UI
 {
 	using KalaHeaders::vec2;
 	using KalaHeaders::mat3;
 
-	using KalaWindow::Utils::Registry;
-
 	class LIB_API Image : public Widget
 	{
 	public:
-		static inline Registry<Image> registry{};
-
 		//Initialize a new Image widget.
 		//Parent widget is optional
 		static Image* Initialize(

@@ -26,6 +26,7 @@
 #include "graphics/opengl/opengl_texture.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "core/core.hpp"
+#include "utils/registry_window.hpp"
 
 using KalaHeaders::vec2;
 
@@ -42,6 +43,7 @@ using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
+using KalaWindow::Utils::GetAllWindowContent;
 
 using std::string;
 using std::string_view;
@@ -649,7 +651,10 @@ namespace KalaWindow::Graphics::OpenGL
 			return nullptr;
 		}
 
-		vector<OpenGL_Context*> contexts = OpenGL_Context::registry.GetAllWindowContent(windowID);
+		vector<OpenGL_Context*> contexts = GetAllWindowContent(
+			OpenGL_Context::registry.runtimeContent,
+			windowID);
+			
 		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context

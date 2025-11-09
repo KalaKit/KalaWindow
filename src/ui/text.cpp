@@ -15,6 +15,7 @@
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
 #include "graphics/opengl/opengl_texture.hpp"
+#include "utils/registry_window.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -29,6 +30,7 @@ using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::TextureFormat;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
+using KalaWindow::Utils::GetAllWindowContent;
 
 using std::unique_ptr;
 using std::make_unique;
@@ -60,7 +62,10 @@ namespace KalaWindow::UI
 			return nullptr;
 		}
 
-		vector<OpenGL_Context*> contexts = OpenGL_Context::registry.GetAllWindowContent(windowID);
+		vector<OpenGL_Context*> contexts = GetAllWindowContent(
+			OpenGL_Context::registry.runtimeContent,
+			windowID);
+			
 		OpenGL_Context* context = contexts.empty() ? nullptr : contexts.front();
 
 		if (!context
@@ -78,8 +83,6 @@ namespace KalaWindow::UI
 		u32 newID = ++globalID;
 		unique_ptr<Text> newText = make_unique<Text>();
 		Text* textPtr = newText.get();
-
-		textPtr->hierarchy.thisObject = textPtr;
 
 		Log::Print(
 			"Loading text '" + name + "' with ID '" + to_string(newID) + "'.",
@@ -110,7 +113,7 @@ namespace KalaWindow::UI
 		if (parentWidget
 			&& parentWidget->IsInitialized())
 		{
-			textPtr->hierarchy.SetParent(parentWidget);
+			registry.hierarchy[textPtr].SetParent(parentWidget);
 		}
 
 		//font is required
@@ -368,8 +371,7 @@ namespace KalaWindow::UI
 			"WIDGET",
 			LogType::LOG_INFO);
 
-		hierarchy.RemoveAllChildren();
-		hierarchy.RemoveParent();
+		registry.hierarchy[this].RemoveAllChildren();
 
 		u32 vao = GetVAO();
 		u32 vbo = GetVBO();
