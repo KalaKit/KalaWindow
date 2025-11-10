@@ -149,6 +149,16 @@ Comprehensive logger header for any logging needs - sends stdout and stderr mess
 
 ---
 
-## Import ktf
+## import_ktf.hpp
 
 This header is solely responsible for parsing and importing data from ktf (KalaText File) files. Use the 'ImportKTF' function to import a new ktf file.
+
+---
+
+## key_standards.hpp
+
+Provides:
+  - standard layout with enums for mouse buttons, keyboard keys and gamepad actions
+  - standard layout for typography, math and currency symbols
+  - standard layout for latin and cyrillic alphabet letters
+  - standard layout for emojis and kaomojis
