@@ -75,8 +75,3 @@ action: copy
 origin: _external_shared@OpenGL
 target: ..@Circuit-chan@_external_shared@OpenGL, ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL, ..@Solin@_external_shared@OpenGL
 action: copy
-
-//stb
-origin: _external_shared@stb
-target: ..@Circuit-chan@_external_shared@stb, ..@Elypso-engine@_external_shared@stb, ..@Elypso-hub@_external_shared@stb, ..@Solin@_external_shared@stb
-action: copy
