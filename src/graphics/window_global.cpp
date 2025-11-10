@@ -24,12 +24,12 @@
 #include "graphics/window_global.hpp"
 #include "graphics/window.hpp"
 #include "core/core.hpp"
-#include "windows/messageloop.hpp"
+#include "core/messageloop.hpp"
 
 using namespace KalaHeaders;
 
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Windows::MessageLoop;
+using KalaWindow::Core::MessageLoop;
 
 using std::to_string;
 using std::wstring;

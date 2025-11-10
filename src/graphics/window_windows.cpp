@@ -28,13 +28,9 @@
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
 #include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/opengl_texture.hpp"
-#include "windows/menubar.hpp"
+#include "graphics/menubar.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
-#include "ui/text.hpp"
-#include "ui/image.hpp"
-#include "graphics/camera.hpp"
 #include "utils/registry.hpp"
 
 using KalaHeaders::vec2;
@@ -42,16 +38,10 @@ using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Graphics::OpenGL::OpenGL_Context;
-using KalaWindow::Graphics::OpenGL::OpenGL_Texture;
-using KalaWindow::Graphics::TextureType;
-using KalaWindow::Graphics::TextureFormat;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Windows::MenuBar;
+using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
-using KalaWindow::UI::Text;
-using KalaWindow::UI::Image;
-using KalaWindow::Graphics::Camera;
 using KalaWindow::Core::Input;
 using KalaWindow::Utils::Registry;
 
@@ -70,7 +60,11 @@ constexpr u16 MAX_TITLE_LENGTH = 512;
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(Window* window, bool& isIdle);
 
+/*
+TODO: add texture support back
+
 static HICON SetUpIcon(OpenGL_Texture* texture);
+*/
 
 static HICON exeIcon{};
 static HICON overlayIcon{};
@@ -316,6 +310,9 @@ namespace KalaWindow::Graphics
 
 	void Window::SetIcon(u32 texture) const
 	{
+		/*
+		TODO: add texture support back
+		
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
 
@@ -387,6 +384,7 @@ namespace KalaWindow::Graphics
 				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
+		*/
 	}
 	void Window::ClearIcon() const
 	{
@@ -410,6 +408,9 @@ namespace KalaWindow::Graphics
 		u32 texture,
 		const string& tooltip) const
 	{
+		/*
+		TODO: add texture support back
+		
 		HWND window = ToVar<HWND>(window_windows.hwnd);
 		if (!window) return;
 
@@ -504,6 +505,7 @@ namespace KalaWindow::Graphics
 				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
+		*/
 	}
 	void Window::ClearTaskbarOverlayIcon() const
 	{
@@ -1839,9 +1841,14 @@ namespace KalaWindow::Graphics
 	{
 		RemoveAllChildWindows();
 
+		/*
+		TODO: add back text + image + camera support
+		
 		Registry<Text>::RemoveAllWindowContent(ID);
 		Registry<Image>::RemoveAllWindowContent(ID);
 		Registry<Camera>::RemoveAllWindowContent(ID);
+		*/
+		
 		Registry<Input>::RemoveAllWindowContent(ID);
 		Registry<MenuBar>::RemoveAllWindowContent(ID);
 		Registry<OpenGL_Context>::RemoveAllWindowContent(ID);
@@ -1914,6 +1921,9 @@ void UpdateIdleState(Window* window, bool& isIdle)
 		|| window->IsMinimized()
 		|| !window->IsVisible();
 }
+
+/*
+TODO: add texture support back
 
 HICON SetUpIcon(OpenGL_Texture* texture)
 {
@@ -2004,6 +2014,7 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 
 	return hIcon;
 }
+*/
 
 wstring ToWide(const string& str)
 {

@@ -11,7 +11,7 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "windows/menubar.hpp"
+#include "graphics/menubar.hpp"
 #include "graphics/window.hpp"
 #include "core/core.hpp"
 
@@ -32,7 +32,7 @@ static wstring ToWide(const string& str);
 
 constexpr u8 MAX_LABEL_LENGTH = 64;
 
-namespace KalaWindow::Windows
+namespace KalaWindow::Graphics
 {
 	MenuBar* MenuBar::CreateMenuBar(u32 windowID)
 	{

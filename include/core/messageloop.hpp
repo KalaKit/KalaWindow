@@ -11,12 +11,8 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
-#include "ui/text.hpp"
-
-namespace KalaWindow::Windows
+namespace KalaWindow::Core
 {
-	using KalaWindow::UI::Text;
-	
 	class LIB_API MessageLoop
 	{
 	public:
@@ -25,9 +21,6 @@ namespace KalaWindow::Windows
 			UINT msg,
 			WPARAM wParam,
 			LPARAM lParam);
-			
-		//The text widget that is currently active and focused
-		static inline Text* activeText{};
 	};
 }
 

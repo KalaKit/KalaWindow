@@ -16,7 +16,7 @@
 
 #include "utils/registry.hpp"
 
-namespace KalaWindow::Windows
+namespace KalaWindow::Graphics
 {
 	using std::string;
 	using std::function;

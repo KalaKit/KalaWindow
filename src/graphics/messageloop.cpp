@@ -22,29 +22,28 @@
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "windows/messageloop.hpp"
-#include "windows/menubar.hpp"
+#include "core/messageloop.hpp"
+#include "graphics/menubar.hpp"
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
-#include "ui/text.hpp"
 #include "utils/registry.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Windows::MessageLoop;
+using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
-using KalaWindow::Windows::MenuBar;
-using KalaWindow::Windows::MenuBarEvent;
+using KalaWindow::Graphics::MenuBar;
+using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
@@ -53,7 +52,6 @@ using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
-using KalaWindow::UI::Text;
 using KalaWindow::Utils::Registry;
 
 using std::string;
@@ -296,13 +294,12 @@ static Key TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 
 static bool ProcessMessage(
 	const MSG& msg,
-	Window* window,
-	Text* activeText);
+	Window* window);
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
 
-namespace KalaWindow::Windows
+namespace KalaWindow::Core
 {
 	LRESULT CALLBACK MessageLoop::WindowProcCallback(
 		HWND hwnd,
@@ -417,7 +414,7 @@ namespace KalaWindow::Windows
 		msgObj.lParam = lParam;
 
 		//return false if we handled the message ourselves
-		if (ProcessMessage(msgObj, window, activeText)) return false;
+		if (ProcessMessage(msgObj, window)) return false;
 
 		return DefWindowProc(
 			hwnd, 
@@ -468,8 +465,7 @@ static LRESULT CursorTest(
 
 static bool ProcessMessage(
 	const MSG& msg,
-	Window* window,
-	Text* activeText)
+	Window* window)
 {
 	if (!window)
 	{
@@ -523,11 +519,15 @@ static bool ProcessMessage(
 	case WM_UNICHAR:
 	case WM_CHAR:
 	{
+		/*
+		TODO: add text support back
+		
 		if (input
 			&& activeText)
 		{
 			activeText->AddChar(static_cast<u32>(msg.wParam));
 		}
+		*/
 
 		return true; //we handled it
 	}
@@ -560,6 +560,9 @@ static bool ProcessMessage(
 				key,
 				true);
 				
+			/*
+			TODO: add text support back
+			
 			if (activeText)
 			{
 				switch (msg.wParam)
@@ -575,6 +578,7 @@ static bool ProcessMessage(
 						break;
 				}
 			}
+			*/
 		}
 
 		return false;
