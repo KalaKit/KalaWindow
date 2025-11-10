@@ -475,539 +475,436 @@ namespace KalaHeaders
 	// EMOJIS
 	//
 	
-	inline constexpr array<KeyValue, 219> emojis
+	//Common face, hand and gesture emojis. 1226-1500 is reserved for future use. 
+	inline constexpr array<KeyValue, 226> emojis
 	{{
-		//mood: joy / cheer
+		//face - smiling
 		
-		{1001, 0x1F600, "grinning_face"},
-		{1002, 0x1F603, "grinning_face_with_big_eyes"},
-		{1003, 0x1F604, "grinning_face_with_smiling_eyes"},
-		{1004, 0x1F601, "beaming_face_with_smiling_eyes"},
-		{1005, 0x1F606, "grinning_squinting_face"},
-		{1006, 0x1F605, "grinning_face_with_sweat"},
-		{1007, 0x1F602, "face_with_tears_of_joy"},
-		{1008, 0x1F923, "rolling_on_the_floor_laughing"},
-		{1009, 0x1F60A, "smiling_face_with_smiling_eyes"},
-		{1010, 0x1F642, "slightly_smiling_face"},
-		{1011, 0x1F609, "winking_face"},
-		{1012, 0x1F607, "smiling_face_with_halo"},
-		{1013, 0x1F970, "smiling_face_with_hearts"},
-		{1014, 0x1F917, "hugging_face"},
-
-		//mood: affection / warmth
+		{1001, 0x1F600, "grinning face"},
+		{1002, 0x1F603, "grinning face with big eyes"},
+		{1003, 0x1F604, "grinning face with smiling eyes"},
+		{1004, 0x1F601, "beaming face with smiling eyes"},
+		{1005, 0x1F606, "grinning squinting face"},
+		{1006, 0x1F605, "grinning face with sweat"},
+		{1008, 0x1F923, "rolling on the floor laughing"},
+		{1009, 0x1F602, "face with tears of joy"},
+		{1010, 0x1F642, "slightly smiling face"},
+		{1011, 0x1F643, "upside-down face"},
+		{1012, 0x1FAE0, "melting face"},
+		{1013, 0x1F609, "winking face"},
+		{1014, 0x1F60A, "smiling face with smiling eyes"},
+		{1015, 0x1F607, "smiling face with halo"},
 		
-		{1015, 0x1F60D, "smiling_face_with_heart_eyes"},
-		{1016, 0x1F618, "face_blowing_a_kiss"},
-		{1017, 0x1F617, "kissing_face"},
-		{1018, 0x1F619, "kissing_face_with_smiling_eyes"},
-		{1019, 0x1F61A, "kissing_face_with_closed_eyes"},
-		{1020, 0x1F60B, "face_savoring_food"},
-
-		//mood: playful / mischief
+		//face - affection
 		
-		{1021, 0x1F61C, "winking_face_with_tongue"},
-		{1022, 0x1F61D, "squinting_face_with_tongue"},
-		{1023, 0x1F61B, "face_with_tongue"},
-		{1024, 0x1F92A, "zany_face"},
-		{1025, 0x1F60F, "smirking_face"},
-		{1026, 0x1F608, "smiling_face_with_horns"},
-		{1027, 0x1F92B, "shushing_face"},
-		{1028, 0x1F92D, "face_with_hand_over_mouth"},
-
-		//mood: thoughtful / neutral
+		{1016, 0x1F970, "smiling face with hearts"},
+		{1017, 0x1F60D, "smiling face with heart-eyes"},
+		{1018, 0x1F929, "star-struck"},
+		{1019, 0x1F618, "face blowing a kiss"},
+		{1020, 0x1F617, "kissing face"},
+		{1021, 0x263A, "smiling face"},
+		{1022, 0x1F61A, "kissing face with closed eyes"},
+		{1023, 0x1F619, "kissing face with smiling eyes"},
+		{1024, 0x1F972, "smiling face with tear"},
 		
-		{1029, 0x1F914, "thinking_face"},
-		{1030, 0x1F928, "face_with_raised_eyebrow"},
-		{1031, 0x1F610, "neutral_face"},
-		{1032, 0x1F611, "expressionless_face"},
-		{1033, 0x1F636, "face_without_mouth"},
-		{1034, 0x1FAE1, "saluting_face"},
-		{1035, 0x1FAE3, "peeking_face"},
-
-		//mood: sadness / exhaustion
+		//face - tongue
 		
-		{1036, 0x1F62D, "loudly_crying_face"},
-		{1037, 0x1F97A, "pleading_face"},
-		{1038, 0x1F614, "pensive_face"},
-		{1039, 0x1F62A, "sleepy_face"},
-		{1040, 0x1F634, "sleeping_face"},
-		{1041, 0x1F60C, "relieved_face"},
-
-		//mood: anger / frustration
+		{1025, 0x1F60B, "face savoring food"},
+		{1026, 0x1F61B, "face with tongue"},
+		{1027, 0x1F61C, "winking face with tongue"},
+		{1028, 0x1F92A, "zany face"},
+		{1029, 0x1F61D, "squinting face with tongue"},
+		{1030, 0x1F911, "money-mouth face"},
 		
-		{1042, 0x1F620, "angry_face"},
-		{1043, 0x1F621, "pouting_face"},
-		{1044, 0x1F92C, "swearing_face"},
-		{1045, 0x1F62C, "grimacing_face"},
-		{1046, 0x1F624, "face_with_steam"},
-		{1047, 0x1F47F, "angry_face_with_horns"},
-
-		//mood: shock / confusion
+		//face - hand
 		
-		{1048, 0x1F633, "flushed_face"},
-		{1049, 0x1FAE2, "gasping_face"},
-		{1050, 0x1F615, "confused_face"},
-		{1051, 0x1F92F, "exploding_head"},
-		{1052, 0x1F974, "woozy_face"},
-		{1053, 0x1F925, "lying_face"},
-		{1054, 0x1F635, "dizzy_face"},
-		{1055, 0x1F644, "face_with_rolling_eyes"},
-
-		//mood: illness / discomfort
+		{1031, 0x1F917, "smiling face with open hands"},
+		{1032, 0x1F92D, "face with hand over mouth"},
+		{1033, 0x1FAE2, "face with open eyes and hand over mouth"},
+		{1034, 0x1FAE3, "face with peeking eye"},
+		{1035, 0x1F92B, "shushing face"},
+		{1036, 0x1F914, "thinking face"},
+		{1037, 0x1FAE1, "saluting face"},
 		
-		{1056, 0x1F637, "face_with_medical_mask"},
-		{1057, 0x1F912, "face_with_thermometer"},
-		{1058, 0x1F915, "face_with_head_bandage"},
-		{1059, 0x1F922, "nauseated_face"},
-		{1060, 0x1F92E, "face_vomiting"},
-		{1061, 0x1F927, "sneezing_face"},
+		//face - neutral/skeptical
 		
+		//the following ones were not included:
+		//  - face in clouds
+		//  - face exhaling
+		//  - head shaking horizontally
+		//  - head shaking vertically
 		
-		//people and gestures
+		{1038, 0x1F910, "zipper-mouth face"},
+		{1039, 0x1F928, "face with raised eyebrow"},
+		{1040, 0x1F610, "neutral face"},
+		{1041, 0x1F611, "expressionless face"},
+		{1042, 0x1F636, "face without mouth"},
+		{1043, 0x1FAE5, "dotted line face"},
+		{1044, 0x1F60F, "smirking face"},
+		{1045, 0x1F612, "unamused face"},
+		{1046, 0x1F644, "face with rolling eyes"},
+		{1047, 0x1F62C, "grimacing face"},
+		{1048, 0x1F925, "lying face"},
+		{1049, 0x1FAE8, "shaking face"},
 		
-		{1062, 0x1F645, "person_no_gesture"},
-		{1063, 0x1F646, "person_ok_gesture"},
-		{1064, 0x1F64B, "person_raising_hand"},
-		{1065, 0x1F921, "clown_face"},
-		{1066, 0x1F47B, "ghost"},
-		{1067, 0x1F47D, "alien"},
-		{1068, 0x1F49A, "green_heart"},
-		{1069, 0x2764, "red_heart"},
-		{1070, 0x1F499, "blue_heart"},
-		{1071, 0x1F480, "skull"},
-		{1072, 0x2620, "skull_and_crossbones"},
-		{1073, 0x1F4A9, "poop"},
-		{1074, 0x1F44B, "waving_hand"},
-		{1075, 0x1F91A, "raised_back_of_hand"},
-		{1076, 0x1F590, "hand_with_fingers_splayed"},
-		{1077, 0x270B, "raised_hand"},
-		{1078, 0x1F596, "vulcan_salute"},
-		{1079, 0x1F44A, "fist_bump"},
-		{1080, 0x270A, "raised_fist"},
-		{1081, 0x1F91D, "handshake"},
-		{1082, 0x1FAF6, "heart_hands"},
-		{1083, 0x1F4AA, "flexed_biceps"},
-		{1084, 0x1F44C, "ok_hand"},
-		{1085, 0x1F90C, "pinched_fingers"},
-		{1086, 0x1F90F, "pinching_hand"},
-		{1087, 0x270C, "victory_hand"},
-		{1088, 0x1F91E, "crossed_fingers"},
-		{1089, 0x1F91F, "rock_on_hand"},
-		{1090, 0x1F918, "sign_of_the_horns"},
-		{1091, 0x1F919, "call_me_hand"},
-		{1092, 0x1F44D, "thumbs_up"},
-		{1093, 0x1F44E, "thumbs_down"},
-		{1094, 0x1F44F, "clapping_hands"},
-		{1095, 0x1F64C, "raising_hands"},
-		{1096, 0x1F450, "open_hands"},
-		{1097, 0x1F932, "praying_hands"},
-		{1098, 0x1F64F, "folded_hands"},
+		//face - sleepy
 		
-		//animals and nature
+		{1050, 0x1F60C, "relieved face"},
+		{1051, 0x1F614, "pensive face"},
+		{1052, 0x1F62A, "sleepy face"},
+		{1053, 0x1F924, "drooling face"},
+		{1054, 0x1F634, "sleeping face"},
+		{1055, 0x1FAE9, "face with bags under eyes"},
 		
-		{1099, 0x1F436, "dog_face"},
-		{1100, 0x1F431, "cat_face"},
-		{1101, 0x1F98A, "fox_face"},
-		{1102, 0x1F43B, "bear_face"},
-		{1103, 0x1F43C, "panda_face"},
-		{1104, 0x1F981, "lion_face"},
-		{1105, 0x1F42F, "tiger_face"},
-		{1106, 0x1F438, "frog_face"},
-		{1107, 0x1F435, "monkey_face"},
-		{1108, 0x1F648, "see_no_evil_monkey"},
-		{1109, 0x1F649, "hear_no_evil_monkey"},
-		{1110, 0x1F64A, "speak_no_evil_monkey"},
-		{1111, 0x1F427, "penguin"},
-		{1112, 0x1F426, "bird"},
-		{1113, 0x1F986, "duck"},
-		{1114, 0x1F40D, "snake"},
-		{1115, 0x1F98B, "butterfly"},
+		//face - unwell
 		
-		//nature
+		//the following one was not included:
+		//  - face with spiral eyes
 		
-		{1116, 0x1F338, "cherry_blossom"},
-		{1117, 0x1F341, "maple_leaf"},
-		{1118, 0x1F342, "fallen_leaves"},
-		{1119, 0x1F339, "rose"},
-		{1120, 0x1F33C, "daisy"},
-		{1121, 0x1F940, "withered_rose"},
-		{1122, 0x1F33B, "sunflower"},
-		{1123, 0x1F335, "cactus"},
-		{1124, 0x1F332, "evergreen_tree"},
+		{1056, 0x1F637, "face with medical mask"},
+		{1057, 0x1F912, "face with thermometer"},
+		{1058, 0x1F915, "face with head-bandage"},
+		{1059, 0x1F922, "nauseated face"},
+		{1060, 0x1F92E, "face vomiting"},
+		{1061, 0x1F927, "sneezing face"},
+		{1062, 0x1F975, "hot face"},
+		{1063, 0x1F976, "cold face"},
+		{1064, 0x1F974, "woozy face"},
+		{1065, 0x1F635, "face with crossed-out eyes"},
+		{1066, 0x1F92F, "exploding head"},
 		
-		//weather
+		//face - hat
 		
-		{1125, 0x1F315, "full_moon"},
-		{1126, 0x1F319, "crescent_moon"},
-		{1127, 0x1F31E, "sun_with_face"},
-		{1128, 0x2600, "sun"},
-		{1129, 0x1F311, "new_moon"},
-		{1130, 0x1F308, "rainbow"},
-		{1131, 0x1F4A8, "wind"},
-		{1132, 0x1F32A, "tornado"},
-		{1133, 0x2601, "cloud"},
-		{1134, 0x1F327, "cloud_with_rain"},
-		{1135, 0x26C8, "thunderstorm_cloud"},
-		{1136, 0x1F4A7, "droplet"},
-		{1137, 0x1F4A6, "sweat_droplets"},
+		{1067, 0x1F920, "cowboy hat face"},
+		{1068, 0x1F973, "partying face"},
+		{1069, 0x1F978, "disguised face"},
 		
-		//audio
+		//face - glasses
 		
-		{1138, 0x1F3A4, "microphone"},
-		{1139, 0x1F399, "studio_microphone"},
-		{1140, 0x1F508, "speaker_low"},
-		{1141, 0x1F509, "speaker_medium"},
-		{1142, 0x1F50A, "speaker_high"},
-		{1143, 0x1F507, "speaker_mute"},
-		{1144, 0x1F3A7, "headphones"},
-		{1145, 0x1F3B5, "musical_note"},
-		{1146, 0x1F3B6, "musical_notes"},
+		{1070, 0x1F60E, "smiling face with sunglasses"},
+		{1071, 0x1F913, "nerd face"},
+		{1072, 0x1F9D0, "face with monocle"},
 		
-		//money
+		//face - concerned
 		
-		{1147, 0x1F4B0, "money_bag"},
-		{1148, 0x1F4B8, "money_with_wings"},
-		{1149, 0x1F4B5, "dollar_banknote"},
-		{1150, 0x1F4B3, "credit_card"},
-		{1151, 0x1FA99, "coin"},
-		{1152, 0x1F48E, "gem"},
-		{1153, 0x1F9FE, "receipt"},
+		{1073, 0x1F615, "confused face"},
+		{1074, 0x1FAE4, "face with diagonal mouth"},
+		{1075, 0x1F61F, "worried face"},
+		{1076, 0x1F641, "slightly frowning face"},
+		{1077, 0x1F639, "frowning face"},
+		{1078, 0x2639, "face with open mouth"},
+		{1079, 0x1F62E, "hushed face"},
+		{1080, 0x1F62F, "astonished face"},
+		{1081, 0x1F632, "flushed face"},
+		{1082, 0x1F633, "distorted face"},
+		{1083, 0x1FAEA, "pleading face"},
+		{1084, 0x1F97A, "face holding back tears"},
+		{1085, 0x1F979, "frowing face with open mouth"},
+		{1086, 0x1F626, "anguished face"},
+		{1087, 0x1F627, "fearful face"},
+		{1088, 0x1F628, "anxious face with sweat"},
+		{1089, 0x1F630, "sad but relieved face"},
+		{1090, 0x1F625, "crying face"},
+		{1091, 0x1F622, "loudly crying face"},
+		{1092, 0x1F62D, "face screaming in fear"},
+		{1093, 0x1F631, "confounded face"},
+		{1094, 0x1F616, "persevering face"},
+		{1095, 0x1F623, "dissapointed face"},
+		{1096, 0x1F61E, "downcast face with sweat"},
+		{1097, 0x1F613, "weary face"},
+		{1098, 0x1F62B, "tired face"},
+		{1099, 0x1F971, "yawning face"},
 		
-		//writing and reading
+		//face - negative
 		
-		{1154, 0x1F4D6, "open_book"},
-		{1155, 0x1F4D5, "red_book"},
-		{1156, 0x1F4D7, "green_book"},
-		{1157, 0x1F4D8, "blue_book"},
-		{1158, 0x1F4D9, "orange_book"},
-		{1159, 0x1F4DD, "memo"},
-		{1160, 0x1F58A, "pen"},
-		{1161, 0x270F, "pencil"},
-		{1162, 0x1F58B, "fountain_pen"},
-		{1163, 0x1F4DC, "scroll"},
+		{1100, 0x1F624, "face with steam from nose"},
+		{1101, 0x1F621, "enraged face"},
+		{1102, 0x1F620, "angry face"},
+		{1103, 0x1F92C, "face with symbols on mouth"},
+		{1104, 0x1F608, "smiling face with horns"},
+		{1105, 0x1F47F, "angry face with horns"},
+		{1106, 0x1F480, "skull"},
+		{1107, 0x2620, "skull and crossbones"},
 		
-		//home
+		//face - costume
 		
-		{1164, 0x1F3E0, "house"},
-		{1165, 0x1F3E1, "house_with_garden"},
-		{1166, 0x1F9F1, "brick"},
-		{1167, 0x1FA9E, "mirror"},
-		{1168, 0x1FA9F, "window"},
-		{1169, 0x1F3FA, "vase"},
-		{1170, 0x1F56F, "candle"},
-		{1171, 0x1F512, "locked"},
-		{1172, 0x1F513, "unlocked"},
-		{1173, 0x1F511, "key"},
-		{1174, 0x1F5DD, "old_key"},
-		{1175, 0x1F9E9, "puzzle_piece"},
-		{1176, 0x1F4E6, "box"},
-		{1177, 0x1F5C2, "file_folder"},
+		{1108, 0x1F4A9, "pile of poo"},
+		{1109, 0x1F921, "clown face"},
+		{1110, 0x1F479, "ogre"},
+		{1111, 0x1F47A, "goblin"},
+		{1112, 0x1F47B, "ghost"},
+		{1113, 0x1F47D, "alien"},
+		{1114, 0x1F47E, "alien monster"},
+		{1115, 0x1F916, "robot"},
 		
-		//science and technology
+		//face - cat
 		
-		{1178, 0x1F4A1, "light_bulb"},
-		{1179, 0x1F4BB, "laptop"},
-		{1180, 0x1F5A5, "desktop_computer"},
-		{1181, 0x1F4F8, "camera"},
-		{1182, 0x2328, "keyboard"},
-		{1183, 0x1F5B1, "computer_mouse"},
-		{1184, 0x1F4F1, "mobile_phone"},
-		{1185, 0x1F50B, "battery"},
-		{1186, 0x1FAAB, "low_battery"},
-		{1187, 0x1F3AE, "video_game"},
-		{1188, 0x1F579, "joystick"},
-		{1189, 0x231B, "hourglass"},
-		{1190, 0x23F3, "hourglass_done"},
-		{1191, 0x23F0, "alarm_clock"},
-		{1192, 0x1F570, "mantelpiece_clock"},
-		{1193, 0x23F1, "stopwatch"},
-		{1194, 0x23F2, "timer_clock"},
-		{1195, 0x1F9ED, "compass"},
-		{1196, 0x2696, "balance_scale"},
-		{1197, 0x1F9F2, "magnet"},
-		{1198, 0x2697, "alembic"},
-		{1199, 0x1F9EC, "dna"},
-		{1200, 0x1F9EA, "test_tube"},
-		{1201, 0x1F9E0, "brain"},
-		{1202, 0x2699, "gear"},
-		{1203, 0x1F9F0, "toolbox"},
+		{1116, 0x1F63A, "grinning cat"},
+		{1117, 0x1F638, "grinning cat with smiling eyes"},
+		{1118, 0x1F639, "cat with tears of joy"},
+		{1119, 0x1F63B, "smiling cat with heart-eyes"},
+		{1120, 0x1F63C, "cat with wry smile"},
+		{1121, 0x1F63D, "kissing cat"},
+		{1122, 0x1F640, "weary cat"},
+		{1123, 0x1F63F, "crying cat"},
+		{1124, 0x1F63E, "pouting cat"},
 		
-		//misc
+		//face - monkey
 		
-		{1204, 0x1F4AD, "thought_cloud"},
-		{1205, 0x1F4AC, "speech_balloon"},
-		{1206, 0x1F5EF, "anger_bubble"},
-		{1207, 0x26A1, "high_voltage"},
-		{1208, 0x1F525, "fire"},
-		{1209, 0x1FAA8, "rock"},
-		{1210, 0x1FA84, "magic_wand"},
-		{1211, 0x1FAB6, "feather"},
-		{1212, 0x1FAA9, "mirror_ball"},
-		{1213, 0x1F386, "fireworks"},
-		{1214, 0x1F4A5, "explosion"},
-		{1215, 0x26B0, "coffin"},
-		{1216, 0x1F573, "hole"},
-		{1217, 0x2694, "crossed_swords"},
-		{1218, 0x1F6E1, "shield"},
-		{1219, 0x1FA93, "axe"}
+		{1125, 0x1F648, "see-no-evil monkey"},
+		{1126, 0x1F649, "hear-no-evil monkey"},
+		{1127, 0x1F64A, "speak-no-evil monkey"},
+		
+		//heart
+		
+		//the following ones were not included:
+		//  - heart on fire
+		//  - mending heart
+		
+		{1128, 0x1F48C, "love letter"},
+		{1129, 0x1F498, "heart with arrow"},
+		{1130, 0x1F49D, "heart with ribbon"},
+		{1131, 0x1F496, "sparkling heart"},
+		{1132, 0x1F497, "growing heart"},
+		{1133, 0x1F493, "beating heart"},
+		{1134, 0x1F49E, "revolving hearts"},
+		{1135, 0x1F495, "two hearts"},
+		{1136, 0x1F49F, "heart decoration"},
+		{1137, 0x2763, "heart exclamation"},
+		{1138, 0x1F494, "broken heart"},
+		{1139, 0x1F764, "red heart"},
+		{1140, 0x1FA77, "pink heart"},
+		{1141, 0x1F9E1, "orange heart"},
+		{1142, 0x1F49B, "yellow heart"},
+		{1143, 0x1F49A, "green heart"},
+		{1144, 0x1F499, "blue heart"},
+		{1145, 0x1FA75, "light blue heart"},
+		{1146, 0x1F49C, "purple heart"},
+		{1147, 0x1F90E, "brown heart"},
+		{1148, 0x1F5A4, "black heart"},
+		{1149, 0x1FA76, "grey heart"},
+		{1150, 0x1F90D, "white heart"},
+		
+		//emotion
+		
+		//the following one was not included:
+		//  - eye in speech bubble
+		
+		{1151, 0x1F48B, "kiss mark"},
+		{1152, 0x1F4AF, "hundred points"},
+		{1153, 0x1F4A2, "anger symbol"},
+		{1154, 0x1FAEF, "fight cloud"},
+		{1155, 0x1F4A5, "collision"},
+		{1156, 0x1F4AB, "dizzy"},
+		{1157, 0x1F4A6, "sweat droplets"},
+		{1158, 0x1F4A8, "dashing away"},
+		{1159, 0x1F573, "hole"},
+		{1160, 0x1F4AC, "speech balloon"},
+		{1161, 0x1F5E8, "left speech bubble"},
+		{1162, 0x1F5EF, "right angle bubble"},
+		{1163, 0x1F4AD, "thought balloon"},
+		{1164, 0x1F4A4, "zzz"},
+		
+		//hand - fingers open
+		
+		{1165, 0x1F44B, "waving hand"},
+		{1166, 0x1F91A, "raised back of hand"},
+		{1167, 0x1F590, "hand with fingers splayed"},
+		{1168, 0x270B, "raised hand"},
+		{1169, 0x1F596, "vulcan salute"},
+		{1170, 0x1FAF1, "rightwards hand"},
+		{1171, 0x1FAF2, "leftwards hand"},
+		{1172, 0x1FAF3, "palm down hand"},
+		{1173, 0x1FAF4, "palm up hand"},
+		{1174, 0x1FAF7, "leftwards pushing hand"},
+		{1175, 0x1FAF8, "rightwards pushing hand"},
+		
+		//hand - fingers partial
+		
+		{1176, 0x1F44C, "ok hand"},
+		{1177, 0x1F90C, "pinched fingers"},
+		{1178, 0x1F90F, "pinching hand"},
+		{1179, 0x270C, "victory hand"},
+		{1180, 0x1F91E, "crossed fingers"},
+		{1181, 0x1FAF0, "hand with index finger and thumb crossed"},
+		{1182, 0x1F91F, "love-you gesture"},
+		{1183, 0x1F918, "sign of the horns"},
+		{1184, 0x1F919, "call me hand"},
+		
+		//hand - single finger
+		
+		{1185, 0x1F448, "backhand index pointing left"},
+		{1186, 0x1F449, "backhand index pointing right"},
+		{1187, 0x1F446, "backhand index pointing up"},
+		{1188, 0x1F595, "middle finger"},
+		{1189, 0x1F447, "backhand index pointing down"},
+		{1190, 0x261D, "index pointing up"},
+		{1191, 0x1FAF5, "index pointing at the viewer"},
+		
+		//hand - fingers closed
+		
+		{1192, 0x1F44D, "thumbs up"},
+		{1193, 0x1F44E, "thumbs down"},
+		{1194, 0x270A, "raised fist"},
+		{1195, 0x1F44A, "oncoming fist"},
+		{1196, 0x1F91B, "left-facing fist"},
+		{1197, 0x1F91C, "right-facing fist"},
+		
+		//hands
+		
+		{1198, 0x1F44F, "clapping hands"},
+		{1199, 0x1F64C, "raising hands"},
+		{1200, 0x1FAF6, "heart hands"},
+		{1201, 0x1F450, "open hands"},
+		{1202, 0x1F932, "palms up together"},
+		{1203, 0x1F91D, "handshake"},
+		{1204, 0x1F64F, "folded hands"},
+		
+		//hand - prop
+		
+		{1205, 0x270D, "writing hand"},
+		{1206, 0x1F485, "nail polish"},
+		{1207, 0x1F933, "selfie"},
+		
+		//body parts
+		
+		{1208, 0x1F4AA, "flexed biceps"},
+		{1209, 0x1F9BE, "mechanical arm"},
+		{1210, 0x1F9BF, "mechanical leg"},
+		{1211, 0x1F9B5, "leg"},
+		{1212, 0x1F9B6, "foot"},
+		{1213, 0x1F442, "ear"},
+		{1214, 0x1F9BB, "ear with hearing aid"},
+		{1215, 0x1F443, "nose"},
+		{1216, 0x1F9E0, "brain"},
+		{1217, 0x1FAC0, "anatomical heart"},
+		{1218, 0x1FAC1, "lungs"},
+		{1219, 0x1F9B7, "tooth"},
+		{1220, 0x1F9B4, "bone"},
+		{1221, 0x1F440, "eyes"},
+		{1222, 0x1F441, "eye"},
+		{1223, 0x1F445, "tongue"},
+		{1224, 0x1F444, "mouth"},
+		{1225, 0x1FAE6, "biting lip"}
 	}};
 	
 	//
 	// KAOMOJIS
 	//
 	
-	inline constexpr array<KeyValue, 200> kaomojis
+	//Common kaomojis. 1591 to 1700 is reserved for future use.
+	inline constexpr array<KeyValue, 90> kaomojis
 	{{
-		//mood: joy / cheer
-
-		{1501, 0x003F, "(＾▽＾)"},
-		{1502, 0x003F, "(≧◡≦)"},
-		{1503, 0x003F, "(*^‿^*)"},
-		{1504, 0x003F, "(￣▽￣)ノ"},
-		{1505, 0x003F, "(✿◠‿◠)"},
-		{1506, 0x003F, "(^‿^)"},
-		{1507, 0x003F, "(๑˃ᴗ˂)ﻭ"},
-		{1508, 0x003F, "(⁀ᗢ⁀)"},
-		{1509, 0x003F, "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"},
-		{1510, 0x003F, "(づ｡◕‿‿◕｡)づ"},
-		{1511, 0x003F, "ヽ(・∀・)ﾉ"},
-		{1512, 0x003F, "＼(^o^)／"},
-		{1513, 0x003F, "(⌒▽⌒)☆"},
-		{1514, 0x003F, "(o^▽^o)"},
-		{1515, 0x003F, "(☆▽☆)"},
-
-		//mood: affection / warmth
-
-		{1516, 0x003F, "(´▽`ʃ♡ƪ)"},
-		{1517, 0x003F, "(♡‿♡)"},
-		{1518, 0x003F, "(ღ˘⌣˘ღ)"},
-		{1519, 0x003F, "(づ￣ ³￣)づ"},
-		{1520, 0x003F, "(´ε｀ )♡"},
-		{1521, 0x003F, "(´｡• ᵕ •｡`)"},
-		{1522, 0x003F, "(⁄ ⁄•⁄ω⁄•⁄ ⁄)⁄"},
-		{1523, 0x003F, "(•ө•)♡"},
-		{1524, 0x003F, "(⌒‿⌒)"},
-		{1525, 0x003F, "(´▽`ʃ♡ƪ)"},
-		{1526, 0x003F, "(♥ω♥*)"},
-		{1527, 0x003F, "(っ˘з(˘⌣˘ )"},
-		{1528, 0x003F, "(⁎⁍̴̆Ɛ⁍̴̆⁎)"},
-		{1529, 0x003F, "(〃￣ω￣〃ゞ)"},
-		{1530, 0x003F, "(˘ ³˘)♥"},
-
-		//mood: playful / mischief
-
-		{1531, 0x003F, "(¬‿¬)"},
-		{1532, 0x003F, "(͡° ͜ʖ ͡°)"},
-		{1533, 0x003F, "(ʘ‿ʘ)"},
-		{1534, 0x003F, "(☞ﾟヮﾟ)☞"},
-		{1535, 0x003F, "(⌐■_■)"},
-		{1536, 0x003F, "(¬‿¬ )"},
-		{1537, 0x003F, "(•̀ᴗ•́)و ̑̑"},
-		{1538, 0x003F, "(ง'̀-'́)ง"},
-		{1539, 0x003F, "(ง •̀_•́)ง"},
-		{1540, 0x003F, "(•_•) ( •_•)>⌐■-■"},
-		{1541, 0x003F, "ヘ(￣ω￣ヘ)"},
-		{1542, 0x003F, "(☞⌐■_■)☞"},
-		{1543, 0x003F, "(＾ω＾)"},
-		{1544, 0x003F, "(っಠ‿ಠ)っ"},
-		{1545, 0x003F, "(๑˃̵ᴗ˂̵)"},
-
-		//mood: sadness / exhaustion
-
-		{1546, 0x003F, "(╯︵╰,)"},
-		{1547, 0x003F, "(｡•́︿•̀｡)"},
-		{1548, 0x003F, "(ಥ﹏ಥ)"},
-		{1549, 0x003F, "(╥﹏╥)"},
-		{1550, 0x003F, "(T_T)"},
-		{1551, 0x003F, "(つ﹏⊂)"},
-		{1552, 0x003F, "(´；ω；`)"},
-		{1553, 0x003F, "(>_<)"},
-		{1554, 0x003F, "(︶︹︺)"},
-		{1555, 0x003F, "(´-﹏-`；)"},
-		{1556, 0x003F, "(ᗒᗣᗕ)՞"},
-		{1557, 0x003F, "(｡╯︵╰｡)"},
-		{1558, 0x003F, "(つд⊂)"},
-		{1559, 0x003F, "(；へ：)"},
-		{1560, 0x003F, "(ノ_<。)"},
-
-		//mood: anger / frustration
-
-		{1561, 0x003F, "(｀皿´＃)"},
-		{1562, 0x003F, "(ノಠ益ಠ)ノ彡┻━┻"},
-		{1563, 0x003F, "(╬ಠ益ಠ)"},
-		{1564, 0x003F, "(ง'̀-'́)ง"},
-		{1565, 0x003F, "(╯°□°）╯︵ ┻━┻"},
-		{1566, 0x003F, "(＞﹏＜)"},
-		{1567, 0x003F, "(҂⌣̀_⌣́)"},
-		{1568, 0x003F, "(ノ｀Д´)ノ"},
-		{1569, 0x003F, "(≧ヘ≦ )"},
-		{1570, 0x003F, "(•̀o•́)ง"},
-		{1571, 0x003F, "(ಠ_ಠ)"},
-		{1572, 0x003F, "(¬_¬)"},
-		{1573, 0x003F, "(ノω<。)ノ))"},
-		{1574, 0x003F, "(≧△≦)"},
-		{1575, 0x003F, "(╬ Ò﹏Ó)"},
-
-		//mood: shock / confusion
-
-		{1576, 0x003F, "(⊙_☉)"},
-		{1577, 0x003F, "(°ロ°)"},
-		{1578, 0x003F, "(⊙﹏⊙✿)"},
-		{1579, 0x003F, "(・_・ヾ"},
-		{1580, 0x003F, "(゜ロ゜)"},
-		{1581, 0x003F, "(O_O;)"},
-		{1582, 0x003F, "(๑•﹏•)"},
-		{1583, 0x003F, "(⁀ᗢ⁀)"},
-		{1584, 0x003F, "( ﾟoﾟ)"},
-		{1585, 0x003F, "(⊙_◎)"},
-		{1586, 0x003F, "(°□°)"},
-		{1587, 0x003F, "(⊙_⊙)"},
-		{1588, 0x003F, "(O.O)"},
-		{1589, 0x003F, "(๑•᎑•๑)"},
-		{1590, 0x003F, "(°ー°〃)"},
-
-		//mood: sleepy / tired
-
-		{1591, 0x003F, "(－_－) zzZ"},
-		{1592, 0x003F, "(￣o￣) zzZ"},
-		{1593, 0x003F, "(≚ᄌ≚)ƶƶƶ"},
-		{1594, 0x003F, "(-_-)zzz"},
-		{1595, 0x003F, "(￣ρ￣)..zzZZ"},
-		{1596, 0x003F, "(=_=)"},
-		{1597, 0x003F, "(´～`)"},
-		{1598, 0x003F, "(－－)zzz"},
-		{1599, 0x003F, "(∪｡∪)｡｡｡zzZ"},
-		{1600, 0x003F, "(－ω－)／zzZ"},
+		//joy
 		
-		//mood: shrug / unsure
+		{1501, 0x003F, "(* ^ ω ^)"},
+		{1502, 0x003F, "٩(◕‿◕｡)۶"},
+		{1503, 0x003F, "(￣ω￣)"},
+		{1504, 0x003F, "(* ^ ω ^)"},
+		{1505, 0x003F, "(≧◡≦)"},
+		{1506, 0x003F, "(─‿‿─)"},
+		{1507, 0x003F, "(´• ω •`)"},
+		{1508, 0x003F, "(o･ω･o)"},
+		{1509, 0x003F, "＼(≧▽≦)／"},
+		{1510, 0x003F, "(☆ω☆)"},
+		{1511, 0x003F, "(๑>◡<๑)"},
+		{1512, 0x003F, "(╯✧▽✧)╯"},
+		{1513, 0x003F, "o(>ω<)o"},
+		{1514, 0x003F, "(ﾉ◕ヮ◕)ﾉ*:･ﾟ✧"},
+		{1515, 0x003F, "(๑˘︶˘๑)"},
+		{1516, 0x003F, "( = ⩊ = )"},
+		{1517, 0x003F, "(ᵔ⩊ᵔ)"},
+		{1518, 0x003F, "(„• ᴗ •„)"},
+		{1519, 0x003F, "(´｡• ᵕ •｡`)"},
+		{1520, 0x003F, "°˖✧◝(⁰▿⁰)◜✧˖°"},
 		
-		{1601, 0x003F, "¯\\_(._.)_/¯"},
-		{1602, 0x003F, "┐( -_-)┌"},
-		{1603, 0x003F, "\\_(o_o)_/"},
-		{1604, 0x003F, "┐(._.)┌"},
-		{1605, 0x003F, "(?_?)"},
-		{1606, 0x003F, "(o_O)?"},
-		{1607, 0x003F, "(-_-)?"},
-		{1608, 0x003F, "(._.)?"},
-		{1609, 0x003F, "(O_o)?"},
-		{1610, 0x003F, "(>_>)?"},
-
-		//mood: embarrassment / awkward
+		//love
 		
-		{1611, 0x003F, "(^_^;)"},
-		{1612, 0x003F, "(*^_^*)"},
-		{1613, 0x003F, "(>_<)"},
-		{1614, 0x003F, "(//_//)"},
-		{1615, 0x003F, "(*_*)"},
-		{1616, 0x003F, "(-_-;)"},
-		{1617, 0x003F, "(^_^')"},
-		{1618, 0x003F, "(^///^)"},
-		{1619, 0x003F, "(^_~)"},
-		{1620, 0x003F, "(x_x;)"},
+		{1521, 0x003F, "(≧◡≦) ♡"},
+		{1522, 0x003F, "╰(*´︶`*)╯♡"},
+		{1523, 0x003F, "(´• ω •`) ♡"},
+		{1524, 0x003F, "(ﾉ´ з `)ノ"},
+		{1525, 0x003F, "(´｡• ᵕ •｡`) ♡"},
+		{1526, 0x003F, "♡( ◡‿◡ )"},
+		{1527, 0x003F, "(*˘︶˘*).｡.:*♡"},
+		{1528, 0x003F, "(´ ε ` )♡"},
+		{1529, 0x003F, "(´,,•ω•,,)♡"},
+		{1530, 0x003F, "( ´ ꒳ ` ) ♡"},
+		{1531, 0x003F, "σ(≧ε≦σ) ♡"},
+		{1532, 0x003F, "(*^^*)♡"},
+		{1533, 0x003F, "ヽ(♡‿♡)ノ"},
+		{1534, 0x003F, "(◕‿◕)♡"},
+		{1535, 0x003F, "(´｡• ω •｡`) ♡"},
+		{1536, 0x003F, "(♡˙︶˙♡)"},
+		{1537, 0x003F, "(*¯ ³¯*)♡"},
+		{1538, 0x003F, "♡ (￣З￣)"},
+		{1539, 0x003F, "♡(>ᴗ•)"},
+		{1540, 0x003F, "(｡・//ε//・｡)"},
 		
-		//mood: confidence / cool
+		//embarrassment
 		
-		{1621, 0x003F, "(^_^)b"},
-		{1622, 0x003F, "(>_^)"},
-		{1623, 0x003F, "(^_-)"},
-		{1624, 0x003F, "(^_^)v"},
-		{1625, 0x003F, "(^_^)7"},
-		{1626, 0x003F, "(^_^)y-~"},
-		{1627, 0x003F, "(-_^)b"},
-		{1628, 0x003F, "(^o^)b"},
-		{1629, 0x003F, "(^_^)/"},
-		{1630, 0x003F, "(>_^)b"},
-
-		//mood: celebration / excitement
+		{1541, 0x003F, "(⌒_⌒;)	"},
+		{1542, 0x003F, "(//ω//)"},
+		{1543, 0x003F, "(„ಡωಡ„)"},
+		{1544, 0x003F, "(///￣ ￣///)"},
+		{1545, 0x003F, "(*ﾉωﾉ)"},
+		{1546, 0x003F, "(⁄ ⁄•⁄ω⁄•⁄ ⁄)"},
+		{1547, 0x003F, "(*/ω＼)"},
+		{1548, 0x003F, "( 〃▽〃)"},
+		{1549, 0x003F, "(*ﾉ▽ﾉ)"},
+		{1550, 0x003F, "(⁄ ⁄>⁄ ▽ ⁄<⁄ ⁄)"},
 		
-		{1631, 0x003F, "\\(^o^)/"},
-		{1632, 0x003F, "(^O^)／"},
-		{1633, 0x003F, "\\(^^)/"},
-		{1634, 0x003F, "\\(^-^)/"},
-		{1635, 0x003F, "\\(>o<)/"},
-		{1636, 0x003F, "\\(^▽^)/"},
-		{1637, 0x003F, "(*^o^*)"},
-		{1638, 0x003F, "(^0^)/"},
-		{1639, 0x003F, "(^_^)/~"},
-		{1640, 0x003F, "(^O^)/☆"},
+		//dissatisfaction
 		
-		//mood: determination / strength
+		{1551, 0x003F, "(＃＞＜)"},
+		{1552, 0x003F, "(；￣Д￣)"},
+		{1553, 0x003F, "(￢_￢;)"},
+		{1554, 0x003F, "(ᗒᗣᗕ)՞"},
+		{1555, 0x003F, "(＞﹏＜)"},
+		{1556, 0x003F, "(＃￣0￣)"},
+		{1557, 0x003F, "(￣ヘ￣)"},
+		{1558, 0x003F, "(＾＾＃)	"},
+		{1559, 0x003F, "(〃＞＿＜;〃)"},
+		{1560, 0x003F, "(￣ ￣|||)"},
 		
-		{1641, 0x003F, "(>_<)9"},
-		{1642, 0x003F, "(^o^)9"},
-		{1643, 0x003F, "(^_^)9"},
-		{1644, 0x003F, "(>_^)9"},
-		{1645, 0x003F, "(^o^)/9"},
-		{1646, 0x003F, "(o^-^)9"},
-		{1647, 0x003F, "(^_^)/9"},
-		{1648, 0x003F, "(^_^)v"},
-		{1649, 0x003F, "(o^-^)b"},
-		{1650, 0x003F, "(>_<)!!"},
-
-		//mood: surprise / shock
+		//anger
 		
-		{1651, 0x003F, "(O_O)"},
-		{1652, 0x003F, "(0_0)"},
-		{1653, 0x003F, "(o_O)"},
-		{1654, 0x003F, "(O_o)"},
-		{1655, 0x003F, "(0_o)"},
-		{1656, 0x003F, "(;O;)"},
-		{1657, 0x003F, "(O_O;)"},
-		{1658, 0x003F, "(o_O;)"}, 
-		{1659, 0x003F, "(0_0;)"}, 
-		{1660, 0x003F, "(O_O')"}, 
+		{1561, 0x003F, "(＃`Д´)"},
+		{1562, 0x003F, "↑_(ΦwΦ)Ψ"},
+		{1563, 0x003F, "(ﾉಥ益ಥ)ﾉ"},
+		{1564, 0x003F, "ψ( ` ∇ ´ )ψ	"},
+		{1565, 0x003F, "(╬ Ò﹏Ó)	"},
+		{1566, 0x003F, "ヾ(`ヘ´)ﾉﾞ"},
+		{1567, 0x003F, "୧((#Φ益Φ#))୨	"},
+		{1568, 0x003F, "＼＼٩(๑`^´๑)۶／／"},
+		{1569, 0x003F, "ヽ( `д´*)ノ"},
+		{1570, 0x003F, "((╬◣﹏◢))"},
 		
-		//mood: sleepy / tired
+		//sadness
 		
-		{1661, 0x003F, "(-_-)zzz"},
-		{1662, 0x003F, "(=_=)"},
-		{1663, 0x003F, "(u_u)"},
-		{1664, 0x003F, "(-o-)"},
-		{1665, 0x003F, "(-_-)/~~~"},
-		{1666, 0x003F, "(^_^)zzz"},
-		{1667, 0x003F, "(o_o)zzZ"},
-		{1668, 0x003F, "(=_=)y-~"},
-		{1669, 0x003F, "(Z_z)"},
-		{1670, 0x003F, "(=_=)..."},
-
-		//mood: thinking / neutral
+		{1571, 0x003F, "(ノ_<。)"},
+		{1572, 0x003F, "o(TヘTo)"},
+		{1573, 0x003F, "( ╥ω╥ )"},
+		{1574, 0x003F, "o(〒﹏〒)o"},
+		{1575, 0x003F, "( ; ω ; )"},
+		{1576, 0x003F, "(｡T ω T｡)"},
+		{1577, 0x003F, "(╯︵╰,)"},
+		{1578, 0x003F, "(╥﹏╥)"},
+		{1579, 0x003F, "(μ_μ)"},
+		{1580, 0x003F, "(ಡ‸ಡ)"},
 		
-		{1671, 0x003F, "(._.)"},
-		{1672, 0x003F, "(^_^?)"},
-		{1673, 0x003F, "(-_-)"},
-		{1674, 0x003F, "(._. )"},
-		{1675, 0x003F, "(>_>)"},
-		{1676, 0x003F, "(<_<)"},
-		{1677, 0x003F, "(^_^;)"},
-		{1678, 0x003F, "(-_-)?"}, 
-		{1679, 0x003F, "(._. )?"}, 
-		{1680, 0x003F, "(?_?)"},
-
-		//mood: special / misc
+		//cat
 		
-		{1681, 0x003F, "(>^_^)>"},
-		{1682, 0x003F, "<(^_^<)"},
-		{1683, 0x003F, "(^_^)/"},
-		{1684, 0x003F, "(^o^)/"},
-		{1685, 0x003F, "(^.^)/"},
-		{1686, 0x003F, "(/^-^)/"},
-		{1687, 0x003F, "(~_^)/"},
-		{1688, 0x003F, "(^_^)/~"},
-		{1689, 0x003F, "(^-^*)/"},
-		{1690, 0x003F, "\\(^.^\\)"},
-		
-		//mood: celebration / party
-		
-		{1691, 0x003F, "\\(^o^)/Yay!"},
-		{1692, 0x003F, "\\(^_^)/*"},
-		{1693, 0x003F, "(^_^)v♪"},
-		{1694, 0x003F, "(^_^)y"},
-		{1695, 0x003F, "(^O^)b"},
-		{1696, 0x003F, "\\(^.^)/"},
-		{1697, 0x003F, "(^-^)/♪"},
-		{1698, 0x003F, "(^_^)ノ"},
-		{1699, 0x003F, "(o^-^)b"},
-		{1700, 0x003F, "\\(^_^)/Cheers!"}
+		{1581, 0x003F, "(=^･ω･^=)"},
+		{1582, 0x003F, "(＾• ω •＾)"},
+		{1583, 0x003F, "(^◔ᴥ◔^)"},
+		{1584, 0x003F, "(=`ω´=)"},
+		{1585, 0x003F, "ଲ(ⓛ ω ⓛ)ଲ"},
+		{1586, 0x003F, "(=^-ω-^=)"},
+		{1587, 0x003F, "ฅ(•ㅅ•❀)ฅ"},
+		{1588, 0x003F, "ヾ(=`ω´=)ノ”"},
+		{1589, 0x003F, "(=^ ◡ ^=)"},
+		{1590, 0x003F, "(^◕ᴥ◕^)"}
 	}};
 
 	//
