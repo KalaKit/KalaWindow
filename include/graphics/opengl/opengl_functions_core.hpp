@@ -5,9 +5,12 @@
 
 #pragma once
 
-#include "KalaHeaders/core_utils.hpp"
+#include <string>
+
 #include "OpenGL/glcorearb.h" //core opengl
 #include "OpenGL/glext.h"     //extension tokens, enums and extra function pointers
+
+#include "KalaHeaders/core_utils.hpp"
 
 namespace KalaWindow::Graphics::OpenGLFunctions
 {
