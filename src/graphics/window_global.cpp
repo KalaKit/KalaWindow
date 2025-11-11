@@ -24,7 +24,7 @@
 #include "graphics/window_global.hpp"
 #include "graphics/window.hpp"
 #include "core/core.hpp"
-#include "core/messageloop.hpp"
+#include "core/messageloop_windows.hpp"
 
 using namespace KalaHeaders;
 

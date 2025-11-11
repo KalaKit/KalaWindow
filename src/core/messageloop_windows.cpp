@@ -22,8 +22,8 @@
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/messageloop.hpp"
-#include "graphics/menubar.hpp"
+#include "core/messageloop_windows.hpp"
+#include "graphics/menubar_windows.hpp"
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
 #include "core/input.hpp"

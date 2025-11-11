@@ -14,7 +14,7 @@
 
 #include "graphics/opengl/opengl.hpp"
 #include "graphics/opengl/opengl_functions_core.hpp"
-#include "graphics/opengl/opengl_functions_win.hpp"
+#include "graphics/opengl/opengl_functions_windows.hpp"
 #include "graphics/window.hpp"
 #include "core/core.hpp"
 

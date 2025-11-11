@@ -28,7 +28,7 @@
 #include "graphics/window.hpp"
 #include "graphics/window_global.hpp"
 #include "graphics/opengl/opengl.hpp"
-#include "graphics/menubar.hpp"
+#include "graphics/menubar_windows.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
 #include "utils/registry.hpp"
