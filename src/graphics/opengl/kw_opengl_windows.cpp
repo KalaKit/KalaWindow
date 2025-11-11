@@ -10,11 +10,11 @@
 #include <sstream>
 #include <memory>
 
+#include "OpenGL/wglext.h"
+
 #include "KalaHeaders/log_utils.hpp"
 
 #include "graphics/opengl/kw_opengl.hpp"
-#include "graphics/opengl/kw_opengl_functions_core.hpp"
-#include "graphics/opengl/kw_opengl_functions_windows.hpp"
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 
@@ -26,7 +26,7 @@ using KalaHeaders::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
 using KalaWindow::Graphics::Window;
-using namespace KalaWindow::Graphics::OpenGLFunctions;
+using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 
 using std::string;
 using std::to_string;
@@ -47,7 +47,9 @@ namespace KalaWindow::Graphics::OpenGL
 	// GLOBAL
 	//
 
-	bool OpenGL_Global::Initialize()
+	void OpenGL_Global::Initialize(
+		function<void()> os_gl_Functions,
+		function<void()> core_gl_Functions)
 	{
 		if (isInitialized)
 		{
@@ -56,7 +58,7 @@ namespace KalaWindow::Graphics::OpenGL
 				"OPENGL",
 				LogType::LOG_ERROR);
 
-			return false;
+			return;
 		}
 
 		//
@@ -89,7 +91,7 @@ namespace KalaWindow::Graphics::OpenGL
 				"OpenGL error",
 				"ChoosePixelFormat failed during global OpenGL init!");
 
-			return false;
+			return;
 		}
 
 		if (!SetPixelFormat(dummyDC, pf, &pfd))
@@ -98,18 +100,18 @@ namespace KalaWindow::Graphics::OpenGL
 				"OpenGL error",
 				"SetPixelFormat failed during global OpenGL init!");
 
-			return false;
+			return;
 		}
 
 		HGLRC dummyRC = wglCreateContext(dummyDC);
 		wglMakeCurrent(dummyDC, dummyRC);
 
 		//
-		// LOAD WGL AND CORE EXTENSIONS
+		// LOAD OS AND CORE GL FUNCTIONS
 		//
 
-		OpenGL_Functions_Core::LoadAllCoreFunctions();
-		OpenGL_Functions_Windows::LoadAllWinFunctions();
+		if (os_gl_Functions) os_gl_Functions();
+		if (core_gl_Functions) core_gl_Functions();
 
 		//
 		// CLEAN UP DUMMY
@@ -126,8 +128,6 @@ namespace KalaWindow::Graphics::OpenGL
 			LogType::LOG_SUCCESS);
 
 		isInitialized = true;
-
-		return true;
 	}
 
 	void OpenGL_Global::SetOpenGLLibrary()
@@ -147,6 +147,28 @@ namespace KalaWindow::Graphics::OpenGL
 
 	bool OpenGL_Global::IsExtensionSupported(const string& name)
 	{
+		PFNGLGETINTEGERVPROC glGetIntegerv = ToVar<PFNGLGETINTEGERVPROC>(
+			OpenGL_Global::core_gl_functions.glGetIntegerv);
+		PFNGLGETSTRINGIPROC glGetStringi = ToVar<PFNGLGETSTRINGIPROC>(
+			OpenGL_Global::core_gl_functions.glGetStringi);
+			
+		if (glGetIntegerv == nullptr)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"OpenGL core function 'glGetIntegerv' is unassigned! Cannot call 'IsExtensionSupported'.");
+				
+			return false;
+		}
+		if (glGetStringi == nullptr)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"OpenGL core function 'glGetStringi' is unassigned! Cannot call 'IsExtensionSupported'.");
+				
+			return false;
+		}
+		
 		i32 numExtensions = 0;
 		glGetIntegerv(
 			GL_NUM_EXTENSIONS,
@@ -154,7 +176,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 		for (i32 i = 0; i < numExtensions; ++i)
 		{
-			const char* extName = reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, i));
+			const char* extName = reinterpret_cast<const char*>(
+				glGetStringi(GL_EXTENSIONS, i));
 			if (name == extName) return true;
 		}
 
@@ -163,6 +186,18 @@ namespace KalaWindow::Graphics::OpenGL
 
 	string OpenGL_Global::GetError()
 	{
+		PFNGLGETERRORPROC glGetError = ToVar<PFNGLGETERRORPROC>(
+			OpenGL_Global::core_gl_functions.glGetError);
+			
+		if (glGetError == nullptr)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"OpenGL core function 'glGetError' is unassigned! Cannot call 'GetError'.");
+				
+			return{};
+		}
+		
 		GLenum error{};
 		string errorVal{};
 
@@ -220,6 +255,65 @@ namespace KalaWindow::Graphics::OpenGL
 				"OpenGL error",
 				"Cannot initialize OpenGL context because it's window was not found!");
 
+			return nullptr;
+		}
+		
+		PFNGLGETERRORPROC glGetError = ToVar<PFNGLGETERRORPROC>(
+			OpenGL_Global::core_gl_functions.glGetError);
+		PFNGLVIEWPORTPROC glViewport = ToVar<PFNGLVIEWPORTPROC>(
+			OpenGL_Global::core_gl_functions.glViewport);
+		PFNGLENABLEPROC glEnable = ToVar<PFNGLENABLEPROC>(
+			OpenGL_Global::core_gl_functions.glEnable);
+		
+		PFNGLGETBOOLEANVPROC glGetBooleanv = ToVar<PFNGLGETBOOLEANVPROC>(
+			OpenGL_Global::core_gl_functions.glGetBooleanv);
+		PFNGLGETINTEGERVPROC glGetIntegerv = ToVar<PFNGLGETINTEGERVPROC>(
+			OpenGL_Global::core_gl_functions.glGetIntegerv);
+		PFNGLGETSTRINGIPROC glGetStringi = ToVar<PFNGLGETSTRINGIPROC>(
+			OpenGL_Global::core_gl_functions.glGetStringi);
+		PFNGLGETSTRINGPROC glGetString = ToVar<PFNGLGETSTRINGPROC>(
+			OpenGL_Global::core_gl_functions.glGetString);
+		
+		if (glGetError == nullptr
+			|| glEnable == nullptr
+			|| glGetBooleanv == nullptr
+			|| glGetIntegerv == nullptr
+			|| glGetStringi == nullptr
+			|| glGetString == nullptr)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"One or more required core GL extensions has not been assigned!");
+				
+			return nullptr;
+		}
+		
+		PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB = 
+			ToVar<PFNWGLCREATECONTEXTATTRIBSARBPROC>(
+				OpenGL_Global::os_gl_functions.wglCreateContextAttribsARB);
+		PFNWGLCHOOSEPIXELFORMATARBPROC wglChoosePixelFormatARB = 
+			ToVar<PFNWGLCHOOSEPIXELFORMATARBPROC>(
+				OpenGL_Global::os_gl_functions.wglChoosePixelFormatARB);
+		PFNWGLSWAPINTERVALEXTPROC wglSwapIntervalEXT = 
+			ToVar<PFNWGLSWAPINTERVALEXTPROC>(
+				OpenGL_Global::os_gl_functions.wglSwapIntervalEXT);
+		PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfvARB = 
+			ToVar<PFNWGLGETPIXELFORMATATTRIBFVARBPROC>(
+				OpenGL_Global::os_gl_functions.wglGetPixelFormatAttribfvARB);
+		PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribivARB = 
+			ToVar<PFNWGLGETPIXELFORMATATTRIBIVARBPROC>(
+				OpenGL_Global::os_gl_functions.wglGetPixelFormatAttribivARB);
+			
+		if (wglCreateContextAttribsARB == nullptr
+			|| wglChoosePixelFormatARB == nullptr
+			|| wglSwapIntervalEXT == nullptr
+			|| wglGetPixelFormatAttribfvARB == nullptr
+			|| wglGetPixelFormatAttribivARB == nullptr)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"One or more required WGL extensions has not been assigned!");
+				
 			return nullptr;
 		}
 
@@ -665,6 +759,18 @@ namespace KalaWindow::Graphics::OpenGL
 
 bool IsCorrectVersion()
 {
+	PFNGLGETSTRINGPROC glGetString = ToVar<PFNGLGETSTRINGPROC>(
+		OpenGL_Global::core_gl_functions.glGetString);
+		
+	if (glGetString == nullptr)
+	{
+		KalaWindowCore::ForceClose(
+			"OpenGL error",
+			"OpenGL core function 'glGetString' is unassigned! Cannot call 'IsCorrectVersion'.");
+			
+		return false;
+	}
+	
 	const char* versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 	if (!versionStr) return false;
 

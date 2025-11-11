@@ -6,6 +6,7 @@
 #pragma once
 
 #include <string>
+#include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
@@ -15,8 +16,49 @@
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
+	using std::function;
 
 	using KalaWindow::Utils::KalaWindowRegistry;
+	
+	//WGL/GLX functions defined in your external GL library
+	struct OS_GL_functions
+	{
+#ifdef _WIN32
+		//PFNWGLCREATECONTEXTATTRIBSARBPROC
+		uintptr_t wglCreateContextAttribsARB{};
+		//PFNWGLCHOOSEPIXELFORMATARBPROC
+		uintptr_t wglChoosePixelFormatARB{};
+		//PFNWGLSWAPINTERVALEXTPROC
+		uintptr_t wglSwapIntervalEXT{};
+		
+		//PFNWGLGETPIXELFORMATATTRIBFVARBPROC
+		uintptr_t wglGetPixelFormatAttribfvARB{};
+		//PFNWGLGETPIXELFORMATATTRIBIVARBPROC
+		uintptr_t wglGetPixelFormatAttribivARB{};
+#else
+		//TODO: define for linux
+#endif
+	};
+	
+	//Core functions defined in your external GL library
+	struct Core_GL_functions
+	{
+		//PFNGLGETERRORPROC
+		uintptr_t glGetError{};
+		//PFNGLVIEWPORTPROC
+		uintptr_t glViewport{};
+		//PFNGLENABLEPROC
+		uintptr_t glEnable{};
+		
+		//PFNGLGETBOOLEANVPROC
+		uintptr_t glGetBooleanv{};
+		//PFNGLGETINTEGERVPROC
+		uintptr_t glGetIntegerv{};
+		//PFNGLGETSTRINGIPROC
+		uintptr_t glGetStringi{};
+		//PFNGLGETSTRINGPROC
+		uintptr_t glGetString{};
+	};
 
 	//Hardware accelerated antialiasing
 	enum class MultiSampling
@@ -56,9 +98,20 @@ namespace KalaWindow::Graphics::OpenGL
 	class LIB_API OpenGL_Global
 	{
 	public:
-		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init
-		static bool Initialize();
+		static inline OS_GL_functions os_gl_functions{};
+		static inline Core_GL_functions core_gl_functions{};
+	
+		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init.
+		//Pass os and core gl function initializer functions from KalaGraphics if you are using that.
+		static void Initialize(
+			function<void()> os_gl_Functions,
+			function<void()> core_gl_Functions);
 		static inline bool IsInitialized() { return isInitialized; }
+		
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//GL notifications will dump their logs into the console.
+		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
 		static void SetOpenGLLibrary();
 		static inline uintptr_t GetOpenGLLibrary()
@@ -67,11 +120,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return openGL32Lib;
 		}
-
-		//Toggle verbose logging. If true, then usually frequently updated runtime values like
-		//GL notifications will dump their logs into the console.
-		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		
+		static inline uintptr_t GetGlobalContext() { return hglrc; }
 
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);
@@ -84,7 +134,7 @@ namespace KalaWindow::Graphics::OpenGL
 		static inline bool isVerboseLoggingEnabled{};
 
 		static inline uintptr_t openGL32Lib{};
-		uintptr_t hglrc{}; //master context for shared resources
+		static inline uintptr_t hglrc{}; //master context for shared resources
 	};
 
 	class LIB_API OpenGL_Context
