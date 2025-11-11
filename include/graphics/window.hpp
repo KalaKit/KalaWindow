@@ -24,7 +24,7 @@ namespace KalaWindow::Graphics
 
 	using KalaHeaders::vec2;
 
-	using KalaWindow::Utils::Registry;
+	using KalaWindow::Utils::KalaWindowRegistry;
 
 	enum class DpiContext
 	{
@@ -111,7 +111,7 @@ namespace KalaWindow::Graphics
 	class LIB_API Window
 	{
 	public:
-		static inline Registry<Window> registry{};
+		static inline KalaWindowRegistry<Window> registry{};
 
 		//Create a new window with an optional choice to attach a parent window.
 		//Assign a parent window to display this window as a child of that window.

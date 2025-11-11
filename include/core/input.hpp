@@ -26,7 +26,7 @@ namespace KalaWindow::Core
 
 	using KalaHeaders::vec2;
 
-	using KalaWindow::Utils::Registry;
+	using KalaWindow::Utils::KalaWindowRegistry;
 
 	enum class Key : u32
 	{
@@ -181,7 +181,7 @@ namespace KalaWindow::Core
 	class LIB_API Input
 	{
 	public:
-		static inline Registry<Input> registry{};
+		static inline KalaWindowRegistry<Input> registry{};
 
 		static Input* Initialize(u32 windowID);
 

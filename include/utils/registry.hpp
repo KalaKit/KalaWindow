@@ -29,7 +29,7 @@ namespace KalaWindow::Utils
 	//Stores local non-owning pointers per T instance inside the Registry struct
 	template<typename T>
 		requires is_class_v<T>
-	struct LIB_API Hierarchy
+	struct LIB_API KalaWindowHierarchy
 	{
 		T* thisObject{};
 		T* parent{};
@@ -240,17 +240,17 @@ namespace KalaWindow::Utils
 	};
 
 	//Stores unique_ptrs and non-owning pointers of class T for ID-based lookups,
-	//should always be stored as 'static inline Registry<T> registry'
+	//should always be stored as 'static inline KalaWindowRegistry<T> registry'
 	template<typename T>
 		requires is_class_v<T>
-	struct LIB_API Registry
+	struct LIB_API KalaWindowRegistry
 	{
 		//Owner registry with ID as key
 		static inline unordered_map<u32, unique_ptr<T>> createdContent{};
 		//Runtime non-owning pointers
 		static inline vector<T*> runtimeContent{};
 		//Hierarchy content for storing parent-child relations per instance of this class
-		static inline unordered_map<T*, Hierarchy<T>> hierarchy{};
+		static inline unordered_map<T*, KalaWindowHierarchy<T>> hierarchy{};
 
 		//Get non-owning value by ID
 		static inline T* GetContent(u32 targetID)
@@ -278,7 +278,7 @@ namespace KalaWindow::Utils
 			runtimeContent.push_back(raw);
 			
 			//add hierarchy node
-			hierarchy[raw] = Hierarchy<T>{};
+			hierarchy[raw] = KalaWindowHierarchy<T>{};
 			hierarchy[raw].thisObject = raw;
 
 			return true;

@@ -24,7 +24,7 @@ namespace KalaWindow::Graphics
 	using std::vector;
 	using std::unique_ptr;
 
-	using KalaWindow::Utils::Registry;
+	using KalaWindow::Utils::KalaWindowRegistry;
 
 	enum class LabelType
 	{
@@ -48,7 +48,7 @@ namespace KalaWindow::Graphics
 	class LIB_API MenuBar
 	{
 	public:
-		static inline Registry<MenuBar> registry{};
+		static inline KalaWindowRegistry<MenuBar> registry{};
 
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window

@@ -52,7 +52,7 @@ using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
-using KalaWindow::Utils::Registry;
+using KalaWindow::Utils::KalaWindowRegistry;
 
 using std::string;
 using std::to_string;
@@ -479,7 +479,7 @@ static bool ProcessMessage(
 	}
 
 	u32 windowID = window->GetID();
-	vector<Input*> inputs = Registry<Input>::GetAllWindowContent(windowID);
+	vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
 	Input* input = inputs.empty() ? nullptr : inputs.front();
 
 	/*
@@ -1281,7 +1281,7 @@ static bool ProcessMessage(
 
 		if (window)
 		{
-			vector<MenuBar*> menuBars = Registry<MenuBar>::GetAllWindowContent(windowID);
+			vector<MenuBar*> menuBars = KalaWindowRegistry<MenuBar>::GetAllWindowContent(windowID);
 			MenuBar* menuBar = menuBars.empty() ? nullptr : menuBars.front();
 
 			if (menuBar)

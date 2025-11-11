@@ -31,7 +31,6 @@
 #include "graphics/menubar_windows.hpp"
 #include "core/input.hpp"
 #include "core/core.hpp"
-#include "utils/registry.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
@@ -43,7 +42,6 @@ using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::globalID;
 using KalaWindow::Core::Input;
-using KalaWindow::Utils::Registry;
 
 using std::make_unique;
 using std::move;
@@ -1844,16 +1842,16 @@ namespace KalaWindow::Graphics
 		/*
 		TODO: add back text + image + camera support
 		
-		Registry<Text>::RemoveAllWindowContent(ID);
-		Registry<Image>::RemoveAllWindowContent(ID);
-		Registry<Camera>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<Text>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<Image>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<Camera>::RemoveAllWindowContent(ID);
 		*/
 		
-		Registry<Input>::RemoveAllWindowContent(ID);
-		Registry<MenuBar>::RemoveAllWindowContent(ID);
-		Registry<OpenGL_Context>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);
 
-		Registry<Window>::RemoveContent(ID);
+		KalaWindowRegistry<Window>::RemoveContent(ID);
 	}
 
 	Window::~Window()

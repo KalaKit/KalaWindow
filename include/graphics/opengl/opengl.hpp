@@ -16,7 +16,7 @@ namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
 
-	using KalaWindow::Utils::Registry;
+	using KalaWindow::Utils::KalaWindowRegistry;
 
 	//Hardware accelerated antialiasing
 	enum class MultiSampling
@@ -90,7 +90,7 @@ namespace KalaWindow::Graphics::OpenGL
 	class LIB_API OpenGL_Context
 	{
 	public:
-		static inline Registry<OpenGL_Context> registry{};
+		static inline KalaWindowRegistry<OpenGL_Context> registry{};
 
 		//Initialize a per-window OpenGL context.
 		//parentContext determines the ID of the parent context which
