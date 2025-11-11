@@ -66,9 +66,10 @@ namespace KalaWindow::Graphics
 	struct WindowData
 	{
 		uintptr_t hwnd{};
+		uintptr_t hdc{};
 		uintptr_t hInstance{};
 		uintptr_t hMenu{};
-		uintptr_t wndProc{};   //WINDOW PROC FOR OPENGL, NOT USED IN VULKAN
+		uintptr_t wndProc{};
 	};
 
 	enum class WindowRounding

@@ -20,7 +20,7 @@ using namespace KalaHeaders;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Core::globalID;
+using KalaWindow::Core::KalaWindowCore;
 
 using std::ostringstream;
 using std::to_string;
@@ -49,7 +49,7 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		u32 newID = ++globalID;
+		u32 newID = ++KalaWindowCore::globalID;
 		unique_ptr<MenuBar> newMenu = make_unique<MenuBar>();
 		MenuBar* menuPtr = newMenu.get();
 
@@ -320,7 +320,7 @@ namespace KalaWindow::Graphics
 		}
 
 		HMENU hMenu = GetMenu(hwnd);
-		u32 newID = ++globalID;
+		u32 newID = ++KalaWindowCore::globalID;
 
 		MenuBarEvent newEvent{};
 

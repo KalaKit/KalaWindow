@@ -19,7 +19,6 @@
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Core::globalID;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
@@ -46,7 +45,7 @@ namespace KalaWindow::Core
 			return nullptr;
 		}
 
-		u32 newID = ++globalID;
+		u32 newID = ++KalaWindowCore::globalID;
 		unique_ptr<Input> newInput = make_unique<Input>();
 		Input* inputPtr = newInput.get();
 

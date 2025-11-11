@@ -40,7 +40,6 @@ using KalaWindow::Graphics::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::globalID;
 using KalaWindow::Core::Input;
 
 using std::make_unique;
@@ -90,7 +89,7 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		u32 newID = ++globalID;
+		u32 newID = ++KalaWindowCore::globalID;
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
 
@@ -185,10 +184,13 @@ namespace KalaWindow::Graphics
 			newHwnd,
 			GWLP_USERDATA,
 			reinterpret_cast<LONG_PTR>(windowPtr));
+			
+		HDC newHDC = GetDC(newHwnd);
 
 		WindowData newWindowStruct =
 		{
 			.hwnd = FromVar(newHwnd),
+			.hdc = FromVar(newHDC),
 			.hInstance = FromVar(newHInstance),
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
@@ -1882,12 +1884,11 @@ namespace KalaWindow::Graphics
 
 		if (window_windows.wndProc) window_windows.wndProc = NULL;
 
-		HDC hdc = GetDC(winRef);
-		if (hdc)
+		if (window_windows.hdc)
 		{
 			ReleaseDC(
 				ToVar<HWND>(window_windows.hwnd),
-				hdc);
+				ToVar<HDC>(window_windows.hdc));
 		}
 
 		if (exeIcon)

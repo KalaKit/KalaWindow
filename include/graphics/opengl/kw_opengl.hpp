@@ -120,8 +120,6 @@ namespace KalaWindow::Graphics::OpenGL
 
 			return openGL32Lib;
 		}
-		
-		static inline uintptr_t GetGlobalContext() { return hglrc; }
 
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);
@@ -134,7 +132,6 @@ namespace KalaWindow::Graphics::OpenGL
 		static inline bool isVerboseLoggingEnabled{};
 
 		static inline uintptr_t openGL32Lib{};
-		static inline uintptr_t hglrc{}; //master context for shared resources
 	};
 
 	class LIB_API OpenGL_Context
@@ -161,11 +158,9 @@ namespace KalaWindow::Graphics::OpenGL
 		inline u32 GetWindowID() const { return windowID; }
 
 		inline const string& GetContextData() { return contextData; }
-
-		inline const OpenGL_Context* GetParent() const { return parentContext; }
 		
-		inline uintptr_t GetHandle() const { return hdc; }
 		inline uintptr_t GetContext() const { return hglrc; }
+		inline uintptr_t GetParentContext() const { return parentHglrc; }
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();
@@ -175,11 +170,9 @@ namespace KalaWindow::Graphics::OpenGL
 		u32 ID{};
 		u32 windowID{};
 
-		OpenGL_Context* parentContext{};
-
 #ifdef _WIN32
-		uintptr_t hdc{};
-		uintptr_t hglrc{};
+		uintptr_t hglrc{};       //OpenGL context wia WGL
+		uintptr_t parentHglrc{}; //OpenGL shared parent context wia WGL
 #else
 		uintptr_t glxContext{}; //OpenGL context via glx
 #endif

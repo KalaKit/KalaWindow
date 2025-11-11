@@ -44,8 +44,6 @@ static function<void()> userRegularShutdown;
 
 namespace KalaWindow::Core
 {
-	u32 globalID{};
-
 	void KalaWindowCore::UpdateDeltaTime()
 	{
 		auto now = steady_clock::now();

@@ -16,9 +16,6 @@ namespace KalaWindow::Core
 	using std::string;
 	using std::function;
 
-	//The ID that is bumped by every object in KalaWindow when it needs a new ID
-	extern LIB_API u32 globalID;
-
 	enum class ShutdownState
 	{
 		SHUTDOWN_CLEAN,   //Regular exit (exit)
@@ -28,6 +25,9 @@ namespace KalaWindow::Core
 	class LIB_API KalaWindowCore
 	{
 	public:
+		//The ID that is bumped by every object in KalaWindow when it needs a new ID
+		static inline u32 globalID{};
+	
 		static f64 GetDeltaTime() { return deltaTime; }
 		static f64 GetFrameTime() { return frameTime; }
 
