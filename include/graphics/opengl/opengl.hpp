@@ -18,14 +18,8 @@ namespace KalaWindow::Graphics::OpenGL
 
 	using KalaWindow::Utils::Registry;
 
-	enum VSyncState
-	{
-		VSYNC_ON, //Framerate is capped to monitor refresh rate.
-		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
-	};
-
 	//Hardware accelerated antialiasing
-	enum MultiSampling
+	enum class MultiSampling
 	{
 		MSAA_1X = 1, //Same as multisampling disabled
 		MSAA_2X = 2,
@@ -33,27 +27,27 @@ namespace KalaWindow::Graphics::OpenGL
 		MSAA_8X = 8,
 		MSAA_16X = 16
 	};
-	enum SRGBMode
+	enum class SRGBMode
 	{
 		SRGB_ENABLED, //Enable color-correct gamma rendering (default)
 		SRGB_DISABLED //Colors will look washed out when using linear-space lighting
 	};
-	enum ColorBufferBits
+	enum class ColorBufferBits
 	{
 		COLOR_RGBA8,   //8 bits per channel (default)
 		COLOR_RGB10_A2 //10 bits color, 2 bits alpha (better color precision, sacrifices alpha quality)
 	};
-	enum DepthBufferBits
+	enum class DepthBufferBits
 	{
 		DEPTH_16, //16-bit integer depth (saves VRAM, bad precision over large distances)
 		DEPTH_24  //24-bit integer point depth (default)
 	};
-	enum StencilBufferBits
+	enum class StencilBufferBits
 	{
 		STENCIL_NONE, //Disables stencil completely (default)
 		STENCIL_8     //8-bit stencil
 	};
-	enum AlphaChannel
+	enum class AlphaChannel
 	{
 		ALPHA_NONE, //Disables alpha channel completely, cannot have transparent meshes or textures
 		ALPHA_8     //8-bit alpha channel (default)
@@ -118,30 +112,14 @@ namespace KalaWindow::Graphics::OpenGL
 
 		inline const string& GetContextData() { return contextData; }
 
-		void SwapOpenGLBuffers() const;
-
-		void MakeContextCurrent() const;
-		bool IsContextValid() const;
-
-		void SetVSyncState(VSyncState vsyncState);
-		inline VSyncState GetVSyncState() const { return vsyncState; }
-
-		inline void SetParent(OpenGL_Context* newVal) { parentContext = newVal; }
-		inline OpenGL_Context* GetParent() const { return parentContext; }
-
-		inline void SetContext(const uintptr_t& newVal) { hglrc = newVal; }
-		inline const uintptr_t& GetContext() const { return hglrc; }
-
-		inline void SetHandle(const uintptr_t& newVal) { hdc = newVal; }
-		inline const uintptr_t& GetHandle() const { return hdc; }
-
-		inline void SetLastProgramID(u32 newID) { lastProgramID = newID; }
-		inline const u32 GetLastProgramID() const { return lastProgramID; }
+		inline const OpenGL_Context* GetParent() const { return parentContext; }
+		
+		inline uintptr_t GetHandle() const { return hdc; }
+		inline uintptr_t GetContext() const { return hglrc; }
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();
 	private:
-#ifdef _WIN32
 		bool isInitialized{};
 
 		u32 ID{};
@@ -149,12 +127,12 @@ namespace KalaWindow::Graphics::OpenGL
 
 		OpenGL_Context* parentContext{};
 
-		uintptr_t hglrc{}; //OpenGL context wia WGL
-		uintptr_t hdc{};   //OpenGL handle to device context
+#ifdef _WIN32
+		uintptr_t hdc{};
+		uintptr_t hglrc{};
 #else
 		uintptr_t glxContext{}; //OpenGL context via glx
 #endif
-		u32 lastProgramID{};
 
 		string contextData{};
 
@@ -164,7 +142,5 @@ namespace KalaWindow::Graphics::OpenGL
 		DepthBufferBits dBits{};
 		StencilBufferBits sBits{};
 		AlphaChannel aChannel{};
-
-		VSyncState vsyncState = VSyncState::VSYNC_ON;
 	};
 }
