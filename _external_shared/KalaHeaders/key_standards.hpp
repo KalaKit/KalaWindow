@@ -42,8 +42,10 @@ namespace KalaHeaders
 	// KEY AND MOUSE ACTIONS
 	//
 	
-	enum class MouseActions : u32
+	enum class MouseButton : u32
 	{
+		M_INVALID = 0,
+		
 		M_LEFT   = 1,
 		M_RIGHT  = 2,
 		M_MIDDLE = 3,
@@ -63,201 +65,205 @@ namespace KalaHeaders
 		M_X2_DOUBLE     = 14
 	};
 	
-	inline constexpr u32 MA(MouseActions m) { return static_cast<u32>(m); }
+	inline constexpr u32 MB(MouseButton m) { return static_cast<u32>(m); }
 	
 	//Common mouse actions. 15-30 is reserved for future use.
-	inline constexpr array<KeyValue, 15> mouse_actions
+	inline constexpr array<KeyValue, 15> mouseButtons
 	{{
-		{MA(MouseActions::M_LEFT),   0, "Left"},
-		{MA(MouseActions::M_RIGHT),  0, "Right"}, //scrollwheel click
-		{MA(MouseActions::M_MIDDLE), 0, "Middle"},
+		{MB(MouseButton::M_LEFT),   0, "Left"},
+		{MB(MouseButton::M_RIGHT),  0, "Right"}, //scrollwheel click
+		{MB(MouseButton::M_MIDDLE), 0, "Middle"},
 		
-		{MA(MouseActions::M_X1), 0, "X1"}, //left side button
-		{MA(MouseActions::M_X2), 0, "X2"}, //right side button
+		{MB(MouseButton::M_X1), 0, "X1"}, //left side button
+		{MB(MouseButton::M_X2), 0, "X2"}, //right side button
 		
-		{MA(MouseActions::M_WHEEL_UP),    0, "WheelUp"},    //scroll up
-		{MA(MouseActions::M_WHEEL_DOWN),  0, "WheelDown"},  //scroll down
-		{MA(MouseActions::M_WHEEL_LEFT),  0, "WheelLeft"},  //scrollwheel left click
-		{MA(MouseActions::M_WHEEL_RIGHT), 0, "WheelRight"}, //scrollwheel right click
+		{MB(MouseButton::M_WHEEL_UP),    0, "WheelUp"},    //scroll up
+		{MB(MouseButton::M_WHEEL_DOWN),  0, "WheelDown"},  //scroll down
+		{MB(MouseButton::M_WHEEL_LEFT),  0, "WheelLeft"},  //scrollwheel left click
+		{MB(MouseButton::M_WHEEL_RIGHT), 0, "WheelRight"}, //scrollwheel right click
 		
-		{MA(MouseActions::M_LEFT_DOUBLE),   0, "LeftDouble"},
-		{MA(MouseActions::M_RIGHT_DOUBLE),  0, "RightDouble"},
-		{MA(MouseActions::M_MIDDLE_DOUBLE), 0, "MiddleDouble"},
-		{MA(MouseActions::M_X1_DOUBLE),     0, "X1Double"},
-		{MA(MouseActions::M_X2_DOUBLE),     0, "X2Double"}
+		{MB(MouseButton::M_LEFT_DOUBLE),   0, "LeftDouble"},
+		{MB(MouseButton::M_RIGHT_DOUBLE),  0, "RightDouble"},
+		{MB(MouseButton::M_MIDDLE_DOUBLE), 0, "MiddleDouble"},
+		{MB(MouseButton::M_X1_DOUBLE),     0, "X1Double"},
+		{MB(MouseButton::M_X2_DOUBLE),     0, "X2Double"}
 	}};
 	
-	enum class GamepadActions : u32
+	enum class GamepadButton : u32
 	{
-		GP_A = 31,
-		GP_B = 32,
-		GP_X = 33,
-		GP_Y = 34,
+		G_INVALID = 0,
 		
-		GP_L1 = 35,
-		GP_R1 = 36,
-		GP_L2 = 37,
-		GP_R2 = 38,
-		GP_L3 = 39,
-		GP_R3 = 40,
+		G_A = 31,
+		G_B = 32,
+		G_X = 33,
+		G_Y = 34,
 		
-		GP_DPAD_UP    = 41,
-		GP_DPAD_DOWN  = 42,
-		GP_DPAD_LEFT  = 43,
-		GP_DPAD_RIGHT = 44,
+		G_L1 = 35,
+		G_R1 = 36,
+		G_L2 = 37,
+		G_R2 = 38,
+		G_L3 = 39,
+		G_R3 = 40,
 		
-		GP_START    = 45,
-		GP_SELECT   = 46,
-		GP_HOME     = 47,
-		GP_CAPTURE  = 48,
-		GP_TOUCHPAD = 49
+		G_DPAD_UP    = 41,
+		G_DPAD_DOWN  = 42,
+		G_DPAD_LEFT  = 43,
+		G_DPAD_RIGHT = 44,
+		
+		G_START    = 45,
+		G_SELECT   = 46,
+		G_HOME     = 47,
+		G_CAPTURE  = 48,
+		G_TOUCHPAD = 49
 	};
 	
-	inline constexpr u32 GA(GamepadActions m) { return static_cast<u32>(m); }
+	inline constexpr u32 GB(GamepadButton m) { return static_cast<u32>(m); }
 	
 	//Common gamepad/controller/switch-like actions. 50-60 is reserved for future use.
-	inline constexpr array<KeyValue, 19> gamepad_actions
+	inline constexpr array<KeyValue, 19> gamepadButtons
 	{{
-		{GA(GamepadActions::GP_A), 0, "A"}, 
-		{GA(GamepadActions::GP_B), 0, "B"}, 
-		{GA(GamepadActions::GP_X), 0, "X"}, 
-		{GA(GamepadActions::GP_Y), 0, "Y"},
+		{GB(GamepadButton::G_A), 0, "A"}, 
+		{GB(GamepadButton::G_B), 0, "B"}, 
+		{GB(GamepadButton::G_X), 0, "X"}, 
+		{GB(GamepadButton::G_Y), 0, "Y"},
 		
-		{GA(GamepadActions::GP_L1), 0, "L1"}, 
-		{GA(GamepadActions::GP_R1), 0, "R1"},
-		{GA(GamepadActions::GP_L2), 0, "L2"}, 
-		{GA(GamepadActions::GP_R2), 0, "R2"},
-		{GA(GamepadActions::GP_L3), 0, "L3"}, 
-		{GA(GamepadActions::GP_R3), 0, "R3"},
+		{GB(GamepadButton::G_L1), 0, "L1"}, 
+		{GB(GamepadButton::G_R1), 0, "R1"},
+		{GB(GamepadButton::G_L2), 0, "L2"}, 
+		{GB(GamepadButton::G_R2), 0, "R2"},
+		{GB(GamepadButton::G_L3), 0, "L3"}, 
+		{GB(GamepadButton::G_R3), 0, "R3"},
 		
-		{GA(GamepadActions::GP_DPAD_UP),    0, "DPad Up"}, 
-		{GA(GamepadActions::GP_DPAD_DOWN),  0, "DPad Down"}, 
-		{GA(GamepadActions::GP_DPAD_LEFT),  0, "DPad Left"}, 
-		{GA(GamepadActions::GP_DPAD_RIGHT), 0, "DPad Right"},
+		{GB(GamepadButton::G_DPAD_UP),    0, "DPad Up"}, 
+		{GB(GamepadButton::G_DPAD_DOWN),  0, "DPad Down"}, 
+		{GB(GamepadButton::G_DPAD_LEFT),  0, "DPad Left"}, 
+		{GB(GamepadButton::G_DPAD_RIGHT), 0, "DPad Right"},
 		
-		{GA(GamepadActions::GP_START),    0, "Start"}, 
-		{GA(GamepadActions::GP_SELECT),   0, "Select"}, 
-		{GA(GamepadActions::GP_HOME),     0, "Home"}, 
-		{GA(GamepadActions::GP_CAPTURE),  0, "Capture"}, 
-		{GA(GamepadActions::GP_TOUCHPAD), 0, "Touchpad"}
+		{GB(GamepadButton::G_START),    0, "Start"}, 
+		{GB(GamepadButton::G_SELECT),   0, "Select"}, 
+		{GB(GamepadButton::G_HOME),     0, "Home"}, 
+		{GB(GamepadButton::G_CAPTURE),  0, "Capture"}, 
+		{GB(GamepadButton::G_TOUCHPAD), 0, "Touchpad"}
 	}};
 	
-	enum class KeyboardActions : u32
+	enum class KeyboardButton : u32
 	{
-		KB_NUM_0 = 61, KB_NUM_1 = 62, KB_NUM_2 = 63, KB_NUM_3 = 64, KB_NUM_4 = 65,
-		KB_NUM_5 = 66, KB_NUM_6 = 67, KB_NUM_7 = 68, KB_NUM_8 = 69, KB_NUM_9 = 70,
+		K_INVALID = 0,
 		
-		KB_NUM_LOCK = 71, KB_NUM_RETURN = 72, 
-		KB_NUM_DIVIDE = 73, KB_NUM_MULTIPLY = 74,
-		KB_NUM_ADD = 75, KB_NUM_SUBTRACT = 76,
+		K_NUM_0 = 61, K_NUM_1 = 62, K_NUM_2 = 63, K_NUM_3 = 64, K_NUM_4 = 65,
+		K_NUM_5 = 66, K_NUM_6 = 67, K_NUM_7 = 68, K_NUM_8 = 69, K_NUM_9 = 70,
 		
-		KB_0 = 77, KB_1 = 78, KB_2 = 79, KB_3 = 80, KB_4 = 81,
-		KB_5 = 82, KB_6 = 83, KB_7 = 84, KB_8 = 85, KB_9 = 86,
+		K_NUM_LOCK = 71, K_NUM_RETURN = 72, 
+		K_NUM_DIVIDE = 73, K_NUM_MULTIPLY = 74,
+		K_NUM_ADD = 75, K_NUM_SUBTRACT = 76,
 		
-		KB_F1 = 87, KB_F2 = 88, KB_F3 = 89, KB_F4 = 90, 
-		KB_F5 = 91, KB_F6 = 92, KB_F7 = 93, KB_F8 = 94, 
-		KB_F9 = 95, KB_F10 = 96, KB_F11 = 97, KB_F12 = 98, 
+		K_0 = 77, K_1 = 78, K_2 = 79, K_3 = 80, K_4 = 81,
+		K_5 = 82, K_6 = 83, K_7 = 84, K_8 = 85, K_9 = 86,
 		
-		KB_RETURN = 99, KB_BACKSPACE = 100, KB_SPACE = 101,
-		KB_ESC = 102, KB_TAB = 103, KB_CAPS_LOCK = 104,
+		K_F1 = 87, K_F2 = 88, K_F3 = 89, K_F4 = 90, 
+		K_F5 = 91, K_F6 = 92, K_F7 = 93, K_F8 = 94, 
+		K_F9 = 95, K_F10 = 96, K_F11 = 97, K_F12 = 98, 
 		
-		KB_LEFT_SHIFT = 105, KB_LEFT_CTRL = 106, KB_LEFT_ALT = 107, 
-		KB_RIGHT_SHIFT = 108, KB_RIGHT_CTRL = 109, KB_RIGHT_ALT = 110, 
+		K_RETURN = 99, K_BACKSPACE = 100, K_SPACE = 101,
+		K_ESC = 102, K_TAB = 103, K_CAPS_LOCK = 104,
 		
-		KB_PRINT_SCREEN = 111, KB_SCROLL_LOCK = 112, KB_PAUSE = 113, 
-		KB_INSERT = 114, KB_DELETE = 115,
-		KB_HOME = 116, KB_END = 117, 
-		KB_PAGE_UP = 118, KB_PAGE_DOWN = 119, 
+		K_LEFT_SHIFT = 105, K_LEFT_CTRL = 106, K_LEFT_ALT = 107, 
+		K_RIGHT_SHIFT = 108, K_RIGHT_CTRL = 109, K_RIGHT_ALT = 110, 
 		
-		KB_ARROW_UP = 120, KB_ARROW_DOWN = 121, 
-		KB_ARROW_LEFT = 122, KB_ARROW_RIGHT = 123, 
+		K_PRINT_SCREEN = 111, K_SCROLL_LOCK = 112, K_PAUSE = 113, 
+		K_INSERT = 114, K_DELETE = 115,
+		K_HOME = 116, K_END = 117, 
+		K_PAGE_UP = 118, K_PAGE_DOWN = 119, 
 		
-		KB_ALTERNATE_GRAPHIC = 124, 
-		KB_FUNCTION = 125, 
-		KB_SYSTEM = 126, 
-		KB_MENU = 127, 
+		K_ARROW_UP = 120, K_ARROW_DOWN = 121, 
+		K_ARROW_LEFT = 122, K_ARROW_RIGHT = 123, 
+		
+		K_ALTERNATE_GRAPHIC = 124, 
+		K_FUNCTION = 125, 
+		K_SYSTEM = 126, 
+		K_MENU = 127
 	};
 	
-	inline constexpr u32 KA(KeyboardActions m) { return static_cast<u32>(m); }
+	inline constexpr u32 KA(KeyboardButton m) { return static_cast<u32>(m); }
 	
 	//Common keyboard actions. 128-140 is reserved.
 	inline constexpr array<KeyValue, 67> keyboard_actions
 	{{
-		{KA(KeyboardActions::KB_NUM_0), 0, "Num 0"}, 
-		{KA(KeyboardActions::KB_NUM_1), 0, "Num 1"}, 
-		{KA(KeyboardActions::KB_NUM_2), 0, "Num 2"}, 
-		{KA(KeyboardActions::KB_NUM_3), 0, "Num 3"}, 
-		{KA(KeyboardActions::KB_NUM_4), 0, "Num 4"},
-		{KA(KeyboardActions::KB_NUM_5), 0, "Num 5"}, 
-		{KA(KeyboardActions::KB_NUM_6), 0, "Num 6"}, 
-		{KA(KeyboardActions::KB_NUM_7), 0, "Num 7"}, 
-		{KA(KeyboardActions::KB_NUM_8), 0, "Num 8"}, 
-		{KA(KeyboardActions::KB_NUM_9), 0, "Num 9"}, 
+		{KA(KeyboardButton::K_NUM_0), 0, "Num 0"}, 
+		{KA(KeyboardButton::K_NUM_1), 0, "Num 1"}, 
+		{KA(KeyboardButton::K_NUM_2), 0, "Num 2"}, 
+		{KA(KeyboardButton::K_NUM_3), 0, "Num 3"}, 
+		{KA(KeyboardButton::K_NUM_4), 0, "Num 4"},
+		{KA(KeyboardButton::K_NUM_5), 0, "Num 5"}, 
+		{KA(KeyboardButton::K_NUM_6), 0, "Num 6"}, 
+		{KA(KeyboardButton::K_NUM_7), 0, "Num 7"}, 
+		{KA(KeyboardButton::K_NUM_8), 0, "Num 8"}, 
+		{KA(KeyboardButton::K_NUM_9), 0, "Num 9"}, 
 		
-		{KA(KeyboardActions::KB_NUM_LOCK),     0, "Num lock"}, 
-		{KA(KeyboardActions::KB_NUM_RETURN),   0, "Num return"}, 
-		{KA(KeyboardActions::KB_NUM_DIVIDE),   0, "Num /"}, 
-		{KA(KeyboardActions::KB_NUM_MULTIPLY), 0, "Num *"}, 
-		{KA(KeyboardActions::KB_NUM_ADD),      0, "Num +"}, 
-		{KA(KeyboardActions::KB_NUM_SUBTRACT), 0, "Num -"},
+		{KA(KeyboardButton::K_NUM_LOCK),     0, "Num lock"}, 
+		{KA(KeyboardButton::K_NUM_RETURN),   0, "Num return"}, 
+		{KA(KeyboardButton::K_NUM_DIVIDE),   0, "Num /"}, 
+		{KA(KeyboardButton::K_NUM_MULTIPLY), 0, "Num *"}, 
+		{KA(KeyboardButton::K_NUM_ADD),      0, "Num +"}, 
+		{KA(KeyboardButton::K_NUM_SUBTRACT), 0, "Num -"},
 		
-		{KA(KeyboardActions::KB_0), 0, "0"}, 
-		{KA(KeyboardActions::KB_1), 0, "1"}, 
-		{KA(KeyboardActions::KB_2), 0, "2"}, 
-		{KA(KeyboardActions::KB_3), 0, "3"}, 
-		{KA(KeyboardActions::KB_4), 0, "4"},
-		{KA(KeyboardActions::KB_5), 0, "5"}, 
-		{KA(KeyboardActions::KB_6), 0, "6"}, 
-		{KA(KeyboardActions::KB_7), 0, "7"}, 
-		{KA(KeyboardActions::KB_8), 0, "8"}, 
-		{KA(KeyboardActions::KB_9), 0, "9"},
+		{KA(KeyboardButton::K_0), 0, "0"}, 
+		{KA(KeyboardButton::K_1), 0, "1"}, 
+		{KA(KeyboardButton::K_2), 0, "2"}, 
+		{KA(KeyboardButton::K_3), 0, "3"}, 
+		{KA(KeyboardButton::K_4), 0, "4"},
+		{KA(KeyboardButton::K_5), 0, "5"}, 
+		{KA(KeyboardButton::K_6), 0, "6"}, 
+		{KA(KeyboardButton::K_7), 0, "7"}, 
+		{KA(KeyboardButton::K_8), 0, "8"}, 
+		{KA(KeyboardButton::K_9), 0, "9"},
 		
-		{KA(KeyboardActions::KB_F1), 0, "F1"}, 
-		{KA(KeyboardActions::KB_F2), 0, "F2"}, 
-		{KA(KeyboardActions::KB_F3), 0, "F3"}, 
-		{KA(KeyboardActions::KB_F4), 0, "F4"}, 
-		{KA(KeyboardActions::KB_F5), 0, "F5"}, 
-		{KA(KeyboardActions::KB_F6), 0, "F6"}, 
-		{KA(KeyboardActions::KB_F7), 0, "F7"}, 
-		{KA(KeyboardActions::KB_F8), 0, "F8"},
-		{KA(KeyboardActions::KB_F9), 0, "F9"}, 
-		{KA(KeyboardActions::KB_F10), 0, "F10"}, 
-		{KA(KeyboardActions::KB_F11), 0, "F11"}, 
-		{KA(KeyboardActions::KB_F12), 0, "F12"},
+		{KA(KeyboardButton::K_F1), 0, "F1"}, 
+		{KA(KeyboardButton::K_F2), 0, "F2"}, 
+		{KA(KeyboardButton::K_F3), 0, "F3"}, 
+		{KA(KeyboardButton::K_F4), 0, "F4"}, 
+		{KA(KeyboardButton::K_F5), 0, "F5"}, 
+		{KA(KeyboardButton::K_F6), 0, "F6"}, 
+		{KA(KeyboardButton::K_F7), 0, "F7"}, 
+		{KA(KeyboardButton::K_F8), 0, "F8"},
+		{KA(KeyboardButton::K_F9), 0, "F9"}, 
+		{KA(KeyboardButton::K_F10), 0, "F10"}, 
+		{KA(KeyboardButton::K_F11), 0, "F11"}, 
+		{KA(KeyboardButton::K_F12), 0, "F12"},
 		
-		{KA(KeyboardActions::KB_RETURN),    0, "Return"}, 
-		{KA(KeyboardActions::KB_BACKSPACE), 0, "Backspace"}, 
-		{KA(KeyboardActions::KB_SPACE),     0, "Space"},
-		{KA(KeyboardActions::KB_ESC),       0, "Esc"}, 
-		{KA(KeyboardActions::KB_TAB),       0, "Tab"}, 
-		{KA(KeyboardActions::KB_CAPS_LOCK), 0, "Caps lock"},
+		{KA(KeyboardButton::K_RETURN),    0, "Return"}, 
+		{KA(KeyboardButton::K_BACKSPACE), 0, "Backspace"}, 
+		{KA(KeyboardButton::K_SPACE),     0, "Space"},
+		{KA(KeyboardButton::K_ESC),       0, "Esc"}, 
+		{KA(KeyboardButton::K_TAB),       0, "Tab"}, 
+		{KA(KeyboardButton::K_CAPS_LOCK), 0, "Caps lock"},
 		
-		{KA(KeyboardActions::KB_LEFT_SHIFT),  0, "Left shift"}, 
-		{KA(KeyboardActions::KB_LEFT_CTRL),   0, "Left control"}, 
-		{KA(KeyboardActions::KB_LEFT_ALT),    0, "Left alt"},
-		{KA(KeyboardActions::KB_RIGHT_SHIFT), 0, "Right shift"}, 
-		{KA(KeyboardActions::KB_RIGHT_CTRL),  0, "Right control"}, 
-		{KA(KeyboardActions::KB_RIGHT_ALT),   0, "Right alt"},
+		{KA(KeyboardButton::K_LEFT_SHIFT),  0, "Left shift"}, 
+		{KA(KeyboardButton::K_LEFT_CTRL),   0, "Left control"}, 
+		{KA(KeyboardButton::K_LEFT_ALT),    0, "Left alt"},
+		{KA(KeyboardButton::K_RIGHT_SHIFT), 0, "Right shift"}, 
+		{KA(KeyboardButton::K_RIGHT_CTRL),  0, "Right control"}, 
+		{KA(KeyboardButton::K_RIGHT_ALT),   0, "Right alt"},
 		
-		{KA(KeyboardActions::KB_PRINT_SCREEN), 0, "Print screen"}, 
-		{KA(KeyboardActions::KB_SCROLL_LOCK),  0, "Scroll lock"}, 
-		{KA(KeyboardActions::KB_PAUSE),        0, "Pause"},
-		{KA(KeyboardActions::KB_INSERT),       0, "Insert"}, 
-		{KA(KeyboardActions::KB_DELETE),       0, "Delete"},
-		{KA(KeyboardActions::KB_HOME),         0, "Home"}, 
-		{KA(KeyboardActions::KB_END),          0, "End"},
-		{KA(KeyboardActions::KB_PAGE_UP),      0, "Page up"}, 
-		{KA(KeyboardActions::KB_PAGE_DOWN),    0, "Page down"},
+		{KA(KeyboardButton::K_PRINT_SCREEN), 0, "Print screen"}, 
+		{KA(KeyboardButton::K_SCROLL_LOCK),  0, "Scroll lock"}, 
+		{KA(KeyboardButton::K_PAUSE),        0, "Pause"},
+		{KA(KeyboardButton::K_INSERT),       0, "Insert"}, 
+		{KA(KeyboardButton::K_DELETE),       0, "Delete"},
+		{KA(KeyboardButton::K_HOME),         0, "Home"}, 
+		{KA(KeyboardButton::K_END),          0, "End"},
+		{KA(KeyboardButton::K_PAGE_UP),      0, "Page up"}, 
+		{KA(KeyboardButton::K_PAGE_DOWN),    0, "Page down"},
 		
-		{KA(KeyboardActions::KB_ARROW_UP),    0, "Arrow up"}, 
-		{KA(KeyboardActions::KB_ARROW_DOWN),  0, "Arrow down"}, 
-		{KA(KeyboardActions::KB_ARROW_LEFT),  0, "Arrow left"}, 
-		{KA(KeyboardActions::KB_ARROW_RIGHT), 0, "Arrow right"},
+		{KA(KeyboardButton::K_ARROW_UP),    0, "Arrow up"}, 
+		{KA(KeyboardButton::K_ARROW_DOWN),  0, "Arrow down"}, 
+		{KA(KeyboardButton::K_ARROW_LEFT),  0, "Arrow left"}, 
+		{KA(KeyboardButton::K_ARROW_RIGHT), 0, "Arrow right"},
 		
-		{KA(KeyboardActions::KB_ALTERNATE_GRAPHIC), 0, "Alternate graphic"}, 
-		{KA(KeyboardActions::KB_FUNCTION),          0, "Function"}, 
-		{KA(KeyboardActions::KB_SYSTEM),            0, "System"}, 
-		{KA(KeyboardActions::KB_MENU),              0, "Menu"}
+		{KA(KeyboardButton::K_ALTERNATE_GRAPHIC), 0, "Alternate graphic"}, 
+		{KA(KeyboardButton::K_FUNCTION),          0, "Function"}, 
+		{KA(KeyboardButton::K_SYSTEM),            0, "System"}, 
+		{KA(KeyboardButton::K_MENU),              0, "Menu"}
 	}};
 	
 	//
@@ -918,8 +924,8 @@ namespace KalaHeaders
 		if (!keyValues.empty()) return;
 		
 		keyValues.reserve(
-			mouse_actions.size()
-			+ gamepad_actions.size()
+			mouseButtons.size()
+			+ gamepadButtons.size()
 			+ keyboard_actions.size()
 			
 			+ typography_symbols.size()
@@ -935,8 +941,8 @@ namespace KalaHeaders
 			+ emojis.size()
 			+ kaomojis.size());
 				
-		keyValues.insert(keyValues.end(), mouse_actions.begin(), mouse_actions.end());
-		keyValues.insert(keyValues.end(), gamepad_actions.begin(), gamepad_actions.end());
+		keyValues.insert(keyValues.end(), mouseButtons.begin(), mouseButtons.end());
+		keyValues.insert(keyValues.end(), gamepadButtons.begin(), gamepadButtons.end());
 		keyValues.insert(keyValues.end(), keyboard_actions.begin(), keyboard_actions.end());
 		
 		keyValues.insert(keyValues.end(), typography_symbols.begin(), typography_symbols.end());
