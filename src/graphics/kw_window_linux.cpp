@@ -5,7 +5,7 @@
 
 #ifdef __linux__
 
-#include "graphics/window.hpp"
+#include "graphics/kw_window.hpp"
 
 namespace KalaWindow::Graphics
 {

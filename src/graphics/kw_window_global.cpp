@@ -21,10 +21,10 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "graphics/window_global.hpp"
-#include "graphics/window.hpp"
-#include "core/core.hpp"
-#include "core/messageloop_windows.hpp"
+#include "graphics/kw_window_global.hpp"
+#include "graphics/kw_window.hpp"
+#include "core/kw_core.hpp"
+#include "core/kw_messageloop_windows.hpp"
 
 using namespace KalaHeaders;
 

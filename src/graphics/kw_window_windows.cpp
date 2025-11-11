@@ -25,12 +25,12 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "graphics/window.hpp"
-#include "graphics/window_global.hpp"
-#include "graphics/opengl/opengl.hpp"
-#include "graphics/menubar_windows.hpp"
-#include "core/input.hpp"
-#include "core/core.hpp"
+#include "graphics/kw_window.hpp"
+#include "graphics/kw_window_global.hpp"
+#include "graphics/kw_menubar_windows.hpp"
+#include "graphics/opengl/kw_opengl.hpp"
+#include "core/kw_input.hpp"
+#include "core/kw_core.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;

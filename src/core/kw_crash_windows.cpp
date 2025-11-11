@@ -16,9 +16,9 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/crash.hpp"
-#include "core/core.hpp"
-#include "graphics/window_global.hpp"
+#include "core/kw_crash.hpp"
+#include "core/kw_core.hpp"
+#include "graphics/kw_window_global.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;

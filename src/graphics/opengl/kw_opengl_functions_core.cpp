@@ -10,9 +10,9 @@
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/core_utils.hpp"
 
-#include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/opengl_functions_core.hpp"
-#include "core/core.hpp"
+#include "graphics/opengl/kw_opengl.hpp"
+#include "graphics/opengl/kw_opengl_functions_core.hpp"
+#include "core/kw_core.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;

@@ -12,9 +12,9 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/core.hpp"
-#include "core/input.hpp"
-#include "graphics/window.hpp"
+#include "core/kw_core.hpp"
+#include "core/kw_input.hpp"
+#include "graphics/kw_window.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;

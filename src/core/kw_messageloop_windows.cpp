@@ -22,15 +22,15 @@
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "core/messageloop_windows.hpp"
-#include "graphics/menubar_windows.hpp"
-#include "graphics/window.hpp"
-#include "graphics/window_global.hpp"
-#include "core/input.hpp"
-#include "core/core.hpp"
-#include "graphics/opengl/opengl.hpp"
-#include "graphics/opengl/opengl_functions_core.hpp"
-#include "utils/registry.hpp"
+#include "core/kw_messageloop_windows.hpp"
+#include "core/kw_input.hpp"
+#include "core/kw_core.hpp"
+#include "graphics/kw_menubar_windows.hpp"
+#include "graphics/kw_window.hpp"
+#include "graphics/kw_window_global.hpp"
+#include "graphics/opengl/kw_opengl.hpp"
+#include "graphics/opengl/kw_opengl_functions_core.hpp"
+#include "utils/kw_registry.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;

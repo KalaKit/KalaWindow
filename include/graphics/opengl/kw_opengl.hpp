@@ -10,7 +10,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "utils/registry.hpp"
+#include "utils/kw_registry.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {

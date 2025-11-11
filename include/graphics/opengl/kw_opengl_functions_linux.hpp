@@ -8,6 +8,7 @@
 #ifdef __linux__
 
 #include "KalaHeaders/core_utils.hpp"
+
 #include "OpenGL/glxext.h" //Linux-only OpenGL extension header
 
 namespace KalaWindow::Graphics::OpenGL

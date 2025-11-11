@@ -11,18 +11,16 @@
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/core_utils.hpp"
 
-#include "graphics/opengl/opengl_functions_linux.hpp"
-#include "graphics/opengl/opengl.hpp"
-#include "core/core.hpp"
-#include "core/global_handles.hpp"
+#include "graphics/opengl/kw_opengl_functions_linux.hpp"
+#include "graphics/opengl/kw_opengl.hpp"
+#include "core/kw_core.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::GlobalHandle;
 using namespace KalaWindow::Graphics::OpenGLFunctions;
-using KalaWindow::Graphics::OpenGL::OpenGL_Renderer;
+using KalaWindow::Graphics::OpenGL::OpenGL_Global;
 
 using std::vector;
 using std::string;

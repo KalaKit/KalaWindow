@@ -11,9 +11,9 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "graphics/menubar_windows.hpp"
-#include "graphics/window.hpp"
-#include "core/core.hpp"
+#include "graphics/kw_menubar_windows.hpp"
+#include "graphics/kw_window.hpp"
+#include "core/kw_core.hpp"
 
 using namespace KalaHeaders;
 

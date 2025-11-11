@@ -15,10 +15,10 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "core/core.hpp"
-#include "graphics/window.hpp"
-#include "graphics/opengl/opengl.hpp"
-#include "graphics/window_global.hpp"
+#include "core/kw_core.hpp"
+#include "graphics/kw_window.hpp"
+#include "graphics/kw_window_global.hpp"
+#include "graphics/opengl/kw_opengl.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
