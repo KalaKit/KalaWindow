@@ -39,7 +39,7 @@ action: forcecopy
 
 //copy debug dll
 origin: debug@KalaWindow1d.dll
-target: ..@Circuit-chan@_external_shared@KalaWindow@debug@KalaWindow03d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow03d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Solin@_external_shared@KalaWindow@debug@KalaWindow1d.dll
+target: ..@Circuit-chan@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Solin@_external_shared@KalaWindow@debug@KalaWindow1d.dll
 action: forcecopy
 
 //copy debug lib
