@@ -6,7 +6,11 @@
 ![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-brightgreen)
 ![Development Stage](https://img.shields.io/badge/development-Alpha-yellow)
 
-**KalaWindow** is a C++20 multimedia framework library for **Windows**, built for native desktop applications ranging from lightweight tools to full-featured game engines.
+**KalaWindow** is a C++20 window library for **Windows**, built for native desktop applications for Windows with support coming for Linux in the future.
+
+**KalaWindow** creates and owns the OpenGL 3.3 context but shader binding, swapping GL buffers, making context to current, checking if context is current, other GL related functions and GL core functions (+ the wgl and glx ones) must come from your GL library like [KalaGraphics](https://github.com/kalakit/kalagraphics) or another GL source. This way **KalaWindow** stays purely a GL context initializer and a window library with input and a message loop and nothing more. **KalaGraphics** also provides a full UI framework with a widget system.
+
+[KalaAudio](https://github.com/kalakit/kalaaudio) is recommended to be used for audio playback and audio streaming.
 
 Features built into **KalaWindow**:
 - windowing with support for multiple windows
@@ -14,8 +18,6 @@ Features built into **KalaWindow**:
 - native message loop
 - built in crash handler (previously known as KalaCrashHandler, now only maintained in this repository codebase)
 - OpenGl 3.3 context
-- shader system with compilation and hot reload (recompile shaders at runtime)
-- texture system with hot reload (can modify raw pixel data for each texture)
 
 ---
 
