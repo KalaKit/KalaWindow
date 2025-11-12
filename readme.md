@@ -76,6 +76,4 @@ Send me an email at `sanderveski@gmail.com` or message me on discord at `greenla
 
 [Minimum requirements](docs/minimum_requirements.md)
 
-[KalaWindow Library Naming Scheme](docs/naming_scheme.md)
-
 [Lost Empire Entertainment and KalaKit ecosystem](docs/ecosystem.md)

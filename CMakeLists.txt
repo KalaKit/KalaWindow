@@ -56,12 +56,6 @@ add_library(KalaWindow SHARED ${SOURCE_FILES})
 if (MSVC)
     target_compile_options(KalaWindow PRIVATE /EHsc)
 endif()
-
-# Get prefix
-set(KALA_PREFIX "")
-if (KALA_PRERELEASE)
-	set(KALA_PREFIX "_")
-endif()
 		
 # Get suffix
 if (IS_RELEASE)
@@ -72,7 +66,7 @@ endif()
 
 # Set output name with renderer suffix and debug postfix
 set_target_properties(KalaWindow PROPERTIES
-	OUTPUT_NAME "${KALA_PREFIX}KalaWindow${PROJECT_VERSION_MAJOR}${KALA_SUFFIX}"
+	OUTPUT_NAME "KalaWindow${PROJECT_VERSION_MAJOR}${KALA_SUFFIX}"
 )
 
 file(GLOB_RECURSE HEADERS configure_depends
