@@ -226,11 +226,6 @@ namespace KalaWindow::Graphics
 		DragAcceptFiles(newHwnd, TRUE);
 
 		registry.AddContent(newID, move(newWindow));
-		if (parentWindow)
-		{
-			parentWindow->AddChildWindow(windowPtr);
-			windowPtr->SetParentWindow(parentWindow);
-		}
 
 		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
@@ -1839,15 +1834,7 @@ namespace KalaWindow::Graphics
 
 	void Window::CloseWindow()
 	{
-		RemoveAllChildWindows();
-
-		/*
-		TODO: add back text + image + camera support
-		
-		KalaWindowRegistry<Text>::RemoveAllWindowContent(ID);
-		KalaWindowRegistry<Image>::RemoveAllWindowContent(ID);
-		KalaWindowRegistry<Camera>::RemoveAllWindowContent(ID);
-		*/
+		if (cleanExternalContent) cleanExternalContent();
 		
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
@@ -1865,19 +1852,9 @@ namespace KalaWindow::Graphics
 			"WINDOW",
 			LogType::LOG_DEBUG);
 
-		if (parentWindow)
-		{
-			parentWindow->RemoveChildWindow(this);
-			RemoveParentWindow();
-		}
-
-		childWindows.clear();
-
 		inputID = 0;
-		glContextID = 0;
+		glID = 0;
 		menuBarID = 0;
-		cameras.clear();
-		widgets.clear();
 
 		HWND winRef = ToVar<HWND>(window_windows.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);

@@ -42,16 +42,6 @@ namespace KalaWindow::Graphics
 		DPI_UNAWARE
 	};
 
-	//Use the target type enum to access IDs of this window
-	enum class TargetType
-	{
-		TYPE_INPUT,        //single instance ID
-		TYPE_GL_CONTEXT,   //single instance ID
-		TYPE_MENU_BAR,     //single instance ID
-		TYPE_CAMERA,       //vector of IDs
-		TYPE_WIDGET        //vector of IDs
-	};
-
 	//Supported states the window can go to
 	enum class WindowState
 	{
@@ -300,325 +290,23 @@ namespace KalaWindow::Graphics
 #endif
 
 		//
-		// WINDOW CONTAINER
+		// WINDOW CONTENT
 		//
 
-		inline u32 GetSingleValue(TargetType targetType) const
-		{
-			switch (targetType)
-			{
-			default: return{};
-			case TargetType::TYPE_INPUT:      return inputID; break;
-			case TargetType::TYPE_GL_CONTEXT: return glContextID; break;
-			case TargetType::TYPE_MENU_BAR:   return menuBarID; break;
-			}
+		inline u32 GetInputID() const { return inputID; }
+		inline void SetInputID(u32 newValue) { inputID = newValue; }
+		
+		inline u32 GetGLID() const { return glID; }
+		inline void SetGLID(u32 newValue) { glID = newValue; }
+		
+		inline u32 GetMenuBarID() const { return menuBarID; }
+		inline void SetMenuBarID(u32 newValue) { menuBarID = newValue; }
+		
+		//Clean up the external content of this window
+		inline void SetCleanExternalContent(function<void()> newValue) { cleanExternalContent = newValue; }
 
-			return{};
-		}
-		inline const vector<u32> GetContainer(TargetType targetType) const
-		{
-			switch (targetType)
-			{
-			default: return{};
-			case TargetType::TYPE_CAMERA: return cameras; break;
-			case TargetType::TYPE_WIDGET: return widgets; break;
-			}
-
-			return{};
-		}
-		inline bool AddValue(
-			TargetType targetType,
-			u32 targetValue)
-		{
-			auto AddSingleValue = [](u32 targetValue, u32& targetPosition)
-				{
-					if (targetValue == 0) return false;
-					targetPosition = targetValue;
-					return true;
-				};
-
-			auto AddContainerValue = [](u32 targetValue, auto& targetContainer)
-				{
-					if (targetValue == 0) return false;
-
-					if (find(targetContainer.begin(),
-						targetContainer.end(),
-						targetValue)
-						!= targetContainer.end())
-					{
-						return false;
-					}
-
-					targetContainer.push_back(targetValue);
-
-					return true;
-				};
-
-			switch (targetType)
-			{
-			case TargetType::TYPE_INPUT:
-			{
-				return AddSingleValue(targetValue, inputID);
-			}
-			case TargetType::TYPE_GL_CONTEXT:
-			{
-				return AddSingleValue(targetValue, glContextID);
-			}
-			case TargetType::TYPE_MENU_BAR:
-			{
-				return AddSingleValue(targetValue, menuBarID);
-			}
-			case TargetType::TYPE_CAMERA:
-			{
-				return AddContainerValue(targetValue, cameras);
-			}
-			case TargetType::TYPE_WIDGET:
-			{
-				return AddContainerValue(targetValue, widgets);
-			}
-			}
-
-			return false;
-		}
-		inline bool RemoveValue(
-			TargetType targetType,
-			u32 targetValue)
-		{
-			auto RemoveSingleValue = [](u32 targetValue, u32& targetPosition)
-				{
-					if (targetValue == 0
-						|| targetPosition != targetValue)
-					{
-						return false;
-					}
-
-					targetPosition = 0;
-					return true;
-				};
-
-			auto RemoveContainerValue = [](u32 targetValue, auto& targetContainer)
-				{
-					if (targetValue == 0) return false;
-
-					targetContainer.erase(remove(
-						targetContainer.begin(),
-						targetContainer.end(),
-						targetValue),
-						targetContainer.end());
-
-					return true;
-				};
-
-			switch (targetType)
-			{
-			case TargetType::TYPE_INPUT:
-			{
-				return RemoveSingleValue(targetValue, inputID);
-			}
-			case TargetType::TYPE_GL_CONTEXT:
-			{
-				return RemoveSingleValue(targetValue, glContextID);
-			}
-			case TargetType::TYPE_MENU_BAR:
-			{
-				return RemoveSingleValue(targetValue, menuBarID);
-			}
-			case TargetType::TYPE_CAMERA:
-			{
-				return RemoveContainerValue(targetValue, cameras);
-			}
-			case TargetType::TYPE_WIDGET:
-			{
-				return RemoveContainerValue(targetValue, widgets);
-			}
-			}
-
-			return false;
-		}
-		inline void CleanContainer(TargetType targetType)
-		{
-			switch (targetType)
-			{
-			case TargetType::TYPE_INPUT:
-			case TargetType::TYPE_GL_CONTEXT:
-			case TargetType::TYPE_MENU_BAR:
-			{
-				break;
-			}
-			case TargetType::TYPE_CAMERA: cameras.clear(); break;
-			case TargetType::TYPE_WIDGET: widgets.clear(); break;
-			}
-		}
-
-		//
-		// WINDOW HIERARCHY
-		//
-
-		//Returns the top-most window of this window
-		inline Window* GetRoot() { return parentWindow ? parentWindow->GetRoot() : this; }
-
-		//Returns true if target window is connected
-		//to current window as a child, parent or sibling.
-		//Set recursive to true if you want deep window search
-		inline bool HasWindow(
-			Window* targetWindow,
-			bool recursive = false)
-		{
-			if (!targetWindow) return false;
-
-			if (this == targetWindow) return true;
-
-			//check descendants
-			for (auto* c : childWindows)
-			{
-				if (c == targetWindow) return true;
-
-				if (recursive
-					&& c->HasWindow(targetWindow, true))
-				{
-					return true;
-				}
-			}
-
-			//check ancestors
-			if (parentWindow)
-			{
-				if (parentWindow == targetWindow) return true;
-
-				if (recursive
-					&& HasWindow(targetWindow, true))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		inline bool IsParentWindow(
-			Window* targetWindow,
-			bool recursive = false)
-		{
-			if (!targetWindow
-				|| this == targetWindow)
-			{
-				return false;
-			}
-
-			if (!parentWindow) return false;
-
-			if (parentWindow == targetWindow) return true;
-
-			if (recursive
-				&& IsParentWindow(targetWindow, true))
-			{
-				return true;
-			}
-
-			return false;
-		}
-		inline Window* GetParentWindow(Window* currentWindow) { return parentWindow; }
-		inline bool SetParentWindow(Window* targetWindow)
-		{
-			if (!targetWindow
-				|| this == targetWindow
-				|| HasWindow(targetWindow, true)
-				|| targetWindow->HasWindow(this, true)
-				|| (parentWindow
-				&& (parentWindow == targetWindow
-				|| parentWindow->HasWindow(this, true))))
-			{
-				return false;
-			}
-
-			parentWindow = targetWindow;
-			parentWindow->childWindows.push_back(this);
-
-			return true;
-		}
-		inline bool RemoveParentWindow()
-		{
-			if (!parentWindow) return false;
-
-			vector<Window*>& parentChildren = parentWindow->childWindows;
-
-			parentChildren.erase(remove(
-				parentChildren.begin(),
-				parentChildren.end(),
-				this),
-				parentChildren.end());
-
-			parentWindow = nullptr;
-
-			return true;
-		}
-
-		inline bool IsChildWindow(
-			Window* targetWindow,
-			bool recursive = false)
-		{
-			if (!targetWindow
-				|| this == targetWindow
-				|| parentWindow == this)
-			{
-				return false;
-			}
-
-			for (auto* c : childWindows)
-			{
-				if (c == targetWindow) return true;
-
-				if (recursive
-					&& c->IsChildWindow(targetWindow, true))
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-		inline bool AddChildWindow(Window* targetWindow)
-		{
-			if (!targetWindow
-				|| this == targetWindow
-				|| HasWindow(targetWindow, true)
-				|| targetWindow->HasWindow(this, true))
-			{
-				return false;
-			}
-
-			childWindows.push_back(targetWindow);
-			return true;
-		}
-		inline bool RemoveChildWindow(Window* targetWindow)
-		{
-			if (!targetWindow
-				|| this == targetWindow
-				|| parentWindow == targetWindow
-				|| targetWindow->parentWindow != this)
-			{
-				return false;
-			}
-
-			childWindows.erase(remove(
-				childWindows.begin(),
-				childWindows.end(),
-				targetWindow),
-				childWindows.end());
-
-			targetWindow->CloseWindow();
-
-			return true;
-		}
-
-		inline const vector<Window*>& GetAllChildWindows() { return childWindows; }
-		inline void RemoveAllChildWindows()
-		{
-			for (auto* c : childWindows) c->CloseWindow();
-			childWindows.clear();
-		}
-
-		//Clear the content of this window and erase it from its registry
+		//Clean up the content of this window and erase it from its registry.
+		//Calls the functional assigned with SetCleanExternalContent if it was assigned
 		inline void CloseWindow();
 
 		//Do not destroy manually, erase from registry instead
@@ -651,14 +339,12 @@ namespace KalaWindow::Graphics
 
 		vector<string> lastDraggedFiles{}; //The path of the last files which were dragged onto this window
 
-		Window* parentWindow{};
-		vector<Window*> childWindows{};
-
 		u32 inputID{};
-		u32 glContextID{};
+		u32 glID{};
 		u32 menuBarID{};
-		vector<u32> cameras{};
-		vector<u32> widgets{};
+		
+		//functional for cleaning the external content of this window
+		function<void()> cleanExternalContent{};
 
 #ifdef _WIN32
 		WindowData window_windows{}; //The windows data of this window

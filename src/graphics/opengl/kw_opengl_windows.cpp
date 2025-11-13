@@ -693,7 +693,7 @@ namespace KalaWindow::Graphics::OpenGL
 		contPtr->contextData = ss2.str();
 
 		registry.AddContent(newID, move(newCont));
-		window->AddValue(TargetType::TYPE_GL_CONTEXT, newID);
+		window->SetGLID(newID);
 
 		contPtr->windowID = window->GetID();
 

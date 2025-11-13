@@ -22,7 +22,6 @@ using KalaHeaders::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::TargetType;
 
 using std::string;
 using std::to_string;
@@ -72,7 +71,7 @@ namespace KalaWindow::Core
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
 		registry.AddContent(newID, move(newInput));
-		window->AddValue(TargetType::TYPE_INPUT, newID);
+		window->SetInputID(newID);
 
 		inputPtr->windowID = window->GetID();
 

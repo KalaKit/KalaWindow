@@ -18,7 +18,6 @@
 using namespace KalaHeaders;
 
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::TargetType;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Core::KalaWindowCore;
 
@@ -70,7 +69,7 @@ namespace KalaWindow::Graphics
 		DrawMenuBar(hwnd);
 
 		registry.AddContent(newID, move(newMenu));
-		window->AddValue(TargetType::TYPE_MENU_BAR, newID);
+		window->SetMenuBarID(newID);
 
 		menuPtr->isInitialized = true;
 		menuPtr->isEnabled = true;
