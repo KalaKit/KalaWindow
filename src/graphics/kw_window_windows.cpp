@@ -1834,7 +1834,7 @@ namespace KalaWindow::Graphics
 
 	void Window::CloseWindow()
 	{
-		if (cleanExternalContent) cleanExternalContent();
+		if (cleanExternalContent) cleanExternalContent(ID);
 		
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);

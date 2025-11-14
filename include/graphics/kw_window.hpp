@@ -303,7 +303,7 @@ namespace KalaWindow::Graphics
 		inline void SetMenuBarID(u32 newValue) { menuBarID = newValue; }
 		
 		//Clean up the external content of this window
-		inline void SetCleanExternalContent(function<void()> newValue) { cleanExternalContent = newValue; }
+		inline void SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
 
 		//Clean up the content of this window and erase it from its registry.
 		//Calls the functional assigned with SetCleanExternalContent if it was assigned
@@ -344,7 +344,7 @@ namespace KalaWindow::Graphics
 		u32 menuBarID{};
 		
 		//functional for cleaning the external content of this window
-		function<void()> cleanExternalContent{};
+		function<void(u32)> cleanExternalContent{};
 
 #ifdef _WIN32
 		WindowData window_windows{}; //The windows data of this window
