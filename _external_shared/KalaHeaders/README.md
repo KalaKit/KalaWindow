@@ -31,7 +31,21 @@ Provides:
 - shorthands for math variables
 - vec2, vec3, vec4, mat2, mat3, mat4, quat (vec4)
 - operators and helpers for vec, mat and quat types
+- swizzle operators for vec2-vec4
 - mat containers as column-major and scalar form
+- color conversion, tonemap conversion, color operators for sdr and hdr
+
+---
+
+## thread_utils.hpp
+
+Provides:
+- lock, lockwait and unlock overrides for handling safe access to variables
+- lock_m, lockwait_m (where applicable) and unlock_m for mutexes
+- jthread (joinable thread) which returns the created thread so it can be joined
+- dthread (self-exiting thread)
+
+---
 
 ## string_utils.hpp
 
