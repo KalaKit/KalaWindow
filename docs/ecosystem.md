@@ -7,17 +7,18 @@ the clis:
 - kalamove
 - kaladata
 - kalafont
+- kalamodel
 
 Note: All clis follow the same original cli template which means all clis follow the same cli command system and can also accept system commands through the run command.
 
 the libraries (rely on clis or headers in some way):
 - kalaserver
 - kalawindow
+- kalagraphics
 
 the executables (rely on libs or clis or headers in some way):
 - solin
 - vulin
-- circuit chan
 - elypso engine
 - elypso hub
 
@@ -26,56 +27,6 @@ the executables (rely on libs or clis or headers in some way):
 ## KalaHeaders
 
 A collection of headers for various purposes. Completely self-dependant, unrelated to each other and can be used independently without dragging any of the other ones in.
-
-### core_utils.hpp
-
-Provides:
-  - Cross-platform export/import macro (LIB_API)
-  - Win32 machine level function calling convenction (LIB_APIENTRY)
-  - Function inlining control (FORCE_INLINE, NO_INLINE)
-  - Deprecation marker (DEPRECATED)
-  - Debug-only assertion (DEBUG_ASSERT)
-  - Safe conversions between uintptr_t and pointers, integrals, enums
-  
-### file_utils.hpp
-
-Provides:
-  - file management - create file, create directory, list directory contents, rename, delete, copy, move
-  - file metadata - file size, directory size, line count, set extension
-  - text I/O - read/write data for text files with vector of string lines or string blob
-  - binary I/O - read/write data for binary files with vector of bytes or buffer + size
-  
-### hierarchy_utils.hpp
-
-Provides:
-  - parent-child hierarchy management
-  - fast lookup through recursive traversal across parents, children and siblings
-  
-### import_ktf.hpp
-
-Provides:
-  - Helpers for streaming individual font glyphs or loading the full kalafont type binary into memory
-  
-### log_utils.hpp
-
-Provides:
-  - Detailed logger - time, date, log type, origin tag
-  - Simple logger - just a fwrite to the console with a single string parameter
-  - Log types - info (no log type stamp), debug (skipped in release), success, warning, error
-  - Time stamp, date stamp accurate to system clock
-  
-### math_utils.hpp
-
-Provides:
-  - shorthands for math variables
-  - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat (vec4)
-  - operators and helpers for vec, mat and quat types
-  - mat containers as column-major and scalar form
-  
-### string_utils.hpp
-
-Provides:
-  - Various string conversions and functions to improve workflow with string operations
  
 ---
 
@@ -99,6 +50,14 @@ Uses FreeType to help with font parsing.
 
 ---
 
+## KalaModel
+
+Compiles .obj, .gltf and .fbx fonts into .kmf (kalamodelfile) - a runtime-ready model binary of vertices, indices, uvs and other relevant data related to the model that was passed. Strips out all metadata of the original model file.
+
+Uses Assimp to help with model parsing.
+
+---
+
 ## KalaServer
 
 A single .lib and .dll with no runtime of its own that can be attached to any executable or cli. Does not depend on KalaWindow, runs completely standalone from it. 
@@ -113,25 +72,17 @@ Uses completely original code with help from WinSock and CloudFlare Tunnel, does
 
 ## KalaWindow
 
-A single .lib and .dll with no runtime of its own that can be attached to any executable or cli.
+**KalaWindow** is a C++20 window library for **Windows**, built for native desktop applications for Windows with support coming for Linux in the future.
 
-Provides the multimedia framework library stack required for running executables with graphics on Windows and Linux. Locked to OpenGL 3.3 and Vulkan 1.3. Linux and Vulkan support have not yet been added but will be added in a future release.
+**KalaWindow** creates and owns the OpenGL 3.3 context but shader binding, swapping GL buffers, making context to current, checking if context is current, other GL related functions and GL core functions (+ the wgl and glx ones) must come from your GL library like [KalaGraphics](https://github.com/kalakit/kalagraphics) or another GL source. This way **KalaWindow** stays purely a GL context initializer and a window library with input and a message loop and nothing more. **KalaGraphics** also provides a full UI framework with a widget system.
 
-Can be ran headless, does not require a window to run any executable as a CLI if needed.
+---
 
-Provides:
-  - windowing with message loop
-  - crash handler with error popup and crash log on disk + optional dump log
-  - per-window input handling
-  - window-independent audio playback and streaming (miniaudio)
-  - class-agnostic registry system for classes that have more than once instance. uses unique ptr in unordered map for ownership and fast id-based lookup and vector for non-owning pointers for fast loop at runtime
-  - reusable transform system in 2D and 3D, uses self-made math header library with no glm help across the entire KalaWindow framework
-  
-  - opengl shader and texture framework for initializing both, hot reloading both (new image raw pixel data for textures, full hot reload for shaders)
-  - per-window camera framework
-  - custom per-window UI framework built from the ground up. uses the widget system where the text and image widgets are root, and everything else is built upon them. uses ktf files for fonts and kgm files for images
-  
-Does not rely on glfw, glm, glew, sdl, sfml, raylib, QT, ImGui or other common helpers similar to these.
+## KalaGraphics
+
+**KalaGraphics** is a graphics library for OpenGL 3.3 that does not own or create a window or the GL context. It is recommended to use [KalaWindow](https://github.com/kalakit/kalawindow) to get the GL context and the handle (HDC) but theoretically any other window context initializer and GL library like GLFW should work out of the box. **KalaGraphics** can initialize hand-picked GL core, wgl and glx functions for OpenGL 3.3 so helper libraries like Glad are not required.
+
+**KalaGraphics** provides shader, texture, UI and model handling in OpenGL 3.3. The UI framework is fully original, with a widget system where Image and Text are the root widgets. Shaders and textures can be hot-reloaded, where shaders fully reimport the new external shader file, but textures simply reload with new pixel data.
 
 ---
 
@@ -155,18 +106,12 @@ A vcall is a vulin packet that is sent out by Vulin to an IP or accepted by Vuli
 
 ---
 
-## Circuit Chan
-
-A first person in-development 3D game that uses KalaWindow for its foundation.
-
----
-
 ## Elypso Engine
 
-A game and software development engine that relies on KalaWindow.
+A game and software development engine that relies on KalaWindow and KalaGraphics, currently on hiatus until KalaWindow and KalaGraphics are ready for use.
 
 ---
 
 ## Elypso Hub
 
-The project manager and updater for Elypso Engine.
+The project manager and updater for Elypso Engine that relies on KalaWindow and KalaGraphics, currently on hiatus until KalaWindow and KalaGraphics are ready for use.
