@@ -1,5 +1,5 @@
 //------------------------------------------------------------------------------
-// import_ktf.hpp
+// import_kfd.hpp
 //
 // Copyright (C) 2025 Lost Empire Entertainment
 //
@@ -7,17 +7,17 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - Helpers for streaming individual font glyphs or loading the full kalafont type binary into memory
+//   - Helpers for streaming individual font glyphs or loading the full kalafontdata binary into memory
 //------------------------------------------------------------------------------
 
 /*------------------------------------------------------------------------------
 
-# KTF binary top header
+# KFD binary top header
 
 Offset | Size | Field
 -------|------|--------------------------------------------
-0      | 4    | KTF magic word, always 'K', 'T', 'F', '\0'
-4      | 1    | ktf binary version
+0      | 4    | KFD magic word, always 'K', 'F', 'D', '\0'
+4      | 1    | kfd binary version
 5      | 1    | type, '1' for bitmap, '2' for glyph
 6      | 2    | height of glyphs passed during export
 8      | 4    | max number of allowed glyphs
@@ -34,15 +34,15 @@ Offset | Size | Field
 26     | 4    | glyph table size in bytes
 30     | 4    | glyph block size in bytes
 
-# KTF binary glyph table
+# KFD binary glyph table
 
 Offset | Size | Field
 -------|------|--------------------------------------------
 ??     | 4    | character code in unicode
 ??+4   | 4    | absolute offset from start of file relative to its glyph block start
-??+8   | 4    | size of the glyh block (info + payload)
+??+8   | 4    | size of the glyph block (info + payload)
 
-# KTF binary glyph block
+# KFD binary glyph block
 
 Note: bearings and vertices can be negative
 
@@ -98,11 +98,11 @@ namespace KalaHeaders
 	using i8 = int8_t;
 	using i16 = int16_t;
 	
-	//The magic that must exist in all ktf files at the first four bytes
-	constexpr u32 KTF_MAGIC = 0x0046544B;
+	//The magic that must exist in all kfd files at the first four bytes
+	constexpr u32 KFD_MAGIC = 0x0044464B;
 	
-	//The version that must exist in all ktf files as the fifth byte
-	constexpr u8 KTF_VERSION = 1;
+	//The version that must exist in all kfd files as the fifth byte
+	constexpr u8 KFD_VERSION = 1;
 	
 	//The true top header size that is always required
 	constexpr u8 CORRECT_GLYPH_HEADER_SIZE = 34u;
@@ -127,7 +127,7 @@ namespace KalaHeaders
 		+ CORRECT_GLYPH_TABLE_SIZE
 		+ RAW_PIXEL_DATA_OFFSET;
 	
-	//Max allowed size for ktf files
+	//Max allowed size for kfd files
 	constexpr u32 MAX_TOTAL_SIZE = 
 		CORRECT_GLYPH_HEADER_SIZE 
 		+ MAX_GLYPH_TABLE_SIZE 
@@ -138,11 +138,11 @@ namespace KalaHeaders
 	//Max allowed glyph height
 	constexpr u8 MAX_GLYPH_HEIGHT = 100;
 	
-	//The main header at the top of each ktf file
+	//The main header at the top of each kfd file
 	struct GlyphHeader
 	{
-		u32 magic = KTF_MAGIC;    //ktf magic word
-		u8 version = KTF_VERSION; //ktf binary version
+		u32 magic = KFD_MAGIC;    //kfd magic word
+		u8 version = KFD_VERSION; //kfd binary version
 		u8 type{};                //1 = bitmap, 2 = glyph
 		u16 glyphHeight{};        //height of all glyphs in pixels
 		u32 glyphCount{};         //number of glyphs
@@ -190,7 +190,7 @@ namespace KalaHeaders
 		//
 		
 		RESULT_FILE_NOT_FOUND              = 1,  //File does not exist
-		RESULT_INVALID_EXTENSION           = 2,  //File is not '.ktf'
+		RESULT_INVALID_EXTENSION           = 2,  //File is not '.kfd'
 		RESULT_UNAUTHORIZED_READ           = 3,  //Not authorized to read this file
 		RESULT_FILE_LOCKED                 = 4,  //Cannot read this file, file is in use
 		RESULT_UNKNOWN_READ_ERROR          = 5,  //Unknown file error when reading file
@@ -202,7 +202,7 @@ namespace KalaHeaders
 		
 		RESULT_UNSUPPORTED_FILE_SIZE       = 7,  //Always assume total size is atleast 52 bytes
 		
-		RESULT_INVALID_MAGIC               = 8,  //magic must be 'KTF\0'
+		RESULT_INVALID_MAGIC               = 8,  //magic must be 'KFD\0'
 		RESULT_INVALID_VERSION             = 9,  //version must match
 		RESULT_INVALID_TYPE                = 10, //type must be '1' or '2'
 		RESULT_INVALID_GLYPH_HEIGHT        = 11, //glyph height must be within range
@@ -256,8 +256,8 @@ namespace KalaHeaders
 		return "RESULT_UNKNOWN";
 	}
 	
-	//Takes in a path to the .ktf file and returns binary data with a result enum
-	inline ImportResult ImportKTF(
+	//Takes in a path to the .kfd file and returns binary data with a result enum
+	inline ImportResult ImportKFD(
 		const path& inFile,
 		GlyphHeader& outHeader,
 		vector<GlyphTable>& outTables,
@@ -270,7 +270,7 @@ namespace KalaHeaders
 		if (!exists(inFile)) return ImportResult::RESULT_FILE_NOT_FOUND;
 		if (!is_regular_file(inFile)
 			|| !inFile.has_extension()
-			|| inFile.extension() != ".ktf")
+			|| inFile.extension() != ".kfd")
 		{
 			return ImportResult::RESULT_INVALID_EXTENSION;
 		}
@@ -337,10 +337,10 @@ namespace KalaHeaders
 			//glyph header
 			
 			memcpy(&header.magic, rawData.data() + 0, sizeof(u32));
-			if (header.magic != KTF_MAGIC) return ImportResult::RESULT_INVALID_MAGIC;
+			if (header.magic != KFD_MAGIC) return ImportResult::RESULT_INVALID_MAGIC;
 			
 			memcpy(&header.version, rawData.data() + 4, sizeof(u8));
-			if (header.version != KTF_VERSION) return ImportResult::RESULT_INVALID_VERSION;
+			if (header.version != KFD_VERSION) return ImportResult::RESULT_INVALID_VERSION;
 			
 			memcpy(&header.type, rawData.data() + 5,  sizeof(u8));
 			if (header.type != 1
