@@ -12,7 +12,7 @@
 //   - operators and helpers for vec, mat and quat types
 //   - swizzle operators for vec2-vec4
 //   - mat containers as column-major and scalar form
-//   - color conversion, tonemap conversion, color operators for sdr and hdr
+//   - color conversion, color operators
 //------------------------------------------------------------------------------
 
 #pragma once
@@ -25,21 +25,16 @@
 #include <basetsd.h>
 #endif
 
-using std::sin;
 using std::sinf;
-using std::cos;
 using std::cosf;
-using std::tan;
-using std::sqrt;
+using std::tanf;
 using std::sqrtf;
-using std::abs;
+using std::fabsf;
 using std::atan2f;
 using std::clamp;
 using std::min;
 using std::max;
-using std::fmod;
 using std::fmodf;
-using std::fabsf;
 using std::powf;
 using std::floorf;
 
@@ -120,6 +115,9 @@ constexpr f64 epsilon64 = 1e-12f;
 
 namespace KalaHeaders
 {
+	#define rcast reinterpret_cast
+	#define scast static_cast
+	
 	//
 	// GENERAL HELPERS
 	//
@@ -363,17 +361,17 @@ namespace KalaHeaders
 		constexpr bool operator==(const vec& v) const
 		{
 			if constexpr (N == 2) return 
-				abs(this->x - v.x) < epsilon
-				&& abs(this->y - v.y) < epsilon;
+				fabsf(this->x - v.x) < epsilon
+				&& fabsf(this->y - v.y) < epsilon;
 			if constexpr (N == 3) return
-				abs(this->x - v.x) < epsilon
-				&& abs(this->y - v.y) < epsilon
-				&& abs(this->z - v.z) < epsilon;
+				fabsf(this->x - v.x) < epsilon
+				&& fabsf(this->y - v.y) < epsilon
+				&& fabsf(this->z - v.z) < epsilon;
 			if constexpr (N == 4) return
-				abs(this->x - v.x) < epsilon
-				&& abs(this->y - v.y) < epsilon
-				&& abs(this->z - v.z) < epsilon
-				&& abs(this->w - v.w) < epsilon;
+				fabsf(this->x - v.x) < epsilon
+				&& fabsf(this->y - v.y) < epsilon
+				&& fabsf(this->z - v.z) < epsilon
+				&& fabsf(this->w - v.w) < epsilon;
 		}
 		constexpr bool operator!=(const vec& v) const { return !(*this == v); }
 
@@ -1115,41 +1113,41 @@ namespace KalaHeaders
 		{
 			if constexpr (N == 2)
 				return
-				(abs(this->m00 - m.m00) < epsilon)
-				&& (abs(this->m01 - m.m01) < epsilon)
-				&& (abs(this->m10 - m.m10) < epsilon)
-				&& (abs(this->m11 - m.m11) < epsilon);
+				(fabsf(this->m00 - m.m00) < epsilon)
+				&& (fabsf(this->m01 - m.m01) < epsilon)
+				&& (fabsf(this->m10 - m.m10) < epsilon)
+				&& (fabsf(this->m11 - m.m11) < epsilon);
 
 			if constexpr (N == 3)
 				return
-				(abs(this->m00 - m.m00) < epsilon)
-				&& (abs(this->m01 - m.m01) < epsilon)
-				&& (abs(this->m02 - m.m02) < epsilon)
-				&& (abs(this->m10 - m.m10) < epsilon)
-				&& (abs(this->m11 - m.m11) < epsilon)
-				&& (abs(this->m12 - m.m12) < epsilon)
-				&& (abs(this->m20 - m.m20) < epsilon)
-				&& (abs(this->m21 - m.m21) < epsilon)
-				&& (abs(this->m22 - m.m22) < epsilon);
+				(fabsf(this->m00 - m.m00) < epsilon)
+				&& (fabsf(this->m01 - m.m01) < epsilon)
+				&& (fabsf(this->m02 - m.m02) < epsilon)
+				&& (fabsf(this->m10 - m.m10) < epsilon)
+				&& (fabsf(this->m11 - m.m11) < epsilon)
+				&& (fabsf(this->m12 - m.m12) < epsilon)
+				&& (fabsf(this->m20 - m.m20) < epsilon)
+				&& (fabsf(this->m21 - m.m21) < epsilon)
+				&& (fabsf(this->m22 - m.m22) < epsilon);
 
 			if constexpr (N == 4)
 				return
-				(abs(this->m00 - m.m00) < epsilon)
-				&& (abs(this->m01 - m.m01) < epsilon)
-				&& (abs(this->m02 - m.m02) < epsilon)
-				&& (abs(this->m03 - m.m03) < epsilon)
-				&& (abs(this->m10 - m.m10) < epsilon)
-				&& (abs(this->m11 - m.m11) < epsilon)
-				&& (abs(this->m12 - m.m12) < epsilon)
-				&& (abs(this->m13 - m.m13) < epsilon)
-				&& (abs(this->m20 - m.m20) < epsilon)
-				&& (abs(this->m21 - m.m21) < epsilon)
-				&& (abs(this->m22 - m.m22) < epsilon)
-				&& (abs(this->m23 - m.m23) < epsilon)
-				&& (abs(this->m30 - m.m30) < epsilon)
-				&& (abs(this->m31 - m.m31) < epsilon)
-				&& (abs(this->m32 - m.m32) < epsilon)
-				&& (abs(this->m33 - m.m33) < epsilon);
+				(fabsf(this->m00 - m.m00) < epsilon)
+				&& (fabsf(this->m01 - m.m01) < epsilon)
+				&& (fabsf(this->m02 - m.m02) < epsilon)
+				&& (fabsf(this->m03 - m.m03) < epsilon)
+				&& (fabsf(this->m10 - m.m10) < epsilon)
+				&& (fabsf(this->m11 - m.m11) < epsilon)
+				&& (fabsf(this->m12 - m.m12) < epsilon)
+				&& (fabsf(this->m13 - m.m13) < epsilon)
+				&& (fabsf(this->m20 - m.m20) < epsilon)
+				&& (fabsf(this->m21 - m.m21) < epsilon)
+				&& (fabsf(this->m22 - m.m22) < epsilon)
+				&& (fabsf(this->m23 - m.m23) < epsilon)
+				&& (fabsf(this->m30 - m.m30) < epsilon)
+				&& (fabsf(this->m31 - m.m31) < epsilon)
+				&& (fabsf(this->m32 - m.m32) < epsilon)
+				&& (fabsf(this->m33 - m.m33) < epsilon);
 		}
 		constexpr bool operator!=(const mat& m) const { return !(*this == m); }
 
@@ -1507,14 +1505,14 @@ namespace KalaHeaders
 	//Computes vec2 magnitude (distance from a)
 	inline f32 length(const vec2 v)
 	{
-		return sqrt(
+		return sqrtf(
 			v.x * v.x
 			+ v.y * v.y);
 	}
 	//Computes vec3 magnitude (distance from a)
 	inline f32 length(const vec3& v)
 	{
-		return sqrt(
+		return sqrtf(
 			v.x * v.x
 			+ v.y * v.y
 			+ v.z * v.z);
@@ -1522,7 +1520,7 @@ namespace KalaHeaders
 	//Computes vec4 magnitude (distance from a)
 	inline f32 length(const vec4& v)
 	{
-		return sqrt(
+		return sqrtf(
 			v.x * v.x
 			+ v.y * v.y
 			+ v.z * v.z
@@ -1618,19 +1616,19 @@ namespace KalaHeaders
 	inline bool isnormalized(vec2 v)
 	{
 		f32 len2 = dot(v, v);
-		return abs(len2 - 1.0f) <= epsilon;
+		return fabsf(len2 - 1.0f) <= epsilon;
 	}
 	//Returns true if vec3 is unit-length normalized
 	inline bool isnormalized(const vec3& v)
 	{
 		f32 len2 = dot(v, v);
-		return abs(len2 - 1.0f) <= epsilon;
+		return fabsf(len2 - 1.0f) <= epsilon;
 	}
 	//Returns true if vec4 is unit-length normalized
 	inline bool isnormalized(const vec4& v)
 	{
 		f32 len2 = dot(v, v);
-		return abs(len2 - 1.0f) <= epsilon;
+		return fabsf(len2 - 1.0f) <= epsilon;
 	}
 
 	//Returns unit-length normalized vec2
@@ -1707,8 +1705,8 @@ namespace KalaHeaders
 	inline quat toquat(const vec2 euler)
 	{
 		f32 half = radians(euler.y * 0.5f);
-		f32 cz = cos(half);
-		f32 sz = sin(half);
+		f32 cz = cosf(half);
+		f32 sz = sinf(half);
 
 		//rotation around Z axis
 		return { 0.0f, 0.0f, sz, cz };
@@ -1718,9 +1716,9 @@ namespace KalaHeaders
 	{
 		vec3 r = radians(euler) * 0.5f;
 
-		f32 cx = cos(r.x), sx = sin(r.x);
-		f32 cy = cos(r.y), sy = sin(r.y);
-		f32 cz = cos(r.z), sz = sin(r.z);
+		f32 cx = cosf(r.x), sx = sinf(r.x);
+		f32 cy = cosf(r.y), sy = sinf(r.y);
+		f32 cz = cosf(r.z), sz = sinf(r.z);
 
 		return
 		{
@@ -1750,7 +1748,7 @@ namespace KalaHeaders
 		f32 pitch = atan2(sinr_cosp, cosr_cosp);
 
 		f32 sinp = 2.0f * (nq.w * nq.y - nq.z * nq.x);
-		f32 yaw = (abs(sinp) >= 1.0f)
+		f32 yaw = (fabsf(sinp) >= 1.0f)
 			? copysign(PI / 2.0f, sinp)
 			: asin(sinp);
 
@@ -1769,7 +1767,7 @@ namespace KalaHeaders
 
 		if (trace > 0.0f)
 		{
-			const f32 s = 0.5f / sqrt(trace + 1.0f);
+			const f32 s = 0.5f / sqrtf(trace + 1.0f);
 			q.w = 0.25f / s;
 			q.x = (m.m21 - m.m12) * s;
 			q.y = (m.m02 - m.m20) * s;
@@ -1777,7 +1775,7 @@ namespace KalaHeaders
 		}
 		else if (m.m00 > m.m11 && m.m00 > m.m22)
 		{
-			const f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
+			const f32 s = 2.0f * sqrtf(1.0f + m.m00 - m.m11 - m.m22);
 			q.w = (m.m21 - m.m12) / s;
 			q.x = 0.25f * s;
 			q.y = (m.m10 + m.m01) / s;
@@ -1785,7 +1783,7 @@ namespace KalaHeaders
 		}
 		else if (m.m11 > m.m22)
 		{
-			const f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
+			const f32 s = 2.0f * sqrtf(1.0f + m.m11 - m.m00 - m.m22);
 			q.w = (m.m02 - m.m20) / s;
 			q.x = (m.m10 + m.m01) / s;
 			q.y = 0.25f * s;
@@ -1793,7 +1791,7 @@ namespace KalaHeaders
 		}
 		else
 		{
-			const f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
+			const f32 s = 2.0f * sqrtf(1.0f + m.m22 - m.m00 - m.m11);
 			q.w = (m.m10 - m.m01) / s;
 			q.x = (m.m20 + m.m02) / s;
 			q.y = (m.m21 + m.m12) / s;
@@ -1810,7 +1808,7 @@ namespace KalaHeaders
 
 		if (trace > 0.0f)
 		{
-			const f32 s = 0.5f / sqrt(trace + 1.0f);
+			const f32 s = 0.5f / sqrtf(trace + 1.0f);
 			q.w = 0.25f / s;
 			q.x = (m.m21 - m.m12) * s;
 			q.y = (m.m02 - m.m20) * s;
@@ -1818,7 +1816,7 @@ namespace KalaHeaders
 		}
 		else if (m.m00 > m.m11 && m.m00 > m.m22)
 		{
-			const f32 s = 2.0f * sqrt(1.0f + m.m00 - m.m11 - m.m22);
+			const f32 s = 2.0f * sqrtf(1.0f + m.m00 - m.m11 - m.m22);
 			q.w = (m.m21 - m.m12) / s;
 			q.x = 0.25f * s;
 			q.y = (m.m10 + m.m01) / s;
@@ -1826,7 +1824,7 @@ namespace KalaHeaders
 		}
 		else if (m.m11 > m.m22)
 		{
-			const f32 s = 2.0f * sqrt(1.0f + m.m11 - m.m00 - m.m22);
+			const f32 s = 2.0f * sqrtf(1.0f + m.m11 - m.m00 - m.m22);
 			q.w = (m.m02 - m.m20) / s;
 			q.x = (m.m10 + m.m01) / s;
 			q.y = 0.25f * s;
@@ -1834,7 +1832,7 @@ namespace KalaHeaders
 		}
 		else
 		{
-			const f32 s = 2.0f * sqrt(1.0f + m.m22 - m.m00 - m.m11);
+			const f32 s = 2.0f * sqrtf(1.0f + m.m22 - m.m00 - m.m11);
 			q.w = (m.m10 - m.m01) / s;
 			q.x = (m.m20 + m.m02) / s;
 			q.y = (m.m21 + m.m12) / s;
@@ -1905,7 +1903,7 @@ namespace KalaHeaders
 	//Wraps a rotation axis between 0 to 360 degrees
 	inline f32 wrap(f32 deg)
 	{
-		deg = fmod(deg, 360.0f);
+		deg = fmodf(deg, 360.0f);
 		if (deg < 0.0f) deg += 360.0f;
 
 		return deg;
@@ -1943,7 +1941,7 @@ namespace KalaHeaders
 		f32 zFar)
 	{
 		const f32 aspect = viewport.x / viewport.y;
-		const f32 f = 1.0f / tan(radians(fovDeg) * 0.5f);
+		const f32 f = 1.0f / tanf(radians(fovDeg) * 0.5f);
 		const f32 fn = zFar - zNear;
 
 		mat4 m{};
@@ -1963,8 +1961,8 @@ namespace KalaHeaders
 		const vec2 size)
 	{
 		f32 r = radians(rotDeg);
-		f32 c = cos(r);
-		f32 s = sin(r);
+		f32 c = cosf(r);
+		f32 s = sinf(r);
 
 		mat4 m{};
 
@@ -2148,10 +2146,10 @@ namespace KalaHeaders
 		}
 		
 		f32 theta = acos(dotAB);
-		f32 sinTheta = sin(theta);
+		f32 sinTheta = sinf(theta);
 		
-		f32 w1 = sin((1.0f - t) * theta) / sinTheta;
-		f32 w2 = sin(t * theta) / sinTheta;
+		f32 w1 = sinf((1.0f - t) * theta) / sinTheta;
+		f32 w2 = sinf(t * theta) / sinTheta;
 
 		return normalize(q1 * w1 + q2 * w2);
 	}
@@ -2243,7 +2241,7 @@ namespace KalaHeaders
 		};
 	}
 
-	//Uses std::sqrt and returns unit-accurate distance between two vec2s
+	//Uses std::sqrtf and returns unit-accurate distance between two vec2s
 	inline f32 distancesqrt(
 		const vec2 a, 
 		const vec2 b)
@@ -2251,9 +2249,9 @@ namespace KalaHeaders
 		f32 dx = a.x - b.x;
 		f32 dy = a.y - b.y;
 
-		return sqrt(dx * dx + dy * dy);
+		return sqrtf(dx * dx + dy * dy);
 	}
-	//Uses std::sqrt and returns unit-accurate distance between two vec3s
+	//Uses std::sqrtf and returns unit-accurate distance between two vec3s
 	inline f32 distancesqrt(
 		const vec3& a, 
 		const vec3& b)
@@ -2262,22 +2260,10 @@ namespace KalaHeaders
 		f32 dy = a.y - b.y;
 		f32 dz = a.z - b.z;
 
-		return sqrt(dx * dx + dy * dy + dz * dz);
-	}
-	//Uses std::sqrt and returns unit-accurate distance between two vec4s
-	inline f32 distancesqrt(
-		const vec4& a, 
-		const vec4& b)
-	{
-		f32 dx = a.x - b.x;
-		f32 dy = a.y - b.y;
-		f32 dz = a.z - b.z;
-		f32 dw = a.w - b.w;
-
-		return sqrt(dx * dx + dy * dy + dz * dz + dw * dw);
+		return sqrtf(dx * dx + dy * dy + dz * dz);
 	}
 
-	//Does not use std::sqrt and returns squared distance between two vec2s
+	//Does not use std::sqrtf and returns squared distance between two vec2s
 	inline f32 distancefast(
 		const vec2 a, 
 		const vec2 b)
@@ -2287,7 +2273,7 @@ namespace KalaHeaders
 
 		return dx * dx + dy * dy;
 	}
-	//Does not use std::sqrt and returns squared distance between two vec3s
+	//Does not use std::sqrtf and returns squared distance between two vec3s
 	inline f32 distancefast(
 		const vec3& a, 
 		const vec3& b)
@@ -2297,18 +2283,6 @@ namespace KalaHeaders
 		f32 dz = a.z - b.z;
 
 		return dx * dx + dy * dy + dz * dz;
-	}
-	//Does not use std::sqrt and returns squared distance between two vec4s
-	inline f32 distancefast(
-		const vec4& a, 
-		const vec4& b)
-	{
-		f32 dx = a.x - b.x;
-		f32 dy = a.y - b.y;
-		f32 dz = a.z - b.z;
-		f32 dw = a.w - b.w;
-
-		return dx * dx + dy * dy + dz * dz + dw * dw;
 	}
 
 	inline vec3 reflect(
@@ -2429,14 +2403,14 @@ namespace KalaHeaders
 	{
 		vec3 na = normalize(axis);
 		f32 half = angle * 0.5f;
-		f32 s = sin(half);
+		f32 s = sinf(half);
 
 		return normalize(quat
 			{
 				na.x * s,
 				na.y * s,
 				na.z * s,
-				cos(half)
+				cosf(half)
 			});
 	}
 
@@ -2734,7 +2708,7 @@ namespace KalaHeaders
 				f32 G{};
 				f32 B{};
 				
-				switch (static_cast<int>(i))
+				switch (scast<int>(i))
 				{
 					default:
 					case 0: R = v; G = t; B = p; break;
@@ -3134,120 +3108,6 @@ namespace KalaHeaders
 	}
 	
 	//
-	//CONVERT TONEMAP
-	//
-	
-	enum class ToneMapConvertType : u8
-	{
-		TONEMAP_NONE = 0, //default, wont do any conversion
-		
-		//cinematic highlights with smooth rolloff and a slightly warm, film-like bias.
-		//medium cost - more math than most but still lightweight for modern GPUs
-		TONEMAP_LINEAR_TO_ACES_FILMIC       = 1,
-		
-		//soft, washed-out compression with a classic low-contrast tone.
-		//ultra-fast - about as cheap as tone mapping gets
-		TONEMAP_LINEAR_TO_REINHARD_BASIC    = 2,
-		
-		//higher-contrast Reinhard variant with cleaner mids and gentler highlights.
-		//ultra-fast - only slightly heavier than basic Reinhard
-		TONEMAP_LINEAR_TO_REINHARD_EXTENDED = 3,
-		
-		//warm, punchy filmic curve with strong character and dramatic contrast.
-		//medium cost - a bit of curve math but still very efficient
-		TONEMAP_LINEAR_TO_HABLE_FILMIC      = 4,
-		
-		//crisp, modern, high-contrast look that preserves saturation aggressively.
-		//medium-high cost - one of the heavier curves due to more complex shaping
-		TONEMAP_LINEAR_TO_LOTTES            = 5,
-		
-		//natural, subtle tone mapping with smooth, unobtrusive rolloff.
-		//fast - lightweight curve with only modest overhead
-		TONEMAP_LINEAR_TO_HEJL              = 6,
-		
-		//neutral, saturation-preserving modern curve with clean, predictable highlights.
-		//medium cost - similar to Hable, especially if gamut mapping is included
-		TONEMAP_LINEAR_TO_AGX               = 7
-	};
-	
-	//Converts inserted color (linear) to returned tonemap color (linear) with chosen ToneMapConvertType
-	//  x = R,
-	//  y = G,
-	//  z = B
-	inline vec3 convert_tonemap(
-		ToneMapConvertType type,
-		const vec3& c)
-	{	
-		//always range-normalize up front
-		vec4 nc = normalize_r(c);
-	
-		f32 r = nc.x;
-		f32 g = nc.y;
-		f32 b = nc.z;
-		
-		auto LINEAR_TO_ACES_FILMIC = [&]() -> vec3
-			{
-				auto to_aces_filmic = [](f32 c) -> f32
-					{
-						return clamp(
-							(c * (2.51f * c + 0.03f))
-							/ (c * (2.43f * c + 0.59f) + 0.14f),
-							0.0f,
-							1.0f);
-					};
-					
-				return vec3(
-					to_aces_filmic(r),
-					to_aces_filmic(g),
-					to_aces_filmic(b));
-			};
-			
-		auto LINEAR_TO_REINHARD_BASIC = [&]() -> vec3
-			{
-				
-			};
-			
-		auto LINEAR_TO_REINHARD_EXTENDED = [&]() -> vec3
-			{
-				
-			};
-			
-		auto LINEAR_TO_HABLE_FILMIC = [&]() -> vec3
-			{
-				
-			};
-			
-		auto LINEAR_TO_LOTTES = [&]() -> vec3
-			{
-				
-			};
-			
-		auto LINEAR_TO_HEJL = [&]() -> vec3
-			{
-				
-			};
-			
-		auto LINEAR_TO_AGX = [&]() -> vec3
-			{
-				
-			};
-			
-		switch (type)
-		{
-		default:
-		case ToneMapConvertType::TONEMAP_NONE: return c;
-			
-		case ToneMapConvertType::TONEMAP_LINEAR_TO_ACES_FILMIC:       return LINEAR_TO_ACES_FILMIC();
-		case ToneMapConvertType::TONEMAP_LINEAR_TO_REINHARD_BASIC:    return LINEAR_TO_REINHARD_BASIC();
-		case ToneMapConvertType::TONEMAP_LINEAR_TO_REINHARD_EXTENDED: return LINEAR_TO_REINHARD_EXTENDED();
-		case ToneMapConvertType::TONEMAP_LINEAR_TO_HABLE_FILMIC:      return LINEAR_TO_HABLE_FILMIC();
-		case ToneMapConvertType::TONEMAP_LINEAR_TO_LOTTES:            return LINEAR_TO_LOTTES();
-		case ToneMapConvertType::TONEMAP_LINEAR_TO_HEJL:              return LINEAR_TO_HEJL();
-		case ToneMapConvertType::TONEMAP_LINEAR_TO_AGX:               return LINEAR_TO_AGX();
-		}
-	}
-	
-	//
 	// COLOR OPERATORS
 	//
 	
@@ -3262,71 +3122,6 @@ namespace KalaHeaders
 		//Values must not be range-normalized or gamma-decoded.
 		COLORENCODE_LINEAR = 1
 	};
-	
-	//Controls how colorful something looks.
-	//Clamped internally from 0.0 to 10.
-	//  amount = 0 - grayscale,
-	//  amount = 1 - unchanged,
-	//  amount > 1 - oversaturated
-	inline vec3 saturation(
-		ColorEncodeType type,
-		const vec3& c,
-		f32 amount)
-	{
-		f32 clamped = clamp(amount, 0.0f, 10.0f);
-		
-		switch (type)
-		{
-		case ColorEncodeType::COLORENCODE_SRGB:
-		{
-			//always range-normalize up front
-			vec3 nc = normalize_r(c);
-			
-			constexpr f32 wr = 0.2126f;
-			constexpr f32 wg = 0.7152f;
-			constexpr f32 wb = 0.0722f;
-			
-			f32 grey = nc.x * wr + nc.y * wg + nc.z * wb;
-			
-			return vec3(
-				grey + (nc.x - grey) * clamped,
-				grey + (nc.y - grey) * clamped,
-				grey + (nc.z - grey) * clamped);
-		}
-		case ColorEncodeType::COLORENCODE_LINEAR:
-		{
-			
-		}
-		}
-	}
-	
-	//Controls how far colors are pushed away from mid-grey.
-	//Clamped internally from 0.0 to 10.
-	//  amount = 0 - grayscale
-	//  amount = 1 - unchanged
-	//  amount > 1 - higher contrast
-	inline vec3 contrast(
-		ColorEncodeType type,
-		const vec3& c,
-		f32 amount)
-	{
-		f32 clamped = clamp(amount, 0.0f, 10.0f);
-		
-		switch (type)
-		{
-		case ColorEncodeType::COLORENCODE_SRGB:
-		{
-			//always range-normalize up front
-			vec3 nc = normalize_r(c);
-			
-			return (nc - vec3(0.5f)) * clamped + vec3(0.5f);
-		}
-		case ColorEncodeType::COLORENCODE_LINEAR:
-		{
-			
-		}
-		}
-	}
 	
 	//Change the exposure of the input color with the HDR exposure adjustment,
 	//clamped internally from -10 to 10.
@@ -3385,7 +3180,183 @@ namespace KalaHeaders
 		return c + vec3(amount);
 	}
 	
-	//Rotates hue in normalized units.
+	//Inverts input color.
+	inline vec3 invert(
+		ColorEncodeType type,
+		const vec3& c)
+	{
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			vec3 nc = normalize_r(c);
+			
+			return vec3(1.0f) - nc;
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			return vec3(1.0f) - c;
+		}
+		}
+	}
+	
+	//Makes the colors of a color channel blocky by forcing them into big chunky steps.
+	//Levels are clamped internally from 1.0 to 256.
+	inline f32 posterize(
+		ColorEncodeType type,
+		f32 colorChannel,
+		f32 levels)
+	{
+		f32 clamped = clamp(levels, 1.0f, 256.0f);
+		
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			f32 nc = normalize_r(colorChannel);
+			
+			return floorf(nc * clamped) / clamped;
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			return floorf(colorChannel * clamped) / clamped;
+		}
+		}
+	}
+	
+	//Adjusts shadows, midtones and highlights independently.
+	//All three values are clamped internally from 0.0 to 1.0.
+	//	- shadows affect dark areas,
+	//	- midtones affect mid-range luminance,
+	//  - highlights affect bright areas
+	inline vec3 shadows_midtones_highlights(
+		ColorEncodeType type,
+		const vec3& c,
+		f32 shadows,
+		f32 midtones,
+		f32 highlights)
+	{
+		f32 s = clamp(shadows,    -1.0f, 1.0f);
+		f32 m = clamp(midtones,   -1.0f, 1.0f);
+		f32 h = clamp(highlights, -1.0f, 1.0f);
+		
+		vec3 col{};
+		f32 L{};
+		
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			vec3 nc = normalize_r(c);
+			
+			L = dot(nc, vec3(0.2126f, 0.7152f, 0.0722f));
+			col = nc;
+			
+			break;
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			L = dot(c, vec3(0.2126f, 0.7152f, 0.0722f));
+			col = c;
+			
+			break;
+		}
+		}
+		
+		//weight curves (smoothstep transitions)
+		
+		f32 wShadow =    1.0f - smoothstep(0.25f, 0.5f, L);
+		f32 wHighlight =        smoothstep(0.5f, 0.75f, L);
+		f32 wMid =       1.0f - wShadow - wHighlight;
+		
+		return vec3(
+			col
+			+ vec3(s) * wShadow
+			+ vec3(m) * wMid
+			+ vec3(h) * wHighlight);
+	}
+	
+	//Controls how colorful something looks. Uses OKLCH for linear.
+	//Clamped internally from 0.0 to 10.
+	//  amount = 0 - grayscale,
+	//  amount = 1 - unchanged,
+	//  amount > 1 - oversaturated
+	inline vec3 saturation(
+		ColorEncodeType type,
+		const vec3& c,
+		f32 amount)
+	{
+		f32 clamped = clamp(amount, 0.0f, 10.0f);
+		
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			vec3 nc = normalize_r(c);
+			
+			constexpr f32 wr = 0.2126f;
+			constexpr f32 wg = 0.7152f;
+			constexpr f32 wb = 0.0722f;
+			
+			f32 grey = nc.x * wr + nc.y * wg + nc.z * wb;
+			
+			return vec3(
+				grey + (nc.x - grey) * clamped,
+				grey + (nc.y - grey) * clamped,
+				grey + (nc.z - grey) * clamped);
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			vec4 oklch = convert_color(ColorConvertType::COLOR_LINEAR_TO_OKLCH, vec4(c, 1.0f));
+			
+			oklch.y *= clamped; //chroma
+			
+			return vec3(convert_color(
+				ColorConvertType::COLOR_OKLCH_TO_LINEAR, oklch));
+		}
+		}
+	}
+	
+	//Controls how far colors are pushed away from mid-grey. Uses OKLCH for linear.
+	//Clamped internally from 0.0 to 10.
+	//  amount = 0 - grayscale
+	//  amount = 1 - unchanged
+	//  amount > 1 - higher contrast
+	inline vec3 contrast(
+		ColorEncodeType type,
+		const vec3& c,
+		f32 amount)
+	{
+		f32 clamped = clamp(amount, 0.0f, 10.0f);
+		
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			vec3 nc = normalize_r(c);
+			
+			return (nc - vec3(0.5f)) * clamped + vec3(0.5f);
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			vec4 oklch = convert_color(ColorConvertType::COLOR_LINEAR_TO_OKLCH, vec4(c, 1.0f));
+			
+			f32 L = oklch.x;
+			L = 0.5f + (L - 0.5f) * clamped;
+			oklch.x = clamp(L, 0.0f, 1.0f);
+			
+			return vec3(convert_color(
+				ColorConvertType::COLOR_OKLCH_TO_LINEAR, oklch));
+		}
+		}
+	}
+	
+	//Rotates hue in normalized units. Uses OKLCH for linear.
 	//Display-referred: needs to be range-normalized.
 	//  shift = 0-1, where 1 wraps back to 0
 	inline vec3 hue_shift(
@@ -3415,12 +3386,21 @@ namespace KalaHeaders
 		}
 		case ColorEncodeType::COLORENCODE_LINEAR:
 		{
+			vec4 oklch = convert_color(ColorConvertType::COLOR_LINEAR_TO_OKLCH, vec4(c, 1.0f));
 			
+			float h = oklch.z + shift;
+			if (h >= 1.0f) h -= 1.0f;
+			if (h < 0.0f) h += 1.0f;
+			
+			oklch.z = h;
+			
+			return vec3(convert_color(
+				ColorConvertType::COLOR_OKLCH_TO_LINEAR, oklch));
 		}
 		}
 	}
 	
-	//Rotates hue in degrees instead of normalized units.
+	//Rotates hue in degrees instead of normalized units. Uses OKLCH for linear.
 	//  degrees wraps automatically, 0-360 is one full rotation
 	inline vec3 hue_rotate(
 		ColorEncodeType type,
@@ -3439,78 +3419,16 @@ namespace KalaHeaders
 		}
 		case ColorEncodeType::COLORENCODE_LINEAR:
 		{
-			
+			f32 shift = degrees / 360.0f;
+			return hue_shift(
+				ColorEncodeType::COLORENCODE_LINEAR,
+				c,
+				shift);
 		}
 		}
 	}
 	
-	//Multiplies the color by a tint color, preserving brightness.
-	//  tintColor = vec3(r, g, b) where 1 = no change
-	inline vec3 tint(
-		const vec3& c,
-		const vec3& tintColor)
-	{
-		return c * tintColor;
-	}
-	
-	//Applies a warm/cool color temperature bias.
-	//Clamped internally from -1 to 1.
-	//  amount = -1 - cool
-	//  amount = +1 - warm
-	inline vec3 temperature(
-		ColorEncodeType type,
-		const vec3& c,
-		f32 amount)
-	{
-		f32 t = clamp(amount, -1.0f, 1.0f);
-		
-		switch (type)
-		{
-		case ColorEncodeType::COLORENCODE_SRGB:
-		{
-			//always range-normalize up front
-			vec3 nc = normalize_r(c);
-			
-			vec3 warm = vec3(1.0f, 0.9f, 0.8f);
-			vec3 cool = vec3(0.8f, 0.9f, 1.0f);
-			
-			vec3 tintColor = (t >= 0.0f)
-				? lerp(vec3(1.0f), warm,  t)
-				: lerp(vec3(1.0f), cool, -t);
-				
-			return nc * tintColor;
-		}
-		case ColorEncodeType::COLORENCODE_LINEAR:
-		{
-			
-		}
-		}
-	}
-	
-	//Shifts the color toward a target white point.
-	//  whitePoint - vec3 defining desired neutral color (1 = no shift)
-	inline vec3 white_balance(
-		ColorEncodeType type,
-		const vec3& c,
-		const vec3& whitePoint)
-	{
-		switch (type)
-		{
-		case ColorEncodeType::COLORENCODE_SRGB:
-		{
-			//always range-normalize up front
-			vec3 nc = normalize_r(c);
-			
-			return nc * whitePoint;
-		}
-		case ColorEncodeType::COLORENCODE_LINEAR:
-		{
-			
-		}
-		}
-	}
-	
-	//Increases saturation while protecting already-saturated colors.
+	//Increases saturation while protecting already-saturated colors. Uses OKLCH for linear.
 	//Clamped internally from 0 to 10.
 	//  amount = 0 - unchanged
 	//  amount > 0 - more vibrant
@@ -3545,7 +3463,123 @@ namespace KalaHeaders
 		}
 		case ColorEncodeType::COLORENCODE_LINEAR:
 		{
+			vec4 oklch = convert_color(ColorConvertType::COLOR_LINEAR_TO_OKLCH, vec4(c, 1.0f));
 			
+			f32 C = oklch.y;
+			
+			//low-chroma pixels get more boost
+			f32 factor = a * (1.0f - clamp(C, 0.0f, 1.0f));
+			
+			oklch.y = clamp(C + factor, 0.0f, 1.0f);
+			
+			return vec3(convert_color(
+				ColorConvertType::COLOR_OKLCH_TO_LINEAR, oklch));
+		}
+		}
+	}
+	
+	//Multiplies the color by a tint color, preserving brightness. Uses XYZ for linear.
+	//  tintColor = vec3(r, g, b) where 1 = no change
+	inline vec3 tint(
+		ColorEncodeType type,
+		const vec3& c,
+		const vec3& tintColor)
+	{
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			vec3 nc = normalize_r(c);
+			
+			return nc * tintColor;
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			vec4 xyz = convert_color(ColorConvertType::COLOR_LINEAR_TO_XYZ, vec4(c, 1.0f));
+			
+			xyz.x *= tintColor.x;
+			xyz.y *= tintColor.y;
+			xyz.z *= tintColor.z;
+			
+			return vec3(convert_color(
+				ColorConvertType::COLOR_XYZ_TO_LINEAR, xyz));
+		}
+		}
+	}
+	
+	//Applies a warm/cool color temperature bias. Uses XYZ for linear.
+	//Clamped internally from -1 to 1.
+	//  amount = -1 - cool
+	//  amount = +1 - warm
+	inline vec3 temperature(
+		ColorEncodeType type,
+		const vec3& c,
+		f32 amount)
+	{
+		f32 t = clamp(amount, -1.0f, 1.0f);
+		
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			vec3 nc = normalize_r(c);
+			
+			vec3 cool = vec3(0.8f, 0.9f, 1.0f);
+			vec3 warm = vec3(1.0f, 0.9f, 0.8f);
+			
+			vec3 tintColor = (t >= 0.0f)
+				? lerp(vec3(1.0f), warm,  t)
+				: lerp(vec3(1.0f), cool, -t);
+				
+			return nc * tintColor;
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			vec4 xyz = convert_color(ColorConvertType::COLOR_LINEAR_TO_XYZ, vec4(c, 1.0f));
+			
+			//amount t = [-1, 1]
+			f32 cool = -t;
+			f32 warm =  t;
+			
+			//warm shifts X upward (toward red),
+			//cool shifts Z upward (toward blue)
+			xyz.x *= (1.0f + warm * 0.1f);
+			xyz.z *= (1.0f + cool * 0.1f);
+			
+			return vec3(convert_color(
+				ColorConvertType::COLOR_XYZ_TO_LINEAR, xyz));
+		}
+		}
+	}
+	
+	//Shifts the color toward a target white point. Uses XYZ for linear.
+	//  whitePoint - vec3 defining desired neutral color (1 = no shift)
+	inline vec3 white_balance(
+		ColorEncodeType type,
+		const vec3& c,
+		const vec3& whitePoint)
+	{
+		switch (type)
+		{
+		case ColorEncodeType::COLORENCODE_SRGB:
+		{
+			//always range-normalize up front
+			vec3 nc = normalize_r(c);
+			
+			return nc * whitePoint;
+		}
+		case ColorEncodeType::COLORENCODE_LINEAR:
+		{
+			vec4 xyz = convert_color(ColorConvertType::COLOR_LINEAR_TO_XYZ, vec4(c, 1.0f));
+			
+			xyz.x *= whitePoint.x;
+			xyz.y *= whitePoint.y;
+			xyz.z *= whitePoint.z;
+			
+			return vec3(convert_color(
+				ColorConvertType::COLOR_XYZ_TO_LINEAR, xyz));
 		}
 		}
 	}

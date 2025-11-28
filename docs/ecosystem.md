@@ -5,7 +5,6 @@ the header collection:
 
 the clis:
 - kalamove
-- kaladata
 - kalafont
 - kalamodel
 
@@ -33,12 +32,6 @@ A collection of headers for various purposes. Completely self-dependant, unrelat
 ## KalaMove
 
 Uses a manifest system with the .kmf extension and a custom syntax to control how do move, copy, delete and rename files and folders and how to create new dirs where needed.
-
----
-
-## KalaData
-
-Stores various formats in bulk inside a custom binary, either uncompressed or with 7z compression algorithms chosen by the end user with simple compression choice of fast, normal or archive.
 
 ---
 

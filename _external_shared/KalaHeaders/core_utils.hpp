@@ -12,6 +12,7 @@
 //   - Function inlining control (FORCE_INLINE, NO_INLINE)
 //   - Deprecation marker (DEPRECATED)
 //   - Debug-only assertion (DEBUG_ASSERT)
+//   - Shorthands for casters
 //   - Safe conversions between uintptr_t and pointers, integrals, enums
 //------------------------------------------------------------------------------
 
@@ -19,12 +20,14 @@
 
 #include <cstdint>
 #include <type_traits>
+#include <bit>
 
 using std::is_pointer_v;
 using std::is_integral_v;
 using std::is_enum_v;
 using std::underlying_type_t;
 using std::uint64_t;
+using std::bit_cast;
 
 //
 // CROSS-PLATFORM IMPORT/EXPORT
@@ -91,6 +94,26 @@ using std::uint64_t;
 #endif
 
 //
+// SHORTHANDS FOR CASTERS
+//
+
+//reinterpret_cast
+#define rcast reinterpret_cast
+//static_cast
+#define scast static_cast
+//dynamic_cast
+#define dcast dynamic_cast
+//const_cast
+#define ccast const_cast
+
+//bit_cast
+template<typename T, typename U>
+constexpr T bcast(const U& v) noexcept
+{
+	return bit_cast<T>(v);
+}
+
+//
 // CONVERT TO PLATFORM-AGNOSTIC VARIABLES AND BACK
 //
 
@@ -104,7 +127,7 @@ using std::uint64_t;
 template<typename T> static constexpr T ToVar(uintptr_t h)
 	requires is_pointer_v<T>
 {
-	return reinterpret_cast<T>(h);
+	return rcast<T>(h);
 }
 
 //Converts an uintptr_t to an integral handle
@@ -116,7 +139,7 @@ template<typename T> static constexpr T ToVar(uintptr_t h)
 template<typename T> static constexpr T ToVar(uintptr_t h)
 	requires is_integral_v<T>
 {
-	return static_cast<T>(h);
+	return scast<T>(h);
 }
 
 //Converts an uintptr_t to an enum handle
@@ -128,7 +151,7 @@ template<typename T> static constexpr T ToVar(uintptr_t h)
 template<typename T> static constexpr T ToVar(uintptr_t h)
 	requires is_enum_v<T>
 {
-	return static_cast<T>(static_cast<underlying_type_t<T>>(h));
+	return scast<T>(scast<underlying_type_t<T>>(h));
 }
 
 //Converts a pointer to a uintptr_t.
@@ -139,7 +162,7 @@ template<typename T> static constexpr T ToVar(uintptr_t h)
 //  - arrays
 template<typename T> static constexpr uint64_t FromVar(T* h)
 {
-	return reinterpret_cast<uint64_t>(h);
+	return rcast<uint64_t>(h);
 }
 
 //Converts an integral handle to an uintptr_t.
@@ -150,7 +173,7 @@ template<typename T> static constexpr uint64_t FromVar(T* h)
 template<typename T> static uint64_t FromVar(T h)
 	requires is_integral_v<T>
 {
-	return static_cast<uint64_t>(h);
+	return scast<uint64_t>(h);
 }
 
 //Converts an enum handle to an uintptr_t.
@@ -161,5 +184,5 @@ template<typename T> static uint64_t FromVar(T h)
 template<typename T> static uint64_t FromVar(T h)
 	requires is_enum_v<T>
 {
-	return static_cast<uint64_t>(static_cast<underlying_type_t<T>>(h));
+	return scast<uint64_t>(scast<underlying_type_t<T>>(h));
 }

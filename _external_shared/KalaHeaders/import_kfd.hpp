@@ -76,6 +76,9 @@ Offset | Size | Field
 
 namespace KalaHeaders
 {
+	#define rcast reinterpret_cast
+	#define scast static_cast
+	
 	using std::vector;
 	using std::array;
 	using std::string;
@@ -256,17 +259,8 @@ namespace KalaHeaders
 		return "RESULT_UNKNOWN";
 	}
 	
-	//Takes in a path to the .kfd file and returns binary data with a result enum
-	inline ImportResult ImportKFD(
-		const path& inFile,
-		GlyphHeader& outHeader,
-		vector<GlyphTable>& outTables,
-		vector<GlyphBlock>& outBlocks)
+	inline ImportResult PreReadCheck(const path& inFile)
 	{
-		//
-		// PRE-READ CHECKS
-		//
-		
 		if (!exists(inFile)) return ImportResult::RESULT_FILE_NOT_FOUND;
 		if (!is_regular_file(inFile)
 			|| !inFile.has_extension()
@@ -285,13 +279,13 @@ namespace KalaHeaders
 			!= perms::none;
 		
 		if (!canRead) return ImportResult::RESULT_UNAUTHORIZED_READ;
-				
+		
+		return ImportResult::RESULT_SUCCESS;
+	}
+	inline ImportResult TryOpenCheck(const path& inFile)
+	{
 		try
 		{
-			//
-			// TRY TO OPEN AND READ
-			//
-			
 			errno = 0;
 			ifstream in(inFile, ios::in | ios::binary);
 			if (in.fail()
@@ -306,7 +300,7 @@ namespace KalaHeaders
 			}
 			
 			in.seekg(0, ios::end);
-			size_t fileSize = static_cast<size_t>(in.tellg());
+			size_t fileSize = scast<size_t>(in.tellg());
 			
 			if (fileSize == 0) return ImportResult::RESULT_FILE_EMPTY;
 			if (fileSize < MIN_TOTAL_SIZE)
@@ -318,85 +312,302 @@ namespace KalaHeaders
 				return ImportResult::RESULT_UNSUPPORTED_FILE_SIZE;
 			}
 			
-			in.seekg(static_cast<streamoff>(0), ios::beg);
+			in.close();
 			
-			//
-			// PARSE FOUND DATA
-			//
-			
-			vector<u8> rawData(fileSize);
+			return ImportResult::RESULT_SUCCESS;
+		}
+		catch (...)
+		{
+			return ImportResult::RESULT_UNKNOWN_READ_ERROR;
+		}
+	}
+	
+	//Returns header data of the file,
+	//set skipChecks to true if the file has already been checked
+	inline ImportResult GetHeaderData(
+		const path& inFile,
+		GlyphHeader& outHeader,
+		bool skipChecks = false)
+	{
+		if (!skipChecks)
+		{
+			ImportResult preReadResult = PreReadCheck(inFile);
+			if (preReadResult != ImportResult::RESULT_SUCCESS) return preReadResult;
+		
+			ImportResult tryOpenResult = TryOpenCheck(inFile);
+			if (tryOpenResult != ImportResult::RESULT_SUCCESS) return tryOpenResult;
+		}
+		
+		ifstream in(inFile, ios::in | ios::binary);
+		
+		try
+		{
+			vector<u8> headerData(CORRECT_GLYPH_HEADER_SIZE);
 			
 			in.read(
-				reinterpret_cast<char*>(rawData.data()),
-				static_cast<streamsize>(fileSize));
+				rcast<char*>(headerData.data()),
+				scast<streamsize>(CORRECT_GLYPH_HEADER_SIZE));
 				
 			in.close();	
-				
+			
 			GlyphHeader header{};
 			
 			//glyph header
-			
-			memcpy(&header.magic, rawData.data() + 0, sizeof(u32));
+				
+			memcpy(&header.magic, headerData.data() + 0, sizeof(u32));
 			if (header.magic != KFD_MAGIC) return ImportResult::RESULT_INVALID_MAGIC;
-			
-			memcpy(&header.version, rawData.data() + 4, sizeof(u8));
+				
+			memcpy(&header.version, headerData.data() + 4, sizeof(u8));
 			if (header.version != KFD_VERSION) return ImportResult::RESULT_INVALID_VERSION;
-			
-			memcpy(&header.type, rawData.data() + 5,  sizeof(u8));
+				
+			memcpy(&header.type, headerData.data() + 5,  sizeof(u8));
 			if (header.type != 1
 				&& header.type != 2)
 			{
 				return ImportResult::RESULT_INVALID_TYPE;
 			}
-			
-			memcpy(&header.glyphHeight, rawData.data() + 6,  sizeof(u16));
+				
+			memcpy(&header.glyphHeight, headerData.data() + 6,  sizeof(u16));
 			if (header.glyphHeight < MIN_GLYPH_HEIGHT
 				|| header.glyphHeight > MAX_GLYPH_HEIGHT)
 			{
 				return ImportResult::RESULT_INVALID_GLYPH_HEIGHT;
 			}
-			
-			memcpy(&header.glyphCount, rawData.data() + 8,  sizeof(u32));
+				
+			memcpy(&header.glyphCount, headerData.data() + 8,  sizeof(u32));
 			if (header.glyphCount < 1
 				|| header.glyphCount > MAX_GLYPH_COUNT)
 			{
 				return ImportResult::RESULT_INVALID_GLYPH_COUNT;
 			}
-			
-			memcpy(&header.indices[0], rawData.data() + 12, sizeof(u8) * 6);
-			memcpy(&header.uvs[0][0],  rawData.data() + 18, sizeof(u8) * 8);
+				
+			memcpy(&header.indices[0], headerData.data() + 12, sizeof(u8) * 6);
+			memcpy(&header.uvs[0][0],  headerData.data() + 18, sizeof(u8) * 8);
 
-			memcpy(&header.glyphTableSize, rawData.data() + 26, sizeof(u32));
+			memcpy(&header.glyphTableSize, headerData.data() + 26, sizeof(u32));
 			if (header.glyphTableSize < CORRECT_GLYPH_TABLE_SIZE
 				|| header.glyphTableSize > MAX_GLYPH_TABLE_SIZE)
 			{
 				return ImportResult::RESULT_INVALID_GLYPH_TABLE_SIZE;
 			}
-			
-			memcpy(&header.glyphBlockSize, rawData.data() + 30, sizeof(u32));
+				
+			memcpy(&header.glyphBlockSize, headerData.data() + 30, sizeof(u32));
 			if (header.glyphBlockSize < RAW_PIXEL_DATA_OFFSET
 				|| header.glyphBlockSize > MAX_GLYPH_BLOCK_SIZE)
 			{
 				return ImportResult::RESULT_INVALID_GLYPH_BLOCK_SIZE;
 			}
 			
-			//glyph table data
+			outHeader = header;
+			
+			return ImportResult::RESULT_SUCCESS;
+		}
+		catch (...)
+		{
+			return ImportResult::RESULT_UNKNOWN_READ_ERROR;
+		}
+	}
+	
+	//Loads the kfd tables for streaming font glyphs at runtime,
+	//set skipChecks to true if the file has already been checked
+	inline ImportResult GetTableData(
+		const path& inFile,
+		vector<GlyphTable>& outTables,
+		bool skipChecks = false)
+	{
+		if (!skipChecks)
+		{
+			ImportResult preReadResult = PreReadCheck(inFile);
+			if (preReadResult != ImportResult::RESULT_SUCCESS) return preReadResult;
+			
+			ImportResult tryOpenResult = TryOpenCheck(inFile);
+			if (tryOpenResult != ImportResult::RESULT_SUCCESS) return tryOpenResult;
+		}
+		
+		GlyphHeader header{};
+			
+		ImportResult headerResult = GetHeaderData(
+			inFile,
+			header,
+			true);
+				
+		if (headerResult != ImportResult::RESULT_SUCCESS) return headerResult;
+		
+		ifstream in(inFile, ios::in | ios::binary);
+		
+		try
+		{
+			vector<u8> tablesData(header.glyphTableSize);
+			
+			//start at the end of the top header
+			in.seekg(CORRECT_GLYPH_HEADER_SIZE);
+			
+			//read in the size of all tables
+			in.read(
+				rcast<char*>(tablesData.data()),
+				scast<streamsize>(header.glyphTableSize));
+				
+			in.close();	
 			
 			vector<GlyphTable> tables{};
 			tables.reserve(header.glyphCount);
 			
-			for (size_t i = CORRECT_GLYPH_HEADER_SIZE; 
-				i < CORRECT_GLYPH_HEADER_SIZE + header.glyphTableSize; 
+			for (size_t i = 0; 
+				i < header.glyphTableSize; 
 				i += CORRECT_GLYPH_TABLE_SIZE)
 			{
 				GlyphTable t{};
 				
-				memcpy(&t.charCode,    rawData.data() + i + 0, sizeof(u32));
-				memcpy(&t.blockOffset, rawData.data() + i + 4, sizeof(u32));
-				memcpy(&t.blockSize,   rawData.data() + i + 8, sizeof(u32));
+				memcpy(&t.charCode,    tablesData.data() + i + 0, sizeof(u32));
+				memcpy(&t.blockOffset, tablesData.data() + i + 4, sizeof(u32));
+				memcpy(&t.blockSize,   tablesData.data() + i + 8, sizeof(u32));
 				
 				tables.push_back(t);
 			}
+			
+			outTables = move(tables);
+			
+			return ImportResult::RESULT_SUCCESS;
+		}
+		catch (...)
+		{
+			return ImportResult::RESULT_UNKNOWN_READ_ERROR;
+		}
+	}
+	
+	//Returns glyph blocks for the inserted tables, set skipChecks to true if the file has already been checked
+	inline ImportResult StreamGlyphs(
+		const path& inFile,
+		const vector<GlyphTable>& inTables,
+		vector<GlyphBlock>& outBlocks,
+		bool skipChecks = false)
+	{
+		if (!skipChecks)
+		{
+			ImportResult preReadResult = PreReadCheck(inFile);
+			if (preReadResult != ImportResult::RESULT_SUCCESS) return preReadResult;
+			
+			ImportResult tryOpenResult = TryOpenCheck(inFile);
+			if (tryOpenResult != ImportResult::RESULT_SUCCESS) return tryOpenResult;
+		}
+		
+		try
+		{
+			ifstream in(inFile, ios::in | ios::binary);
+			
+			in.seekg(0, ios::end);
+			size_t fileSize = scast<size_t>(in.tellg());
+			
+			//glyph block data
+			
+			vector<GlyphBlock> blocks{};
+			blocks.reserve(inTables.size());
+			
+			for (const auto& t : inTables)
+			{
+				GlyphBlock b{};
+				
+				size_t offset = t.blockOffset;
+				
+				//verify that block size is not OOB
+				if (offset + t.blockSize > fileSize)
+				{
+					return ImportResult::RESULT_UNEXPECTED_EOF;
+				}
+				
+				in.seekg(offset);
+				
+				in.read(rcast<char*>(&b.charCode), sizeof(u32));
+				in.read(rcast<char*>(&b.width),    sizeof(u16));
+				in.read(rcast<char*>(&b.height),   sizeof(u16));
+				in.read(rcast<char*>(&b.bearingX), sizeof(i16));
+				in.read(rcast<char*>(&b.bearingY), sizeof(i16));
+				in.read(rcast<char*>(&b.advance),  sizeof(u16));
+				
+				//vertices
+				in.read(rcast<char*>(&b.vertices), sizeof(b.vertices));
+				
+				//raw pixel size
+				in.read(rcast<char*>(&b.rawPixelSize), sizeof(u32));
+				
+				//verify that pixel data is not OOB
+				if (offset + RAW_PIXEL_DATA_OFFSET + b.rawPixelSize > fileSize)
+				{
+					return ImportResult::RESULT_UNEXPECTED_EOF;
+				}
+				
+				//raw pixel data
+				b.rawPixels.resize(b.rawPixelSize);
+				in.read(rcast<char*>(b.rawPixels.data()), b.rawPixelSize);
+				
+				blocks.push_back(move(b));
+			}
+			
+			in.close();
+			
+			outBlocks = move(blocks);
+			
+			return ImportResult::RESULT_SUCCESS;
+		}
+		catch (...)
+		{
+			return ImportResult::RESULT_UNKNOWN_READ_ERROR;
+		}
+	}
+	
+	//Returns the entire kfd file binary content in structs
+	inline ImportResult ImportKFD(
+		const path& inFile,
+		GlyphHeader& outHeader,
+		vector<GlyphTable>& outTables,
+		vector<GlyphBlock>& outBlocks)
+	{
+		ImportResult preReadResult = PreReadCheck(inFile);
+		if (preReadResult != ImportResult::RESULT_SUCCESS) return preReadResult;
+		
+		ImportResult tryOpenResult = TryOpenCheck(inFile);
+		if (tryOpenResult != ImportResult::RESULT_SUCCESS) return tryOpenResult;
+		
+		//header data
+			
+		GlyphHeader header{};
+			
+		ImportResult headerResult = GetHeaderData(
+			inFile,
+			header,
+			false);
+			
+		if (headerResult != ImportResult::RESULT_SUCCESS) return headerResult;
+			
+		//glyph table data
+			
+		vector<GlyphTable> tables{};
+		tables.reserve(header.glyphCount);
+			
+		ImportResult tableResult = GetTableData(
+			inFile,
+			tables,
+			true);
+			
+		if (tableResult != ImportResult::RESULT_SUCCESS) return tableResult;
+				
+		try
+		{
+			ifstream in(inFile, ios::in | ios::binary);
+			
+			vector<u8> blockData(header.glyphBlockSize);
+			
+			//start at the end of the tables
+			
+			size_t blockRegionStart = CORRECT_GLYPH_HEADER_SIZE + header.glyphTableSize;
+			in.seekg(blockRegionStart);
+			
+			//read in the size of all models
+			in.read(
+				rcast<char*>(blockData.data()),
+				scast<streamsize>(header.glyphBlockSize));
+				
+			in.close();
 			
 			//glyph block data
 			
@@ -406,47 +617,49 @@ namespace KalaHeaders
 			for (const auto& t : tables)
 			{
 				GlyphBlock b{};
-				size_t offset = t.blockOffset;
+				size_t relativeOffset = t.blockOffset - blockRegionStart;
 				
-				if (t.blockOffset + t.blockSize > fileSize)
+				//verify that block size is not OOB
+				if (relativeOffset + t.blockSize > blockData.size())
 				{
 					return ImportResult::RESULT_UNEXPECTED_EOF;
 				}
 				
-				memcpy(&b.charCode, rawData.data() + offset + 0, sizeof(u32));
-				memcpy(&b.width,    rawData.data() + offset + 4, sizeof(u16));
-				memcpy(&b.height,   rawData.data() + offset + 6, sizeof(u16));
-				memcpy(&b.bearingX, rawData.data() + offset + 8, sizeof(i16));
-				memcpy(&b.bearingY, rawData.data() + offset + 10, sizeof(i16));
-				memcpy(&b.advance,  rawData.data() + offset + 12, sizeof(u16));
+				memcpy(&b.charCode, blockData.data() + relativeOffset + 0, sizeof(u32));
+				memcpy(&b.width,    blockData.data() + relativeOffset + 4, sizeof(u16));
+				memcpy(&b.height,   blockData.data() + relativeOffset + 6, sizeof(u16));
+				memcpy(&b.bearingX, blockData.data() + relativeOffset + 8, sizeof(i16));
+				memcpy(&b.bearingY, blockData.data() + relativeOffset + 10, sizeof(i16));
+				memcpy(&b.advance,  blockData.data() + relativeOffset + 12, sizeof(u16));
 				
 				//vertices
-				memcpy(&b.vertices, rawData.data() + offset + 14, sizeof(b.vertices));
+				memcpy(&b.vertices, blockData.data() + relativeOffset + 14, sizeof(b.vertices));
 				
 				//raw pixel size
-				memcpy(&b.rawPixelSize, rawData.data() + offset + 30, sizeof(u32));
+				memcpy(&b.rawPixelSize, blockData.data() + relativeOffset + 30, sizeof(u32));
 				
-				if (offset + static_cast<u32>(RAW_PIXEL_DATA_OFFSET) + b.rawPixelSize > fileSize)
+				//verify that pixel data is not OOB
+				if (relativeOffset + scast<u32>(RAW_PIXEL_DATA_OFFSET) + b.rawPixelSize > blockData.size())
 				{
 					return ImportResult::RESULT_UNEXPECTED_EOF;
 				}
 				
 				//raw pixel data
 				b.rawPixels.resize(b.rawPixelSize);
-				memcpy(b.rawPixels.data(), rawData.data() + offset + RAW_PIXEL_DATA_OFFSET, b.rawPixelSize);
+				memcpy(b.rawPixels.data(), blockData.data() + relativeOffset + RAW_PIXEL_DATA_OFFSET, b.rawPixelSize);
 				
 				blocks.push_back(move(b));
 			}
 			
-			outHeader = move(header);
+			outHeader = header;
 			outTables = move(tables);
 			outBlocks = move(blocks);
+			
+			return ImportResult::RESULT_SUCCESS;
 		}
 		catch (...)
 		{
 			return ImportResult::RESULT_UNKNOWN_READ_ERROR;
 		}
-		
-		return ImportResult::RESULT_SUCCESS;
 	}
 }

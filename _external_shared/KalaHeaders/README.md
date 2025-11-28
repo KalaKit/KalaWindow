@@ -10,6 +10,7 @@ Macros and cross platform import/export
 - inline macros for forceinline and noinline
 - deprecated macro
 - debug assert macro (assertions are compiled out completely in release)
+- shorthands for casters
 - overrideable cross-platform templates for converting between uintptr_t and pointers/integrals/enums
 
 ### Templates
@@ -33,7 +34,7 @@ Provides:
 - operators and helpers for vec, mat and quat types
 - swizzle operators for vec2-vec4
 - mat containers as column-major and scalar form
-- color conversion, tonemap conversion, color operators for sdr and hdr
+- color conversion, color operators
 
 ---
 
@@ -165,13 +166,48 @@ Comprehensive logger header for any logging needs - sends stdout and stderr mess
 
 ## import_kfd.hpp
 
-This header is solely responsible for parsing and importing data from ktf (KalaText File) files. Use the 'ImportKFD' function to import a new kfd file.
+Import kfd (kalafontdata) binaries into your program for runtime fonts. Use the [KalaFont cli](https://github.com/kalakit/kalafont) for exporting ttf or otf fonts as kfd.
+
+Each kfd contains this structure:
+	for per-glyph kfd:
+	- one top header
+	- table and block pair per glyph
+	
+	for bitmap kfd:
+	- one top header
+	- tables for each glyph, one block for the bitmap texture
+	
+The tables are used for looking up glyphs, each table contains the glyph char code, its block size and offset.
+
+| Function      | Description                                                         |
+|---------------|---------------------------------------------------------------------|
+| PreReadCheck  | Check file path existence, extension and read permissions for its directory |
+| TryOpenCheck  | Check if file isnt locked, if file isnt empty, too small or too big |
+| GetHeaderData | Returns the top header data as a struct                             |
+| GetTableData  | Returns the glyph tables as a vector of structs for glyph streaming |
+| StreamModels  | Returns the glyph blocks for the given glyph tables as a vector of structs |
+| ImportKFD     | Returns the top header data, all tables and all blocks as structs   |
 
 ---
 
 ## import_kmd.hpp
 
-This header is solely responsible for parsing and importing data from kmd (KalaModelData file) files. Use the 'ImportKMD' function to import a new kmd file.
+Import kmd (kalamodeldata) binaries into your program for runtime models. Use the [KalaModel cli](https://github.com/kalakit/kalamodel) for exporting fbx, obj or gltf models as kmd.
+
+Each kmd contains this structure:
+	- one top header
+	- table and block pair per model
+	
+The tables are used for looking up models, each table contains the model name, its block size and offset.
+
+| Function      | Description                                                         |
+|---------------|---------------------------------------------------------------------|
+| PreReadCheck  | Check file path existence, extension and read permissions for its directory |
+| TryOpenCheck  | Check if file isnt locked, if file isnt empty, too small or too big |
+| GetHeaderData | Returns the top header data as a struct                             |
+| GetTableData  | Returns the model tables as a vector of structs for model streaming |
+| StreamModels  | Returns the model blocks for the given model tables as a vector of structs |
+| ImportKMD     | Returns the top header data, all tables and all blocks as structs   |
 
 ---
 
