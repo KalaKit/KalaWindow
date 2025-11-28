@@ -158,7 +158,7 @@ namespace KalaHeaders
 	template <size_t N>
 	struct vec : public vec_storage<N>
 	{
-		static_assert(N >= 2 && N <= 4, "kvec can only have 2, 3, or 4 components.");
+		static_assert(N >= 2 && N <= 4, "vec can only have 2, 3, or 4 components.");
 
 		constexpr vec() = default;
 
@@ -180,6 +180,11 @@ namespace KalaHeaders
 		constexpr vec(const vec<4>& _v)
 			requires (N == 2)
 			: vec_storage<N>{ _v.x, _v.y } {}
+			
+		template <size_t M>
+		constexpr vec(const f32 (&_f)[M])
+			requires (N == 2 && M >= 2)
+			: vec_storage<N>{ _f[0], _f[1] } {}
 
 		//vec3
 
@@ -206,6 +211,14 @@ namespace KalaHeaders
 		constexpr vec(const vec<4>& _v)
 			requires (N == 3)
 			: vec_storage<N>{ _v.x, _v.y, _v.z } {}
+			
+		constexpr vec(const f32 (&_f)[2])
+			requires (N == 3)
+			: vec_storage<N>{ _f[0], _f[1], 0.0f } {}
+		template <size_t M>
+		constexpr vec(const f32 (&_f)[M])
+			requires (N == 3 && M >= 3)
+			: vec_storage<N>{ _f[0], _f[1], _f[2] } {}
 
 		//vec4
 
@@ -245,6 +258,17 @@ namespace KalaHeaders
 		constexpr vec(const vec<4>& _v)
 			requires (N == 4)
 			: vec_storage<N>{ _v.x, _v.y, _v.z, _v.w } {}
+			
+		constexpr vec(const f32 (&_f)[2])
+			requires (N == 4)
+			: vec_storage<N>{ _f[0], _f[1], 0.0f, 0.0f } {}
+		constexpr vec(const f32 (&_f)[3])
+			requires (N == 4)
+			: vec_storage<N>{ _f[0], _f[1], _f[2], 0.0f } {}
+		template <size_t M>
+		constexpr vec(const f32 (&_f)[M])
+			requires (N == 4 && M >= 4)
+			: vec_storage<N>{ _f[0], _f[1], _f[2], _f[3] } {}
 
 		using storage = vec_storage<N>;
 

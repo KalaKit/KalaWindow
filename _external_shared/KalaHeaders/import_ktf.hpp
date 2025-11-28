@@ -12,15 +12,15 @@
 
 /*------------------------------------------------------------------------------
 
-# KTF binary top header for glyph export-import
+# KTF binary top header
 
 Offset | Size | Field
 -------|------|--------------------------------------------
-0      | 4    | KTF magic word, always 'K', 'T', 'F', '\0' aka '0x0046544B'
+0      | 4    | KTF magic word, always 'K', 'T', 'F', '\0'
 4      | 1    | ktf binary version
 5      | 1    | type, '1' for bitmap, '2' for glyph
-6      | 2    | height of glyphs passed during export, ranging from 10 to 100
-8      | 4    | max number of allowed glyphs, max is 1024
+6      | 2    | height of glyphs passed during export
+8      | 4    | max number of allowed glyphs
 12     | 1    | first indice, always '0'
 13     | 1    | second indice, always '1'
 14     | 1    | third indice, always '2'
@@ -31,10 +31,10 @@ Offset | Size | Field
 20     | 2    | top-right uv position (x, y)
 22     | 2    | bottom-right uv position (x, y)
 24     | 2    | bottom-left uv position (x, y)
-26     | 4    | glyph table size in bytes max is 12 KB
-30     | 4    | glyph block size in bytes, max is 1024 KB
+26     | 4    | glyph table size in bytes
+30     | 4    | glyph block size in bytes
 
-# KTF binary glyph table for glyph export-import
+# KTF binary glyph table
 
 Offset | Size | Field
 -------|------|--------------------------------------------
@@ -42,7 +42,7 @@ Offset | Size | Field
 ??+4   | 4    | absolute offset from start of file relative to its glyph block start
 ??+8   | 4    | size of the glyh block (info + payload)
 
-# KTF binary glyph block for glyph export-import
+# KTF binary glyph block
 
 Note: bearings and vertices can be negative
 
@@ -113,13 +113,13 @@ namespace KalaHeaders
 	//The offset where pixel data must always start relative to each glyph block
 	constexpr u8 RAW_PIXEL_DATA_OFFSET = 34u;
 	
-	//Max allowed glyphs for bitmap and glyph exporting
+	//Max allowed glyphs
 	constexpr u16 MAX_GLYPH_COUNT = 1024u;
 	
-	//Max allowed total glyph table size in bytes for bitmap and glyph exporting (12 KB)
+	//Max allowed total glyph table size in bytes (12 KB)
 	constexpr u32 MAX_GLYPH_TABLE_SIZE = 12288u;
 	
-	//Max allowed total glyph blocks size in bytes for bitmap and glyph exporting (1024 KB)
+	//Max allowed total glyph blocks size in bytes (1024 KB)
 	constexpr u32 MAX_GLYPH_BLOCK_SIZE = 1048576u;
 	
 	constexpr u32 MIN_TOTAL_SIZE = 
@@ -141,8 +141,8 @@ namespace KalaHeaders
 	//The main header at the top of each ktf file
 	struct GlyphHeader
 	{
-		u32 magic = KTF_MAGIC;    //'K', 'T', 'F', '\0'
-		u8 version = KTF_VERSION; //version of this ktf binary
+		u32 magic = KTF_MAGIC;    //ktf magic word
+		u8 version = KTF_VERSION; //ktf binary version
 		u8 type{};                //1 = bitmap, 2 = glyph
 		u16 glyphHeight{};        //height of all glyphs in pixels
 		u32 glyphCount{};         //number of glyphs
@@ -206,11 +206,10 @@ namespace KalaHeaders
 		RESULT_INVALID_VERSION             = 9,  //version must match
 		RESULT_INVALID_TYPE                = 10, //type must be '1' or '2'
 		RESULT_INVALID_GLYPH_HEIGHT        = 11, //glyph height must be within range
-		RESULT_INVALID_GLYPH_HEADER_SIZE   = 12, //found a glyph header that wasnt the correct size
-		RESULT_INVALID_GLYPH_TABLE_SIZE    = 13, //found a glyph table that wasnt the correct size
-		RESULT_INVALID_GLYPH_BLOCK_SIZE    = 14, //found a glyph block that was less or more than the allowed size
-		RESULT_INVALID_GLYPH_COUNT         = 15, //total glyph count was above allowed max glyph count
-		RESULT_UNEXPECTED_EOF              = 16  //file reached end sooner than expected
+		RESULT_INVALID_GLYPH_TABLE_SIZE    = 12, //found a glyph table that wasnt the correct size
+		RESULT_INVALID_GLYPH_BLOCK_SIZE    = 13, //found a glyph block that was less or more than the allowed size
+		RESULT_INVALID_GLYPH_COUNT         = 14, //total glyph count was above allowed max glyph count
+		RESULT_UNEXPECTED_EOF              = 15  //file reached end sooner than expected
 	};
 	
 	inline string ResultToString(ImportResult result)
@@ -244,8 +243,6 @@ namespace KalaHeaders
 			return "RESULT_INVALID_VERSION";
 		case ImportResult::RESULT_INVALID_TYPE:
 			return "RESULT_INVALID_TYPE";
-		case ImportResult::RESULT_INVALID_GLYPH_HEADER_SIZE:
-			return "RESULT_INVALID_GLYPH_HEADER_SIZE";
 		case ImportResult::RESULT_INVALID_GLYPH_TABLE_SIZE:
 			return "RESULT_INVALID_GLYPH_TABLE_SIZE";
 		case ImportResult::RESULT_INVALID_GLYPH_BLOCK_SIZE:

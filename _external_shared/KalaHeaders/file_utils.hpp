@@ -19,6 +19,7 @@
 #include <vector>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 #include <filesystem>
 #include <cerrno>
 #include <cstring>
@@ -43,6 +44,7 @@ namespace KalaHeaders
 	using std::search;
 	using std::distance;
 	using std::strerror;
+	using std::min;
 	using std::filesystem::exists;
 	using std::filesystem::path;
 	using std::filesystem::is_regular_file;
@@ -1649,6 +1651,65 @@ namespace KalaHeaders
 		return{};
 	}
 	
+	inline void WriteFixedString(
+		vector<u8>& data,
+		size_t offset,
+		const char* str,
+		size_t length)
+	{
+		//determine how many characters to actually write
+		const size_t safeLen = min(strlen(str), length);
+		
+		//append data to the end of the file
+		if (offset == static_cast<size_t>(-1))
+		{
+			for (size_t i = 0; i < length; i++)
+			{
+				if (i < safeLen)
+				{
+					data.push_back(static_cast<u8>(str[i]));
+				}
+				else data.push_back(0); //null-pad remaining bytes
+			}
+			return;
+		}
+		
+		//write at target offset, rewrite if needed
+		if (offset + length > data.size())
+		{
+			data.resize(offset + length);
+		}
+			
+		for (size_t i = 0; i < length; i++)
+		{
+			if (i < safeLen)
+			{
+				data[offset + i] = static_cast<u8>(str[i]);
+			}
+			else data[offset + i] = 0; //null-pad remaining bytes
+		}
+	}
+	inline string ReadFixedString(
+		const vector<u8>& data,
+		size_t offset,
+		size_t length)
+	{
+		//return empty string if trying to read out of bounds
+		if (offset + length > data.size()) return "";
+		
+		string result{};
+		result.reserve(length);
+		
+		for (size_t i = 0; i < length; i++)
+		{
+			char c = static_cast<char>(data[offset + i]);
+			if (c == '\0') break; //break at first null byte
+			result.push_back(c);
+		}
+		
+		return result;
+	}
+	
 	inline void WriteU8(
 		vector<u8>& data,
 		size_t offset,
@@ -1661,7 +1722,7 @@ namespace KalaHeaders
 			return;
 		}
 		
-		//writes at target offset, auto-resizes if needed
+		//write at target offset, auto-resize if needed
 		if (offset >= data.size()) data.resize(offset + 1);
 		
 		data[offset] = value;
@@ -1679,7 +1740,7 @@ namespace KalaHeaders
 			return;
 		}
 		
-		//writes at target offset, auto-resizes if needed
+		//write at target offset, auto-resize if needed
 		if (offset + 1 >= data.size()) data.resize(offset + 2);
 		
 		data[offset]     = static_cast<u8>(value & 0xFF);
@@ -1700,7 +1761,7 @@ namespace KalaHeaders
 			return;
 		}
 		
-		//writes at target offset, auto-resizes if needed
+		//write at target offset, auto-resize if needed
 		if (offset + 3 >= data.size()) data.resize(offset + 4);
 		
 		data[offset]     = static_cast<u8>(value & 0xFF);
