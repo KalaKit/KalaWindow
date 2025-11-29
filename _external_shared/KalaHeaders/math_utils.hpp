@@ -8,7 +8,7 @@
 //
 // Provides:
 //   - shorthands for math variables
-//   - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat (vec4)
+//   - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
 //   - operators and helpers for vec, mat and quat types
 //   - swizzle operators for vec2-vec4
 //   - mat containers as column-major and scalar form
@@ -38,9 +38,11 @@ using std::fmodf;
 using std::powf;
 using std::floorf;
 
+//============================================================================
 //
 // DEFINE SHORTHANDS FOR SAFE MATH VARIABLES
 //
+//============================================================================
 
 //64-bit signed int (signed size_t)
 //Min: -9 quintillion
@@ -110,17 +112,17 @@ constexpr f32 PI = 3.141593f;
 
 //32-bit precision
 constexpr f32 epsilon = 1e-6f;
-//64-bit precision
-constexpr f64 epsilon64 = 1e-12f;
 
 namespace KalaHeaders
 {
 	#define rcast reinterpret_cast
 	#define scast static_cast
 	
+	//============================================================================
 	//
 	// GENERAL HELPERS
 	//
+	//============================================================================
 
 	//Used for arithmetic division and prevents division by 0, returns result instead of mutating origin
 	constexpr f32 safediv_a(
@@ -139,9 +141,11 @@ namespace KalaHeaders
 		origin /= safeDivisor;
 	}
 
+	//============================================================================
 	//
 	// VEC
 	//
+	//============================================================================
 
 	template<size_t N>
 	struct vec_storage;
@@ -270,9 +274,11 @@ namespace KalaHeaders
 
 		using storage = vec_storage<N>;
 
+		//============================================================================
 		//
-		// ARITHMETIC OPERATORS
+		// VEC ARITHMETIC OPERATORS
 		//
+		//============================================================================
 
 		constexpr vec operator+(const vec& v) const 
 		{ 
@@ -375,9 +381,11 @@ namespace KalaHeaders
 		}
 		constexpr bool operator!=(const vec& v) const { return !(*this == v); }
 
+		//============================================================================
 		//
-		// COMPOUND OPERATORS
+		// VEC COMPOUND OPERATORS
 		//
+		//============================================================================
 
 		constexpr vec& operator+=(const vec& v)
 		{ 
@@ -713,9 +721,11 @@ namespace KalaHeaders
 		return a;
 	}
 	
+	//============================================================================
 	//
-	// SWIZZLE VECTOR OPERATORS
+	// VEC SWIZZLE OPERATORS
 	//
+	//============================================================================
 	
 	//single xyzw
 	
@@ -865,10 +875,33 @@ namespace KalaHeaders
 	template<size_t N>
 		requires (N == 4)
 	constexpr vec<4> cmyk(const vec<N>& v) { return vec<4>(v.x, v.y, v.z, v.w); }
+	
+	//define vec2, vec3 and vec4
+	
+	using vec2 = vec<2>; //Vector: x, y
+	using vec3 = vec<3>; //Vector: x, y, z
+	using vec4 = vec<4>; //Vector: x, y, z, w
+	
+	const vec3 GRAVITY = { 0.0f, -9.81f, 0.0f };
 
+	//right-handed, +Y up
+
+	const vec3 DIR_RIGHT = { 1, 0,  0 };
+	const vec3 DIR_UP    = { 0, 1,  0 };
+	const vec3 DIR_FRONT = { 0, 0, -1 }; //forward is -Z
+
+	//tilt up/down (rotate around X)
+	const vec3 ROT_PITCH = { 1, 0, 0 };
+	//turn left/right (rotate around Y)
+	const vec3 ROT_YAW   = { 0, 1, 0 };
+	//bank left/right (rotate around Z)
+	const vec3 ROT_ROLL  = { 0, 0, 1 };
+
+	//============================================================================
 	//
 	// MAT
 	//
+	//============================================================================
 
 	template<size_t N>
 	struct mat_storage;
@@ -958,9 +991,11 @@ namespace KalaHeaders
 
 		using storage = mat_storage<N>;
 
+		//============================================================================
 		//
-		// ARITHMETIC OPERATORS
+		// MAT ARITHMETIC OPERATORS
 		//
+		//============================================================================
 
 		constexpr mat operator+(const mat& m) const
 		{
@@ -1151,9 +1186,11 @@ namespace KalaHeaders
 		}
 		constexpr bool operator!=(const mat& m) const { return !(*this == m); }
 
+		//============================================================================
 		//
-		// COMPOUND OPERATORS
+		// MAT COMPOUND OPERATORS
 		//
+		//============================================================================
 
 		constexpr mat& operator+=(const mat& m)
 		{
@@ -1477,30 +1514,121 @@ namespace KalaHeaders
 			m.m03 * v.x + m.m13 * v.y + m.m23 * v.z + m.m33 * v.w
 		};
 	}
-
-	using vec2 = vec<2>; //Vector: x, y
-	using vec3 = vec<3>; //Vector: x, y, z
-	using vec4 = vec<4>; //Vector: x, y, z, w
-
-	using quat = vec<4>; //Quaternion: x, y, z, w
-
+	
+	//define mat2, mat3 and mat4
+	
 	using mat2 = mat<2>; //Matrix: m00 - m11
 	using mat3 = mat<3>; //Matrix: m00 - m22
 	using mat4 = mat<4>; //Matrix: m00 - m33
-
-	const vec3 GRAVITY = { 0.0f, -9.81f, 0.0f };
-
-	const vec3 DIR_RIGHT = { 1, 0,  0 };
-	const vec3 DIR_UP    = { 0, 1,  0 };
-	const vec3 DIR_FRONT = { 0, 0, -1 };
-
-	const vec3 ROT_PITCH = { 1, 0, 0 };
-	const vec3 ROT_YAW   = { 0, 1, 0 };
-	const vec3 ROT_ROLL  = { 0, 0, 1 };
-
+	
+	//============================================================================
 	//
-	// HELPER FUNCTIONS USING DEFINED mat AND vec CONTAINERS
+	// QUAT
 	//
+	//============================================================================
+
+	struct quat
+	{
+		f32 w = 1.0f, x{}, y{}, z{};
+		
+		constexpr quat() = default;
+		
+		constexpr quat(f32 _w, f32 _x, f32 _y, f32 _z)
+			: w(_w), x(_x), y(_y), z(_z) {}
+			
+		constexpr explicit quat(const f32 (&arr)[4])
+			: w(arr[0]), x(arr[1]), y(arr[2]), z(arr[3]) {}
+			
+		//============================================================================
+		//
+		// QUAT ARITHMETIC OPERATORS
+		//
+		//============================================================================
+
+		//unary negation
+		constexpr quat operator-() const
+		{
+			return { -w, -x, -y, -z };
+		}
+		
+		//hamilton multiplication
+		constexpr quat operator*(const quat& q) const
+		{ 
+			return 
+			{
+				w * q.w - x * q.x - y * q.y - z * q.z,
+				w * q.x + x * q.w + y * q.z - z * q.y,
+				w * q.y - x * q.z + y * q.w + z * q.x,
+				w * q.z + x * q.y - y * q.x + z * q.w
+			};
+		}
+		
+		//scalar multiplication
+		constexpr quat operator*(f32 s) const
+		{
+			return { w * s, x * s, y * s, z * s };
+		}
+		
+		//scalar division 
+		constexpr quat operator/(f32 s) const
+		{
+			return { w / s, x / s, y / s, z / s };
+		}
+
+		constexpr bool operator==(const quat& q) const
+		{
+			auto kabs = [](f32 v) -> f32
+				{
+					return v < 0.0f ? -v : v;
+				};
+			
+			return
+				kabs(this->w - q.w) < epsilon
+				&& kabs(this->x - q.x) < epsilon
+				&& kabs(this->y - q.y) < epsilon
+				&& kabs(this->z - q.z) < epsilon;
+		}
+		constexpr bool operator!=(const quat& q) const { return !(*this == q); }
+		
+		//============================================================================
+		//
+		// QUAT COMPOUND OPERATORS
+		//
+		//============================================================================
+		
+		constexpr quat& operator*=(const quat& q)
+		{
+			*this = (*this) * q;
+			return *this;
+		}
+	};
+	
+	//rotate vector by quaternion
+	constexpr vec3 operator*(const quat& q, const vec3& v)
+	{
+		auto cross = [](
+			const vec3& a,
+			const vec3& b) -> vec3
+		{
+			return vec3
+			{
+				a.y * b.z - a.z * b.y,
+				a.z * b.x - a.x * b.z,
+				a.x * b.y - a.y * b.x
+			};
+		};
+		
+		const vec3 qv(q.x, q.y, q.z);
+		const vec3 t = 2.0f * cross(qv, v);
+		
+		return v + q.w * t + cross(qv, t);
+	}
+
+	//============================================================================
+	//
+	// HELPER FUNCTIONS USING VEC, MAT AND QUAT
+	//
+	//============================================================================
 	
 	//Computes vec2 magnitude (distance from a)
 	inline f32 length(const vec2 v)
@@ -1525,6 +1653,16 @@ namespace KalaHeaders
 			+ v.y * v.y
 			+ v.z * v.z
 			+ v.w * v.w);
+	}
+	
+	//Computes quat magnitude (distance from a)
+	inline f32 length(const quat& q)
+	{
+		return sqrtf(
+			q.w * q.w
+			+ q.x * q.x
+			+ q.y * q.y
+			+ q.z * q.z);
 	}
 	
 	//Measures alignment between two vec2s
@@ -1556,6 +1694,18 @@ namespace KalaHeaders
 			+ a.y * b.y
 			+ a.z * b.z
 			+ a.w * b.w;
+	}
+	
+	//Measures alignment between two quats
+	inline f32 dot(
+		const quat& a,
+		const quat& b)
+	{
+		return
+			a.w * b.w
+			+ a.x * b.x
+			+ a.y * b.y
+			+ a.z * b.z;
 	}
 	
 	//Returns true if float is range-normalized
@@ -1630,6 +1780,13 @@ namespace KalaHeaders
 		f32 len2 = dot(v, v);
 		return fabsf(len2 - 1.0f) <= epsilon;
 	}
+	
+	//Returns true if quat is unit-length normalized
+	inline bool isnormalized(const quat& q)
+	{
+		f32 len2 = dot(q, q);
+		return fabsf(len2 - 1.0f) <= epsilon;
+	}
 
 	//Returns unit-length normalized vec2
 	inline vec2 normalize(const vec2 v)
@@ -1663,6 +1820,18 @@ namespace KalaHeaders
 		return (len == 0.0f) 
 			? vec4{}
 			: v / len;
+	}
+	
+	//Returns unit-length normalized quat
+	inline quat normalize_q(const quat& q)
+	{
+		//skip normalize if already normalized
+		if (isnormalized(q)) return q;
+		
+		f32 len = length(q);
+		return (len == 0.0f)
+			? quat{}
+			: q / len;
 	}
 
 	//Convert degrees to radians
@@ -1702,9 +1871,9 @@ namespace KalaHeaders
 	}
 
 	//Converts 2D euler (degrees) to quaternion
-	inline quat toquat(const vec2 euler)
+	inline quat toquat(const f32 angle)
 	{
-		f32 half = radians(euler.y * 0.5f);
+		f32 half = radians(angle * 0.5f);
 		f32 cz = cosf(half);
 		f32 sz = sinf(half);
 
@@ -1722,17 +1891,17 @@ namespace KalaHeaders
 
 		return
 		{
+			cx * cy * cz + sx * sy * sz, //w
 			sx * cy * cz - cx * sy * sz, //x
 			cx * sy * cz + sx * cy * sz, //y
-			cx * cy * sz - sx * sy * cz, //z
-			cx * cy * cz + sx * sy * sz  //w
+			cx * cy * sz - sx * sy * cz  //z
 		};
 	}
 
 	//Converts quat to 2D euler (degrees)
 	inline f32 toeuler2(const quat& q)
 	{
-		quat nq = normalize(q);
+		quat nq = normalize_q(q);
 		
 		return degrees(atan2(
 			2.0f * (nq.w * nq.z + nq.x * nq.y),
@@ -1741,22 +1910,22 @@ namespace KalaHeaders
 	//Converts quat to 3D euler (degrees)
 	inline vec3 toeuler3(const quat& q)
 	{
-		quat nq = normalize(q);
+		quat nq = normalize_q(q);
 		
 		f32 sinr_cosp = 2.0f * (nq.w * nq.x + nq.y * nq.z);
 		f32 cosr_cosp = 1.0f - 2.0f * (nq.x * nq.x + nq.y * nq.y);
-		f32 pitch = atan2(sinr_cosp, cosr_cosp);
+		f32 roll = atan2(sinr_cosp, cosr_cosp);
 
 		f32 sinp = 2.0f * (nq.w * nq.y - nq.z * nq.x);
-		f32 yaw = (fabsf(sinp) >= 1.0f)
+		f32 pitch = (fabsf(sinp) >= 1.0f)
 			? copysign(PI / 2.0f, sinp)
 			: asin(sinp);
 
 		f32 siny_cosp = 2.0f * (nq.w * nq.z + nq.x * nq.y);
 		f32 cosy_cosp = 1.0f - 2.0f * (nq.y * nq.y + nq.z * nq.z);
-		f32 roll = atan2(siny_cosp, cosy_cosp);
+		f32 yaw = atan2(siny_cosp, cosy_cosp);
 
-		return degrees(vec3{ pitch, yaw, roll });
+		return degrees(vec3{ roll, pitch, yaw });
 	}
 
 	//Converts mat3 to quat
@@ -1845,7 +2014,7 @@ namespace KalaHeaders
 	//Converts quat to mat3
 	inline mat3 tomat3(const quat& q)
 	{
-		quat nq = normalize(q);
+		quat nq = normalize_q(q);
 		
 		const f32 xx = nq.x * nq.x;
 		const f32 yy = nq.y * nq.y;
@@ -1867,7 +2036,7 @@ namespace KalaHeaders
 	//Converts quat to mat4
 	inline mat4 tomat4(const quat& q)
 	{
-		quat nq = normalize(q);
+		quat nq = normalize_q(q);
 		
 		const f32 xx = nq.x * nq.x;
 		const f32 yy = nq.y * nq.y;
@@ -1907,6 +2076,62 @@ namespace KalaHeaders
 		if (deg < 0.0f) deg += 360.0f;
 
 		return deg;
+	}
+	
+	//Vector pointing from one position to another
+	inline vec2 direction(
+		const vec2 a, 
+		const vec2 b)
+	{
+		return normalize(b - a);
+	}
+	//Vector pointing from one position to another
+	inline vec3 direction(
+		const vec3& a, 
+		const vec3& b)
+	{
+		return normalize(b - a);
+	}
+
+	//Returns the perpendicular magnitude in 2D
+	inline f32 cross(
+		const vec2 a,
+		const vec2 b)
+	{
+		return
+			a.x * b.y
+			- a.y * b.x;
+	}
+	//Returns the normal vec3 in 3D
+	inline vec3 cross(
+		const vec3& a,
+		const vec3& b)
+	{
+		return vec3
+		{
+			a.y * b.z - a.z * b.y,
+			a.z * b.x - a.x * b.z,
+			a.x * b.y - a.y * b.x
+		};
+	}
+
+	//Turns position/orientation into a view transform
+	inline mat4 view(
+		const vec3& origin, 
+		const vec3& target, 
+		const vec3& up)
+	{
+		vec3 f = normalize(target - origin);
+		vec3 s = normalize(cross(f, up));
+		vec3 u = cross(s, f);
+
+		return 
+		{
+			 s.x,             u.x,            -f.x,           0.0f,
+			 s.y,             u.y,            -f.y,           0.0f,
+			 s.z,             u.z,            -f.z,           0.0f,
+			-dot(s, origin), -dot(u, origin), dot(f, origin), 1.0f
+		};
 	}
 
 	//ortographic projection, bottom-left origin, Y-up projection
@@ -1980,7 +2205,7 @@ namespace KalaHeaders
 		const quat& rot, 
 		const vec3& size)
 	{
-		quat q = normalize(rot);
+		quat q = normalize_q(rot);
 		
 		f32 xx = q.x * q.x;
 		f32 yy = q.y * q.y;
@@ -2015,62 +2240,6 @@ namespace KalaHeaders
 		m.m33 = 1.0f;
 
 		return m;
-	}
-
-	//Vector pointing from one position to another
-	inline vec2 direction(
-		const vec2 a, 
-		const vec2 b)
-	{
-		return normalize(b - a);
-	}
-	//Vector pointing from one position to another
-	inline vec3 direction(
-		const vec3& a, 
-		const vec3& b)
-	{
-		return normalize(b - a);
-	}
-
-	//Returns the perpendicular magnitude in 2D
-	inline f32 cross(
-		const vec2 a,
-		const vec2 b)
-	{
-		return
-			a.x * b.y
-			- a.y * b.x;
-	}
-	//Returns the normal vec3 in 3D
-	inline vec3 cross(
-		const vec3& a,
-		const vec3& b)
-	{
-		return vec3
-		{
-			a.y * b.z - a.z * b.y,
-			a.z * b.x - a.x * b.z,
-			a.x * b.y - a.y * b.x
-		};
-	}
-
-	//Turns position/orientation into a view transform
-	inline mat4 lookat(
-		const vec3& origin, 
-		const vec3& target, 
-		const vec3& up)
-	{
-		vec3 f = normalize(target - origin);
-		vec3 s = normalize(cross(f, up));
-		vec3 u = cross(s, f);
-
-		return 
-		{
-			 s.x,             u.x,            -f.x,           0.0f,
-			 s.y,             u.y,            -f.y,           0.0f,
-			 s.z,             u.z,            -f.z,           0.0f,
-			-dot(s, origin), -dot(u, origin), dot(f, origin), 1.0f
-		};
 	}
 
 	//Linear interpolation between two floats by t
@@ -2120,6 +2289,21 @@ namespace KalaHeaders
 			lerp(a.w, b.w, t)
 		};
 	}
+	
+	//Linear interpolation between two quats by t
+	inline quat lerp(
+		const quat& a,
+		const quat& b,
+		f32 t)
+	{
+		return normalize_q(
+		{
+			lerp(a.w, b.w, t),
+			lerp(a.x, b.x, t),
+			lerp(a.y, b.y, t),
+			lerp(a.z, b.z, t)
+		});
+	}
 
 	//Spherical linear interpolation between two non-normalized vec4s by t
 	inline quat slerp(
@@ -2127,8 +2311,8 @@ namespace KalaHeaders
 		const quat& b,
 		f32 t)
 	{
-		quat q1 = normalize(a);
-		quat q2 = normalize(b);
+		quat q1 = normalize_q(a);
+		quat q2 = normalize_q(b);
 		
 		f32 dotAB = dot(q1, q2);
 		
@@ -2142,7 +2326,7 @@ namespace KalaHeaders
 		//fall back to lerp if quats are extremely close
 		if (dotAB > 1.0f - epsilon)
 		{
-			return normalize(q1 * (1.0f - t) + q2 * t);
+			return lerp(q1, q2, t);
 		}
 		
 		f32 theta = acos(dotAB);
@@ -2151,7 +2335,13 @@ namespace KalaHeaders
 		f32 w1 = sinf((1.0f - t) * theta) / sinTheta;
 		f32 w2 = sinf(t * theta) / sinTheta;
 
-		return normalize(q1 * w1 + q2 * w2);
+		return normalize_q(
+		{
+			q1.w * w1 + q2.w * w2,
+			q1.x * w1 + q2.x * w2,
+			q1.y * w1 + q2.y * w2,
+			q1.z * w1 + q2.z * w2
+		});
 	}
 
 	inline f32 smoothstep(
@@ -2405,12 +2595,12 @@ namespace KalaHeaders
 		f32 half = angle * 0.5f;
 		f32 s = sinf(half);
 
-		return normalize(quat
+		return normalize_q(
 			{
+				cosf(half),
 				na.x * s,
 				na.y * s,
-				na.z * s,
-				cosf(half)
+				na.z * s
 			});
 	}
 
@@ -2428,6 +2618,42 @@ namespace KalaHeaders
 	{
 		return (dot(a, b) / dot(b, b)) * b;
 	}
+	
+	//Returns true if vec2 is true identity
+	inline bool isidentity_vec2(const vec2& v)
+	{
+		return fabsf(v.x) <= epsilon
+			&& fabsf(v.y) <= epsilon;
+	}
+	//Returns true if vec3 is true identity
+	inline bool isidentity_vec3(const vec3& v)
+	{
+		return fabsf(v.x) <= epsilon
+			&& fabsf(v.y) <= epsilon
+			&& fabsf(v.z) <= epsilon;
+	}
+	//Returns true if vec4 is true identity
+	inline bool isidentity_vec4(const vec4& v)
+	{
+		return fabsf(v.x) <= epsilon
+			&& fabsf(v.y) <= epsilon
+			&& fabsf(v.z) <= epsilon
+			&& fabsf(v.w) <= epsilon;
+	}
+	
+	//Returns neutral quat
+	constexpr quat identity_quat()
+	{
+		return { 1.0f, 0.0f, 0.0f, 0.0f };
+	}
+	//Returns true if quat is true identity
+	inline bool isidentity_q(const quat& q)
+	{
+		return fabsf(q.w - 1.0f) <= epsilon
+			&& fabsf(q.x) <= epsilon
+			&& fabsf(q.y) <= epsilon
+			&& fabsf(q.z) <= epsilon;
+	}
 
 	//Returns neutral matrix of a mat2 (no transform)
 	constexpr mat2 identity_mat2()
@@ -2438,6 +2664,16 @@ namespace KalaHeaders
 			0.0f, 1.0f
 		};
 	}
+	//Returns true if mat2 is true identity
+	inline bool isidentity_mat2(const mat2& m)
+	{
+		return fabsf(m.m00 - 1.0f) <= epsilon
+			&& fabsf(m.m01) <= epsilon
+
+			&& fabsf(m.m10) <= epsilon
+			&& fabsf(m.m11 - 1.0f) <= epsilon;
+	}
+	
 	//Returns neutral matrix of a mat3 (no transform)
 	constexpr mat3 identity_mat3()
 	{
@@ -2448,6 +2684,22 @@ namespace KalaHeaders
 			0.0f, 0.0f, 1.0f
 		};
 	}
+	//Returns true if mat3 is true identity
+	inline bool isidentity_mat3(const mat3& m)
+	{
+		return fabsf(m.m00 - 1.0f) <= epsilon
+			&& fabsf(m.m01) <= epsilon
+			&& fabsf(m.m02) <= epsilon
+
+			&& fabsf(m.m10) <= epsilon
+			&& fabsf(m.m11 - 1.0f) <= epsilon
+			&& fabsf(m.m12) <= epsilon
+
+			&& fabsf(m.m20) <= epsilon
+			&& fabsf(m.m21) <= epsilon
+			&& fabsf(m.m22 - 1.0f) <= epsilon;
+	}
+	
 	//Returns neutral matrix of a mat4 (no transform)
 	constexpr mat4 identity_mat4()
 	{
@@ -2459,10 +2711,707 @@ namespace KalaHeaders
 			0.0f, 0.0f, 0.0f, 1.0f
 		};
 	}
+	//Returns true if mat4 is true identity
+	inline bool isidentity_mat4(const mat4& m)
+	{
+		return fabsf(m.m00 - 1.0f) <= epsilon
+			&& fabsf(m.m01) <= epsilon
+			&& fabsf(m.m02) <= epsilon
+			&& fabsf(m.m03) <= epsilon
+
+			&& fabsf(m.m10) <= epsilon
+			&& fabsf(m.m11 - 1.0f) <= epsilon
+			&& fabsf(m.m12) <= epsilon
+			&& fabsf(m.m13) <= epsilon
+
+			&& fabsf(m.m20) <= epsilon
+			&& fabsf(m.m21) <= epsilon
+			&& fabsf(m.m22 - 1.0f) <= epsilon
+			&& fabsf(m.m23) <= epsilon
+
+			&& fabsf(m.m30) <= epsilon
+			&& fabsf(m.m31) <= epsilon
+			&& fabsf(m.m32) <= epsilon
+			&& fabsf(m.m33 - 1.0f) <= epsilon;
+	}
 	
+	//============================================================================
+	//
+	// TRANSFORM
+	//
+	//============================================================================
+	
+	enum class PosTarget
+	{
+		POS_WORLD,    //position in world space
+		POS_LOCAL,    //position relative to parent
+
+		POS_COMBINED, //final position after combining world and local position
+	};
+	enum class RotTarget
+	{
+		ROT_WORLD,   //rotation in world space
+		ROT_LOCAL,   //rotation relative to parent
+
+		ROT_COMBINED //final rotation after combining world and local rotation
+	};
+	enum class SizeTarget
+	{
+		SIZE_WORLD,   //size in world space
+		SIZE_LOCAL,   //size relative to parent
+
+		SIZE_COMBINED //final position after combining world and local position
+	};
+	
+	constexpr vec2 MIN_POS2 = vec2(-10000.0f);
+	constexpr vec2 MAX_POS2 = vec2(10000.0f);
+	
+	constexpr vec2 MIN_SIZE2 = vec2(epsilon);
+	constexpr vec2 MAX_SIZE2 = vec2(10000.0f);
+	
+	struct Transform2D
+	{
+		vec2 pos_world{};
+		vec2 pos_local{};
+		vec2 pos_combined{};
+
+		f32 rot_world{};
+		f32 rot_local{};
+		f32 rot_combined{};
+
+		vec2 size_world    = vec2(1.0f);
+		vec2 size_local    = vec2(1.0f);
+		vec2 size_combined = vec2(1.0f);
+	};
+	
+	constexpr vec3 MIN_POS3 = vec3(-10000.0f);
+	constexpr vec3 MAX_POS3 = vec3(10000.0f);
+	
+	constexpr vec3 MIN_SIZE3 = vec3(epsilon);
+	constexpr vec3 MAX_SIZE3 = vec3(10000.0f);
+	
+	struct Transform3D
+	{
+		vec3 pos_world{};
+		vec3 pos_local{};
+		vec3 pos_combined{};
+
+		quat rot_world{};
+		quat rot_local{};
+		quat rot_combined{};
+
+		vec3 size_world    = vec3(1.0f);
+		vec3 size_local    = vec3(1.0f);
+		vec3 size_combined = vec3(1.0f);
+	};
+	
+	//============================================================================
+	//
+	// TRANSFORM2D OPERATORS
+	//
+	//============================================================================
+	
+	//Updates target combined pos, rot and size relative to target local and parent combined values,
+	//if parent is identity then target combined is target world
+	inline void combine(
+		Transform2D& target,
+		const Transform2D& parent)
+	{
+		if (!isidentity_vec2(parent.pos_combined)
+			|| fabsf(parent.rot_combined) > epsilon
+			|| length(parent.size_combined - vec2(1.0f)) > epsilon)
+		{
+			target.rot_combined = 
+				parent.rot_combined 
+				+ target.rot_world 
+				+ target.rot_local;
+				
+			target.size_combined = 
+				parent.size_combined 
+				* target.size_world 
+				* target.size_local;
+
+			f32 rads = radians(parent.rot_combined);
+			mat3 rot_mat =
+			{
+				cosf(rads), -sinf(rads), 0.0f,
+				sinf(rads),  cosf(rads), 0.0f,
+				0.0f,        0.0f,       1.0f
+			};
+
+			vec3 rot_offset = vec3(rot_mat * vec3(target.pos_local, 1.0f));
+			target.pos_combined =
+				parent.pos_combined
+				+ target.pos_world
+				+ vec2(rot_offset.x, rot_offset.y);
+		}
+		else
+		{
+			target.pos_combined = target.pos_world;
+			target.rot_combined = target.rot_world;
+			target.size_combined = target.size_world;
+		}
+	}
+	
+	//Incrementally update position over time,
+	//adding parent updates this position relative to parent
+	inline void addpos(
+		Transform2D& target,
+		const Transform2D& parent,
+		PosTarget type,
+		const vec2 pos_delta)
+	{
+		//cannot set combined pos
+		if (type == PosTarget::POS_COMBINED) return;
+		
+		vec2 base = (type == PosTarget::POS_WORLD)
+			? target.pos_world
+			: target.pos_local;
+			
+		vec2 pos_clamped = kclamp(
+			base + pos_delta,
+			MIN_POS2,
+			MAX_POS2);
+			
+		switch (type)
+		{
+		default: return;
+		case PosTarget::POS_WORLD: target.pos_world = pos_clamped; break;
+		case PosTarget::POS_LOCAL: target.pos_local = pos_clamped; break;
+		}
+		
+		combine(target, parent);
+	}
+	//Snaps to given position,
+	//adding parent updates this position relative to parent
+	inline void setpos(
+		Transform2D& target,
+		const Transform2D& parent,
+		PosTarget type,
+		const vec2 pos_new)
+	{
+		//cannot set combined pos
+		if (type == PosTarget::POS_COMBINED) return;
+
+		vec2 pos_clamped = kclamp(
+			pos_new, 
+			MIN_POS2, 
+			MAX_POS2);
+
+		switch (type)
+		{
+		default: return;
+		case PosTarget::POS_WORLD: target.pos_world = pos_clamped; break;
+		case PosTarget::POS_LOCAL: target.pos_local = pos_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	inline vec2 getpos(
+		const Transform2D& target,
+		PosTarget type)
+	{
+		switch (type)
+		{
+		default: return{};
+		case PosTarget::POS_WORLD:    return target.pos_world; break;
+		case PosTarget::POS_LOCAL:    return target.pos_local; break;
+		case PosTarget::POS_COMBINED: return target.pos_combined; break;
+		}
+	}
+	
+	//Takes in rotation in euler (degrees) and incrementally rotates over time,
+	//adding parent updates this rotation relative to parent
+	inline void addrot(
+		Transform2D& target,
+		const Transform2D& parent,
+		RotTarget type,
+		f32 rot_delta)
+	{
+		//cannot set combined vec rot
+		if (type == RotTarget::ROT_COMBINED) return;
+		
+		f32 base = (type == RotTarget::ROT_WORLD)
+			? target.rot_world
+			: target.rot_local;
+
+		f32 rot_clamped = wrap(base + rot_delta);
+
+		switch (type)
+		{
+		default: return;
+		case RotTarget::ROT_WORLD: target.rot_world = rot_clamped; break;
+		case RotTarget::ROT_LOCAL: target.rot_local = rot_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	//Takes in rotation in euler (degrees) and snaps to given rotation,
+	//adding parent updates this rotation relative to parent
+	inline void setrot(
+		Transform2D& target,
+		const Transform2D& parent,
+		RotTarget type,
+		const f32 rot_new)
+	{
+		//cannot set combined vec rot
+		if (type == RotTarget::ROT_COMBINED) return;
+
+		f32 rot_clamped = wrap(rot_new);
+
+		switch (type)
+		{
+		default: return;
+		case RotTarget::ROT_WORLD: target.rot_world = rot_clamped; break;
+		case RotTarget::ROT_LOCAL: target.rot_local = rot_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	//Returns rotation in euler (degrees)
+	inline f32 getrot(
+		const Transform2D& target,
+		RotTarget type)
+	{
+		switch (type)
+		{
+		default: return{};
+		case RotTarget::ROT_WORLD:    return target.rot_world; break;
+		case RotTarget::ROT_LOCAL:    return target.rot_local; break;
+		case RotTarget::ROT_COMBINED: return target.rot_combined; break;
+		}
+	}
+	
+	//Incrementally scales over time,
+	//adding parent updates this size relative to parent
+	inline void addsize(
+		Transform2D& target,
+		const Transform2D& parent,
+		SizeTarget type,
+		const vec2 size_delta)
+	{
+		//cannot set combined size
+		if (type == SizeTarget::SIZE_COMBINED) return;
+
+		vec2 base = (type == SizeTarget::SIZE_WORLD)
+			? target.size_world
+			: target.size_local;
+
+		vec2 size_clamped = kclamp(
+			base + size_delta,
+			MIN_SIZE2,
+			MAX_SIZE2);
+
+		switch (type)
+		{
+		default: return;
+		case SizeTarget::SIZE_WORLD: target.size_world = size_clamped; break;
+		case SizeTarget::SIZE_LOCAL: target.size_local = size_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	//Snaps to given size,
+	//adding parent updates this size relative to parent
+	inline void setsize(
+		Transform2D& target,
+		const Transform2D& parent,
+		SizeTarget type,
+		const vec2 size_new)
+	{
+		//cannot set combined size
+		if (type == SizeTarget::SIZE_COMBINED) return;
+
+		vec2 size_clamped = kclamp(
+			size_new, 
+			MIN_SIZE2, 
+			MAX_SIZE2);
+
+		switch (type)
+		{
+		default: return;
+		case SizeTarget::SIZE_WORLD: target.size_world = size_clamped; break;
+		case SizeTarget::SIZE_LOCAL: target.size_local = size_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	inline vec2 getsize(
+		const Transform2D& target,
+		SizeTarget type)
+	{
+		switch (type)
+		{
+		default: return{};
+		case SizeTarget::SIZE_WORLD:    return target.size_world;
+		case SizeTarget::SIZE_LOCAL:    return target.size_local;
+		case SizeTarget::SIZE_COMBINED: return target.size_combined;
+		}
+	}
+	
+	//============================================================================
+	//
+	// TRANSFORM3D OPERATORS
+	//
+	//============================================================================
+	
+	//Updates target combined pos, rot and size relative to target local and parent combined values,
+	//if parent is identity then target combined is target world
+	inline void combine(
+		Transform3D& target,
+		const Transform3D& parent)
+	{
+		if (!isidentity_vec3(parent.pos_combined)
+			|| !isidentity_q(parent.rot_combined)
+			|| length(parent.size_combined - vec2(1.0f)) > epsilon)
+		{
+			target.rot_combined = 
+				parent.rot_combined
+				* target.rot_world
+				* target.rot_local;
+			target.size_combined =
+				parent.size_combined
+				* target.size_world
+				* target.size_local;
+
+			auto rotate = [](const mat4& m, const quat& q)
+				{
+					const f32 xx = q.x * q.x;
+					const f32 yy = q.y * q.y;
+					const f32 zz = q.z * q.z;
+					const f32 xy = q.x * q.y;
+					const f32 xz = q.x * q.z;
+					const f32 yz = q.y * q.z;
+					const f32 wx = q.w * q.x;
+					const f32 wy = q.w * q.y;
+					const f32 wz = q.w * q.z;
+
+					mat4 r =
+					{
+						1 - 2 * (yy + zz), 2 * (xy + wz),     2 * (xz - wy),     0.0f,
+						2 * (xy - wz),     1 - 2 * (xx + zz), 2 * (yz + wx),     0.0f,
+						2 * (xz + wy),     2 * (yz - wx),     1 - 2 * (xx + yy), 0.0f,
+						0.0f,              0.0f,              0.0f,              1.0f
+					};
+
+					return r * m;
+				};
+
+			mat4 rot_mat = rotate(mat4(1.0f), parent.rot_combined);
+
+			vec4 rot_offset = rot_mat * vec4(target.pos_local, 1.0f);
+			target.pos_combined =
+				parent.pos_combined
+				+ target.pos_world
+				+ vec3(
+					rot_offset.x,
+					rot_offset.y,
+					rot_offset.z);
+		}
+		else
+		{
+			target.pos_combined = target.pos_world;
+			target.rot_combined = target.rot_world;
+			target.size_combined = target.size_world;
+		}
+	}
+	
+	//Incrementally moves over time,
+	//if parent is identity then target combined is target world
+	inline void addpos(
+		Transform3D& target,
+		const Transform3D& parent,
+		PosTarget type,
+		const vec3& pos_delta)
+	{
+		//cannot set combined pos
+		if (type == PosTarget::POS_COMBINED) return;
+
+		vec3 base = (type == PosTarget::POS_WORLD)
+			? target.pos_world
+			: target.pos_local;
+
+		vec3 pos_clamped = kclamp(
+			base + pos_delta,
+			MIN_POS3,
+			MAX_POS3);
+
+		switch (type)
+		{
+		default: return;
+		case PosTarget::POS_WORLD: target.pos_world = pos_clamped; break;
+		case PosTarget::POS_LOCAL: target.pos_local = pos_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	//Snaps to given position,
+	//if parent is identity then target combined is target world
+	inline void setpos(
+		Transform3D& target,
+		const Transform3D& parent,
+		PosTarget type,
+		const vec3& pos_new)
+	{
+		//cannot set combined pos
+		if (type == PosTarget::POS_COMBINED) return;
+
+		vec3 pos_clamped = kclamp(
+			pos_new,
+			MIN_POS3,
+			MAX_POS3);
+
+		switch (type)
+		{
+		default: return;
+		case PosTarget::POS_WORLD: target.pos_world = pos_clamped; break;
+		case PosTarget::POS_LOCAL: target.pos_local = pos_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	inline vec3 getpos(
+		const Transform3D& target,
+		PosTarget type)
+	{
+		switch (type)
+		{
+		default: return{};
+		case PosTarget::POS_WORLD:    return target.pos_world;
+		case PosTarget::POS_LOCAL:    return target.pos_local;
+		case PosTarget::POS_COMBINED: return target.pos_combined;
+		}
+	}
+	
+	//Rotate towards target position,
+	//if parent is identity then target combined is target world
+	inline void lookat(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		const vec3& targetPos)
+	{
+		//cannot set combined vec rot
+		if (type == RotTarget::ROT_COMBINED) return;
+		
+		vec3 diff = targetPos - target.pos_combined;
+		
+		//cannot look at itself or targets too close to compute a direction
+		if (length(diff) <= epsilon) return;
+		
+		vec3 forward = normalize(diff);
+		
+		//compute right and up
+		
+		vec3 right = cross(DIR_UP, forward);
+		
+		//ensures right axis is always valid by being perpendicular to forward
+		//and never parallel to up vector if cross fails
+		if (length(right) <= epsilon) right = cross(DIR_FRONT, forward);
+		
+		right = normalize(right);
+		
+		vec3 up = cross(forward, right);
+		
+		//build a quat from a rotation matrix
+		
+		quat q = normalize_q(toquat(
+		{
+			right.x,     right.y,    right.z,
+			up.x,        up.y,       up.z,
+			-forward.x, -forward.y, -forward.z
+		}));
+		
+		switch (type)
+		{
+		default: return;
+		case RotTarget::ROT_WORLD: target.rot_world = q; break;
+		case RotTarget::ROT_LOCAL: target.rot_local = q; break;
+		}
+		
+		combine(target, parent);
+	}
+	
+	//Takes in rotation in euler (degrees) and incrementally rotates over time,
+	//if parent is identity then target combined is target world
+	inline void addrot(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		const vec3& rot_delta)
+	{
+		//cannot set combined vec rot
+		if (type == RotTarget::ROT_COMBINED) return;
+
+		vec3 current{};
+
+		switch (type)
+		{
+		default: return;
+		case RotTarget::ROT_WORLD: current = toeuler3(target.rot_world); break;
+		case RotTarget::ROT_LOCAL: current = toeuler3(target.rot_local); break;
+		}
+
+		vec3 rot_clamped = vec3(
+			wrap(current.x + rot_delta.x),
+			wrap(current.y + rot_delta.y),
+			wrap(current.z + rot_delta.z));
+
+		switch (type)
+		{
+		default: return;
+		case RotTarget::ROT_WORLD: target.rot_world = toquat(rot_clamped); break;
+		case RotTarget::ROT_LOCAL: target.rot_local = toquat(rot_clamped); break;
+		}
+
+		combine(target, parent);
+	}
+	//Takes in rotation in euler (degrees) and snaps to given rotation,
+	//if parent is identity then target combined is target world
+	inline void setrot(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		const vec3& rot_new)
+	{
+		//cannot set combined vec rot
+		if (type == RotTarget::ROT_COMBINED) return;
+
+		vec3 rot_clamped = vec3(
+			wrap(rot_new.x),
+			wrap(rot_new.y),
+			wrap(rot_new.z));
+
+		switch (type)
+		{
+		default: return;
+		case RotTarget::ROT_WORLD: target.rot_world = toquat(rot_clamped); break;
+		case RotTarget::ROT_LOCAL: target.rot_local = toquat(rot_clamped); break;
+		}
+
+		combine(target, parent);
+	}
+	//Takes in rotation in quaternion and snaps to given rotation,
+	//if parent is identity then target combined is target world
+	inline void setrot(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		const quat& rot_new)
+	{
+		//cannot set combined vec rot
+		if (type == RotTarget::ROT_COMBINED) return;
+
+		quat rot_clamped = normalize_q(rot_new);
+
+		switch (type)
+		{
+		default: return;
+		case RotTarget::ROT_WORLD: target.rot_world = rot_clamped; break;
+		case RotTarget::ROT_LOCAL: target.rot_local = rot_clamped; break;
+		}
+			
+		combine(target, parent);
+	}
+	//Returns rotation in euler (degrees)
+	inline vec3 getroteuler(
+		const Transform3D& target,
+		RotTarget type)
+	{
+		switch (type)
+		{
+		default: return{};
+		case RotTarget::ROT_WORLD:    return toeuler3(target.rot_world); break;
+		case RotTarget::ROT_LOCAL:    return toeuler3(target.rot_local); break;
+		case RotTarget::ROT_COMBINED: return toeuler3(target.rot_combined); break;
+		}
+	}
+	//Returns quaternion rotation
+	inline quat getrotquat(
+		const Transform3D& target,
+		RotTarget type)
+	{
+		switch (type)
+		{
+		default: return{};
+		case RotTarget::ROT_WORLD:    return target.rot_world; break;
+		case RotTarget::ROT_LOCAL:    return target.rot_local; break;
+		case RotTarget::ROT_COMBINED: return target.rot_combined; break;
+		}
+	}
+	
+	//Incrementally scales over time,
+	//if parent is identity then target combined is target world
+	inline void addsize(
+		Transform3D& target,
+		const Transform3D& parent,
+		SizeTarget type,
+		const vec3& size_delta)
+	{
+		//cannot set combined size
+		if (type == SizeTarget::SIZE_COMBINED) return;
+
+		vec3 base = (type == SizeTarget::SIZE_WORLD)
+			? target.size_world
+			: target.size_local;
+
+		vec3 size_clamped = kclamp(
+			base + size_delta,
+			MIN_SIZE3,
+			MAX_SIZE3);
+
+		switch (type)
+		{
+		default: return;
+		case SizeTarget::SIZE_WORLD: target.size_world = size_clamped; break;
+		case SizeTarget::SIZE_LOCAL: target.size_local = size_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	//Snaps to given scale,
+	//if parent is identity then target combined is target world
+	inline void setsize(
+		Transform3D& target,
+		const Transform3D& parent,
+		SizeTarget type,
+		const vec3& size_new)
+	{
+		//cannot set combined size
+		if (type == SizeTarget::SIZE_COMBINED) return;
+
+		vec3 size_clamped = kclamp(
+			size_new,
+			MIN_SIZE3,
+			MAX_SIZE3);
+
+		switch (type)
+		{
+		default: return;
+		case SizeTarget::SIZE_WORLD: target.size_world = size_clamped; break;
+		case SizeTarget::SIZE_LOCAL: target.size_local = size_clamped; break;
+		}
+
+		combine(target, parent);
+	}
+	inline vec3 getsize(
+		Transform3D& target,
+		SizeTarget type)
+	{
+		switch (type)
+		{
+		default: return{};
+		case SizeTarget::SIZE_WORLD:    return target.size_world;
+		case SizeTarget::SIZE_LOCAL:    return target.size_local;
+		case SizeTarget::SIZE_COMBINED: return target.size_combined;
+		}
+	};
+	
+	//============================================================================
 	//
 	// CONVERT COLOR
 	//
+	//============================================================================
 	
 	enum class ColorConvertType : u8
 	{
@@ -3107,9 +4056,11 @@ namespace KalaHeaders
 		}
 	}
 	
+	//============================================================================
 	//
 	// COLOR OPERATORS
 	//
+	//============================================================================
 	
 	enum class ColorEncodeType : u8
 	{
