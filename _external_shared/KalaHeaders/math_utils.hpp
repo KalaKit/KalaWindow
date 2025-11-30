@@ -1833,6 +1833,15 @@ namespace KalaHeaders
 			? quat{}
 			: q / len;
 	}
+	
+	//Wraps a rotation axis between 0 to 360 degrees
+	inline f32 wrap(f32 deg)
+	{
+		deg = fmodf(deg, 360.0f);
+		if (deg < 0.0f) deg += 360.0f;
+
+		return deg;
+	}
 
 	//Convert degrees to radians
 	inline f32 radians(f32 deg) { return deg * 0.017453f; }
@@ -1898,15 +1907,6 @@ namespace KalaHeaders
 		};
 	}
 
-	//Converts quat to 2D euler (degrees)
-	inline f32 toeuler2(const quat& q)
-	{
-		quat nq = normalize_q(q);
-		
-		return degrees(atan2(
-			2.0f * (nq.w * nq.z + nq.x * nq.y),
-			1.0f - 2.0f * (nq.y * nq.y + nq.z * nq.z)));
-	}
 	//Converts quat to 3D euler (degrees)
 	inline vec3 toeuler3(const quat& q)
 	{
@@ -1925,7 +1925,14 @@ namespace KalaHeaders
 		f32 cosy_cosp = 1.0f - 2.0f * (nq.y * nq.y + nq.z * nq.z);
 		f32 yaw = atan2(siny_cosp, cosy_cosp);
 
-		return degrees(vec3{ roll, pitch, yaw });
+		vec3 e = degrees(vec3{ roll, pitch, yaw });
+
+		return vec3
+		(
+			wrap(e.x),
+			wrap(e.y),
+			wrap(e.z)
+		);
 	}
 
 	//Converts mat3 to quat
@@ -2067,15 +2074,6 @@ namespace KalaHeaders
 			0.0f,  0.0f,  1.0f, 0.0f,
 			m.m02, m.m12, 0.0f, 1.0f
 		};
-	}
-
-	//Wraps a rotation axis between 0 to 360 degrees
-	inline f32 wrap(f32 deg)
-	{
-		deg = fmodf(deg, 360.0f);
-		if (deg < 0.0f) deg += 360.0f;
-
-		return deg;
 	}
 	
 	//Vector pointing from one position to another
@@ -2920,6 +2918,19 @@ namespace KalaHeaders
 		}
 	}
 	
+	//Returns true local right direction of this transform
+	inline vec2 getdirright(Transform2D& target)
+	{
+		float r = radians(target.rot_combined);
+		return vec2(cosf(r), sinf(r));
+	}
+	//Returns true local up direction of this transform
+	inline vec2 getdirup(Transform2D& target)
+	{
+		float r = radians(target.rot_combined);
+		return vec2(-sinf(r), cosf(r));
+	}
+	
 	//Takes in rotation in euler (degrees) and incrementally rotates over time,
 	//adding parent updates this rotation relative to parent
 	inline void addrot(
@@ -3338,6 +3349,112 @@ namespace KalaHeaders
 		case RotTarget::ROT_LOCAL:    return target.rot_local; break;
 		case RotTarget::ROT_COMBINED: return target.rot_combined; break;
 		}
+	}
+	
+		//Returns true local front direction of this transform
+	inline vec3 getdirfront(Transform3D& target)
+	{
+		return target.rot_combined * DIR_FRONT;
+	}
+	//Returns true local right direction of this transform
+	inline vec3 getdirright(Transform3D& target)
+	{
+		return target.rot_combined * DIR_RIGHT;
+	}
+	//Returns true local up direction of this transform
+	inline vec3 getdirup(Transform3D& target)
+	{
+		return target.rot_combined * DIR_UP;
+	}
+	
+	//Increments pitch over time with degrees,
+	//if parent is identity then target combined is target world
+	inline void addpitch(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		float degrees)
+	{
+		addrot(target, parent, type, {degrees, 0, 0});
+	}
+	//Increments yaw over time with degrees,
+	//if parent is identity then target combined is target world
+	inline void addyaw(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		float degrees)
+	{
+		addrot(target, parent, type, {0, degrees, 0});
+	}
+	//Increments roll over time with degrees,
+	//if parent is identity then target combined is target world
+	inline void addroll(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		float degrees)
+	{
+		addrot(target, parent, type, {0, 0, degrees});
+	}
+	
+	//Snaps pitch to given degrees,
+	//if parent is identity then target combined is target world
+	inline void setpitch(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		float degrees)
+	{
+		vec3 e = getroteuler(target, type);
+		e.x = degrees;
+		setrot(target, parent, type, e);
+	}
+	//Snaps pitch to given degrees,
+	//if parent is identity then target combined is target world
+	inline void setyaw(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		float degrees)
+	{
+		vec3 e = getroteuler(target, type);
+		e.y = degrees;
+		setrot(target, parent, type, e);
+	}
+	//Snaps pitch to given degrees,
+	//if parent is identity then target combined is target world
+	inline void setroll(
+		Transform3D& target,
+		const Transform3D& parent,
+		RotTarget type,
+		float degrees)
+	{
+		vec3 e = getroteuler(target, type);
+		e.z = degrees;
+		setrot(target, parent, type, e);
+	}
+	
+	//Returns pitch as degrees for current transform
+	inline f32 getpitch(
+		Transform3D& target,
+		RotTarget type)
+	{
+		return getroteuler(target, type).x;
+	}
+	//Returns yaw as degrees for current transform
+	inline f32 getyaw(
+		Transform3D& target,
+		RotTarget type)
+	{
+		return getroteuler(target, type).y;
+	}
+	//Returns roll as degrees for current transform
+	inline f32 getroll(
+		Transform3D& target,
+		RotTarget type)
+	{
+		return getroteuler(target, type).z;
 	}
 	
 	//Incrementally scales over time,
