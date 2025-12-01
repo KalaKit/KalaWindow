@@ -13,7 +13,7 @@
 #include <algorithm>
 #include <type_traits>
 
-namespace KalaWindow::Utils
+namespace KalaWindow::Core
 {
 	using std::unordered_map;
 	using std::vector;

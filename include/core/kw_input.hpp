@@ -13,7 +13,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "utils/kw_registry.hpp"
+#include "core/kw_registry.hpp"
 
 namespace KalaWindow::Core
 {
@@ -25,8 +25,6 @@ namespace KalaWindow::Core
 	using std::string;
 
 	using KalaHeaders::vec2;
-
-	using KalaWindow::Utils::KalaWindowRegistry;
 
 	enum class Key : u32
 	{

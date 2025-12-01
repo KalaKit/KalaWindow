@@ -27,11 +27,11 @@
 #include "core/kw_messageloop_windows.hpp"
 #include "core/kw_input.hpp"
 #include "core/kw_core.hpp"
+#include "core/kw_registry.hpp"
 #include "graphics/kw_menubar_windows.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/opengl/kw_opengl.hpp"
-#include "utils/kw_registry.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
@@ -52,7 +52,7 @@ using KalaWindow::Core::MouseButton;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
-using KalaWindow::Utils::KalaWindowRegistry;
+using KalaWindow::Core::KalaWindowRegistry;
 
 using std::string;
 using std::to_string;

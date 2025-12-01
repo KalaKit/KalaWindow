@@ -11,14 +11,14 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
-#include "utils/kw_registry.hpp"
+#include "core/kw_registry.hpp"
 
 namespace KalaWindow::Graphics::OpenGL
 {
 	using std::string;
 	using std::function;
 
-	using KalaWindow::Utils::KalaWindowRegistry;
+	using KalaWindow::Core::KalaWindowRegistry;
 	
 	//WGL/GLX functions defined in your external GL library
 	struct OS_GL_functions
