@@ -33,7 +33,7 @@ if exist "%VS_MAIN%" (
 :: Run builds
 :: ================================
 call :BuildWithPreset debug Debug
-call :BuildWithPreset relwithdebinfo RelWithDebInfo
+call :BuildWithPreset release Release
 
 echo =====================================
 echo [SUCCESS] Finished building and installing!

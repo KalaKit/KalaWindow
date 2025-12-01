@@ -1630,6 +1630,13 @@ namespace KalaHeaders
 	//
 	//============================================================================
 	
+	//Returns the inverse (congjugated) rotation of a quaternion,
+	//assuming the quat input is already normalized
+	constexpr quat inverse(const quat& q)
+	{
+		return { q.w, -q.x, -q.y, -q.z };
+	}
+	
 	//Computes vec2 magnitude (distance from a)
 	inline f32 length(const vec2 v)
 	{
@@ -1663,6 +1670,97 @@ namespace KalaHeaders
 			+ q.x * q.x
 			+ q.y * q.y
 			+ q.z * q.z);
+	}
+	
+	//
+	// it is recommended to use isnear *only for equality checks*,
+	// this means == and != only, use fabsf/linear + epsilon for <, >, <= and >=
+	//
+	
+	//Returns true if f32 a is close to f32 b within epsilon range
+	inline bool isnear(const f32 a, const f32 b = {})
+	{
+		return fabsf(a - b) <= epsilon;
+	}
+	
+	//Returns true if vec2 a is close to vec2 b within epsilon range
+	inline bool isnear(const vec2 a, const vec2 b = {})
+	{
+		return length(a - b) <= epsilon;
+	}
+	
+	//Returns true if vec3 a is close to vec3 b within epsilon range
+	inline bool isnear(const vec3& a, const vec3& b = {})
+	{
+		return length(a - b) <= epsilon;
+	}
+	
+	//Returns true if vec4 a is close to vec4 b within epsilon range
+	inline bool isnear(const vec4& a, const vec4& b = {})
+	{
+		return length(a - b) <= epsilon;
+	}
+	
+	//Returns true if quat a is close to quat b within epsilon range
+	inline bool isnear_q(const quat& a, const quat& b = {})
+	{
+		return (isnear(a.w, b.w)
+			&& isnear(a.x, b.x)
+			&& isnear(a.y, b.y)
+			&& isnear(a.z, b.z))
+			|| (isnear(a.w, -b.w)
+			&& isnear(a.x, -b.x)
+			&& isnear(a.y, -b.y)
+			&& isnear(a.z, -b.z));
+	}
+	
+	//Returns true if mat2 a is close to mat2 b within epsilon range
+	inline bool isnear(const mat2& a, const mat2& b = {})
+	{
+		return isnear(a.m00, b.m00)
+			&& isnear(a.m01, b.m01)
+			&& isnear(a.m10, b.m10)
+			&& isnear(a.m11, b.m11);
+	}
+	
+	//Returns true if mat3 a is close to mat3 b within epsilon range
+	inline bool isnear(const mat3& a, const mat3& b = {})
+	{
+		return isnear(a.m00, b.m00)
+			&& isnear(a.m01, b.m01)
+			&& isnear(a.m02, b.m02)
+
+			&& isnear(a.m10, b.m10)
+			&& isnear(a.m11, b.m11)
+			&& isnear(a.m12, b.m12)
+
+			&& isnear(a.m20, b.m20)
+			&& isnear(a.m21, b.m21)
+			&& isnear(a.m22, b.m22);
+	}
+	
+	//Returns true if mat4 a is close to mat4 b within epsilon range
+	inline bool isnear(const mat4& a, const mat4& b = {})
+	{
+		return isnear(a.m00, b.m00)
+			&& isnear(a.m01, b.m01)
+			&& isnear(a.m02, b.m02)
+			&& isnear(a.m03, b.m03)
+
+			&& isnear(a.m10, b.m10)
+			&& isnear(a.m11, b.m11)
+			&& isnear(a.m12, b.m12)
+			&& isnear(a.m13, b.m13)
+
+			&& isnear(a.m20, b.m20)
+			&& isnear(a.m21, b.m21)
+			&& isnear(a.m22, b.m22)
+			&& isnear(a.m23, b.m23)
+
+			&& isnear(a.m30, b.m30)
+			&& isnear(a.m31, b.m31)
+			&& isnear(a.m32, b.m32)
+			&& isnear(a.m33, b.m33);
 	}
 	
 	//Measures alignment between two vec2s
@@ -1795,7 +1893,7 @@ namespace KalaHeaders
 		if (isnormalized(v)) return v;
 		
 		f32 len = length(v);
-		return (len == 0.0f) 
+		return (isnear(len)) 
 			? vec2{}
 			: v / len;
 	}
@@ -1806,7 +1904,7 @@ namespace KalaHeaders
 		if (isnormalized(v)) return v;
 		
 		f32 len = length(v);
-		return (len == 0.0f) 
+		return (isnear(len)) 
 			? vec3{}
 			: v / len;
 	}
@@ -1817,7 +1915,7 @@ namespace KalaHeaders
 		if (isnormalized(v)) return v;
 		
 		f32 len = length(v);
-		return (len == 0.0f) 
+		return (isnear(len)) 
 			? vec4{}
 			: v / len;
 	}
@@ -1829,7 +1927,7 @@ namespace KalaHeaders
 		if (isnormalized(q)) return q;
 		
 		f32 len = length(q);
-		return (len == 0.0f)
+		return (isnear(len)) 
 			? quat{}
 			: q / len;
 	}
@@ -1879,60 +1977,100 @@ namespace KalaHeaders
 		return { degrees(v.x), degrees(v.y), degrees(v.z), degrees(v.w) };
 	}
 
-	//Converts 2D euler (degrees) to quaternion
-	inline quat toquat(const f32 angle)
-	{
-		f32 half = radians(angle * 0.5f);
-		f32 cz = cosf(half);
-		f32 sz = sinf(half);
-
-		//rotation around Z axis
-		return { 0.0f, 0.0f, sz, cz };
-	}
-	//Converts 3D euler (degrees) to quaternion
+	//Converts 3D euler (degrees) to quaternion,
+	//takes in rotations as pitch-yaw-roll (XYZ), uses YXZ internally,
+	//pitch, yaw and roll are clamped -360 to 360,
+	//you are supposed to wrap or clamp pitch and roll as you prefer before this function
 	inline quat toquat(const vec3& euler)
 	{
-		vec3 r = radians(euler) * 0.5f;
+		//returns quat as identity if euler input is near 0
+		if (isnear(euler)) return {};
+		
+		vec3 e = euler;
+		
+		//clamp pitch -360 to 360
+		e.x = clamp(e.x, -360.0f, 360.0f);
+		//clamp yaw -360 to 360
+		e.y = clamp(e.y, -360.0f, 360.0f);
+		//clamp roll -360 to 360
+		e.z = clamp(e.z, -360.0f, 360.0f);
+		
+		if (isnear(e.x))  e.x = 0.0f;
+		if (isnear(e.y))  e.y = 0.0f;
+		if (isnear(e.z))  e.z = 0.0f;
+		
+		vec3 r = radians(e) * 0.5f;
 
-		f32 cx = cosf(r.x), sx = sinf(r.x);
-		f32 cy = cosf(r.y), sy = sinf(r.y);
-		f32 cz = cosf(r.z), sz = sinf(r.z);
+		f32 cx = cosf(r.x), sx = sinf(r.x); //pitch
+		f32 cy = cosf(r.y), sy = sinf(r.y); //yaw
+		f32 cz = cosf(r.z), sz = sinf(r.z); //roll
 
 		return
 		{
 			cx * cy * cz + sx * sy * sz, //w
-			sx * cy * cz - cx * sy * sz, //x
-			cx * sy * cz + sx * cy * sz, //y
+			sx * cy * cz + cx * sy * sz, //x
+			cx * sy * cz - sx * cy * sz, //y
 			cx * cy * sz - sx * sy * cz  //z
 		};
 	}
 
-	//Converts quat to 3D euler (degrees)
+	//Converts quat to 3D euler (degrees),
+	//returns rotations as pitch-yaw-roll (XYZ), uses YXZ internally,
+	//pitch, yaw and roll are clamped -360 to 360,
+	//you are supposed to wrap or clamp pitch and roll as you prefer after this function
 	inline vec3 toeuler3(const quat& q)
 	{
 		quat nq = normalize_q(q);
+	
+		//returns vec3 as identity if quat input is near identity
+		if (isnear(q.w, 1.0f)
+			&& isnear(q.x)
+			&& isnear(q.y)
+			&& isnear(q.z))
+		{
+			return {};
+		}
+	
+		//get yaw
 		
-		f32 sinr_cosp = 2.0f * (nq.w * nq.x + nq.y * nq.z);
-		f32 cosr_cosp = 1.0f - 2.0f * (nq.x * nq.x + nq.y * nq.y);
-		f32 roll = atan2(sinr_cosp, cosr_cosp);
-
-		f32 sinp = 2.0f * (nq.w * nq.y - nq.z * nq.x);
-		f32 pitch = (fabsf(sinp) >= 1.0f)
+		//TODO: figure out a better solution so atan2f doesn't return -180 to 180
+		
+		f32 siny = 2.0f * (nq.w * nq.y + nq.x * nq.z);
+		f32 cosy = 1.0f - 2.0f * (nq.y * nq.y + nq.x * nq.x);
+		
+		f32 yaw = atan2f(siny, cosy);
+		
+		//get pitch
+		
+		f32 sinp = 2.0f * (nq.w * nq.x - nq.y * nq.z);
+		
+		f32 pitch = (fabsf(sinp) >= 1.0f - epsilon)
 			? copysign(PI / 2.0f, sinp)
 			: asin(sinp);
+		
+		//get roll
+		
+		f32 sinr = 2.0f * (nq.w * nq.z + nq.x * nq.y);
+		f32 cosr = 1.0f - 2.0f * (nq.z * nq.z + nq.x * nq.x);
+		
+		f32 roll = atan2f(sinr, cosr);
+		
+		//combine all together
+		
+		vec3 e = degrees(vec3{ pitch, yaw, roll });
+		
+		//clamp pitch -360 to 360
+		e.x = clamp(e.x, -360.0f, 360.0f);
+		//clamp yaw -360 to 360
+		e.y = clamp(e.y, -360.0f, 360.0f);
+		//clamp roll -360 to 360
+		e.z = clamp(e.z, -360.0f, 360.0f);
+		
+		if (isnear(e.x)) e.x = 0.0f;
+		if (isnear(e.y)) e.y = 0.0f;
+		if (isnear(e.z)) e.z = 0.0f;
 
-		f32 siny_cosp = 2.0f * (nq.w * nq.z + nq.x * nq.y);
-		f32 cosy_cosp = 1.0f - 2.0f * (nq.y * nq.y + nq.z * nq.z);
-		f32 yaw = atan2(siny_cosp, cosy_cosp);
-
-		vec3 e = degrees(vec3{ roll, pitch, yaw });
-
-		return vec3
-		(
-			wrap(e.x),
-			wrap(e.y),
-			wrap(e.z)
-		);
+		return e;
 	}
 
 	//Converts mat3 to quat
@@ -2322,7 +2460,7 @@ namespace KalaHeaders
 		}
 		
 		//fall back to lerp if quats are extremely close
-		if (dotAB > 1.0f - epsilon)
+		if (dotAB >= 1.0f - epsilon)
 		{
 			return lerp(q1, q2, t);
 		}
@@ -2617,26 +2755,37 @@ namespace KalaHeaders
 		return (dot(a, b) / dot(b, b)) * b;
 	}
 	
-	//Returns true if vec2 is true identity
-	inline bool isidentity_vec2(const vec2& v)
+	//Returns neutral vec2
+	constexpr vec2 identity_vec2()
 	{
-		return fabsf(v.x) <= epsilon
-			&& fabsf(v.y) <= epsilon;
+		return vec2(0.0f);
+	}
+	//Returns true if vec2 is true identity
+	inline bool isidentity(const vec2& v)
+	{
+		return isnear(v);
+	}
+	
+	//Returns neutral vec3
+	constexpr vec3 identity_vec3()
+	{
+		return vec3(0.0f);
 	}
 	//Returns true if vec3 is true identity
-	inline bool isidentity_vec3(const vec3& v)
+	inline bool isidentity(const vec3& v)
 	{
-		return fabsf(v.x) <= epsilon
-			&& fabsf(v.y) <= epsilon
-			&& fabsf(v.z) <= epsilon;
+		return isnear(v);
+	}
+	
+	//Returns neutral vec4
+	constexpr vec4 identity_vec4()
+	{
+		return vec4(0.0f);
 	}
 	//Returns true if vec4 is true identity
-	inline bool isidentity_vec4(const vec4& v)
+	inline bool isidentity(const vec4& v)
 	{
-		return fabsf(v.x) <= epsilon
-			&& fabsf(v.y) <= epsilon
-			&& fabsf(v.z) <= epsilon
-			&& fabsf(v.w) <= epsilon;
+		return isnear(v);
 	}
 	
 	//Returns neutral quat
@@ -2647,13 +2796,13 @@ namespace KalaHeaders
 	//Returns true if quat is true identity
 	inline bool isidentity_q(const quat& q)
 	{
-		return fabsf(q.w - 1.0f) <= epsilon
-			&& fabsf(q.x) <= epsilon
-			&& fabsf(q.y) <= epsilon
-			&& fabsf(q.z) <= epsilon;
+		return isnear(q.w, 1.0f)
+			&& isnear(q.x)
+			&& isnear(q.y)
+			&& isnear(q.z);
 	}
 
-	//Returns neutral matrix of a mat2 (no transform)
+	//Returns neutral mat2
 	constexpr mat2 identity_mat2()
 	{
 		return
@@ -2663,16 +2812,16 @@ namespace KalaHeaders
 		};
 	}
 	//Returns true if mat2 is true identity
-	inline bool isidentity_mat2(const mat2& m)
+	inline bool isidentity(const mat2& m)
 	{
-		return fabsf(m.m00 - 1.0f) <= epsilon
-			&& fabsf(m.m01) <= epsilon
-
-			&& fabsf(m.m10) <= epsilon
-			&& fabsf(m.m11 - 1.0f) <= epsilon;
+		return isnear(m.m00, 1.0f)
+			&& isnear(m.m01)
+			
+			&& isnear(m.m10)
+			&& isnear(m.m11, 1.0f);
 	}
 	
-	//Returns neutral matrix of a mat3 (no transform)
+	//Returns neutral mat3
 	constexpr mat3 identity_mat3()
 	{
 		return
@@ -2683,22 +2832,22 @@ namespace KalaHeaders
 		};
 	}
 	//Returns true if mat3 is true identity
-	inline bool isidentity_mat3(const mat3& m)
+	inline bool isidentity(const mat3& m)
 	{
-		return fabsf(m.m00 - 1.0f) <= epsilon
-			&& fabsf(m.m01) <= epsilon
-			&& fabsf(m.m02) <= epsilon
+		return isnear(m.m00, 1.0f)
+			&& isnear(m.m01)
+			&& isnear(m.m02)
 
-			&& fabsf(m.m10) <= epsilon
-			&& fabsf(m.m11 - 1.0f) <= epsilon
-			&& fabsf(m.m12) <= epsilon
+			&& isnear(m.m10)
+			&& isnear(m.m11, 1.0f)
+			&& isnear(m.m12)
 
-			&& fabsf(m.m20) <= epsilon
-			&& fabsf(m.m21) <= epsilon
-			&& fabsf(m.m22 - 1.0f) <= epsilon;
+			&& isnear(m.m20)
+			&& isnear(m.m21)
+			&& isnear(m.m22, 1.0f);
 	}
 	
-	//Returns neutral matrix of a mat4 (no transform)
+	//Returns neutral mat4
 	constexpr mat4 identity_mat4()
 	{
 		return
@@ -2710,27 +2859,27 @@ namespace KalaHeaders
 		};
 	}
 	//Returns true if mat4 is true identity
-	inline bool isidentity_mat4(const mat4& m)
+	inline bool isidentity(const mat4& m)
 	{
-		return fabsf(m.m00 - 1.0f) <= epsilon
-			&& fabsf(m.m01) <= epsilon
-			&& fabsf(m.m02) <= epsilon
-			&& fabsf(m.m03) <= epsilon
+		return isnear(m.m00, 1.0f)
+			&& isnear(m.m01)
+			&& isnear(m.m02)
+			&& isnear(m.m03)
 
-			&& fabsf(m.m10) <= epsilon
-			&& fabsf(m.m11 - 1.0f) <= epsilon
-			&& fabsf(m.m12) <= epsilon
-			&& fabsf(m.m13) <= epsilon
+			&& isnear(m.m10)
+			&& isnear(m.m11, 1.0f)
+			&& isnear(m.m12)
+			&& isnear(m.m13)
 
-			&& fabsf(m.m20) <= epsilon
-			&& fabsf(m.m21) <= epsilon
-			&& fabsf(m.m22 - 1.0f) <= epsilon
-			&& fabsf(m.m23) <= epsilon
+			&& isnear(m.m20)
+			&& isnear(m.m21)
+			&& isnear(m.m22, 1.0f)
+			&& isnear(m.m23)
 
-			&& fabsf(m.m30) <= epsilon
-			&& fabsf(m.m31) <= epsilon
-			&& fabsf(m.m32) <= epsilon
-			&& fabsf(m.m33 - 1.0f) <= epsilon;
+			&& isnear(m.m30)
+			&& isnear(m.m31)
+			&& isnear(m.m32)
+			&& isnear(m.m33, 1.0f);
 	}
 	
 	//============================================================================
@@ -2815,9 +2964,9 @@ namespace KalaHeaders
 		Transform2D& target,
 		const Transform2D& parent)
 	{
-		if (!isidentity_vec2(parent.pos_combined)
-			|| fabsf(parent.rot_combined) > epsilon
-			|| length(parent.size_combined - vec2(1.0f)) > epsilon)
+		if (!isidentity(parent.pos_combined)
+			|| !isnear(parent.rot_combined)
+			|| !isnear(parent.size_combined, vec2(1.0f)))
 		{
 			target.rot_combined = 
 				parent.rot_combined 
@@ -2932,7 +3081,8 @@ namespace KalaHeaders
 	}
 	
 	//Takes in rotation in euler (degrees) and incrementally rotates over time,
-	//adding parent updates this rotation relative to parent
+	//adding parent updates this rotation relative to parent,
+	//clamps between -360 and 360, you're expected to wrap according to your needs on your end
 	inline void addrot(
 		Transform2D& target,
 		const Transform2D& parent,
@@ -2946,19 +3096,21 @@ namespace KalaHeaders
 			? target.rot_world
 			: target.rot_local;
 
-		f32 rot_clamped = wrap(base + rot_delta);
+		f32 clamped = base + rot_delta;
+		clamped = clamp(clamped, -360.0f, 360.0f);
 
 		switch (type)
 		{
 		default: return;
-		case RotTarget::ROT_WORLD: target.rot_world = rot_clamped; break;
-		case RotTarget::ROT_LOCAL: target.rot_local = rot_clamped; break;
+		case RotTarget::ROT_WORLD: target.rot_world = clamped; break;
+		case RotTarget::ROT_LOCAL: target.rot_local = clamped; break;
 		}
 
 		combine(target, parent);
 	}
 	//Takes in rotation in euler (degrees) and snaps to given rotation,
-	//adding parent updates this rotation relative to parent
+	//adding parent updates this rotation relative to parent,
+	//clamps between -360 and 360, you're expected to wrap according to your needs on your end
 	inline void setrot(
 		Transform2D& target,
 		const Transform2D& parent,
@@ -2968,13 +3120,13 @@ namespace KalaHeaders
 		//cannot set combined vec rot
 		if (type == RotTarget::ROT_COMBINED) return;
 
-		f32 rot_clamped = wrap(rot_new);
+		f32 clamped = clamp(rot_new, -360.0f, 360.0f);
 
 		switch (type)
 		{
 		default: return;
-		case RotTarget::ROT_WORLD: target.rot_world = rot_clamped; break;
-		case RotTarget::ROT_LOCAL: target.rot_local = rot_clamped; break;
+		case RotTarget::ROT_WORLD: target.rot_world = clamped; break;
+		case RotTarget::ROT_LOCAL: target.rot_local = clamped; break;
 		}
 
 		combine(target, parent);
@@ -3072,9 +3224,9 @@ namespace KalaHeaders
 		Transform3D& target,
 		const Transform3D& parent)
 	{
-		if (!isidentity_vec3(parent.pos_combined)
+		if (!isidentity(parent.pos_combined)
 			|| !isidentity_q(parent.rot_combined)
-			|| length(parent.size_combined - vec2(1.0f)) > epsilon)
+			|| !isnear(parent.size_combined, vec3(1.0f)))
 		{
 			target.rot_combined = 
 				parent.rot_combined
@@ -3208,7 +3360,7 @@ namespace KalaHeaders
 		vec3 diff = targetPos - target.pos_combined;
 		
 		//cannot look at itself or targets too close to compute a direction
-		if (length(diff) <= epsilon) return;
+		if (isnear(diff)) return;
 		
 		vec3 forward = normalize(diff);
 		
@@ -3218,7 +3370,7 @@ namespace KalaHeaders
 		
 		//ensures right axis is always valid by being perpendicular to forward
 		//and never parallel to up vector if cross fails
-		if (length(right) <= epsilon) right = cross(DIR_FRONT, forward);
+		if (isnear(right)) right = cross(DIR_FRONT, forward);
 		
 		right = normalize(right);
 		
@@ -3244,7 +3396,8 @@ namespace KalaHeaders
 	}
 	
 	//Takes in rotation in euler (degrees) and incrementally rotates over time,
-	//if parent is identity then target combined is target world
+	//if parent is identity then target combined is target world,
+	//clamps internally between -360 and 360, you're expected to wrap according to your needs on your end
 	inline void addrot(
 		Transform3D& target,
 		const Transform3D& parent,
@@ -3262,23 +3415,21 @@ namespace KalaHeaders
 		case RotTarget::ROT_WORLD: current = toeuler3(target.rot_world); break;
 		case RotTarget::ROT_LOCAL: current = toeuler3(target.rot_local); break;
 		}
-
-		vec3 rot_clamped = vec3(
-			wrap(current.x + rot_delta.x),
-			wrap(current.y + rot_delta.y),
-			wrap(current.z + rot_delta.z));
+			
+		current = current + rot_delta;
 
 		switch (type)
 		{
 		default: return;
-		case RotTarget::ROT_WORLD: target.rot_world = toquat(rot_clamped); break;
-		case RotTarget::ROT_LOCAL: target.rot_local = toquat(rot_clamped); break;
+		case RotTarget::ROT_WORLD: target.rot_world = toquat(current); break;
+		case RotTarget::ROT_LOCAL: target.rot_local = toquat(current); break;
 		}
 
 		combine(target, parent);
 	}
 	//Takes in rotation in euler (degrees) and snaps to given rotation,
-	//if parent is identity then target combined is target world
+	//if parent is identity then target combined is target world,
+	//clamps internally between -360 and 360, you're expected to wrap according to your needs on your end
 	inline void setrot(
 		Transform3D& target,
 		const Transform3D& parent,
@@ -3288,16 +3439,11 @@ namespace KalaHeaders
 		//cannot set combined vec rot
 		if (type == RotTarget::ROT_COMBINED) return;
 
-		vec3 rot_clamped = vec3(
-			wrap(rot_new.x),
-			wrap(rot_new.y),
-			wrap(rot_new.z));
-
 		switch (type)
 		{
 		default: return;
-		case RotTarget::ROT_WORLD: target.rot_world = toquat(rot_clamped); break;
-		case RotTarget::ROT_LOCAL: target.rot_local = toquat(rot_clamped); break;
+		case RotTarget::ROT_WORLD: target.rot_world = toquat(rot_new); break;
+		case RotTarget::ROT_LOCAL: target.rot_local = toquat(rot_new); break;
 		}
 
 		combine(target, parent);
@@ -3351,7 +3497,7 @@ namespace KalaHeaders
 		}
 	}
 	
-		//Returns true local front direction of this transform
+	//Returns true local front direction of this transform
 	inline vec3 getdirfront(Transform3D& target)
 	{
 		return target.rot_combined * DIR_FRONT;
@@ -3686,8 +3832,8 @@ namespace KalaHeaders
 					
 					//hue
 					
-					if (maxc == r) h = (g - b) / delta;
-					else if (maxc == g) h = 2.0f + (b - r) / delta;
+					if (isnear(maxc, r)) h = (g - b) / delta;
+					else if (isnear(maxc, g)) h = 2.0f + (b - r) / delta;
 					else h = 4.0f + (r - g) / delta;
 					
 					h /= 6.0f;
@@ -3716,8 +3862,8 @@ namespace KalaHeaders
 					
 					//hue
 					
-					if (maxc == r) h = (g - b) / delta;
-					else if (maxc == g) h = 2.0f + (b - r) / delta;
+					if (isnear(maxc, r)) h = (g - b) / delta;
+					else if (isnear(maxc, g)) h = 2.0f + (b - r) / delta;
 					else h = 4.0f + (r - g) / delta;
 					
 					h /= 6.0f;
