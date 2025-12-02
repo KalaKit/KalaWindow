@@ -26,6 +26,16 @@
 
 namespace KalaHeaders
 {
+//reinterpret_cast
+#ifndef rcast
+	#define rcast reinterpret_cast
+#endif
+
+//static_cast
+#ifndef scast
+	#define scast static_cast
+#endif
+	
 	constexpr size_t TEN_MB = 10ULL * 1024 * 1024;
 	constexpr size_t ONE_GB = 1ULL * 1024 * 1024 * 1024;
 	constexpr size_t CHUNK_64KB = 64ULL * 1024;
@@ -1457,8 +1467,8 @@ namespace KalaHeaders
 			}
 
 			out.write(
-				reinterpret_cast<const char*>(inData.data()),
-				static_cast<streamsize>(inData.size()));
+				rcast<const char*>(inData.data()),
+				scast<streamsize>(inData.size()));
 
 			if (out.fail()
 				&& errno != 0)
@@ -1552,7 +1562,7 @@ namespace KalaHeaders
 			}
 
 			in.seekg(0, ios::end);
-			size_t fileSize = static_cast<size_t>(in.tellg());
+			size_t fileSize = scast<size_t>(in.tellg());
 
 			if (fileSize == 0)
 			{
@@ -1605,10 +1615,10 @@ namespace KalaHeaders
 			size_t readSize = rangeEnd - rangeStart;
 			allData.resize(readSize);
 
-			in.seekg(static_cast<streamoff>(rangeStart), ios::beg);
+			in.seekg(scast<streamoff>(rangeStart), ios::beg);
 			in.read(
-				reinterpret_cast<char*>(allData.data()),
-				static_cast<streamsize>(readSize));
+				rcast<char*>(allData.data()),
+				scast<streamsize>(readSize));
 
 			if (in.fail()
 				&& errno != 0)
@@ -1626,7 +1636,7 @@ namespace KalaHeaders
 				return oss.str();
 			}
 
-			size_t bytesRead = static_cast<size_t>(in.gcount());
+			size_t bytesRead = scast<size_t>(in.gcount());
 
 			in.close();
 
@@ -1661,13 +1671,13 @@ namespace KalaHeaders
 		const size_t safeLen = min(strlen(str), length);
 		
 		//append data to the end of the file
-		if (offset == static_cast<size_t>(-1))
+		if (offset == scast<size_t>(-1))
 		{
 			for (size_t i = 0; i < length; i++)
 			{
 				if (i < safeLen)
 				{
-					data.push_back(static_cast<u8>(str[i]));
+					data.push_back(scast<u8>(str[i]));
 				}
 				else data.push_back(0); //null-pad remaining bytes
 			}
@@ -1684,7 +1694,7 @@ namespace KalaHeaders
 		{
 			if (i < safeLen)
 			{
-				data[offset + i] = static_cast<u8>(str[i]);
+				data[offset + i] = scast<u8>(str[i]);
 			}
 			else data[offset + i] = 0; //null-pad remaining bytes
 		}
@@ -1702,7 +1712,7 @@ namespace KalaHeaders
 		
 		for (size_t i = 0; i < length; i++)
 		{
-			char c = static_cast<char>(data[offset + i]);
+			char c = scast<char>(data[offset + i]);
 			if (c == '\0') break; //break at first null byte
 			result.push_back(c);
 		}
@@ -1716,7 +1726,7 @@ namespace KalaHeaders
 		u8 value)
 	{
 		//append data to the end of the file
-		if (offset == static_cast<size_t>(-1))
+		if (offset == scast<size_t>(-1))
 		{
 			data.push_back(value);
 			return;
@@ -1733,18 +1743,18 @@ namespace KalaHeaders
 		u16 value)
 	{
 		//append data to the end of the file
-		if (offset == static_cast<size_t>(-1))
+		if (offset == scast<size_t>(-1))
 		{
-			data.push_back(static_cast<u8>(value & 0xFF));
-			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
+			data.push_back(scast<u8>(value & 0xFF));
+			data.push_back(scast<u8>((value >> 8) & 0xFF));
 			return;
 		}
 		
 		//write at target offset, auto-resize if needed
 		if (offset + 1 >= data.size()) data.resize(offset + 2);
 		
-		data[offset]     = static_cast<u8>(value & 0xFF);
-		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
+		data[offset]     = scast<u8>(value & 0xFF);
+		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
 	}
 	inline void WriteU32(
 		vector<u8>& data,
@@ -1752,22 +1762,22 @@ namespace KalaHeaders
 		u32 value)
 	{
 		//append data to the end of the file
-		if (offset == static_cast<size_t>(-1))
+		if (offset == scast<size_t>(-1))
 		{
-			data.push_back(static_cast<u8>(value & 0xFF));
-			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
-			data.push_back(static_cast<u8>((value >> 16) & 0xFF));
-			data.push_back(static_cast<u8>((value >> 24) & 0xFF));
+			data.push_back(scast<u8>(value & 0xFF));
+			data.push_back(scast<u8>((value >> 8) & 0xFF));
+			data.push_back(scast<u8>((value >> 16) & 0xFF));
+			data.push_back(scast<u8>((value >> 24) & 0xFF));
 			return;
 		}
 		
 		//write at target offset, auto-resize if needed
 		if (offset + 3 >= data.size()) data.resize(offset + 4);
 		
-		data[offset]     = static_cast<u8>(value & 0xFF);
-		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
-		data[offset + 2] = static_cast<u8>((value >> 16) & 0xFF);
-		data[offset + 3] = static_cast<u8>((value >> 24) & 0xFF);
+		data[offset]     = scast<u8>(value & 0xFF);
+		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
+		data[offset + 2] = scast<u8>((value >> 16) & 0xFF);
+		data[offset + 3] = scast<u8>((value >> 24) & 0xFF);
 	}
 	
 	inline u8 ReadU8(
@@ -1776,7 +1786,7 @@ namespace KalaHeaders
 	{
 		return (offset >= data.size())
 			? 0x00
-			: static_cast<u8>(data[offset]);
+			: scast<u8>(data[offset]);
 	}
 	inline u16 ReadU16(
 		const vector<u8>& data,
@@ -1784,8 +1794,8 @@ namespace KalaHeaders
 	{
 		return (offset + 1 >= data.size())
 			? 0x0000
-			: static_cast<u16>(data[offset])
-			| static_cast<u16>(data[offset + 1]) << 8;
+			: scast<u16>(data[offset])
+			| scast<u16>(data[offset + 1]) << 8;
 	}
 	inline u32 ReadU32(
 		const vector<u8>& data,
@@ -1793,10 +1803,10 @@ namespace KalaHeaders
 	{
 		return (offset + 3 >= data.size())
 			? 0x00000000
-			: static_cast<u32>(data[offset])
-			| static_cast<u32>(data[offset + 1]) << 8
-			| static_cast<u32>(data[offset + 2]) << 16
-			| static_cast<u32>(data[offset + 3]) << 24;
+			: scast<u32>(data[offset])
+			| scast<u32>(data[offset + 1]) << 8
+			| scast<u32>(data[offset + 2]) << 16
+			| scast<u32>(data[offset + 3]) << 24;
 	}
 	
 	inline void WriteI8(
@@ -1805,9 +1815,9 @@ namespace KalaHeaders
 		i8 value)
 	{
 		//append data to the end of the file
-		if (offset == static_cast<size_t>(-1))
+		if (offset == scast<size_t>(-1))
 		{
-			data.push_back(static_cast<u8>(value));
+			data.push_back(scast<u8>(value));
 			return;
 		}
 		
@@ -1822,18 +1832,18 @@ namespace KalaHeaders
 		i16 value)
 	{
 		//append data to the end of the file
-		if (offset == static_cast<size_t>(-1))
+		if (offset == scast<size_t>(-1))
 		{
-			data.push_back(static_cast<u8>(value & 0xFF));
-			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
+			data.push_back(scast<u8>(value & 0xFF));
+			data.push_back(scast<u8>((value >> 8) & 0xFF));
 			return;
 		}
 		
 		//writes at target offset, auto-resizes if needed
 		if (offset + 1 >= data.size()) data.resize(offset + 2);
 		
-		data[offset]     = static_cast<u8>(value & 0xFF);
-		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
+		data[offset]     = scast<u8>(value & 0xFF);
+		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
 	}
 	inline void WriteI32(
 		vector<u8>& data,
@@ -1841,22 +1851,22 @@ namespace KalaHeaders
 		i32 value)
 	{
 		//append data to the end of the file
-		if (offset == static_cast<size_t>(-1))
+		if (offset == scast<size_t>(-1))
 		{
-			data.push_back(static_cast<u8>(value & 0xFF));
-			data.push_back(static_cast<u8>((value >> 8) & 0xFF));
-			data.push_back(static_cast<u8>((value >> 16) & 0xFF));
-			data.push_back(static_cast<u8>((value >> 24) & 0xFF));
+			data.push_back(scast<u8>(value & 0xFF));
+			data.push_back(scast<u8>((value >> 8) & 0xFF));
+			data.push_back(scast<u8>((value >> 16) & 0xFF));
+			data.push_back(scast<u8>((value >> 24) & 0xFF));
 			return;
 		}
 		
 		//writes at target offset, auto-resizes if needed
 		if (offset + 3 >= data.size()) data.resize(offset + 4);
 		
-		data[offset]     = static_cast<u8>(value & 0xFF);
-		data[offset + 1] = static_cast<u8>((value >> 8) & 0xFF);
-		data[offset + 2] = static_cast<u8>((value >> 16) & 0xFF);
-		data[offset + 3] = static_cast<u8>((value >> 24) & 0xFF);
+		data[offset]     = scast<u8>(value & 0xFF);
+		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
+		data[offset + 2] = scast<u8>((value >> 16) & 0xFF);
+		data[offset + 3] = scast<u8>((value >> 24) & 0xFF);
 	}
 	
 	inline i8 ReadI8(
@@ -1865,7 +1875,7 @@ namespace KalaHeaders
 	{
 		return (offset >= data.size())
 			? 0
-			: static_cast<i8>(data[offset]);
+			: scast<i8>(data[offset]);
 	}
 	inline i16 ReadI16(
 		const vector<u8>& data,
@@ -1874,10 +1884,10 @@ namespace KalaHeaders
 		if (offset + 1 >= data.size()) return 0;
 		
 		u16 value =
-			static_cast<u16>(data[offset])
-			| static_cast<u16>(data[offset + 1]) << 8;
+			scast<u16>(data[offset])
+			| scast<u16>(data[offset + 1]) << 8;
 			
-		return static_cast<i16>(value);
+		return scast<i16>(value);
 	}
 	inline i32 ReadI32(
 		const vector<u8>& data,
@@ -1886,12 +1896,12 @@ namespace KalaHeaders
 		if (offset + 3 >= data.size()) return 0;
 		
 		u32 value =
-			static_cast<u32>(data[offset])
-			| static_cast<u32>(data[offset + 1]) << 8
-			| static_cast<u32>(data[offset + 2]) << 16
-			| static_cast<u32>(data[offset + 3]) << 24;
+			scast<u32>(data[offset])
+			| scast<u32>(data[offset + 1]) << 8
+			| scast<u32>(data[offset + 2]) << 16
+			| scast<u32>(data[offset + 3]) << 24;
 			
-		return static_cast<i32>(value);
+		return scast<i32>(value);
 	}
 	
 	//Return all start and end of defined string in a binary
@@ -2013,7 +2023,7 @@ namespace KalaHeaders
 					offset -= preserve;
 				}
 
-				in.read(reinterpret_cast<char*>(buffer.data() + preserve), chunkSize);
+				in.read(rcast<char*>(buffer.data() + preserve), chunkSize);
 
 				if (in.fail()
 					&& errno != 0)
@@ -2031,7 +2041,7 @@ namespace KalaHeaders
 					return oss.str();
 				}
 
-				size_t bytesRead = static_cast<size_t>(in.gcount());
+				size_t bytesRead = scast<size_t>(in.gcount());
 
 				if (bytesRead == 0) break;
 
@@ -2048,7 +2058,7 @@ namespace KalaHeaders
 
 					if (it == buffer.begin() + totalBytes) break;
 
-					size_t start = offset + static_cast<size_t>(distance(buffer.begin(), it));
+					size_t start = offset + scast<size_t>(distance(buffer.begin(), it));
 					size_t end = start + inData.size();
 
 					outData.push_back({ start, end });
@@ -2189,7 +2199,7 @@ namespace KalaHeaders
 					offset -= preserve;
 				}
 
-				in.read(reinterpret_cast<char*>(buffer.data() + preserve), chunkSize);
+				in.read(rcast<char*>(buffer.data() + preserve), chunkSize);
 
 				if (in.fail()
 					&& errno != 0)
@@ -2207,7 +2217,7 @@ namespace KalaHeaders
 					return oss.str();
 				}
 
-				size_t bytesRead = static_cast<size_t>(in.gcount());
+				size_t bytesRead = scast<size_t>(in.gcount());
 
 				if (bytesRead == 0) break;
 
@@ -2224,7 +2234,7 @@ namespace KalaHeaders
 
 					if (it == buffer.begin() + totalBytes) break;
 
-					size_t start = offset + static_cast<size_t>(distance(buffer.begin(), it));
+					size_t start = offset + scast<size_t>(distance(buffer.begin(), it));
 					size_t end = start + inData.size();
 
 					outData.push_back({ start, end });

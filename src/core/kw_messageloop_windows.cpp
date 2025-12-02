@@ -31,13 +31,19 @@
 #include "graphics/kw_menubar_windows.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
-#include "graphics/opengl/kw_opengl.hpp"
+#include "opengl/kw_opengl.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
 using KalaWindow::Core::MessageLoop;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::ShutdownState;
+using KalaWindow::Core::KalaWindowRegistry;
+using KalaWindow::Core::Input;
+using KalaWindow::Core::Key;
+using KalaWindow::Core::MouseButton;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -46,13 +52,7 @@ using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::OpenGL::OpenGL_Global;
-using KalaWindow::Core::Key;
-using KalaWindow::Core::MouseButton;
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::ShutdownState;
-using KalaWindow::Core::Input;
-using KalaWindow::Core::KalaWindowRegistry;
+using KalaWindow::OpenGL::OpenGL_Global;
 
 using std::string;
 using std::to_string;

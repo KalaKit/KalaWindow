@@ -13,7 +13,7 @@
 
 #include "core/kw_registry.hpp"
 
-namespace KalaWindow::Graphics::OpenGL
+namespace KalaWindow::OpenGL
 {
 	using std::string;
 	using std::function;

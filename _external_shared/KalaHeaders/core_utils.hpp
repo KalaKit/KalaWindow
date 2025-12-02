@@ -98,13 +98,24 @@ using std::bit_cast;
 //
 
 //reinterpret_cast
-#define rcast reinterpret_cast
+#ifndef rcast
+	#define rcast reinterpret_cast
+#endif
+
 //static_cast
-#define scast static_cast
+#ifndef scast
+	#define scast static_cast
+#endif
+
 //dynamic_cast
-#define dcast dynamic_cast
+#ifndef dcast
+	#define dcast dynamic_cast
+#endif
+
 //const_cast
-#define ccast const_cast
+#ifndef ccast
+	#define ccast const_cast
+#endif
 
 //bit_cast
 template<typename T, typename U>

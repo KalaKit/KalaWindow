@@ -25,6 +25,11 @@
 
 namespace KalaHeaders
 {
+//static_cast
+#ifndef scast
+	#define scast static_cast
+#endif	
+
 	using std::string;
 	using std::string_view;
 	using std::chrono::system_clock;
@@ -152,7 +157,7 @@ namespace KalaHeaders
 		//Returns current time in chosen or default format
 		static inline const string& GetTime(TimeFormat timeFormat = TimeFormat::TIME_DEFAULT)
 		{
-			static thread_local string cached[static_cast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
+			static thread_local string cached[scast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
 			static thread_local long long last_ms = -1;
 			static thread_local tm cachedLocal{};
 			static thread_local tm cachedUTC{};
@@ -170,7 +175,7 @@ namespace KalaHeaders
 				return GetTime(defaultTimeFormat);
 			}
 
-			const int idx = static_cast<int>(timeFormat);
+			const int idx = scast<int>(timeFormat);
 			const auto now = system_clock::now();
 			if (!cached[idx].empty())
 			{
@@ -251,13 +256,13 @@ namespace KalaHeaders
 			}
 			}
 
-			cached[static_cast<int>(timeFormat)] = buffer;
-			return cached[static_cast<int>(timeFormat)];
+			cached[scast<int>(timeFormat)] = buffer;
+			return cached[scast<int>(timeFormat)];
 		}
 		//Returns current date in chosen or default format
 		static inline const string& GetDate(DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
-			static thread_local string cached[static_cast<int>(DateFormat::DATE_FILENAME_MDY) + 1];
+			static thread_local string cached[scast<int>(DateFormat::DATE_FILENAME_MDY) + 1];
 			static thread_local int last_yday = -1;
 			static thread_local tm cachedLocal{};
 
@@ -274,7 +279,7 @@ namespace KalaHeaders
 				return GetDate(defaultDateFormat);
 			}
 
-			const int idx = static_cast<int>(dateFormat);
+			const int idx = scast<int>(dateFormat);
 			const auto now = system_clock::now();
 
 			const auto in_time_t = system_clock::to_time_t(now);
@@ -387,7 +392,7 @@ namespace KalaHeaders
 				unsigned int clamped = clamp(
 					indentation,
 					0u,
-					static_cast<unsigned int>(MAX_INDENT_LENGTH));
+					scast<unsigned int>(MAX_INDENT_LENGTH));
 					
 				memset(p, ' ', clamped);
 				p += clamped;
@@ -408,7 +413,7 @@ namespace KalaHeaders
 				? stderr
 				: stdout;
 
-			const size_t length = static_cast<size_t>(p - logBuffer.data());
+			const size_t length = scast<size_t>(p - logBuffer.data());
 			fwrite(logBuffer.data(), 1, length, out);
 
 			if (flush
@@ -458,7 +463,7 @@ namespace KalaHeaders
 			while (bytes < s.size() 
 				&& chars < MAX_MESSAGE_LENGTH)
 			{
-				unsigned char c = static_cast<unsigned char>(s[bytes]);
+				unsigned char c = scast<unsigned char>(s[bytes]);
 				
 				size_t charLen = 
 					(c < 0x80) ? 1 
@@ -514,8 +519,8 @@ namespace KalaHeaders
 
 			//not found, make new
 
-			const char* tag = LogTypeTag[static_cast<size_t>(type)];
-			const size_t tagLength = LogTypeTagLength[static_cast<size_t>(type)];
+			const char* tag = LogTypeTag[scast<size_t>(type)];
+			const size_t tagLength = LogTypeTagLength[scast<size_t>(type)];
 			const size_t targetLength = target.size();
 
 			//"[ " + tag + " | " + target + "] " 

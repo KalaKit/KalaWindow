@@ -18,7 +18,7 @@
 #include "core/kw_core.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
-#include "graphics/opengl/kw_opengl.hpp"
+#include "opengl/kw_opengl.hpp"
 
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
@@ -30,6 +30,7 @@ using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
+using KalaWindow::OpenGL::OpenGL_Context;
 
 using std::abort;
 using std::quick_exit;
@@ -135,14 +136,15 @@ namespace KalaWindow::Core
 			}
 		}
 
+		//TODO: add back texture + shader + font support
+
 		/*
-		TODO: add back texture + shader + font support
-		
 		OpenGL_Texture::registry.RemoveAllContent();
 		OpenGL_Shader::registry.RemoveAllContent();
 		Font::registry.RemoveAllContent();
 		*/
 		
+		OpenGL_Context::registry.RemoveAllContent();
 		Window::registry.RemoveAllContent();
 
 #ifdef _WIN32

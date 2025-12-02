@@ -21,7 +21,7 @@
 #include <chrono>
 
 namespace KalaHeaders
-{
+{	
 	using std::atomic;
 	using std::memory_order_acquire;
 	using std::memory_order_release;

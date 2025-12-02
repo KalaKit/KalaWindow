@@ -20,8 +20,13 @@
 #include <string>
 #include <algorithm>
 
-namespace KalaHeaders
+namespace KalaHeaders::KalaKeyStandards
 {
+//static_cast
+#ifndef scast
+	#define scast static_cast
+#endif
+	
 	using std::array;
 	using std::vector;
 	using std::string;
@@ -65,29 +70,44 @@ namespace KalaHeaders
 		M_X2_DOUBLE     = 14
 	};
 	
-	inline constexpr u32 MB(MouseButton m) { return static_cast<u32>(m); }
-	
 	//Common mouse actions. 15-30 is reserved for future use.
 	inline constexpr array<KeyValue, 15> mouseButtons
 	{{
-		{MB(MouseButton::M_LEFT),   0, "Left"},
-		{MB(MouseButton::M_RIGHT),  0, "Right"}, //scrollwheel click
-		{MB(MouseButton::M_MIDDLE), 0, "Middle"},
+		{scast<u32>(MouseButton::M_LEFT),   0, "Left"},
+		{scast<u32>(MouseButton::M_RIGHT),  0, "Right"}, //scrollwheel click
+		{scast<u32>(MouseButton::M_MIDDLE), 0, "Middle"},
 		
-		{MB(MouseButton::M_X1), 0, "X1"}, //left side button
-		{MB(MouseButton::M_X2), 0, "X2"}, //right side button
+		{scast<u32>(MouseButton::M_X1), 0, "X1"}, //left side button
+		{scast<u32>(MouseButton::M_X2), 0, "X2"}, //right side button
 		
-		{MB(MouseButton::M_WHEEL_UP),    0, "WheelUp"},    //scroll up
-		{MB(MouseButton::M_WHEEL_DOWN),  0, "WheelDown"},  //scroll down
-		{MB(MouseButton::M_WHEEL_LEFT),  0, "WheelLeft"},  //scrollwheel left click
-		{MB(MouseButton::M_WHEEL_RIGHT), 0, "WheelRight"}, //scrollwheel right click
+		{scast<u32>(MouseButton::M_WHEEL_UP),    0, "WheelUp"},    //scroll up
+		{scast<u32>(MouseButton::M_WHEEL_DOWN),  0, "WheelDown"},  //scroll down
+		{scast<u32>(MouseButton::M_WHEEL_LEFT),  0, "WheelLeft"},  //scrollwheel left click
+		{scast<u32>(MouseButton::M_WHEEL_RIGHT), 0, "WheelRight"}, //scrollwheel right click
 		
-		{MB(MouseButton::M_LEFT_DOUBLE),   0, "LeftDouble"},
-		{MB(MouseButton::M_RIGHT_DOUBLE),  0, "RightDouble"},
-		{MB(MouseButton::M_MIDDLE_DOUBLE), 0, "MiddleDouble"},
-		{MB(MouseButton::M_X1_DOUBLE),     0, "X1Double"},
-		{MB(MouseButton::M_X2_DOUBLE),     0, "X2Double"}
+		{scast<u32>(MouseButton::M_LEFT_DOUBLE),   0, "LeftDouble"},
+		{scast<u32>(MouseButton::M_RIGHT_DOUBLE),  0, "RightDouble"},
+		{scast<u32>(MouseButton::M_MIDDLE_DOUBLE), 0, "MiddleDouble"},
+		{scast<u32>(MouseButton::M_X1_DOUBLE),     0, "X1Double"},
+		{scast<u32>(MouseButton::M_X2_DOUBLE),     0, "X2Double"}
 	}};
+	
+	inline constexpr MouseButton GetMouseButton(const string& v)
+	{
+		for (const auto& _b : mouseButtons)
+		{
+			if (_b.value == v) return scast<MouseButton>(_b.key);
+		}
+		return scast<MouseButton>(0);
+	}
+	inline constexpr string_view GetMouseButtonValue(MouseButton b) 
+	{ 
+		for (const auto& _b : mouseButtons)
+		{
+			if (_b.key == scast<u32>(b)) return _b.value;
+		}
+		return "";
+	}
 	
 	enum class GamepadButton : u32
 	{
@@ -117,34 +137,49 @@ namespace KalaHeaders
 		G_TOUCHPAD = 49
 	};
 	
-	inline constexpr u32 GB(GamepadButton m) { return static_cast<u32>(m); }
-	
 	//Common gamepad/controller/switch-like actions. 50-60 is reserved for future use.
 	inline constexpr array<KeyValue, 19> gamepadButtons
 	{{
-		{GB(GamepadButton::G_A), 0, "A"}, 
-		{GB(GamepadButton::G_B), 0, "B"}, 
-		{GB(GamepadButton::G_X), 0, "X"}, 
-		{GB(GamepadButton::G_Y), 0, "Y"},
+		{scast<u32>(GamepadButton::G_A), 0, "A"}, 
+		{scast<u32>(GamepadButton::G_B), 0, "B"}, 
+		{scast<u32>(GamepadButton::G_X), 0, "X"}, 
+		{scast<u32>(GamepadButton::G_Y), 0, "Y"},
 		
-		{GB(GamepadButton::G_L1), 0, "L1"}, 
-		{GB(GamepadButton::G_R1), 0, "R1"},
-		{GB(GamepadButton::G_L2), 0, "L2"}, 
-		{GB(GamepadButton::G_R2), 0, "R2"},
-		{GB(GamepadButton::G_L3), 0, "L3"}, 
-		{GB(GamepadButton::G_R3), 0, "R3"},
+		{scast<u32>(GamepadButton::G_L1), 0, "L1"}, 
+		{scast<u32>(GamepadButton::G_R1), 0, "R1"},
+		{scast<u32>(GamepadButton::G_L2), 0, "L2"}, 
+		{scast<u32>(GamepadButton::G_R2), 0, "R2"},
+		{scast<u32>(GamepadButton::G_L3), 0, "L3"}, 
+		{scast<u32>(GamepadButton::G_R3), 0, "R3"},
 		
-		{GB(GamepadButton::G_DPAD_UP),    0, "DPad Up"}, 
-		{GB(GamepadButton::G_DPAD_DOWN),  0, "DPad Down"}, 
-		{GB(GamepadButton::G_DPAD_LEFT),  0, "DPad Left"}, 
-		{GB(GamepadButton::G_DPAD_RIGHT), 0, "DPad Right"},
+		{scast<u32>(GamepadButton::G_DPAD_UP),    0, "DPad Up"}, 
+		{scast<u32>(GamepadButton::G_DPAD_DOWN),  0, "DPad Down"}, 
+		{scast<u32>(GamepadButton::G_DPAD_LEFT),  0, "DPad Left"}, 
+		{scast<u32>(GamepadButton::G_DPAD_RIGHT), 0, "DPad Right"},
 		
-		{GB(GamepadButton::G_START),    0, "Start"}, 
-		{GB(GamepadButton::G_SELECT),   0, "Select"}, 
-		{GB(GamepadButton::G_HOME),     0, "Home"}, 
-		{GB(GamepadButton::G_CAPTURE),  0, "Capture"}, 
-		{GB(GamepadButton::G_TOUCHPAD), 0, "Touchpad"}
+		{scast<u32>(GamepadButton::G_START),    0, "Start"}, 
+		{scast<u32>(GamepadButton::G_SELECT),   0, "Select"}, 
+		{scast<u32>(GamepadButton::G_HOME),     0, "Home"}, 
+		{scast<u32>(GamepadButton::G_CAPTURE),  0, "Capture"}, 
+		{scast<u32>(GamepadButton::G_TOUCHPAD), 0, "Touchpad"}
 	}};
+	
+	inline constexpr GamepadButton GetGamepadButton(const string& v)
+	{
+		for (const auto& _b : gamepadButtons)
+		{
+			if (_b.value == v) return scast<GamepadButton>(_b.key);
+		}
+		return scast<GamepadButton>(0);
+	}
+	inline constexpr string_view GetGamepadValue(GamepadButton b) 
+	{ 
+		for (const auto& _b : gamepadButtons)
+		{
+			if (_b.key == scast<u32>(b)) return _b.value;
+		}
+		return "";
+	}
 	
 	enum class KeyboardButton : u32
 	{
@@ -184,87 +219,102 @@ namespace KalaHeaders
 		K_MENU = 127
 	};
 	
-	inline constexpr u32 KA(KeyboardButton m) { return static_cast<u32>(m); }
-	
 	//Common keyboard actions. 128-140 is reserved.
 	inline constexpr array<KeyValue, 67> keyboard_actions
 	{{
-		{KA(KeyboardButton::K_NUM_0), 0, "Num 0"}, 
-		{KA(KeyboardButton::K_NUM_1), 0, "Num 1"}, 
-		{KA(KeyboardButton::K_NUM_2), 0, "Num 2"}, 
-		{KA(KeyboardButton::K_NUM_3), 0, "Num 3"}, 
-		{KA(KeyboardButton::K_NUM_4), 0, "Num 4"},
-		{KA(KeyboardButton::K_NUM_5), 0, "Num 5"}, 
-		{KA(KeyboardButton::K_NUM_6), 0, "Num 6"}, 
-		{KA(KeyboardButton::K_NUM_7), 0, "Num 7"}, 
-		{KA(KeyboardButton::K_NUM_8), 0, "Num 8"}, 
-		{KA(KeyboardButton::K_NUM_9), 0, "Num 9"}, 
+		{scast<u32>(KeyboardButton::K_NUM_0), 0, "Num 0"}, 
+		{scast<u32>(KeyboardButton::K_NUM_1), 0, "Num 1"}, 
+		{scast<u32>(KeyboardButton::K_NUM_2), 0, "Num 2"}, 
+		{scast<u32>(KeyboardButton::K_NUM_3), 0, "Num 3"}, 
+		{scast<u32>(KeyboardButton::K_NUM_4), 0, "Num 4"},
+		{scast<u32>(KeyboardButton::K_NUM_5), 0, "Num 5"}, 
+		{scast<u32>(KeyboardButton::K_NUM_6), 0, "Num 6"}, 
+		{scast<u32>(KeyboardButton::K_NUM_7), 0, "Num 7"}, 
+		{scast<u32>(KeyboardButton::K_NUM_8), 0, "Num 8"}, 
+		{scast<u32>(KeyboardButton::K_NUM_9), 0, "Num 9"}, 
 		
-		{KA(KeyboardButton::K_NUM_LOCK),     0, "Num lock"}, 
-		{KA(KeyboardButton::K_NUM_RETURN),   0, "Num return"}, 
-		{KA(KeyboardButton::K_NUM_DIVIDE),   0, "Num /"}, 
-		{KA(KeyboardButton::K_NUM_MULTIPLY), 0, "Num *"}, 
-		{KA(KeyboardButton::K_NUM_ADD),      0, "Num +"}, 
-		{KA(KeyboardButton::K_NUM_SUBTRACT), 0, "Num -"},
+		{scast<u32>(KeyboardButton::K_NUM_LOCK),     0, "Num lock"}, 
+		{scast<u32>(KeyboardButton::K_NUM_RETURN),   0, "Num return"}, 
+		{scast<u32>(KeyboardButton::K_NUM_DIVIDE),   0, "Num /"}, 
+		{scast<u32>(KeyboardButton::K_NUM_MULTIPLY), 0, "Num *"}, 
+		{scast<u32>(KeyboardButton::K_NUM_ADD),      0, "Num +"}, 
+		{scast<u32>(KeyboardButton::K_NUM_SUBTRACT), 0, "Num -"},
 		
-		{KA(KeyboardButton::K_0), 0, "0"}, 
-		{KA(KeyboardButton::K_1), 0, "1"}, 
-		{KA(KeyboardButton::K_2), 0, "2"}, 
-		{KA(KeyboardButton::K_3), 0, "3"}, 
-		{KA(KeyboardButton::K_4), 0, "4"},
-		{KA(KeyboardButton::K_5), 0, "5"}, 
-		{KA(KeyboardButton::K_6), 0, "6"}, 
-		{KA(KeyboardButton::K_7), 0, "7"}, 
-		{KA(KeyboardButton::K_8), 0, "8"}, 
-		{KA(KeyboardButton::K_9), 0, "9"},
+		{scast<u32>(KeyboardButton::K_0), 0, "0"}, 
+		{scast<u32>(KeyboardButton::K_1), 0, "1"}, 
+		{scast<u32>(KeyboardButton::K_2), 0, "2"}, 
+		{scast<u32>(KeyboardButton::K_3), 0, "3"}, 
+		{scast<u32>(KeyboardButton::K_4), 0, "4"},
+		{scast<u32>(KeyboardButton::K_5), 0, "5"}, 
+		{scast<u32>(KeyboardButton::K_6), 0, "6"}, 
+		{scast<u32>(KeyboardButton::K_7), 0, "7"}, 
+		{scast<u32>(KeyboardButton::K_8), 0, "8"}, 
+		{scast<u32>(KeyboardButton::K_9), 0, "9"},
 		
-		{KA(KeyboardButton::K_F1), 0, "F1"}, 
-		{KA(KeyboardButton::K_F2), 0, "F2"}, 
-		{KA(KeyboardButton::K_F3), 0, "F3"}, 
-		{KA(KeyboardButton::K_F4), 0, "F4"}, 
-		{KA(KeyboardButton::K_F5), 0, "F5"}, 
-		{KA(KeyboardButton::K_F6), 0, "F6"}, 
-		{KA(KeyboardButton::K_F7), 0, "F7"}, 
-		{KA(KeyboardButton::K_F8), 0, "F8"},
-		{KA(KeyboardButton::K_F9), 0, "F9"}, 
-		{KA(KeyboardButton::K_F10), 0, "F10"}, 
-		{KA(KeyboardButton::K_F11), 0, "F11"}, 
-		{KA(KeyboardButton::K_F12), 0, "F12"},
+		{scast<u32>(KeyboardButton::K_F1), 0, "F1"}, 
+		{scast<u32>(KeyboardButton::K_F2), 0, "F2"}, 
+		{scast<u32>(KeyboardButton::K_F3), 0, "F3"}, 
+		{scast<u32>(KeyboardButton::K_F4), 0, "F4"}, 
+		{scast<u32>(KeyboardButton::K_F5), 0, "F5"}, 
+		{scast<u32>(KeyboardButton::K_F6), 0, "F6"}, 
+		{scast<u32>(KeyboardButton::K_F7), 0, "F7"}, 
+		{scast<u32>(KeyboardButton::K_F8), 0, "F8"},
+		{scast<u32>(KeyboardButton::K_F9), 0, "F9"}, 
+		{scast<u32>(KeyboardButton::K_F10), 0, "F10"}, 
+		{scast<u32>(KeyboardButton::K_F11), 0, "F11"}, 
+		{scast<u32>(KeyboardButton::K_F12), 0, "F12"},
 		
-		{KA(KeyboardButton::K_RETURN),    0, "Return"}, 
-		{KA(KeyboardButton::K_BACKSPACE), 0, "Backspace"}, 
-		{KA(KeyboardButton::K_SPACE),     0, "Space"},
-		{KA(KeyboardButton::K_ESC),       0, "Esc"}, 
-		{KA(KeyboardButton::K_TAB),       0, "Tab"}, 
-		{KA(KeyboardButton::K_CAPS_LOCK), 0, "Caps lock"},
+		{scast<u32>(KeyboardButton::K_RETURN),    0, "Return"}, 
+		{scast<u32>(KeyboardButton::K_BACKSPACE), 0, "Backspace"}, 
+		{scast<u32>(KeyboardButton::K_SPACE),     0, "Space"},
+		{scast<u32>(KeyboardButton::K_ESC),       0, "Esc"}, 
+		{scast<u32>(KeyboardButton::K_TAB),       0, "Tab"}, 
+		{scast<u32>(KeyboardButton::K_CAPS_LOCK), 0, "Caps lock"},
 		
-		{KA(KeyboardButton::K_LEFT_SHIFT),  0, "Left shift"}, 
-		{KA(KeyboardButton::K_LEFT_CTRL),   0, "Left control"}, 
-		{KA(KeyboardButton::K_LEFT_ALT),    0, "Left alt"},
-		{KA(KeyboardButton::K_RIGHT_SHIFT), 0, "Right shift"}, 
-		{KA(KeyboardButton::K_RIGHT_CTRL),  0, "Right control"}, 
-		{KA(KeyboardButton::K_RIGHT_ALT),   0, "Right alt"},
+		{scast<u32>(KeyboardButton::K_LEFT_SHIFT),  0, "Left shift"}, 
+		{scast<u32>(KeyboardButton::K_LEFT_CTRL),   0, "Left control"}, 
+		{scast<u32>(KeyboardButton::K_LEFT_ALT),    0, "Left alt"},
+		{scast<u32>(KeyboardButton::K_RIGHT_SHIFT), 0, "Right shift"}, 
+		{scast<u32>(KeyboardButton::K_RIGHT_CTRL),  0, "Right control"}, 
+		{scast<u32>(KeyboardButton::K_RIGHT_ALT),   0, "Right alt"},
 		
-		{KA(KeyboardButton::K_PRINT_SCREEN), 0, "Print screen"}, 
-		{KA(KeyboardButton::K_SCROLL_LOCK),  0, "Scroll lock"}, 
-		{KA(KeyboardButton::K_PAUSE),        0, "Pause"},
-		{KA(KeyboardButton::K_INSERT),       0, "Insert"}, 
-		{KA(KeyboardButton::K_DELETE),       0, "Delete"},
-		{KA(KeyboardButton::K_HOME),         0, "Home"}, 
-		{KA(KeyboardButton::K_END),          0, "End"},
-		{KA(KeyboardButton::K_PAGE_UP),      0, "Page up"}, 
-		{KA(KeyboardButton::K_PAGE_DOWN),    0, "Page down"},
+		{scast<u32>(KeyboardButton::K_PRINT_SCREEN), 0, "Print screen"}, 
+		{scast<u32>(KeyboardButton::K_SCROLL_LOCK),  0, "Scroll lock"}, 
+		{scast<u32>(KeyboardButton::K_PAUSE),        0, "Pause"},
+		{scast<u32>(KeyboardButton::K_INSERT),       0, "Insert"}, 
+		{scast<u32>(KeyboardButton::K_DELETE),       0, "Delete"},
+		{scast<u32>(KeyboardButton::K_HOME),         0, "Home"}, 
+		{scast<u32>(KeyboardButton::K_END),          0, "End"},
+		{scast<u32>(KeyboardButton::K_PAGE_UP),      0, "Page up"}, 
+		{scast<u32>(KeyboardButton::K_PAGE_DOWN),    0, "Page down"},
 		
-		{KA(KeyboardButton::K_ARROW_UP),    0, "Arrow up"}, 
-		{KA(KeyboardButton::K_ARROW_DOWN),  0, "Arrow down"}, 
-		{KA(KeyboardButton::K_ARROW_LEFT),  0, "Arrow left"}, 
-		{KA(KeyboardButton::K_ARROW_RIGHT), 0, "Arrow right"},
+		{scast<u32>(KeyboardButton::K_ARROW_UP),    0, "Arrow up"}, 
+		{scast<u32>(KeyboardButton::K_ARROW_DOWN),  0, "Arrow down"}, 
+		{scast<u32>(KeyboardButton::K_ARROW_LEFT),  0, "Arrow left"}, 
+		{scast<u32>(KeyboardButton::K_ARROW_RIGHT), 0, "Arrow right"},
 		
-		{KA(KeyboardButton::K_ALTERNATE_GRAPHIC), 0, "Alternate graphic"}, 
-		{KA(KeyboardButton::K_FUNCTION),          0, "Function"}, 
-		{KA(KeyboardButton::K_SYSTEM),            0, "System"}, 
-		{KA(KeyboardButton::K_MENU),              0, "Menu"}
+		{scast<u32>(KeyboardButton::K_ALTERNATE_GRAPHIC), 0, "Alternate graphic"}, 
+		{scast<u32>(KeyboardButton::K_FUNCTION),          0, "Function"}, 
+		{scast<u32>(KeyboardButton::K_SYSTEM),            0, "System"}, 
+		{scast<u32>(KeyboardButton::K_MENU),              0, "Menu"}
 	}};
+	
+	inline constexpr KeyboardButton GetKeyButton(const string& v)
+	{
+		for (const auto& _b : keyboard_actions)
+		{
+			if (_b.value == v) return scast<KeyboardButton>(_b.key);
+		}
+		return scast<KeyboardButton>(0);
+	}
+	inline constexpr string_view GetKeyValue(KeyboardButton b) 
+	{ 
+		for (const auto& _b : keyboard_actions)
+		{
+			if (_b.key == scast<u32>(b)) return _b.value;
+		}
+		return "";
+	}
 	
 	//
 	// KEY SYMBOLS
@@ -959,40 +1009,29 @@ namespace KalaHeaders
 		keyValues.insert(keyValues.end(), kaomojis.begin(), kaomojis.end());
 	}
 	
-	inline string_view GetValueByKey(u32 key)
+	inline u32 GetKeyByUTF(const u32 utf)
 	{
 		FillKeyValues();
 		
-		const auto it = lower_bound(
-			keyValues.begin(), keyValues.end(), key,
-			[](const KeyValue& kv, u32 k) { return kv.key < k; });
-			
-		return (
-			it != keyValues.end()
-			&& it->key == key)
-			? it->value
-			: string_view{};
-	}
-	
-	inline u32 GetUTFByKey(u32 key)
-	{
-		FillKeyValues();
+		//prevent empty searches
+		if (utf == 0) return 0;
 		
-		const auto it = lower_bound(
-			keyValues.begin(), keyValues.end(), key,
-			[](const KeyValue& kv, u32 k) { return kv.key < k; });
+		const auto it = find_if(
+			keyValues.begin(), keyValues.end(),
+			[&](const KeyValue& kv) { return kv.utf == utf; });
 			
 		return (
 			it != keyValues.end()
-			&& it->key == key
 			&& it->utf != 0)
 			? it->utf
-			: 0x003F; //returns ? as fallback
+			: u32{};
 	}
-	
 	inline u32 GetKeyByValue(const string_view& value)
 	{
 		FillKeyValues();
+		
+		//prevent empty searches
+		if (value.empty()) return 0;
 		
 		const auto it = find_if(
 			keyValues.begin(), keyValues.end(),
@@ -1005,9 +1044,30 @@ namespace KalaHeaders
 			: u32{};
 	}
 	
+	inline u32 GetUTFByKey(u32 key)
+	{
+		FillKeyValues();
+		
+		//prevent empty searches
+		if (key == 0) return 0x003F;
+		
+		const auto it = lower_bound(
+			keyValues.begin(), keyValues.end(), key,
+			[](const KeyValue& kv, u32 k) { return kv.key < k; });
+			
+		return (
+			it != keyValues.end()
+			&& it->key == key
+			&& it->utf != 0)
+			? it->utf
+			: 0x003F; //returns ? as fallback
+	}
 	inline u32 GetUTFByValue(const string_view& value)
 	{
 		FillKeyValues();
+		
+		//prevent empty searches
+		if (value.empty()) return 0x003F;
 		
 		const auto it = find_if(
 			keyValues.begin(), keyValues.end(),
@@ -1018,5 +1078,40 @@ namespace KalaHeaders
 			&& it->utf != 0)
 			? it->utf
 			: 0x003F; //returns ? as fallback
+	}
+	
+	inline string_view GetValueByKey(u32 key)
+	{
+		FillKeyValues();
+	
+		//prevent empty searches
+		if (key == 0) return "?";
+	
+		const auto it = lower_bound(
+			keyValues.begin(), keyValues.end(), key,
+			[](const KeyValue& kv, u32 k) { return kv.key < k; });
+			
+		return (
+			it != keyValues.end()
+			&& it->key == key)
+			? it->value
+			: "?";
+	}
+	inline string_view GetValueByUTF(u32 utf)
+	{
+		FillKeyValues();
+		
+		//prevent empty searches
+		if (utf == 0) return "?";
+		
+		const auto it = find_if(
+			keyValues.begin(), keyValues.end(),
+			[&](const KeyValue& kv) { return kv.utf == utf; });
+			
+		return (
+			it != keyValues.end()
+			&& it->utf == utf)
+			? it->value
+			: "?";
 	}
 }

@@ -26,21 +26,21 @@
 #include "KalaHeaders/log_utils.hpp"
 
 #include "graphics/kw_window.hpp"
+#include "core/kw_core.hpp"
+#include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_menubar_windows.hpp"
-#include "graphics/opengl/kw_opengl.hpp"
-#include "core/kw_input.hpp"
-#include "core/kw_core.hpp"
+#include "opengl/kw_opengl.hpp"
 
 using KalaHeaders::vec2;
 using KalaHeaders::Log;
 using KalaHeaders::LogType;
 
-using KalaWindow::Graphics::OpenGL::OpenGL_Context;
-using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Input;
+using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::MenuBar;
+using KalaWindow::OpenGL::OpenGL_Context;
 
 using std::make_unique;
 using std::move;

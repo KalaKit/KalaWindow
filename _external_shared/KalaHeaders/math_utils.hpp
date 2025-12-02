@@ -115,8 +115,10 @@ constexpr f32 epsilon = 1e-6f;
 
 namespace KalaHeaders
 {
-	#define rcast reinterpret_cast
+//static_cast
+#ifndef scast
 	#define scast static_cast
+#endif
 	
 	//============================================================================
 	//

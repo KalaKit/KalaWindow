@@ -25,6 +25,8 @@ namespace KalaWindow::Core
 	using std::string;
 
 	using KalaHeaders::vec2;
+	
+	//TODO: upgrade keymaps to key_standards.hpp
 
 	enum class Key : u32
 	{

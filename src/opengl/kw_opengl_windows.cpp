@@ -7,6 +7,7 @@
 
 #include <Windows.h>
 #include <string>
+#include <vector>
 #include <sstream>
 #include <memory>
 
@@ -14,7 +15,7 @@
 
 #include "KalaHeaders/log_utils.hpp"
 
-#include "graphics/opengl/kw_opengl.hpp"
+#include "opengl/kw_opengl.hpp"
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 
@@ -25,9 +26,11 @@ using KalaHeaders::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::OpenGL::OpenGL_Global;
+using KalaWindow::Graphics::WindowData;
+using KalaWindow::OpenGL::OpenGL_Global;
 
 using std::string;
+using std::vector;
 using std::to_string;
 using std::ostringstream;
 using std::dec;
@@ -40,7 +43,7 @@ static HWND CreateDummyWindow();
 
 static string GetErrorType(const string& errorOrigin);
 
-namespace KalaWindow::Graphics::OpenGL
+namespace KalaWindow::OpenGL
 {
 	//
 	// GLOBAL

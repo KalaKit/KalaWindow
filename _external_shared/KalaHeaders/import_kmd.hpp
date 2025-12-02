@@ -86,10 +86,17 @@ Render type:
 #include <fstream>
 #include <filesystem>
 
-namespace KalaHeaders
+namespace KalaHeaders::KalaModelData
 {
+//reinterpret_cast
+#ifndef rcast
 	#define rcast reinterpret_cast
+#endif
+
+//static_cast
+#ifndef scast
 	#define scast static_cast
+#endif
 	
 	using std::vector;
 	using std::array;

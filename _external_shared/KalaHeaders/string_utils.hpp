@@ -18,6 +18,11 @@
 
 namespace KalaHeaders
 {
+//static_cast
+#ifndef scast
+	#define scast static_cast
+#endif
+	
 	using std::string;
 	using std::vector;
 	using std::search;
@@ -110,8 +115,8 @@ namespace KalaHeaders
 
 		for (size_t i = 0; i < origin.size(); ++i)
 		{
-			if (static_cast<char>(tolower(static_cast<unsigned char>(origin[i])))
-				!= static_cast<char>(tolower(static_cast<unsigned char>(target[i]))))
+			if (scast<char>(tolower(scast<unsigned char>(origin[i])))
+				!= scast<char>(tolower(scast<unsigned char>(target[i]))))
 			{
 				return false;
 			}
@@ -283,7 +288,7 @@ namespace KalaHeaders
 		transform(result.begin(), result.end(), result.begin(),
 			[](unsigned char c) 
 			{
-				return static_cast<char>(toupper(c));
+				return scast<char>(toupper(c));
 			});
 
 		return result;
@@ -300,7 +305,7 @@ namespace KalaHeaders
 		transform(result.begin(), result.end(), result.begin(),
 			[](unsigned char c)
 			{
-				return static_cast<char>(tolower(c));
+				return scast<char>(tolower(c));
 			});
 
 		return result;
