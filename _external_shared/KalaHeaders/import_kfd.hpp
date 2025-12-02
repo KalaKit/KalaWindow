@@ -74,8 +74,6 @@ Offset | Size | Field
 #include <fstream>
 #include <filesystem>
 
-namespace KalaHeaders::KalaFontData
-{
 //reinterpret_cast
 #ifndef rcast
 	#define rcast reinterpret_cast
@@ -85,7 +83,9 @@ namespace KalaHeaders::KalaFontData
 #ifndef scast
 	#define scast static_cast
 #endif
-	
+
+namespace KalaHeaders::KalaFontData
+{	
 	using std::vector;
 	using std::array;
 	using std::string;

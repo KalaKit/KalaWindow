@@ -18,6 +18,7 @@
 
 #include <filesystem>
 #include <sstream>
+#include <string>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -26,18 +27,21 @@
 #include "core/kw_core.hpp"
 #include "core/kw_messageloop_windows.hpp"
 
-using namespace KalaHeaders;
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MessageLoop;
 
-using std::to_string;
 using std::wstring;
-using std::ostringstream;
 using Microsoft::WRL::ComPtr;
 using namespace winrt::Windows::UI::Notifications;
 using namespace winrt::Windows::Data::Xml::Dom;
+
 using std::filesystem::path;
+using std::ostringstream;
+using std::to_string;
+using std::string;
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);

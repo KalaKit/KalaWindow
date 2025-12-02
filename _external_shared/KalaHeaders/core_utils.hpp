@@ -124,76 +124,79 @@ constexpr T bcast(const U& v) noexcept
 	return bit_cast<T>(v);
 }
 
-//
-// CONVERT TO PLATFORM-AGNOSTIC VARIABLES AND BACK
-//
-
-//Converts an uintptr_t to a pointer.
-//Requires <T> where T is the pointer you want to convert back to.
-//Use cases:
-//  - structs
-//  - classes
-//  - functions
-//  - arrays
-template<typename T> static constexpr T ToVar(uintptr_t h)
-	requires is_pointer_v<T>
+namespace KalaHeaders::KalaCore
 {
-	return rcast<T>(h);
-}
+	//
+	// CONVERT TO PLATFORM-AGNOSTIC VARIABLES AND BACK
+	//
 
-//Converts an uintptr_t to an integral handle
-//Requires <T> where T is the integral handle you want to convert back to.
-//Use cases:
-//  - integers
-//  - bitmask flags
-//  - opaque handles
-template<typename T> static constexpr T ToVar(uintptr_t h)
-	requires is_integral_v<T>
-{
-	return scast<T>(h);
-}
+	//Converts an uintptr_t to a pointer.
+	//Requires <T> where T is the pointer you want to convert back to.
+	//Use cases:
+	//  - structs
+	//  - classes
+	//  - functions
+	//  - arrays
+	template<typename T> static constexpr T ToVar(uintptr_t h)
+		requires is_pointer_v<T>
+	{
+		return rcast<T>(h);
+	}
 
-//Converts an uintptr_t to an enum handle
-//Requires <T> where T is the enum type you want to convert back to.
-//Use cases:
-//  - enums
-//  - enum-based bitmask flags
-//  - strongly typed API handles
-template<typename T> static constexpr T ToVar(uintptr_t h)
-	requires is_enum_v<T>
-{
-	return scast<T>(scast<underlying_type_t<T>>(h));
-}
+	//Converts an uintptr_t to an integral handle
+	//Requires <T> where T is the integral handle you want to convert back to.
+	//Use cases:
+	//  - integers
+	//  - bitmask flags
+	//  - opaque handles
+	template<typename T> static constexpr T ToVar(uintptr_t h)
+		requires is_integral_v<T>
+	{
+		return scast<T>(h);
+	}
 
-//Converts a pointer to a uintptr_t.
-//Use cases:
-//  - structs
-//  - classes
-//  - functions
-//  - arrays
-template<typename T> static constexpr uint64_t FromVar(T* h)
-{
-	return rcast<uint64_t>(h);
-}
+	//Converts an uintptr_t to an enum handle
+	//Requires <T> where T is the enum type you want to convert back to.
+	//Use cases:
+	//  - enums
+	//  - enum-based bitmask flags
+	//  - strongly typed API handles
+	template<typename T> static constexpr T ToVar(uintptr_t h)
+		requires is_enum_v<T>
+	{
+		return scast<T>(scast<underlying_type_t<T>>(h));
+	}
 
-//Converts an integral handle to an uintptr_t.
-//Use cases:
-//  - integers
-//  - bitmask flags
-//  - opaque handles
-template<typename T> static uint64_t FromVar(T h)
-	requires is_integral_v<T>
-{
-	return scast<uint64_t>(h);
-}
+	//Converts a pointer to a uintptr_t.
+	//Use cases:
+	//  - structs
+	//  - classes
+	//  - functions
+	//  - arrays
+	template<typename T> static constexpr uint64_t FromVar(T* h)
+	{
+		return rcast<uint64_t>(h);
+	}
 
-//Converts an enum handle to an uintptr_t.
-//Use cases:
-//  - enums
-//  - enum-based bitmask flags
-//  - strongly typed API handles
-template<typename T> static uint64_t FromVar(T h)
-	requires is_enum_v<T>
-{
-	return scast<uint64_t>(scast<underlying_type_t<T>>(h));
+	//Converts an integral handle to an uintptr_t.
+	//Use cases:
+	//  - integers
+	//  - bitmask flags
+	//  - opaque handles
+	template<typename T> static uint64_t FromVar(T h)
+		requires is_integral_v<T>
+	{
+		return scast<uint64_t>(h);
+	}
+
+	//Converts an enum handle to an uintptr_t.
+	//Use cases:
+	//  - enums
+	//  - enum-based bitmask flags
+	//  - strongly typed API handles
+	template<typename T> static uint64_t FromVar(T h)
+		requires is_enum_v<T>
+	{
+		return scast<uint64_t>(scast<underlying_type_t<T>>(h));
+	}	
 }

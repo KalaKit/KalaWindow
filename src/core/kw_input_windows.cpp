@@ -16,8 +16,10 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
 
-using KalaHeaders::Log;
-using KalaHeaders::LogType;
+using KalaHeaders::KalaCore::ToVar;
+using KalaHeaders::KalaCore::FromVar;
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;

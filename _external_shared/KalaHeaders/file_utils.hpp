@@ -24,8 +24,6 @@
 #include <cerrno>
 #include <cstring>
 
-namespace KalaHeaders
-{
 //reinterpret_cast
 #ifndef rcast
 	#define rcast reinterpret_cast
@@ -35,7 +33,9 @@ namespace KalaHeaders
 #ifndef scast
 	#define scast static_cast
 #endif
-	
+
+namespace KalaHeaders::KalaFile
+{	
 	constexpr size_t TEN_MB = 10ULL * 1024 * 1024;
 	constexpr size_t ONE_GB = 1ULL * 1024 * 1024 * 1024;
 	constexpr size_t CHUNK_64KB = 64ULL * 1024;

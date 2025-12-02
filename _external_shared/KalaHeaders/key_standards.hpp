@@ -20,13 +20,13 @@
 #include <string>
 #include <algorithm>
 
-namespace KalaHeaders::KalaKeyStandards
-{
 //static_cast
 #ifndef scast
 	#define scast static_cast
 #endif
-	
+
+namespace KalaHeaders::KalaKeyStandards
+{	
 	using std::array;
 	using std::vector;
 	using std::string;

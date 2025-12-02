@@ -33,9 +33,10 @@
 #include "graphics/kw_window_global.hpp"
 #include "opengl/kw_opengl.hpp"
 
-using KalaHeaders::vec2;
-using KalaHeaders::Log;
-using KalaHeaders::LogType;
+using KalaHeaders::KalaCore::ToVar;
+using KalaHeaders::KalaMath::vec2;
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::KalaWindowCore;

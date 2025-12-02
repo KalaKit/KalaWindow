@@ -20,10 +20,10 @@
 #include "graphics/kw_window_global.hpp"
 #include "opengl/kw_opengl.hpp"
 
-using KalaHeaders::Log;
-using KalaHeaders::LogType;
-using KalaHeaders::TimeFormat;
-using KalaHeaders::DateFormat;
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
+using KalaHeaders::KalaLog::TimeFormat;
+using KalaHeaders::KalaLog::DateFormat;
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Window_Global;

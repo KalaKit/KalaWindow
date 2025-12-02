@@ -24,7 +24,7 @@ namespace KalaWindow::Core
 	using std::span;
 	using std::string;
 
-	using KalaHeaders::vec2;
+	using KalaHeaders::KalaMath::vec2;
 	
 	//TODO: upgrade keymaps to key_standards.hpp
 

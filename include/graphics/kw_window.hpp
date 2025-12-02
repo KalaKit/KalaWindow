@@ -22,7 +22,7 @@ namespace KalaWindow::Graphics
 	using std::vector;
 	using std::array;
 
-	using KalaHeaders::vec2;
+	using KalaHeaders::KalaMath::vec2;
 
 	using KalaWindow::Core::KalaWindowRegistry;
 

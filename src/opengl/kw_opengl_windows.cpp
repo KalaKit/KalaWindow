@@ -19,10 +19,11 @@
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 
-using KalaHeaders::vec2;
-
-using KalaHeaders::Log;
-using KalaHeaders::LogType;
+using KalaHeaders::KalaCore::ToVar;
+using KalaHeaders::KalaCore::FromVar;
+using KalaHeaders::KalaMath::vec2;
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;

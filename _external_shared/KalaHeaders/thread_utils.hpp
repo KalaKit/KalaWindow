@@ -20,7 +20,7 @@
 #include <thread>
 #include <chrono>
 
-namespace KalaHeaders
+namespace KalaHeaders::KalaThread
 {	
 	using std::atomic;
 	using std::memory_order_acquire;

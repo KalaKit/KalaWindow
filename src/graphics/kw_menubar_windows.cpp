@@ -7,6 +7,7 @@
 
 #include <Windows.h>
 #include <sstream>
+#include <string>
 #include <memory>
 
 #include "KalaHeaders/log_utils.hpp"
@@ -15,13 +16,17 @@
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 
-using namespace KalaHeaders;
+using KalaHeaders::KalaCore::ToVar;
+using KalaHeaders::KalaCore::FromVar;
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Core::KalaWindowCore;
 
 using std::ostringstream;
+using std::string;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;

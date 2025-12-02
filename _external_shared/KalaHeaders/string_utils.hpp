@@ -16,13 +16,13 @@
 #include <vector>
 #include <algorithm>
 
-namespace KalaHeaders
-{
 //static_cast
 #ifndef scast
 	#define scast static_cast
 #endif
-	
+
+namespace KalaHeaders::KalaString
+{	
 	using std::string;
 	using std::vector;
 	using std::search;
