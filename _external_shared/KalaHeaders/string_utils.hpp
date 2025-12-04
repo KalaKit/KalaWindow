@@ -13,6 +13,7 @@
 #pragma once
 
 #include <string>
+#include <cstring>
 #include <vector>
 #include <algorithm>
 
@@ -23,7 +24,16 @@
 
 namespace KalaHeaders::KalaString
 {	
+	using std::stoi;
+	using std::stoll;
+	using std::stoul;
+	using std::stoull;
+	using std::stod;
+	using std::stod;
+	using std::stold;
+
 	using std::string;
+	using std::string_view;
 	using std::vector;
 	using std::search;
 	using std::transform;
@@ -31,6 +41,8 @@ namespace KalaHeaders::KalaString
 	using std::tolower;
 	using std::isdigit;
 	using std::isspace;
+	using std::memcpy;
+	using std::memset;
 
 	//
 	// CONVERSION FUNCTIONS
@@ -47,19 +59,66 @@ namespace KalaHeaders::KalaString
 
 	template<> inline bool               FromString<bool>(const string& s) { return (s == "true" || s == "1"); } //Convert string to bool
 
-	template<> inline int                FromString<int>(const string& s) { return std::stoi(s); }                  //Convert string to int
-	template<> inline long               FromString<long>(const string& s) { return std::stol(s); }                 //Convert string to long
-	template<> inline long long          FromString<long long>(const string& s) { return std::stoll(s); }           //Convert string to long long
-	template<> inline unsigned int       FromString<unsigned int>(const string& s) { return std::stoul(s); }        //Convert string to unsigned int
-	template<> inline unsigned long      FromString<unsigned long>(const string& s) { return std::stoul(s); }       //Convert string to unsigned long
-	template<> inline unsigned long long FromString<unsigned long long>(const string& s) { return std::stoull(s); } //Convert string to unsigned long long
-	template<> inline float              FromString<float>(const string& s) { return std::stof(s); }                //Convert string to float
-	template<> inline double             FromString<double>(const string& s) { return std::stod(s); }               //Convert string to double
-	template<> inline long double        FromString<long double>(const string& s) { return std::stold(s); }         //Convert string to long double
+	template<> inline int                FromString<int>(const string& s) { return stoi(s); }                  //Convert string to int
+	template<> inline long               FromString<long>(const string& s) { return stol(s); }                 //Convert string to long
+	template<> inline long long          FromString<long long>(const string& s) { return stoll(s); }           //Convert string to long long
+	template<> inline unsigned int       FromString<unsigned int>(const string& s) { return stoul(s); }        //Convert string to unsigned int
+	template<> inline unsigned long      FromString<unsigned long>(const string& s) { return stoul(s); }       //Convert string to unsigned long
+	template<> inline unsigned long long FromString<unsigned long long>(const string& s) { return stoull(s); } //Convert string to unsigned long long
+	template<> inline float              FromString<float>(const string& s) { return stof(s); }                //Convert string to float
+	template<> inline double             FromString<double>(const string& s) { return stod(s); }               //Convert string to double
+	template<> inline long double        FromString<long double>(const string& s) { return stold(s); }         //Convert string to long double
 
 	//
 	// GENERAL FUNCTIONS
 	//
+	
+	//Copies the value of the origin string_view within the bounds of the target char array,
+	//does not fill empty chars after \0,
+	//does not mutate output on empty input
+	template<size_t N>
+	inline void StringToCharArray(string_view inValue, char (&outValue)[N])
+	{
+		//skip if there is no input data
+		if (inValue.empty()) return;
+		
+		size_t len = inValue.size();
+		if (len >= N) len = N - 1;
+		
+		memcpy(outValue, inValue.data(), len);
+		outValue[len] = '\0';
+	}
+	//Copies the value of the origin string within the bounds of the target char array,
+	//does not fill empty chars after \0,
+	//does not mutate output on empty input
+	template<size_t N>
+	inline void StringToCharArray(const string& inValue, char (&outValue)[N])
+	{
+		//skip if there is no input data
+		if (inValue.empty()) return;
+		
+		size_t len = inValue.size();
+		if (len >= N) len = N - 1;
+		
+		memcpy(outValue, inValue.data(), len);
+		outValue[len] = '\0';
+	}
+	
+	//Fills in remaining space of char array after '\0',
+	//does not mutate output if no null terminator exists
+	template<size_t N>
+	inline void ZeroPadCharArray(char(&outValue)[N])
+	{
+		//find the null terminator
+		size_t i = 0;
+		for (; i < N; i++) { if (outValue[i] == '\0') break; }
+		
+		//skip if no null terminator was found
+		if (i == N) return;
+		
+		//zero-pad everything after the null-terminator
+		memset(&outValue[i + 1], 0, N - (i + 1));
+	}
 
 	//Check if origin contains target, with optional case sensitivity flag
 	inline bool ContainsString(

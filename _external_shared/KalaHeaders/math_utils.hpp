@@ -2252,8 +2252,49 @@ namespace KalaHeaders::KalaMath
 			a.x * b.y - a.y * b.x
 		};
 	}
+	
+	//Restricts a vec2 to given ranges
+	inline vec2 kclamp(
+		const vec2 v,
+		const vec2 min,
+		const vec2 max)
+	{
+		return
+		{
+			clamp(v.x, min.x, max.x),
+			clamp(v.y, min.y, max.y)
+		};
+	}
+	//Restricts a vec3 to given ranges
+	inline vec3 kclamp(
+		const vec3& v,
+		const vec3& min,
+		const vec3& max)
+	{
+		return
+		{
+			clamp(v.x, min.x, max.x),
+			clamp(v.y, min.y, max.y),
+			clamp(v.z, min.z, max.z)
+		};
+	}
+	//Restricts a vec4 to given ranges
+	inline vec4 kclamp(
+		const vec4& v,
+		const vec4& min,
+		const vec4& max)
+	{
+		return
+		{
+			clamp(v.x, min.x, max.x),
+			clamp(v.y, min.y, max.y),
+			clamp(v.z, min.z, max.z),
+			clamp(v.w, min.w, max.w)
+		};
+	}
 
-	//Turns position/orientation into a view transform
+	//Turns position/orientation into a view transform,
+	//use DIR_UP for fps style camera, or if youre using the camera from KalaGraphics
 	inline mat4 view(
 		const vec3& origin, 
 		const vec3& target, 
@@ -2272,15 +2313,29 @@ namespace KalaHeaders::KalaMath
 		};
 	}
 
-	//ortographic projection, bottom-left origin, Y-up projection
-	inline mat4 ortho(const vec2 viewport)
+	//ortographic projection, bottom-left origin, Y-up projection,
+	//viewport size is clamped internally from 100x100 to 8192x8192,
+	//near and far are clamped internally from -10000.0 to 10000.0
+	inline mat4 ortho(
+		const vec2 viewport,
+		f32 zNear = -1.0f,
+		f32 zFar = 1.0f)
 	{
+		//ensure viewport is always valid
+		vec2 correctVP = viewport;
+		correctVP = kclamp(correctVP, 100.0f, 8192.0f);
+		
+		//ensure zNear and zFar are within safe bounds
+		zNear = clamp(zNear, -10000.0f, 10000.0f);
+		zFar = clamp(zFar, -10000.0f, 10000.0f);
+		
+		//ensure zNear is always smaller than zFar
+		if (zNear >= zFar) zFar = zNear + 1;
+		
 		const f32 left = 0.0f;
-		const f32 right = viewport.x;
+		const f32 right = correctVP.x;
 		const f32 bottom = 0.0f;
-		const f32 top = viewport.y;
-		const f32 zNear = -1.0f;
-		const f32 zFar = 1.0f;
+		const f32 top = correctVP.y;
 
 		const f32 rl = right - left;
 		const f32 tb = top - bottom;
@@ -2296,14 +2351,31 @@ namespace KalaHeaders::KalaMath
 		return m;
 	}
 
-	//perpective projection, bottom-left origin, Y-up projection
+	//perpective projection, bottom-left origin, Y-up projection,
+	//viewport size is clamped internally from 100x100 to 8192x8192,
+	//fov is clamped internally from 1.0 to 360.0 degrees,
+	//near and far are clamped internally from epsilon to 1000000.0
 	inline mat4 perspective(
 		const vec2 viewport,
-		f32 fovDeg,
-		f32 zNear,
-		f32 zFar)
+		f32 fovDeg = 90.0f,
+		f32 zNear = 0.001f,
+		f32 zFar = 512.0f)
 	{
-		const f32 aspect = viewport.x / viewport.y;
+		//ensure viewport is always valid
+		vec2 correctVP = viewport;
+		correctVP = kclamp(correctVP, 100.0f, 8192.0f);
+		
+		//ensure fov is within safe bounds
+		fovDeg = clamp(fovDeg, 1.0f, 360.0f);
+		
+		//ensure zNear and zFar are within safe bounds
+		zNear = clamp(zNear, epsilon, 1000000.0f);
+		zFar = clamp(zFar, epsilon, 1000000.0f);
+		
+		//ensure zNear is always smaller than zFar
+		if (zNear >= zFar) zFar = zNear + 1;
+		
+		const f32 aspect = correctVP.x / correctVP.y;
 		const f32 f = 1.0f / tanf(radians(fovDeg) * 0.5f);
 		const f32 fn = zFar - zNear;
 
@@ -2311,8 +2383,8 @@ namespace KalaHeaders::KalaMath
 
 		m.m00 = f / aspect; m.m10 = 0.0f; m.m20 = 0.0f;                 m.m30 = 0.0f;
 		m.m01 = 0.0f;       m.m11 = f;    m.m21 = 0.0f;                 m.m31 = 0.0f;
-		m.m02 = 0.0f;       m.m12 = 0.0f; m.m22 = -(zFar + zNear) / fn; m.m32 = -(2.0f * zFar * zNear) / fn;
-		m.m03 = 0.0f;       m.m13 = 0.0f; m.m23 = -1.0f;                m.m33 = 0.0f;
+		m.m02 = 0.0f;       m.m12 = 0.0f; m.m22 = -(zFar + zNear) / fn; m.m32 = -1.0f;
+		m.m03 = 0.0f;       m.m13 = 0.0f; m.m23 = -(2.0f * zFar * zNear) / fn; m.m33 = 0.0f;
 
 		return m;
 	}
@@ -2526,46 +2598,6 @@ namespace KalaHeaders::KalaMath
 			smoothstep(edge0.y, edge1.y, x.y),
 			smoothstep(edge0.z, edge1.z, x.z),
 			smoothstep(edge0.w, edge1.w, x.w)
-		};
-	}
-
-	//Restricts a vec2 to given ranges
-	inline vec2 kclamp(
-		const vec2 v,
-		const vec2 min,
-		const vec2 max)
-	{
-		return
-		{
-			clamp(v.x, min.x, max.x),
-			clamp(v.y, min.y, max.y)
-		};
-	}
-	//Restricts a vec3 to given ranges
-	inline vec3 kclamp(
-		const vec3& v,
-		const vec3& min,
-		const vec3& max)
-	{
-		return
-		{
-			clamp(v.x, min.x, max.x),
-			clamp(v.y, min.y, max.y),
-			clamp(v.z, min.z, max.z)
-		};
-	}
-	//Restricts a vec4 to given ranges
-	inline vec4 kclamp(
-		const vec4& v,
-		const vec4& min,
-		const vec4& max)
-	{
-		return
-		{
-			clamp(v.x, min.x, max.x),
-			clamp(v.y, min.y, max.y),
-			clamp(v.z, min.z, max.z),
-			clamp(v.w, min.w, max.w)
 		};
 	}
 
