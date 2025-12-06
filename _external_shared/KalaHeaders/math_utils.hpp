@@ -1979,43 +1979,6 @@ namespace KalaHeaders::KalaMath
 		return { degrees(v.x), degrees(v.y), degrees(v.z), degrees(v.w) };
 	}
 
-	//Converts 3D euler (degrees) to quaternion,
-	//takes in rotations as pitch-yaw-roll (XYZ), uses YXZ internally,
-	//pitch, yaw and roll are clamped -360 to 360,
-	//you are supposed to wrap or clamp pitch and roll as you prefer before this function
-	inline quat toquat(const vec3& euler)
-	{
-		//returns quat as identity if euler input is near 0
-		if (isnear(euler)) return {};
-		
-		vec3 e = euler;
-		
-		//clamp pitch -360 to 360
-		e.x = clamp(e.x, -360.0f, 360.0f);
-		//clamp yaw -360 to 360
-		e.y = clamp(e.y, -360.0f, 360.0f);
-		//clamp roll -360 to 360
-		e.z = clamp(e.z, -360.0f, 360.0f);
-		
-		if (isnear(e.x))  e.x = 0.0f;
-		if (isnear(e.y))  e.y = 0.0f;
-		if (isnear(e.z))  e.z = 0.0f;
-		
-		vec3 r = radians(e) * 0.5f;
-
-		f32 cx = cosf(r.x), sx = sinf(r.x); //pitch
-		f32 cy = cosf(r.y), sy = sinf(r.y); //yaw
-		f32 cz = cosf(r.z), sz = sinf(r.z); //roll
-
-		return
-		{
-			cx * cy * cz + sx * sy * sz, //w
-			sx * cy * cz + cx * sy * sz, //x
-			cx * sy * cz - sx * cy * sz, //y
-			cx * cy * sz - sx * sy * cz  //z
-		};
-	}
-
 	//Converts quat to 3D euler (degrees),
 	//returns rotations as pitch-yaw-roll (XYZ), uses YXZ internally,
 	//pitch, yaw and roll are clamped -360 to 360,
@@ -2073,6 +2036,43 @@ namespace KalaHeaders::KalaMath
 		if (isnear(e.z)) e.z = 0.0f;
 
 		return e;
+	}
+	
+	//Converts 3D euler (degrees) to quaternion,
+	//takes in rotations as pitch-yaw-roll (XYZ), uses YXZ internally,
+	//pitch, yaw and roll are clamped -360 to 360,
+	//you are supposed to wrap or clamp pitch and roll as you prefer before this function
+	inline quat toquat(const vec3& euler)
+	{
+		//returns quat as identity if euler input is near 0
+		if (isnear(euler)) return {};
+		
+		vec3 e = euler;
+		
+		//clamp pitch -360 to 360
+		e.x = clamp(e.x, -360.0f, 360.0f);
+		//clamp yaw -360 to 360
+		e.y = clamp(e.y, -360.0f, 360.0f);
+		//clamp roll -360 to 360
+		e.z = clamp(e.z, -360.0f, 360.0f);
+		
+		if (isnear(e.x))  e.x = 0.0f;
+		if (isnear(e.y))  e.y = 0.0f;
+		if (isnear(e.z))  e.z = 0.0f;
+		
+		vec3 r = radians(e) * 0.5f;
+
+		f32 cx = cosf(r.x), sx = sinf(r.x); //pitch
+		f32 cy = cosf(r.y), sy = sinf(r.y); //yaw
+		f32 cz = cosf(r.z), sz = sinf(r.z); //roll
+
+		return
+		{
+			cx * cy * cz + sx * sy * sz, //w
+			sx * cy * cz + cx * sy * sz, //x
+			cx * sy * cz - sx * cy * sz, //y
+			cx * cy * sz - sx * sy * cz  //z
+		};
 	}
 
 	//Converts mat3 to quat

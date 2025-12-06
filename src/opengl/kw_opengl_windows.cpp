@@ -636,12 +636,12 @@ namespace KalaWindow::OpenGL
 		wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size
-		vec2 framebufferSize = window->GetFramebufferSize();
+		vec2 clientRectSize = window->GetClientRectSize();
 		glViewport(
 			0,
 			0,
-			(GLsizei)framebufferSize.x,
-			(GLsizei)framebufferSize.y);
+			(GLsizei)clientRectSize.x,
+			(GLsizei)clientRectSize.y);
 
 		const char* glVersion  = reinterpret_cast<const char*>(glGetString(GL_VERSION));
 		const char* glVendor   = reinterpret_cast<const char*>(glGetString(GL_VENDOR));

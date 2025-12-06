@@ -166,10 +166,6 @@ namespace KalaWindow::Graphics
 		void SetOuterSize(vec2 newSize) const;
 		vec2 GetOuterSize() const;
 
-		//Set dpi-accurate framebuffer size
-		void SetFramebufferSize(vec2 newSize) const;
-		vec2 GetFramebufferSize() const;
-
 		//Set window position
 		void SetPosition(vec2 newPos) const;
 		vec2 GetPosition() const;

@@ -1189,7 +1189,7 @@ static bool ProcessMessage(
 	{
 		if (window->IsResizable())
 		{
-			vec2 fbSize = window->GetFramebufferSize();
+			vec2 fbSize = window->GetClientRectSize();
 
 			if (OpenGL_Global::IsInitialized())
 			{
@@ -1263,7 +1263,7 @@ static bool ProcessMessage(
 				return true;
 			}
 			
-			vec2 framebufferSize = window->GetFramebufferSize();
+			vec2 framebufferSize = window->GetClientRectSize();
 
 			glViewport(
 				0,
