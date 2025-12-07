@@ -135,14 +135,6 @@ namespace KalaWindow::Core
 					2);
 			}
 		}
-
-		//TODO: add back texture + shader + font support
-
-		/*
-		OpenGL_Texture::registry.RemoveAllContent();
-		OpenGL_Shader::registry.RemoveAllContent();
-		Font::registry.RemoveAllContent();
-		*/
 		
 		OpenGL_Context::registry.RemoveAllContent();
 		Window::registry.RemoveAllContent();
