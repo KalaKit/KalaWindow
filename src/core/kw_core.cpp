@@ -99,14 +99,18 @@ namespace KalaWindow::Core
 		const function<void()>& userShutdown)
 	{
 		Log::Print("\n====================", true);
-		Log::Print("\nSHUTTING DOWN KALAWINDOW", true);
+		Log::Print("\nSHUTTING DOWN PROGRAM", true);
 		Log::Print("\n====================\n", true);
+		
+#ifdef _WIN32
+		timeEndPeriod(1);
+#endif //_WIN32
 
 		if (state == ShutdownState::SHUTDOWN_CRITICAL)
 		{
 #ifdef _DEBUG
 			//skip all cleanup if a critical error was detected, we have no time to waste with cleanup here
-			abort();  
+			__debugbreak();
 #else
 			//clean, user-friendly exit in release
 			quick_exit(EXIT_FAILURE);  
@@ -138,10 +142,6 @@ namespace KalaWindow::Core
 		
 		OpenGL_Context::registry.RemoveAllContent();
 		Window::registry.RemoveAllContent();
-
-#ifdef _WIN32
-		timeEndPeriod(1);
-#endif //_WIN32
 
 		if (!useWindowShutdown
 			&& userShutdown)
