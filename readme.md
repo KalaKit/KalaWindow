@@ -8,7 +8,7 @@
 
 **KalaWindow** is a C++20 window library for **Windows**, built for native desktop applications for Windows with support coming for Linux in the future.
 
-**KalaWindow** creates and owns the OpenGL 3.3 context but shader binding, swapping GL buffers, making context to current, checking if context is current, other GL related functions and GL core functions (+ the wgl and glx ones) must come from your GL library like [KalaGraphics](https://github.com/kalakit/kalagraphics) or another GL source. This way **KalaWindow** stays purely a GL context initializer and a window library with input and a message loop and nothing more. **KalaGraphics** also provides a full UI framework with a widget system.
+**KalaWindow** creates and owns the OpenGL 3.3 context but shader binding, swapping GL buffers, making context to current, checking if context is current, other GL related functions and GL core functions (+ the wgl and glx ones) must come from your GL library like [KalaGL](https://github.com/kalakit/kalagl) or another GL source. This way **KalaWindow** stays purely a GL context initializer and a window library with input and a message loop and nothing more. **KalaGL** also provides a full UI framework with a widget system.
 
 [KalaAudio](https://github.com/kalakit/kalaaudio) is recommended to be used for audio playback and audio streaming.
 
@@ -43,20 +43,6 @@ Features built into **KalaWindow**:
 | Vulkan          | Planned        | Support for Vulkan 1.3 coming in a future version |
 | DirectX         | Not Supported  | No plans for DirectX compatibility                |
 | MoltenVK        | Not Supported  | No plans for MoltenVK compatibility               |
-
-Some **KalaWindow** headers pull in official GL extension headers:
-- `opengl_functions_core.hpp` includes `glcorearb.h` and `glext.h`
-- `opengl_functions_win.hpp` includes `wgleht.hpp`
-- `opengl_functions_linux.hpp` includes `glxeht.hpp`
-
----
-
-## Projects made with KalaWindow
-
-Send me an email at `sanderveski@gmail.com` or message me on discord at `greenlaser` if you want your game or program you made with **KalaWindow** to be listed here
-
-- [Circuit Chan](https://github.com/lost-empire-entertainment/circuit-chan)
-- [Solin](https://github.com/lost-empire-entertainment/solin)
 
 ---
 
