@@ -98,9 +98,11 @@ namespace KalaWindow::Core
 		bool useWindowShutdown,
 		const function<void()>& userShutdown)
 	{
-		Log::Print("\n====================", true);
-		Log::Print("\nSHUTTING DOWN PROGRAM", true);
-		Log::Print("\n====================\n", true);
+		Log::Print(
+			"\n============="
+			"\nSHUTTING DOWN"
+			"\n=============\n",
+			true);
 		
 #ifdef _WIN32
 		timeEndPeriod(1);

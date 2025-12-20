@@ -26,6 +26,29 @@ namespace KalaWindow::Graphics
 
 	using KalaWindow::Core::KalaWindowRegistry;
 
+	//Display mode / monitor ownership state
+	enum class WindowMode
+	{
+		//Window will float and can be resized and moved around
+		WINDOWMODE_WINDOWED,
+		//Window will go fullscreen and will hide decorations and top bar,
+		//stays alt-tab friendly and uses the compositor, best for low-performance applications and games
+		WINDOWMODE_BORDERLESS,
+		//Window will go fullscreen and will hide decorations and top bar,
+		//flashes when alt-tabbing and uses full gpu, best for high-performance applications and games
+		WINDOWMODE_EXCLUSIVE
+	};
+
+	//Presentation/visibility state
+	enum class WindowState
+	{
+		WINDOW_NORMAL,        //Show the window with default size and position
+		WINDOW_MAXIMIZE,      //Maximize window to full monitor size
+		WINDOW_MINIMIZE,      //Minimize window to taskbar
+		WINDOW_HIDE,          //Hide the window, including from taskbar
+		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it
+	};
+
 	enum class DpiContext
 	{
 		//sharpest, ideal DPI scaling between monitors,
@@ -36,24 +59,14 @@ namespace KalaWindow::Graphics
 		//sharp on primary monitor, blurry if dragged to higher DPI monitor,
 		//nearly identical in performance compared to DPI_PER_MONITOR
 		//but slower than DPI_UNAWARE at higher resolutions
-		DPI_SYSTEM_AWARE, 
+		DPI_SYSTEM_AWARE,
 
 		//always as 96 DPI, blurry on high DPI screens, fastest performance
 		DPI_UNAWARE
 	};
 
-	//Supported states the window can go to
-	enum class WindowState
-	{
-		WINDOW_NORMAL,        //Show the window with default size and position
-		WINDOW_MAXIMIZE,      //Maximize window to full monitor size
-		WINDOW_MINIMIZE,      //Minimize window to taskbar
-		WINDOW_HIDE,          //Hide the window, including from taskbar
-		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it
-	};
-
 #ifdef _WIN32
-	struct WindowData
+	struct LIB_API WindowData
 	{
 		uintptr_t hwnd{};
 		uintptr_t hdc{};
@@ -91,7 +104,7 @@ namespace KalaWindow::Graphics
 		PROGRESS_ERROR          //red bar
 	};
 #else
-	struct WindowData
+	struct LIB_API WindowData
 	{
 		uintptr_t display{};
 		uintptr_t window{};
@@ -106,14 +119,14 @@ namespace KalaWindow::Graphics
 
 		//Create a new window with an optional choice to attach a parent window.
 		//Assign a parent window to display this window as a child of that window.
-		//Set window state to your preferred version, like hidden at startup etc.
+		//Set window mode to your preferred version to choose how it shows up after its initialized.
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
 		static Window* Initialize(
 			const string& title,
 			vec2 size,
 			Window* parentWindow = nullptr,
-			WindowState state = WindowState::WINDOW_NORMAL,
+			WindowMode mode = WindowMode::WINDOWMODE_WINDOWED,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 		inline bool IsInitialized() const { return isInitialized; }
 
@@ -168,7 +181,7 @@ namespace KalaWindow::Graphics
 
 		//Set window position
 		void SetPosition(vec2 newPos) const;
-		vec2 GetPosition() const;
+		vec2 GetPosition();
 
 		inline void SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
 		inline vec2 GetMaxSize() const { return maxSize; }
@@ -224,21 +237,20 @@ namespace KalaWindow::Graphics
 		bool IsForegroundWindow() const;
 		//Returns true if this window is currently receiving keyboard input
 		bool IsFocused() const;
+		//Returns true if this window is undecorated and its size matches the monitor size
+		bool IsFullscreen();
 		//Returns true if this window is not open, but exists
 		bool IsMinimized() const;
 		//Returns false if this window is not rendered but also not minimized
 		bool IsVisible() const;
 
+		//Called internally in message loop
 		void SetResizingState(bool newState) { isResizing = newState; }
 		bool IsResizing() const { return isResizing; }
 
-		//If true, then this window will be set to true exclusive fullscreen state
-		void SetExclusiveFullscreenState(bool state);
-		inline bool IsExclusiveFullscreen() const { return isExclusiveFullscreen; };
-
-		//If true, then this window will be set to borderless full screen size
-		void SetBorderlessFullscreenState(bool state);
-		bool IsBorderlessFullscreen() const;
+		//Can assign the window mode to one of the supported types
+		void SetWindowMode(WindowMode mode);
+		WindowMode GetWindowMode();
 
 		//Can assign the window state to one of the supported types
 		void SetWindowState(WindowState state) const;
@@ -308,6 +320,8 @@ namespace KalaWindow::Graphics
 		//Do not destroy manually, erase from registry instead
 		~Window();
 	private:
+		uintptr_t GetHWND(const string& errorMessage) const;
+
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
 
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
@@ -315,19 +329,11 @@ namespace KalaWindow::Graphics
 		bool isResizing = false;           //If true, then this window is currently being resized
 		bool shutdownBlockState = false;   //Prevents Windows from shutting off or logging off if this is true so you can save your data
 
-		bool isExclusiveFullscreen = false;
-
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
 		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become
 
-		vec2 oldPos{};        //Stored pre-fullscreen window pos
-		vec2 oldSize{};       //Stored pre-fullscreen window size
-		//0 - WS_CAPTION
-		//1 - WS_THICKFRAME
-		//2 - WS_MINIMIZEBOX
-		//3 - WS_MAXIMIZEBOX
-		//4 - WS_SYSMENU
-		u8 oldStyle{};        //Stored pre-fullscreen window style (Windows-only)
+		vec2 oldPos{};  //Stored pre-fullscreen window pos
+		vec2 oldSize{}; //Stored pre-fullscreen window size
 
 		u32 ID{};            //ID for this window
 		u32 iconID{};        //ID for this window icon

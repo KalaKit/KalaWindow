@@ -35,6 +35,7 @@
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
 using KalaHeaders::KalaMath::vec2;
+using KalaHeaders::KalaMath::isnear;
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
@@ -79,7 +80,7 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size,
 		Window* parentWindow,
-		WindowState state,
+		WindowMode mode,
 		DpiContext context)
 	{
 		if (!Window_Global::IsInitialized())
@@ -221,8 +222,11 @@ namespace KalaWindow::Graphics
 
 		windowPtr->isInitialized = true;
 
-		//set window state to user preferred version
-		windowPtr->SetWindowState(state);
+		windowPtr->SetWindowState(WindowState::WINDOW_NORMAL);
+		windowPtr->SetWindowMode(mode);
+
+		windowPtr->oldPos = windowPtr->GetPosition();
+		windowPtr->oldSize = windowPtr->GetClientRectSize();
 
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
@@ -239,7 +243,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetTitle(const string& newTitle) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window title"));
 		if (!window) return;
 
 		if (newTitle.empty())
@@ -282,7 +286,7 @@ namespace KalaWindow::Graphics
 	{
 		static string result{};
 
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window title"));
 		if (!window) return result;
 
 		int length = GetWindowTextLengthW(window);
@@ -310,7 +314,7 @@ namespace KalaWindow::Graphics
 		/*
 		TODO: add texture support back
 		
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window icon"));
 		if (!window) return;
 
 		OpenGL_Texture* tex = OpenGL_Texture::registry.GetContent(texture);
@@ -385,7 +389,7 @@ namespace KalaWindow::Graphics
 	}
 	void Window::ClearIcon() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("clear window icon"));
 		if (!window) return;
 
 		SendMessage(
@@ -408,7 +412,7 @@ namespace KalaWindow::Graphics
 		/*
 		TODO: add texture support back
 		
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set taskbar overlay icon"));
 		if (!window) return;
 
 		OpenGL_Texture* tex = OpenGL_Texture::registry.GetContent(texture);
@@ -506,7 +510,7 @@ namespace KalaWindow::Graphics
 	}
 	void Window::ClearTaskbarOverlayIcon() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("clear taskbar overlay icon"));
 		if (!window) return;
 
 		CComPtr<ITaskbarList3> taskbar{};
@@ -537,7 +541,7 @@ namespace KalaWindow::Graphics
 	{
 		if (IsFocused()) return; //skip all logic if already focused
 
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("bring window to focus"));
 		if (!window) return;
 
 		WindowState state = GetWindowState();
@@ -595,7 +599,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetWindowRounding(WindowRounding roundState) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window rounding"));
 		if (!window) return;
 
 		DWM_WINDOW_CORNER_PREFERENCE pref{};
@@ -647,7 +651,7 @@ namespace KalaWindow::Graphics
 	}
 	WindowRounding Window::GetWindowRoundingState() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window rounding state"));
 		if (!window) return WindowRounding::ROUNDING_DEFAULT;
 
 		DWM_WINDOW_CORNER_PREFERENCE pref{};
@@ -682,7 +686,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetClientRectSize(vec2 newSize) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window client rect size"));
 		if (!window) return;
 
 		//desired client area
@@ -723,7 +727,7 @@ namespace KalaWindow::Graphics
 	}
 	vec2 Window::GetClientRectSize() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window client rect size"));
 		if (!window) return{};
 
 		RECT rect{};
@@ -738,7 +742,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetOuterSize(vec2 newSize) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window outer size"));
 		if (!window) return;
 
 		SetWindowPos(
@@ -763,7 +767,7 @@ namespace KalaWindow::Graphics
 	}
 	vec2 Window::GetOuterSize() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window outer size"));
 		if (!window) return{};
 
 		RECT rect{};
@@ -778,7 +782,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetPosition(vec2 newPosition) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window position"));
 		if (!window) return;
 
 		SetWindowPos(
@@ -801,9 +805,9 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	vec2 Window::GetPosition() const
+	vec2 Window::GetPosition()
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window position"));
 		if (!window) return{};
 
 		RECT rect{};
@@ -821,7 +825,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetAlwaysOnTopState(bool state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window always on top state"));
 		if (!window) return;
 
 		SetWindowPos(
@@ -846,7 +850,7 @@ namespace KalaWindow::Graphics
 	}
 	bool Window::IsAlwaysOnTop() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window always on top state"));
 		if (!window) return false;
 
 		LONG exStyle = GetWindowLong(
@@ -858,7 +862,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetResizableState(bool state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window resizable state"));
 		if (!window) return;
 
 		LONG style = GetWindowLong(window, GWL_STYLE);
@@ -905,7 +909,7 @@ namespace KalaWindow::Graphics
 	}
 	bool Window::IsResizable() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window resizable state"));
 		if (!window) return false;
 
 		LONG style = GetWindowLong(
@@ -919,7 +923,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetTopBarState(bool state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window top bar state"));
 		if (!window) return;
 
 		LONG style = GetWindowLong(window, GWL_STYLE);
@@ -956,7 +960,7 @@ namespace KalaWindow::Graphics
 	}
 	bool Window::IsTopBarEnabled() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window top bar state"));
 		if (!window) return false;
 
 		LONG style = GetWindowLong(
@@ -968,7 +972,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetMinimizeButtonState(bool state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window minimize button state"));
 		if (!window) return;
 
 		LONG style = GetWindowLong(window, GWL_STYLE);
@@ -1005,7 +1009,7 @@ namespace KalaWindow::Graphics
 	}
 	bool Window::IsMinimizeButtonEnabled() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window minimize button state"));
 		if (!window) return false;
 
 		LONG style = GetWindowLong(
@@ -1017,7 +1021,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetMaximizeButtonState(bool state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window maximize button state"));
 		if (!window) return;
 
 		LONG style = GetWindowLong(window, GWL_STYLE);
@@ -1054,7 +1058,7 @@ namespace KalaWindow::Graphics
 	}
 	bool Window::IsMaximizeButtonEnabled() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window maximize button state"));
 		if (!window) return false;
 
 		LONG style = GetWindowLong(
@@ -1066,7 +1070,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetCloseButtonState(bool state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window close button state"));
 		if (!window) return;
 
 		HMENU hSysMenu = GetSystemMenu(window, FALSE);
@@ -1095,7 +1099,7 @@ namespace KalaWindow::Graphics
 	}
 	bool Window::IsCloseButtonEnabled() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window close button state"));
 		if (!window) return false;
 
 		HMENU hSysMenu = GetSystemMenu(window, FALSE);
@@ -1109,7 +1113,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetSystemMenuState(bool state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window system menu state"));
 		if (!window) return;
 
 		LONG style = GetWindowLong(window, GWL_STYLE);
@@ -1146,7 +1150,7 @@ namespace KalaWindow::Graphics
 	}
 	bool Window::IsSystemMenuEnabled() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window system menu state"));
 		if (!window) return false;
 
 		LONG style = GetWindowLong(
@@ -1158,7 +1162,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetOpacity(float alpha) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window opacity"));
 		if (!window) return;
 
 		float clamped = clamp(alpha, 0.0f, 1.0f);
@@ -1196,7 +1200,7 @@ namespace KalaWindow::Graphics
 	}
 	float Window::GetOpacity() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window opacity"));
 		if (!window) return{};
 
 		BYTE bAlpha = 255;
@@ -1219,7 +1223,7 @@ namespace KalaWindow::Graphics
 
 	bool Window::IsForegroundWindow() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window foreground state"));
 		if (!window) return false;
 
 		return GetForegroundWindow() == window;
@@ -1227,15 +1231,51 @@ namespace KalaWindow::Graphics
 
 	bool Window::IsFocused() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window focused state"));
 		if (!window) return false;
 
 		return GetFocus() == window;
 	}
 
+	bool Window::IsFullscreen()
+	{
+		HWND window = ToVar<HWND>(GetHWND("get window fullscreen state"));
+		if (!window) return false;
+
+		vec2 pos = GetPosition();
+		vec2 size = GetOuterSize();
+
+		//expand to monitor bounds
+
+		HMONITOR hMonitor = MonitorFromWindow(
+			window,
+			MONITOR_DEFAULTTONEAREST);
+		MONITORINFO mi{};
+		mi.cbSize = sizeof(mi);
+		GetMonitorInfo(hMonitor, &mi);
+
+		bool rectMatches =
+			isnear(pos.x, mi.rcMonitor.left)
+			&& isnear(pos.y, mi.rcMonitor.top)
+			&& isnear(size.x, (mi.rcMonitor.right - mi.rcMonitor.left))
+			&& isnear(size.y, (mi.rcMonitor.bottom - mi.rcMonitor.top));
+
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
+		bool undecorated = (style & (
+			WS_CAPTION
+			| WS_THICKFRAME
+			| WS_MINIMIZEBOX
+			| WS_MAXIMIZEBOX
+			| WS_SYSMENU)) == 0;
+
+		return rectMatches && undecorated;
+	}
+
 	bool Window::IsMinimized() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window minimized state"));
 		if (!window) return false;
 
 		//IsIconic returns TRUE if the window is minimized
@@ -1244,66 +1284,21 @@ namespace KalaWindow::Graphics
 
 	bool Window::IsVisible() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window visible state"));
 		if (!window) return false;
 
 		return IsWindowVisible(window);
 	}
 
-	void Window::SetExclusiveFullscreenState(bool state)
+	void Window::SetWindowMode(WindowMode mode)
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window mode"));
 		if (!window) return;
 
-		if (state)
+		switch (mode)
 		{
-			//get current monitor
-
-			HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
-			MONITORINFOEX mi{};
-			mi.cbSize = sizeof(mi);
-			GetMonitorInfo(hMonitor, &mi);
-
-			//query current desktop mode
-
-			DEVMODE devMode{};
-			devMode.dmSize = sizeof(devMode);
-			EnumDisplaySettings(mi.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
-
-			//switch to exclusive fullscreen
-			if (ChangeDisplaySettingsEx(
-				mi.szDevice,
-				&devMode,
-				nullptr,
-				CDS_FULLSCREEN,
-				nullptr) == DISP_CHANGE_SUCCESSFUL)
-			{
-				LONG style = GetWindowLong(window, GWL_STYLE);
-				style &= ~(
-					WS_CAPTION 
-					| WS_THICKFRAME 
-					| WS_MINIMIZEBOX 
-					| WS_MAXIMIZEBOX 
-					| WS_SYSMENU);
-				SetWindowLong(window, GWL_STYLE, style);
-
-				oldPos = GetPosition();
-				oldSize = GetClientRectSize();
-
-				SetWindowPos(
-					window,
-					HWND_TOP,
-					mi.rcMonitor.left,
-					mi.rcMonitor.top,
-					mi.rcMonitor.right - mi.rcMonitor.left,
-					mi.rcMonitor.bottom - mi.rcMonitor.top,
-					SWP_FRAMECHANGED
-					| SWP_NOOWNERZORDER);
-
-				ShowWindow(window, SW_SHOW);
-			}
-		}
-		else
+		default:
+		case WindowMode::WINDOWMODE_WINDOWED:
 		{
 			ChangeDisplaySettingsEx(
 				nullptr,
@@ -1311,6 +1306,7 @@ namespace KalaWindow::Graphics
 				nullptr,
 				0,
 				nullptr);
+
 			LONG style = GetWindowLong(window, GWL_STYLE);
 
 			style |= (
@@ -1333,30 +1329,16 @@ namespace KalaWindow::Graphics
 				| SWP_NOOWNERZORDER);
 
 			ShowWindow(window, SW_SHOW);
+
+			break;
 		}
-
-		isExclusiveFullscreen = state;
-	}
-
-	void Window::SetBorderlessFullscreenState(bool state)
-	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
-		if (!window) return;
-
-		if (state)
+		case WindowMode::WINDOWMODE_BORDERLESS:
 		{
-			//save current pos, size and style
+			//save current pos and size
 
 			oldPos = GetPosition();
 			oldSize = GetClientRectSize();
 			LONG style = GetWindowLong(window, GWL_STYLE);
-
-			oldStyle = 0;
-			if (style & WS_CAPTION)     oldStyle |= (1 << 0);
-			if (style & WS_THICKFRAME)  oldStyle |= (1 << 1);
-			if (style & WS_MINIMIZEBOX) oldStyle |= (1 << 2);
-			if (style & WS_MAXIMIZEBOX) oldStyle |= (1 << 3);
-			if (style & WS_SYSMENU)     oldStyle |= (1 << 4);
 
 			//remove decorations
 			style &= ~(
@@ -1385,92 +1367,103 @@ namespace KalaWindow::Graphics
 				mi.rcMonitor.bottom - mi.rcMonitor.top,
 				SWP_FRAMECHANGED
 				| SWP_NOOWNERZORDER);
+
+			break;
 		}
-		else
+		case WindowMode::WINDOWMODE_EXCLUSIVE:
 		{
-			if (oldPos == vec2()) oldPos = vec2(100.0f, 100.0f);
-			if (oldSize == vec2()) oldSize = vec2(800.0f, 600.0f);
-			if (oldStyle == 0) oldStyle = 0b11111; //enable all flags
+			//get current monitor
 
-			//rebuild style from saved flags
+			HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
+			MONITORINFOEX mi{};
+			mi.cbSize = sizeof(mi);
+			GetMonitorInfo(hMonitor, &mi);
 
-			LONG style = GetWindowLong(window, GWL_STYLE);
-			style &= ~(
-				WS_CAPTION
-				| WS_THICKFRAME
-				| WS_MINIMIZEBOX
-				| WS_MAXIMIZEBOX
-				| WS_SYSMENU);
+			//query current desktop mode
 
-			if (oldStyle & (1 << 0)) style |= WS_CAPTION;
-			if (oldStyle & (1 << 1)) style |= WS_THICKFRAME;
-			if (oldStyle & (1 << 2)) style |= WS_MINIMIZEBOX;
-			if (oldStyle & (1 << 3)) style |= WS_MAXIMIZEBOX;
-			if (oldStyle & (1 << 4)) style |= WS_SYSMENU;
+			DEVMODE devMode{};
+			devMode.dmSize = sizeof(devMode);
+			EnumDisplaySettings(mi.szDevice, ENUM_CURRENT_SETTINGS, &devMode);
 
-			SetWindowLong(window, GWL_STYLE, style);
-
-			SetWindowPos(
-				window,
+			//switch to exclusive fullscreen
+			if (ChangeDisplaySettingsEx(
+				mi.szDevice,
+				&devMode,
 				nullptr,
-				(int)oldPos.x,
-				(int)oldPos.y,
-				(int)oldSize.x,
-				(int)oldSize.y,
-				SWP_FRAMECHANGED
-				| SWP_NOZORDER
-				| SWP_NOOWNERZORDER);
+				CDS_FULLSCREEN,
+				nullptr) == DISP_CHANGE_SUCCESSFUL)
+			{
+				LONG style = GetWindowLong(window, GWL_STYLE);
+				style &= ~(
+					WS_CAPTION
+					| WS_THICKFRAME
+					| WS_MINIMIZEBOX
+					| WS_MAXIMIZEBOX
+					| WS_SYSMENU);
+				SetWindowLong(window, GWL_STYLE, style);
+
+				oldPos = GetPosition();
+				oldSize = GetClientRectSize();
+
+				SetWindowPos(
+					window,
+					HWND_TOP,
+					mi.rcMonitor.left,
+					mi.rcMonitor.top,
+					mi.rcMonitor.right - mi.rcMonitor.left,
+					mi.rcMonitor.bottom - mi.rcMonitor.top,
+					SWP_FRAMECHANGED
+					| SWP_NOOWNERZORDER);
+
+				ShowWindow(window, SW_SHOW);
+			}
+
+			break;
 		}
-
-		string val = state ? "true" : "false";
-
-		if (Window_Global::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Set window '" + GetTitle() + "' fullscreen state to '" + val + "'",
-				"WINDOW",
-				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsBorderlessFullscreen() const
+	WindowMode Window::GetWindowMode()
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
-		if (!window) return false;
+		HWND window = ToVar<HWND>(GetHWND("get window mode"));
+		if (!window) return WindowMode::WINDOWMODE_WINDOWED;
 
-		vec2 pos = GetPosition();
-		vec2 size = GetOuterSize();
+		auto IsExclusive = [&]() -> bool
+			{
+				DEVMODE current{};
+				current.dmSize = sizeof(current);
 
-		//expand to monitor bounds
+				if (!EnumDisplaySettings(
+					nullptr,
+					ENUM_CURRENT_SETTINGS,
+					&current))
+				{
+					return false;
+				}
 
-		HMONITOR hMonitor = MonitorFromWindow(
-			window,
-			MONITOR_DEFAULTTONEAREST);
-		MONITORINFO mi{};
-		mi.cbSize = sizeof(mi);
-		GetMonitorInfo(hMonitor, &mi);
+				DEVMODE desktop{};
+				desktop.dmSize = sizeof(desktop);
 
-		bool rectMatches =
-			pos.x == mi.rcMonitor.left
-			&& pos.y == mi.rcMonitor.top
-			&& size.x == (mi.rcMonitor.right - mi.rcMonitor.left)
-			&& size.y == (mi.rcMonitor.bottom - mi.rcMonitor.top);
+				if (!EnumDisplaySettings(
+					nullptr,
+					ENUM_REGISTRY_SETTINGS,
+					&desktop))
+				{
+					return false;
+				}
 
-		LONG style = GetWindowLong(
-			window,
-			GWL_STYLE);
-		bool undecorated = (style & (
-			WS_CAPTION
-			| WS_THICKFRAME
-			| WS_MINIMIZEBOX
-			| WS_MAXIMIZEBOX
-			| WS_SYSMENU)) == 0;
+				return current.dmPelsWidth != desktop.dmPelsWidth
+					|| current.dmPelsHeight != desktop.dmPelsHeight
+					|| current.dmDisplayFrequency != desktop.dmDisplayFrequency;
+			};
 
-		return rectMatches && undecorated;
+		if (IsExclusive())       return WindowMode::WINDOWMODE_EXCLUSIVE;
+		else if (IsFullscreen()) return WindowMode::WINDOWMODE_BORDERLESS;
+		else                     return WindowMode::WINDOWMODE_WINDOWED;
 	}
 
 	void Window::SetWindowState(WindowState state) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window state"));
 		if (!window) return;
 
 		string val{};
@@ -1511,7 +1504,7 @@ namespace KalaWindow::Graphics
 	}
 	WindowState Window::GetWindowState() const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("get window state"));
 		if (!window) return WindowState::WINDOW_NORMAL;
 
 		WINDOWPLACEMENT placement{};
@@ -1546,7 +1539,7 @@ namespace KalaWindow::Graphics
 
 	void Window::SetShutdownBlockState(bool state)
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set window shutdown block state"));
 		if (!window) return;
 
 		if (state)
@@ -1579,7 +1572,7 @@ namespace KalaWindow::Graphics
 		FlashType type,
 		u32 count) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("flash window"));
 		if (!window) return;
 
 		string targetName = target == FlashTarget::TARGET_WINDOW
@@ -1660,7 +1653,7 @@ namespace KalaWindow::Graphics
 		u8 current,
 		u8 max) const
 	{
-		HWND window = ToVar<HWND>(window_windows.hwnd);
+		HWND window = ToVar<HWND>(GetHWND("set taskbar progress bar state"));
 		if (!window) return;
 
 		u8 maxClamped = clamp(
@@ -1752,6 +1745,8 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
+		if (!GetHWND("update window")) return;
+
 		UpdateIdleState(
 			this,
 			isIdle);
@@ -1820,6 +1815,18 @@ namespace KalaWindow::Graphics
 			window_windows.hwnd = NULL;
 		}
 		window_windows.hInstance = NULL;
+	}
+
+	uintptr_t Window::GetHWND(const string& errorMessage) const
+	{
+		uintptr_t win = window_windows.hwnd;
+		if (win) return win;
+		
+		KalaWindowCore::ForceClose(
+			"Window error",
+			"Failed to " + errorMessage + " because its context was missing!");
+
+		return 0;
 	}
 }
 
