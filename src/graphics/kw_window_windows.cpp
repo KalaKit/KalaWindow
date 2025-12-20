@@ -215,10 +215,11 @@ namespace KalaWindow::Graphics
 			break;
 		}
 		
+		windowPtr->window_windows = newWindowStruct;
+
 		windowPtr->SetTitle(title);
 		windowPtr->ID = newID;
 		windowPtr->SetClientRectSize(size);
-		windowPtr->window_windows = newWindowStruct;
 
 		windowPtr->isInitialized = true;
 

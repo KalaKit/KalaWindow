@@ -20,7 +20,7 @@ namespace KalaWindow::OpenGL
 
 	using KalaWindow::Core::KalaWindowRegistry;
 	
-	enum VSyncState
+	enum class VSyncState
 	{
 		VSYNC_ON, //Framerate is capped to monitor refresh rate.
 		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.

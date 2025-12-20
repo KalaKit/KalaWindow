@@ -96,12 +96,20 @@ CoreGLFunction functions[] =
     { "glUniformBlockBinding",  reinterpret_cast<void**>(&glUniformBlockBinding) },
     { "glUniform1f",            reinterpret_cast<void**>(&glUniform1f) },
     { "glUniform1i",            reinterpret_cast<void**>(&glUniform1i) },
+    { "glUniform1fv",           reinterpret_cast<void**>(&glUniform1fv) },
+    { "glUniform1iv",           reinterpret_cast<void**>(&glUniform1iv) },
     { "glUniform2f",            reinterpret_cast<void**>(&glUniform2f) },
+    { "glUniform2i",            reinterpret_cast<void**>(&glUniform2i) },
     { "glUniform2fv",           reinterpret_cast<void**>(&glUniform2fv) },
+    { "glUniform2iv",           reinterpret_cast<void**>(&glUniform2iv) },
     { "glUniform3f",            reinterpret_cast<void**>(&glUniform3f) },
+    { "glUniform3i",            reinterpret_cast<void**>(&glUniform3i) },
     { "glUniform3fv",           reinterpret_cast<void**>(&glUniform3fv) },
+    { "glUniform3iv",           reinterpret_cast<void**>(&glUniform3iv) },
     { "glUniform4f",            reinterpret_cast<void**>(&glUniform4f) },
+    { "glUniform4i",            reinterpret_cast<void**>(&glUniform4i) },
     { "glUniform4fv",           reinterpret_cast<void**>(&glUniform4fv) },
+    { "glUniform4iv",           reinterpret_cast<void**>(&glUniform4iv) },
     { "glUniformMatrix2fv",     reinterpret_cast<void**>(&glUniformMatrix2fv) },
     { "glUniformMatrix3fv",     reinterpret_cast<void**>(&glUniformMatrix3fv) },
     { "glUniformMatrix4fv",     reinterpret_cast<void**>(&glUniformMatrix4fv) },
@@ -317,12 +325,20 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
     PFNGLUNIFORMBLOCKBINDINGPROC  glUniformBlockBinding  = nullptr;
     PFNGLUNIFORM1FPROC            glUniform1f            = nullptr;
     PFNGLUNIFORM1IPROC            glUniform1i            = nullptr;
+    PFNGLUNIFORM1FVPROC           glUniform1fv           = nullptr;
+    PFNGLUNIFORM1IVPROC           glUniform1iv           = nullptr;
     PFNGLUNIFORM2FPROC            glUniform2f            = nullptr;
+    PFNGLUNIFORM2IPROC            glUniform2i            = nullptr;
     PFNGLUNIFORM2FVPROC           glUniform2fv           = nullptr;
+    PFNGLUNIFORM2IVPROC           glUniform2iv           = nullptr;
     PFNGLUNIFORM3FPROC            glUniform3f            = nullptr;
+    PFNGLUNIFORM3IPROC            glUniform3i            = nullptr;
     PFNGLUNIFORM3FVPROC           glUniform3fv           = nullptr;
+    PFNGLUNIFORM3IVPROC           glUniform3iv           = nullptr;
     PFNGLUNIFORM4FPROC            glUniform4f            = nullptr;
+    PFNGLUNIFORM4IPROC            glUniform4i            = nullptr;
     PFNGLUNIFORM4FVPROC           glUniform4fv           = nullptr;
+    PFNGLUNIFORM4IVPROC           glUniform4iv           = nullptr;
     PFNGLUNIFORMMATRIX2FVPROC     glUniformMatrix2fv     = nullptr;
     PFNGLUNIFORMMATRIX3FVPROC     glUniformMatrix3fv     = nullptr;
     PFNGLUNIFORMMATRIX4FVPROC     glUniformMatrix4fv     = nullptr;

@@ -68,7 +68,7 @@ namespace KalaWindow::Core
 	{
 		Log::Print(
 			reason,
-			"FORCE CLOSE",
+			"FORCE_CLOSE",
 			LogType::LOG_ERROR,
 			2,
 			true,

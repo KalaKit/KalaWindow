@@ -171,29 +171,53 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 	//Bind block index to binding point
 	LIB_API extern PFNGLUNIFORMBLOCKBINDINGPROC glUniformBlockBinding;
 
-	//Sets a single float uniform value
+	//Sets a float uniform
 	LIB_API extern PFNGLUNIFORM1FPROC glUniform1f;
 
-	//Sets a single integer uniform value
+	//Sets a integer uniform
 	LIB_API extern PFNGLUNIFORM1IPROC glUniform1i;
 
-	//Sets a vec2 uniform (2 float components)
+	//Sets a float uniform from an array
+	LIB_API extern PFNGLUNIFORM1FVPROC glUniform1fv;
+
+	//Sets a int uniform from an array
+	LIB_API extern PFNGLUNIFORM1IVPROC glUniform1iv;
+
+	//Sets a vec2 float uniform
 	LIB_API extern PFNGLUNIFORM2FPROC glUniform2f;
 
-	//Sets a vec2 uniform from an array of values
+	//Sets a vec2 integer uniform
+	LIB_API extern PFNGLUNIFORM2IPROC glUniform2i;
+
+	//Sets a vec2 float uniform from an array
 	LIB_API extern PFNGLUNIFORM2FVPROC glUniform2fv;
 
-	//Sets a vec3 uniform (3 float components)
+	//Sets a vec2 int uniform from an array
+	LIB_API extern PFNGLUNIFORM2IVPROC glUniform2iv;
+
+	//Sets a vec3 float uniform
 	LIB_API extern PFNGLUNIFORM3FPROC glUniform3f;
 
-	//Sets a vec3 uniform from an array of values
+	//Sets a vec3 integer uniform
+	LIB_API extern PFNGLUNIFORM3IPROC glUniform3i;
+
+	//Sets a vec3 float uniform from an array
 	LIB_API extern PFNGLUNIFORM3FVPROC glUniform3fv;
 
-	//Sets a vec4 uniform (4 float components)
+	//Sets a vec3 int uniform from an array
+	LIB_API extern PFNGLUNIFORM3IVPROC glUniform3iv;
+
+	//Sets a vec4 float uniform
 	LIB_API extern PFNGLUNIFORM4FPROC glUniform4f;
 
-	//Sets a vec4 uniform from an array of values
+	//Sets a vec4 integer uniform
+	LIB_API extern PFNGLUNIFORM4IPROC glUniform4i;
+
+	//Sets a vec4 float uniform from an array
 	LIB_API extern PFNGLUNIFORM4FVPROC glUniform4fv;
+
+	//Sets a vec4 int uniform from an array
+	LIB_API extern PFNGLUNIFORM4IVPROC glUniform4iv;
 
 	//Sets a 2×2 matrix uniform from an array of floats
 	LIB_API extern PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix2fv;
