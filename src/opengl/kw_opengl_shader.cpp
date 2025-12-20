@@ -470,7 +470,7 @@ namespace KalaWindow::OpenGL
         {
             KalaWindowCore::ForceClose(
                 "OpenGL shader error",
-                "Cannot bind because the shader '" + name + "' internal context is invalid!");
+                "Failed to bind shader '" + name + "' because its gl context was invalid!");
 
             return false;
         }
@@ -538,14 +538,6 @@ namespace KalaWindow::OpenGL
 
     bool OpenGL_Shader::HotReload()
     {
-        if (!glContext)
-        {
-            KalaWindowCore::ForceClose(
-                "OpenGL shader error",
-                "Cannot hot reload because the shader '" + name + "' internal context is invalid!");
-
-            return false;
-        }
 		if (!OpenGL_Global::IsContextValid(glContext))
 		{
 			KalaWindowCore::ForceClose(
