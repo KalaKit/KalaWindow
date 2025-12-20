@@ -61,17 +61,14 @@ namespace KalaWindow::OpenGL
 		ALPHA_8     //8-bit alpha channel (default)
 	};
 
+	class OpenGL_Context;
+
 	class LIB_API OpenGL_Global
 	{
 	public:
-		static inline OS_GL_functions os_gl_functions{};
-		static inline Core_GL_functions core_gl_functions{};
-	
 		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init.
 		//Pass os and core gl function initializer functions from KalaGraphics if you are using that.
-		static void Initialize(
-			function<void()> os_gl_Functions,
-			function<void()> core_gl_Functions);
+		static void Initialize();
 		static inline bool IsInitialized() { return isInitialized; }
 		
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
@@ -140,7 +137,7 @@ namespace KalaWindow::OpenGL
 		inline uintptr_t GetParentContext() const { return parentHglrc; }
 		
 		void SetVSyncState(VSyncState newValue);
-		inline VSyncState GetVSyncState() { return vsyncState; }
+		inline VSyncState GetVSyncState() const { return vsyncState; }
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();

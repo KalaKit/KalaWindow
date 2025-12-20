@@ -32,6 +32,7 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "opengl/kw_opengl.hpp"
+#include "opengl/kw_opengl_functions_core.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaMath::vec2;
@@ -54,6 +55,7 @@ using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::OpenGL::OpenGL_Global;
+using KalaWindow::OpenGL::OpenGLFunctions::glViewport;
 
 using std::string;
 using std::to_string;
@@ -1193,18 +1195,6 @@ static bool ProcessMessage(
 
 			if (OpenGL_Global::IsInitialized())
 			{
-				PFNGLVIEWPORTPROC glViewport = ToVar<PFNGLVIEWPORTPROC>(
-					OpenGL_Global::core_gl_functions.glViewport);
-					
-				if (glViewport == nullptr)
-				{
-					KalaWindowCore::ForceClose(
-						"Message loop error",
-						"OpenGL core function 'glViewport' is unassigned! Cannot call 'WM_SIZE'.");
-						
-					return true;
-				}
-				
 				glViewport(
 					0,
 					0,
@@ -1251,18 +1241,6 @@ static bool ProcessMessage(
 
 		if (OpenGL_Global::IsInitialized())
 		{
-			PFNGLVIEWPORTPROC glViewport = ToVar<PFNGLVIEWPORTPROC>(
-				OpenGL_Global::core_gl_functions.glViewport);
-				
-			if (glViewport == nullptr)
-			{
-				KalaWindowCore::ForceClose(
-					"Message loop error",
-					"OpenGL core function 'glViewport' is unassigned! Cannot call 'WM_SIZE'.");
-						
-				return true;
-			}
-			
 			vec2 framebufferSize = window->GetClientRectSize();
 
 			glViewport(

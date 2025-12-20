@@ -19,6 +19,7 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "opengl/kw_opengl.hpp"
+#include "opengl/kw_opengl_shader.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -31,6 +32,7 @@ using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
 using KalaWindow::OpenGL::OpenGL_Context;
+using KalaWindow::OpenGL::OpenGL_Shader;
 
 using std::abort;
 using std::quick_exit;
@@ -142,6 +144,7 @@ namespace KalaWindow::Core
 			}
 		}
 		
+		OpenGL_Shader::registry.RemoveAllContent();
 		OpenGL_Context::registry.RemoveAllContent();
 		Window::registry.RemoveAllContent();
 

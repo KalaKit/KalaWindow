@@ -22,7 +22,7 @@ using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using namespace KalaWindow::OpenGL::OpenGLFunctions;
-using KalaWindow::OpenGL::OpenGL_Core;
+using KalaWindow::OpenGL::OpenGL_Global;
 
 using std::vector;
 using std::string;
@@ -107,7 +107,7 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
         ptr = reinterpret_cast<void*>(wglGetProcAddress(name));
         if (!ptr)
         {
-            HMODULE module = ToVar<HMODULE>(OpenGL_Core::GetOpenGLLibrary());
+            HMODULE module = ToVar<HMODULE>(OpenGL_Global::GetOpenGLLibrary());
             ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
         }
 
