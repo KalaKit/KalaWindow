@@ -20,44 +20,10 @@ namespace KalaWindow::OpenGL
 
 	using KalaWindow::Core::KalaWindowRegistry;
 	
-	//WGL/GLX functions defined in your external GL library
-	struct OS_GL_functions
+	enum VSyncState
 	{
-#ifdef _WIN32
-		//PFNWGLCREATECONTEXTATTRIBSARBPROC
-		uintptr_t wglCreateContextAttribsARB{};
-		//PFNWGLCHOOSEPIXELFORMATARBPROC
-		uintptr_t wglChoosePixelFormatARB{};
-		//PFNWGLSWAPINTERVALEXTPROC
-		uintptr_t wglSwapIntervalEXT{};
-		
-		//PFNWGLGETPIXELFORMATATTRIBFVARBPROC
-		uintptr_t wglGetPixelFormatAttribfvARB{};
-		//PFNWGLGETPIXELFORMATATTRIBIVARBPROC
-		uintptr_t wglGetPixelFormatAttribivARB{};
-#else
-		//TODO: define for linux
-#endif
-	};
-	
-	//Core functions defined in your external GL library
-	struct Core_GL_functions
-	{
-		//PFNGLGETERRORPROC
-		uintptr_t glGetError{};
-		//PFNGLVIEWPORTPROC
-		uintptr_t glViewport{};
-		//PFNGLENABLEPROC
-		uintptr_t glEnable{};
-		
-		//PFNGLGETBOOLEANVPROC
-		uintptr_t glGetBooleanv{};
-		//PFNGLGETINTEGERVPROC
-		uintptr_t glGetIntegerv{};
-		//PFNGLGETSTRINGIPROC
-		uintptr_t glGetStringi{};
-		//PFNGLGETSTRINGPROC
-		uintptr_t glGetString{};
+		VSYNC_ON, //Framerate is capped to monitor refresh rate.
+		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
 	};
 
 	//Hardware accelerated antialiasing
@@ -123,6 +89,14 @@ namespace KalaWindow::OpenGL
 
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);
+		
+		//Make the GL context correct for the current window
+		static void MakeContextCurrent(
+			OpenGL_Context* context,
+			uintptr_t handle);
+			
+		//Confirms that the GL context is the same as the stored context for this window
+		static bool IsContextValid(OpenGL_Context* context);
 
 		//Place after any gl call to check if an issue or error has occurred within that point.
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
@@ -144,7 +118,7 @@ namespace KalaWindow::OpenGL
 		//this context will get shaders, textures and buffers from
 		static OpenGL_Context* Initialize(
 			u32 windowID,
-			u32 parentContext,
+			u32 parentContext = 0,
 			MultiSampling msaa = MultiSampling::MSAA_4X,
 			SRGBMode srgb = SRGBMode::SRGB_ENABLED,
 			ColorBufferBits cBits = ColorBufferBits::COLOR_RGBA8,
@@ -156,11 +130,17 @@ namespace KalaWindow::OpenGL
 
 		inline u32 GetID() const { return ID; }
 		inline u32 GetWindowID() const { return windowID; }
+		
+		//Called at the end of each frame, requires handle (HDC) from your window
+		void SwapOpenGLBuffers(uintptr_t handle);
 
 		inline const string& GetContextData() { return contextData; }
 		
 		inline uintptr_t GetContext() const { return hglrc; }
 		inline uintptr_t GetParentContext() const { return parentHglrc; }
+		
+		void SetVSyncState(VSyncState newValue);
+		inline VSyncState GetVSyncState() { return vsyncState; }
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();
@@ -170,15 +150,12 @@ namespace KalaWindow::OpenGL
 		u32 ID{};
 		u32 windowID{};
 
-#ifdef _WIN32
-		uintptr_t hglrc{};       //OpenGL context wia WGL
-		uintptr_t parentHglrc{}; //OpenGL shared parent context wia WGL
-#else
-		uintptr_t glxContext{}; //OpenGL context via glx
-#endif
+		uintptr_t hglrc{};
+		uintptr_t parentHglrc{};
 
 		string contextData{};
 
+		VSyncState vsyncState{};
 		MultiSampling msaa{};
 		SRGBMode srgb{};
 		ColorBufferBits cBits{};

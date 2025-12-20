@@ -16,6 +16,8 @@
 #include "KalaHeaders/log_utils.hpp"
 
 #include "opengl/kw_opengl.hpp"
+#include "opengl/kw_opengl_functions_core.hpp"
+#include "opengl/kw_opengl_functions_windows.hpp"
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 
@@ -29,7 +31,7 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::OpenGL::OpenGL_Global;
-
+using namespace KalaWindow::OpenGL::
 using std::string;
 using std::vector;
 using std::to_string;
@@ -50,9 +52,7 @@ namespace KalaWindow::OpenGL
 	// GLOBAL
 	//
 
-	void OpenGL_Global::Initialize(
-		function<void()> os_gl_Functions,
-		function<void()> core_gl_Functions)
+	void OpenGL_Global::Initialize()
 	{
 		if (isInitialized)
 		{
@@ -185,6 +185,86 @@ namespace KalaWindow::OpenGL
 		}
 
 		return false;
+	}
+	
+	void OpenGL_Global::MakeContextCurrent(
+		OpenGL_Context* context,
+		uintptr_t handle)
+	{
+		if (!context)
+		{
+			Log::Print(
+				"Cannot set OpenGL context because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+		
+		if (OpenGL_Context::registry.runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot set OpenGL context because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+			
+		HGLRC storedHGLRC = ToVar<HGLRC>(context->GetContext());
+
+		if (wglGetCurrentContext() != storedHGLRC) wglMakeCurrent(
+			ToVar<HDC>(handle),
+			storedHGLRC);
+	}
+	bool OpenGL_Global::IsContextValid(OpenGL_Context* context)
+	{
+		if (!context)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+		
+		if (OpenGL_Context::registry.runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+			
+		HGLRC storedHGLRC = ToVar<HGLRC>(context->GetContext());
+
+		HGLRC current = wglGetCurrentContext();
+		if (!current)
+		{
+			KalaGLCore::ForceClose(
+				"OpenGL error",
+				"Failed to get current context with 'wglGetCurrentContext'!");
+
+			return false;
+		}
+
+		if (current != storedHGLRC)
+		{
+			KalaGLCore::ForceClose(
+				"OpenGL error",
+				"Current OpenGL context does not match stored context!");
+					
+			return false;
+		}
+
+		return true;
 	}
 
 	string OpenGL_Global::GetError()
@@ -709,6 +789,42 @@ namespace KalaWindow::OpenGL
 			LogType::LOG_SUCCESS);
 
 		return contPtr;
+	}
+	
+	void OpenGL_Context::SwapOpenGLBuffers(uintptr_t handle)
+	{
+		if (!handle)
+		{
+			Log::Print(
+				"Cannot swap OpenGL buffers because the window handle (hdc) is invalid!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		SwapBuffers(ToVar<HDC>(handle));
+	}
+	
+	void OpenGL_Context::SetVSyncState(OpenGL_VSyncState newValue)
+	{		
+		if (!wglSwapIntervalEXT)
+		{
+			Log::Print(
+				"wglSwapIntervalEXT not supported! VSync setting ignored.",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+				
+			return;
+		}
+		
+		vsyncState = newValue;
+
+		wglSwapIntervalEXT(newValue == OpenGL_VSyncState::VSYNC_ON
+			? 1
+			: 0);
 	}
 
 	OpenGL_Context::~OpenGL_Context()

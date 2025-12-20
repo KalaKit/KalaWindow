@@ -883,8 +883,6 @@ namespace KalaHeaders::KalaMath
 	using vec2 = vec<2>; //Vector: x, y
 	using vec3 = vec<3>; //Vector: x, y, z
 	using vec4 = vec<4>; //Vector: x, y, z, w
-	
-	const vec3 GRAVITY = { 0.0f, -9.81f, 0.0f };
 
 	//right-handed, +Y up
 
