@@ -63,12 +63,12 @@ namespace KalaWindow::Core
 	}
 
 	void KalaWindowCore::ForceClose(
-		const string& title,
+		const string& target,
 		const string& reason)
 	{
 		Log::Print(
 			reason,
-			"FORCE_CLOSE",
+			target,
 			LogType::LOG_ERROR,
 			2,
 			true,
@@ -79,7 +79,7 @@ namespace KalaWindow::Core
 		__debugbreak();
 #else
 		if (Window_Global::CreatePopup(
-			title,
+			target,
 			reason,
 			PopupAction::POPUP_ACTION_OK,
 			PopupType::POPUP_TYPE_ERROR)
