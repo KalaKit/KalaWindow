@@ -117,17 +117,16 @@ namespace KalaWindow::Graphics
 	public:
 		static inline KalaWindowRegistry<Window> registry{};
 
-		//Create a new window with an optional choice to attach a parent window.
+		//Create a new window that is always hidden by default, you must manually make it visible.
 		//Assign a parent window to display this window as a child of that window.
-		//Set window mode to your preferred version to choose how it shows up after its initialized.
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
 		static Window* Initialize(
 			const string& title,
 			vec2 size,
 			Window* parentWindow = nullptr,
-			WindowMode mode = WindowMode::WINDOWMODE_WINDOWED,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
+
 		inline bool IsInitialized() const { return isInitialized; }
 
 		inline u32 GetID() const { return ID; }
@@ -165,18 +164,18 @@ namespace KalaWindow::Graphics
 		void ClearTaskbarOverlayIcon() const;
 
 		//Bring this window to the foreground and make it focused
-		void BringToFocus() const;
+		void BringToFocus();
 
 		//Set Windows window rounding state. Has no effect in Linux.
 		void SetWindowRounding(WindowRounding roundState) const;
 		WindowRounding GetWindowRoundingState() const;
 
 		//Set logical window size (client area, in DPI-independent units)
-		void SetClientRectSize(vec2 newSize) const;
+		void SetClientRectSize(vec2 newSize);
 		vec2 GetClientRectSize() const;
 
 		//Set full window size (including borders)
-		void SetOuterSize(vec2 newSize) const;
+		void SetOuterSize(vec2 newSize);
 		vec2 GetOuterSize() const;
 
 		//Set window position
@@ -253,7 +252,7 @@ namespace KalaWindow::Graphics
 		WindowMode GetWindowMode();
 
 		//Can assign the window state to one of the supported types
-		void SetWindowState(WindowState state) const;
+		void SetWindowState(WindowState state);
 		WindowState GetWindowState() const;
 
 		//If true, then Windows stops this app from closing

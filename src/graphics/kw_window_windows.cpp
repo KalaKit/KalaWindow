@@ -80,7 +80,6 @@ namespace KalaWindow::Graphics
 		const string& title,
 		vec2 size,
 		Window* parentWindow,
-		WindowMode mode,
 		DpiContext context)
 	{
 		if (!Window_Global::IsInitialized())
@@ -225,9 +224,6 @@ namespace KalaWindow::Graphics
 
 		windowPtr->oldPos = windowPtr->GetPosition();
 		windowPtr->oldSize = windowPtr->GetClientRectSize();
-
-		windowPtr->SetWindowState(WindowState::WINDOW_NORMAL);
-		windowPtr->SetWindowMode(mode);
 
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
@@ -538,7 +534,7 @@ namespace KalaWindow::Graphics
 			nullptr);
 	}
 
-	void Window::BringToFocus() const
+	void Window::BringToFocus()
 	{
 		if (IsFocused()) return; //skip all logic if already focused
 
@@ -685,10 +681,13 @@ namespace KalaWindow::Graphics
 		return WindowRounding::ROUNDING_NONE;
 	}
 
-	void Window::SetClientRectSize(vec2 newSize) const
+	void Window::SetClientRectSize(vec2 newSize)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window client rect size"));
 		if (!window) return;
+
+		vec2 oldSize = GetClientRectSize();
+		if (isnear(oldSize, newSize)) return;
 
 		//desired client area
 		RECT rect
@@ -716,6 +715,9 @@ namespace KalaWindow::Graphics
 			SWP_NOMOVE
 			| SWP_NOZORDER);
 
+		TriggerResize();
+		TriggerRedraw();
+
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
 		if (Window_Global::IsVerboseLoggingEnabled())
@@ -741,10 +743,13 @@ namespace KalaWindow::Graphics
 		};
 	}
 
-	void Window::SetOuterSize(vec2 newSize) const
+	void Window::SetOuterSize(vec2 newSize)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window outer size"));
 		if (!window) return;
+
+		vec2 oldSize = GetOuterSize();
+		if (isnear(oldSize, newSize)) return;
 
 		SetWindowPos(
 			window,
@@ -755,6 +760,9 @@ namespace KalaWindow::Graphics
 			newSize.y,
 			SWP_NOMOVE
 			| SWP_NOZORDER);
+
+		TriggerResize();
+		TriggerRedraw();
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
@@ -1329,8 +1337,6 @@ namespace KalaWindow::Graphics
 				SWP_FRAMECHANGED
 				| SWP_NOOWNERZORDER);
 
-			ShowWindow(window, SW_SHOW);
-
 			break;
 		}
 		case WindowMode::WINDOWMODE_BORDERLESS:
@@ -1415,13 +1421,24 @@ namespace KalaWindow::Graphics
 					mi.rcMonitor.bottom - mi.rcMonitor.top,
 					SWP_FRAMECHANGED
 					| SWP_NOOWNERZORDER);
-
-				ShowWindow(window, SW_SHOW);
+			}
+			else
+			{
+				Log::Print(
+					"Failed to switch to exclusive mode for window '" + GetTitle() + "'!",
+					"WINDOW",
+					LogType::LOG_ERROR,
+					2);
 			}
 
 			break;
 		}
 		}
+
+		ShowWindow(window, SW_SHOWNORMAL);
+
+		TriggerResize();
+		TriggerRedraw();
 	}
 	WindowMode Window::GetWindowMode()
 	{
@@ -1462,7 +1479,7 @@ namespace KalaWindow::Graphics
 		else                     return WindowMode::WINDOWMODE_WINDOWED;
 	}
 
-	void Window::SetWindowState(WindowState state) const
+	void Window::SetWindowState(WindowState state)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window state"));
 		if (!window) return;
@@ -1493,7 +1510,14 @@ namespace KalaWindow::Graphics
 			break;
 		}
 
-		UpdateWindow(window);
+		if (state != WindowState::WINDOW_HIDE
+			&& state != WindowState::WINDOW_MINIMIZE)
+		{
+			UpdateWindow(window);
+
+			TriggerResize();
+			TriggerRedraw();
+		}
 
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{

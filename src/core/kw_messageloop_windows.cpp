@@ -1241,13 +1241,13 @@ static bool ProcessMessage(
 
 		if (OpenGL_Global::IsInitialized())
 		{
-			vec2 framebufferSize = window->GetClientRectSize();
+			vec2 vpSize = window->GetClientRectSize();
 
 			glViewport(
 				0,
 				0,
-				framebufferSize.x,
-				framebufferSize.y);
+				vpSize.x,
+				vpSize.y);
 		}
 
 		window->TriggerResize();
