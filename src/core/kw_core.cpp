@@ -17,8 +17,10 @@
 #include "KalaHeaders/log_utils.hpp"
 
 #include "core/kw_core.hpp"
+#include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
+#include "graphics/kw_menubar_windows.hpp"
 #include "opengl/kw_opengl.hpp"
 #include "opengl/kw_opengl_shader.hpp"
 
@@ -32,6 +34,7 @@ using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
+using KalaWindow::Graphics::MenuBar;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::OpenGL::OpenGL_Shader;
 
@@ -145,6 +148,9 @@ namespace KalaWindow::Core
 		
 		OpenGL_Shader::registry.RemoveAllContent();
 		OpenGL_Context::registry.RemoveAllContent();
+
+		Input::registry.RemoveAllContent();
+		MenuBar::registry.RemoveAllContent();
 		Window::registry.RemoveAllContent();
 
 		if (!useWindowShutdown

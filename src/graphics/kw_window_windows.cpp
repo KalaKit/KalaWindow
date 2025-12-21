@@ -1765,10 +1765,11 @@ namespace KalaWindow::Graphics
 	{
 		if (cleanExternalContent) cleanExternalContent(ID);
 		
-		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
-		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);
 
+		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
+		
 		KalaWindowRegistry<Window>::RemoveContent(ID);
 	}
 
