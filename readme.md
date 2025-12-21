@@ -12,8 +12,6 @@
 
 [KalaUI](https://github.com/kalakit/kalaui) is recommended to be used for UI stuff and KalaWindow does not contain any UI systems.
 
-[KalaAudio](https://github.com/kalakit/kalaaudio) is recommended to be used for audio playback and audio streaming.
-
 Features built into **KalaWindow**:
 - windowing with support for multiple windows
 - input (keyboard and mouse)

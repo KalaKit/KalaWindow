@@ -11,10 +11,11 @@ the clis:
 Note: All clis follow the same original cli template which means all clis follow the same cli command system and can also accept system commands through the run command.
 
 the libraries (rely on clis or headers in some way):
-- kalaserver
 - kalawindow
 - kalaui
 - kalaaudio
+- kalaphysics
+- kalaserver
 
 the executables (rely on libs or clis or headers in some way):
 - solin
@@ -26,7 +27,7 @@ the executables (rely on libs or clis or headers in some way):
 
 ## KalaHeaders
 
-A collection of headers for various purposes. Completely self-dependant, unrelated to each other and can be used independently without dragging any of the other ones in.
+Header-only scripts made in C++ 20 for various purposes. Completely self-dependant, unrelated to each other and can be used independently without dragging any of the other ones in.
  
 ---
 
@@ -38,29 +39,17 @@ Uses a manifest system with the .kmf extension and a custom syntax to control ho
 
 ## KalaFont
 
-Compiles .ttf and .otf fonts into .ktf (kalatype font) - a runtime-ready bitmap or per-glyph binary of vertices, indices, uvs and other relevant data related to the font that was passed. Locks to one base height and strips out all metadata of the original font file.
+**KalaFont** compiles .ttf and .otf fonts into .kfd (kalafontdata) - a runtime-ready bitmap or per-glyph binary of vertices, indices, uvs and other relevant data related to the font that was passed. Locks to one base height and strips out all metadata of the original font file.
 
-Uses FreeType to help with font parsing.
+**KalaFont** uses FreeType to help with font parsing but the runtime-ready binary or its importer header no longer requires FreeType. Use the [importer](https://github.com/KalaKit/KalaHeaders/blob/main/import_kfd.hpp) to import the binary to your target executable.
 
 ---
 
 ## KalaModel
 
-Compiles .obj, .gltf and .fbx fonts into .kmf (kalamodelfile) - a runtime-ready model binary of vertices, indices, uvs and other relevant data related to the model that was passed. Strips out all metadata of the original model file.
+**KalaModel** compiles .obj, .gltf and .fbx models into .kmd (kalamodeldata) - a runtime-ready model binary of vertices, indices, uvs and other relevant data related to the model that was passed. Strips out all metadata of the original model file.
 
-Uses Assimp to help with model parsing.
-
----
-
-## KalaServer
-
-A single .lib and .dll with no runtime of its own that can be attached to any executable or cli. Does not depend on KalaWindow, runs completely standalone from it. 
-
-Provides the networking stack required for sending and receiving packets for any server-related needs. Can autoban spammers, obvious bots trying to reach sensitive files etc.
-
-Also provides a framework for hosting websites. Can route root path to any path inside its own root so the original path is unreachable by the end user if they try to look what files are accessible.
-
-Uses completely original code with help from WinSock and CloudFlare Tunnel, does not rely on any external server stacks.
+**KalaModel** uses Assimp to help with model parsing but the runtime-ready binary or its importer header no longer requires Assimp. Use the [importer](https://github.com/KalaKit/KalaHeaders/blob/main/import_kmd.hpp) to import the binary to your target executable.
 
 ---
 
@@ -76,8 +65,6 @@ Uses completely original code with help from WinSock and CloudFlare Tunnel, does
 
 **KalaUI** is a retained mode production ready UI library for OpenGL 3.3 and it provides a fully self made UI framework, with a widget system where Image and Text are the root widgets that does not own or create a window or the GL context.
 
-It is recommended to use [KalaWindow](https://github.com/kalakit/kalawindow) to get the GL context but any other window context initializer and GL library like GLFW should work as well.
-
 ---
 
 ## KalaAudio
@@ -89,6 +76,18 @@ It is recommended to use [KalaWindow](https://github.com/kalakit/kalawindow) to 
 ## KalaPhysics
 
 **KalaPhysics** aims to cover most physics needs for ray casting, collision with most popular shapes in broadphase and narrowphase and will experiment with many various other things like **instant vs delayed rays**.
+
+---
+
+## KalaServer
+
+A single .lib and .dll with no runtime of its own that can be attached to any executable or cli. Does not depend on KalaWindow, runs completely standalone from it. 
+
+Provides the networking stack required for sending and receiving packets for any server-related needs. Can autoban spammers, obvious bots trying to reach sensitive files etc.
+
+Also provides a framework for hosting websites. Can route root path to any path inside its own root so the original path is unreachable by the end user if they try to look what files are accessible.
+
+Uses completely original code with help from WinSock and CloudFlare Tunnel, does not rely on any external server stacks.
 
 ---
 
@@ -114,10 +113,10 @@ A vcall is a vulin packet that is sent out by Vulin to an IP or accepted by Vuli
 
 ## Elypso Engine
 
-A game and software development engine that relies on KalaWindow and KalaGraphics, currently on hiatus until KalaWindow and KalaGraphics are ready for use.
+**Elypso engine** is currently not maintained and will be rewritten in 2026. It will use KalaWindow, KalaUI, KalaAudio and KalaPhysics and will heavily rely on them to build a powerful game engine for game development with OpenGL and Vulkan.
 
 ---
 
 ## Elypso Hub
 
-The project manager and updater for Elypso Engine that relies on KalaWindow and KalaGraphics, currently on hiatus until KalaWindow and KalaGraphics are ready for use.
+**Elypso hub** is the project manager and updater for Elypso Engine that will be rewritten in 2026 alongside the engine. It will heavily rely on KalaWindow and KalaUI.
