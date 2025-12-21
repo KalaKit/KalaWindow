@@ -12,6 +12,7 @@
 #include <functional>
 #include <cstdint>
 #include <chrono>
+#include <csignal>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -35,7 +36,7 @@ using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::OpenGL::OpenGL_Shader;
 
 using std::abort;
-using std::quick_exit;
+using std::raise;
 using std::function;
 using std::exception;
 using std::to_string;
@@ -67,6 +68,12 @@ namespace KalaWindow::Core
 		const string& reason)
 	{
 		Log::Print(
+			"\n================"
+			"\nFORCE CLOSE"
+			"\n================\n",
+			true);
+
+		Log::Print(
 			reason,
 			target,
 			LogType::LOG_ERROR,
@@ -75,18 +82,10 @@ namespace KalaWindow::Core
 			TimeFormat::TIME_NONE,
 			DateFormat::DATE_NONE);
 
-#ifdef _DEBUG
+#ifdef _WIN32
 		__debugbreak();
 #else
-		if (Window_Global::CreatePopup(
-			target,
-			reason,
-			PopupAction::POPUP_ACTION_OK,
-			PopupType::POPUP_TYPE_ERROR)
-			== PopupResult::POPUP_RESULT_OK)
-		{
-			Shutdown(ShutdownState::SHUTDOWN_CRITICAL);
-		}
+		raise(SIGTRAP);
 #endif
 	}
 

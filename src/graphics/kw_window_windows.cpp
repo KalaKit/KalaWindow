@@ -223,11 +223,11 @@ namespace KalaWindow::Graphics
 
 		windowPtr->isInitialized = true;
 
-		windowPtr->SetWindowState(WindowState::WINDOW_NORMAL);
-		windowPtr->SetWindowMode(mode);
-
 		windowPtr->oldPos = windowPtr->GetPosition();
 		windowPtr->oldSize = windowPtr->GetClientRectSize();
+
+		windowPtr->SetWindowState(WindowState::WINDOW_NORMAL);
+		windowPtr->SetWindowMode(mode);
 
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
