@@ -13,7 +13,8 @@ Note: All clis follow the same original cli template which means all clis follow
 the libraries (rely on clis or headers in some way):
 - kalaserver
 - kalawindow
-- kalagraphics
+- kalaui
+- kalaaudio
 
 the executables (rely on libs or clis or headers in some way):
 - solin
@@ -67,15 +68,27 @@ Uses completely original code with help from WinSock and CloudFlare Tunnel, does
 
 **KalaWindow** is a C++20 window library for **Windows**, built for native desktop applications for Windows with support coming for Linux in the future.
 
-**KalaWindow** creates and owns the OpenGL 3.3 context but shader binding, swapping GL buffers, making context to current, checking if context is current, other GL related functions and GL core functions (+ the wgl and glx ones) must come from your GL library like [KalaGraphics](https://github.com/kalakit/kalagraphics) or another GL source. This way **KalaWindow** stays purely a GL context initializer and a window library with input and a message loop and nothing more. **KalaGraphics** also provides a full UI framework with a widget system.
+**KalaWindow** creates and owns the OpenGL 3.3 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework. Glad or any other opengl function loaders are not required because **KalaWindow** already provides most common ones for what you would need for OpenGL 3.3 use. **KalaWindow** also provides a comprehensive shader compiler system with helpful uniform functions and for binding the vert/frag/geometry shader as well.
 
 ---
 
-## KalaGraphics
+## KalaUI
 
-**KalaGraphics** is a graphics library for OpenGL 3.3 that does not own or create a window or the GL context. It is recommended to use [KalaWindow](https://github.com/kalakit/kalawindow) to get the GL context and the handle (HDC) but theoretically any other window context initializer and GL library like GLFW should work out of the box. **KalaGraphics** can initialize hand-picked GL core, wgl and glx functions for OpenGL 3.3 so helper libraries like Glad are not required.
+**KalaUI** is a retained mode production ready UI library for OpenGL 3.3 and it provides a fully self made UI framework, with a widget system where Image and Text are the root widgets that does not own or create a window or the GL context.
 
-**KalaGraphics** provides shader, texture, UI and model handling in OpenGL 3.3. The UI framework is fully original, with a widget system where Image and Text are the root widgets. Shaders and textures can be hot-reloaded, where shaders fully reimport the new external shader file, but textures simply reload with new pixel data.
+It is recommended to use [KalaWindow](https://github.com/kalakit/kalawindow) to get the GL context but any other window context initializer and GL library like GLFW should work as well.
+
+---
+
+## KalaAudio
+
+**KalaAudio** provides a simple wrapper with self-owned lifetime for MiniAudio. It supports up to 4 audio listeners, as many players as you want and covers most toggles that MiniAudio provides for audio listeners and players.
+
+---
+
+## KalaPhysics
+
+**KalaPhysics** aims to cover most physics needs for ray casting, collision with most popular shapes in broadphase and narrowphase and will experiment with many various other things like **instant vs delayed rays**.
 
 ---
 
