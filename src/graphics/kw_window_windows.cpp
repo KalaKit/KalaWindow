@@ -1958,25 +1958,25 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 }
 */
 
-wstring ToWide(const string& str)
+wstring ToWide(const string& input)
 {
-	if (str.empty()) return wstring();
+	if (input.empty()) return wstring();
 
 	int size_needed = MultiByteToWideChar(
 		CP_UTF8,
 		0,
-		str.c_str(),
-		-1,
+		input.data(),
+		scast<int>(input.size()),
 		nullptr,
 		0);
 
-	wstring wstr(size_needed - 1, 0);
+	wstring wstr(size_needed, 0);
 
 	MultiByteToWideChar(
 		CP_UTF8,
 		0,
-		str.c_str(),
-		-1,
+		input.data(),
+		scast<int>(input.size()),
 		wstr.data(),
 		size_needed);
 
@@ -1989,20 +1989,20 @@ string ToShort(const wstring& str)
 	int size_needed = WideCharToMultiByte(
 		CP_UTF8,
 		0,
-		str.c_str(),
-		-1,
+		str.data(),
+		scast<int>(str.size()),
 		nullptr,
 		0,
 		nullptr,
 		nullptr);
 
-	string result(size_needed - 1, 0);
+	string result(size_needed, 0);
 
 	WideCharToMultiByte(
 		CP_UTF8,
 		0,
-		str.c_str(),
-		-1,
+		str.data(),
+		scast<int>(str.size()),
 		result.data(),
 		size_needed,
 		nullptr,

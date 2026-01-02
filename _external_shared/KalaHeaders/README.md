@@ -1,6 +1,6 @@
 # KalaHeaders
 
-Header-only scripts made in C++ 20, great for general use. They don't depend on each other and can be used for any c++ projects.
+Header-only scripts made in C++ 20 for various purposes. Completely self-dependant, unrelated to each other and can be used independently without dragging any of the other ones in.
 
 ## core_utils.hpp
 

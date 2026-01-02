@@ -620,25 +620,25 @@ namespace KalaWindow::Graphics
 	}
 }
 
-wstring ToWide(const string& str)
+wstring ToWide(const string& input)
 {
-	if (str.empty()) return wstring();
+	if (input.empty()) return wstring();
 
 	int size_needed = MultiByteToWideChar(
 		CP_UTF8,
 		0,
-		str.c_str(),
-		-1,
+		input.data(),
+		scast<int>(input.size()),
 		nullptr,
 		0);
 
-	wstring wstr(size_needed - 1, 0);
+	wstring wstr(size_needed, 0);
 
 	MultiByteToWideChar(
 		CP_UTF8,
 		0,
-		str.c_str(),
-		-1,
+		input.data(),
+		scast<int>(input.size()),
 		wstr.data(),
 		size_needed);
 
