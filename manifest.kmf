@@ -1,8 +1,6 @@
 #KMF VERSION 1.0
 
-// The purpose of this .kmf file is to distribute KalaWindow core stuff, KalaWindow binaries and KalaWindow external libraries
-// to external repositories that don't exist within this repository. KalaMove helps us achieve simple file movement
-// solutions thanks to how clean and efficient it is by utilizing filesystem and fstream internally.
+//Manifest file for use with KalaMove. Read more at https://github.com/kalakit/kalamove
 
 //
 // CORE STUFF
