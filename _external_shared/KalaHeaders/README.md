@@ -30,9 +30,9 @@ Macros and cross platform import/export
 
 Provides:
 - shorthands for math variables
-- vec2, vec3, vec4, mat2, mat3, mat4, quat
-- operators and helpers for vec, mat and quat types
-- swizzle operators for vec2-vec4
+- GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
+- custom color container as a variable for linear RGBA operations
+- operators and helpers for vec, mat, quat and color types
 - mat containers as column-major and scalar form
 - color conversion, color operators
 

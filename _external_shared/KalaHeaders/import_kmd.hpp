@@ -1,7 +1,7 @@
 //------------------------------------------------------------------------------
 // import_kmd.hpp
 //
-// Copyright (C) 2025 Lost Empire Entertainment
+// Copyright (C) 2026 Lost Empire Entertainment
 //
 // This is free source code, and you are welcome to redistribute it under certain conditions.
 // Read LICENSE.md for more information.
