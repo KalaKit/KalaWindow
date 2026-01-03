@@ -1,33 +1,28 @@
 # Prerequisites for building from source
 
-## On Windows
+This document is only applicable if you are building this repository from source, if you see this document in a shared release package then you can ignore it.
 
-Download Visual Studio 2022 Installer from here:
+Linux is currently unsupported so these instructions are only for Windows users.
+
+Download Visual Studio or Visual Studio Build Tools:
 https://visualstudio.microsoft.com/vs/
 
-once its installed make sure these are enabled when installing Visual Studio 2022:
-- desktop development with c++ is enabled
-- it has c++ cmake tools enabled
-- it has windows 10/11 sdk enabled
+once its installed run the visual studio installer exe and enable this checkbox:
+- desktop development with c++
 
-And finally unpack prerequisites.7z and then run setup.bat to install cmake and ninja
+and make sure these are toggled on at the right side panel:
+- msvc build tools
+- windows 10/11 sdk
+- c++ cmake tools
+- c++ atl
+- c++ mfc
 
-## On Linux
+Download and install CMake and add to system path:
+https://cmake.org/
 
-> Not ready, coming soon
+Download and install Ninja and add to system path:
+https://github.com/ninja-build/ninja
 
 # How to build from source
 
-The compiled executable and its files will be placed to `/release` and `/debug` in the root folder relative to the build stage
-
-## On Windows
-
-> Run `build_windows.bat`
-
-## On Linux
-
-> Not ready, coming soon
-
----
-
-Follow the [example project](https://github.com/lost-empire-entertainment/circuit-chan) to see how to set up and use this library in a real-world game example for Windows.
+The compiled executable/binary/cli and its files will be placed to `/release` and `/debug` in the root folder relative to the CMakeLists.txt file. Run `build_windows.bat` to build from source.

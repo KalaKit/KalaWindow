@@ -1,6 +1,6 @@
 # Minimum requirements to use KalaWindow
 
-The following tables list the oldest known hardware that should, in theory, run this framework at the API level. These configurations are not tested and may not offer usable performance. They represent the technical minimum for compatibility, not a performance recommendation.
+The following tables list the oldest known hardware that should, in theory, run this software/binary at the API level. These configurations are not tested and may not offer usable performance. They represent the technical minimum for compatibility, not a performance recommendation.
 
 All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**.
 
