@@ -1696,85 +1696,85 @@ namespace KalaHeaders::KalaMath
 		//
 		//============================================================================
 
-		color& operator+=(f32 s) 
+		constexpr color& operator+=(f32 s)
 		{
 			r += s, g += s, b += s; 
 			return *this;
 		}
-		color& operator+=(const vec3& v)  
+		constexpr color& operator+=(const vec3& v)
 		{ 
 			r += v.x, g += v.y, b += v.z;
 			return *this;
 		}
-		color& operator+=(const vec4& v)  
+		constexpr color& operator+=(const vec4& v)
 		{ 
 			r += v.x, g += v.y, b += v.z, a += v.w;
 			return *this;
 		}
-		color& operator+=(const color& c) 
+		constexpr color& operator+=(const color& c)
 		{ 
 			r += c.r, g += c.g, b += c.b, a += c.a;
 			return *this;
 		}
 
-		color& operator-=(f32 s)          
+		constexpr color& operator-=(f32 s)
 		{ 
 			r -= s, g -= s, b -= s;
 			return *this;
 		}
-		color& operator-=(const vec3& v)
+		constexpr color& operator-=(const vec3& v)
 		{ 
 			r -= v.x, g -= v.y, b -= v.z;
 			return *this;
 		}
-		color& operator-=(const vec4& v)  
+		constexpr color& operator-=(const vec4& v)
 		{ 
 			r -= v.x, g -= v.y, b -= v.z, a -= v.w;
 			return *this;
 		}
-		color& operator-=(const color& c) 
+		constexpr color& operator-=(const color& c)
 		{ 
 			r -= c.r, g -= c.g, b -= c.b, a -= c.a;
 			return *this;
 		}
 
-		color& operator*=(f32 s)          
+		constexpr color& operator*=(f32 s)
 		{ 
 			r *= s, g *= s, b *= s;
 			return *this;
 		}
-		color& operator*=(const vec3& v)  
+		constexpr color& operator*=(const vec3& v)
 		{ 
 			r *= v.x, g *= v.y, b *= v.z;
 			return *this;
 		}
-		color& operator*=(const vec4& v)  
+		constexpr color& operator*=(const vec4& v)
 		{ 
 			r *= v.x, g *= v.y, b *= v.z, a *= v.w;
 			return *this;
 		}
-		color& operator*=(const color& c) 
+		constexpr color& operator*=(const color& c)
 		{ 
 			r *= c.r, g *= c.g, b *= c.b, a *= c.a;
 			return *this;
 		}
 
-		color& operator/=(f32 s)
+		constexpr color& operator/=(f32 s)
 		{ 
 			safediv_c(r, s), safediv_c(g, s), safediv_c(b, s);
 			return *this;
 		}
-		color& operator/=(const vec3& v)
+		constexpr color& operator/=(const vec3& v)
 		{
 			safediv_c(r, v.x), safediv_c(g, v.y), safediv_c(b, v.z);
 			return *this;
 		}
-		color& operator/=(const vec4& v)
+		constexpr color& operator/=(const vec4& v)
 		{
 			safediv_c(r, v.x), safediv_c(g, v.y), safediv_c(b, v.z), safediv_c(a, v.w);
 			return *this;
 		}
-		color& operator/=(const color& c)
+		constexpr color& operator/=(const color& c)
 		{
 			safediv_c(r, c.r), safediv_c(g, c.g), safediv_c(b, c.b), safediv_c(a, c.a);
 			return *this;
