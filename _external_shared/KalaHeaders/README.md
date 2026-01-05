@@ -31,10 +31,20 @@ Macros and cross platform import/export
 Provides:
 - shorthands for math variables
 - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
-- custom color container as a variable for linear RGBA operations
-- operators and helpers for vec, mat, quat and color types
+- operators and helpers for vec, mat and quat types
 - mat containers as column-major and scalar form
+
+## color_utils.hpp
+
+Provides:
+- custom color container as a variable for linear RGBA operations
 - color conversion, color operators
+
+Provides:
+- shorthands for math variables
+- GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
+- operators and helpers for vec, mat and quat types
+- mat containers as column-major and scalar form
 
 ---
 
