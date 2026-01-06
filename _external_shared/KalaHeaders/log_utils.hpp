@@ -11,6 +11,7 @@
 //   - Simple logger - just a fwrite to the console with a single string parameter
 //   - Log types - info (no log type stamp), debug (skipped in release), success, warning, error
 //   - Time stamp, date stamp accurate to system clock
+//   - LogHook - user-defined function that allows emitting logs to another target like the crash log storage in kalawindow
 //------------------------------------------------------------------------------
 
 #pragma once
@@ -58,6 +59,18 @@ namespace KalaHeaders::KalaLog
 	//How many type + tag combinations are cached
 	constexpr u8 CACHED_TAGS_LENGTH = 50;
 
+	//Receives log messages emitted via EmitLog and forwards them to a log sink
+	using LogHook = void(*)(string_view);
+#ifdef ENABLE_EMIT_LOG
+	//Registers a log sink function
+	void RegisterLogHook(LogHook hook);
+	//Emits a log to the registered log sink
+	void EmitLog(string_view);
+#else
+	inline void RegisterLogHook(LogHook hook) noexcept {}
+	inline void EmitLog(string_view) noexcept {}
+#endif
+
 	enum class LogType
 	{
 		LOG_INFO,    //General-purpose log message, sent to stdout
@@ -66,28 +79,28 @@ namespace KalaHeaders::KalaLog
 		LOG_WARNING, //Non-critical issue that should be looked into, sent to stdout
 		LOG_ERROR    //Serious issue or failure, sent to stderr, always flushes
 	};
-	enum class TimeFormat
+	enum class TimeFormat : u8
 	{
-		TIME_NONE,
-		TIME_DEFAULT,    //Globally defined default time format
-		TIME_HMS,        //23:59:59
-		TIME_HMS_MS,     //23:59:59:123
-		TIME_12H,        //11:59:59 PM
-		TIME_ISO_8601,   //23:59:59Z
-		TIME_FILENAME,   //23-59-59
-		TIME_FILENAME_MS //23-59-59-123
+		TIME_NONE        = 0, //No time stamp
+		TIME_DEFAULT     = 1, //Uses TIME_HMS
+		TIME_HMS         = 2, //23:59:59
+		TIME_HMS_MS      = 3, //23:59:59:123
+		TIME_12H         = 4, //11:59:59 PM
+		TIME_ISO_8601    = 5, //23:59:59Z
+		TIME_FILENAME    = 6, //23-59-59
+		TIME_FILENAME_MS = 7  //23-59-59-123
 	};
-	enum class DateFormat
+	enum class DateFormat : u8
 	{
-		DATE_NONE,
-		DATE_DEFAULT,      //Globally defined default date format
-		DATE_DMY,          //31/12/2025
-		DATE_MDY,          //12/31/2025
-		DATE_ISO_8601,     //2025-12-31
-		DATE_TEXT_DMY,     //31 December, 2025
-		DATE_TEXT_MDY,     //December 31, 2025
-		DATE_FILENAME_DMY, //31-12-2025
-		DATE_FILENAME_MDY  //12-31-2025
+		DATE_NONE         = 0, //No date stamp
+		DATE_DEFAULT      = 1, //Uses DATE_NONE
+		DATE_DMY          = 2, //31/12/2026
+		DATE_MDY          = 3, //12/31/2026
+		DATE_ISO_8601     = 4, //2026-12-31
+		DATE_TEXT_DMY     = 5, //31 December, 2026
+		DATE_TEXT_MDY     = 6, //December 31, 2026
+		DATE_FILENAME_DMY = 7, //31-12-2026
+		DATE_FILENAME_MDY = 8  //12-31-2026
 	};
 
 	struct CachedPrefix
@@ -100,80 +113,21 @@ namespace KalaHeaders::KalaLog
 	class Log
 	{
 	public:
-		static inline void SetDefaultTimeFormat(TimeFormat format)
-		{
-			if (format == TimeFormat::TIME_DEFAULT)
-			{
-				Print(
-					"Cannot set default time format as TIME_DEFAULT!",
-					"LOG",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
-			if (format == TimeFormat::TIME_NONE)
-			{
-				Print(
-					"Default time format was set to TIME_NONE!"
-					" No timestamps will be printed for logs that use TIME_DEFAULT.",
-					"LOG",
-					LogType::LOG_WARNING);
-			}
-
-			defaultTimeFormat = format;
-		}
-		static inline TimeFormat GetDefaultTimeFormat()
-		{
-			return defaultTimeFormat;
-		}
-
-		static inline void SetDefaultDateFormat(DateFormat format)
-		{
-			if (format == DateFormat::DATE_DEFAULT)
-			{
-				Print(
-					"Cannot set default date format as DATE_DEFAULT!",
-					"LOG",
-					LogType::LOG_ERROR,
-					2);
-				return;
-			}
-			if (format == DateFormat::DATE_NONE)
-			{
-				Print(
-					"Default DATE format was set to DATE_NONE!"
-					" No date stamps will be printed for logs that use DATE_DEFAULT.",
-					"LOG",
-					LogType::LOG_WARNING);
-			}
-
-			defaultDateFormat = format;
-		}
-		static DateFormat GetDefaultDateFormat()
-		{
-			return defaultDateFormat;
-		}
-
 		//Returns current time in chosen or default format
 		static inline const string& GetTime(TimeFormat timeFormat = TimeFormat::TIME_DEFAULT)
 		{
+			static thread_local const string empty{};
+
+			if (timeFormat == TimeFormat::TIME_NONE) return empty;
+			if (timeFormat == TimeFormat::TIME_DEFAULT)
+			{
+				return GetTime(TimeFormat::TIME_HMS);
+			}
+
 			static thread_local string cached[scast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
 			static thread_local long long last_ms = -1;
 			static thread_local tm cachedLocal{};
 			static thread_local tm cachedUTC{};
-
-			static thread_local const string empty{};
-
-			if (timeFormat == TimeFormat::TIME_NONE
-				|| (timeFormat == TimeFormat::TIME_DEFAULT
-				&& defaultTimeFormat == TimeFormat::TIME_NONE))
-			{
-				return empty;
-			}
-			if (timeFormat == TimeFormat::TIME_DEFAULT)
-			{
-				return GetTime(defaultTimeFormat);
-			}
 
 			const int idx = scast<int>(timeFormat);
 			const auto now = system_clock::now();
@@ -262,22 +216,17 @@ namespace KalaHeaders::KalaLog
 		//Returns current date in chosen or default format
 		static inline const string& GetDate(DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
-			static thread_local string cached[scast<int>(DateFormat::DATE_FILENAME_MDY) + 1];
-			static thread_local int last_yday = -1;
-			static thread_local tm cachedLocal{};
-
 			static thread_local string empty{};
 
 			if (dateFormat == DateFormat::DATE_NONE
-				|| (dateFormat == DateFormat::DATE_DEFAULT
-				&& defaultDateFormat == DateFormat::DATE_NONE))
+				|| dateFormat == DateFormat::DATE_DEFAULT)
 			{
 				return empty;
 			}
-			if (dateFormat == DateFormat::DATE_DEFAULT)
-			{
-				return GetDate(defaultDateFormat);
-			}
+
+			static thread_local string cached[scast<int>(DateFormat::DATE_FILENAME_MDY) + 1];
+			static thread_local int last_yday = -1;
+			static thread_local tm cachedLocal{};
 
 			const int idx = scast<int>(dateFormat);
 			const auto now = system_clock::now();
@@ -340,25 +289,18 @@ namespace KalaHeaders::KalaLog
 			}
 
 			string trimmed = TrimUTF8(message);
+
 			target = target.substr(0, MAX_TAG_LENGTH);
 
 			const string& timeStamp = 
 				(timeFormat == TimeFormat::TIME_NONE)
 				? empty
-				: (timeFormat == TimeFormat::TIME_DEFAULT
-					? (defaultTimeFormat == TimeFormat::TIME_NONE 
-						? empty 
-						: GetTime(defaultTimeFormat))
-					: GetTime(timeFormat));
+				: GetTime(timeFormat);
 
 			const string& dateStamp =
 				(dateFormat == DateFormat::DATE_NONE)
 				? empty
-				: (dateFormat == DateFormat::DATE_DEFAULT
-					? (defaultDateFormat == DateFormat::DATE_NONE
-						? empty
-						: GetDate(defaultDateFormat))
-					: GetDate(dateFormat));
+				: GetDate(dateFormat);
 
 			const string& prefix = GetCachedPrefix(type, target);
 
@@ -414,6 +356,10 @@ namespace KalaHeaders::KalaLog
 				: stdout;
 
 			const size_t length = scast<size_t>(p - logBuffer.data());
+
+			//push to log observer
+			EmitLog(string_view(logBuffer.data(), length));
+
 			fwrite(logBuffer.data(), 1, length, out);
 
 			if (flush
@@ -441,20 +387,14 @@ namespace KalaHeaders::KalaLog
 			memcpy(logBuffer.data(), trimmed.data(), length);
 			logBuffer[length] = '\n';
 
+			//push to log observer
+			EmitLog(string_view(logBuffer.data(), totalLength));
+
 			fwrite(logBuffer.data(), 1, totalLength, stdout);
+
 			if (flush) fflush(stdout);
 		}
-	private:
-		static inline TimeFormat defaultTimeFormat = TimeFormat::TIME_HMS_MS;
-		static inline DateFormat defaultDateFormat = DateFormat::DATE_NONE;
-		
-		//Message length + headroom for tag, date stamp, time stamp and indent
-		static inline thread_local array<char, MAX_MESSAGE_LENGTH + 256> logBuffer{};
-
-		static inline thread_local array<CachedPrefix, CACHED_TAGS_LENGTH> prefixCache{};
-		static inline thread_local size_t prefixSize{};  //total filled cached prefixes
-		static inline thread_local size_t prefixClock{}; //where to overwrite next once the cache is full
-		
+	private:		
 		static inline string TrimUTF8(string_view s)
 		{
 			size_t bytes = 0;
@@ -544,5 +484,12 @@ namespace KalaHeaders::KalaLog
 			prefixCache[index] = { type, string(target), move(built) };
 			return prefixCache[index].prefix;
 		}
+
+		//Message length + headroom for tag, date stamp, time stamp and indent
+		static inline thread_local array<char, MAX_MESSAGE_LENGTH + 256> logBuffer{};
+
+		static inline thread_local array<CachedPrefix, CACHED_TAGS_LENGTH> prefixCache{};
+		static inline thread_local size_t prefixSize{};  //total filled cached prefixes
+		static inline thread_local size_t prefixClock{}; //where to overwrite next once the cache is full
 	};
 }

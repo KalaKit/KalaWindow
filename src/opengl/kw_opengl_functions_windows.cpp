@@ -6,7 +6,6 @@
 #ifdef _WIN32
 
 #include <windows.h>
-#include <vector>
 #include <string>
 
 #include "KalaHeaders/log_utils.hpp"
@@ -24,7 +23,6 @@ using KalaWindow::Core::KalaWindowCore;
 using namespace KalaWindow::OpenGL::OpenGLFunctions;
 using KalaWindow::OpenGL::OpenGL_Global;
 
-using std::vector;
 using std::string;
 
 struct WinGLFunction
@@ -33,105 +31,51 @@ struct WinGLFunction
     void** target;
 };
 
-static inline vector<WinGLFunction> loadedWinFunctions{};
-
-WinGLFunction functions[] =
-{
-    { "wglCreateContextAttribsARB",   reinterpret_cast<void**>(&wglCreateContextAttribsARB) },
-    { "wglChoosePixelFormatARB",      reinterpret_cast<void**>(&wglChoosePixelFormatARB) },
-    { "wglSwapIntervalEXT",           reinterpret_cast<void**>(&wglSwapIntervalEXT) },
-    { "wglGetPixelFormatAttribfvARB", reinterpret_cast<void**>(&wglGetPixelFormatAttribfvARB) },
-    { "wglGetPixelFormatAttribivARB", reinterpret_cast<void**>(&wglGetPixelFormatAttribivARB) }
-};
-
 namespace KalaWindow::OpenGL::OpenGLFunctions
 {
-	PFNWGLCREATECONTEXTATTRIBSARBPROC   wglCreateContextAttribsARB = nullptr;
-	PFNWGLCHOOSEPIXELFORMATARBPROC      wglChoosePixelFormatARB    = nullptr;
-	PFNWGLSWAPINTERVALEXTPROC           wglSwapIntervalEXT         = nullptr;
-    PFNWGLGETPIXELFORMATATTRIBFVARBPROC wglGetPixelFormatAttribfvARB = nullptr;
-    PFNWGLGETPIXELFORMATATTRIBIVARBPROC wglGetPixelFormatAttribivARB = nullptr;
+    static GL_Windows glWindows{};
+
+    const GL_Windows* OpenGL_Functions_Windows::GetGLWindows()
+    {
+        return &glWindows;
+    }
+
+    WinGLFunction functions[] =
+    {
+        { "wglCreateContextAttribsARB",   reinterpret_cast<void**>(&glWindows.wglCreateContextAttribsARB) },
+        { "wglChoosePixelFormatARB",      reinterpret_cast<void**>(&glWindows.wglChoosePixelFormatARB) },
+        { "wglSwapIntervalEXT",           reinterpret_cast<void**>(&glWindows.wglSwapIntervalEXT) },
+        { "wglGetPixelFormatAttribfvARB", reinterpret_cast<void**>(&glWindows.wglGetPixelFormatAttribfvARB) },
+        { "wglGetPixelFormatAttribivARB", reinterpret_cast<void**>(&glWindows.wglGetPixelFormatAttribivARB) }
+    };
 
 	void OpenGL_Functions_Windows::LoadAllWindowsFunctions()
 	{
-        for (const auto& func : functions)
+        for (auto& entry : functions)
         {
-            LoadWindowsFunction(func.name);
+            void* ptr = reinterpret_cast<void*>(wglGetProcAddress(entry.name));
+            if (!ptr)
+            {
+                HMODULE module = ToVar<HMODULE>(OpenGL_Global::GetOpenGLLibrary());
+                ptr = reinterpret_cast<void*>(GetProcAddress(module, entry.name));
+            }
+
+            if (!ptr)
+            {
+                KalaWindowCore::ForceClose(
+                    "OpenGL Windows function error",
+                    "Failed to load OpenGL function '" + string(entry.name) + "'!");
+            }
+
+            //assign into GL_Windows dispatch table
+            *entry.target = ptr;
+
+            Log::Print(
+                "Loaded '" + string(entry.name) + "'!",
+                "OPENGL_WINDOWS",
+                LogType::LOG_DEBUG);
         }
 	}
-
-    void OpenGL_Functions_Windows::LoadWindowsFunction(const char* name)
-    {
-        //check if already loaded
-        auto it = find_if(
-            loadedWinFunctions.begin(),
-            loadedWinFunctions.end(),
-            [name](const WinGLFunction& rec) { return strcmp(rec.name, name) == 0; });
-
-        //already loaded
-        if (it != loadedWinFunctions.end())
-        {
-            Log::Print(
-                "Function '" + string(name) + "' is already loaded!",
-                "OPENGL_WINDOWS",
-                LogType::LOG_ERROR,
-                2);
-
-            return;
-        }
-
-        //find entry in registry
-        WinGLFunction* entry = nullptr;
-        for (auto& f : functions)
-        {
-            if (strcmp(f.name, name) == 0)
-            {
-                entry = &f;
-                break;
-            }
-        }
-        if (!entry)
-        {
-            Log::Print(
-                "Function '" + string(name) + "' does not exist!",
-                "OPENGL_WINDOWS",
-                LogType::LOG_ERROR,
-                2);
-
-            return;
-        }
-
-        //try to load
-        void* ptr = nullptr;
-
-        ptr = reinterpret_cast<void*>(wglGetProcAddress(name));
-        if (!ptr)
-        {
-            HMODULE module = ToVar<HMODULE>(OpenGL_Global::GetOpenGLLibrary());
-            ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
-        }
-
-        if (!ptr)
-        {
-            KalaWindowCore::ForceClose(
-                "OpenGL Windows function error",
-                "Failed to load OpenGL error '" + string(name) + "'!");
-        }
-
-        //assign into the real extern global
-        *entry->target = ptr;
-
-        loadedWinFunctions.push_back(WinGLFunction
-            {
-                entry->name,
-                entry->target
-            });
-
-        Log::Print(
-            "Loaded '" + string(name) + "'!",
-            "OPENGL_WINDOWS",
-            LogType::LOG_DEBUG);
-    }
 }
 
 #endif //_WIN32

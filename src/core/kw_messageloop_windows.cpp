@@ -55,7 +55,8 @@ using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::OpenGL::OpenGL_Global;
-using KalaWindow::OpenGL::OpenGLFunctions::glViewport;
+using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
+using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 
 using std::string;
 using std::to_string;
@@ -1195,7 +1196,9 @@ static bool ProcessMessage(
 
 			if (OpenGL_Global::IsInitialized())
 			{
-				glViewport(
+				const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+				coreFunc->glViewport(
 					0,
 					0,
 					(GLsizei)fbSize.x,
@@ -1241,9 +1244,11 @@ static bool ProcessMessage(
 
 		if (OpenGL_Global::IsInitialized())
 		{
+			const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
 			vec2 vpSize = window->GetClientRectSize();
 
-			glViewport(
+			coreFunc->glViewport(
 				0,
 				0,
 				vpSize.x,

@@ -79,6 +79,7 @@ target_include_directories(KalaWindow PRIVATE
 )
 
 target_compile_definitions(KalaWindow PRIVATE
+	ENABLE_EMIT_LOG     # allow user to define EmitLog in log_utils.hpp
 	LIB_EXPORT          # dll import/export
 	WIN32_LEAN_AND_MEAN # cleaner windows.h
 	NOMINMAX            # skips min/max windows macros in favor of the std variants
@@ -96,49 +97,6 @@ target_link_libraries(KalaWindow PRIVATE
 add_compile_definitions(
 	PROGRAM_VERSION="${PROGRAM_VERSION}"
 )
-	
-# Set Windows Details tab data
-if (IS_RELEASE)
-	if (KALA_PRERELEASE)
-		set(FILEFLAGS "0x02") # Release + PreRelease
-	else()
-		set(FILEFLAGS "0x00") # Pure Release
-	endif()
-else()
-	if (KALA_PRERELEASE)
-		set(FILEFLAGS "0x03") # Debug + PreRelease
-	else()
-		set(FILEFLAGS "0x01") # Pure Debug
-	endif()
-endif()
-
-set(FILETYPE 0x2)    # 0x1 - executable, 0x2 - dynamic-link library
-set(FILESUBTYPE 0x0) # 0x0 = normal DLL, only change if you're making drivers/fonts
-
-# Public fields displayed in Windows Explorer
-set(FILE_DESCRIPTION  "Multimedia Framework Library")
-set(FILE_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}")
-set(PRODUCT_NAME      "KalaWindow")
-set(PRODUCT_VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}.${PROJECT_VERSION_TWEAK}")
-set(COMPANY_NAME      "Lost Empire Entertainment")
-set(LEGAL_COPYRIGHT   "(C) 2025 Lost Empire Entertainment")
-set(LEGAL_TRADEMARKS  "Trademark of Lost Empire Entertainment")
-set(ORIGINAL_FILENAME "${KALA_PREFIX}KWnd${KALA_VERSION}${KALA_SUFFIX}")
-
-# Private/optional fields
-set(INTERNAL_NAME  "${ORIGINAL_FILENAME}")
-set(COMMENTS       "${PRODUCT_NAME}")
-set(PRIVATE_BUILD  "${PRODUCT_NAME}")
-set(SPECIAL_BUILD  "${PRODUCT_NAME}")
-
-# Generate version.rc
-configure_file(
-	${CMAKE_SOURCE_DIR}/version.rc.in
-	${CMAKE_BINARY_DIR}/version.rc
-	@ONLY
-)
-
-target_sources(KalaWindow PRIVATE "${CMAKE_BINARY_DIR}/version.rc")
 
 # Copy important files
 set(COPY_TARGETS README.md LICENSE.md logo.png)

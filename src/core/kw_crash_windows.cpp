@@ -6,6 +6,7 @@
 #ifdef _WIN32
 
 #include <string>
+#include <array>
 #include <fstream>
 #include <sstream>
 #include <filesystem>
@@ -25,12 +26,15 @@ using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 using KalaHeaders::KalaLog::DateFormat;
 
+using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
 
 using std::string;
+using std::string_view;
+using std::array;
 using std::ofstream;
 using std::ostringstream;
 using std::filesystem::path;
@@ -67,6 +71,9 @@ static void WriteLog(
 	const string& message,
 	const string& timeStamp);
 
+
+static array<char, 10> crashLogBuffer;
+
 namespace KalaWindow::Core
 {
 	void CrashHandler::Initialize(
@@ -96,8 +103,15 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 {
 	DWORD code = info->ExceptionRecord->ExceptionCode;
 
-	ostringstream oss;
-	oss << "Crash detected!\n\n";
+	//special breakpoint-only stream
+	ostringstream bposs{};
+	bool isBreakpoint{};
+
+	ostringstream oss{};
+
+	oss << "\n========================================\n";
+
+	oss << "\n[CRASH DETECTED]\n\n";
 
 	oss << "Exception code: " << hex << code << "\n";
 	oss << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << "\n\n";
@@ -144,9 +158,6 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	case EXCEPTION_ILLEGAL_INSTRUCTION:
 		oss << "Reason: Illegal CPU instruction executed\n";
 		break;
-	case EXCEPTION_BREAKPOINT:
-		oss << "Reason: Breakpoint hit (INT 3 instruction executed)\n";
-		break;
 	case EXCEPTION_GUARD_PAGE:
 		oss << "Reason: Guard page accessed (likely stack guard or memory protection violation)\n";
 		break;
@@ -160,12 +171,43 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		oss << "Reason: Memory access failed (I/O or paging failure)\n";
 		break;
 
+
+	//don't throw a scary call stack error popup for breakpoint (or force close via __debugbreak())
+	case EXCEPTION_BREAKPOINT:
+	{
+		isBreakpoint = true;
+
+		oss << "Reason: Breakpoint hit (INT 3 instruction executed)\n";
+
+		bposs << "A breakpoint or force close state was reached!\n\n"
+			<< "The application must close and cannot continue running.\n"
+			<< "A log file has been created in the folder of this application.";
+
+		break;
+	}
+
 	default:
 		oss << "Reason: Unknown exception (code: 0x" << hex << code << ")\n";
 		break;
 	}
 
 	AppendCallStackToStream(oss, info->ContextRecord);
+
+	//append crash log buffer
+
+	oss << "\nRecent log activity before crash:\n\n";
+
+	array<string_view, 10> content = CrashHandler::GetCrashLogContent();
+	for (const auto& c : content)
+	{
+		if (!c.empty())
+		{
+			oss << c;
+			if (c.back() != '\n') oss << '\n';
+		}
+	}
+
+	oss << "\n========================================\n";
 
 	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
@@ -188,26 +230,19 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 			true);
 	}
 
+	Log::Print(oss.str(), true);
+
+	WriteLog(
+		oss.str(),
+		timeStamp);
+
 	if (Window_Global::CreatePopup(
 		assignedProgramName,
-		oss.str(),
+		isBreakpoint ? bposs.str() : oss.str(),
 		PopupAction::POPUP_ACTION_OK,
 		PopupType::POPUP_TYPE_ERROR) ==
 		PopupResult::POPUP_RESULT_OK)
 	{
-		WriteLog(
-			oss.str(),
-			timeStamp);
-
-		Log::Print(
-			oss.str(),
-			"FORCE CLOSE",
-			LogType::LOG_ERROR,
-			2,
-			true,
-			TimeFormat::TIME_NONE,
-			DateFormat::DATE_NONE);
-
 		if (assignedShutdownFunction) assignedShutdownFunction();
 	}
 
@@ -311,8 +346,8 @@ void AppendCallStackToStream(
 	stack.AddrFrame.Mode = AddrModeFlat;
 	stack.AddrStack.Mode = AddrModeFlat;
 
-	oss << "\n========================================\n\n";
-	oss << "Call stack:\n";
+	oss << "\n========================================\n";
+	oss << "\nCall stack:\n\n";
 
 	for (int i = 0; i < 10; ++i)
 	{
@@ -388,7 +423,7 @@ void AppendCallStackToStream(
 
 	SymCleanup(process);
 
-	oss << "\n========================================\n\n";
+	oss << "\n========================================\n";
 }
 
 void WriteLog(

@@ -13,16 +13,18 @@
 
 namespace KalaWindow::OpenGL::OpenGLFunctions
 {
-	//add functions here...
+	struct GL_Linux
+	{
+		//add functions here...
+	};
 
 	class LIB_API OpenGL_Functions_Linux
 	{
 	public:
+		static const GL_Linux* GetGLLinux();
+
 		//Load all OpenGL general functions that are provided
 		static void LoadAllLinuxFunctions();
-
-		//Load a specific function, this won't be loaded again with LoadAllFunctions
-		static void LoadLinuxFunction(const char* name);
 	};
 }
 

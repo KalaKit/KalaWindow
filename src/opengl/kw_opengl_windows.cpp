@@ -31,7 +31,10 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::OpenGL::OpenGL_Global;
-using namespace KalaWindow::OpenGL::OpenGLFunctions;
+using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
+using KalaWindow::OpenGL::OpenGLFunctions::GL_Windows;
+using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
+using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Windows;
 using std::string;
 using std::vector;
 using std::to_string;
@@ -150,7 +153,9 @@ namespace KalaWindow::OpenGL
 
 	bool OpenGL_Global::IsExtensionSupported(const string& name)
 	{
-		if (glGetIntegerv == nullptr)
+		const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+		if (coreFunc->glGetIntegerv == nullptr)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
@@ -158,7 +163,7 @@ namespace KalaWindow::OpenGL
 				
 			return false;
 		}
-		if (glGetStringi == nullptr)
+		if (coreFunc->glGetStringi == nullptr)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
@@ -168,14 +173,14 @@ namespace KalaWindow::OpenGL
 		}
 		
 		i32 numExtensions = 0;
-		glGetIntegerv(
+		coreFunc->glGetIntegerv(
 			GL_NUM_EXTENSIONS,
 			&numExtensions);
 
 		for (i32 i = 0; i < numExtensions; ++i)
 		{
 			const char* extName = reinterpret_cast<const char*>(
-				glGetStringi(GL_EXTENSIONS, i));
+				coreFunc->glGetStringi(GL_EXTENSIONS, i));
 			if (name == extName) return true;
 		}
 
@@ -214,6 +219,39 @@ namespace KalaWindow::OpenGL
 			ToVar<HDC>(handle),
 			storedHGLRC);
 	}
+	void OpenGL_Global::MakeContextCurrent(
+		uintptr_t context,
+		uintptr_t handle)
+	{
+		if (!context)
+		{
+			Log::Print(
+				"Cannot set OpenGL context because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (OpenGL_Context::registry.runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot set OpenGL context because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		HGLRC storedHGLRC = ToVar<HGLRC>(context);
+
+		if (wglGetCurrentContext() != storedHGLRC) wglMakeCurrent(
+			ToVar<HDC>(handle),
+			storedHGLRC);
+	}
+
 	bool OpenGL_Global::IsContextValid(OpenGL_Context* context)
 	{
 		if (!context)
@@ -261,13 +299,62 @@ namespace KalaWindow::OpenGL
 
 		return true;
 	}
+	bool OpenGL_Global::IsContextValid(uintptr_t context)
+	{
+		if (!context)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		if (OpenGL_Context::registry.runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		HGLRC storedHGLRC = ToVar<HGLRC>(context);
+
+		HGLRC current = wglGetCurrentContext();
+		if (!current)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Failed to get current context with 'wglGetCurrentContext'!");
+
+			return false;
+		}
+
+		if (current != storedHGLRC)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Current OpenGL context does not match stored context!");
+
+			return false;
+		}
+
+		return true;
+	}
 
 	string OpenGL_Global::GetError()
 	{	
+		const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
 		GLenum error{};
 		string errorVal{};
 
-		while ((error = glGetError()) != GL_NO_ERROR)
+		while ((error = coreFunc->glGetError()) != GL_NO_ERROR)
 		{
 			switch (error)
 			{
@@ -323,6 +410,9 @@ namespace KalaWindow::OpenGL
 
 			return nullptr;
 		}
+
+		const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+		const GL_Windows* windowsFunc = OpenGL_Functions_Windows::GetGLWindows();
 
 		u32 newID = ++KalaWindowCore::globalID;
 		unique_ptr<OpenGL_Context> newCont = make_unique<OpenGL_Context>();
@@ -435,7 +525,7 @@ namespace KalaWindow::OpenGL
 		int pfID = 0;
 		UINT numFormats = 0;
 
-		BOOL result = (wglChoosePixelFormatARB(
+		BOOL result = (windowsFunc->wglChoosePixelFormatARB(
 			hdc,
 			pixelAttribs.data(),
 			nullptr,
@@ -492,55 +582,55 @@ namespace KalaWindow::OpenGL
 
 		int attrib_color_bits = WGL_COLOR_BITS_ARB;
 		int colorBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_color_bits, &colorBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_color_bits, &colorBits);
 
 		int attrib_depth_bits = WGL_DEPTH_BITS_ARB;
 		int depthBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_depth_bits, &depthBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_depth_bits, &depthBits);
 
 		int attrib_stencil_bits = WGL_STENCIL_BITS_ARB;
 		int stencilBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_stencil_bits, &stencilBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_stencil_bits, &stencilBits);
 
 		int attrib_alpha_bits = WGL_ALPHA_BITS_ARB;
 		int alphaBits = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_alpha_bits, &alphaBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_alpha_bits, &alphaBits);
 
 		int attrib_draw = WGL_DRAW_TO_WINDOW_ARB;
 		int drawToWindow = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_draw, &drawToWindow);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_draw, &drawToWindow);
 
 		int attrib_gl = WGL_SUPPORT_OPENGL_ARB;
 		int supportGL = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_gl, &supportGL);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_gl, &supportGL);
 
 		int attrib_double_buffer = WGL_DOUBLE_BUFFER_ARB;
 		int doubleBuffer = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_double_buffer, &doubleBuffer);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_double_buffer, &doubleBuffer);
 
 		//MSAA samples
 		int attrib_MSAA_buffers = WGL_SAMPLE_BUFFERS_ARB;
 		int sampleBuffer = 0;
 		int attrib_MSAA_samples = WGL_SAMPLES_ARB;
 		int samples = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_buffers, &sampleBuffer);
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_samples, &samples);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_buffers, &sampleBuffer);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_samples, &samples);
 		string msaaVal = sampleBuffer == 1 ? to_string(samples) + "x" : "Disabled";
 
 		//sRGB capable
 		int attrib_srgb = WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB;
 		int srgbBuffer = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_srgb, &srgbBuffer);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_srgb, &srgbBuffer);
 
 		//acceleration
 		int attrib_acceleration = WGL_ACCELERATION_ARB;
 		int accel = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_acceleration, &accel);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_acceleration, &accel);
 
 		//swap method
 		int attrib_swap_method = WGL_SWAP_METHOD_ARB;
 		int swap = 0;
-		wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_swap_method, &swap);
+		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_swap_method, &swap);
 
 		string accelVal = (accel == WGL_FULL_ACCELERATION_ARB)
 			? "Hardware"
@@ -620,7 +710,7 @@ namespace KalaWindow::OpenGL
 			}
 		}
 
-		HGLRC newHGLRC = wglCreateContextAttribsARB(
+		HGLRC newHGLRC = windowsFunc->wglCreateContextAttribsARB(
 			hdc,
 			existing,
 			attribs);
@@ -637,24 +727,24 @@ namespace KalaWindow::OpenGL
 		contPtr->hglrc = FromVar(newHGLRC);
 
 		wglMakeCurrent(hdc, newHGLRC);
-		wglSwapIntervalEXT(1); //default vsync is true
+		windowsFunc->wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size
 		vec2 clientRectSize = window->GetClientRectSize();
-		glViewport(
+		coreFunc->glViewport(
 			0,
 			0,
 			(GLsizei)clientRectSize.x,
 			(GLsizei)clientRectSize.y);
 
-		const char* glVersion  = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-		const char* glVendor   = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-		const char* glRenderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-		const char* glslVer    = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+		const char* glVersion  = reinterpret_cast<const char*>(coreFunc->glGetString(GL_VERSION));
+		const char* glVendor   = reinterpret_cast<const char*>(coreFunc->glGetString(GL_VENDOR));
+		const char* glRenderer = reinterpret_cast<const char*>(coreFunc->glGetString(GL_RENDERER));
+		const char* glslVer    = reinterpret_cast<const char*>(coreFunc->glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 		string profileVal{};
 		GLint profile = 0;
-		glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
+		coreFunc->glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 
 		if (profile & GL_CONTEXT_CORE_PROFILE_BIT)
 		{
@@ -667,18 +757,18 @@ namespace KalaWindow::OpenGL
 		else profileVal = "Unknown profile";
 
 		GLint blockSize = 0;
-		glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &blockSize);
+		coreFunc->glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &blockSize);
 
 		//also enable srgb if user requested it
 		if (srgb == SRGBMode::SRGB_ENABLED
 			&& srgbBuffer == 1)
 		{
-			glEnable(GL_FRAMEBUFFER_SRGB);
+			coreFunc->glEnable(GL_FRAMEBUFFER_SRGB);
 		}
 
 		//sRGB enabled
 		GLboolean srgbEnabled = GL_FALSE;
-		glGetBooleanv(GL_FRAMEBUFFER_SRGB, &srgbEnabled);
+		coreFunc->glGetBooleanv(GL_FRAMEBUFFER_SRGB, &srgbEnabled);
 
 		ostringstream ss2{};
 		ss2 << "OpenGL Context Info:\n"
@@ -733,7 +823,9 @@ namespace KalaWindow::OpenGL
 	
 	void OpenGL_Context::SetVSyncState(VSyncState newValue)
 	{		
-		if (!wglSwapIntervalEXT)
+		const GL_Windows* windowsFunc = OpenGL_Functions_Windows::GetGLWindows();
+
+		if (!windowsFunc->wglSwapIntervalEXT)
 		{
 			Log::Print(
 				"wglSwapIntervalEXT not supported! VSync setting ignored.",
@@ -746,7 +838,7 @@ namespace KalaWindow::OpenGL
 		
 		vsyncState = newValue;
 
-		wglSwapIntervalEXT(newValue == VSyncState::VSYNC_ON
+		windowsFunc->wglSwapIntervalEXT(newValue == VSyncState::VSYNC_ON
 			? 1
 			: 0);
 	}
@@ -799,7 +891,9 @@ namespace KalaWindow::OpenGL
 
 bool IsCorrectVersion()
 {
-	const char* versionStr = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+	const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+	const char* versionStr = reinterpret_cast<const char*>(coreFunc->glGetString(GL_VERSION));
 	if (!versionStr) return false;
 
 	int major = 0;

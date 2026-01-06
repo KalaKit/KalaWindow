@@ -87,13 +87,25 @@ namespace KalaWindow::OpenGL
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);
 		
-		//Make the GL context correct for the current window
+		//Make the GL context correct for the current window,
+		//accepts the context class which stores the context
 		static void MakeContextCurrent(
 			OpenGL_Context* context,
 			uintptr_t handle);
+
+		//Make the GL context correct for the current window,
+		//accepts a uintptr_t as the direct context reference
+		static void MakeContextCurrent(
+			uintptr_t context,
+			uintptr_t handle);
 			
-		//Confirms that the GL context is the same as the stored context for this window
+		//Confirms that the GL context is the same as the stored context for this window,
+		//accepts the context class which stores the context
 		static bool IsContextValid(OpenGL_Context* context);
+
+		//Confirms that the GL context is the same as the stored context for this window,
+		//accepts a uintptr_t as the direct context reference
+		static bool IsContextValid(uintptr_t context);
 
 		//Place after any gl call to check if an issue or error has occurred within that point.
 		//Loops through all errors so that all errors at that point are printed, not just the first one.

@@ -4,8 +4,11 @@
 //Read LICENSE.md for more information.
 
 #include <sstream>
-#include <vector>
 #include <string>
+
+#ifdef __linux__
+#include <dlfcn.h>
+#endif
 
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/core_utils.hpp"
@@ -22,7 +25,6 @@ using KalaWindow::Core::KalaWindowCore;
 using namespace KalaWindow::OpenGL::OpenGLFunctions;
 using KalaWindow::OpenGL::OpenGL_Global;
 
-using std::vector;
 using std::string;
 using std::to_string;
 using std::ostringstream;
@@ -33,170 +35,172 @@ struct CoreGLFunction
     void** target;
 };
 
-CoreGLFunction functions[] =
-{
-    //
-    // DEBUGGING
-    //
-
-    { "glDebugMessageCallback", reinterpret_cast<void**>(&glDebugMessageCallback) },
-    { "glGetError",             reinterpret_cast<void**>(&glGetError) },
-
-    //
-    // GEOMETRY
-    //
-
-    { "glMapBufferRange",          reinterpret_cast<void**>(&glMapBufferRange) },
-    { "glBufferStorage",           reinterpret_cast<void**>(&glBufferStorage) },
-    { "glBindBuffer",              reinterpret_cast<void**>(&glBindBuffer) },
-    { "glBindVertexArray",         reinterpret_cast<void**>(&glBindVertexArray) },
-    { "glBufferData",              reinterpret_cast<void**>(&glBufferData) },
-    { "glBufferSubData",           reinterpret_cast<void**>(&glBufferSubData) },
-    { "glDeleteBuffers",           reinterpret_cast<void**>(&glDeleteBuffers) },
-    { "glDeleteVertexArrays",      reinterpret_cast<void**>(&glDeleteVertexArrays) },
-    { "glDrawArrays",              reinterpret_cast<void**>(&glDrawArrays) },
-    { "glDrawElements",            reinterpret_cast<void**>(&glDrawElements) },
-    { "glEnableVertexAttribArray", reinterpret_cast<void**>(&glEnableVertexAttribArray) },
-    { "glGenBuffers",              reinterpret_cast<void**>(&glGenBuffers) },
-    { "glGenVertexArrays",         reinterpret_cast<void**>(&glGenVertexArrays) },
-    { "glGetVertexAttribiv",       reinterpret_cast<void**>(&glGetVertexAttribiv) },
-    { "glGetVertexAttribPointerv", reinterpret_cast<void**>(&glGetVertexAttribPointerv) },
-    { "glVertexAttribPointer",     reinterpret_cast<void**>(&glVertexAttribPointer) },
-    { "glCullFace",                reinterpret_cast<void**>(&glCullFace) },
-
-    //
-    // SHADERS
-    //
-
-    { "glAttachShader",      reinterpret_cast<void**>(&glAttachShader) },
-    { "glCompileShader",     reinterpret_cast<void**>(&glCompileShader) },
-    { "glCreateProgram",     reinterpret_cast<void**>(&glCreateProgram) },
-    { "glCreateShader",      reinterpret_cast<void**>(&glCreateShader) },
-    { "glDeleteShader",      reinterpret_cast<void**>(&glDeleteShader) },
-    { "glDeleteProgram",     reinterpret_cast<void**>(&glDeleteProgram) },
-    { "glDetachShader",      reinterpret_cast<void**>(&glDetachShader) },
-    { "glGetActiveAttrib",   reinterpret_cast<void**>(&glGetActiveAttrib) },
-    { "glGetAttribLocation", reinterpret_cast<void**>(&glGetAttribLocation) },
-    { "glGetProgramiv",      reinterpret_cast<void**>(&glGetProgramiv) },
-    { "glGetProgramInfoLog", reinterpret_cast<void**>(&glGetProgramInfoLog) },
-    { "glGetShaderiv",       reinterpret_cast<void**>(&glGetShaderiv) },
-    { "glGetShaderInfoLog",  reinterpret_cast<void**>(&glGetShaderInfoLog) },
-    { "glLinkProgram",       reinterpret_cast<void**>(&glLinkProgram) },
-    { "glShaderSource",      reinterpret_cast<void**>(&glShaderSource) },
-    { "glUseProgram",        reinterpret_cast<void**>(&glUseProgram) },
-    { "glValidateProgram",   reinterpret_cast<void**>(&glValidateProgram) },
-    { "glIsProgram",         reinterpret_cast<void**>(&glIsProgram) },
-
-    //
-    // UNIFORMS
-    //
-
-    { "glGetUniformLocation",   reinterpret_cast<void**>(&glGetUniformLocation) },
-    { "glGetUniformBlockIndex", reinterpret_cast<void**>(&glGetUniformBlockIndex) },
-    { "glUniformBlockBinding",  reinterpret_cast<void**>(&glUniformBlockBinding) },
-    { "glUniform1f",            reinterpret_cast<void**>(&glUniform1f) },
-    { "glUniform1i",            reinterpret_cast<void**>(&glUniform1i) },
-    { "glUniform1fv",           reinterpret_cast<void**>(&glUniform1fv) },
-    { "glUniform1iv",           reinterpret_cast<void**>(&glUniform1iv) },
-    { "glUniform2f",            reinterpret_cast<void**>(&glUniform2f) },
-    { "glUniform2i",            reinterpret_cast<void**>(&glUniform2i) },
-    { "glUniform2fv",           reinterpret_cast<void**>(&glUniform2fv) },
-    { "glUniform2iv",           reinterpret_cast<void**>(&glUniform2iv) },
-    { "glUniform3f",            reinterpret_cast<void**>(&glUniform3f) },
-    { "glUniform3i",            reinterpret_cast<void**>(&glUniform3i) },
-    { "glUniform3fv",           reinterpret_cast<void**>(&glUniform3fv) },
-    { "glUniform3iv",           reinterpret_cast<void**>(&glUniform3iv) },
-    { "glUniform4f",            reinterpret_cast<void**>(&glUniform4f) },
-    { "glUniform4i",            reinterpret_cast<void**>(&glUniform4i) },
-    { "glUniform4fv",           reinterpret_cast<void**>(&glUniform4fv) },
-    { "glUniform4iv",           reinterpret_cast<void**>(&glUniform4iv) },
-    { "glUniformMatrix2fv",     reinterpret_cast<void**>(&glUniformMatrix2fv) },
-    { "glUniformMatrix3fv",     reinterpret_cast<void**>(&glUniformMatrix3fv) },
-    { "glUniformMatrix4fv",     reinterpret_cast<void**>(&glUniformMatrix4fv) },
-
-    //
-    // TEXTURES
-    //
-
-    { "glBindTexture",    reinterpret_cast<void**>(&glBindTexture) },
-    { "glActiveTexture",  reinterpret_cast<void**>(&glActiveTexture) },
-    { "glDeleteTextures", reinterpret_cast<void**>(&glDeleteTextures) },
-    { "glGenerateMipmap", reinterpret_cast<void**>(&glGenerateMipmap) },
-    { "glGenTextures",    reinterpret_cast<void**>(&glGenTextures) },
-    { "glTexImage2D",     reinterpret_cast<void**>(&glTexImage2D) },
-    { "glTexImage3D",     reinterpret_cast<void**>(&glTexImage3D) },
-    { "glCompressedTexImage2D", reinterpret_cast<void**>(&glCompressedTexImage2D) },
-    { "glCompressedTexImage3D", reinterpret_cast<void**>(&glCompressedTexImage3D) },
-    { "glTexStorage2D",   reinterpret_cast<void**>(&glTexStorage2D) },
-    { "glTexStorage3D",   reinterpret_cast<void**>(&glTexStorage3D) },
-    { "glTexSubImage2D",  reinterpret_cast<void**>(&glTexSubImage2D) },
-    { "glTexSubImage3D",  reinterpret_cast<void**>(&glTexSubImage3D) },
-    { "glCompressedTexSubImage2D",  reinterpret_cast<void**>(&glCompressedTexSubImage2D) },
-    { "glCompressedTexSubImage3D",  reinterpret_cast<void**>(&glCompressedTexSubImage3D) },
-    { "glTexParameteri",  reinterpret_cast<void**>(&glTexParameteri) },
-    { "glTexParameteriv", reinterpret_cast<void**>(&glTexParameteriv) },
-    { "glTexParameterf",  reinterpret_cast<void**>(&glTexParameterf) },
-    { "glTexParameterfv", reinterpret_cast<void**>(&glTexParameterfv) },
-    { "glPixelStorei",    reinterpret_cast<void**>(&glPixelStorei) },
-    { "glPixelStoref",    reinterpret_cast<void**>(&glPixelStoref) },
-
-    //
-    // FRAMEBUFFERS AND RENDERBUFFERS
-    //
-
-    { "glBindRenderbuffer",        reinterpret_cast<void**>(&glBindRenderbuffer) },
-    { "glBindFramebuffer",         reinterpret_cast<void**>(&glBindFramebuffer) },
-    { "glBindBufferBase",          reinterpret_cast<void**>(&glBindBufferBase) },
-    { "glCheckFramebufferStatus",  reinterpret_cast<void**>(&glCheckFramebufferStatus) },
-    { "glFramebufferRenderbuffer", reinterpret_cast<void**>(&glFramebufferRenderbuffer) },
-    { "glFramebufferTexture2D",    reinterpret_cast<void**>(&glFramebufferTexture2D) },
-    { "glGenRenderbuffers",        reinterpret_cast<void**>(&glGenRenderbuffers) },
-    { "glGenFramebuffers",         reinterpret_cast<void**>(&glGenFramebuffers) },
-    { "glRenderbufferStorage",     reinterpret_cast<void**>(&glRenderbufferStorage) },
-    { "glDepthFunc",               reinterpret_cast<void**>(&glDepthFunc) },
-    { "glDepthMask",               reinterpret_cast<void**>(&glDepthMask) },
-    { "glBlendColor",              reinterpret_cast<void**>(&glBlendColor) },
-    { "glBlendFunc",               reinterpret_cast<void**>(&glBlendFunc) },
-    { "glBlendFunci",              reinterpret_cast<void**>(&glBlendFunci) },
-    { "glBlendEquation",           reinterpret_cast<void**>(&glBlendEquation) },
-    { "glBlendEquationi",          reinterpret_cast<void**>(&glBlendEquationi) },
-    { "glBlendEquationSeparate",   reinterpret_cast<void**>(&glBlendEquationSeparate) },
-    { "glBlendEquationSeparatei",  reinterpret_cast<void**>(&glBlendEquationSeparatei) },
-    { "glStencilFunc",             reinterpret_cast<void**>(&glStencilFunc) },
-    { "glStencilFuncSeparate",     reinterpret_cast<void**>(&glStencilFuncSeparate) },
-    { "glStencilMask",             reinterpret_cast<void**>(&glStencilMask) },
-    { "glStencilMaskSeparate",     reinterpret_cast<void**>(&glStencilMaskSeparate) },
-    { "glStencilOp",               reinterpret_cast<void**>(&glStencilOp) },
-    { "glStencilOpSeparate",       reinterpret_cast<void**>(&glStencilOpSeparate) },
-
-    //
-    // FRAME AND RENDER STATE
-    //
-
-    { "glClear",       reinterpret_cast<void**>(&glClear) },
-    { "glClearColor",  reinterpret_cast<void**>(&glClearColor) },
-    { "glEnable",      reinterpret_cast<void**>(&glEnable) },
-    { "glDisable",     reinterpret_cast<void**>(&glDisable) },
-    { "glFrontFace",   reinterpret_cast<void**>(&glFrontFace) },
-    { "glGetBooleanv", reinterpret_cast<void**>(&glGetBooleanv) },
-    { "glGetIntegerv", reinterpret_cast<void**>(&glGetIntegerv) },
-    { "glGetFloatv",   reinterpret_cast<void**>(&glGetFloatv) },
-    { "glGetDoublev",  reinterpret_cast<void**>(&glGetDoublev) },
-    { "glGetString",   reinterpret_cast<void**>(&glGetString) },
-    { "glGetStringi",  reinterpret_cast<void**>(&glGetStringi) },
-    { "glViewport",    reinterpret_cast<void**>(&glViewport) }
-};
-
-static inline vector<CoreGLFunction> loadedCoreFunctions{};
-
 namespace KalaWindow::OpenGL::OpenGLFunctions
 {
+    static GL_Core glCore{};
+
+    const GL_Core* OpenGL_Functions_Core::GetGLCore()
+    {
+        return &glCore;
+    }
+
     //
-    // DEBUGGING
+    // LOADED GL FUNCTIONS
     //
 
-    PFNGLDEBUGMESSAGECALLBACKPROC glDebugMessageCallback = nullptr;
-    PFNGLGETERRORPROC             glGetError             = nullptr;
+    CoreGLFunction functions[] =
+    {
+        //
+        // DEBUGGING
+        //
+
+        { "glDebugMessageCallback", reinterpret_cast<void**>(&glCore.glDebugMessageCallback) },
+        { "glGetError",             reinterpret_cast<void**>(&glCore.glGetError) },
+
+        //
+        // GEOMETRY
+        //
+
+        { "glMapBufferRange",          reinterpret_cast<void**>(&glCore.glMapBufferRange) },
+        { "glBufferStorage",           reinterpret_cast<void**>(&glCore.glBufferStorage) },
+        { "glBindBuffer",              reinterpret_cast<void**>(&glCore.glBindBuffer) },
+        { "glBindVertexArray",         reinterpret_cast<void**>(&glCore.glBindVertexArray) },
+        { "glBufferData",              reinterpret_cast<void**>(&glCore.glBufferData) },
+        { "glBufferSubData",           reinterpret_cast<void**>(&glCore.glBufferSubData) },
+        { "glDeleteBuffers",           reinterpret_cast<void**>(&glCore.glDeleteBuffers) },
+        { "glDeleteVertexArrays",      reinterpret_cast<void**>(&glCore.glDeleteVertexArrays) },
+        { "glDrawArrays",              reinterpret_cast<void**>(&glCore.glDrawArrays) },
+        { "glDrawElements",            reinterpret_cast<void**>(&glCore.glDrawElements) },
+        { "glEnableVertexAttribArray", reinterpret_cast<void**>(&glCore.glEnableVertexAttribArray) },
+        { "glGenBuffers",              reinterpret_cast<void**>(&glCore.glGenBuffers) },
+        { "glGenVertexArrays",         reinterpret_cast<void**>(&glCore.glGenVertexArrays) },
+        { "glGetVertexAttribiv",       reinterpret_cast<void**>(&glCore.glGetVertexAttribiv) },
+        { "glGetVertexAttribPointerv", reinterpret_cast<void**>(&glCore.glGetVertexAttribPointerv) },
+        { "glVertexAttribPointer",     reinterpret_cast<void**>(&glCore.glVertexAttribPointer) },
+        { "glCullFace",                reinterpret_cast<void**>(&glCore.glCullFace) },
+
+        //
+        // SHADERS
+        //
+
+        { "glAttachShader",      reinterpret_cast<void**>(&glCore.glAttachShader) },
+        { "glCompileShader",     reinterpret_cast<void**>(&glCore.glCompileShader) },
+        { "glCreateProgram",     reinterpret_cast<void**>(&glCore.glCreateProgram) },
+        { "glCreateShader",      reinterpret_cast<void**>(&glCore.glCreateShader) },
+        { "glDeleteShader",      reinterpret_cast<void**>(&glCore.glDeleteShader) },
+        { "glDeleteProgram",     reinterpret_cast<void**>(&glCore.glDeleteProgram) },
+        { "glDetachShader",      reinterpret_cast<void**>(&glCore.glDetachShader) },
+        { "glGetActiveAttrib",   reinterpret_cast<void**>(&glCore.glGetActiveAttrib) },
+        { "glGetAttribLocation", reinterpret_cast<void**>(&glCore.glGetAttribLocation) },
+        { "glGetProgramiv",      reinterpret_cast<void**>(&glCore.glGetProgramiv) },
+        { "glGetProgramInfoLog", reinterpret_cast<void**>(&glCore.glGetProgramInfoLog) },
+        { "glGetShaderiv",       reinterpret_cast<void**>(&glCore.glGetShaderiv) },
+        { "glGetShaderInfoLog",  reinterpret_cast<void**>(&glCore.glGetShaderInfoLog) },
+        { "glLinkProgram",       reinterpret_cast<void**>(&glCore.glLinkProgram) },
+        { "glShaderSource",      reinterpret_cast<void**>(&glCore.glShaderSource) },
+        { "glUseProgram",        reinterpret_cast<void**>(&glCore.glUseProgram) },
+        { "glValidateProgram",   reinterpret_cast<void**>(&glCore.glValidateProgram) },
+        { "glIsProgram",         reinterpret_cast<void**>(&glCore.glIsProgram) },
+
+        //
+        // UNIFORMS
+        //
+
+        { "glGetUniformLocation",   reinterpret_cast<void**>(&glCore.glGetUniformLocation) },
+        { "glGetUniformBlockIndex", reinterpret_cast<void**>(&glCore.glGetUniformBlockIndex) },
+        { "glUniformBlockBinding",  reinterpret_cast<void**>(&glCore.glUniformBlockBinding) },
+        { "glUniform1f",            reinterpret_cast<void**>(&glCore.glUniform1f) },
+        { "glUniform1i",            reinterpret_cast<void**>(&glCore.glUniform1i) },
+        { "glUniform1fv",           reinterpret_cast<void**>(&glCore.glUniform1fv) },
+        { "glUniform1iv",           reinterpret_cast<void**>(&glCore.glUniform1iv) },
+        { "glUniform2f",            reinterpret_cast<void**>(&glCore.glUniform2f) },
+        { "glUniform2i",            reinterpret_cast<void**>(&glCore.glUniform2i) },
+        { "glUniform2fv",           reinterpret_cast<void**>(&glCore.glUniform2fv) },
+        { "glUniform2iv",           reinterpret_cast<void**>(&glCore.glUniform2iv) },
+        { "glUniform3f",            reinterpret_cast<void**>(&glCore.glUniform3f) },
+        { "glUniform3i",            reinterpret_cast<void**>(&glCore.glUniform3i) },
+        { "glUniform3fv",           reinterpret_cast<void**>(&glCore.glUniform3fv) },
+        { "glUniform3iv",           reinterpret_cast<void**>(&glCore.glUniform3iv) },
+        { "glUniform4f",            reinterpret_cast<void**>(&glCore.glUniform4f) },
+        { "glUniform4i",            reinterpret_cast<void**>(&glCore.glUniform4i) },
+        { "glUniform4fv",           reinterpret_cast<void**>(&glCore.glUniform4fv) },
+        { "glUniform4iv",           reinterpret_cast<void**>(&glCore.glUniform4iv) },
+        { "glUniformMatrix2fv",     reinterpret_cast<void**>(&glCore.glUniformMatrix2fv) },
+        { "glUniformMatrix3fv",     reinterpret_cast<void**>(&glCore.glUniformMatrix3fv) },
+        { "glUniformMatrix4fv",     reinterpret_cast<void**>(&glCore.glUniformMatrix4fv) },
+
+        //
+        // TEXTURES
+        //
+
+        { "glBindTexture",    reinterpret_cast<void**>(&glCore.glBindTexture) },
+        { "glActiveTexture",  reinterpret_cast<void**>(&glCore.glActiveTexture) },
+        { "glDeleteTextures", reinterpret_cast<void**>(&glCore.glDeleteTextures) },
+        { "glGenerateMipmap", reinterpret_cast<void**>(&glCore.glGenerateMipmap) },
+        { "glGenTextures",    reinterpret_cast<void**>(&glCore.glGenTextures) },
+        { "glTexImage2D",     reinterpret_cast<void**>(&glCore.glTexImage2D) },
+        { "glTexImage3D",     reinterpret_cast<void**>(&glCore.glTexImage3D) },
+        { "glCompressedTexImage2D", reinterpret_cast<void**>(&glCore.glCompressedTexImage2D) },
+        { "glCompressedTexImage3D", reinterpret_cast<void**>(&glCore.glCompressedTexImage3D) },
+        { "glTexStorage2D",   reinterpret_cast<void**>(&glCore.glTexStorage2D) },
+        { "glTexStorage3D",   reinterpret_cast<void**>(&glCore.glTexStorage3D) },
+        { "glTexSubImage2D",  reinterpret_cast<void**>(&glCore.glTexSubImage2D) },
+        { "glTexSubImage3D",  reinterpret_cast<void**>(&glCore.glTexSubImage3D) },
+        { "glCompressedTexSubImage2D",  reinterpret_cast<void**>(&glCore.glCompressedTexSubImage2D) },
+        { "glCompressedTexSubImage3D",  reinterpret_cast<void**>(&glCore.glCompressedTexSubImage3D) },
+        { "glTexParameteri",  reinterpret_cast<void**>(&glCore.glTexParameteri) },
+        { "glTexParameteriv", reinterpret_cast<void**>(&glCore.glTexParameteriv) },
+        { "glTexParameterf",  reinterpret_cast<void**>(&glCore.glTexParameterf) },
+        { "glTexParameterfv", reinterpret_cast<void**>(&glCore.glTexParameterfv) },
+        { "glPixelStorei",    reinterpret_cast<void**>(&glCore.glPixelStorei) },
+        { "glPixelStoref",    reinterpret_cast<void**>(&glCore.glPixelStoref) },
+
+        //
+        // FRAMEBUFFERS AND RENDERBUFFERS
+        //
+
+        { "glBindRenderbuffer",        reinterpret_cast<void**>(&glCore.glBindRenderbuffer) },
+        { "glBindFramebuffer",         reinterpret_cast<void**>(&glCore.glBindFramebuffer) },
+        { "glBindBufferBase",          reinterpret_cast<void**>(&glCore.glBindBufferBase) },
+        { "glCheckFramebufferStatus",  reinterpret_cast<void**>(&glCore.glCheckFramebufferStatus) },
+        { "glFramebufferRenderbuffer", reinterpret_cast<void**>(&glCore.glFramebufferRenderbuffer) },
+        { "glFramebufferTexture2D",    reinterpret_cast<void**>(&glCore.glFramebufferTexture2D) },
+        { "glGenRenderbuffers",        reinterpret_cast<void**>(&glCore.glGenRenderbuffers) },
+        { "glGenFramebuffers",         reinterpret_cast<void**>(&glCore.glGenFramebuffers) },
+        { "glRenderbufferStorage",     reinterpret_cast<void**>(&glCore.glRenderbufferStorage) },
+        { "glDepthFunc",               reinterpret_cast<void**>(&glCore.glDepthFunc) },
+        { "glDepthMask",               reinterpret_cast<void**>(&glCore.glDepthMask) },
+        { "glBlendColor",              reinterpret_cast<void**>(&glCore.glBlendColor) },
+        { "glBlendFunc",               reinterpret_cast<void**>(&glCore.glBlendFunc) },
+        { "glBlendFunci",              reinterpret_cast<void**>(&glCore.glBlendFunci) },
+        { "glBlendEquation",           reinterpret_cast<void**>(&glCore.glBlendEquation) },
+        { "glBlendEquationi",          reinterpret_cast<void**>(&glCore.glBlendEquationi) },
+        { "glBlendEquationSeparate",   reinterpret_cast<void**>(&glCore.glBlendEquationSeparate) },
+        { "glBlendEquationSeparatei",  reinterpret_cast<void**>(&glCore.glBlendEquationSeparatei) },
+        { "glStencilFunc",             reinterpret_cast<void**>(&glCore.glStencilFunc) },
+        { "glStencilFuncSeparate",     reinterpret_cast<void**>(&glCore.glStencilFuncSeparate) },
+        { "glStencilMask",             reinterpret_cast<void**>(&glCore.glStencilMask) },
+        { "glStencilMaskSeparate",     reinterpret_cast<void**>(&glCore.glStencilMaskSeparate) },
+        { "glStencilOp",               reinterpret_cast<void**>(&glCore.glStencilOp) },
+        { "glStencilOpSeparate",       reinterpret_cast<void**>(&glCore.glStencilOpSeparate) },
+
+        //
+        // FRAME AND RENDER STATE
+        //
+
+        { "glClear",       reinterpret_cast<void**>(&glCore.glClear) },
+        { "glClearColor",  reinterpret_cast<void**>(&glCore.glClearColor) },
+        { "glEnable",      reinterpret_cast<void**>(&glCore.glEnable) },
+        { "glDisable",     reinterpret_cast<void**>(&glCore.glDisable) },
+        { "glFrontFace",   reinterpret_cast<void**>(&glCore.glFrontFace) },
+        { "glGetBooleanv", reinterpret_cast<void**>(&glCore.glGetBooleanv) },
+        { "glGetIntegerv", reinterpret_cast<void**>(&glCore.glGetIntegerv) },
+        { "glGetFloatv",   reinterpret_cast<void**>(&glCore.glGetFloatv) },
+        { "glGetDoublev",  reinterpret_cast<void**>(&glCore.glGetDoublev) },
+        { "glGetString",   reinterpret_cast<void**>(&glCore.glGetString) },
+        { "glGetStringi",  reinterpret_cast<void**>(&glCore.glGetStringi) },
+        { "glViewport",    reinterpret_cast<void**>(&glCore.glViewport) }
+    };
 
     void LIB_APIENTRY DebugCallback(
         GLenum source,
@@ -271,238 +275,45 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
         }
     }
 
-    //
-    // GEOMETRY
-    //
-
-    PFNGLMAPBUFFERRANGEPROC          glMapBufferRange          = nullptr;
-    PFNGLBUFFERSTORAGEPROC           glBufferStorage           = nullptr;
-    PFNGLBINDBUFFERPROC              glBindBuffer              = nullptr;
-    PFNGLBINDVERTEXARRAYPROC         glBindVertexArray         = nullptr;
-    PFNGLBUFFERDATAPROC              glBufferData              = nullptr;
-    PFNGLBUFFERSUBDATAPROC           glBufferSubData           = nullptr;
-    PFNGLDELETEBUFFERSPROC           glDeleteBuffers           = nullptr;
-    PFNGLDELETEVERTEXARRAYSPROC      glDeleteVertexArrays      = nullptr;
-    PFNGLDRAWARRAYSPROC              glDrawArrays              = nullptr;
-    PFNGLDRAWELEMENTSPROC            glDrawElements            = nullptr;
-    PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray = nullptr;
-    PFNGLGENBUFFERSPROC              glGenBuffers              = nullptr;
-    PFNGLGENVERTEXARRAYSPROC         glGenVertexArrays         = nullptr;
-    PFNGLGETVERTEXATTRIBIVPROC       glGetVertexAttribiv       = nullptr;
-    PFNGLGETVERTEXATTRIBPOINTERVPROC glGetVertexAttribPointerv = nullptr;
-    PFNGLVERTEXATTRIBPOINTERPROC     glVertexAttribPointer     = nullptr;
-    PFNGLCULLFACEPROC                glCullFace                = nullptr;
-
-    //
-    // SHADERS
-    //
-
-    PFNGLATTACHSHADERPROC       glAttachShader       = nullptr;
-    PFNGLCOMPILESHADERPROC      glCompileShader      = nullptr;
-    PFNGLCREATEPROGRAMPROC      glCreateProgram      = nullptr;
-    PFNGLCREATESHADERPROC       glCreateShader       = nullptr;
-    PFNGLDELETESHADERPROC       glDeleteShader       = nullptr;
-    PFNGLDELETEPROGRAMPROC      glDeleteProgram      = nullptr;
-    PFNGLDETACHSHADERPROC       glDetachShader       = nullptr;
-    PFNGLGETACTIVEATTRIBPROC    glGetActiveAttrib    = nullptr;
-    PFNGLGETATTRIBLOCATIONPROC  glGetAttribLocation  = nullptr;
-    PFNGLGETPROGRAMIVPROC       glGetProgramiv       = nullptr;
-    PFNGLGETPROGRAMINFOLOGPROC  glGetProgramInfoLog  = nullptr;
-    PFNGLGETSHADERIVPROC        glGetShaderiv        = nullptr;
-    PFNGLGETSHADERINFOLOGPROC   glGetShaderInfoLog   = nullptr;
-    PFNGLLINKPROGRAMPROC        glLinkProgram        = nullptr;
-    PFNGLSHADERSOURCEPROC       glShaderSource       = nullptr;
-    PFNGLUSEPROGRAMPROC         glUseProgram         = nullptr;
-    PFNGLVALIDATEPROGRAMPROC    glValidateProgram    = nullptr;
-    PFNGLISPROGRAMPROC          glIsProgram          = nullptr;
-
-    //
-    // UNIFORMS
-    //
-
-    PFNGLGETUNIFORMLOCATIONPROC   glGetUniformLocation   = nullptr;
-    PFNGLGETUNIFORMBLOCKINDEXPROC glGetUniformBlockIndex = nullptr;
-    PFNGLUNIFORMBLOCKBINDINGPROC  glUniformBlockBinding  = nullptr;
-    PFNGLUNIFORM1FPROC            glUniform1f            = nullptr;
-    PFNGLUNIFORM1IPROC            glUniform1i            = nullptr;
-    PFNGLUNIFORM1FVPROC           glUniform1fv           = nullptr;
-    PFNGLUNIFORM1IVPROC           glUniform1iv           = nullptr;
-    PFNGLUNIFORM2FPROC            glUniform2f            = nullptr;
-    PFNGLUNIFORM2IPROC            glUniform2i            = nullptr;
-    PFNGLUNIFORM2FVPROC           glUniform2fv           = nullptr;
-    PFNGLUNIFORM2IVPROC           glUniform2iv           = nullptr;
-    PFNGLUNIFORM3FPROC            glUniform3f            = nullptr;
-    PFNGLUNIFORM3IPROC            glUniform3i            = nullptr;
-    PFNGLUNIFORM3FVPROC           glUniform3fv           = nullptr;
-    PFNGLUNIFORM3IVPROC           glUniform3iv           = nullptr;
-    PFNGLUNIFORM4FPROC            glUniform4f            = nullptr;
-    PFNGLUNIFORM4IPROC            glUniform4i            = nullptr;
-    PFNGLUNIFORM4FVPROC           glUniform4fv           = nullptr;
-    PFNGLUNIFORM4IVPROC           glUniform4iv           = nullptr;
-    PFNGLUNIFORMMATRIX2FVPROC     glUniformMatrix2fv     = nullptr;
-    PFNGLUNIFORMMATRIX3FVPROC     glUniformMatrix3fv     = nullptr;
-    PFNGLUNIFORMMATRIX4FVPROC     glUniformMatrix4fv     = nullptr;
-
-    //
-    // TEXTURES
-    //
-
-    PFNGLBINDTEXTUREPROC     glBindTexture     = nullptr;
-    PFNGLACTIVETEXTUREPROC   glActiveTexture   = nullptr;
-    PFNGLDELETETEXTURESPROC  glDeleteTextures  = nullptr;
-    PFNGLGENERATEMIPMAPPROC  glGenerateMipmap  = nullptr;
-    PFNGLGENTEXTURESPROC     glGenTextures     = nullptr;
-    PFNGLTEXIMAGE2DPROC      glTexImage2D      = nullptr;
-    PFNGLTEXIMAGE3DPROC      glTexImage3D      = nullptr;
-    PFNGLCOMPRESSEDTEXIMAGE2DPROC glCompressedTexImage2D = nullptr;
-    PFNGLCOMPRESSEDTEXIMAGE3DPROC glCompressedTexImage3D = nullptr;
-    PFNGLTEXSTORAGE2DPROC    glTexStorage2D    = nullptr;
-    PFNGLTEXSTORAGE3DPROC    glTexStorage3D    = nullptr;
-    PFNGLTEXSUBIMAGE2DPROC   glTexSubImage2D   = nullptr;
-    PFNGLTEXSUBIMAGE3DPROC   glTexSubImage3D   = nullptr;
-    PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC glCompressedTexSubImage2D = nullptr;
-    PFNGLCOMPRESSEDTEXSUBIMAGE3DPROC glCompressedTexSubImage3D = nullptr;
-    PFNGLTEXPARAMETERIPROC   glTexParameteri   = nullptr;
-    PFNGLTEXPARAMETERIVPROC  glTexParameteriv  = nullptr;
-    PFNGLTEXPARAMETERFPROC   glTexParameterf   = nullptr;
-    PFNGLTEXPARAMETERFVPROC  glTexParameterfv  = nullptr;
-    PFNGLPIXELSTOREIPROC     glPixelStorei     = nullptr;
-    PFNGLPIXELSTOREFPROC     glPixelStoref     = nullptr;
-
-    //
-    // FRAMEBUFFERS AND RENDERBUFFERS
-    //
-
-    PFNGLBINDRENDERBUFFERPROC        glBindRenderbuffer        = nullptr;
-    PFNGLBINDFRAMEBUFFERPROC         glBindFramebuffer         = nullptr;
-    PFNGLBINDBUFFERBASEPROC          glBindBufferBase          = nullptr;
-    PFNGLCHECKFRAMEBUFFERSTATUSPROC  glCheckFramebufferStatus  = nullptr;
-    PFNGLFRAMEBUFFERRENDERBUFFERPROC glFramebufferRenderbuffer = nullptr;
-    PFNGLFRAMEBUFFERTEXTURE2DPROC    glFramebufferTexture2D    = nullptr;
-    PFNGLGENRENDERBUFFERSPROC        glGenRenderbuffers        = nullptr;
-    PFNGLGENFRAMEBUFFERSPROC         glGenFramebuffers         = nullptr;
-    PFNGLRENDERBUFFERSTORAGEPROC     glRenderbufferStorage     = nullptr;
-    PFNGLDEPTHFUNCPROC               glDepthFunc               = nullptr;
-    PFNGLDEPTHMASKPROC               glDepthMask               = nullptr;
-    PFNGLBLENDCOLORPROC              glBlendColor              = nullptr;
-    PFNGLBLENDFUNCPROC               glBlendFunc               = nullptr;
-    PFNGLBLENDFUNCIPROC              glBlendFunci              = nullptr;
-    PFNGLBLENDEQUATIONPROC           glBlendEquation           = nullptr;
-    PFNGLBLENDEQUATIONIPROC          glBlendEquationi          = nullptr;
-    PFNGLBLENDEQUATIONSEPARATEPROC   glBlendEquationSeparate   = nullptr;
-    PFNGLBLENDEQUATIONSEPARATEIPROC  glBlendEquationSeparatei  = nullptr;
-    PFNGLSTENCILFUNCPROC             glStencilFunc             = nullptr;
-    PFNGLSTENCILFUNCSEPARATEPROC     glStencilFuncSeparate     = nullptr;
-    PFNGLSTENCILMASKPROC             glStencilMask             = nullptr;
-    PFNGLSTENCILMASKSEPARATEPROC     glStencilMaskSeparate     = nullptr;
-    PFNGLSTENCILOPPROC               glStencilOp               = nullptr;
-    PFNGLSTENCILOPSEPARATEPROC       glStencilOpSeparate       = nullptr;
-
-    //
-    // FRAME AND RENDER STATE
-    //
-
-    PFNGLCLEARPROC        glClear        = nullptr;
-    PFNGLCLEARCOLORPROC   glClearColor   = nullptr;
-    PFNGLDISABLEPROC      glDisable      = nullptr;
-    PFNGLENABLEPROC       glEnable       = nullptr;
-    PFNGLFRONTFACEPROC    glFrontFace    = nullptr;
-    PFNGLGETBOOLEANVPROC  glGetBooleanv  = nullptr;
-    PFNGLGETINTEGERVPROC  glGetIntegerv  = nullptr;
-    PFNGLGETFLOATVPROC    glGetFloatv    = nullptr;
-    PFNGLGETDOUBLEVPROC   glGetDoublev   = nullptr;
-    PFNGLGETSTRINGPROC    glGetString    = nullptr;
-    PFNGLGETSTRINGIPROC   glGetStringi   = nullptr;
-    PFNGLVIEWPORTPROC     glViewport     = nullptr;
-
 	void OpenGL_Functions_Core::LoadAllCoreFunctions()
 	{
-        for (const auto& func : functions)
+        for (auto& entry : functions)
         {
-            LoadCoreFunction(func.name);
-        }
-	}
-
-    void OpenGL_Functions_Core::LoadCoreFunction(const char* name)
-    {
-        //check if already loaded
-        auto it = find_if(
-            loadedCoreFunctions.begin(),
-            loadedCoreFunctions.end(),
-            [name](const CoreGLFunction& rec) { return strcmp(rec.name, name) == 0; });
-
-        //already loaded
-        if (it != loadedCoreFunctions.end())
-        {
-            Log::Print(
-                "Function '" + string(name) + "' is already loaded!",
-                "OPENGL_CORE",
-                LogType::LOG_ERROR,
-                2);
-
-            return;
-        }
-
-        //find entry in registry
-        CoreGLFunction* entry = nullptr;
-        for (auto& f : functions)
-        {
-            if (strcmp(f.name, name) == 0)
-            {
-                entry = &f;
-                break;
-            }
-        }
-        if (!entry)
-        {
-            Log::Print(
-                "Function '" + string(name) + "' does not exist!",
-                "OPENGL_CORE",
-                LogType::LOG_ERROR,
-                2);
-
-            return;
-        }
-
-        //try to load
-        void* ptr = nullptr;
+            //try to load
+            void* ptr = nullptr;
 
 #ifdef _WIN32
-        ptr = reinterpret_cast<void*>(wglGetProcAddress(name));
-        if (!ptr)
-        {
-            HMODULE module = ToVar<HMODULE>(OpenGL_Global::GetOpenGLLibrary());
-            ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
-        }
+            ptr = reinterpret_cast<void*>(wglGetProcAddress(entry.name));
+            if (!ptr)
+            {
+                HMODULE module = ToVar<HMODULE>(OpenGL_Global::GetOpenGLLibrary());
+                ptr = reinterpret_cast<void*>(GetProcAddress(module, entry.name));
+            }
 #else
-        ptr = reinterpret_cast<void*>(glXGetProcAddress(
-            reinterpret_cast<const GLubyte*>(name)));
-        if (!ptr)
-        {
-            void* module = ToVar<void*>(OpenGL_Global::GetOpenGLHandle());
-            ptr = reinterpret_cast<void*>(GetProcAddress(module, name));
-        }
+            ptr = reinterpret_cast<void*>(glXGetProcAddress(
+                reinterpret_cast<const GLubyte*>(entry.name)));
+
+            if (!ptr)
+            {
+                void* module = ToVar<void*>(OpenGL_Global::GetOpenGLHandle());
+                ptr = dlsym(module, entry.name);
+            }
 #endif
 
-        if (!ptr)
-        {
-            KalaWindowCore::ForceClose(
-                "OpenGL Core function error",
-                "Failed to load OpenGL error '" + string(name) + "'!");
-        }
-
-        //assign into the real extern global
-        *entry->target = ptr;
-
-        loadedCoreFunctions.push_back(CoreGLFunction
+            if (!ptr)
             {
-                entry->name,
-                entry->target
-            });
+                KalaWindowCore::ForceClose(
+                    "OpenGL Core function error",
+                    "Failed to load OpenGL function '" + string(entry.name) + "'!");
+            }
 
-        Log::Print(
-            "Loaded '" + string(name) + "'!",
-            "OPENGL_CORE",
-            LogType::LOG_DEBUG);
-    }
+            //assign into GL_Core dispatch table
+            *entry.target = ptr;
+
+            Log::Print(
+                "Loaded '" + string(entry.name) + "'!",
+                "OPENGL_CORE",
+                LogType::LOG_DEBUG);
+        }
+	}
 }

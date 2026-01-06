@@ -26,7 +26,8 @@ using KalaWindow::OpenGL::OpenGL_ShaderType;
 using KalaWindow::OpenGL::OpenGL_ShaderData;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::OpenGL::OpenGL_Global;
-using namespace KalaWindow::OpenGL::OpenGLFunctions;
+using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
+using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 
 using std::string;
 using std::to_string;
@@ -65,12 +66,14 @@ static void DeleteShader(
     u32 programID,
     const array<OpenGL_ShaderData, 3>& shaderData)
 {
+    const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
     for (const auto& s : shaderData)
     {
         if (s.ID)
         {
-            glDetachShader(programID, s.ID);
-            glDeleteShader(s.ID);
+            coreFunc->glDetachShader(programID, s.ID);
+            coreFunc->glDeleteShader(s.ID);
         }
     }
 }
@@ -90,6 +93,8 @@ namespace KalaWindow::OpenGL
 
 			return nullptr;
 		}
+
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 		
         u32 newID = ++KalaWindowCore::globalID;
         unique_ptr<OpenGL_Shader> newShader = make_unique<OpenGL_Shader>();
@@ -250,24 +255,24 @@ namespace KalaWindow::OpenGL
         // CREATE SHADER PROGRAM
         //
 
-        shaderPtr->programID = glCreateProgram();
+        shaderPtr->programID = coreFunc->glCreateProgram();
 
-        glAttachShader(
+        coreFunc->glAttachShader(
             shaderPtr->programID, 
             newVertData.ID);
-        glAttachShader(
+        coreFunc->glAttachShader(
             shaderPtr->programID, 
             newFragData.ID);
         if (geomShaderExists)
         {
-            glAttachShader(
+            coreFunc->glAttachShader(
                 shaderPtr->programID, 
                 newGeomData.ID);
         }
-        glLinkProgram(shaderPtr->programID);
+        coreFunc->glLinkProgram(shaderPtr->programID);
 
         i32 success = 0;
-        glGetProgramiv(
+        coreFunc->glGetProgramiv(
             shaderPtr->programID, 
             GL_LINK_STATUS, 
             &success);
@@ -287,7 +292,7 @@ namespace KalaWindow::OpenGL
                 } });
 
             i32 logLength = 0;
-            glGetProgramiv(
+            coreFunc->glGetProgramiv(
                 shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
                 &logLength);
@@ -295,7 +300,7 @@ namespace KalaWindow::OpenGL
             if (logLength > 0)
             {
                 vector<char> log(logLength);
-                glGetProgramInfoLog(
+                coreFunc->glGetProgramInfoLog(
                     shaderPtr->programID, 
                     logLength, 
                     nullptr, 
@@ -337,9 +342,9 @@ namespace KalaWindow::OpenGL
         // VALIDATE THE SHADER PROGRAM BEFORE USING IT
         //
 
-        glValidateProgram(shaderPtr->programID);
+        coreFunc->glValidateProgram(shaderPtr->programID);
         i32 validated = 0;
-        glGetProgramiv(
+        coreFunc->glGetProgramiv(
             shaderPtr->programID, 
             GL_VALIDATE_STATUS, 
             &validated);
@@ -354,7 +359,7 @@ namespace KalaWindow::OpenGL
                 } });
 
             i32 logLength = 0;
-            glGetProgramiv(
+            coreFunc->glGetProgramiv(
                 shaderPtr->programID, 
                 GL_INFO_LOG_LENGTH, 
                 &logLength);
@@ -362,7 +367,7 @@ namespace KalaWindow::OpenGL
             if (logLength > 0)
             {
                 vector<char> log(logLength);
-                glGetProgramInfoLog(
+                coreFunc->glGetProgramInfoLog(
                     shaderPtr->programID, 
                     logLength, 
                     nullptr, 
@@ -384,7 +389,7 @@ namespace KalaWindow::OpenGL
             return nullptr;
         }
 
-        i32 valid = glIsProgram(shaderPtr->programID);
+        i32 valid = coreFunc->glIsProgram(shaderPtr->programID);
         bool isProgramValid = valid == GL_TRUE;
         if (!isProgramValid)
         {
@@ -475,9 +480,11 @@ namespace KalaWindow::OpenGL
             return false;
         }
 
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
 #ifdef _DEBUG
         i32 linked = 0;
-        glGetProgramiv(
+        coreFunc->glGetProgramiv(
             programID,
             GL_LINK_STATUS,
             &linked);
@@ -490,7 +497,7 @@ namespace KalaWindow::OpenGL
         }
 
         i32 validated = 0;
-        glGetProgramiv(
+        coreFunc->glGetProgramiv(
             programID,
             GL_VALIDATE_STATUS,
             &validated);
@@ -503,11 +510,11 @@ namespace KalaWindow::OpenGL
         }
 #endif
 
-        glUseProgram(programID);
+        coreFunc->glUseProgram(programID);
 
 #ifdef _DEBUG
         i32 activeProgram = 0;
-        glGetIntegerv(
+        coreFunc->glGetIntegerv(
             GL_CURRENT_PROGRAM,
             &activeProgram);
 
@@ -613,7 +620,9 @@ namespace KalaWindow::OpenGL
         const string& name, 
         bool value) const
     {
-        glUniform1i(glGetUniformLocation(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        coreFunc->glUniform1i(coreFunc->glGetUniformLocation(
             programID, 
             name.c_str()), 
             (i32)value);
@@ -622,7 +631,9 @@ namespace KalaWindow::OpenGL
         const string& name, 
         i32 value) const
     {
-        glUniform1i(glGetUniformLocation(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        coreFunc->glUniform1i(coreFunc->glGetUniformLocation(
             programID, 
             name.c_str()), 
             value);
@@ -631,7 +642,9 @@ namespace KalaWindow::OpenGL
         const string& name, 
         f32 value) const
     {
-        glUniform1f(glGetUniformLocation(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        coreFunc->glUniform1f(coreFunc->glGetUniformLocation(
             programID, 
             name.c_str()), 
             value);
@@ -641,8 +654,10 @@ namespace KalaWindow::OpenGL
         const string& name, 
         const vec2& value) const
     {
-        auto loc = glGetUniformLocation(programID, name.c_str());
-        glUniform2fv(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        coreFunc->glUniform2fv(
             loc, 
             1, 
             &value.x);
@@ -651,8 +666,10 @@ namespace KalaWindow::OpenGL
         const string& name, 
         const vec3& value) const
     {
-        auto loc = glGetUniformLocation(programID, name.c_str());
-        glUniform3fv(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        coreFunc->glUniform3fv(
             loc, 
             1, 
             &value.x);
@@ -661,8 +678,10 @@ namespace KalaWindow::OpenGL
         const string& name, 
         const vec4& value) const
     {
-        auto loc = glGetUniformLocation(programID, name.c_str());
-        glUniform4fv(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        coreFunc->glUniform4fv(
             loc, 
             1, 
             &value.x);
@@ -672,8 +691,10 @@ namespace KalaWindow::OpenGL
         const string& name, 
         const mat2& mat) const
     {
-        auto loc = glGetUniformLocation(programID, name.c_str());
-        glUniformMatrix2fv(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        coreFunc->glUniformMatrix2fv(
             loc, 
             1, 
             GL_FALSE, 
@@ -683,8 +704,10 @@ namespace KalaWindow::OpenGL
         const string& name, 
         const mat3& mat) const
     {
-        auto loc = glGetUniformLocation(programID, name.c_str());
-        glUniformMatrix3fv(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        coreFunc->glUniformMatrix3fv(
             loc, 
             1, 
             GL_FALSE, 
@@ -694,8 +717,10 @@ namespace KalaWindow::OpenGL
         const string& name, 
         const mat4& mat) const
     {
-        auto loc = glGetUniformLocation(programID, name.c_str());
-        glUniformMatrix4fv(
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        coreFunc->glUniformMatrix4fv(
             loc, 
             1, 
             GL_FALSE, 
@@ -704,6 +729,8 @@ namespace KalaWindow::OpenGL
 
     OpenGL_Shader::~OpenGL_Shader()
     {
+        const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
         Log::Print(
             "Destroying shader '" + name + "' with ID '" + to_string(ID) + "'.",
             "OPENGL_SHADER",
@@ -715,11 +742,11 @@ namespace KalaWindow::OpenGL
 
                 if (programID != 0)
                 {
-                    glDetachShader(
+                    coreFunc->glDetachShader(
                         programID,
                         ID);
                 }
-                glDeleteShader(ID);
+                coreFunc->glDeleteShader(ID);
                 ID = 0;
             };
 
@@ -729,7 +756,7 @@ namespace KalaWindow::OpenGL
 
         if (programID != 0)
         {
-            glDeleteProgram(programID);
+            coreFunc->glDeleteProgram(programID);
             programID = 0;
         }
     }
@@ -852,16 +879,18 @@ void CheckShaderData(
 
 bool CheckCompileErrors(u32 shader, const string& type)
 {
+    const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
     i32 success = 0;
     i32 logLength = 0;
 
     if (type == "PROGRAM")
     {
-        glGetProgramiv(
+        coreFunc->glGetProgramiv(
             shader,
             GL_LINK_STATUS,
             &success);
-        glGetProgramiv(
+        coreFunc->glGetProgramiv(
             shader,
             GL_INFO_LOG_LENGTH,
             &logLength);
@@ -872,7 +901,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
                 const GLsizei safeLength = min(logLength, 4096);
 
                 vector<char> infoLog(safeLength);
-                glGetProgramInfoLog(
+                coreFunc->glGetProgramInfoLog(
                     shader,
                     safeLength,
                     nullptr,
@@ -903,11 +932,11 @@ bool CheckCompileErrors(u32 shader, const string& type)
     }
     else
     {
-        glGetShaderiv(
+        coreFunc->glGetShaderiv(
             shader,
             GL_COMPILE_STATUS,
             &success);
-        glGetShaderiv(
+        coreFunc->glGetShaderiv(
             shader,
             GL_INFO_LOG_LENGTH,
             &logLength);
@@ -918,7 +947,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
                 const GLsizei safeLength = min(logLength, 4096);
 
                 vector<char> infoLog(safeLength);
-                glGetShaderInfoLog(
+                coreFunc->glGetShaderInfoLog(
                     shader,
                     safeLength,
                     nullptr,
@@ -953,6 +982,8 @@ bool CheckCompileErrors(u32 shader, const string& type)
 
 void InitShader(OpenGL_ShaderData& data)
 {
+    const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
     string shaderPath = data.shaderPath;
     string shaderData = data.shaderData;
     OpenGL_ShaderType type = data.type;
@@ -992,13 +1023,13 @@ void InitShader(OpenGL_ShaderData& data)
         shaderEnum = GL_GEOMETRY_SHADER; break;
     }
 
-    data.ID = glCreateShader(shaderEnum);
-    glShaderSource(
+    data.ID = coreFunc->glCreateShader(shaderEnum);
+    coreFunc->glShaderSource(
         data.ID,
         1,
         &shaderCodeChar,
         nullptr);
-    glCompileShader(data.ID);
+    coreFunc->glCompileShader(data.ID);
 
     string capitalShaderName{};
     switch (type)
@@ -1013,7 +1044,7 @@ void InitShader(OpenGL_ShaderData& data)
 
     if (!CheckCompileErrors(data.ID, capitalShaderName))
     {
-        glDeleteShader(data.ID);
+        coreFunc->glDeleteShader(data.ID);
 
         KalaWindowCore::ForceClose(
             "OpenGL shader error",

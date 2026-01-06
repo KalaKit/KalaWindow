@@ -13,10 +13,12 @@
 #include <cstdint>
 #include <chrono>
 #include <csignal>
+#include <string>
 
 #include "KalaHeaders/log_utils.hpp"
 
 #include "core/kw_core.hpp"
+#include "core/kw_crash.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
@@ -29,6 +31,7 @@ using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 using KalaHeaders::KalaLog::DateFormat;
 
+using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -38,6 +41,7 @@ using KalaWindow::Graphics::MenuBar;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::OpenGL::OpenGL_Shader;
 
+using std::string_view;
 using std::abort;
 using std::raise;
 using std::function;
@@ -48,6 +52,13 @@ using std::chrono::time_point;
 using std::chrono::duration;
 
 static function<void()> userRegularShutdown;
+
+#ifdef ENABLE_EMIT_LOG
+void KalaHeaders::KalaLog::EmitLog(string_view msg)
+{
+	CrashHandler::AppendToCrashLog(msg);
+}
+#endif
 
 namespace KalaWindow::Core
 {
