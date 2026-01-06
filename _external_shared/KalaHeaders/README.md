@@ -129,9 +129,10 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 
 Comprehensive logger header for any logging needs - sends stdout and stderr messages to your console.
 
-- can get current system time and date, formatted to chosen TimeFormat or DateFormat enum choice
-- can set default time and date format so that TIME_DEFAULT and DATE_DEFAULT always use them with full Print function
-- has full and basic Print functions
+- Simple logger - just a fwrite to the console with a single string parameter
+- Log types - info (no log type stamp), debug (skipped in release), success, warning, error
+- Time stamp, date stamp accurate to system clock
+- LogHook - user-defined function that allows emitting logs to another target like the crash log storage in kalawindow
 
 ## Full and basic Print function differences
 
