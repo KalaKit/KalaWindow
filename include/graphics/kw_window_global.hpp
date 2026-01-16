@@ -71,13 +71,13 @@ namespace KalaWindow::Graphics
 	class LIB_API Window_Global
 	{
 	public:
-		static void Initialize();
-		static inline bool IsInitialized() { return isInitialized; }
-
 		//Toggle verbose logging. If true, then global window context 
 		//and all windows will dump their logs into the console.
-		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+		static void SetVerboseLoggingState(bool newState);
+		static bool IsVerboseLoggingEnabled();
+
+		static void Initialize();
+		static bool IsInitialized();
 
 		//Returns Windows version as xxyyyyyy format,
 		//where XX is windows version and YYYYYY is build version.
@@ -91,7 +91,7 @@ namespace KalaWindow::Graphics
 			PopupAction action,
 			PopupType type);
 
-		static inline const string& GetAppID() { return appID; }
+		static const string& GetAppID();
 
 		//Uses the file explorer to get a path to selected files by chosen type.
 		//Set multiple to true to allow returning more than one item
@@ -111,11 +111,5 @@ namespace KalaWindow::Graphics
 		static void SetClipboardText(const string& text);
 		//Returns string from clipboard
 		static string GetClipboardText();
-	private:
-		static inline bool isInitialized{};
-		static inline bool isVerboseLoggingEnabled{};
-
-		static inline u32 version{};
-		static inline string appID{};
 	};
 }

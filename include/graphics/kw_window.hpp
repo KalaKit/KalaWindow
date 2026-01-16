@@ -115,7 +115,7 @@ namespace KalaWindow::Graphics
 	class LIB_API Window
 	{
 	public:
-		static inline KalaWindowRegistry<Window> registry{};
+		static KalaWindowRegistry<Window>& GetRegistry();
 
 		//Create a new window that is always hidden by default, you must manually make it visible.
 		//Assign a parent window to display this window as a child of that window.
@@ -127,18 +127,18 @@ namespace KalaWindow::Graphics
 			Window* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 
-		inline bool IsInitialized() const { return isInitialized; }
+		bool IsInitialized() const;
 
-		inline u32 GetID() const { return ID; }
-
-		//Assigns paths of last dragged files. This is called through WM_DROPFILES.
-		inline void SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
-		inline const vector<string>& GetLastDraggedFiles() const { return lastDraggedFiles; };
-		//Clears paths to last file paths that were dragged onto window
-		inline void ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
+		u32 GetID() const;
 
 		//Draws the window, handles messages for active frame
 		void Update();
+
+		//Assigns paths of last dragged files. This is called through WM_DROPFILES.
+		void SetLastDraggedFiles(const vector<string>& files);
+		const vector<string>& GetLastDraggedFiles() const;
+		//Clears paths to last file paths that were dragged onto window
+		void ClearLastDraggedFiles();
 
 		void SetTitle(const string& newTitle) const;
 		const string& GetTitle() const;
@@ -147,7 +147,7 @@ namespace KalaWindow::Graphics
 		//The first parameter requires an ID to the texture.
 		void SetIcon(u32 texture) const;
 		//Returns icon ID (Texture object ID)
-		inline u32 GetIcon() const { return iconID; }
+		u32 GetIcon() const;
 		//Clears the current executable icon
 		void ClearIcon() const;
 
@@ -159,7 +159,7 @@ namespace KalaWindow::Graphics
 		void SetTaskbarOverlayIcon(
 			u32 texture,
 			const string& tooltip = "") const;
-		inline u32 GetTaskbarOverlayIcon() const { return overlayIconID; }
+		u32 GetTaskbarOverlayIcon() const;
 		//Clears the current overlay icon and its tooltip
 		void ClearTaskbarOverlayIcon() const;
 
@@ -182,16 +182,16 @@ namespace KalaWindow::Graphics
 		void SetPosition(vec2 newPos) const;
 		vec2 GetPosition();
 
-		inline void SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
-		inline vec2 GetMaxSize() const { return maxSize; }
+		void SetMaxSize(vec2 newMaxSize);
+		vec2 GetMaxSize() const;
 
-		inline void SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
-		inline vec2 GetMinSize() const { return minSize; }
+		void SetMinSize(vec2 newMinSize);
+		vec2 GetMinSize() const;
 
 		//If true, then this window is gonna go idle and reduces cpu and gpu
 		//cycles by waiting for messageloop messages before updating the exe.
-		inline void SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
-		inline bool IsFocusRequired() const { return isWindowFocusRequired; }
+		void SetFocusRequired(bool newFocusRequired);
+		bool IsFocusRequired() const;
 
 		//If true, then this window is always on top of other windows
 		void SetAlwaysOnTopState(bool state) const;
@@ -258,7 +258,7 @@ namespace KalaWindow::Graphics
 		//If true, then Windows stops this app from closing
 		//when shutting down or logging off to enable you to close your work
 		void SetShutdownBlockState(bool state);
-		inline bool IShutdownBlockEnabled() const { return shutdownBlockState; }
+		bool IShutdownBlockEnabled() const;
 
 		//Flash the window or taskbar to attract user attention
 		void Flash(
@@ -275,46 +275,40 @@ namespace KalaWindow::Graphics
 			u8 maxProgress) const;
 
 		//Correctly handle aspect ratio during window resize for camera
-		inline void TriggerResize() { if (resizeCallback) resizeCallback(); }
-		inline void SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
+		void TriggerResize();
+		void SetResizeCallback(const function<void()>& callback);
 
 		//Ensure content is redrawn while window is being resized
-		inline void TriggerRedraw() { if (redrawCallback) redrawCallback(); }
-		inline void SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
+		void TriggerRedraw();
+		void SetRedrawCallback(const function<void()>& callback);
 
 #ifdef _WIN32
-		inline void SetWindowData(const WindowData& newWindowStruct)
-		{
-			window_windows = newWindowStruct;
-		}
-		inline const WindowData& GetWindowData() const { return window_windows; }
+		void SetWindowData(const WindowData& newWindowStruct);
+		const WindowData& GetWindowData() const;
 #else
-		inline void SetWindowData(const WindowData& newWindowStruct)
-		{
-			window_x11 = newWindowStruct;
-		}
-		inline const WindowData& GetWindowData() const { return window_x11; }
+		void SetWindowData(const WindowData& newWindowStruct);
+		const WindowData& GetWindowData() const;
 #endif
 
 		//
 		// WINDOW CONTENT
 		//
 
-		inline u32 GetInputID() const { return inputID; }
-		inline void SetInputID(u32 newValue) { inputID = newValue; }
+		u32 GetInputID() const;
+		void SetInputID(u32 newValue);
 		
-		inline u32 GetGLID() const { return glID; }
-		inline void SetGLID(u32 newValue) { glID = newValue; }
+		u32 GetGLID() const;
+		void SetGLID(u32 newValue);
 		
-		inline u32 GetMenuBarID() const { return menuBarID; }
-		inline void SetMenuBarID(u32 newValue) { menuBarID = newValue; }
+		u32 GetMenuBarID() const;
+		void SetMenuBarID(u32 newValue);
 		
 		//Clean up the external content of this window
-		inline void SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
+		void SetCleanExternalContent(function<void(u32)> newValue);
 
 		//Clean up the content of this window and erase it from its registry.
 		//Calls the functional assigned with SetCleanExternalContent if it was assigned
-		inline void CloseWindow();
+		void CloseWindow();
 
 		//Do not destroy manually, erase from registry instead
 		~Window();

@@ -80,6 +80,15 @@ static void DeleteShader(
 
 namespace KalaWindow::OpenGL
 {
+    static KalaWindowRegistry<OpenGL_Shader> registry{};
+
+    static bool isVerboseLoggingEnabled{};
+
+    KalaWindowRegistry<OpenGL_Shader>& OpenGL_Shader::GetRegistry() { return registry; }
+
+    void OpenGL_Shader::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+    bool OpenGL_Shader::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
     OpenGL_Shader* OpenGL_Shader::Initialize(
 		OpenGL_Context* glContext,
         const string& name,
@@ -96,7 +105,9 @@ namespace KalaWindow::OpenGL
 
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 		
-        u32 newID = ++KalaWindowCore::globalID;
+        u32 newID = KalaWindowCore::GetGlobalID() + 1;
+        KalaWindowCore::SetGlobalID(newID);
+
         unique_ptr<OpenGL_Shader> newShader = make_unique<OpenGL_Shader>();
         OpenGL_Shader* shaderPtr = newShader.get();
 
@@ -459,6 +470,71 @@ namespace KalaWindow::OpenGL
             LogType::LOG_SUCCESS);
 
         return shaderPtr;
+    }
+
+    bool OpenGL_Shader::IsInitialized() const { return isInitialized; }
+
+    const string& OpenGL_Shader::GetName() const { return name; }
+    bool OpenGL_Shader::SetName(const string& newName)
+    {
+        if (newName.empty()
+            || newName.size() > 50)
+        {
+            return false;
+        }
+
+        name = newName;
+
+        return true;
+    }
+
+    u32 OpenGL_Shader::GetID() const { return ID; }
+    u32 OpenGL_Shader::GetProgramID() const { return programID; }
+
+    OpenGL_Context* OpenGL_Shader::GetGLContext() const { return glContext; }
+
+    const string& OpenGL_Shader::GetShaderData(OpenGL_ShaderType targetType) const
+    {
+        static const string empty{};
+
+        if (programID == 0) return empty;
+
+        switch (targetType)
+        {
+        case OpenGL_ShaderType::SHADER_VERTEX: return vertData.shaderData;
+        case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.shaderData;
+        case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.shaderData;
+        }
+
+        return empty;
+    }
+    const string& OpenGL_Shader::GetShaderPath(OpenGL_ShaderType targetType) const
+    {
+        static const string empty{};
+
+        if (programID == 0) return empty;
+
+        switch (targetType)
+        {
+        case OpenGL_ShaderType::SHADER_VERTEX: return vertData.shaderPath;
+        case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.shaderPath;
+        case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.shaderPath;
+        }
+
+        return empty;
+    }
+    u32 OpenGL_Shader::GetShaderID(OpenGL_ShaderType targetType) const
+    {
+        if (programID == 0) return 0;
+
+        switch (targetType)
+        {
+        case OpenGL_ShaderType::SHADER_VERTEX: return vertData.ID;
+        case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.ID;
+        case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.ID;
+        }
+
+        return 0;
     }
 
     bool OpenGL_Shader::Bind()

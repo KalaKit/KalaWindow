@@ -62,6 +62,18 @@ void KalaHeaders::KalaLog::EmitLog(string_view msg)
 
 namespace KalaWindow::Core
 {
+	//The ID that is bumped by every object in KalaWindow when it needs a new ID
+	static inline u32 globalID{};
+
+	static inline f64 deltaTime{};
+	static inline f64 frameTime{};
+
+	u32 KalaWindowCore::GetGlobalID() { return globalID; }
+	void KalaWindowCore::SetGlobalID(u32 newID) { globalID = newID; }
+
+	f64 KalaWindowCore::GetDeltaTime() { return deltaTime; }
+	f64 KalaWindowCore::GetFrameTime() { return frameTime; }
+
 	void KalaWindowCore::UpdateDeltaTime()
 	{
 		auto now = steady_clock::now();
@@ -157,12 +169,12 @@ namespace KalaWindow::Core
 			}
 		}
 		
-		OpenGL_Shader::registry.RemoveAllContent();
-		OpenGL_Context::registry.RemoveAllContent();
+		OpenGL_Shader::GetRegistry().RemoveAllContent();
+		OpenGL_Context::GetRegistry().RemoveAllContent();
 
-		Input::registry.RemoveAllContent();
-		MenuBar::registry.RemoveAllContent();
-		Window::registry.RemoveAllContent();
+		Input::GetRegistry().RemoveAllContent();
+		MenuBar::GetRegistry().RemoveAllContent();
+		Window::GetRegistry().RemoveAllContent();
 
 		if (!useWindowShutdown
 			&& userShutdown)

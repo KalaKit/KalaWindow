@@ -5,15 +5,18 @@
 
 #ifdef _WIN32
 
+#include <Windows.h>
+#include <dbghelp.h>
+#pragma comment(lib, "dbghelp.lib")
+
+#include <cstring>
 #include <string>
 #include <array>
 #include <fstream>
 #include <sstream>
 #include <filesystem>
 #include <functional>
-#include <Windows.h>
-#include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
+#include <atomic>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -32,6 +35,8 @@ using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
 
+using std::wstring;
+
 using std::string;
 using std::string_view;
 using std::array;
@@ -40,9 +45,11 @@ using std::ostringstream;
 using std::filesystem::path;
 using std::filesystem::current_path;
 using std::function;
-using std::wstring;
 using std::hex;
 using std::dec;
+using std::atomic;
+using std::memory_order_relaxed;
+using std::memcpy;
 
 //The name of this program that is displayed in the title of the error popup
 static string assignedProgramName;
@@ -71,11 +78,15 @@ static void WriteLog(
 	const string& message,
 	const string& timeStamp);
 
-
 static array<char, 10> crashLogBuffer;
 
 namespace KalaWindow::Core
 {
+	//reserve (10 * MAX_MESSAGE_LENGTH) bytes for the last 10 log messages
+	static inline char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
+	//Which slot are we currently on
+	static inline atomic<u32> crashLogIndex{};
+
 	void CrashHandler::Initialize(
 		const string& programName,
 		const function<void()>& shutdownFunction,
@@ -96,6 +107,73 @@ namespace KalaWindow::Core
 			"Initialized crash handler!",
 			"CRASH_HANDLER",
 			LogType::LOG_SUCCESS);
+	}
+
+	void CrashHandler::AppendToCrashLog(string_view message)
+	{
+		static_assert(
+			MAX_MESSAGE_LENGTH > 1,
+			"Max message length is too small!");
+
+		auto trim = [](string_view s) -> string
+			{
+				size_t bytes = 0;
+				size_t chars = 0;
+
+				while (bytes < s.size()
+					&& chars < MAX_MESSAGE_LENGTH)
+				{
+					unsigned char c = scast<unsigned char>(s[bytes]);
+
+					size_t charLen =
+						(c < 0x80) ? 1
+						: (c < 0xE0) ? 2
+						: (c < 0xF0) ? 3
+						: 4;
+
+					if (bytes + charLen > s.size()) break; //incomplete char
+
+					bytes += charLen;
+					++chars;
+				}
+
+				string result(s.data(), bytes);
+
+				if (bytes < s.size()) result.append("\n[TRIMMED LONG MESSAGE]");
+
+				return result;
+			};
+
+		const string trimmed = trim(message);
+
+		const u32 index = crashLogIndex.fetch_add(1, memory_order_relaxed) % 10;
+
+		char* slot = crashLogBuffer[index];
+
+		//copy up to max allowed chars chars (reserve 1 for null terminator)
+		const size_t copyLength = trimmed.size() < MAX_MESSAGE_LENGTH - 1 ? trimmed.size() : MAX_MESSAGE_LENGTH - 1;
+
+		memcpy(slot, trimmed.data(), copyLength);
+
+		//explicit null-termination
+		slot[copyLength] = '\0';
+	}
+
+	array<string_view, 10> CrashHandler::GetCrashLogContent()
+	{
+		array<string_view, 10> content{};
+
+		const u32 head = crashLogIndex.load(memory_order_relaxed);
+
+		for (u32 i = 0; i < 10; ++i)
+		{
+			const u32 index = (head + i) % 10;
+			const char* entry = crashLogBuffer[index];
+
+			if (entry[0] != '\0') content[i] = string_view(entry);
+		}
+
+		return content;
 	}
 }
 

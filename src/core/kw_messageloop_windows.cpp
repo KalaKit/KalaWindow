@@ -1324,7 +1324,7 @@ static bool ProcessMessage(
 	{
 		window->CloseWindow();
 
-		if (Window::registry.runtimeContent.empty())
+		if (Window::GetRegistry().runtimeContent.empty())
 		{
 			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		}
@@ -1335,7 +1335,7 @@ static bool ProcessMessage(
 	//full shutdown if all windows were destroyed
 	case WM_DESTROY:
 	{
-		if (Window::registry.runtimeContent.empty()) PostQuitMessage(0);
+		if (Window::GetRegistry().runtimeContent.empty()) PostQuitMessage(0);
 
 		return true; //we handled it
 	}

@@ -9,12 +9,14 @@
 #include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/math_utils.hpp"
 
 namespace KalaWindow::Core
 {
 	using std::string;
 	using std::function;
+
+	using u32 = uint32_t;
+	using f64 = double;
 
 	enum class ShutdownState
 	{
@@ -25,11 +27,11 @@ namespace KalaWindow::Core
 	class LIB_API KalaWindowCore
 	{
 	public:
-		//The ID that is bumped by every object in KalaWindow when it needs a new ID
-		static inline u32 globalID{};
-	
-		static f64 GetDeltaTime() { return deltaTime; }
-		static f64 GetFrameTime() { return frameTime; }
+		static u32 GetGlobalID();
+		static void SetGlobalID(u32 newID);
+
+		static f64 GetDeltaTime();
+		static f64 GetFrameTime();
 
 		//Update deltatime and frametime
 		static void UpdateDeltaTime();
@@ -65,8 +67,5 @@ namespace KalaWindow::Core
 			ShutdownState state,
 			bool useWindowShutdown = true,
 			const function<void()>& userShutdown = nullptr);
-	private:
-		static inline f64 deltaTime{};
-		static inline f64 frameTime{};
 	};
 }

@@ -38,9 +38,18 @@ constexpr u8 MAX_LABEL_LENGTH = 64;
 
 namespace KalaWindow::Graphics
 {
+	static KalaWindowRegistry<MenuBar> registry{};
+
+	static bool isMenuBarVerboseLoggingEnabled{};
+
+	KalaWindowRegistry<MenuBar>& MenuBar::GetRegistry() { return registry; }
+
+	void MenuBar::SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
+	bool MenuBar::IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
+
 	MenuBar* MenuBar::CreateMenuBar(u32 windowID)
 	{
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -53,7 +62,9 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		u32 newID = ++KalaWindowCore::globalID;
+		u32 newID = KalaWindowCore::GetGlobalID() + 1;
+		KalaWindowCore::SetGlobalID(newID);
+
 		unique_ptr<MenuBar> newMenu = make_unique<MenuBar>();
 		MenuBar* menuPtr = newMenu.get();
 
@@ -88,7 +99,7 @@ namespace KalaWindow::Graphics
 	}
 	bool MenuBar::IsInitialized() const
 	{
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -105,9 +116,12 @@ namespace KalaWindow::Graphics
 			&& window->GetWindowData().hMenu != NULL;
 	}
 
+	u32 MenuBar::GetID() const { return ID; }
+	u32 MenuBar::GetWindowID() const { return windowID; }
+
 	void MenuBar::SetMenuBarState(bool state)
 	{
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -152,7 +166,7 @@ namespace KalaWindow::Graphics
 	}
 	bool MenuBar::IsEnabled() const
 	{
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -180,7 +194,7 @@ namespace KalaWindow::Graphics
 		const string& labelRef,
 		const function<void()> func)
 	{
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -324,7 +338,9 @@ namespace KalaWindow::Graphics
 		}
 
 		HMENU hMenu = GetMenu(hwnd);
-		u32 newID = ++KalaWindowCore::globalID;
+
+		u32 newID = KalaWindowCore::GetGlobalID() + 1;
+		KalaWindowCore::SetGlobalID(newID);
 
 		MenuBarEvent newEvent{};
 
@@ -414,7 +430,7 @@ namespace KalaWindow::Graphics
 		const string& parentRef,
 		const string& labelRef) const
 	{
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -579,6 +595,8 @@ namespace KalaWindow::Graphics
 			2);
 	}
 
+	const vector<MenuBarEvent>& MenuBar::GetEvents() const { return events; }
+
 	MenuBar::~MenuBar()
 	{
 		if (!isInitialized)
@@ -592,7 +610,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())

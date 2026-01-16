@@ -57,7 +57,12 @@ namespace KalaWindow::OpenGL
 	class LIB_API OpenGL_Shader
 	{
 	public:
-		static inline KalaWindowRegistry<OpenGL_Shader> registry{};
+		static KalaWindowRegistry<OpenGL_Shader>& GetRegistry();
+
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//vertex, fragment and geometry shader compilation messages will dump their logs into the console.
+		static void SetVerboseLoggingState(bool newState);
+		static bool IsVerboseLoggingEnabled();
 
 		//Create a new shader with up to three types of shader files.
 		//Geometry shaders are optional but vert and frag shader must always be filled
@@ -66,80 +71,25 @@ namespace KalaWindow::OpenGL
 			const string& shaderName,
 			const array<OpenGL_ShaderData, 3>& shaderData);
 
-		inline bool IsInitialized() const { return isInitialized; }
+		bool IsInitialized() const;
 
-		//Toggle verbose logging. If true, then usually frequently updated runtime values like
-		//vertex, fragment and geometry shader compilation messages will dump their logs into the console.
-		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
-
-		inline const string& GetName() const { return name; }
-		inline bool SetName(const string& newName)
-		{
-			if (newName.empty()
-				|| newName.size() > 50)
-			{
-				return false;
-			}
-
-			name = newName;
-
-			return true;
-		}
+		const string& GetName() const;
+		bool SetName(const string& newName);
 
 		//Returns the global ID of this shader
-		inline u32 GetID() const { return ID; }
+		u32 GetID() const;
 		//Returns the OpenGL program ID of this shader
-		inline u32 GetProgramID() const { return programID; }
+		u32 GetProgramID() const;
 		
 		//Returns the OpenGL context of this shader
-		inline OpenGL_Context* GetGLContext() const { return glContext; }
+		OpenGL_Context* GetGLContext() const;
 
 		//Returns shader data assigned to shader type
-		inline const string& GetShaderData(OpenGL_ShaderType targetType) const
-		{
-			static const string empty{};
-
-			if (programID == 0) return empty;
-
-			switch (targetType)
-			{
-			case OpenGL_ShaderType::SHADER_VERTEX: return vertData.shaderData;
-			case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.shaderData;
-			case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.shaderData;
-			}
-
-			return empty;
-		}
+		const string& GetShaderData(OpenGL_ShaderType targetType) const;
 		//Returns shader path assigned to shader type
-		inline const string& GetShaderPath(OpenGL_ShaderType targetType) const
-		{
-			static const string empty{};
+		const string& GetShaderPath(OpenGL_ShaderType targetType) const;
 
-			if (programID == 0) return empty;
-
-			switch (targetType)
-			{
-			case OpenGL_ShaderType::SHADER_VERTEX: return vertData.shaderPath;
-			case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.shaderPath;
-			case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.shaderPath;
-			}
-
-			return empty;
-		}
-		inline u32 GetShaderID(OpenGL_ShaderType targetType) const
-		{
-			if (programID == 0) return 0;
-
-			switch (targetType)
-			{
-			case OpenGL_ShaderType::SHADER_VERTEX: return vertData.ID;
-			case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.ID;
-			case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.ID;
-			}
-
-			return 0;
-		}
+		u32 GetShaderID(OpenGL_ShaderType targetType) const;
 
 		//Bind current shader
 		bool Bind();
@@ -161,8 +111,6 @@ namespace KalaWindow::OpenGL
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Shader();
 	private:
-		static inline bool isVerboseLoggingEnabled{};
-
 		bool isInitialized{};
 
 		string name{};

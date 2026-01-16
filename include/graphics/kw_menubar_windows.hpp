@@ -12,7 +12,6 @@
 #include <memory>
 
 #include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/math_utils.hpp"
 
 #include "core/kw_registry.hpp"
 
@@ -23,6 +22,8 @@ namespace KalaWindow::Graphics
 	using std::unordered_map;
 	using std::vector;
 	using std::unique_ptr;
+
+	using u32 = uint32_t;
 
 	using KalaWindow::Core::KalaWindowRegistry;
 
@@ -48,7 +49,12 @@ namespace KalaWindow::Graphics
 	class LIB_API MenuBar
 	{
 	public:
-		static inline KalaWindowRegistry<MenuBar> registry{};
+		static KalaWindowRegistry<MenuBar>& GetRegistry();
+
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//branch and leaf creation will dump their logs into the console.
+		static void SetVerboseLoggingState(bool newState);
+		static bool IsVerboseLoggingEnabled();
 
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window
@@ -56,13 +62,8 @@ namespace KalaWindow::Graphics
 
 		bool IsInitialized() const;
 
-		inline u32 GetID() const { return ID; }
-		inline u32 GetWindowID() const { return windowID; }
-
-		//Toggle verbose logging. If true, then usually frequently updated runtime values like
-		//branch and leaf creation will dump their logs into the console.
-		static inline void SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
-		static inline bool IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
+		u32 GetID() const;
+		u32 GetWindowID() const;
 
 		//If true, then menu bar is shown
 		void SetMenuBarState(bool state);
@@ -84,13 +85,11 @@ namespace KalaWindow::Graphics
 			const string& parentRef,
 			const string& labelRef = "") const;
 
-		inline const vector<MenuBarEvent>& GetEvents() const { return events; }
+		const vector<MenuBarEvent>& GetEvents() const;
 
 		//Destroy the existing menu bar inside the window
 		~MenuBar();
 	private:
-		static inline bool isMenuBarVerboseLoggingEnabled{};
-
 		bool isInitialized{};
 		bool isEnabled{};
 

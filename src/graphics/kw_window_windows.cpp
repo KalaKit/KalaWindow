@@ -76,6 +76,10 @@ static string HResultToString(HRESULT hr);
 
 namespace KalaWindow::Graphics
 {
+	static KalaWindowRegistry<Window> registry{};
+
+	KalaWindowRegistry<Window>& Window::GetRegistry() { return registry; }
+
 	Window* Window::Initialize(
 		const string& title,
 		vec2 size,
@@ -91,7 +95,9 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		u32 newID = ++KalaWindowCore::globalID;
+		u32 newID = KalaWindowCore::GetGlobalID() + 1;
+		KalaWindowCore::SetGlobalID(newID);
+
 		unique_ptr<Window> newWindow = make_unique<Window>();
 		Window* windowPtr = newWindow.get();
 
@@ -237,6 +243,44 @@ namespace KalaWindow::Graphics
 
 		return windowPtr;
 	}
+
+	bool Window::IsInitialized() const { return isInitialized; }
+
+	u32 Window::GetID() const { return ID; }
+
+	void Window::Update()
+	{
+		if (!isInitialized)
+		{
+			Log::Print(
+				"Cannot run window loop because window '" + GetTitle() + "' has not been initialized!",
+				"WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (!GetHWND("update window")) return;
+
+		UpdateIdleState(
+			this,
+			isIdle);
+
+		MSG msg;
+
+		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
+			DispatchMessage(&msg);  //send the message to the window procedure
+		}
+	}
+
+	//Assigns paths of last dragged files. This is called through WM_DROPFILES.
+	void Window::SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
+	const vector<string>& Window::GetLastDraggedFiles() const { return lastDraggedFiles; };
+	//Clears paths to last file paths that were dragged onto window
+	void Window::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
 	void Window::SetTitle(const string& newTitle) const
 	{
@@ -384,6 +428,7 @@ namespace KalaWindow::Graphics
 		}
 		*/
 	}
+	u32 Window::GetIcon() const { return iconID; }
 	void Window::ClearIcon() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("clear window icon"));
@@ -505,6 +550,7 @@ namespace KalaWindow::Graphics
 		}
 		*/
 	}
+	u32 Window::GetTaskbarOverlayIcon() const { return overlayIconID; }
 	void Window::ClearTaskbarOverlayIcon() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("clear taskbar overlay icon"));
@@ -831,6 +877,15 @@ namespace KalaWindow::Graphics
 
 		return vec2{ 0, 0 };
 	}
+
+	void Window::SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
+	vec2 Window::GetMaxSize() const { return maxSize; }
+
+	void Window::SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
+	vec2 Window::GetMinSize() const { return minSize; }
+
+	void Window::SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
+	bool Window::IsFocusRequired() const { return isWindowFocusRequired; }
 
 	void Window::SetAlwaysOnTopState(bool state) const
 	{
@@ -1591,6 +1646,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
+	bool Window::IShutdownBlockEnabled() const { return shutdownBlockState; }
 
 	void Window::Flash(
 		FlashTarget target,
@@ -1757,33 +1813,40 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::Update()
+	void Window::TriggerResize() { if (resizeCallback) resizeCallback(); }
+	void Window::SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
+
+	void Window::TriggerRedraw() { if (redrawCallback) redrawCallback(); }
+	void Window::SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
+
+#ifdef _WIN32
+	void Window::SetWindowData(const WindowData& newWindowStruct)
 	{
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Cannot run window loop because window '" + GetTitle() + "' has not been initialized!",
-				"WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (!GetHWND("update window")) return;
-
-		UpdateIdleState(
-			this,
-			isIdle);
-
-		MSG msg;
-
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
-			DispatchMessage(&msg);  //send the message to the window procedure
-		}
+		window_windows = newWindowStruct;
 	}
+	const WindowData& Window::GetWindowData() const { return window_windows; }
+#else
+	void Window::SetWindowData(const WindowData& newWindowStruct)
+	{
+		window_x11 = newWindowStruct;
+	}
+	const WindowData& Window::GetWindowData() const { return window_x11; }
+#endif
+
+	//
+	// WINDOW CONTENT
+	//
+
+	u32 Window::GetInputID() const { return inputID; }
+	void Window::SetInputID(u32 newValue) { inputID = newValue; }
+
+	u32 Window::GetGLID() const { return glID; }
+	void Window::SetGLID(u32 newValue) { glID = newValue; }
+
+	u32 Window::GetMenuBarID() const { return menuBarID; }
+	void Window::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
+
+	void Window::SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
 
 	void Window::CloseWindow()
 	{

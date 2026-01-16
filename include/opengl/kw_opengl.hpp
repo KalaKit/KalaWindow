@@ -9,7 +9,6 @@
 #include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/math_utils.hpp"
 
 #include "core/kw_registry.hpp"
 
@@ -17,6 +16,8 @@ namespace KalaWindow::OpenGL
 {
 	using std::string;
 	using std::function;
+
+	using u32 = uint32_t;
 
 	using KalaWindow::Core::KalaWindowRegistry;
 	
@@ -66,23 +67,18 @@ namespace KalaWindow::OpenGL
 	class LIB_API OpenGL_Global
 	{
 	public:
+		//Toggle verbose logging. If true, then usually frequently updated runtime values like
+		//GL notifications will dump their logs into the console.
+		static void SetVerboseLoggingState(bool newState);
+		static bool IsVerboseLoggingEnabled();
+
 		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init.
 		//Pass os and core gl function initializer functions from KalaGraphics if you are using that.
 		static void Initialize();
-		static inline bool IsInitialized() { return isInitialized; }
+		static bool IsInitialized();
 		
-		//Toggle verbose logging. If true, then usually frequently updated runtime values like
-		//GL notifications will dump their logs into the console.
-		static inline void SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-		static inline bool IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
-
 		static void SetOpenGLLibrary();
-		static inline uintptr_t GetOpenGLLibrary()
-		{
-			if (openGL32Lib == NULL) SetOpenGLLibrary();
-
-			return openGL32Lib;
-		}
+		static uintptr_t GetOpenGLLibrary();
 
 		//Check if this extension is supported by the current context (OpenGL 3.3)
 		static bool IsExtensionSupported(const string& name);
@@ -110,17 +106,12 @@ namespace KalaWindow::OpenGL
 		//Place after any gl call to check if an issue or error has occurred within that point.
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
 		static string GetError();
-	private:
-		static inline bool isInitialized{};
-		static inline bool isVerboseLoggingEnabled{};
-
-		static inline uintptr_t openGL32Lib{};
 	};
 
 	class LIB_API OpenGL_Context
 	{
 	public:
-		static inline KalaWindowRegistry<OpenGL_Context> registry{};
+		static KalaWindowRegistry<OpenGL_Context>& GetRegistry();
 
 		//Initialize a per-window OpenGL context.
 		//parentContext determines the ID of the parent context which
@@ -135,21 +126,21 @@ namespace KalaWindow::OpenGL
 			StencilBufferBits sBits = StencilBufferBits::STENCIL_NONE,
 			AlphaChannel aChannel = AlphaChannel::ALPHA_8);
 
-		inline bool IsInitialized() const { return isInitialized; }
+		bool IsInitialized() const;
 
-		inline u32 GetID() const { return ID; }
-		inline u32 GetWindowID() const { return windowID; }
+		u32 GetID() const;
+		u32 GetWindowID() const;
 		
 		//Called at the end of each frame, requires handle (HDC) from your window
 		void SwapOpenGLBuffers(uintptr_t handle);
 
-		inline const string& GetContextData() { return contextData; }
+		const string& GetContextData();
 		
-		inline uintptr_t GetContext() const { return hglrc; }
-		inline uintptr_t GetParentContext() const { return parentHglrc; }
+		uintptr_t GetContext() const;
+		uintptr_t GetParentContext() const;
 		
 		void SetVSyncState(VSyncState newValue);
-		inline VSyncState GetVSyncState() const { return vsyncState; }
+		VSyncState GetVSyncState() const;
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();

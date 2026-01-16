@@ -55,6 +55,14 @@ namespace KalaWindow::OpenGL
 	// GLOBAL
 	//
 
+	static bool isInitialized{};
+	static bool isVerboseLoggingEnabled{};
+
+	static uintptr_t openGL32Lib{};
+
+	void OpenGL_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+	bool OpenGL_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
 	void OpenGL_Global::Initialize()
 	{
 		if (isInitialized)
@@ -136,6 +144,8 @@ namespace KalaWindow::OpenGL
 		isInitialized = true;
 	}
 
+	bool OpenGL_Global::IsInitialized() { return isInitialized; }
+
 	void OpenGL_Global::SetOpenGLLibrary()
 	{
 		HMODULE handle = GetModuleHandleA("opengl32.dll");
@@ -149,6 +159,12 @@ namespace KalaWindow::OpenGL
 		}
 
 		openGL32Lib = FromVar(handle);
+	}
+	uintptr_t OpenGL_Global::GetOpenGLLibrary()
+	{
+		if (openGL32Lib == NULL) SetOpenGLLibrary();
+
+		return openGL32Lib;
 	}
 
 	bool OpenGL_Global::IsExtensionSupported(const string& name)
@@ -202,7 +218,7 @@ namespace KalaWindow::OpenGL
 			return;
 		}
 		
-		if (OpenGL_Context::registry.runtimeContent.empty())
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
 		{
 			Log::Print(
 				"Cannot set OpenGL context because no OpenGL contexts have been created!",
@@ -234,7 +250,7 @@ namespace KalaWindow::OpenGL
 			return;
 		}
 
-		if (OpenGL_Context::registry.runtimeContent.empty())
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
 		{
 			Log::Print(
 				"Cannot set OpenGL context because no OpenGL contexts have been created!",
@@ -265,7 +281,7 @@ namespace KalaWindow::OpenGL
 			return false;
 		}
 		
-		if (OpenGL_Context::registry.runtimeContent.empty())
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
 		{
 			Log::Print(
 				"Cannot check OpenGL context validity because no OpenGL contexts have been created!",
@@ -312,7 +328,7 @@ namespace KalaWindow::OpenGL
 			return false;
 		}
 
-		if (OpenGL_Context::registry.runtimeContent.empty())
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
 		{
 			Log::Print(
 				"Cannot check OpenGL context validity because no OpenGL contexts have been created!",
@@ -380,6 +396,10 @@ namespace KalaWindow::OpenGL
 	// CONTEXT
 	//
 
+	static KalaWindowRegistry<OpenGL_Context> registry{};
+
+	KalaWindowRegistry<OpenGL_Context>& OpenGL_Context::GetRegistry() { return registry; }
+
 	OpenGL_Context* OpenGL_Context::Initialize(
 		u32 windowID,
 		u32 parentContext,
@@ -399,7 +419,7 @@ namespace KalaWindow::OpenGL
 			return nullptr;
 		}
 
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -414,7 +434,9 @@ namespace KalaWindow::OpenGL
 		const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 		const GL_Windows* windowsFunc = OpenGL_Functions_Windows::GetGLWindows();
 
-		u32 newID = ++KalaWindowCore::globalID;
+		u32 newID = KalaWindowCore::GetGlobalID() + 1;
+		KalaWindowCore::SetGlobalID(newID);
+
 		unique_ptr<OpenGL_Context> newCont = make_unique<OpenGL_Context>();
 		OpenGL_Context* contPtr = newCont.get();
 
@@ -804,6 +826,11 @@ namespace KalaWindow::OpenGL
 
 		return contPtr;
 	}
+
+	bool OpenGL_Context::IsInitialized() const { return isInitialized; }
+
+	u32 OpenGL_Context::GetID() const { return ID; }
+	u32 OpenGL_Context::GetWindowID() const { return windowID; }
 	
 	void OpenGL_Context::SwapOpenGLBuffers(uintptr_t handle)
 	{
@@ -820,6 +847,11 @@ namespace KalaWindow::OpenGL
 
 		SwapBuffers(ToVar<HDC>(handle));
 	}
+
+	const string& OpenGL_Context::GetContextData() { return contextData; }
+
+	uintptr_t OpenGL_Context::GetContext() const { return hglrc; }
+	uintptr_t OpenGL_Context::GetParentContext() const { return parentHglrc; }
 	
 	void OpenGL_Context::SetVSyncState(VSyncState newValue)
 	{		
@@ -842,6 +874,7 @@ namespace KalaWindow::OpenGL
 			? 1
 			: 0);
 	}
+	VSyncState OpenGL_Context::GetVSyncState() const { return vsyncState; }
 
 	OpenGL_Context::~OpenGL_Context()
 	{
@@ -856,7 +889,7 @@ namespace KalaWindow::OpenGL
 			return;
 		}
 
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())

@@ -54,6 +54,15 @@ static bool enabledBeginPeriod = false;
 
 namespace KalaWindow::Graphics
 {
+	static bool isInitialized{};
+	static bool isVerboseLoggingEnabled{};
+
+	static u32 version{};
+	static string appID{};
+
+	void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+
 	void Window_Global::Initialize()
 	{
 		if (isInitialized)
@@ -149,6 +158,8 @@ namespace KalaWindow::Graphics
 			"WINDOW_GLOBAL",
 			LogType::LOG_SUCCESS);
 	}
+
+	bool Window_Global::IsInitialized() { return isInitialized; }
 
 	u32 Window_Global::GetVersion()
 	{
@@ -249,6 +260,8 @@ namespace KalaWindow::Graphics
 		default:       return PopupResult::POPUP_RESULT_NONE;
 		}
 	}
+
+	const string& Window_Global::GetAppID() { return appID; }
 
 	vector<string> Window_Global::GetFile(
 		FileType type,

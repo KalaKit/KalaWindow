@@ -32,9 +32,18 @@ using std::make_unique;
 
 namespace KalaWindow::Core
 {
+	static KalaWindowRegistry<Input> registry{};
+
+	static bool isVerboseLoggingEnabled{};
+
+	KalaWindowRegistry<Input>& Input::GetRegistry() { return registry; }
+
+	bool Input::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+	void Input::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+
 	Input* Input::Initialize(u32 windowID)
 	{
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -46,7 +55,9 @@ namespace KalaWindow::Core
 			return nullptr;
 		}
 
-		u32 newID = ++KalaWindowCore::globalID;
+		u32 newID = KalaWindowCore::GetGlobalID() + 1;
+		KalaWindowCore::SetGlobalID(newID);
+
 		unique_ptr<Input> newInput = make_unique<Input>();
 		Input* inputPtr = newInput.get();
 
@@ -85,6 +96,144 @@ namespace KalaWindow::Core
 			LogType::LOG_SUCCESS);
 
 		return inputPtr;
+	}
+
+	bool Input::IsInitialized() const { return isInitialized; }
+
+	u32 Input::GetID() const { return ID; }
+	u32 Input::GetWindowID() const { return windowID; }
+
+	const string& Input::GetTypedLetter() const { return lastLetter; }
+	void Input::SetTypedLetter(const string& letter) { lastLetter = letter; }
+
+	void Input::SetKeyState(
+		Key key,
+		bool isDown)
+	{
+		if (key == Key::KeyCount) return;
+
+		size_t index = static_cast<size_t>(key);
+
+		if (isDown
+			&& !keyDown[index])
+		{
+			keyPressed[index] = true;
+		}
+		if (!isDown
+			&& keyDown[index])
+		{
+			keyReleased[index] = true;
+		}
+
+		keyDown[index] = isDown;
+	}
+	void Input::SetMouseButtonState(
+		MouseButton mouseButton,
+		bool isDown)
+	{
+		if (mouseButton == MouseButton::MouseButtonCount) return;
+
+		size_t index = static_cast<size_t>(mouseButton);
+
+		if (isDown
+			&& !mouseDown[index])
+		{
+			mousePressed[index] = true;
+		}
+		if (!isDown
+			&& mouseDown[index])
+		{
+			mouseReleased[index] = true;
+		}
+
+		mouseDown[index] = isDown;
+	}
+	void Input::SetMouseButtonDoubleClickState(
+		MouseButton mouseButton,
+		bool isDown)
+	{
+		if (mouseButton == MouseButton::MouseButtonCount) return;
+
+		mouseDoubleClicked[static_cast<size_t>(mouseButton)] = isDown;
+	}
+
+	vector<Key> Input::GetPressedKeys()
+	{
+		vector<Key> result{};
+
+		for (size_t i = 0; i < keyPressed.size(); ++i)
+		{
+			if (keyPressed[i]) result.push_back(static_cast<Key>(i));
+		}
+
+		return result;
+	}
+	vector<Key> Input::GetHeldKeys()
+	{
+		vector<Key> result{};
+
+		for (size_t i = 0; i < keyDown.size(); ++i)
+		{
+			if (keyDown[i]) result.push_back(static_cast<Key>(i));
+		}
+
+		return result;
+	}
+	vector<Key> Input::GetReleasedKeys()
+	{
+		vector<Key> result{};
+
+		for (size_t i = 0; i < keyReleased.size(); ++i)
+		{
+			if (keyReleased[i]) result.push_back(static_cast<Key>(i));
+		}
+
+		return result;
+	}
+
+	vector<MouseButton> Input::GetPressedMouseButtons()
+	{
+		vector<MouseButton> result{};
+
+		for (size_t i = 0; i < mousePressed.size(); ++i)
+		{
+			if (mousePressed[i]) result.push_back(static_cast<MouseButton>(i));
+		}
+
+		return result;
+	}
+	vector<MouseButton> Input::GetHeldMouseButtons()
+	{
+		vector<MouseButton> result{};
+
+		for (size_t i = 0; i < mouseDown.size(); ++i)
+		{
+			if (mouseDown[i]) result.push_back(static_cast<MouseButton>(i));
+		}
+
+		return result;
+	}
+	vector<MouseButton> Input::GetReleasedMouseButtons()
+	{
+		vector<MouseButton> result{};
+
+		for (size_t i = 0; i < mouseReleased.size(); ++i)
+		{
+			if (mouseReleased[i]) result.push_back(static_cast<MouseButton>(i));
+		}
+
+		return result;
+	}
+	vector<MouseButton> Input::GetDoubleClickedMouseButtons()
+	{
+		vector<MouseButton> result{};
+
+		for (size_t i = 0; i < mouseDoubleClicked.size(); ++i)
+		{
+			if (mouseDoubleClicked[i]) result.push_back(static_cast<MouseButton>(i));
+		}
+
+		return result;
 	}
 
 	bool Input::IsComboDown(const span<const InputCode>& codes)
@@ -168,6 +317,58 @@ namespace KalaWindow::Core
 		return true;
 	}
 
+	bool Input::IsKeyHeld(Key key) { return keyDown[static_cast<size_t>(key)]; }
+	bool Input::IsKeyPressed(Key key) { return keyPressed[static_cast<size_t>(key)]; }
+	bool Input::IsKeyReleased(Key key) { return keyReleased[static_cast<size_t>(key)]; }
+
+	bool Input::IsMouseButtonHeld(MouseButton mouseButton) { return mouseDown[static_cast<size_t>(mouseButton)]; }
+	bool Input::IsMouseButtonPressed(MouseButton mouseButton) { return mousePressed[static_cast<size_t>(mouseButton)]; }
+	bool Input::IsMouseButtonReleased(MouseButton mouseButton) { return mouseReleased[static_cast<size_t>(mouseButton)]; }
+
+	bool Input::IsMouseButtonDoubleClicked(MouseButton mouseButton) { return mouseDoubleClicked[static_cast<size_t>(mouseButton)]; }
+
+	bool Input::IsMouseButtonDragging(MouseButton mouseButton)
+	{
+		bool isHoldingDragKey = IsMouseButtonHeld(mouseButton);
+
+		bool isDragging =
+			isHoldingDragKey
+			&& (mouseDelta.x != 0
+				|| mouseDelta.y != 0);
+
+		return isDragging;
+	}
+
+	vec2 Input::GetMousePosition() const { return mousePos; }
+	void Input::SetMousePosition(vec2 newMousePos) { mousePos = newMousePos; }
+
+	vec2 Input::GetMouseDelta()
+	{
+		vec2 currMouseDelta = mouseDelta;
+
+		//reset after retrieval for per-frame delta behavior
+		mouseDelta = vec2{ 0.0f, 0.0f };
+
+		return currMouseDelta;
+	}
+	void Input::SetMouseDelta(vec2 newMouseDelta) { mouseDelta = newMouseDelta; }
+
+	vec2 Input::GetRawMouseDelta()
+	{
+		vec2 currMouseDelta = rawMouseDelta;
+
+		//reset after retrieval for per-frame delta behavior
+		rawMouseDelta = vec2{ 0.0f, 0.0f };
+
+		return currMouseDelta;
+	}
+	void Input::SetRawMouseDelta(vec2 newRawMouseDelta) { rawMouseDelta = newRawMouseDelta; }
+
+	float Input::GetScrollwheelDelta() const { return mouseWheelDelta; }
+	void Input::SetScrollwheelDelta(float delta) { mouseWheelDelta = delta; }
+
+	bool Input::IsMouseVisible() const { return isMouseVisible; }
+
 	void Input::SetMouseVisibility(bool state)
 	{
 		isMouseVisible = state;
@@ -186,6 +387,8 @@ namespace KalaWindow::Core
 		}
 	}
 
+	bool Input::IsMouseLocked() const { return isMouseLocked; }
+
 	void Input::SetMouseLockState(bool state)
 	{
 		isMouseLocked = state;
@@ -196,7 +399,7 @@ namespace KalaWindow::Core
 		}
 		else
 		{
-			Window* window = Window::registry.GetContent(windowID);
+			Window* window = Window::GetRegistry().GetContent(windowID);
 
 			if (!window
 				|| !window->IsInitialized())
@@ -234,6 +437,9 @@ namespace KalaWindow::Core
 		}
 	}
 
+	bool Input::GetKeepMouseDeltaState() const { return keepMouseDelta; }
+	void Input::SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
+
 	void Input::SetMouseVisibilityBetweenFocus(bool state) const
 	{
 		if (!isMouseVisible)
@@ -253,7 +459,7 @@ namespace KalaWindow::Core
 			}
 			else
 			{
-				Window* window = Window::registry.GetContent(windowID);
+				Window* window = Window::GetRegistry().GetContent(windowID);
 
 				if (!window
 					|| !window->IsInitialized())
@@ -308,7 +514,7 @@ namespace KalaWindow::Core
 
 		if (isMouseLocked)
 		{
-			Window* window = Window::registry.GetContent(windowID);
+			Window* window = Window::GetRegistry().GetContent(windowID);
 
 			if (!window
 				|| !window->IsInitialized())
@@ -358,7 +564,7 @@ namespace KalaWindow::Core
 			return;
 		}
 
-		Window* window = Window::registry.GetContent(windowID);
+		Window* window = Window::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
