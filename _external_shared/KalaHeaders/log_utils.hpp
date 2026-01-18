@@ -82,7 +82,7 @@ namespace KalaHeaders::KalaLog
 	enum class TimeFormat : u8
 	{
 		TIME_NONE        = 0, //No time stamp
-		TIME_DEFAULT     = 1, //Uses TIME_HMS
+		TIME_DEFAULT     = 1, //Uses TIME_HMS_MS
 		TIME_HMS         = 2, //23:59:59
 		TIME_HMS_MS      = 3, //23:59:59:123
 		TIME_12H         = 4, //11:59:59 PM
@@ -121,7 +121,7 @@ namespace KalaHeaders::KalaLog
 			if (timeFormat == TimeFormat::TIME_NONE) return empty;
 			if (timeFormat == TimeFormat::TIME_DEFAULT)
 			{
-				return GetTime(TimeFormat::TIME_HMS);
+				return GetTime(TimeFormat::TIME_HMS_MS);
 			}
 
 			static thread_local string cached[scast<int>(TimeFormat::TIME_FILENAME_MS) + 1];
@@ -292,15 +292,8 @@ namespace KalaHeaders::KalaLog
 
 			target = target.substr(0, MAX_TAG_LENGTH);
 
-			const string& timeStamp = 
-				(timeFormat == TimeFormat::TIME_NONE)
-				? empty
-				: GetTime(timeFormat);
-
-			const string& dateStamp =
-				(dateFormat == DateFormat::DATE_NONE)
-				? empty
-				: GetDate(dateFormat);
+			const string& timeStamp = GetTime(timeFormat);
+			const string& dateStamp = GetDate(dateFormat);
 
 			const string& prefix = GetCachedPrefix(type, target);
 
