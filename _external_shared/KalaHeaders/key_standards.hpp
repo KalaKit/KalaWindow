@@ -184,44 +184,77 @@ namespace KalaHeaders::KalaKeyStandards
 	enum class KeyboardButton : u32
 	{
 		K_INVALID = 0,
-		
-		K_NUM_0 = 61, K_NUM_1 = 62, K_NUM_2 = 63, K_NUM_3 = 64, K_NUM_4 = 65,
-		K_NUM_5 = 66, K_NUM_6 = 67, K_NUM_7 = 68, K_NUM_8 = 69, K_NUM_9 = 70,
-		
-		K_NUM_LOCK = 71, K_NUM_RETURN = 72, 
-		K_NUM_DIVIDE = 73, K_NUM_MULTIPLY = 74,
-		K_NUM_ADD = 75, K_NUM_SUBTRACT = 76,
-		
-		K_0 = 77, K_1 = 78, K_2 = 79, K_3 = 80, K_4 = 81,
-		K_5 = 82, K_6 = 83, K_7 = 84, K_8 = 85, K_9 = 86,
-		
-		K_F1 = 87, K_F2 = 88, K_F3 = 89, K_F4 = 90, 
-		K_F5 = 91, K_F6 = 92, K_F7 = 93, K_F8 = 94, 
-		K_F9 = 95, K_F10 = 96, K_F11 = 97, K_F12 = 98, 
-		
-		K_RETURN = 99, K_BACKSPACE = 100, K_SPACE = 101,
-		K_ESC = 102, K_TAB = 103, K_CAPS_LOCK = 104,
-		
-		K_LEFT_SHIFT = 105, K_LEFT_CTRL = 106, K_LEFT_ALT = 107, 
-		K_RIGHT_SHIFT = 108, K_RIGHT_CTRL = 109, K_RIGHT_ALT = 110, 
-		
-		K_PRINT_SCREEN = 111, K_SCROLL_LOCK = 112, K_PAUSE = 113, 
-		K_INSERT = 114, K_DELETE = 115,
-		K_HOME = 116, K_END = 117, 
-		K_PAGE_UP = 118, K_PAGE_DOWN = 119, 
-		
-		K_ARROW_UP = 120, K_ARROW_DOWN = 121, 
-		K_ARROW_LEFT = 122, K_ARROW_RIGHT = 123, 
-		
-		K_ALTERNATE_GRAPHIC = 124, 
-		K_FUNCTION = 125, 
-		K_SYSTEM = 126, 
-		K_MENU = 127
+
+		K_A = 61, K_B = 62, K_C = 63, K_D = 64, K_E = 65, K_F = 66, K_G = 67,
+		K_H = 68, K_I = 69, K_J = 70, K_K = 71, K_L = 72, K_M = 73, K_N = 74,
+		K_O = 75, K_P = 76, K_Q = 77, K_R = 78, K_S = 79, K_T = 80, K_U = 81,
+		K_V = 82, K_W = 83, K_X = 84, K_Y = 85, K_Z = 86,
+
+		K_NUM_0 = 87, K_NUM_1 = 88, K_NUM_2 = 89, K_NUM_3 = 90, K_NUM_4 = 91,
+		K_NUM_5 = 92, K_NUM_6 = 93, K_NUM_7 = 94, K_NUM_8 = 95, K_NUM_9 = 96,
+
+		K_NUM_LOCK = 97, K_NUM_DECIMAL = 98, K_NUM_RETURN = 99,
+		K_NUM_DIVIDE = 100, K_NUM_MULTIPLY = 101,
+		K_NUM_ADD = 102, K_NUM_SUBTRACT = 103,
+
+		K_0 = 104, K_1 = 105, K_2 = 106, K_3 = 107, K_4 = 108,
+		K_5 = 109, K_6 = 110, K_7 = 111, K_8 = 112, K_9 = 113,
+
+		K_F1 = 114, K_F2 = 115, K_F3 = 116, K_F4 = 117,
+		K_F5 = 118, K_F6 = 119, K_F7 = 120, K_F8 = 121,
+		K_F9 = 122, K_F10 = 123, K_F11 = 124, K_F12 = 125,
+
+		K_RETURN = 126, K_BACKSPACE = 127, K_SPACE = 128,
+		K_ESC = 129, K_TAB = 130, K_CAPS_LOCK = 131,
+
+		K_LEFT_SHIFT = 132, K_LEFT_CTRL = 133, K_LEFT_ALT = 134,
+		K_RIGHT_SHIFT = 135, K_RIGHT_CTRL = 136, K_RIGHT_ALT = 137,
+
+		K_PRINT_SCREEN = 138, K_SCROLL_LOCK = 139, K_PAUSE = 140,
+		K_INSERT = 141, K_DELETE = 142,
+		K_HOME = 143, K_END = 144,
+		K_PAGE_UP = 145, K_PAGE_DOWN = 146,
+
+		K_ARROW_UP = 147, K_ARROW_DOWN = 148,
+		K_ARROW_LEFT = 149, K_ARROW_RIGHT = 150,
+
+		K_ALTERNATE_GRAPHIC = 151,
+		K_FUNCTION = 152,
+		K_SYSTEM = 153,
+		K_MENU = 154,
+		K_SUPERLEFT = 155, K_SUPERRIGHT = 156
 	};
 	
-	//Common keyboard actions. 128-140 is reserved.
-	inline constexpr array<KeyValue, 67> keyboard_actions
+	//Common keyboard actions. 157-200 is reserved.
+	inline constexpr array<KeyValue, 96> keyboard_actions
 	{{
+		{scast<u32>(KeyboardButton::K_A), 0, "a"},
+		{scast<u32>(KeyboardButton::K_B), 0, "b"},
+		{scast<u32>(KeyboardButton::K_C), 0, "c"},
+		{scast<u32>(KeyboardButton::K_D), 0, "d"},
+		{scast<u32>(KeyboardButton::K_E), 0, "e"},
+		{scast<u32>(KeyboardButton::K_F), 0, "f"},
+		{scast<u32>(KeyboardButton::K_G), 0, "g"},
+		{scast<u32>(KeyboardButton::K_H), 0, "h"},
+		{scast<u32>(KeyboardButton::K_I), 0, "i"},
+		{scast<u32>(KeyboardButton::K_J), 0, "j"},
+		{scast<u32>(KeyboardButton::K_K), 0, "k"},
+		{scast<u32>(KeyboardButton::K_L), 0, "l"},
+		{scast<u32>(KeyboardButton::K_M), 0, "m"},
+		{scast<u32>(KeyboardButton::K_N), 0, "n"},
+		{scast<u32>(KeyboardButton::K_O), 0, "o"},
+		{scast<u32>(KeyboardButton::K_P), 0, "p"},
+		{scast<u32>(KeyboardButton::K_Q), 0, "q"},
+		{scast<u32>(KeyboardButton::K_R), 0, "r"},
+		{scast<u32>(KeyboardButton::K_S), 0, "s"},
+		{scast<u32>(KeyboardButton::K_T), 0, "t"},
+		{scast<u32>(KeyboardButton::K_U), 0, "u"},
+		{scast<u32>(KeyboardButton::K_V), 0, "v"},
+		{scast<u32>(KeyboardButton::K_W), 0, "w"},
+		{scast<u32>(KeyboardButton::K_X), 0, "x"},
+		{scast<u32>(KeyboardButton::K_Y), 0, "y"},
+		{scast<u32>(KeyboardButton::K_Z), 0, "z"},
+
 		{scast<u32>(KeyboardButton::K_NUM_0), 0, "num-0"}, 
 		{scast<u32>(KeyboardButton::K_NUM_1), 0, "num-1"}, 
 		{scast<u32>(KeyboardButton::K_NUM_2), 0, "num-2"}, 
@@ -296,7 +329,9 @@ namespace KalaHeaders::KalaKeyStandards
 		{scast<u32>(KeyboardButton::K_ALTERNATE_GRAPHIC), 0, "alternate-graphic"}, 
 		{scast<u32>(KeyboardButton::K_FUNCTION),          0, "function"}, 
 		{scast<u32>(KeyboardButton::K_SYSTEM),            0, "system"}, 
-		{scast<u32>(KeyboardButton::K_MENU),              0, "menu"}
+		{scast<u32>(KeyboardButton::K_MENU),              0, "menu"},
+		{scast<u32>(KeyboardButton::K_SUPERLEFT),         0, "super-left"},
+		{scast<u32>(KeyboardButton::K_SUPERRIGHT),        0, "super-right"}
 	}};
 	
 	inline constexpr KeyboardButton GetKeyButton(const string& v)
@@ -320,109 +355,109 @@ namespace KalaHeaders::KalaKeyStandards
 	// KEY SYMBOLS
 	//
 	
-	//Common symbols used for typing and UI. 187-200 is reserved for future use.
+	//Common symbols used for typing and UI. 247-300 is reserved for future use.
 	inline constexpr array<KeyValue, 46> typography_symbols
 	{{
-		{141, 0x0030, "0"}, {142, 0x0031, "1"}, {143, 0x0032, "2"}, {144, 0x0033, "3"}, {145, 0x0034, "4"},
-		{146, 0x0035, "5"}, {147, 0x0036, "6"}, {148, 0x0037, "7"}, {149, 0x0038, "8"}, {150, 0x0039, "9"},
-		
-		{151, 0x003F, "?"}, {152, 0x0021, "!"}, {153, 0x005F, "_"}, 
-		{154, 0x0040, "@"}, {155, 0x003B, ";"}, {156, 0x002C, ","}, {157, 0x002E, "."}, 
-		
-		{158, 0x0028, "("}, {159, 0x0029, ")"}, 
-		{160, 0x007B, "{"}, {161, 0x007D, "}"}, 
-		{162, 0x005B, "["}, {163, 0x005D, "]"},  
+		{201, 0x0030, "0"}, {202, 0x0031, "1"}, {203, 0x0032, "2"}, {204, 0x0033, "3"}, {205, 0x0034, "4"},
+		{206, 0x0035, "5"}, {207, 0x0036, "6"}, {208, 0x0037, "7"}, {209, 0x0038, "8"}, {210, 0x0039, "9"},
 
-		{164, 0x003A, ":"},
-		{165, 0x2237, "double-colon"}, //∷ 
-		
-		{166, 0x0020, "space"}, {167, 0x00A0, "non-breaking-space"}, 
-		
-		{168, 0x005C, "backslash"}, //\
-		
-		{169, 0x2013, "endash"},   //– 
-		{170, 0x2014, "emdash"},   //—
-		{171, 0x2026, "ellipsis"}, //…
-		
-		{172, 0x0027, "straight-single-quote"}, //'
-		{173, 0x0022, "straight-double-quote"}, //"
-		{174, 0x02C7, "caron"},                 //ˇ
-		{175, 0x0060, "grave-accent"},          //`
-		{176, 0x00B4, "acute-accent"},          //´
-		{177, 0x2018, "left-single-quote"},     //‘
-		{178, 0x2019, "right-single-quote"},    //’
-		{179, 0x201C, "left-double-quote"},     //“
-		{180, 0x201D, "right-double-quote"},    //”
-		
-		{181, 0x00A7, "section"}, //§
-		{182, 0x2022, "bullet"},  //•
-		{183, 0x00B7, "middot"},  //·
-		
-		{184, 0x00A9, "copyright"},  //©
-		{185, 0x00AE, "registered"}, //®
-		{186, 0x2122, "trademark"}   //™
+		{211, 0x003F, "?"}, {212, 0x0021, "!"}, {213, 0x005F, "_"},
+		{214, 0x0040, "@"}, {215, 0x003B, ";"}, {216, 0x002C, ","}, {217, 0x002E, "."},
+
+		{218, 0x0028, "("}, {219, 0x0029, ")"},
+		{220, 0x007B, "{"}, {221, 0x007D, "}"},
+		{222, 0x005B, "["}, {223, 0x005D, "]"},
+
+		{224, 0x003A, ":"},
+		{225, 0x2237, "double-colon"}, // ∷
+
+		{226, 0x0020, "space"}, {227, 0x00A0, "non-breaking-space"},
+
+		{228, 0x005C, "backslash"}, // \
+
+		{229, 0x2013, "endash"},   // –
+		{230, 0x2014, "emdash"},   // —
+		{231, 0x2026, "ellipsis"}, // …
+
+		{232, 0x0027, "straight-single-quote"}, // '
+		{233, 0x0022, "straight-double-quote"}, // "
+		{234, 0x02C7, "caron"},                 // ˇ
+		{235, 0x0060, "grave-accent"},          // `
+		{236, 0x00B4, "acute-accent"},          // ´
+		{237, 0x2018, "left-single-quote"},     // ‘
+		{238, 0x2019, "right-single-quote"},    // ’
+		{239, 0x201C, "left-double-quote"},     // “
+		{240, 0x201D, "right-double-quote"},    // ”
+
+		{241, 0x00A7, "section"}, // §
+		{242, 0x2022, "bullet"},  // •
+		{243, 0x00B7, "middot"},  // ·
+
+		{244, 0x00A9, "copyright"},  // ©
+		{245, 0x00AE, "registered"}, // ®
+		{246, 0x2122, "trademark"}   // ™
 	}};
 	
-	//Common symbols used for math and technical operations. 235-250 is reserved for future use.
+	//Common symbols used for math and technical operations. 335-350 is reserved for future use.
 	inline constexpr array<KeyValue, 35> math_symbols
 	{{
-		{201, 0x002B, "+"},            //add
-		{202, 0x002D, "-"},            //subtract
-		{203, 0x002A, "*"},            //multiply asterisk
-		{204, 0x00D7, "multiply-x"},   //×
-		{205, 0x002F, "/"},            //divide
-		{206, 0x00F7, "divide"},       //÷
-		
-		{207, 0x0025, "%"}, //modulus
-		{208, 0x007C, "|"}, //bitwise or logical OR
-		
-		{209, 0x007E, "bitwise-not"},         //~
-		{210, 0x2248, "approximately-equal"}, //≈
-		{211, 0x003D, "="},                   //equal
-		{212, 0x2260, "not-equal"},           //≠
-		{213, 0x2261, "identical-to"},        //≡
-		{214, 0x221E, "infinity"},            //∞
-		{215, 0x221A, "square-root"},         //√
-		{216, 0x00B0, "degree"},              //°
-		{217, 0x00B5, "micro"},               //µ
-		{218, 0x2126, "ohm"},                 //Ω
-		
-		{219, 0x003C, "<"},                      //less than
-		{220, 0x003E, ">"},                      //more than
-		{221, 0x2264, "less-than-and-equal-to"}, //≤ 
-		{222, 0x2265, "more-than-and-equal-to"}, //≥
-		{223, 0x00B1, "plus-minus"},             //±
-		
-		{224, 0x2190, "arrow-left"},       //← 
-		{225, 0x2191, "arrow-up"},         //↑  
-		{226, 0x2192, "arrow-right"},      //→
-		{227, 0x2193, "arrow-down"},       //↓
-		{228, 0x21D2, "implies"},          //⇒  
-		{229, 0x21D4, "if-and-only-if"},   //⇔  
-		{230, 0x27F5, "long-left-arrow"},  //⟵ 
-		{231, 0x27F6, "long-right-arrow"}, //⟶ 
-		
-		{232, 0x00B9, "superscript-one"},   //¹
-		{233, 0x00B2, "superscript-two"},   //²
-		{234, 0x00B3, "superscript-three"}  //³
+		{301, 0x002B, "+"},            // add
+		{302, 0x002D, "-"},            // subtract
+		{303, 0x002A, "*"},            // multiply asterisk
+		{304, 0x00D7, "multiply-x"},   // ×
+		{305, 0x002F, "/"},            // divide
+		{306, 0x00F7, "divide"},       // ÷
+
+		{307, 0x0025, "%"}, // modulus
+		{308, 0x007C, "|"}, // bitwise or logical OR
+
+		{309, 0x007E, "bitwise-not"},         // ~
+		{310, 0x2248, "approximately-equal"}, // ≈
+		{311, 0x003D, "="},                   // equal
+		{312, 0x2260, "not-equal"},           // ≠
+		{313, 0x2261, "identical-to"},        // ≡
+		{314, 0x221E, "infinity"},            // ∞
+		{315, 0x221A, "square-root"},         // √
+		{316, 0x00B0, "degree"},              // °
+		{317, 0x00B5, "micro"},               // µ
+		{318, 0x2126, "ohm"},                 // Ω
+
+		{319, 0x003C, "<"},                      // less than
+		{320, 0x003E, ">"},                      // more than
+		{321, 0x2264, "less-than-and-equal-to"}, // ≤
+		{322, 0x2265, "more-than-and-equal-to"}, // ≥
+		{323, 0x00B1, "plus-minus"},             // ±
+
+		{324, 0x2190, "arrow-left"},       // ←
+		{325, 0x2191, "arrow-up"},         // ↑
+		{326, 0x2192, "arrow-right"},      // →
+		{327, 0x2193, "arrow-down"},       // ↓
+		{328, 0x21D2, "implies"},          // ⇒
+		{329, 0x21D4, "if-and-only-if"},   // ⇔
+		{330, 0x27F5, "long-left-arrow"},  // ⟵
+		{331, 0x27F6, "long-right-arrow"}, // ⟶
+
+		{332, 0x00B9, "superscript-one"},   // ¹
+		{333, 0x00B2, "superscript-two"},   // ²
+		{334, 0x00B3, "superscript-three"}  // ³
 	}};
 	
-	//Common currency symbols. 264-270 is reserved for future use.
+	//Common currency symbols. 364-370 is reserved for future use.
 	inline constexpr array<KeyValue, 13> currency_symbols
 	{{
-		{251, 0x20AC, "euro"},               //€
-		{252, 0x00A3, "pound"},              //£
-		{253, 0x0024, "dollar"},             //$
-		{254, 0x20B4, "ukrainian-hryvnia"},  //₴
-		{255, 0x20BD, "russian-rouble"},     //₽
-		{256, 0x20A8, "old-indian-rupee"},   //₨
-		{257, 0x20B9, "indian-rupee"},       //₹
-		{258, 0x00A5, "japanese-yen"},       //¥
-		{259, 0x5186, "japanese-kanji-yen"}, //円
-		{260, 0x5713, "taiwanese-yuan"},     //圓
-		{261, 0x20A9, "korean-won"},         //₩
-		{262, 0x20AA, "israeli-shekel"},     //₪
-		{263, 0x20B1, "philippine-peso"}     //₱
+		{351, 0x20AC, "euro"},               //€
+		{352, 0x00A3, "pound"},              //£
+		{353, 0x0024, "dollar"},             //$
+		{354, 0x20B4, "ukrainian-hryvnia"},  //₴
+		{355, 0x20BD, "russian-rouble"},     //₽
+		{356, 0x20A8, "old-indian-rupee"},   //₨
+		{357, 0x20B9, "indian-rupee"},       //₹
+		{358, 0x00A5, "japanese-yen"},       //¥
+		{359, 0x5186, "japanese-kanji-yen"}, //円
+		{360, 0x5713, "taiwanese-yuan"},     //圓
+		{361, 0x20A9, "korean-won"},         //₩
+		{362, 0x20AA, "israeli-shekel"},     //₪
+		{363, 0x20B1, "philippine-peso"}     //₱
 	}};
 	
 	//
@@ -431,70 +466,70 @@ namespace KalaHeaders::KalaKeyStandards
 	
 	inline constexpr array<KeyValue, 52> latin_standard
 	{{
-		{271, 0x0041, "A"}, {272, 0x0042, "B"}, {273, 0x0043, "C"}, {274, 0x0044, "D"}, {275, 0x0045, "E"},
-		{276, 0x0046, "F"}, {277, 0x0047, "G"}, {278, 0x0048, "H"}, {279, 0x0049, "I"}, {280, 0x004A, "J"},
-		{281, 0x004B, "K"}, {282, 0x004C, "L"}, {283, 0x004D, "M"}, {284, 0x004E, "N"}, {285, 0x004F, "O"},
-		{286, 0x0050, "P"}, {287, 0x0051, "Q"}, {288, 0x0052, "R"}, {289, 0x0053, "S"}, {290, 0x0054, "T"},
-		{291, 0x0055, "U"}, {292, 0x0056, "V"}, {293, 0x0057, "W"}, {294, 0x0058, "X"}, {295, 0x0059, "Y"},
-		{296, 0x005A, "Z"},
-		
-		{297, 0x0061, "a"}, {298, 0x0062, "b"}, {299, 0x0063, "c"}, {300, 0x0064, "d"}, {301, 0x0065, "e"},
-		{302, 0x0066, "f"}, {303, 0x0067, "g"}, {304, 0x0068, "h"}, {305, 0x0069, "i"}, {306, 0x006A, "j"},
-		{307, 0x006B, "k"}, {308, 0x006C, "l"}, {309, 0x006D, "m"}, {310, 0x006E, "n"}, {311, 0x006F, "o"},
-		{312, 0x0070, "p"}, {313, 0x0071, "q"}, {314, 0x0072, "r"}, {315, 0x0073, "s"}, {316, 0x0074, "t"},
-		{317, 0x0075, "u"}, {318, 0x0076, "v"}, {319, 0x0077, "w"}, {320, 0x0078, "x"}, {321, 0x0079, "y"},
-		{322, 0x007A, "z"}
+		{371, 0x0041, "A"}, {372, 0x0042, "B"}, {373, 0x0043, "C"}, {374, 0x0044, "D"}, {375, 0x0045, "E"},
+		{376, 0x0046, "F"}, {377, 0x0047, "G"}, {378, 0x0048, "H"}, {379, 0x0049, "I"}, {380, 0x004A, "J"},
+		{381, 0x004B, "K"}, {382, 0x004C, "L"}, {383, 0x004D, "M"}, {384, 0x004E, "N"}, {385, 0x004F, "O"},
+		{386, 0x0050, "P"}, {387, 0x0051, "Q"}, {388, 0x0052, "R"}, {389, 0x0053, "S"}, {390, 0x0054, "T"},
+		{391, 0x0055, "U"}, {392, 0x0056, "V"}, {393, 0x0057, "W"}, {394, 0x0058, "X"}, {395, 0x0059, "Y"},
+		{396, 0x005A, "Z"},
+
+		{397, 0x0061, "a"}, {398, 0x0062, "b"}, {399, 0x0063, "c"}, {400, 0x0064, "d"}, {401, 0x0065, "e"},
+		{402, 0x0066, "f"}, {403, 0x0067, "g"}, {404, 0x0068, "h"}, {405, 0x0069, "i"}, {406, 0x006A, "j"},
+		{407, 0x006B, "k"}, {408, 0x006C, "l"}, {409, 0x006D, "m"}, {410, 0x006E, "n"}, {411, 0x006F, "o"},
+		{412, 0x0070, "p"}, {413, 0x0071, "q"}, {414, 0x0072, "r"}, {415, 0x0073, "s"}, {416, 0x0074, "t"},
+		{417, 0x0075, "u"}, {418, 0x0076, "v"}, {419, 0x0077, "w"}, {420, 0x0078, "x"}, {421, 0x0079, "y"},
+		{422, 0x007A, "z"}
 	}};
 
 	inline constexpr array<KeyValue, 124> latin_extra
 	{{
 		//simple uppercase diacritic and regional extensions
-		
-		{323, 0x00C0, "À"}, {324, 0x00C1, "Á"}, {325, 0x00C2, "Â"}, {326, 0x00C3, "Ã"}, {327, 0x00C4, "Ä"},
-		{328, 0x00C5, "Å"}, {329, 0x00C7, "Ç"}, {330, 0x00C8, "È"}, {331, 0x00C9, "É"}, {332, 0x00CA, "Ê"},
-		{333, 0x00CB, "Ë"}, {334, 0x00CC, "Ì"}, {335, 0x00CD, "Í"}, {336, 0x00CE, "Î"}, {337, 0x00CF, "Ï"},
-		{338, 0x00D1, "Ñ"}, {339, 0x00D2, "Ò"}, {340, 0x00D3, "Ó"}, {341, 0x00D4, "Ô"}, {342, 0x00D5, "Õ"},
-		{343, 0x00D6, "Ö"}, {344, 0x00D8, "Ø"}, {345, 0x00D9, "Ù"}, {346, 0x00DA, "Ú"}, {347, 0x00DB, "Û"},
-		{348, 0x00DC, "Ü"}, {349, 0x00DD, "Ý"}, {350, 0x0179, "Ź"}, {351, 0x017B, "Ż"}, {352, 0x017D, "Ž"},
-		{353, 0x0102, "Ă"}, {354, 0x0104, "Ą"}, {355, 0x010C, "Č"}, {356, 0x010E, "Ď"}, {357, 0x0118, "Ę"},
-		{358, 0x011A, "Ě"}, {359, 0x011E, "Ğ"}, {360, 0x0141, "Ł"}, {361, 0x0143, "Ń"}, {362, 0x0147, "Ň"},
-		{363, 0x0150, "Ő"}, {364, 0x0158, "Ř"}, {365, 0x015A, "Ś"}, {366, 0x015E, "Ş"}, {367, 0x0160, "Š"},
-		{368, 0x0162, "Ţ"}, {369, 0x0164, "Ť"}, {370, 0x016E, "Ů"}, {371, 0x0170, "Ű"}, {372, 0x0172, "Ų"},
-		{373, 0x0176, "Ŷ"}, {374, 0x0178, "Ÿ"},
+
+		{423, 0x00C0, "À"}, {424, 0x00C1, "Á"}, {425, 0x00C2, "Â"}, {426, 0x00C3, "Ã"}, {427, 0x00C4, "Ä"},
+		{428, 0x00C5, "Å"}, {429, 0x00C7, "Ç"}, {430, 0x00C8, "È"}, {431, 0x00C9, "É"}, {432, 0x00CA, "Ê"},
+		{433, 0x00CB, "Ë"}, {434, 0x00CC, "Ì"}, {435, 0x00CD, "Í"}, {436, 0x00CE, "Î"}, {437, 0x00CF, "Ï"},
+		{438, 0x00D1, "Ñ"}, {439, 0x00D2, "Ò"}, {440, 0x00D3, "Ó"}, {441, 0x00D4, "Ô"}, {442, 0x00D5, "Õ"},
+		{443, 0x00D6, "Ö"}, {444, 0x00D8, "Ø"}, {445, 0x00D9, "Ù"}, {446, 0x00DA, "Ú"}, {447, 0x00DB, "Û"},
+		{448, 0x00DC, "Ü"}, {449, 0x00DD, "Ý"}, {450, 0x0179, "Ź"}, {451, 0x017B, "Ż"}, {452, 0x017D, "Ž"},
+		{453, 0x0102, "Ă"}, {454, 0x0104, "Ą"}, {455, 0x010C, "Č"}, {456, 0x010E, "Ď"}, {457, 0x0118, "Ę"},
+		{458, 0x011A, "Ě"}, {459, 0x011E, "Ğ"}, {460, 0x0141, "Ł"}, {461, 0x0143, "Ń"}, {462, 0x0147, "Ň"},
+		{463, 0x0150, "Ő"}, {464, 0x0158, "Ř"}, {465, 0x015A, "Ś"}, {466, 0x015E, "Ş"}, {467, 0x0160, "Š"},
+		{468, 0x0162, "Ţ"}, {469, 0x0164, "Ť"}, {470, 0x016E, "Ů"}, {471, 0x0170, "Ű"}, {472, 0x0172, "Ų"},
+		{473, 0x0176, "Ŷ"}, {474, 0x0178, "Ÿ"},
 
 		//uppercase morphological / ligature / historical letters
-		
-		{375, 0x00C6, "Æ"}, //AE ligature - Nordic/French
-		{376, 0x00D0, "Ð"}, //Eth - Icelandic/Faroese
-		{377, 0x0152, "Œ"}, //OE ligature - French/Latin
-		{378, 0x0132, "Ĳ"}, //IJ ligature - Dutch
-		{379, 0x00DE, "Þ"}, //Thorn - Old English/Icelandic
-		{380, 0x1E9E, "ẞ"}, //Capital Sharp S - German
-		{381, 0x017F, "ſ"}, //Long s - Historical typography
-		
+
+		{475, 0x00C6, "Æ"}, //AE ligature - Nordic/French
+		{476, 0x00D0, "Ð"}, //Eth - Icelandic/Faroese
+		{477, 0x0152, "Œ"}, //OE ligature - French/Latin
+		{478, 0x0132, "Ĳ"}, //IJ ligature - Dutch
+		{479, 0x00DE, "Þ"}, //Thorn - Old English/Icelandic
+		{480, 0x1E9E, "ẞ"}, //Capital Sharp S - German
+		{481, 0x017F, "ſ"}, //Long s - Historical typography
+
 		//simple lowercase diacritic and regional extensions
 
-		{382, 0x00E0, "à"}, {383, 0x00E1, "á"}, {384, 0x00E2, "â"}, {385, 0x00E3, "ã"}, {386, 0x00E4, "ä"},
-		{387, 0x00E5, "å"}, {388, 0x00E7, "ç"}, {389, 0x00E8, "è"}, {390, 0x00E9, "é"}, {391, 0x00EA, "ê"},
-		{392, 0x00EB, "ë"}, {393, 0x00EC, "ì"}, {394, 0x00ED, "í"}, {395, 0x00EE, "î"}, {396, 0x00EF, "ï"},
-		{397, 0x00F1, "ñ"}, {398, 0x00F2, "ò"}, {399, 0x00F3, "ó"}, {400, 0x00F4, "ô"}, {401, 0x00F5, "õ"},
-		{402, 0x00F6, "ö"}, {403, 0x00F8, "ø"}, {404, 0x00F9, "ù"}, {405, 0x00FA, "ú"}, {406, 0x00FB, "û"},
-		{407, 0x00FC, "ü"}, {408, 0x00FD, "ý"}, {409, 0x017A, "ź"}, {410, 0x017C, "ż"}, {411, 0x017E, "ž"},
-		{412, 0x0103, "ă"}, {413, 0x0105, "ą"}, {414, 0x010D, "č"}, {415, 0x010F, "ď"}, {416, 0x0119, "ę"},
-		{417, 0x011B, "ě"}, {418, 0x011F, "ğ"}, {419, 0x0142, "ł"}, {420, 0x0144, "ń"}, {421, 0x0148, "ň"},
-		{422, 0x0151, "ő"}, {423, 0x0159, "ř"}, {424, 0x015B, "ś"}, {425, 0x015F, "ş"}, {426, 0x0161, "š"},
-		{427, 0x0163, "ţ"}, {428, 0x0165, "ť"}, {429, 0x016F, "ů"}, {430, 0x0171, "ű"}, {431, 0x0173, "ų"},
-		{432, 0x0177, "ŷ"}, {433, 0x00FF, "ÿ"},
+		{482, 0x00E0, "à"}, {483, 0x00E1, "á"}, {484, 0x00E2, "â"}, {485, 0x00E3, "ã"}, {486, 0x00E4, "ä"},
+		{487, 0x00E5, "å"}, {488, 0x00E7, "ç"}, {489, 0x00E8, "è"}, {490, 0x00E9, "é"}, {491, 0x00EA, "ê"},
+		{492, 0x00EB, "ë"}, {493, 0x00EC, "ì"}, {494, 0x00ED, "í"}, {495, 0x00EE, "î"}, {496, 0x00EF, "ï"},
+		{497, 0x00F1, "ñ"}, {498, 0x00F2, "ò"}, {499, 0x00F3, "ó"}, {500, 0x00F4, "ô"}, {501, 0x00F5, "õ"},
+		{502, 0x00F6, "ö"}, {503, 0x00F8, "ø"}, {504, 0x00F9, "ù"}, {505, 0x00FA, "ú"}, {506, 0x00FB, "û"},
+		{507, 0x00FC, "ü"}, {508, 0x00FD, "ý"}, {509, 0x017A, "ź"}, {510, 0x017C, "ż"}, {511, 0x017E, "ž"},
+		{512, 0x0103, "ă"}, {513, 0x0105, "ą"}, {514, 0x010D, "č"}, {515, 0x010F, "ď"}, {516, 0x0119, "ę"},
+		{517, 0x011B, "ě"}, {518, 0x011F, "ğ"}, {519, 0x0142, "ł"}, {520, 0x0144, "ń"}, {521, 0x0148, "ň"},
+		{522, 0x0151, "ő"}, {523, 0x0159, "ř"}, {524, 0x015B, "ś"}, {525, 0x015F, "ş"}, {526, 0x0161, "š"},
+		{527, 0x0163, "ţ"}, {528, 0x0165, "ť"}, {529, 0x016F, "ů"}, {530, 0x0171, "ű"}, {531, 0x0173, "ų"},
+		{532, 0x0177, "ŷ"}, {533, 0x00FF, "ÿ"},
 
 		//lowercase morphological / ligature / historical letters
 
-		{434, 0x00E6, "æ"}, //AE ligature - Nordic/French
-		{435, 0x00F0, "ð"}, //Eth - Icelandic/Faroese
-		{436, 0x0153, "œ"}, //OE ligature - French/Latin
-		{437, 0x0133, "ĳ"}, //IJ ligature - Dutch
-		{438, 0x00FE, "þ"}, //Thorn - Old English/Icelandic
-		{439, 0x00DF, "ß"}, //Sharp S - German
-		{440, 0x017F, "ſ"}  //Long s - Historical typography
+		{534, 0x00E6, "æ"}, //AE ligature - Nordic/French
+		{535, 0x00F0, "ð"}, //Eth - Icelandic/Faroese
+		{536, 0x0153, "œ"}, //OE ligature - French/Latin
+		{537, 0x0133, "ĳ"}, //IJ ligature - Dutch
+		{538, 0x00FE, "þ"}, //Thorn - Old English/Icelandic
+		{539, 0x00DF, "ß"}, //Sharp S - German
+		{540, 0x017F, "ſ"}  //Long s - Historical typography
 	}};
 	
 	//
@@ -503,32 +538,32 @@ namespace KalaHeaders::KalaKeyStandards
 	
 	inline constexpr array<KeyValue, 66> cyrillic_standard
 	{{
-		{441, 0x0410, "А"}, {442, 0x0411, "Б"}, {443, 0x0412, "В"}, {444, 0x0413, "Г"}, {445, 0x0414, "Д"},
-		{446, 0x0415, "Е"}, {447, 0x0401, "Ё"}, {448, 0x0416, "Ж"}, {449, 0x0417, "З"}, {450, 0x0418, "И"},
-		{451, 0x0419, "Й"}, {452, 0x041A, "К"}, {453, 0x041B, "Л"}, {454, 0x041C, "М"}, {455, 0x041D, "Н"},
-		{456, 0x041E, "О"}, {457, 0x041F, "П"}, {458, 0x0420, "Р"}, {459, 0x0421, "С"}, {460, 0x0422, "Т"},
-		{461, 0x0423, "У"}, {462, 0x0424, "Ф"}, {463, 0x0425, "Х"}, {464, 0x0426, "Ц"}, {465, 0x0427, "Ч"},
-		{466, 0x0428, "Ш"}, {467, 0x0429, "Щ"}, {468, 0x042A, "Ъ"}, {469, 0x042B, "Ы"}, {470, 0x042C, "Ь"},
-		{471, 0x042D, "Э"}, {472, 0x042E, "Ю"}, {473, 0x042F, "Я"},
-		
-		{474, 0x0430, "а"}, {475, 0x0431, "б"}, {476, 0x0432, "в"}, {477, 0x0433, "г"}, {478, 0x0434, "д"},
-		{479, 0x0435, "е"}, {480, 0x0451, "ё"}, {481, 0x0436, "ж"}, {482, 0x0437, "з"}, {483, 0x0438, "и"},
-		{484, 0x0439, "й"}, {485, 0x043A, "к"}, {486, 0x043B, "л"}, {487, 0x043C, "м"}, {488, 0x043D, "н"},
-		{489, 0x043E, "о"}, {490, 0x043F, "п"}, {491, 0x0440, "р"}, {492, 0x0441, "с"}, {493, 0x0442, "т"},
-		{494, 0x0443, "у"}, {495, 0x0444, "ф"}, {496, 0x0445, "х"}, {497, 0x0446, "ц"}, {498, 0x0447, "ч"},
-		{499, 0x0448, "ш"}, {500, 0x0449, "щ"}, {501, 0x044A, "ъ"}, {502, 0x044B, "ы"}, {503, 0x044C, "ь"},
-		{504, 0x044D, "э"}, {505, 0x044E, "ю"}, {506, 0x044F, "я"}
+		{541, 0x0410, "А"}, {542, 0x0411, "Б"}, {543, 0x0412, "В"}, {544, 0x0413, "Г"}, {545, 0x0414, "Д"},
+		{546, 0x0415, "Е"}, {547, 0x0401, "Ё"}, {548, 0x0416, "Ж"}, {549, 0x0417, "З"}, {550, 0x0418, "И"},
+		{551, 0x0419, "Й"}, {552, 0x041A, "К"}, {553, 0x041B, "Л"}, {554, 0x041C, "М"}, {555, 0x041D, "Н"},
+		{556, 0x041E, "О"}, {557, 0x041F, "П"}, {558, 0x0420, "Р"}, {559, 0x0421, "С"}, {560, 0x0422, "Т"},
+		{561, 0x0423, "У"}, {562, 0x0424, "Ф"}, {563, 0x0425, "Х"}, {564, 0x0426, "Ц"}, {565, 0x0427, "Ч"},
+		{566, 0x0428, "Ш"}, {567, 0x0429, "Щ"}, {568, 0x042A, "Ъ"}, {569, 0x042B, "Ы"}, {570, 0x042C, "Ь"},
+		{571, 0x042D, "Э"}, {572, 0x042E, "Ю"}, {573, 0x042F, "Я"},
+
+		{574, 0x0430, "а"}, {575, 0x0431, "б"}, {576, 0x0432, "в"}, {577, 0x0433, "г"}, {578, 0x0434, "д"},
+		{579, 0x0435, "е"}, {580, 0x0451, "ё"}, {581, 0x0436, "ж"}, {582, 0x0437, "з"}, {583, 0x0438, "и"},
+		{584, 0x0439, "й"}, {585, 0x043A, "к"}, {586, 0x043B, "л"}, {587, 0x043C, "м"}, {588, 0x043D, "н"},
+		{589, 0x043E, "о"}, {590, 0x043F, "п"}, {591, 0x0440, "р"}, {592, 0x0441, "с"}, {593, 0x0442, "т"},
+		{594, 0x0443, "у"}, {595, 0x0444, "ф"}, {596, 0x0445, "х"}, {597, 0x0446, "ц"}, {598, 0x0447, "ч"},
+		{599, 0x0448, "ш"}, {600, 0x0449, "щ"}, {601, 0x044A, "ъ"}, {602, 0x044B, "ы"}, {603, 0x044C, "ь"},
+		{604, 0x044D, "э"}, {605, 0x044E, "ю"}, {606, 0x044F, "я"}
 	}};
 
 	inline constexpr array<KeyValue, 20> cyrillic_extra
 	{{
-		{507, 0x0490, "Ґ"}, {508, 0x0404, "Є"}, {509, 0x0406, "І"}, {510, 0x0407, "Ї"},
-		{511, 0x0408, "Ј"}, {512, 0x0409, "Љ"}, {513, 0x040A, "Њ"}, {514, 0x040B, "Ћ"}, 
-		{515, 0x0402, "Ђ"}, {516, 0x040F, "Џ"},
-		
-		{517, 0x0491, "ґ"}, {518, 0x0454, "є"}, {519, 0x0456, "і"}, {520, 0x0457, "ї"},
-		{521, 0x0458, "ј"}, {522, 0x0459, "љ"}, {523, 0x045A, "њ"}, {524, 0x045B, "ћ"},
-		{525, 0x0452, "ђ"}, {526, 0x045F, "џ"}
+		{607, 0x0490, "Ґ"}, {608, 0x0404, "Є"}, {609, 0x0406, "І"}, {610, 0x0407, "Ї"},
+		{611, 0x0408, "Ј"}, {612, 0x0409, "Љ"}, {613, 0x040A, "Њ"}, {614, 0x040B, "Ћ"},
+		{615, 0x0402, "Ђ"}, {616, 0x040F, "Џ"},
+
+		{617, 0x0491, "ґ"}, {618, 0x0454, "є"}, {619, 0x0456, "і"}, {620, 0x0457, "ї"},
+		{621, 0x0458, "ј"}, {622, 0x0459, "љ"}, {623, 0x045A, "њ"}, {624, 0x045B, "ћ"},
+		{625, 0x0452, "ђ"}, {626, 0x045F, "џ"}
 	}};
 	
 	//
@@ -647,44 +682,44 @@ namespace KalaHeaders::KalaKeyStandards
 		
 		//face - concerned
 		
-		{1073, 0x1F615, "confused-face" },
-		{1074, 0x1FAE4, "face-with-diagonal-mouth" },
-		{1075, 0x1F61F, "worried-face" },
-		{1076, 0x1F641, "slightly-frowning-face" },
-		{1077, 0x1F639, "frowning-face" },
-		{1078, 0x2639, "face-with-open-mouth" },
-		{1079, 0x1F62E, "hushed-face" },
-		{1080, 0x1F62F, "astonished-face" },
-		{1081, 0x1F632, "flushed-face" },
-		{1082, 0x1F633, "distorted-face" },
-		{1083, 0x1FAEA, "pleading-face" },
-		{1084, 0x1F97A, "face-holding-back-tears" },
-		{1085, 0x1F979, "frowing-face-with-open-mouth" },
-		{1086, 0x1F626, "anguished-face" },
-		{1087, 0x1F627, "fearful-face" },
-		{1088, 0x1F628, "anxious-face-with-sweat" },
-		{1089, 0x1F630, "sad-but-relieved-face" },
-		{1090, 0x1F625, "crying-face" },
-		{1091, 0x1F622, "loudly-crying-face" },
-		{1092, 0x1F62D, "face-screaming-in-fear" },
-		{1093, 0x1F631, "confounded-face" },
-		{1094, 0x1F616, "persevering-face" },
-		{1095, 0x1F623, "dissapointed-face" },
-		{1096, 0x1F61E, "downcast-face-with-sweat" },
-		{1097, 0x1F613, "weary-face" },
-		{1098, 0x1F62B, "tired-face" },
-		{1099, 0x1F971, "yawning-face" },
+		{1073, 0x1F615, "confused-face"},
+		{1074, 0x1FAE4, "face-with-diagonal-mouth"},
+		{1075, 0x1F61F, "worried-face"},
+		{1076, 0x1F641, "slightly-frowning-face"},
+		{1077, 0x1F639, "frowning-face"},
+		{1078, 0x2639, "face-with-open-mouth"},
+		{1079, 0x1F62E, "hushed-face"},
+		{1080, 0x1F62F, "astonished-face"},
+		{1081, 0x1F632, "flushed-face"},
+		{1082, 0x1F633, "distorted-face"},
+		{1083, 0x1FAEA, "pleading-face"},
+		{1084, 0x1F97A, "face-holding-back-tears"},
+		{1085, 0x1F979, "frowing-face-with-open-mouth"},
+		{1086, 0x1F626, "anguished-face"},
+		{1087, 0x1F627, "fearful-face"},
+		{1088, 0x1F628, "anxious-face-with-sweat"},
+		{1089, 0x1F630, "sad-but-relieved-face"},
+		{1090, 0x1F625, "crying-face"},
+		{1091, 0x1F622, "loudly-crying-face"},
+		{1092, 0x1F62D, "face-screaming-in-fear"},
+		{1093, 0x1F631, "confounded-face"},
+		{1094, 0x1F616, "persevering-face"},
+		{1095, 0x1F623, "dissapointed-face"},
+		{1096, 0x1F61E, "downcast-face-with-sweat"},
+		{1097, 0x1F613, "weary-face"},
+		{1098, 0x1F62B, "tired-face"},
+		{1099, 0x1F971, "yawning-face"},
 		
 		//face - negative
 		
-		{1100, 0x1F624, "face with steam from nose" },
-		{1101, 0x1F621, "enraged face" },
-		{1102, 0x1F620, "angry face" },
-		{1103, 0x1F92C, "face with symbols on mouth" },
-		{1104, 0x1F608, "smiling face with horns" },
-		{1105, 0x1F47F, "angry face with horns" },
-		{1106, 0x1F480, "skull" },
-		{1107, 0x2620, "skull and crossbones" },
+		{1100, 0x1F624, "face with steam from nose"},
+		{1101, 0x1F621, "enraged face"},
+		{1102, 0x1F620, "angry face"},
+		{1103, 0x1F92C, "face with symbols on mouth"},
+		{1104, 0x1F608, "smiling face with horns"},
+		{1105, 0x1F47F, "angry face with horns"},
+		{1106, 0x1F480, "skull"},
+		{1107, 0x2620, "skull and crossbones"},
 		
 		//face - costume
 		
@@ -699,15 +734,15 @@ namespace KalaHeaders::KalaKeyStandards
 		
 		//face - cat
 		
-		{1116, 0x1F63A, "grinning-cat" },
-		{1117, 0x1F638, "grinning-cat-with-smiling-eyes" },
-		{1118, 0x1F639, "cat-with-tears-of-joy" },
-		{1119, 0x1F63B, "smiling-cat-with-heart-eyes" },
-		{1120, 0x1F63C, "cat-with-wry-smile" },
-		{1121, 0x1F63D, "kissing-cat" },
-		{1122, 0x1F640, "weary-cat" },
-		{1123, 0x1F63F, "crying-cat" },
-		{1124, 0x1F63E, "pouting-cat" },
+		{1116, 0x1F63A, "grinning-cat"},
+		{1117, 0x1F638, "grinning-cat-with-smiling-eyes"},
+		{1118, 0x1F639, "cat-with-tears-of-joy"},
+		{1119, 0x1F63B, "smiling-cat-with-heart-eyes"},
+		{1120, 0x1F63C, "cat-with-wry-smile"},
+		{1121, 0x1F63D, "kissing-cat"},
+		{1122, 0x1F640, "weary-cat"},
+		{1123, 0x1F63F, "crying-cat"},
+		{1124, 0x1F63E, "pouting-cat"},
 		
 		//face - monkey
 		
@@ -721,131 +756,131 @@ namespace KalaHeaders::KalaKeyStandards
 		//  - heart on fire
 		//  - mending heart
 		
-		{1128, 0x1F48C, "love-letter" },
-		{1129, 0x1F498, "heart-with-arrow" },
-		{1130, 0x1F49D, "heart-with-ribbon" },
-		{1131, 0x1F496, "sparkling-heart" },
-		{1132, 0x1F497, "growing-heart" },
-		{1133, 0x1F493, "beating-heart" },
-		{1134, 0x1F49E, "revolving-hearts" },
-		{1135, 0x1F495, "two-hearts" },
-		{1136, 0x1F49F, "heart-decoration" },
-		{1137, 0x2763, "heart-exclamation" },
-		{1138, 0x1F494, "broken-heart" },
-		{1139, 0x1F764, "red-heart" },
-		{1140, 0x1FA77, "pink-heart" },
-		{1141, 0x1F9E1, "orange-heart" },
-		{1142, 0x1F49B, "yellow-heart" },
-		{1143, 0x1F49A, "green-heart" },
-		{1144, 0x1F499, "blue-heart" },
-		{1145, 0x1FA75, "light-blue-heart" },
-		{1146, 0x1F49C, "purple-heart" },
-		{1147, 0x1F90E, "brown-heart" },
-		{1148, 0x1F5A4, "black-heart" },
-		{1149, 0x1FA76, "grey-heart" },
-		{1150, 0x1F90D, "white-heart" },
+		{1128, 0x1F48C, "love-letter"},
+		{1129, 0x1F498, "heart-with-arrow"},
+		{1130, 0x1F49D, "heart-with-ribbon"},
+		{1131, 0x1F496, "sparkling-heart"},
+		{1132, 0x1F497, "growing-heart"},
+		{1133, 0x1F493, "beating-heart"},
+		{1134, 0x1F49E, "revolving-hearts"},
+		{1135, 0x1F495, "two-hearts"},
+		{1136, 0x1F49F, "heart-decoration"},
+		{1137, 0x2763, "heart-exclamation"},
+		{1138, 0x1F494, "broken-heart"},
+		{1139, 0x1F764, "red-heart"},
+		{1140, 0x1FA77, "pink-heart"},
+		{1141, 0x1F9E1, "orange-heart"},
+		{1142, 0x1F49B, "yellow-heart"},
+		{1143, 0x1F49A, "green-heart"},
+		{1144, 0x1F499, "blue-heart"},
+		{1145, 0x1FA75, "light-blue-heart"},
+		{1146, 0x1F49C, "purple-heart"},
+		{1147, 0x1F90E, "brown-heart"},
+		{1148, 0x1F5A4, "black-heart"},
+		{1149, 0x1FA76, "grey-heart"},
+		{1150, 0x1F90D, "white-heart"},
 		
 		//emotion
 		
 		//the following one was not included:
 		//  - eye in speech bubble
 		
-		{1151, 0x1F48B, "kiss-mark" },
-		{1152, 0x1F4AF, "hundred-points" },
-		{1153, 0x1F4A2, "anger-symbol" },
-		{1154, 0x1FAEF, "fight-cloud" },
-		{1155, 0x1F4A5, "collision" },
-		{1156, 0x1F4AB, "dizzy" },
-		{1157, 0x1F4A6, "sweat-droplets" },
-		{1158, 0x1F4A8, "dashing-away" },
-		{1159, 0x1F573, "hole" },
-		{1160, 0x1F4AC, "speech-balloon" },
-		{1161, 0x1F5E8, "left-speech-bubble" },
-		{1162, 0x1F5EF, "right-angle-bubble" },
-		{1163, 0x1F4AD, "thought-balloon" },
-		{1164, 0x1F4A4, "zzz" },
+		{1151, 0x1F48B, "kiss-mark"},
+		{1152, 0x1F4AF, "hundred-points"},
+		{1153, 0x1F4A2, "anger-symbol"},
+		{1154, 0x1FAEF, "fight-cloud"},
+		{1155, 0x1F4A5, "collision"},
+		{1156, 0x1F4AB, "dizzy"},
+		{1157, 0x1F4A6, "sweat-droplets"},
+		{1158, 0x1F4A8, "dashing-away"},
+		{1159, 0x1F573, "hole"},
+		{1160, 0x1F4AC, "speech-balloon"},
+		{1161, 0x1F5E8, "left-speech-bubble"},
+		{1162, 0x1F5EF, "right-angle-bubble"},
+		{1163, 0x1F4AD, "thought-balloon"},
+		{1164, 0x1F4A4, "zzz"},
 		
 		//hand - fingers open
 		
-		{1165, 0x1F44B, "waving-hand" },
-		{1166, 0x1F91A, "raised-back-of-hand" },
-		{1167, 0x1F590, "hand-with-fingers-splayed" },
-		{1168, 0x270B, "raised-hand" },
-		{1169, 0x1F596, "vulcan-salute" },
-		{1170, 0x1FAF1, "rightwards-hand" },
-		{1171, 0x1FAF2, "leftwards-hand" },
-		{1172, 0x1FAF3, "palm-down-hand" },
-		{1173, 0x1FAF4, "palm-up-hand" },
-		{1174, 0x1FAF7, "leftwards-pushing-hand" },
-		{1175, 0x1FAF8, "rightwards-pushing-hand" },
+		{1165, 0x1F44B, "waving-hand"},
+		{1166, 0x1F91A, "raised-back-of-hand"},
+		{1167, 0x1F590, "hand-with-fingers-splayed"},
+		{1168, 0x270B, "raised-hand"},
+		{1169, 0x1F596, "vulcan-salute"},
+		{1170, 0x1FAF1, "rightwards-hand"},
+		{1171, 0x1FAF2, "leftwards-hand"},
+		{1172, 0x1FAF3, "palm-down-hand"},
+		{1173, 0x1FAF4, "palm-up-hand"},
+		{1174, 0x1FAF7, "leftwards-pushing-hand"},
+		{1175, 0x1FAF8, "rightwards-pushing-hand"},
 		
 		//hand - fingers partial
 		
-		{1176, 0x1F44C, "ok-hand" },
-		{1177, 0x1F90C, "pinched-fingers" },
-		{1178, 0x1F90F, "pinching-hand" },
-		{1179, 0x270C, "victory-hand" },
-		{1180, 0x1F91E, "crossed-fingers" },
-		{1181, 0x1FAF0, "hand-with-index-finger-and-thumb-crossed" },
-		{1182, 0x1F91F, "love-you-gesture" },
-		{1183, 0x1F918, "sign-of-the-horns" },
-		{1184, 0x1F919, "call-me-hand" },
+		{1176, 0x1F44C, "ok-hand"},
+		{1177, 0x1F90C, "pinched-fingers"},
+		{1178, 0x1F90F, "pinching-hand"},
+		{1179, 0x270C, "victory-hand"},
+		{1180, 0x1F91E, "crossed-fingers"},
+		{1181, 0x1FAF0, "hand-with-index-finger-and-thumb-crossed"},
+		{1182, 0x1F91F, "love-you-gesture"},
+		{1183, 0x1F918, "sign-of-the-horns"},
+		{1184, 0x1F919, "call-me-hand"},
 		
 		//hand - single finger
 		
-		{1185, 0x1F448, "backhand-index-pointing-left" },
-		{1186, 0x1F449, "backhand-index-pointing-right" },
-		{1187, 0x1F446, "backhand-index-pointing-up" },
-		{1188, 0x1F595, "middle-finger" },
-		{1189, 0x1F447, "backhand-index-pointing-down" },
-		{1190, 0x261D, "index-pointing-up" },
-		{1191, 0x1FAF5, "index-pointing-at-the-viewer" },
+		{1185, 0x1F448, "backhand-index-pointing-left"},
+		{1186, 0x1F449, "backhand-index-pointing-right"},
+		{1187, 0x1F446, "backhand-index-pointing-up"},
+		{1188, 0x1F595, "middle-finger"},
+		{1189, 0x1F447, "backhand-index-pointing-down"},
+		{1190, 0x261D, "index-pointing-up"},
+		{1191, 0x1FAF5, "index-pointing-at-the-viewer"},
 		
 		//hand - fingers closed
 		
-		{1192, 0x1F44D, "thumbs-up" },
-		{1193, 0x1F44E, "thumbs-down" },
-		{1194, 0x270A, "raised-fist" },
-		{1195, 0x1F44A, "oncoming-fist" },
-		{1196, 0x1F91B, "left-facing-fist" },
-		{1197, 0x1F91C, "right-facing-fist" },
+		{1192, 0x1F44D, "thumbs-up"},
+		{1193, 0x1F44E, "thumbs-down"},
+		{1194, 0x270A, "raised-fist"},
+		{1195, 0x1F44A, "oncoming-fist"},
+		{1196, 0x1F91B, "left-facing-fist"},
+		{1197, 0x1F91C, "right-facing-fist"},
 		
 		//hands
 		
-		{1198, 0x1F44F, "clapping-hands" },
-		{1199, 0x1F64C, "raising-hands" },
-		{1200, 0x1FAF6, "heart-hands" },
-		{1201, 0x1F450, "open-hands" },
-		{1202, 0x1F932, "palms-up-together" },
-		{1203, 0x1F91D, "handshake" },
-		{1204, 0x1F64F, "folded-hands" },
+		{1198, 0x1F44F, "clapping-hands"},
+		{1199, 0x1F64C, "raising-hands"},
+		{1200, 0x1FAF6, "heart-hands"},
+		{1201, 0x1F450, "open-hands"},
+		{1202, 0x1F932, "palms-up-together"},
+		{1203, 0x1F91D, "handshake"},
+		{1204, 0x1F64F, "folded-hands"},
 		
 		//hand - prop
 		
-		{1205, 0x270D, "writing-hand" },
-		{1206, 0x1F485, "nail-polish" },
-		{1207, 0x1F933, "selfie" },
+		{1205, 0x270D, "writing-hand"},
+		{1206, 0x1F485, "nail-polish"},
+		{1207, 0x1F933, "selfie"},
 		
 		//body parts
 		
-		{1208, 0x1F4AA, "flexed-biceps" },
-		{1209, 0x1F9BE, "mechanical-arm" },
-		{1210, 0x1F9BF, "mechanical-leg" },
-		{1211, 0x1F9B5, "leg" },
-		{1212, 0x1F9B6, "foot" },
-		{1213, 0x1F442, "ear" },
-		{1214, 0x1F9BB, "ear-with-hearing-aid" },
-		{1215, 0x1F443, "nose" },
-		{1216, 0x1F9E0, "brain" },
-		{1217, 0x1FAC0, "anatomical-heart" },
-		{1218, 0x1FAC1, "lungs" },
-		{1219, 0x1F9B7, "tooth" },
-		{1220, 0x1F9B4, "bone" },
-		{1221, 0x1F440, "eyes" },
-		{1222, 0x1F441, "eye" },
-		{1223, 0x1F445, "tongue" },
-		{1224, 0x1F444, "mouth" },
-		{1225, 0x1FAE6, "biting-lip" }
+		{1208, 0x1F4AA, "flexed-biceps"},
+		{1209, 0x1F9BE, "mechanical-arm"},
+		{1210, 0x1F9BF, "mechanical-leg"},
+		{1211, 0x1F9B5, "leg"},
+		{1212, 0x1F9B6, "foot"},
+		{1213, 0x1F442, "ear"},
+		{1214, 0x1F9BB, "ear-with-hearing-aid"},
+		{1215, 0x1F443, "nose"},
+		{1216, 0x1F9E0, "brain"},
+		{1217, 0x1FAC0, "anatomical-heart"},
+		{1218, 0x1FAC1, "lungs"},
+		{1219, 0x1F9B7, "tooth"},
+		{1220, 0x1F9B4, "bone"},
+		{1221, 0x1F440, "eyes"},
+		{1222, 0x1F441, "eye"},
+		{1223, 0x1F445, "tongue"},
+		{1224, 0x1F444, "mouth"},
+		{1225, 0x1FAE6, "biting-lip"}
 	}};
 
 	//

@@ -107,12 +107,18 @@ namespace KalaWindow::Core
 	void Input::SetTypedLetter(const string& letter) { lastLetter = letter; }
 
 	void Input::SetKeyState(
-		Key key,
+		KeyboardButton key,
 		bool isDown)
 	{
-		if (key == Key::KeyCount) return;
+		if (key < KeyboardButton::K_NUM_0
+			|| key > KeyboardButton::K_MENU)
+		{
+			return;
+		}
 
-		size_t index = static_cast<size_t>(key);
+		size_t index = 
+			scast<size_t>(key) 
+			- scast<size_t>(KeyboardButton::K_NUM_0);
 
 		if (isDown
 			&& !keyDown[index])
@@ -131,9 +137,15 @@ namespace KalaWindow::Core
 		MouseButton mouseButton,
 		bool isDown)
 	{
-		if (mouseButton == MouseButton::MouseButtonCount) return;
+		if (mouseButton < MouseButton::M_LEFT
+			|| mouseButton > MouseButton::M_X2_DOUBLE)
+		{
+			return;
+		}
 
-		size_t index = static_cast<size_t>(mouseButton);
+		size_t index =
+			scast<size_t>(mouseButton)
+			- scast<size_t>(MouseButton::M_LEFT);
 
 		if (isDown
 			&& !mouseDown[index])
@@ -152,40 +164,48 @@ namespace KalaWindow::Core
 		MouseButton mouseButton,
 		bool isDown)
 	{
-		if (mouseButton == MouseButton::MouseButtonCount) return;
+		if (mouseButton < MouseButton::M_LEFT
+			|| mouseButton > MouseButton::M_X2_DOUBLE)
+		{
+			return;
+		}
 
-		mouseDoubleClicked[static_cast<size_t>(mouseButton)] = isDown;
+		size_t index =
+			scast<size_t>(mouseButton)
+			- scast<size_t>(MouseButton::M_LEFT);
+
+		mouseDoubleClicked[index] = isDown;
 	}
 
-	vector<Key> Input::GetPressedKeys()
+	vector<KeyboardButton> Input::GetPressedKeys()
 	{
-		vector<Key> result{};
+		vector<KeyboardButton> result{};
 
 		for (size_t i = 0; i < keyPressed.size(); ++i)
 		{
-			if (keyPressed[i]) result.push_back(static_cast<Key>(i));
+			if (keyPressed[i]) result.push_back(scast<KeyboardButton>(i));
 		}
 
 		return result;
 	}
-	vector<Key> Input::GetHeldKeys()
+	vector<KeyboardButton> Input::GetHeldKeys()
 	{
-		vector<Key> result{};
+		vector<KeyboardButton> result{};
 
 		for (size_t i = 0; i < keyDown.size(); ++i)
 		{
-			if (keyDown[i]) result.push_back(static_cast<Key>(i));
+			if (keyDown[i]) result.push_back(scast<KeyboardButton>(i));
 		}
 
 		return result;
 	}
-	vector<Key> Input::GetReleasedKeys()
+	vector<KeyboardButton> Input::GetReleasedKeys()
 	{
-		vector<Key> result{};
+		vector<KeyboardButton> result{};
 
 		for (size_t i = 0; i < keyReleased.size(); ++i)
 		{
-			if (keyReleased[i]) result.push_back(static_cast<Key>(i));
+			if (keyReleased[i]) result.push_back(scast<KeyboardButton>(i));
 		}
 
 		return result;
@@ -197,7 +217,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mousePressed.size(); ++i)
 		{
-			if (mousePressed[i]) result.push_back(static_cast<MouseButton>(i));
+			if (mousePressed[i]) result.push_back(scast<MouseButton>(i));
 		}
 
 		return result;
@@ -208,7 +228,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mouseDown.size(); ++i)
 		{
-			if (mouseDown[i]) result.push_back(static_cast<MouseButton>(i));
+			if (mouseDown[i]) result.push_back(scast<MouseButton>(i));
 		}
 
 		return result;
@@ -219,7 +239,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mouseReleased.size(); ++i)
 		{
-			if (mouseReleased[i]) result.push_back(static_cast<MouseButton>(i));
+			if (mouseReleased[i]) result.push_back(scast<MouseButton>(i));
 		}
 
 		return result;
@@ -230,7 +250,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mouseDoubleClicked.size(); ++i)
 		{
-			if (mouseDoubleClicked[i]) result.push_back(static_cast<MouseButton>(i));
+			if (mouseDoubleClicked[i]) result.push_back(scast<MouseButton>(i));
 		}
 
 		return result;
@@ -243,9 +263,9 @@ namespace KalaWindow::Core
 		for (const auto& c : codes)
 		{
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyHeld(static_cast<Key>(c.code)))
+				&& !IsKeyHeld(scast<KeyboardButton>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseButtonHeld(static_cast<MouseButton>(c.code))))
+				&& !IsMouseButtonHeld(scast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -264,9 +284,9 @@ namespace KalaWindow::Core
 		{
 			const auto& c = *it;
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyHeld(static_cast<Key>(c.code)))
+				&& !IsKeyHeld(scast<KeyboardButton>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseButtonHeld(static_cast<MouseButton>(c.code))))
+				&& !IsMouseButtonHeld(scast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -275,9 +295,9 @@ namespace KalaWindow::Core
 		//last must be pressed
 		const auto& c = *last;
 		if ((c.type == InputCode::Type::Key
-			&& !IsKeyPressed(static_cast<Key>(c.code)))
+			&& !IsKeyPressed(scast<KeyboardButton>(c.code)))
 			|| (c.type == InputCode::Type::Mouse
-			&& !IsMouseButtonPressed(static_cast<MouseButton>(c.code))))
+			&& !IsMouseButtonPressed(scast<MouseButton>(c.code))))
 		{
 			return false;
 		}
@@ -296,9 +316,9 @@ namespace KalaWindow::Core
 		{
 			const auto& c = *it;
 			if ((c.type == InputCode::Type::Key
-				&& !IsKeyHeld(static_cast<Key>(c.code)))
+				&& !IsKeyHeld(scast<KeyboardButton>(c.code)))
 				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseButtonHeld(static_cast<MouseButton>(c.code))))
+				&& !IsMouseButtonHeld(scast<MouseButton>(c.code))))
 			{
 				return false;
 			}
@@ -307,9 +327,9 @@ namespace KalaWindow::Core
 		//last must be released
 		const auto& c = *last;
 		if ((c.type == InputCode::Type::Key
-			&& !IsKeyReleased(static_cast<Key>(c.code)))
+			&& !IsKeyReleased(scast<KeyboardButton>(c.code)))
 			|| (c.type == InputCode::Type::Mouse
-			&& !IsMouseButtonReleased(static_cast<MouseButton>(c.code))))
+			&& !IsMouseButtonReleased(scast<MouseButton>(c.code))))
 		{
 			return false;
 		}
@@ -317,15 +337,15 @@ namespace KalaWindow::Core
 		return true;
 	}
 
-	bool Input::IsKeyHeld(Key key) { return keyDown[static_cast<size_t>(key)]; }
-	bool Input::IsKeyPressed(Key key) { return keyPressed[static_cast<size_t>(key)]; }
-	bool Input::IsKeyReleased(Key key) { return keyReleased[static_cast<size_t>(key)]; }
+	bool Input::IsKeyHeld(KeyboardButton key) { return keyDown[scast<size_t>(key)]; }
+	bool Input::IsKeyPressed(KeyboardButton key) { return keyPressed[scast<size_t>(key)]; }
+	bool Input::IsKeyReleased(KeyboardButton key) { return keyReleased[scast<size_t>(key)]; }
 
-	bool Input::IsMouseButtonHeld(MouseButton mouseButton) { return mouseDown[static_cast<size_t>(mouseButton)]; }
-	bool Input::IsMouseButtonPressed(MouseButton mouseButton) { return mousePressed[static_cast<size_t>(mouseButton)]; }
-	bool Input::IsMouseButtonReleased(MouseButton mouseButton) { return mouseReleased[static_cast<size_t>(mouseButton)]; }
+	bool Input::IsMouseButtonHeld(MouseButton mouseButton) { return mouseDown[scast<size_t>(mouseButton)]; }
+	bool Input::IsMouseButtonPressed(MouseButton mouseButton) { return mousePressed[scast<size_t>(mouseButton)]; }
+	bool Input::IsMouseButtonReleased(MouseButton mouseButton) { return mouseReleased[scast<size_t>(mouseButton)]; }
 
-	bool Input::IsMouseButtonDoubleClicked(MouseButton mouseButton) { return mouseDoubleClicked[static_cast<size_t>(mouseButton)]; }
+	bool Input::IsMouseButtonDoubleClicked(MouseButton mouseButton) { return mouseDoubleClicked[scast<size_t>(mouseButton)]; }
 
 	bool Input::IsMouseButtonDragging(MouseButton mouseButton)
 	{

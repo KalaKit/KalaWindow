@@ -76,6 +76,21 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 		//Defines an array of generic vertex attribute data
 		PFNGLVERTEXATTRIBPOINTERPROC glVertexAttribPointer;
 
+		//Disables a generic vertex attribute array
+		PFNGLDISABLEVERTEXATTRIBARRAYPROC glDisableVertexAttribArray;
+
+		//Sets a constant integer value for a generic vertex attribute
+		PFNGLVERTEXATTRIBI1IPROC glVertexAttribI1i;
+
+		//Sets a constant integer vec2 value for a generic vertex attribute
+		PFNGLVERTEXATTRIBI2IPROC glVertexAttribI2i;
+
+		//Sets a constant integer vec3 value for a generic vertex attribute
+		PFNGLVERTEXATTRIBI3IPROC glVertexAttribI3i;
+
+		//Sets a constant integer vec4 value for a generic vertex attribute
+		PFNGLVERTEXATTRIBI4IPROC glVertexAttribI4i;
+
 		//Tells OpenGL which faces to not render before fragment shading
 		PFNGLCULLFACEPROC glCullFace;
 

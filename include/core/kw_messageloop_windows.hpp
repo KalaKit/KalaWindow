@@ -8,11 +8,14 @@
 #pragma once
 
 #include <Windows.h>
+#include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
 
 namespace KalaWindow::Core
 {
+	using std::function;
+
 	class LIB_API MessageLoop
 	{
 	public:
@@ -21,6 +24,11 @@ namespace KalaWindow::Core
 			UINT msg,
 			WPARAM wParam,
 			LPARAM lParam);
+
+		static void SetAddCharCallback(const function<void(u32)>& newCallback);
+		static void SetRemoveFromBackCallback(const function<void()>& newCallback);
+		static void SetAddTabCallback(const function<void()>& newCallback);
+		static void SetAddNewLineCallback(const function<void()>& newCallback);
 	};
 }
 

@@ -12,6 +12,7 @@
 
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
+#include "KalaHeaders/key_standards.hpp"
 
 #include "core/kw_registry.hpp"
 
@@ -25,129 +26,8 @@ namespace KalaWindow::Core
 	using std::string;
 
 	using KalaHeaders::KalaMath::vec2;
-	
-	//TODO: upgrade keymaps to key_standards.hpp
-
-	enum class Key : u32
-	{
-		Unknown = 0,
-
-		// --- Letters ---
-
-		A, B, C, D, E, F, G,
-		H, I, J, K, L, M, N,
-		O, P, Q, R, S, T, U,
-		V, W, X, Y, Z,
-
-		// --- Top-row Numbers (0–9) ---
-
-		Num0, Num1, Num2, Num3, Num4,
-		Num5, Num6, Num7, Num8, Num9,
-
-		// --- Function Keys (Full Range) ---
-
-		F1, F2, F3, F4, F5, F6,
-		F7, F8, F9, F10, F11, F12,
-		F13, F14, F15, F16, F17, F18,
-		F19, F20, F21, F22, F23, F24,
-
-		// --- Numpad ---
-
-		Numpad0, Numpad1, Numpad2, Numpad3, Numpad4,
-		Numpad5, Numpad6, Numpad7, Numpad8, Numpad9,
-		NumpadAdd, NumpadSubtract, NumpadMultiply,
-		NumpadDivide, NumpadDecimal, NumLock,
-
-		// --- Navigation ---
-
-		ArrowLeft,
-		ArrowRight,
-		ArrowUp,
-		ArrowDown,
-		Home,
-		End,
-		PageUp,
-		PageDown,
-		Insert,
-		Delete,
-
-		// --- Basic Controls ---
-
-		Enter,
-		Escape,
-		Backspace,
-		Tab,
-		CapsLock,
-		Space,
-
-		// --- Modifiers ---
-
-		ShiftLeft,
-		ShiftRight,
-		CtrlLeft,
-		CtrlRight,
-		AltLeft,
-		AltRight,
-		SuperLeft,   // Win / Cmd
-		SuperRight,
-
-		// --- System / Special Keys ---
-
-		PrintScreen,
-		ScrollLock,
-		Pause,
-		Menu,
-
-		// --- Common Symbols ---
-
-		Minus,         // -
-		Equal,         // =
-		BracketLeft,   // [
-		BracketRight,  // ]
-		Backslash,     // '\'
-		Semicolon,     // ;
-		Apostrophe,    // '
-		Comma,         // ,
-		Period,        // .
-		Slash,         // /
-		Tilde,         // `~
-		Oem102,        // <>
-
-		// --- Media & Browser ---
-
-		MediaPlayPause,
-		MediaStop,
-		MediaNextTrack,
-		MediaPrevTrack,
-		VolumeUp,
-		VolumeDown,
-		VolumeMute,
-		LaunchMail,
-		LaunchApp1,
-		LaunchApp2,
-		BrowserBack,
-		BrowserForward,
-		BrowserRefresh,
-		BrowserStop,
-		BrowserSearch,
-		BrowserFavorites,
-		BrowserHome,
-
-		KeyCount
-	};
-
-	enum class MouseButton : u32
-	{
-		Unknown = 0,
-
-		Left,
-		Right,
-		Middle,
-		X1,
-		X2,
-
-		MouseButtonCount
-	};
+	using KalaHeaders::KalaKeyStandards::KeyboardButton;
+	using KalaHeaders::KalaKeyStandards::MouseButton;
 
 	struct InputCode
 	{
@@ -160,7 +40,7 @@ namespace KalaWindow::Core
 		Type type{};
 		u32 code{}; //stores key or mouse button as u32
 
-		static inline constexpr InputCode FromKey(Key k)
+		static inline constexpr InputCode FromKey(KeyboardButton k)
 		{ 
 			return 
 			{ 
@@ -200,7 +80,7 @@ namespace KalaWindow::Core
 		void SetTypedLetter(const string& letter);
 
 		void SetKeyState(
-			Key key,
+			KeyboardButton key,
 			bool isDown);
 		void SetMouseButtonState(
 			MouseButton mouseButton,
@@ -210,11 +90,11 @@ namespace KalaWindow::Core
 			bool isDown);
 		
 		//Get the keys currently pressed this frame
-		vector<Key> GetPressedKeys();
+		vector<KeyboardButton> GetPressedKeys();
 		//Get the keys currently held this frame
-		vector<Key> GetHeldKeys();
+		vector<KeyboardButton> GetHeldKeys();
 		//Get the keys released this frame
-		vector<Key> GetReleasedKeys();
+		vector<KeyboardButton> GetReleasedKeys();
 		
 		//Get the mouse buttons currently pressed this frame
 		vector<MouseButton> GetPressedMouseButtons();
@@ -233,11 +113,11 @@ namespace KalaWindow::Core
 		bool IsComboReleased(const span<const InputCode>& codes);
 
 		//Is the key currently held down
-		bool IsKeyHeld(Key key);
+		bool IsKeyHeld(KeyboardButton key);
 		//Was the key just pressed this frame
-		bool IsKeyPressed(Key key);
+		bool IsKeyPressed(KeyboardButton key);
 		//Was the key just released this frame
-		bool IsKeyReleased(Key key);
+		bool IsKeyReleased(KeyboardButton key);
 
 		//Is the mouse button currently held down
 		bool IsMouseButtonHeld(MouseButton mouseButton);
@@ -307,32 +187,32 @@ namespace KalaWindow::Core
 
 		array<
 			bool,
-			static_cast<size_t>(Key::KeyCount)>
+			95>
 			keyDown{};
 		array<
 			bool,
-			static_cast<size_t>(Key::KeyCount)>
+			95>
 			keyPressed{};
 		array<
 			bool,
-			static_cast<size_t>(Key::KeyCount)>
+			95>
 			keyReleased{};
 
 		array<
 			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			15>
 			mouseDown{};
 		array<
 			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			15>
 			mousePressed{};
 		array<
 			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			15>
 			mouseReleased{};
 		array<
 			bool,
-			static_cast<size_t>(MouseButton::MouseButtonCount)>
+			15>
 			mouseDoubleClicked{};
 
 		bool isMouseVisible = true;

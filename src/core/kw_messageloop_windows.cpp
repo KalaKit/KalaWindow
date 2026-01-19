@@ -23,6 +23,7 @@
 
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
+#include "KalaHeaders/key_standards.hpp"
 
 #include "core/kw_messageloop_windows.hpp"
 #include "core/kw_input.hpp"
@@ -38,14 +39,15 @@ using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaMath::vec2;
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
+using KalaHeaders::KalaKeyStandards::KeyboardButton;
+using KalaHeaders::KalaKeyStandards::MouseButton;
+using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::KalaWindowRegistry;
 using KalaWindow::Core::Input;
-using KalaWindow::Core::Key;
-using KalaWindow::Core::MouseButton;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -69,176 +71,72 @@ using std::wstring;
 
 using std::unordered_map;
 
-static const unordered_map<Key, string> KeyToStringMap = {
-    // Letters
-    { Key::A, "A" }, { Key::B, "B" }, { Key::C, "C" }, { Key::D, "D" },
-    { Key::E, "E" }, { Key::F, "F" }, { Key::G, "G" }, { Key::H, "H" },
-    { Key::I, "I" }, { Key::J, "J" }, { Key::K, "K" }, { Key::L, "L" },
-    { Key::M, "M" }, { Key::N, "N" }, { Key::O, "O" }, { Key::P, "P" },
-    { Key::Q, "Q" }, { Key::R, "R" }, { Key::S, "S" }, { Key::T, "T" },
-    { Key::U, "U" }, { Key::V, "V" }, { Key::W, "W" }, { Key::X, "X" },
-    { Key::Y, "Y" }, { Key::Z, "Z" },
-
-    // Numbers
-    { Key::Num0, "0" }, { Key::Num1, "1" }, { Key::Num2, "2" },
-    { Key::Num3, "3" }, { Key::Num4, "4" }, { Key::Num5, "5" },
-    { Key::Num6, "6" }, { Key::Num7, "7" }, { Key::Num8, "8" },
-    { Key::Num9, "9" },
-
-    // Function Keys
-    { Key::F1, "F1" }, { Key::F2, "F2" }, { Key::F3, "F3" }, { Key::F4, "F4" },
-    { Key::F5, "F5" }, { Key::F6, "F6" }, { Key::F7, "F7" }, { Key::F8, "F8" },
-    { Key::F9, "F9" }, { Key::F10, "F10" }, { Key::F11, "F11" }, { Key::F12, "F12" },
-    { Key::F13, "F13" }, { Key::F14, "F14" }, { Key::F15, "F15" }, { Key::F16, "F16" },
-    { Key::F17, "F17" }, { Key::F18, "F18" }, { Key::F19, "F19" }, { Key::F20, "F20" },
-    { Key::F21, "F21" }, { Key::F22, "F22" }, { Key::F23, "F23" }, { Key::F24, "F24" },
-
-    // Numpad
-    { Key::Numpad0, "Numpad0" }, { Key::Numpad1, "Numpad1" }, { Key::Numpad2, "Numpad2" },
-    { Key::Numpad3, "Numpad3" }, { Key::Numpad4, "Numpad4" }, { Key::Numpad5, "Numpad5" },
-    { Key::Numpad6, "Numpad6" }, { Key::Numpad7, "Numpad7" }, { Key::Numpad8, "Numpad8" },
-    { Key::Numpad9, "Numpad9" },
-    { Key::NumpadAdd, "NumpadAdd" }, { Key::NumpadSubtract, "NumpadSubtract" },
-    { Key::NumpadMultiply, "NumpadMultiply" }, { Key::NumpadDivide, "NumpadDivide" },
-    { Key::NumpadDecimal, "NumpadDecimal" }, { Key::NumLock, "NumLock" },
-
-    // Navigation
-    { Key::ArrowLeft, "ArrowLeft" }, { Key::ArrowRight, "ArrowRight" },
-    { Key::ArrowUp, "ArrowUp" }, { Key::ArrowDown, "ArrowDown" },
-    { Key::Home, "Home" }, { Key::End, "End" },
-    { Key::PageUp, "PageUp" }, { Key::PageDown, "PageDown" },
-    { Key::Insert, "Insert" }, { Key::Delete, "Delete" },
-
-    // Controls
-    { Key::Enter, "Enter" }, { Key::Escape, "Escape" },
-    { Key::Backspace, "Backspace" }, { Key::Tab, "Tab" },
-    { Key::CapsLock, "CapsLock" }, { Key::Space, "Space" },
-
-    // Modifiers
-    { Key::ShiftLeft, "ShiftLeft" }, { Key::ShiftRight, "ShiftRight" },
-    { Key::CtrlLeft, "CtrlLeft" }, { Key::CtrlRight, "CtrlRight" },
-    { Key::AltLeft, "AltLeft" }, { Key::AltRight, "AltRight" },
-    { Key::SuperLeft, "SuperLeft" }, { Key::SuperRight, "SuperRight" },
-
-    // System / Special
-    { Key::PrintScreen, "PrintScreen" }, { Key::ScrollLock, "ScrollLock" },
-    { Key::Pause, "Pause" }, { Key::Menu, "Menu" },
-
-    // Symbols / OEM
-    { Key::Minus, "Minus" }, { Key::Equal, "Equal" },
-    { Key::BracketLeft, "BracketLeft" }, { Key::BracketRight, "BracketRight" },
-    { Key::Backslash, "Backslash" }, { Key::Semicolon, "Semicolon" },
-    { Key::Apostrophe, "Apostrophe" }, { Key::Comma, "Comma" },
-    { Key::Period, "Period" }, { Key::Slash, "Slash" },
-    { Key::Tilde, "Tilde" }, { Key::Oem102, "Oem102" },
-
-    // Media & Browser
-    { Key::MediaPlayPause, "MediaPlayPause" },
-    { Key::MediaStop, "MediaStop" },
-    { Key::MediaNextTrack, "MediaNextTrack" },
-    { Key::MediaPrevTrack, "MediaPrevTrack" },
-    { Key::VolumeUp, "VolumeUp" }, { Key::VolumeDown, "VolumeDown" }, { Key::VolumeMute, "VolumeMute" },
-    { Key::LaunchMail, "LaunchMail" }, { Key::LaunchApp1, "LaunchApp1" }, { Key::LaunchApp2, "LaunchApp2" },
-    { Key::BrowserBack, "BrowserBack" }, { Key::BrowserForward, "BrowserForward" },
-    { Key::BrowserRefresh, "BrowserRefresh" }, { Key::BrowserStop, "BrowserStop" },
-    { Key::BrowserSearch, "BrowserSearch" }, { Key::BrowserFavorites, "BrowserFavorites" }, { Key::BrowserHome, "BrowserHome" }
-};
-
-static const unordered_map<WPARAM, Key> VKToKeyMap = {
+static const unordered_map<WPARAM, KeyboardButton> VKToKeyMap = {
 	// Letters
-	{ 'A', Key::A }, { 'B', Key::B }, { 'C', Key::C }, { 'D', Key::D },
-	{ 'E', Key::E }, { 'F', Key::F }, { 'G', Key::G }, { 'H', Key::H },
-	{ 'I', Key::I }, { 'J', Key::J }, { 'K', Key::K }, { 'L', Key::L },
-	{ 'M', Key::M }, { 'N', Key::N }, { 'O', Key::O }, { 'P', Key::P },
-	{ 'Q', Key::Q }, { 'R', Key::R }, { 'S', Key::S }, { 'T', Key::T },
-	{ 'U', Key::U }, { 'V', Key::V }, { 'W', Key::W }, { 'X', Key::X },
-	{ 'Y', Key::Y }, { 'Z', Key::Z },
+	{ 'A', KeyboardButton::K_A }, { 'B', KeyboardButton::K_B }, { 'C', KeyboardButton::K_C }, { 'D', KeyboardButton::K_D },
+	{ 'E', KeyboardButton::K_E }, { 'F', KeyboardButton::K_F }, { 'G', KeyboardButton::K_G }, { 'H', KeyboardButton::K_H },
+	{ 'I', KeyboardButton::K_I }, { 'J', KeyboardButton::K_J }, { 'K', KeyboardButton::K_K }, { 'L', KeyboardButton::K_L },
+	{ 'M', KeyboardButton::K_M }, { 'N', KeyboardButton::K_N }, { 'O', KeyboardButton::K_O }, { 'P', KeyboardButton::K_P },
+	{ 'Q', KeyboardButton::K_Q }, { 'R', KeyboardButton::K_R }, { 'S', KeyboardButton::K_S }, { 'T', KeyboardButton::K_T },
+	{ 'U', KeyboardButton::K_U }, { 'V', KeyboardButton::K_V }, { 'W', KeyboardButton::K_W }, { 'X', KeyboardButton::K_X },
+	{ 'Y', KeyboardButton::K_Y }, { 'Z', KeyboardButton::K_Z },
 
 	// Numbers
-	{ '0', Key::Num0 }, { '1', Key::Num1 }, { '2', Key::Num2 }, { '3', Key::Num3 },
-	{ '4', Key::Num4 }, { '5', Key::Num5 }, { '6', Key::Num6 }, { '7', Key::Num7 },
-	{ '8', Key::Num8 }, { '9', Key::Num9 },
+	{ '0', KeyboardButton::K_0 }, { '1', KeyboardButton::K_1 }, { '2', KeyboardButton::K_2 }, { '3', KeyboardButton::K_3 },
+	{ '4', KeyboardButton::K_4 }, { '5', KeyboardButton::K_5 }, { '6', KeyboardButton::K_6 }, { '7', KeyboardButton::K_7 },
+	{ '8', KeyboardButton::K_8 }, { '9', KeyboardButton::K_9 },
 
 	// Function Keys
-	{ VK_F1, Key::F1 }, { VK_F2, Key::F2 }, { VK_F3, Key::F3 }, { VK_F4, Key::F4 },
-	{ VK_F5, Key::F5 }, { VK_F6, Key::F6 }, { VK_F7, Key::F7 }, { VK_F8, Key::F8 },
-	{ VK_F9, Key::F9 }, { VK_F10, Key::F10 }, { VK_F11, Key::F11 }, { VK_F12, Key::F12 },
-	{ VK_F13, Key::F13 }, { VK_F14, Key::F14 }, { VK_F15, Key::F15 }, { VK_F16, Key::F16 },
-	{ VK_F17, Key::F17 }, { VK_F18, Key::F18 }, { VK_F19, Key::F19 }, { VK_F20, Key::F20 },
-	{ VK_F21, Key::F21 }, { VK_F22, Key::F22 }, { VK_F23, Key::F23 }, { VK_F24, Key::F24 },
+	{ VK_F1, KeyboardButton::K_F1 }, { VK_F2, KeyboardButton::K_F2 }, { VK_F3, KeyboardButton::K_F3 }, { VK_F4, KeyboardButton::K_F4 },
+	{ VK_F5, KeyboardButton::K_F5 }, { VK_F6, KeyboardButton::K_F6 }, { VK_F7, KeyboardButton::K_F7 }, { VK_F8, KeyboardButton::K_F8 },
+	{ VK_F9, KeyboardButton::K_F9 }, { VK_F10, KeyboardButton::K_F10 }, { VK_F11, KeyboardButton::K_F11 }, { VK_F12, KeyboardButton::K_F12 },
 
 	// Numpad
-	{ VK_NUMPAD0, Key::Numpad0 }, { VK_NUMPAD1, Key::Numpad1 }, { VK_NUMPAD2, Key::Numpad2 },
-	{ VK_NUMPAD3, Key::Numpad3 }, { VK_NUMPAD4, Key::Numpad4 }, { VK_NUMPAD5, Key::Numpad5 },
-	{ VK_NUMPAD6, Key::Numpad6 }, { VK_NUMPAD7, Key::Numpad7 }, { VK_NUMPAD8, Key::Numpad8 },
-	{ VK_NUMPAD9, Key::Numpad9 },
-	{ VK_ADD, Key::NumpadAdd }, { VK_SUBTRACT, Key::NumpadSubtract },
-	{ VK_MULTIPLY, Key::NumpadMultiply }, { VK_DIVIDE, Key::NumpadDivide },
-	{ VK_DECIMAL, Key::NumpadDecimal }, { VK_NUMLOCK, Key::NumLock },
+	{ VK_NUMPAD0, KeyboardButton::K_NUM_0 }, { VK_NUMPAD1, KeyboardButton::K_NUM_1 }, { VK_NUMPAD2, KeyboardButton::K_NUM_2 },
+	{ VK_NUMPAD3, KeyboardButton::K_NUM_3 }, { VK_NUMPAD4, KeyboardButton::K_NUM_4 }, { VK_NUMPAD5, KeyboardButton::K_NUM_5 },
+	{ VK_NUMPAD6, KeyboardButton::K_NUM_6 }, { VK_NUMPAD7, KeyboardButton::K_NUM_7 }, { VK_NUMPAD8, KeyboardButton::K_NUM_8 },
+	{ VK_NUMPAD9, KeyboardButton::K_NUM_9 },
+	{ VK_ADD, KeyboardButton::K_NUM_ADD }, { VK_SUBTRACT, KeyboardButton::K_NUM_SUBTRACT },
+	{ VK_MULTIPLY, KeyboardButton::K_NUM_MULTIPLY }, { VK_DIVIDE, KeyboardButton::K_NUM_DIVIDE },
+	{ VK_RETURN, KeyboardButton::K_NUM_RETURN }, { VK_NUMLOCK, KeyboardButton::K_NUM_LOCK },
+	{ VK_DECIMAL, KeyboardButton::K_NUM_DECIMAL },
 
 	// Navigation
-	{ VK_LEFT, Key::ArrowLeft }, { VK_RIGHT, Key::ArrowRight },
-	{ VK_UP, Key::ArrowUp }, { VK_DOWN, Key::ArrowDown },
-	{ VK_HOME, Key::Home }, { VK_END, Key::End },
-	{ VK_PRIOR, Key::PageUp }, { VK_NEXT, Key::PageDown },
-	{ VK_INSERT, Key::Insert }, { VK_DELETE, Key::Delete },
+	{ VK_LEFT, KeyboardButton::K_ARROW_LEFT }, { VK_RIGHT, KeyboardButton::K_ARROW_RIGHT },
+	{ VK_UP, KeyboardButton::K_ARROW_UP }, { VK_DOWN, KeyboardButton::K_ARROW_DOWN },
+	{ VK_HOME, KeyboardButton::K_HOME }, { VK_END, KeyboardButton::K_END },
+	{ VK_PRIOR, KeyboardButton::K_PAGE_UP }, { VK_NEXT, KeyboardButton::K_PAGE_DOWN },
+	{ VK_INSERT, KeyboardButton::K_INSERT }, { VK_DELETE, KeyboardButton::K_DELETE },
 
 	// Controls
-	{ VK_RETURN, Key::Enter }, { VK_ESCAPE, Key::Escape },
-	{ VK_BACK, Key::Backspace }, { VK_TAB, Key::Tab },
-	{ VK_CAPITAL, Key::CapsLock }, { VK_SPACE, Key::Space },
+	{ VK_RETURN, KeyboardButton::K_RETURN }, { VK_ESCAPE, KeyboardButton::K_ESC },
+	{ VK_BACK, KeyboardButton::K_BACKSPACE }, { VK_TAB, KeyboardButton::K_TAB },
+	{ VK_CAPITAL, KeyboardButton::K_CAPS_LOCK }, { VK_SPACE, KeyboardButton::K_SPACE },
 
 	// Modifiers
-	{ VK_LSHIFT, Key::ShiftLeft }, { VK_RSHIFT, Key::ShiftRight },
-	{ VK_LCONTROL, Key::CtrlLeft }, { VK_RCONTROL, Key::CtrlRight },
-	{ VK_LMENU, Key::AltLeft }, { VK_RMENU, Key::AltRight },
-	{ VK_LWIN, Key::SuperLeft }, { VK_RWIN, Key::SuperRight },
+	{ VK_LSHIFT, KeyboardButton::K_LEFT_SHIFT }, { VK_RSHIFT, KeyboardButton::K_RIGHT_SHIFT },
+	{ VK_LCONTROL, KeyboardButton::K_LEFT_CTRL }, { VK_RCONTROL, KeyboardButton::K_RIGHT_CTRL },
+	{ VK_LMENU, KeyboardButton::K_LEFT_ALT }, { VK_RMENU, KeyboardButton::K_RIGHT_ALT },
+	{ VK_LWIN, KeyboardButton::K_SUPERLEFT }, { VK_RWIN, KeyboardButton::K_SUPERRIGHT },
 
 	// System / Special
-	{ VK_SNAPSHOT, Key::PrintScreen }, { VK_SCROLL, Key::ScrollLock },
-	{ VK_PAUSE, Key::Pause }, { VK_APPS, Key::Menu },
-
-	// Symbols / OEM
-	{ VK_OEM_MINUS, Key::Minus }, { VK_OEM_PLUS, Key::Equal },
-	{ VK_OEM_4, Key::BracketLeft }, { VK_OEM_6, Key::BracketRight },
-	{ VK_OEM_5, Key::Backslash }, { VK_OEM_1, Key::Semicolon },
-	{ VK_OEM_7, Key::Apostrophe }, { VK_OEM_COMMA, Key::Comma },
-	{ VK_OEM_PERIOD, Key::Period }, { VK_OEM_2, Key::Slash },
-	{ VK_OEM_3, Key::Tilde }, { VK_OEM_102, Key::Oem102 },
-
-	// Media & Browser
-	{ VK_MEDIA_PLAY_PAUSE, Key::MediaPlayPause },
-	{ VK_MEDIA_STOP, Key::MediaStop },
-	{ VK_MEDIA_NEXT_TRACK, Key::MediaNextTrack },
-	{ VK_MEDIA_PREV_TRACK, Key::MediaPrevTrack },
-	{ VK_VOLUME_UP, Key::VolumeUp },
-	{ VK_VOLUME_DOWN, Key::VolumeDown },
-	{ VK_VOLUME_MUTE, Key::VolumeMute },
-	{ VK_LAUNCH_MAIL, Key::LaunchMail },
-	{ VK_LAUNCH_APP1, Key::LaunchApp1 },
-	{ VK_LAUNCH_APP2, Key::LaunchApp2 },
-	{ VK_BROWSER_BACK, Key::BrowserBack },
-	{ VK_BROWSER_FORWARD, Key::BrowserForward },
-	{ VK_BROWSER_REFRESH, Key::BrowserRefresh },
-	{ VK_BROWSER_STOP, Key::BrowserStop },
-	{ VK_BROWSER_SEARCH, Key::BrowserSearch },
-	{ VK_BROWSER_FAVORITES, Key::BrowserFavorites },
-	{ VK_BROWSER_HOME, Key::BrowserHome }
+	{ VK_SNAPSHOT, KeyboardButton::K_PRINT_SCREEN }, { VK_SCROLL, KeyboardButton::K_SCROLL_LOCK },
+	{ VK_PAUSE, KeyboardButton::K_PAUSE }, { VK_APPS, KeyboardButton::K_MENU }
 };
 
 static string TranslateVirtualKeyToString(WPARAM vk, LPARAM lParam)
 {
-	Key key = Key::Unknown;
+	KeyboardButton key = KeyboardButton::K_INVALID;
 
 	switch (vk)
 	{
 	case VK_CONTROL:
-		key = (lParam & 0x01000000) ? Key::CtrlRight : Key::CtrlLeft;
+		key = (lParam & 0x01000000) ? KeyboardButton::K_RIGHT_CTRL : KeyboardButton::K_LEFT_CTRL;
 
 		break;
 
 	case VK_MENU: // Alt
-		key = (lParam & 0x01000000) ? Key::AltRight : Key::AltLeft;
+		key = (lParam & 0x01000000) ? KeyboardButton::K_RIGHT_ALT : KeyboardButton::K_LEFT_ALT;
 
 		break;
 
@@ -249,7 +147,7 @@ static string TranslateVirtualKeyToString(WPARAM vk, LPARAM lParam)
 
 		//map to left/right shift
 		UINT vk_lr = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
-		key = (vk_lr == VK_RSHIFT) ? Key::ShiftRight : Key::ShiftLeft;
+		key = (vk_lr == VK_RSHIFT) ? KeyboardButton::K_RIGHT_SHIFT : KeyboardButton::K_LEFT_SHIFT;
 
 		break;
 	}
@@ -262,21 +160,21 @@ static string TranslateVirtualKeyToString(WPARAM vk, LPARAM lParam)
 	break;
 	}
 
-	// convert to string if known
-	auto strIt = KeyToStringMap.find(key);
-	if (strIt != KeyToStringMap.end()) return strIt->second;
+	string result = GetValueByKey(scast<u32>(key)).data();
 
-	return "Unknown";
+	return result == "?" 
+		? "Unknown" 
+		: result;
 }
 
-static Key TranslateVirtualKey(WPARAM vk, LPARAM lParam)
+static KeyboardButton TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 {
 	switch (vk)
 	{
 	case VK_CONTROL:
-		return (lParam & 0x01000000) ? Key::CtrlRight : Key::CtrlLeft;
+		return (lParam & 0x01000000) ? KeyboardButton::K_RIGHT_CTRL : KeyboardButton::K_LEFT_CTRL;
 	case VK_MENU: //alt
-		return (lParam & 0x01000000) ? Key::AltRight : Key::AltLeft;
+		return (lParam & 0x01000000) ? KeyboardButton::K_RIGHT_ALT : KeyboardButton::K_LEFT_ALT;
 	case VK_SHIFT:
 	{
 		//extract scancode
@@ -284,7 +182,7 @@ static Key TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 
 		//map to left/right shift
 		UINT vk_lr = MapVirtualKey(scancode, MAPVK_VSC_TO_VK_EX);
-		return (vk_lr == VK_RSHIFT) ? Key::ShiftRight : Key::ShiftLeft;
+		return (vk_lr == VK_RSHIFT) ? KeyboardButton::K_RIGHT_SHIFT : KeyboardButton::K_LEFT_SHIFT;
 	}
 	}
 
@@ -293,7 +191,7 @@ static Key TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 	auto it = VKToKeyMap.find(vk);
 	if (it != VKToKeyMap.end()) return it->second;
 
-	return Key::Unknown;
+	return KeyboardButton::K_INVALID;
 }
 
 static bool ProcessMessage(
@@ -302,6 +200,11 @@ static bool ProcessMessage(
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
+
+static function<void(u32)> addCharCallback{};
+static function<void()> removeFromBackCallback{};
+static function<void()> addTabCallback{};
+static function<void()> addNewlineCallback{};
 
 namespace KalaWindow::Core
 {
@@ -426,6 +329,23 @@ namespace KalaWindow::Core
 			wParam, 
 			lParam);
 	}
+
+	void MessageLoop::SetAddCharCallback(const function<void(u32)>& newCallback)
+	{
+		addCharCallback = newCallback;
+	}
+	void MessageLoop::SetRemoveFromBackCallback(const function<void()>& newCallback)
+	{
+		removeFromBackCallback = newCallback;
+	}
+	void MessageLoop::SetAddTabCallback(const function<void()>& newCallback)
+	{
+		addTabCallback = newCallback;
+	}
+	void MessageLoop::SetAddNewLineCallback(const function<void()>& newCallback)
+	{
+		addNewlineCallback = newCallback;
+	}
 }
 
 static LRESULT CursorTest(
@@ -523,15 +443,7 @@ static bool ProcessMessage(
 	case WM_UNICHAR:
 	case WM_CHAR:
 	{
-		/*
-		TODO: add text support back
-		
-		if (input
-			&& activeText)
-		{
-			activeText->AddChar(static_cast<u32>(msg.wParam));
-		}
-		*/
+		if (addCharCallback) addCharCallback(scast<u32>(msg.wParam));
 
 		return true; //we handled it
 	}
@@ -548,7 +460,7 @@ static bool ProcessMessage(
 			return false;
 		}
 
-		Key key = TranslateVirtualKey(msg.wParam, msg.lParam);
+		KeyboardButton key = TranslateVirtualKey(msg.wParam, msg.lParam);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -564,25 +476,18 @@ static bool ProcessMessage(
 				key,
 				true);
 				
-			/*
-			TODO: add text support back
-			
-			if (activeText)
+			switch (msg.wParam)
 			{
-				switch (msg.wParam)
-				{
-					case VK_BACK:
-						activeText->RemoveCharFromBack();
-						break;
-					case VK_TAB:
-						activeText->AddTab();
-						break;
-					case VK_RETURN:
-						activeText->AddNewLine();
-						break;
-				}
+			case VK_BACK:
+				if (removeFromBackCallback) removeFromBackCallback();
+				break;
+			case VK_TAB:
+				if (addTabCallback) addTabCallback();
+				break;
+			case VK_RETURN:
+				if (addNewlineCallback) addNewlineCallback();
+				break;
 			}
-			*/
 		}
 
 		return false;
@@ -599,7 +504,7 @@ static bool ProcessMessage(
 			return false;
 		}
 
-		Key key = TranslateVirtualKey(msg.wParam, msg.lParam);
+		KeyboardButton key = TranslateVirtualKey(msg.wParam, msg.lParam);
 
 		if (Input::IsVerboseLoggingEnabled())
 		{
@@ -676,7 +581,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonState(
-				MouseButton::Left,
+				MouseButton::M_LEFT,
 				true);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -695,7 +600,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonState(
-				MouseButton::Left,
+				MouseButton::M_LEFT,
 				false);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -715,7 +620,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonState(
-				MouseButton::Right,
+				MouseButton::M_RIGHT,
 				true);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -734,7 +639,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonState(
-				MouseButton::Right,
+				MouseButton::M_RIGHT,
 				false);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -754,7 +659,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonState(
-				MouseButton::Middle,
+				MouseButton::M_MIDDLE,
 				true);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -773,7 +678,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonState(
-				MouseButton::Middle,
+				MouseButton::M_MIDDLE,
 				false);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -796,7 +701,7 @@ static bool ProcessMessage(
 			if (input)
 			{
 				input->SetMouseButtonState(
-					MouseButton::X1,
+					MouseButton::M_X1,
 					true);
 
 				if (Input::IsVerboseLoggingEnabled())
@@ -813,7 +718,7 @@ static bool ProcessMessage(
 			if (input)
 			{
 				input->SetMouseButtonState(
-					MouseButton::X2,
+					MouseButton::M_X2,
 					true);
 
 				if (Input::IsVerboseLoggingEnabled())
@@ -835,7 +740,7 @@ static bool ProcessMessage(
 			if (input)
 			{
 				input->SetMouseButtonState(
-					MouseButton::X1,
+					MouseButton::M_X1,
 					false);
 
 				if (Input::IsVerboseLoggingEnabled())
@@ -852,7 +757,7 @@ static bool ProcessMessage(
 			if (input)
 			{
 				input->SetMouseButtonState(
-					MouseButton::X2,
+					MouseButton::M_X2,
 					false);
 
 				if (Input::IsVerboseLoggingEnabled())
@@ -878,7 +783,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonDoubleClickState(
-				MouseButton::Left,
+				MouseButton::M_LEFT,
 				true);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -897,7 +802,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonDoubleClickState(
-				MouseButton::Right,
+				MouseButton::M_RIGHT,
 				true);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -916,7 +821,7 @@ static bool ProcessMessage(
 		if (input)
 		{
 			input->SetMouseButtonDoubleClickState(
-				MouseButton::Right,
+				MouseButton::M_MIDDLE,
 				true);
 
 			if (Input::IsVerboseLoggingEnabled())
@@ -939,7 +844,7 @@ static bool ProcessMessage(
 			if (button == XBUTTON1)
 			{
 				input->SetMouseButtonDoubleClickState(
-					MouseButton::X1,
+					MouseButton::M_X1,
 					true);
 
 				if (Input::IsVerboseLoggingEnabled())
@@ -953,7 +858,7 @@ static bool ProcessMessage(
 			if (button == XBUTTON2)
 			{
 				input->SetMouseButtonDoubleClickState(
-					MouseButton::X2,
+					MouseButton::M_X2,
 					true);
 
 				if (Input::IsVerboseLoggingEnabled())
