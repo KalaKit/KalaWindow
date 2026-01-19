@@ -118,7 +118,13 @@ namespace KalaHeaders::KalaLog
 		{
 			static thread_local const string empty{};
 
-			if (timeFormat == TimeFormat::TIME_NONE) return empty;
+			//return empty for OOB or none
+			if (timeFormat == TimeFormat::TIME_NONE
+				|| timeFormat > TimeFormat::TIME_FILENAME_MS)
+			{
+				return empty;
+			}
+
 			if (timeFormat == TimeFormat::TIME_DEFAULT)
 			{
 				return GetTime(TimeFormat::TIME_HMS_MS);
@@ -203,11 +209,7 @@ namespace KalaHeaders::KalaLog
 
 				break;
 			}
-			default:
-			{
-				buffer[0] = '\0';
-				break;
-			}
+			default: return empty;
 			}
 
 			cached[scast<int>(timeFormat)] = buffer;
@@ -218,8 +220,9 @@ namespace KalaHeaders::KalaLog
 		{
 			static thread_local string empty{};
 
-			if (dateFormat == DateFormat::DATE_NONE
-				|| dateFormat == DateFormat::DATE_DEFAULT)
+			//return empty for OOB or default or none
+			if (dateFormat < DateFormat::DATE_DMY
+				|| dateFormat > DateFormat::DATE_FILENAME_MDY)
 			{
 				return empty;
 			}
@@ -251,7 +254,7 @@ namespace KalaHeaders::KalaLog
 			case DateFormat::DATE_TEXT_MDY:     strftime(buffer, sizeof(buffer), "%B %d, %Y", &cachedLocal); break;
 			case DateFormat::DATE_FILENAME_DMY: strftime(buffer, sizeof(buffer), "%d-%m-%Y", &cachedLocal); break;
 			case DateFormat::DATE_FILENAME_MDY: strftime(buffer, sizeof(buffer), "%m-%d-%Y", &cachedLocal); break;
-			default:                            buffer[0] = '\0'; break;
+			default:                            return empty;
 			}
 
 			cached[idx] = buffer;

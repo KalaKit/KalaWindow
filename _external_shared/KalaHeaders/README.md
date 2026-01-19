@@ -228,4 +228,4 @@ Provides:
   - standard layout with enums for mouse buttons, keyboard keys and gamepad actions
   - standard layout for typography, math and currency symbols
   - standard layout for latin and cyrillic alphabet letters
-  - standard layout for emojis and kaomojis
+  - standard layout for emojis
