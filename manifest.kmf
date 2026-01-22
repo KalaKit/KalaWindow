@@ -8,27 +8,27 @@
 
 //copy readme
 origin: readme.md
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@readme.md, ..@_games@Shooter-game@_external_shared@KalaWindow@readme.md, ..@Elypso-engine@_external_shared@KalaWindow@readme.md, ..@Elypso-hub@_external_shared@KalaWindow@readme.md, ..@Solin@_external_shared@KalaWindow@readme.md
+target: ..@Elypso-engine@_external_shared@KalaWindow@readme.md, ..@Elypso-hub@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@readme.md
 action: forcecopy
 
 //copy license
 origin: LICENSE.md
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@LICENSE.md, ..@_games@Shooter-game@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@Solin@_external_shared@KalaWindow@LICENSE.md
+target: ..@Elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@Elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@LICENSE.md
 action: forcecopy
 
 //copy logo
 origin: logo.png
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@logo.png, ..@_games@Shooter-game@_external_shared@KalaWindow@logo.png, ..@Elypso-engine@_external_shared@KalaWindow@logo.png, ..@Elypso-hub@_external_shared@KalaWindow@logo.png, ..@Solin@_external_shared@KalaWindow@logo.png
+target: ..@Elypso-engine@_external_shared@KalaWindow@logo.png, ..@Elypso-hub@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@logo.png
 action: forcecopy
 
 //copy include files
 origin: include
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@include, ..@_games@Shooter-game@_external_shared@KalaWindow@include, ..@Elypso-engine@_external_shared@KalaWindow@include, ..@Elypso-hub@_external_shared@KalaWindow@include, ..@Solin@_external_shared@KalaWindow@include
+target: ..@Elypso-engine@_external_shared@KalaWindow@include, ..@Elypso-hub@_external_shared@KalaWindow@include, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@include, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@include
 action: forcecopy
 
 //copy docs
 origin: docs
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@docs, ..@_games@Shooter-game@_external_shared@KalaWindow@docs, ..@Elypso-engine@_external_shared@KalaWindow@docs, ..@Elypso-hub@_external_shared@KalaWindow@docs, ..@Solin@_external_shared@KalaWindow@docs
+target: ..@Elypso-engine@_external_shared@KalaWindow@docs, ..@Elypso-hub@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@docs
 action: forcecopy
 
 //
@@ -37,27 +37,27 @@ action: forcecopy
 
 //copy debug dll
 origin: debug@KalaWindow1d.dll
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@_games@Shooter-game@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Solin@_external_shared@KalaWindow@debug@KalaWindow1d.dll
+target: ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@debug@KalaWindow1d.dll
 action: forcecopy
 
 //copy debug lib
 origin: debug@KalaWindow1d.lib
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@_games@Shooter-game@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@Solin@_external_shared@KalaWindow@debug@KalaWindow1d.lib
+target: ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@debug@KalaWindow1d.lib
 action: forcecopy
 
 //copy debug pdb
 origin: debug@KalaWindow1d.pdb
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@_games@Shooter-game@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@Solin@_external_shared@KalaWindow@debug@KalaWindow1d.pdb
+target: ..@Elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@Elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@debug@KalaWindow1d.pdb
 action: forcecopy
 
 //copy release dll
 origin: release@KalaWindow1.dll
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@_games@Shooter-game@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@Elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@Solin@_external_shared@KalaWindow@release@KalaWindow1.dll
+target: ..@Elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@Elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@release@KalaWindow1.dll
 action: forcecopy
 
 //copy release lib
 origin: release@KalaWindow1.lib
-target: ..@_games@Circuit-chan@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@_games@Shooter-game@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@Elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@Solin@_external_shared@KalaWindow@release@KalaWindow1.lib
+target: ..@Elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@Elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@release@KalaWindow1.lib
 action: forcecopy
 
 //
@@ -66,10 +66,10 @@ action: forcecopy
 
 //KalaHeaders
 origin: _external_shared@KalaHeaders
-target: ..@_games@Circuit-chan@_external_shared@KalaHeaders, ..@_games@Shooter-game@_external_shared@KalaHeaders, ..@Elypso-engine@_external_shared@KalaHeaders, ..@Elypso-hub@_external_shared@KalaHeaders, ..@Solin@_external_shared@KalaHeaders
+target: ..@Elypso-engine@_external_shared@KalaHeaders, ..@Elypso-hub@_external_shared@KalaHeaders, ..@kalakit_test_projects@Game-test@_external_shared@KalaHeaders, ..@kalakit_test_projects@UI-test@_external_shared@KalaHeaders
 action: copy
 
 //OpenGL
 origin: _external_shared@OpenGL
-target: ..@_games@Circuit-chan@_external_shared@OpenGL, ..@_games@Shooter-game@_external_shared@OpenGL, ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL, ..@Solin@_external_shared@OpenGL
+target: ..@Elypso-engine@_external_shared@OpenGL, ..@Elypso-hub@_external_shared@OpenGL, ..@kalakit_test_projects@Game-test@_external_shared@KalaHeaders, ..@kalakit_test_projects@UI-test@_external_shared@KalaHeaders
 action: copy

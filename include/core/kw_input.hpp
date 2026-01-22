@@ -28,6 +28,8 @@ namespace KalaWindow::Core
 	using KalaHeaders::KalaMath::vec2;
 	using KalaHeaders::KalaKeyStandards::KeyboardButton;
 	using KalaHeaders::KalaKeyStandards::MouseButton;
+	using KalaHeaders::KalaKeyStandards::keyboardButtons;
+	using KalaHeaders::KalaKeyStandards::mouseButtons;
 
 	struct InputCode
 	{
@@ -74,6 +76,7 @@ namespace KalaWindow::Core
 
 		u32 GetID() const;
 		u32 GetWindowID() const;
+
 
 		//Get the letter that was typed this frame
 		const string& GetTypedLetter() const;
@@ -187,32 +190,32 @@ namespace KalaWindow::Core
 
 		array<
 			bool,
-			95>
+			keyboardButtons.size()>
 			keyDown{};
 		array<
 			bool,
-			95>
+			keyboardButtons.size()>
 			keyPressed{};
 		array<
 			bool,
-			95>
+			keyboardButtons.size()>
 			keyReleased{};
 
 		array<
 			bool,
-			15>
+			mouseButtons.size()>
 			mouseDown{};
 		array<
 			bool,
-			15>
+			mouseButtons.size()>
 			mousePressed{};
 		array<
 			bool,
-			15>
+			mouseButtons.size()>
 			mouseReleased{};
 		array<
 			bool,
-			15>
+			mouseButtons.size()>
 			mouseDoubleClicked{};
 
 		bool isMouseVisible = true;

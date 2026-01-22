@@ -8,6 +8,13 @@
 //
 // Provides:
 //   - Helpers for streaming individual font glyphs or loading the full kalafontdata binary into memory
+// 
+// Does not currently support:
+//   - OpenType (GSUB/GPOS)
+//   - scripts needing contextual glyph substitution
+//   - right-to-left shaping languages
+//   - heavy use of combining marks
+//   - advanced CJK rules
 //------------------------------------------------------------------------------
 
 /*------------------------------------------------------------------------------
@@ -19,20 +26,24 @@ Offset | Size | Field
 0      | 4    | KFD magic word, always 'K', 'F', 'D', '\0'
 4      | 1    | kfd binary version
 5      | 1    | type, '1' for bitmap, '2' for glyph
-6      | 2    | height of glyphs passed during export
-8      | 4    | max number of allowed glyphs
-12     | 1    | first indice, always '0'
-13     | 1    | second indice, always '1'
-14     | 1    | third indice, always '2'
-15     | 1    | fourth indice, always '2'
-16     | 1    | fifth indice, always '3'
-17     | 1    | sixth indice, always '0'
-18     | 2    | top-left uv position (x, y)
-20     | 2    | top-right uv position (x, y)
-22     | 2    | bottom-right uv position (x, y)
-24     | 2    | bottom-left uv position (x, y)
-26     | 4    | glyph table size in bytes
-30     | 4    | glyph block size in bytes
+6      | 2    | glyphHeight - height of glyphs passed during export
+8      | 2    | ascent - distance from baseline to highest glyph point
+10     | 2    | descent - distance from baseline to lowest glyph point
+12     | 2    | lineGap - extra vertical spacing between lines
+14     | 2    | lineAdvance - total baseline-to-baseline distance
+16     | 4    | glyphCount - max number of allowed glyphs
+20     | 1    | first indice, always '0'
+21     | 1    | second indice, always '1'
+22     | 1    | third indice, always '2'
+23     | 1    | fourth indice, always '2'
+24     | 1    | fifth indice, always '3'
+25     | 1    | sixth indice, always '0'
+26     | 2    | top-left uv position (x, y)
+28     | 2    | top-right uv position (x, y)
+30     | 2    | bottom-right uv position (x, y)
+32     | 2    | bottom-left uv position (x, y)
+34     | 4    | glyph table size in bytes
+38     | 4    | glyph block size in bytes
 
 # KFD binary glyph table
 
@@ -115,7 +126,7 @@ namespace KalaHeaders::KalaFontData
 	constexpr u8 KFD_VERSION = 1;
 	
 	//The true top header size that is always required
-	constexpr u8 CORRECT_GLYPH_HEADER_SIZE = 34u;
+	constexpr u8 CORRECT_GLYPH_HEADER_SIZE = 42u;
 	
 	//The true per-glyph table size that is always required
 	constexpr u8 CORRECT_GLYPH_TABLE_SIZE = 12u;
@@ -124,13 +135,15 @@ namespace KalaHeaders::KalaFontData
 	constexpr u8 RAW_PIXEL_DATA_OFFSET = 34u;
 	
 	//Max allowed glyphs
-	constexpr u16 MAX_GLYPH_COUNT = 1024u;
+	constexpr u16 MAX_GLYPH_COUNT = 4096u;
 	
-	//Max allowed total glyph table size in bytes (12 KB)
-	constexpr u32 MAX_GLYPH_TABLE_SIZE = 12288u;
+	//Max allowed total glyph table size: 12 * 4096 = 48 KB
+	constexpr u32 MAX_GLYPH_TABLE_SIZE = 49152u;
 	
-	//Max allowed total glyph blocks size in bytes (1024 KB)
-	constexpr u32 MAX_GLYPH_BLOCK_SIZE = 1048576u;
+	//Max allowed total glyph blocks size in bytes.
+	//Max possible single glyph block size: 40KB (100x100 RGBA glyph raw pixels)
+	//Max total glyph block size: 40064  * 4096 = 156.5 MB
+	constexpr u32 MAX_GLYPH_BLOCK_SIZE = 164102144u;
 	
 	constexpr u32 MIN_TOTAL_SIZE = 
 		CORRECT_GLYPH_HEADER_SIZE
@@ -155,6 +168,10 @@ namespace KalaHeaders::KalaFontData
 		u8 version = KFD_VERSION; //kfd binary version
 		u8 type{};                //1 = bitmap, 2 = glyph
 		u16 glyphHeight{};        //height of all glyphs in pixels
+		i16 ascent{};             //distance from baseline to highest glyph point
+		i16 descent{};            //distance from baseline to lowest glyph point
+		i16 lineGap{};            //extra vertical spacing between lines
+		i16 lineAdvance{};        //total baseline-to-baseline distance
 		u32 glyphCount{};         //number of glyphs
 		array<u8, 6> indices = { 0, 1, 2, 2, 3, 0 };
 		//uv of this glyph
@@ -210,16 +227,17 @@ namespace KalaHeaders::KalaFontData
 		// IMPORT ERRORS
 		//
 		
-		RESULT_UNSUPPORTED_FILE_SIZE       = 7,  //Always assume total size is atleast 52 bytes
+		RESULT_FILE_TOO_SMALL              = 7,  //Always assume total min size on disk is atleast 88B
+		RESULT_FILE_TOO_BIG                = 8,  //Always assume total max size on disk is never over 156.5MB
 		
-		RESULT_INVALID_MAGIC               = 8,  //magic must be 'KFD\0'
-		RESULT_INVALID_VERSION             = 9,  //version must match
-		RESULT_INVALID_TYPE                = 10, //type must be '1' or '2'
-		RESULT_INVALID_GLYPH_HEIGHT        = 11, //glyph height must be within range
-		RESULT_INVALID_GLYPH_TABLE_SIZE    = 12, //found a glyph table that wasnt the correct size
-		RESULT_INVALID_GLYPH_BLOCK_SIZE    = 13, //found a glyph block that was less or more than the allowed size
-		RESULT_INVALID_GLYPH_COUNT         = 14, //total glyph count was above allowed max glyph count
-		RESULT_UNEXPECTED_EOF              = 15  //file reached end sooner than expected
+		RESULT_INVALID_MAGIC               = 9,  //magic must be 'KFD\0'
+		RESULT_INVALID_VERSION             = 10, //version must match
+		RESULT_INVALID_TYPE                = 11, //type must be '1' or '2'
+		RESULT_INVALID_GLYPH_HEIGHT        = 12, //glyph height must be within range
+		RESULT_INVALID_GLYPH_TABLE_SIZE    = 13, //found a glyph table that wasnt the correct size
+		RESULT_INVALID_GLYPH_BLOCK_SIZE    = 14, //found a glyph block that was less or more than the allowed size
+		RESULT_INVALID_GLYPH_COUNT         = 15, //total glyph count was above allowed max glyph count
+		RESULT_UNEXPECTED_EOF              = 16  //file reached end sooner than expected
 	};
 	
 	inline string ResultToString(ImportResult result)
@@ -244,8 +262,10 @@ namespace KalaHeaders::KalaFontData
 		case ImportResult::RESULT_FILE_EMPTY:
 			return "RESULT_FILE_EMPTY";
 			
-		case ImportResult::RESULT_UNSUPPORTED_FILE_SIZE:
-			return "RESULT_UNSUPPORTED_FILE_SIZE";
+		case ImportResult::RESULT_FILE_TOO_SMALL:
+			return "RESULT_FILE_TOO_SMALL";
+		case ImportResult::RESULT_FILE_TOO_BIG:
+			return "RESULT_FILE_TOO_BIG";
 			
 		case ImportResult::RESULT_INVALID_MAGIC:
 			return "RESULT_INVALID_MAGIC";
@@ -312,11 +332,11 @@ namespace KalaHeaders::KalaFontData
 			if (fileSize == 0) return ImportResult::RESULT_FILE_EMPTY;
 			if (fileSize < MIN_TOTAL_SIZE)
 			{
-				return ImportResult::RESULT_UNSUPPORTED_FILE_SIZE;
+				return ImportResult::RESULT_FILE_TOO_SMALL;
 			}
 			if (fileSize > MAX_TOTAL_SIZE)
 			{
-				return ImportResult::RESULT_UNSUPPORTED_FILE_SIZE;
+				return ImportResult::RESULT_FILE_TOO_BIG;
 			}
 			
 			in.close();
@@ -380,25 +400,30 @@ namespace KalaHeaders::KalaFontData
 			{
 				return ImportResult::RESULT_INVALID_GLYPH_HEIGHT;
 			}
+
+			memcpy(&header.ascent, headerData.data() + 8, sizeof(i16));
+			memcpy(&header.descent, headerData.data() + 10, sizeof(i16));
+			memcpy(&header.lineGap, headerData.data() + 12, sizeof(i16));
+			memcpy(&header.lineAdvance, headerData.data() + 14, sizeof(i16));
 				
-			memcpy(&header.glyphCount, headerData.data() + 8,  sizeof(u32));
+			memcpy(&header.glyphCount, headerData.data() + 16,  sizeof(u32));
 			if (header.glyphCount < 1
 				|| header.glyphCount > MAX_GLYPH_COUNT)
 			{
 				return ImportResult::RESULT_INVALID_GLYPH_COUNT;
 			}
 				
-			memcpy(&header.indices[0], headerData.data() + 12, sizeof(u8) * 6);
-			memcpy(&header.uvs[0][0],  headerData.data() + 18, sizeof(u8) * 8);
+			memcpy(&header.indices[0], headerData.data() + 20, sizeof(u8) * 6);
+			memcpy(&header.uvs[0][0],  headerData.data() + 26, sizeof(u8) * 8);
 
-			memcpy(&header.glyphTableSize, headerData.data() + 26, sizeof(u32));
+			memcpy(&header.glyphTableSize, headerData.data() + 34, sizeof(u32));
 			if (header.glyphTableSize < CORRECT_GLYPH_TABLE_SIZE
 				|| header.glyphTableSize > MAX_GLYPH_TABLE_SIZE)
 			{
 				return ImportResult::RESULT_INVALID_GLYPH_TABLE_SIZE;
 			}
 				
-			memcpy(&header.glyphBlockSize, headerData.data() + 30, sizeof(u32));
+			memcpy(&header.glyphBlockSize, headerData.data() + 38, sizeof(u32));
 			if (header.glyphBlockSize < RAW_PIXEL_DATA_OFFSET
 				|| header.glyphBlockSize > MAX_GLYPH_BLOCK_SIZE)
 			{

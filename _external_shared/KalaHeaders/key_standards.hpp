@@ -15,6 +15,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <array>
 #include <vector>
 #include <string>
@@ -23,6 +24,10 @@
 //static_cast
 #ifndef scast
 	#define scast static_cast
+#endif
+
+#ifndef MAXSIZE_T
+#define MAXSIZE_T SIZE_MAX
 #endif
 
 namespace KalaHeaders::KalaKeyStandards
@@ -71,7 +76,7 @@ namespace KalaHeaders::KalaKeyStandards
 	};
 	
 	//Common mouse actions. 15-30 is reserved for future use.
-	inline constexpr array<KeyValue, 15> mouseButtons
+	inline constexpr array<KeyValue, 14> mouseButtons
 	{{
 		{scast<u32>(MouseButton::M_LEFT),   0, "left"},
 		{scast<u32>(MouseButton::M_RIGHT),  0, "right"}, //scrollwheel click
@@ -91,22 +96,55 @@ namespace KalaHeaders::KalaKeyStandards
 		{scast<u32>(MouseButton::M_X1_DOUBLE),     0, "x1-double"},
 		{scast<u32>(MouseButton::M_X2_DOUBLE),     0, "x2-double"}
 	}};
-	
-	inline constexpr MouseButton GetMouseButton(const string& v)
+
+	//Invalid value is always returned as MAXSIZE_T, never 0
+	inline constexpr size_t MouseToIndex(MouseButton m)
 	{
-		for (const auto& _b : mouseButtons)
+		constexpr size_t invalid = MAXSIZE_T;
+
+		if (m < MouseButton::M_LEFT
+			|| m > MouseButton::M_X2_DOUBLE)
 		{
-			if (_b.value == v) return scast<MouseButton>(_b.key);
+			return invalid;
 		}
-		return scast<MouseButton>(0);
+
+		return scast<size_t>(m)
+			- scast<size_t>(MouseButton::M_LEFT);
 	}
-	inline constexpr string_view GetMouseButtonValue(MouseButton b) 
-	{ 
-		for (const auto& _b : mouseButtons)
+	//Valid indexes start at 0 so 0 is M_LEFT
+	inline constexpr MouseButton IndexToMouse(size_t i)
+	{
+		if (i >= mouseButtons.size()) return MouseButton::M_INVALID;
+
+		return scast<MouseButton>(
+			i + scast<size_t>(MouseButton::M_LEFT));
+	}
+	
+	inline constexpr string_view MouseToString(MouseButton m)
+	{
+		constexpr string_view invalid = "INVALID";
+
+		if (m < MouseButton::M_LEFT
+			|| m > MouseButton::M_X2_DOUBLE)
 		{
-			if (_b.key == scast<u32>(b)) return _b.value;
+			return invalid;
 		}
-		return "";
+
+		for (const auto& _m : mouseButtons)
+		{
+			if (_m.key == scast<u32>(m)) return _m.value;
+		}
+
+		return invalid;
+	}
+	inline constexpr MouseButton StringToMouse(const string& s)
+	{
+		for (const auto& _m : mouseButtons)
+		{
+			if (_m.value == s) return scast<MouseButton>(_m.key);
+		}
+
+		return MouseButton::M_INVALID;
 	}
 	
 	enum class GamepadButton : u32
@@ -163,22 +201,55 @@ namespace KalaHeaders::KalaKeyStandards
 		{scast<u32>(GamepadButton::G_CAPTURE),  0, "capture"}, 
 		{scast<u32>(GamepadButton::G_TOUCHPAD), 0, "touchpad"}
 	}};
-	
-	inline constexpr GamepadButton GetGamepadButton(const string& v)
+
+	//Invalid value is always returned as MAXSIZE_T, never 0
+	inline constexpr size_t GamepadToIndex(GamepadButton g)
 	{
-		for (const auto& _b : gamepadButtons)
+		constexpr size_t invalid = MAXSIZE_T;
+
+		if (g < GamepadButton::G_A
+			|| g > GamepadButton::G_TOUCHPAD)
 		{
-			if (_b.value == v) return scast<GamepadButton>(_b.key);
+			return invalid;
 		}
-		return scast<GamepadButton>(0);
+
+		return scast<size_t>(g)
+			- scast<size_t>(GamepadButton::G_A);
 	}
-	inline constexpr string_view GetGamepadValue(GamepadButton b) 
-	{ 
-		for (const auto& _b : gamepadButtons)
+	//Valid indexes start at 0 so 0 is G_A
+	inline constexpr GamepadButton IndexToGamepad(size_t i)
+	{
+		if (i >= gamepadButtons.size()) return GamepadButton::G_INVALID;
+
+		return scast<GamepadButton>(
+			i + scast<size_t>(GamepadButton::G_A));
+	}
+
+	inline constexpr string_view GamepadToString(GamepadButton g)
+	{
+		constexpr string_view invalid = "INVALID";
+
+		if (g < GamepadButton::G_A
+			|| g > GamepadButton::G_TOUCHPAD)
 		{
-			if (_b.key == scast<u32>(b)) return _b.value;
+			return invalid;
 		}
-		return "";
+
+		for (const auto& _g : gamepadButtons)
+		{
+			if (_g.key == scast<u32>(g)) return _g.value;
+		}
+
+		return invalid;
+	}
+	inline constexpr GamepadButton StringToGamepad(const string& s)
+	{
+		for (const auto& _g : gamepadButtons)
+		{
+			if (_g.value == s) return scast<GamepadButton>(_g.key);
+		}
+
+		return GamepadButton::G_INVALID;
 	}
 	
 	enum class KeyboardButton : u32
@@ -226,7 +297,7 @@ namespace KalaHeaders::KalaKeyStandards
 	};
 	
 	//Common keyboard actions. 157-200 is reserved.
-	inline constexpr array<KeyValue, 96> keyboard_actions
+	inline constexpr array<KeyValue, 96> keyboardButtons
 	{{
 		{scast<u32>(KeyboardButton::K_A), 0, "a"},
 		{scast<u32>(KeyboardButton::K_B), 0, "b"},
@@ -333,22 +404,55 @@ namespace KalaHeaders::KalaKeyStandards
 		{scast<u32>(KeyboardButton::K_SUPERLEFT),         0, "super-left"},
 		{scast<u32>(KeyboardButton::K_SUPERRIGHT),        0, "super-right"}
 	}};
-	
-	inline constexpr KeyboardButton GetKeyButton(const string& v)
+
+	//Invalid value is always returned as MAXSIZE_T, never 0
+	inline constexpr size_t KeyToIndex(KeyboardButton k)
 	{
-		for (const auto& _b : keyboard_actions)
+		constexpr size_t invalid = MAXSIZE_T;
+
+		if (k < KeyboardButton::K_A
+			|| k > KeyboardButton::K_SUPERRIGHT)
 		{
-			if (_b.value == v) return scast<KeyboardButton>(_b.key);
+			return invalid;
 		}
-		return scast<KeyboardButton>(0);
+
+		return scast<size_t>(k)
+			- scast<size_t>(KeyboardButton::K_A);
 	}
-	inline constexpr string_view GetKeyValue(KeyboardButton b) 
-	{ 
-		for (const auto& _b : keyboard_actions)
+	//Valid indexes start at 0 so 0 is K_A
+	inline constexpr KeyboardButton IndexToKey(size_t i)
+	{
+		if (i >= keyboardButtons.size()) return KeyboardButton::K_INVALID;
+
+		return scast<KeyboardButton>(
+			i + scast<size_t>(KeyboardButton::K_A));
+	}
+
+	inline constexpr string_view KeyToString(KeyboardButton k)
+	{
+		constexpr string_view invalid = "INVALID";
+
+		if (k < KeyboardButton::K_A
+			|| k > KeyboardButton::K_SUPERRIGHT)
 		{
-			if (_b.key == scast<u32>(b)) return _b.value;
+			return invalid;
 		}
-		return "";
+
+		for (const auto& _k : keyboardButtons)
+		{
+			if (_k.key == scast<u32>(k)) return _k.value;
+		}
+
+		return invalid;
+	}
+	inline constexpr KeyboardButton StringToKey(const string& s)
+	{
+		for (const auto& _k : keyboardButtons)
+		{
+			if (_k.value == s) return scast<KeyboardButton>(_k.key);
+		}
+
+		return KeyboardButton::K_INVALID;
 	}
 	
 	//
@@ -896,7 +1000,7 @@ namespace KalaHeaders::KalaKeyStandards
 		keyValues.reserve(
 			mouseButtons.size()
 			+ gamepadButtons.size()
-			+ keyboard_actions.size()
+			+ keyboardButtons.size()
 			
 			+ typography_symbols.size()
 			+ math_symbols.size()
@@ -912,7 +1016,7 @@ namespace KalaHeaders::KalaKeyStandards
 				
 		keyValues.insert(keyValues.end(), mouseButtons.begin(), mouseButtons.end());
 		keyValues.insert(keyValues.end(), gamepadButtons.begin(), gamepadButtons.end());
-		keyValues.insert(keyValues.end(), keyboard_actions.begin(), keyboard_actions.end());
+		keyValues.insert(keyValues.end(), keyboardButtons.begin(), keyboardButtons.end());
 		
 		keyValues.insert(keyValues.end(), typography_symbols.begin(), typography_symbols.end());
 		keyValues.insert(keyValues.end(), math_symbols.begin(), math_symbols.end());

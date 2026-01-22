@@ -340,16 +340,16 @@ namespace KalaHeaders::KalaMath
 		}
 		constexpr bool operator<(const vec& s) const
 		{
-			if constexpr (N == 2) return { this->x > s && this->y > s };
-			if constexpr (N == 3) return { this->x > s && this->y > s && this->z > s };
-			if constexpr (N == 4) return { this->x > s && this->y > s && this->z > s && this->w > s };
+			if constexpr (N == 2) return { this->x > s.x && this->y > s.y };
+			if constexpr (N == 3) return { this->x > s.x && this->y > s.y && this->z > s.z };
+			if constexpr (N == 4) return { this->x > s.x && this->y > s.y && this->z > s.z && this->w > s.w };
 		}
 		
 		constexpr bool operator>(f32 s) const
 		{
-			if constexpr (N == 2) return { this->x < s.x && this->y < s.y };
-			if constexpr (N == 3) return { this->x < s.x && this->y < s.y && this->z < s.z };
-			if constexpr (N == 4) return { this->x < s.x && this->y < s.y && this->z < s.z && this->w < s.w };
+			if constexpr (N == 2) return { this->x < s && this->y < s };
+			if constexpr (N == 3) return { this->x < s && this->y < s && this->z < s };
+			if constexpr (N == 4) return { this->x < s && this->y < s && this->z < s && this->w < s };
 		}
 		constexpr bool operator>(const vec& s) const
 		{

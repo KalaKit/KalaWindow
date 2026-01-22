@@ -5,6 +5,7 @@ the header collection:
 
 the clis:
 - kalamove
+- kalamake
 - kalafont
 - kalamodel
 
@@ -19,8 +20,6 @@ the libraries (rely on clis or headers in some way):
 - kalalua
 
 the executables (rely on libs or clis or headers in some way):
-- solin
-- vulin
 - elypso engine
 - elypso hub
 
@@ -34,7 +33,13 @@ Header-only scripts made in C++ 20 for various purposes. Completely self-dependa
 
 ## KalaMove
 
-Uses a manifest system with the .kmf extension and a custom syntax to control how do move, copy, delete and rename files and folders and how to create new dirs where needed.
+**KalaMove** is an executable that uses `.kmf` files that are designed as a lightweight, strict, and repeatable alternative to batch/shell scripts, CMake commands, or even full installers when all you need is reliable file movement.
+
+---
+
+## KalaMake
+
+**KalaMake** is an executable that uses `.kma` files that are designed as my own take for an alternative to CMake, Make and others of its kind with my own syntax. The core idea is the same - compile your set of code into a runtime-ready binary.
 
 ---
 
@@ -95,26 +100,6 @@ Uses completely original code with help from WinSock and Cloudflare Tunnel, does
 ## KalaLua
 
 KalaLua is a C++ 20 wrapper library around Lua for Windows (Linux coming in the future) that allows you to route Lua calls to one middleman library without needing Lua itself in any way inside your own program.
-
----
-
-## Solin
-
-Self-made IDE, uses several headers from KalaHeaders and runs off of KalaWindow.
-
-Accepts any runtime or build commands (as system calls internally), passes results and errors related to them to the compiler window if building, or debug window if running in debug. Does not contain its own compiler, instead expects end user to pass clang, cl or gcc for debugging and compilation through the runtime and build commands in project settings.
-
----
-
-## Vulin
-
-Self-made database system, uses several headers from KalaHeaders and runs off of KalaWindow and accepts VCALLs via KalaServer as packets from external IPs.
-
-The database itself uses tables where each table has an ID and fields. Tables can hold tables but a child parent cannot hold its parent as its child or sibling. Fields can be any vcall payload type.
-
-### VCALL
-
-A vcall is a vulin packet that is sent out by Vulin to an IP or accepted by Vulin from an external IP. Vulin can send and receive vcall payloads as the following types: u8-u32, i8-i32, f32, string (max 128 u32 characters).
 
 ---
 

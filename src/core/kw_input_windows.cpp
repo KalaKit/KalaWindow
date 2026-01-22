@@ -11,6 +11,7 @@
 #include <memory>
 
 #include "KalaHeaders/log_utils.hpp"
+#include "KalaHeaders/key_standards.hpp"
 
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
@@ -18,8 +19,14 @@
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
+
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
+
+using KalaHeaders::KalaKeyStandards::KeyToIndex;
+using KalaHeaders::KalaKeyStandards::MouseToIndex;
+using KalaHeaders::KalaKeyStandards::IndexToKey;
+using KalaHeaders::KalaKeyStandards::IndexToMouse;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
@@ -110,15 +117,8 @@ namespace KalaWindow::Core
 		KeyboardButton key,
 		bool isDown)
 	{
-		if (key < KeyboardButton::K_NUM_0
-			|| key > KeyboardButton::K_MENU)
-		{
-			return;
-		}
-
-		size_t index = 
-			scast<size_t>(key) 
-			- scast<size_t>(KeyboardButton::K_NUM_0);
+		size_t index = KeyToIndex(key);
+		if (index == MAXSIZE_T) return;
 
 		if (isDown
 			&& !keyDown[index])
@@ -137,15 +137,8 @@ namespace KalaWindow::Core
 		MouseButton mouseButton,
 		bool isDown)
 	{
-		if (mouseButton < MouseButton::M_LEFT
-			|| mouseButton > MouseButton::M_X2_DOUBLE)
-		{
-			return;
-		}
-
-		size_t index =
-			scast<size_t>(mouseButton)
-			- scast<size_t>(MouseButton::M_LEFT);
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return;
 
 		if (isDown
 			&& !mouseDown[index])
@@ -164,15 +157,8 @@ namespace KalaWindow::Core
 		MouseButton mouseButton,
 		bool isDown)
 	{
-		if (mouseButton < MouseButton::M_LEFT
-			|| mouseButton > MouseButton::M_X2_DOUBLE)
-		{
-			return;
-		}
-
-		size_t index =
-			scast<size_t>(mouseButton)
-			- scast<size_t>(MouseButton::M_LEFT);
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return;
 
 		mouseDoubleClicked[index] = isDown;
 	}
@@ -183,7 +169,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < keyPressed.size(); ++i)
 		{
-			if (keyPressed[i]) result.push_back(scast<KeyboardButton>(i));
+			if (keyPressed[i]) result.push_back(IndexToKey(i));
 		}
 
 		return result;
@@ -194,7 +180,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < keyDown.size(); ++i)
 		{
-			if (keyDown[i]) result.push_back(scast<KeyboardButton>(i));
+			if (keyDown[i]) result.push_back(IndexToKey(i));
 		}
 
 		return result;
@@ -205,7 +191,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < keyReleased.size(); ++i)
 		{
-			if (keyReleased[i]) result.push_back(scast<KeyboardButton>(i));
+			if (keyReleased[i]) result.push_back(IndexToKey(i));
 		}
 
 		return result;
@@ -217,7 +203,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mousePressed.size(); ++i)
 		{
-			if (mousePressed[i]) result.push_back(scast<MouseButton>(i));
+			if (mousePressed[i]) result.push_back(IndexToMouse(i));
 		}
 
 		return result;
@@ -228,7 +214,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mouseDown.size(); ++i)
 		{
-			if (mouseDown[i]) result.push_back(scast<MouseButton>(i));
+			if (mouseDown[i]) result.push_back(IndexToMouse(i));
 		}
 
 		return result;
@@ -239,7 +225,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mouseReleased.size(); ++i)
 		{
-			if (mouseReleased[i]) result.push_back(scast<MouseButton>(i));
+			if (mouseReleased[i]) result.push_back(IndexToMouse(i));
 		}
 
 		return result;
@@ -250,7 +236,7 @@ namespace KalaWindow::Core
 
 		for (size_t i = 0; i < mouseDoubleClicked.size(); ++i)
 		{
-			if (mouseDoubleClicked[i]) result.push_back(scast<MouseButton>(i));
+			if (mouseDoubleClicked[i]) result.push_back(IndexToMouse(i));
 		}
 
 		return result;
@@ -337,15 +323,57 @@ namespace KalaWindow::Core
 		return true;
 	}
 
-	bool Input::IsKeyHeld(KeyboardButton key) { return keyDown[scast<size_t>(key)]; }
-	bool Input::IsKeyPressed(KeyboardButton key) { return keyPressed[scast<size_t>(key)]; }
-	bool Input::IsKeyReleased(KeyboardButton key) { return keyReleased[scast<size_t>(key)]; }
+	bool Input::IsKeyHeld(KeyboardButton key)
+	{ 
+		size_t index = KeyToIndex(key);
+		if (index == MAXSIZE_T) return false;
 
-	bool Input::IsMouseButtonHeld(MouseButton mouseButton) { return mouseDown[scast<size_t>(mouseButton)]; }
-	bool Input::IsMouseButtonPressed(MouseButton mouseButton) { return mousePressed[scast<size_t>(mouseButton)]; }
-	bool Input::IsMouseButtonReleased(MouseButton mouseButton) { return mouseReleased[scast<size_t>(mouseButton)]; }
+		return keyDown[index];
+	}
+	bool Input::IsKeyPressed(KeyboardButton key)
+	{
+		size_t index = KeyToIndex(key);
+		if (index == MAXSIZE_T) return false;
 
-	bool Input::IsMouseButtonDoubleClicked(MouseButton mouseButton) { return mouseDoubleClicked[scast<size_t>(mouseButton)]; }
+		return keyPressed[index];
+	}
+	bool Input::IsKeyReleased(KeyboardButton key)
+	{
+		size_t index = KeyToIndex(key);
+		if (index == MAXSIZE_T) return false;
+
+		return keyReleased[index];
+	}
+
+	bool Input::IsMouseButtonHeld(MouseButton mouseButton)
+	{
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return false;
+
+		return mouseDown[index];
+	}
+	bool Input::IsMouseButtonPressed(MouseButton mouseButton)
+	{
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return false;
+
+		return mousePressed[index];
+	}
+	bool Input::IsMouseButtonReleased(MouseButton mouseButton)
+	{
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return false;
+
+		return mouseReleased[index];
+	}
+
+	bool Input::IsMouseButtonDoubleClicked(MouseButton mouseButton)
+	{
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return false;
+
+		return mouseDoubleClicked[index];
+	}
 
 	bool Input::IsMouseButtonDragging(MouseButton mouseButton)
 	{

@@ -477,7 +477,7 @@ namespace KalaHeaders::KalaLog
 			if (prefixSize < prefixCache.size()) index = prefixSize++;
 			else index = (prefixClock++ % prefixCache.size());
 
-			prefixCache[index] = { type, string(target), move(built) };
+			prefixCache[index] = { type, string(target), std::move(built) };
 			return prefixCache[index].prefix;
 		}
 

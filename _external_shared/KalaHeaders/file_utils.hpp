@@ -70,7 +70,6 @@ namespace KalaHeaders::KalaFile
 	using std::filesystem::directory_iterator;
 	using std::filesystem::status;
 	using std::filesystem::perms;
-	using std::strerror;
 	
 	using u8 = uint8_t;
 	using u16 = uint16_t;
@@ -852,9 +851,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to get target '" << target
 					<< "' line count because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1019,9 +1021,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to write text to target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1087,9 +1092,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to read text from target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1184,9 +1192,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to write lines to target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1259,9 +1270,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to read lines from target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1338,7 +1352,7 @@ namespace KalaHeaders::KalaFile
 			}
 
 			//successfully got data
-			outLines = move(allLines);
+			outLines = std::move(allLines);
 		}
 		catch (exception& e)
 		{
@@ -1435,9 +1449,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to write binary lines to target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1451,9 +1468,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to write binary lines to target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1522,9 +1542,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to read binary lines from target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1593,9 +1616,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to read binary lines from target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1613,7 +1639,7 @@ namespace KalaHeaders::KalaFile
 			}
 
 			//successfully got data
-			outData = move(allData);
+			outData = std::move(allData);
 		}
 		catch (exception& e)
 		{
@@ -1923,9 +1949,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to get ragge by value from target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -1990,9 +2019,12 @@ namespace KalaHeaders::KalaFile
 				{
 					int err = errno;
 
+					char errbuf[256]{};
+					strerror_s(errbuf, sizeof(errbuf), err);
+
 					oss << "Failed to get range by value from target '" << target
 						<< "' because it couldn't be opened! "
-						<< "Reason: (errno " << err << "): " << strerror(err);
+						<< "Reason: (errno " << err << "): " << errbuf;
 
 					return oss.str();
 				}
@@ -2091,9 +2123,12 @@ namespace KalaHeaders::KalaFile
 			{
 				int err = errno;
 
+				char errbuf[256]{};
+				strerror_s(errbuf, sizeof(errbuf), err);
+
 				oss << "Failed to get range by value from target '" << target
 					<< "' because it couldn't be opened! "
-					<< "Reason: (errno " << err << "): " << strerror(err);
+					<< "Reason: (errno " << err << "): " << errbuf;
 
 				return oss.str();
 			}
@@ -2158,9 +2193,12 @@ namespace KalaHeaders::KalaFile
 				{
 					int err = errno;
 
+					char errbuf[256]{};
+					strerror_s(errbuf, sizeof(errbuf), err);
+
 					oss << "Failed to get range by value from target '" << target
 						<< "' because it couldn't be opened! "
-						<< "Reason: (errno " << err << "): " << strerror(err);
+						<< "Reason: (errno " << err << "): " << errbuf;
 
 					return oss.str();
 				}
