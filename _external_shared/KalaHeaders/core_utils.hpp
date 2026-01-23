@@ -13,6 +13,7 @@
 //   - Deprecation marker (DEPRECATED)
 //   - Debug-only assertion (DEBUG_ASSERT)
 //   - Shorthands for casters
+//   - Helpers for removing duplicates from vector, map and unordered_map
 //   - Safe conversions between uintptr_t and pointers, integrals, enums
 //------------------------------------------------------------------------------
 
@@ -21,6 +22,12 @@
 #include <cstdint>
 #include <type_traits>
 #include <bit>
+#include <unordered_set>
+#include <vector>
+#include <unordered_map>
+#include <map>
+#include <concepts>
+#include <functional>
 
 using std::is_pointer_v;
 using std::is_integral_v;
@@ -28,6 +35,13 @@ using std::is_enum_v;
 using std::underlying_type_t;
 using std::uint64_t;
 using std::bit_cast;
+using std::unordered_set;
+using std::vector;
+using std::unordered_map;
+using std::map;
+using std::equality_comparable;
+using std::hash;
+using std::convertible_to;
 
 //
 // CROSS-PLATFORM IMPORT/EXPORT
@@ -126,6 +140,128 @@ constexpr T bcast(const U& v) noexcept
 
 namespace KalaHeaders::KalaCore
 {
+	//
+	// REMOVE DUPLICATES FROM CONTAINER
+	//
+
+	template<typename T>
+	concept Hashable =
+		requires(T v)
+		{
+			{ hash<T>{}(v) } -> convertible_to<size_t>;
+		};
+
+	//Returns true if any value appears more than once in the vector
+	template <typename T>
+	requires equality_comparable<T> && Hashable<T>
+	bool ContainsDuplicates(const vector<T>& v)
+	{
+		if (v.size() < 2) return false;
+
+		unordered_set<T> seen{};
+		seen.reserve(v.size());
+
+		for (const auto& x : v)
+		{
+			if (!seen.insert(x).second) return true;
+		}
+
+		return false;
+	}
+
+	//Returns true if any value appears more than once in the map
+	template <typename K, typename T>
+	requires equality_comparable<T> && Hashable<T>
+	bool ContainsDuplicates(const map<K, T>& m)
+	{
+		if (m.size() < 2) return false;
+
+		unordered_set<T> seen{};
+		seen.reserve(m.size());
+
+		for (const auto& [key, value] : m)
+		{
+			if (!seen.insert(value).second) return true;
+		}
+
+		return false;
+	}
+
+	//Returns true if any value appears more than once in the unordered map
+	template <typename K, typename T>
+	requires equality_comparable<T> && Hashable<T>
+	bool ContainsDuplicates(const unordered_map<K, T>& m)
+	{
+		if (m.size() < 2) return false;
+
+		unordered_set<T> seen{};
+		seen.reserve(m.size());
+
+		for (const auto& [key, value] : m)
+		{
+			if (!seen.insert(value).second) return true;
+		}
+
+		return false;
+	}
+
+	//Remove all duplicates from vector that appear more than once, order is preserved
+	template <typename T>
+	requires equality_comparable<T> && Hashable<T>
+	void RemoveDuplicates(vector<T>& v)
+	{
+		if (v.size() < 2) return;
+
+		unordered_map<T, size_t> counts{};
+
+		for (const auto& x : v) ++counts[x];
+
+		vector<T> result{};
+		result.reserve(v.size());
+
+		for (const auto& x : v) if (counts[x] == 1) result.push_back(x);
+
+		v = std::move(result);
+	}
+
+	//Remove all duplicates from map that appear more than once, key order is preserved
+	template <typename K, typename T>
+	requires equality_comparable<T> && Hashable<T>
+	void RemoveDuplicates(map<K, T>& m)
+	{
+		if (m.size() < 2) return;
+
+		unordered_map<T, size_t> counts{};
+		counts.reserve(m.size());
+
+		for (const auto& [key, value] : m) ++counts[value];
+
+		for (auto it = m.begin(); it != m.end();)
+		{
+			if (counts[it->second] > 1) it = m.erase(it);
+			else ++it;
+		}
+	}
+
+	//Remove all duplicates from unordered map that appear more than once
+	template <typename K, typename T>
+	requires equality_comparable<T> && Hashable<T>
+	void RemoveDuplicates(unordered_map<K, T>& m)
+	{
+		if (m.size() < 2) return;
+
+		unordered_map<T, size_t> counts{};
+		counts.reserve(m.size());
+
+		for (const auto& [key, value] : m) ++counts[value];
+
+		for (auto it = m.begin(); it != m.end();)
+		{
+			if (counts[it->second] > 1) it = m.erase(it);
+			else ++it;
+		}
+	}
+
 	//
 	// CONVERT TO PLATFORM-AGNOSTIC VARIABLES AND BACK
 	//

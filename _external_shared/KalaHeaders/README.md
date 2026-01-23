@@ -4,14 +4,15 @@ Header-only scripts made in C++ 20 for various purposes. Completely self-dependa
 
 ## core_utils.hpp
 
-Macros and cross platform import/export
-
-- macros for __declspec/__attribute__/__stdcall for windows/linux api
-- inline macros for forceinline and noinline
-- deprecated macro
-- debug assert macro (assertions are compiled out completely in release)
-- shorthands for casters
-- overrideable cross-platform templates for converting between uintptr_t and pointers/integrals/enums
+Provides:
+- Cross-platform export/import macro (LIB_API)
+- Win32 machine level function calling convenction (LIB_APIENTRY)
+- Function inlining control (FORCE_INLINE, NO_INLINE)
+- Deprecation marker (DEPRECATED)
+- Debug-only assertion (DEBUG_ASSERT)
+- Shorthands for casters
+- Helpers for removing duplicates from vector, map and unordered_map
+- Safe conversions between uintptr_t and pointers, integrals, enums
 
 ### Templates
 
