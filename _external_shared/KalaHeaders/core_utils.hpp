@@ -133,7 +133,7 @@ using std::convertible_to;
 
 //bit_cast
 template<typename T, typename U>
-constexpr T bcast(const U& v) noexcept
+inline constexpr T bcast(const U& v) noexcept
 {
 	return bit_cast<T>(v);
 }
@@ -153,8 +153,8 @@ namespace KalaHeaders::KalaCore
 
 	//Returns true if any value appears more than once in the vector
 	template <typename T>
-	requires equality_comparable<T> && Hashable<T>
-	bool ContainsDuplicates(const vector<T>& v)
+		requires equality_comparable<T> && Hashable<T>
+	inline constexpr bool ContainsDuplicates(const vector<T>& v)
 	{
 		if (v.size() < 2) return false;
 
@@ -171,8 +171,8 @@ namespace KalaHeaders::KalaCore
 
 	//Returns true if any value appears more than once in the map
 	template <typename K, typename T>
-	requires equality_comparable<T> && Hashable<T>
-	bool ContainsDuplicates(const map<K, T>& m)
+		requires equality_comparable<T> && Hashable<T>
+	inline constexpr bool ContainsDuplicates(const map<K, T>& m)
 	{
 		if (m.size() < 2) return false;
 
@@ -189,8 +189,8 @@ namespace KalaHeaders::KalaCore
 
 	//Returns true if any value appears more than once in the unordered map
 	template <typename K, typename T>
-	requires equality_comparable<T> && Hashable<T>
-	bool ContainsDuplicates(const unordered_map<K, T>& m)
+		requires equality_comparable<T> && Hashable<T>
+	inline constexpr bool ContainsDuplicates(const unordered_map<K, T>& m)
 	{
 		if (m.size() < 2) return false;
 
@@ -207,8 +207,8 @@ namespace KalaHeaders::KalaCore
 
 	//Remove all duplicates from vector that appear more than once, order is preserved
 	template <typename T>
-	requires equality_comparable<T> && Hashable<T>
-	void RemoveDuplicates(vector<T>& v)
+		requires equality_comparable<T> && Hashable<T>
+	inline constexpr void RemoveDuplicates(vector<T>& v)
 	{
 		if (v.size() < 2) return;
 
@@ -226,8 +226,8 @@ namespace KalaHeaders::KalaCore
 
 	//Remove all duplicates from map that appear more than once, key order is preserved
 	template <typename K, typename T>
-	requires equality_comparable<T> && Hashable<T>
-	void RemoveDuplicates(map<K, T>& m)
+		requires equality_comparable<T> && Hashable<T>
+	inline constexpr void RemoveDuplicates(map<K, T>& m)
 	{
 		if (m.size() < 2) return;
 
@@ -245,8 +245,8 @@ namespace KalaHeaders::KalaCore
 
 	//Remove all duplicates from unordered map that appear more than once
 	template <typename K, typename T>
-	requires equality_comparable<T> && Hashable<T>
-	void RemoveDuplicates(unordered_map<K, T>& m)
+		requires equality_comparable<T> && Hashable<T>
+	inline constexpr void RemoveDuplicates(unordered_map<K, T>& m)
 	{
 		if (m.size() < 2) return;
 
@@ -273,7 +273,8 @@ namespace KalaHeaders::KalaCore
 	//  - classes
 	//  - functions
 	//  - arrays
-	template<typename T> static constexpr T ToVar(uintptr_t h)
+	template<typename T>
+	inline constexpr T ToVar(uintptr_t h)
 		requires is_pointer_v<T>
 	{
 		return rcast<T>(h);
@@ -285,7 +286,8 @@ namespace KalaHeaders::KalaCore
 	//  - integers
 	//  - bitmask flags
 	//  - opaque handles
-	template<typename T> static constexpr T ToVar(uintptr_t h)
+	template<typename T>
+	inline constexpr T ToVar(uintptr_t h)
 		requires is_integral_v<T>
 	{
 		return scast<T>(h);
@@ -297,7 +299,8 @@ namespace KalaHeaders::KalaCore
 	//  - enums
 	//  - enum-based bitmask flags
 	//  - strongly typed API handles
-	template<typename T> static constexpr T ToVar(uintptr_t h)
+	template<typename T>
+	inline constexpr T ToVar(uintptr_t h)
 		requires is_enum_v<T>
 	{
 		return scast<T>(scast<underlying_type_t<T>>(h));
@@ -309,7 +312,8 @@ namespace KalaHeaders::KalaCore
 	//  - classes
 	//  - functions
 	//  - arrays
-	template<typename T> static constexpr uint64_t FromVar(T* h)
+	template<typename T>
+	inline constexpr uint64_t FromVar(T* h)
 	{
 		return rcast<uint64_t>(h);
 	}
@@ -319,7 +323,8 @@ namespace KalaHeaders::KalaCore
 	//  - integers
 	//  - bitmask flags
 	//  - opaque handles
-	template<typename T> static uint64_t FromVar(T h)
+	template<typename T>
+	inline constexpr uint64_t FromVar(T h)
 		requires is_integral_v<T>
 	{
 		return scast<uint64_t>(h);
@@ -330,7 +335,8 @@ namespace KalaHeaders::KalaCore
 	//  - enums
 	//  - enum-based bitmask flags
 	//  - strongly typed API handles
-	template<typename T> static uint64_t FromVar(T h)
+	template<typename T>
+	inline constexpr uint64_t FromVar(T h)
 		requires is_enum_v<T>
 	{
 		return scast<uint64_t>(scast<underlying_type_t<T>>(h));

@@ -51,14 +51,14 @@ namespace KalaHeaders::KalaString
 
 	//Convert T to string
 	template<typename T>
-	inline string ToString(const T& value) { return to_string(value); }
+	inline constexpr string ToString(const T& value) { return to_string(value); }
 
 	//Convert bool to 'true' or 'false'
-	template<> inline string ToString<bool>(const bool& state) { return state ? "true" : "false"; }
+	template<> inline constexpr string ToString<bool>(const bool& state) { return state ? "true" : "false"; }
 
-	template<typename T> inline T FromString(string_view s); //Convert string to T
+	template<typename T> inline constexpr T FromString(string_view s); //Convert string to T
 
-	template<> inline bool               FromString<bool>(string_view s) { return (s == "true"); }                   //Convert string to bool
+	template<> inline constexpr bool               FromString<bool>(string_view s) { return (s == "true"); }                   //Convert string to bool
 
 	template<> inline int                FromString<int>(string_view s) { return stoi(string(s)); }                  //Convert string to int
 	template<> inline long               FromString<long>(string_view s) { return stol(string(s)); }                 //Convert string to long
@@ -75,7 +75,7 @@ namespace KalaHeaders::KalaString
 	//
 
 	//Cast a vector of strings into a vector of string_views
-	inline vector<string_view> MakeViews(const vector<string>& strings)
+	inline constexpr vector<string_view> MakeViews(const vector<string>& strings)
 	{
 		vector<string_view> views{};
 		views.reserve(strings.size());
@@ -89,7 +89,7 @@ namespace KalaHeaders::KalaString
 	//does not fill empty chars after \0,
 	//does not mutate output on empty input
 	template<size_t N>
-	inline void StringToCharArray(
+	inline constexpr void StringToCharArray(
 		string_view inValue, 
 		char (&outValue)[N])
 	{
@@ -106,7 +106,7 @@ namespace KalaHeaders::KalaString
 	//Fills in remaining space of char array after '\0',
 	//does not mutate output if no null terminator exists
 	template<size_t N>
-	inline void ZeroPadCharArray(char(&outValue)[N])
+	inline constexpr void ZeroPadCharArray(char(&outValue)[N])
 	{
 		//find the null terminator
 		size_t i = 0;
@@ -120,7 +120,7 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Check if origin contains target, with optional case sensitivity flag
-	inline bool ContainsString(
+	inline constexpr bool ContainsString(
 		string_view origin,
 		string_view target,
 		bool ignoreCase = true)
@@ -153,7 +153,7 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Check if origin is the same as target, with optional case sensitivity flag
-	inline bool CompareStrings(
+	inline constexpr bool CompareStrings(
 		string_view origin,
 		string_view target,
 		bool ignoreCase = true)
@@ -185,7 +185,7 @@ namespace KalaHeaders::KalaString
 	
 	//Split origin into a vector of chunks between each splitter,
 	//keep strings between two tokens as a single string with preserved tokens
-	inline vector<string> TokenizeString(
+	inline constexpr vector<string> TokenizeString(
 		string_view origin,
 		char token,
 		string_view splitter)
@@ -234,7 +234,7 @@ namespace KalaHeaders::KalaString
 	
 
 	//Split origin into a vector of chunks between each splitter
-	inline vector<string> SplitString(
+	inline constexpr vector<string> SplitString(
 		string_view origin,
 		string_view splitter)
 	{
@@ -259,7 +259,7 @@ namespace KalaHeaders::KalaString
 
 	//Join all chunks in parts vector together into a single string
 	//and add delimiter after each chunk except the last one
-	inline string JoinString(
+	inline constexpr string JoinString(
 		const vector<string_view>& parts,
 		string_view delimiter)
 	{
@@ -285,7 +285,7 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Remove leading and trailing whitespace characters from origin
-	inline string TrimString(string_view origin)
+	inline constexpr string TrimString(string_view origin)
 	{
 		const char* whitespace = " \t\n\r\f\v";
 		size_t start = origin.find_first_not_of(whitespace);
@@ -295,48 +295,74 @@ namespace KalaHeaders::KalaString
 		return string(origin.substr(start, end - start + 1));
 	}
 
-	//Remove all occurrences of target from origin
-	inline string RemoveAllFromString(
+	//Remove occurrences of target from origin,
+	//if removeAll is true then all found occurences will be removed
+	inline constexpr string RemoveFromString(
 		string_view origin,
-		string_view target)
+		string_view target,
+		bool removeAll = false)
 	{
 		//return origin if target is empty
 		if (target.empty()) return string(origin);
 
 		string result(origin);
-		size_t pos{};
+		size_t pos = result.find(target);
 
-		while ((pos = result.find(target, pos)) != string::npos)
+		//nothing was found, skip further actions
+		if (pos == string::npos) return result;
+
+		//remove first occurence
+		result.erase(pos, target.length());
+
+		//remove all remaining occurences if requested
+		if (removeAll)
 		{
-			result.erase(pos, target.length());
+			while ((pos = result.find(target, pos)) != string::npos)
+			{
+				result.erase(pos, target.length());
+			}
 		}
 
 		return result;
 	}
 
-	//Replace all occurrences of target from origin with replacement
-	inline string ReplaceAllFromString(
+	//Replace occurences of target from origin with replacement,
+	//if replaceAll is true then all found occurences will be replaced
+	inline constexpr string ReplaceFromString(
 		string_view origin,
 		string_view target,
-		string_view replacement)
+		string_view replacement,
+		bool replaceAll = false)
 	{
 		//return origin if target is empty
 		if (target.empty()) return string(origin);
 
 		string result(origin);
-		size_t pos{};
+		size_t pos = result.find(target);
 
-		while ((pos = result.find(target, pos)) != string::npos)
+		//nothing was found, skip further actions
+		if (pos == string::npos) return result;
+
+		//replace first occurence
+		result.replace(pos, target.length(), replacement);
+
+		//replace all remaining occurences if requested
+		if (replaceAll)
 		{
-			result.replace(pos, target.length(), replacement);
 			pos += replacement.length();
+
+			while ((pos = result.find(target, pos)) != string::npos)
+			{
+				result.replace(pos, target.length(), replacement);
+				pos += replacement.length();
+			}
 		}
 
 		return result;
 	}
 
 	//Set all letters of this string to uppercase letters
-	inline string ToUpperString(string_view origin)
+	inline constexpr string ToUpperString(string_view origin)
 	{
 		//return origin if target is empty
 		if (origin.empty()) return "";
@@ -353,7 +379,7 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Set all letters of this string to lowercase letters
-	inline string ToLowerString(string_view origin)
+	inline constexpr string ToLowerString(string_view origin)
 	{
 		//return origin if target is empty
 		if (origin.empty()) return "";
@@ -370,14 +396,14 @@ namespace KalaHeaders::KalaString
 	}
 	
 	//Returns true if the string has one or more numbers
-	inline bool HasAnyNumber(string_view origin)
+	inline constexpr bool HasAnyNumber(string_view origin)
 	{
 		for (unsigned char c : origin) if (isdigit(c)) return true;
 		
 		return false;
 	}
 	//Returns true if the string has one or more non-number characters
-	inline bool HasAnyNonNumber(string_view origin)
+	inline constexpr bool HasAnyNonNumber(string_view origin)
 	{
 		for (unsigned char c : origin) if (!isdigit(c)) return true;
 		
@@ -388,7 +414,7 @@ namespace KalaHeaders::KalaString
 	//  - '\t'
 	//  - '\n'
 	//  - '\r'
-	inline bool HasAnyWhiteSpace(string_view origin)
+	inline constexpr bool HasAnyWhiteSpace(string_view origin)
 	{
 		for (unsigned char c : origin) if (isspace(c)) return true;
 		
@@ -396,10 +422,16 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Check if origin starts with target
-	inline bool StartsWith(
+	inline constexpr bool StartsWith(
 		string_view origin,
 		string_view target)
 	{
+		//an empty origin does not make sense to be checked
+		if (origin.empty()) return false;
+
+		//an empty target always matches
+		if (target.empty()) return true;
+
 		//can't start with something longer than itself
 		if (target.size() > origin.size()) return false;
 
@@ -410,10 +442,16 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Check if origin ends with target
-	inline bool EndsWith(
+	inline constexpr bool EndsWith(
 		string_view origin,
 		string_view target)
 	{
+		//an empty origin does not make sense to be checked
+		if (origin.empty()) return false;
+
+		//an empty target always matches
+		if (target.empty()) return true;
+
 		//can't end with something longer than itself
 		if (target.size() > origin.size()) return false;
 

@@ -993,7 +993,7 @@ namespace KalaHeaders::KalaKeyStandards
 	
 	inline vector<KeyValue> keyValues{};
 	
-	inline void FillKeyValues()
+	inline constexpr void FillKeyValues()
 	{
 		if (!keyValues.empty()) return;
 		
@@ -1031,7 +1031,7 @@ namespace KalaHeaders::KalaKeyStandards
 		keyValues.insert(keyValues.end(), emojis.begin(), emojis.end());
 	}
 	
-	inline u32 GetKeyByUTF(const u32 utf)
+	inline constexpr u32 GetKeyByUTF(const u32 utf)
 	{
 		FillKeyValues();
 		
@@ -1048,7 +1048,7 @@ namespace KalaHeaders::KalaKeyStandards
 			? it->utf
 			: u32{};
 	}
-	inline u32 GetKeyByValue(const string_view& value)
+	inline constexpr u32 GetKeyByValue(const string_view& value)
 	{
 		FillKeyValues();
 		
@@ -1066,7 +1066,7 @@ namespace KalaHeaders::KalaKeyStandards
 			: u32{};
 	}
 	
-	inline u32 GetUTFByKey(u32 key)
+	inline constexpr u32 GetUTFByKey(u32 key)
 	{
 		FillKeyValues();
 		
@@ -1084,7 +1084,7 @@ namespace KalaHeaders::KalaKeyStandards
 			? it->utf
 			: 0x003F; //returns ? as fallback
 	}
-	inline u32 GetUTFByValue(const string_view& value)
+	inline constexpr u32 GetUTFByValue(const string_view& value)
 	{
 		FillKeyValues();
 		
@@ -1102,7 +1102,7 @@ namespace KalaHeaders::KalaKeyStandards
 			: 0x003F; //returns ? as fallback
 	}
 	
-	inline string_view GetValueByKey(u32 key)
+	inline constexpr string_view GetValueByKey(u32 key)
 	{
 		FillKeyValues();
 	
@@ -1119,7 +1119,7 @@ namespace KalaHeaders::KalaKeyStandards
 			? it->value
 			: "?";
 	}
-	inline string_view GetValueByUTF(u32 utf)
+	inline constexpr string_view GetValueByUTF(u32 utf)
 	{
 		FillKeyValues();
 		

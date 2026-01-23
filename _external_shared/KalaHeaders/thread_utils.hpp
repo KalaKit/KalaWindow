@@ -48,14 +48,14 @@ namespace KalaHeaders::KalaThread
 	
 	//Creates, runs and returns a joinable thread
 	template <invocable F>
-	thread jthread(F&& func)
+    inline thread jthread(F&& func)
 	{
 		return thread(forward<F>(func));
 	}
 	
 	//Creates, runs and detaches a non-joinable thread
 	template <invocable F>
-	void dthread(F&& func)
+	inline void dthread(F&& func)
 	{
 		thread t(forward<F>(func));
 		t.detach();
@@ -123,15 +123,15 @@ namespace KalaHeaders::KalaThread
 		
 	//Try to lock a mutex once
 	template<is_mutex M>
-	bool lock_m(M& m) { return m.try_lock(); }
+	inline bool lock_m(M& m) { return m.try_lock(); }
 	
 	//Wait and try to lock a mutex
 	template<is_mutex M>
-	void lockwait_m(M& m) { m.lock(); }
+	inline void lockwait_m(M& m) { m.lock(); }
 	
 	//Unlock a mutex
 	template<is_mutex M>
-	void unlock_m(M& m) { m.unlock(); }
+	inline void unlock_m(M& m) { m.unlock(); }
 	
 	//
 	// SHARED MUTEX
@@ -139,24 +139,24 @@ namespace KalaHeaders::KalaThread
 	
 	//Lock a shared mutex for exclusive write-only access
 	template<is_shared_mutex M>
-	bool lock_m(M& m) { return m.try_lock(); }
+	inline bool lock_m(M& m) { return m.try_lock(); }
 	//Lock a shared mutex for shared read-only access
 	template<is_shared_mutex M>
-	bool lock_shared_m(M& m) { return m.try_lock_shared(); }
+	inline bool lock_shared_m(M& m) { return m.try_lock_shared(); }
 	
 	//Wait and try to lock a shared mutex for exclusive write-only access
 	template<is_shared_mutex M>
-	void lockwait_m(M& m) { m.lock(); }
+	inline void lockwait_m(M& m) { m.lock(); }
 	//Wait and try to lock a shared mutex for shared read-only access
 	template<is_shared_mutex M>
-	void lockwait_shared_m(M& m) { m.lock_shared(); }
+	inline void lockwait_shared_m(M& m) { m.lock_shared(); }
 	
 	//Unlock a shared mutex for exclusive write-only access
 	template<is_shared_mutex M>
-	void unlock_m(M& m) { m.unlock(); }
+	inline void unlock_m(M& m) { m.unlock(); }
 	//Unlock a shared mutex for shared read-only access
 	template<is_shared_mutex M>
-	void unlock_shared_m(M& m) { m.unlock_shared(); }
+	inline void unlock_shared_m(M& m) { m.unlock_shared(); }
 	
 	//
 	// TIMED MUTEX
@@ -164,26 +164,26 @@ namespace KalaHeaders::KalaThread
 		
 	//Lock a timed mutex
 	template<is_timed_mutex M>
-	bool lock_m(M& m) { return m.try_lock(); }
+	inline bool lock_m(M& m) { return m.try_lock(); }
 	
 	//Wait and try to lock a timed mutex
 	template<is_timed_mutex M>
-	void lockwait_m(M& m) { m.lock(); }
+	inline void lockwait_m(M& m) { m.lock(); }
 	
 	//Unlock a timed mutex
 	template<is_timed_mutex M>
-	void unlock_m(M& m) { m.unlock(); }
+	inline void unlock_m(M& m) { m.unlock(); }
 	
 	//Wait for duration and keep trying to lock timed mutex
 	template<is_timed_mutex M, class Rep, class Dur>
-	bool lock_for_m(M& m, const duration<Rep, Dur>& t)
+	inline bool lock_for_m(M& m, const duration<Rep, Dur>& t)
 	{
 		return m.try_lock_for(t);
 	}
 	
 	//Wait until time point and keep trying to lock timed mutex
 	template<is_timed_mutex M, class Clock, class Dur>
-	bool lock_until_m(M& m, const time_point<Clock, Dur>& t)
+	inline bool lock_until_m(M& m, const time_point<Clock, Dur>& t)
 	{
 		return m.try_lock_until(t);
 	}
@@ -192,14 +192,14 @@ namespace KalaHeaders::KalaThread
 	// LOCK
 	//
 	
-	//Lock an atomic boolean for thread-safe use
+	//Lock an atomic boolean
 	template <is_atomic_bool T>
 	inline bool lock(T& flag)
 	{
 		return !flag.exchange(true, memory_order_acquire);
 	}
 	
-	//Lock an atomic arithmetic for thread-safe use
+	//Lock an atomic arithmetic
 	template <typename T>
 	inline T lock(atomic<T>& value)
 		requires is_arithmetic_v<T>
@@ -209,7 +209,7 @@ namespace KalaHeaders::KalaThread
 			memory_order_acquire);
 	}
 	
-	//Lock an atomic raw pointer for thread-safe use
+	//Lock an atomic raw pointer
 	template <is_atomic_pointer T>
 	inline bool lock(T& ptr)
 	{
@@ -220,7 +220,7 @@ namespace KalaHeaders::KalaThread
 	// LOCKWAIT
 	//
 	
-	//Wait until able to lock the atomic boolean for thread-safe use
+	//Wait until able to lock the atomic boolean
 	template <is_atomic_bool T>
 	inline void lockwait(T& flag)
 	{
@@ -235,7 +235,7 @@ namespace KalaHeaders::KalaThread
 		}
 	}
 	
-	//Wait until able to lock the atomic arithmetic for thread-safe use
+	//Wait until able to lock the atomic arithmetic
 	template <typename T>
 	inline void lockwait(atomic<T>& value)
 		requires is_arithmetic_v<T>
@@ -253,7 +253,7 @@ namespace KalaHeaders::KalaThread
 		}
 	}
 	
-	//Wait until able to lock the atomic pointer for thread-safe use
+	//Wait until able to lock the atomic pointer
 	template <is_atomic_pointer T>
 	inline void lockwait(T& ptr)
 	{
@@ -272,7 +272,7 @@ namespace KalaHeaders::KalaThread
 	// UNLOCK
 	//
 	
-	//Unlock a locked atomic boolean for thread-safe use
+	//Unlock a locked atomic boolean
 	template <is_atomic_bool T>
 	inline bool unlock(T& flag)
 	{
@@ -283,7 +283,7 @@ namespace KalaHeaders::KalaThread
 		return true;
 	}
 	
-	//Unlock a locked atomic arithmetic for thread-safe use
+	//Unlock a locked atomic arithmetic
 	template <typename T>
 	inline bool unlock(atomic<T>& value)
 		requires is_arithmetic_v<T>
@@ -301,7 +301,7 @@ namespace KalaHeaders::KalaThread
 		return previous == current;
 	}
 	
-	//Unlock a locked atomic pointer for thread-safe use
+	//Unlock a locked atomic pointer
 	template <is_atomic_pointer T>
 	inline bool unlock(T& ptr, typename T::value_type value)
 	{

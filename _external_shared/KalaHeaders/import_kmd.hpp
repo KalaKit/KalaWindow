@@ -120,51 +120,51 @@ namespace KalaHeaders::KalaModelData
 	using f32 = float;
 	
 	//The magic that must exist in all kmd files at the first four bytes
-	constexpr u32 KMD_MAGIC = 0x00444D4B;
+	inline constexpr u32 KMD_MAGIC = 0x00444D4B;
 	
 	//The version that must exist in all kmd files as the fifth byte
-	constexpr u8 KMD_VERSION = 1;
+	inline constexpr u8 KMD_VERSION = 1;
 	
 	//The true top header size that is always required
-	constexpr u8 CORRECT_MODEL_HEADER_SIZE = 18u;
+	inline constexpr u8 CORRECT_MODEL_HEADER_SIZE = 18u;
 	
 	//The true per-model table size that is always required
-	constexpr u8 CORRECT_MODEL_TABLE_SIZE = 28u;
+	inline constexpr u8 CORRECT_MODEL_TABLE_SIZE = 28u;
 	
 	//The offset where vertice data must always start relative to each model block
-	constexpr u8 VERTICE_DATA_OFFSET = 148u;
+	inline constexpr u8 VERTICE_DATA_OFFSET = 148u;
 	
 	//Max allowed models
-	constexpr u16 MAX_MODEL_COUNT = 1024u;
+	inline constexpr u16 MAX_MODEL_COUNT = 1024u;
 	
 	//Max allowed total model table size in bytes (28 KB)
-	constexpr u32 MAX_MODEL_TABLE_SIZE = 28672u;
+	inline constexpr u32 MAX_MODEL_TABLE_SIZE = 28672u;
 	
 	//Max allowed total model blocks size in bytes (1 GB)
-	constexpr u32 MAX_MODEL_BLOCK_SIZE = 1073741824u;
+	inline constexpr u32 MAX_MODEL_BLOCK_SIZE = 1073741824u;
 	
 	//Not allowed to be less than this position in X, Y or Z axis
-	constexpr f32 MIN_POS = -10000.0f;
+	inline constexpr f32 MIN_POS = -10000.0f;
 	//Not allowed to be more than this position in X, Y or Z axis
-	constexpr f32 MAX_POS = 10000.0f;
+	inline constexpr f32 MAX_POS = 10000.0f;
 	
 	//Not allowed to be less than this rotation in W, X, Y or Z
-	constexpr f32 MIN_ROT = -1.0f;
+	inline constexpr f32 MIN_ROT = -1.0f;
 	//Not allowed to be more than this rotation in W, X, Y or Z
-	constexpr f32 MAX_ROT = 1.0f;
+	inline constexpr f32 MAX_ROT = 1.0f;
 	
 	//Not allowed to be less than this size in X, Y or Z axis
-	constexpr f32 MIN_SIZE = 1e-6f;
+	inline constexpr f32 MIN_SIZE = 1e-6f;
 	//Not allowed to be more than than this size in X, Y or Z axis
-	constexpr f32 MAX_SIZE = 10000.0f;
+	inline constexpr f32 MAX_SIZE = 10000.0f;
 	
-	constexpr u32 MIN_TOTAL_SIZE = 
+	inline constexpr u32 MIN_TOTAL_SIZE =
 		CORRECT_MODEL_HEADER_SIZE
 		+ CORRECT_MODEL_TABLE_SIZE
 		+ VERTICE_DATA_OFFSET;
 	
 	//Max allowed size for kmd files
-	constexpr u32 MAX_TOTAL_SIZE = 
+	inline constexpr u32 MAX_TOTAL_SIZE =
 		CORRECT_MODEL_HEADER_SIZE 
 		+ MAX_MODEL_TABLE_SIZE 
 		+ MAX_MODEL_BLOCK_SIZE;
@@ -253,7 +253,7 @@ namespace KalaHeaders::KalaModelData
 		RESULT_UNEXPECTED_EOF              = 18  //file reached end sooner than expected
 	};
 	
-	inline string ResultToString(ImportResult result)
+	inline constexpr string ResultToString(ImportResult result)
 	{
 		switch (result)
 		{

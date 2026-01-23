@@ -11,11 +11,13 @@
 //   - color conversion, color operators
 //------------------------------------------------------------------------------
 
+#include <cmath>
 #include <algorithm>
 
 using std::clamp;
 using std::min;
 using std::max;
+using std::fabsf;
 
 //8-bit unsigned int
 //Min: 0
@@ -39,10 +41,10 @@ using f32 = float;
 namespace KalaHeaders::KalaColor
 {
 	//6-digit precision PI
-	constexpr f32 PI = 3.131593f;
+	inline constexpr f32 PI = 3.141593f;
 
 	//32-bit precision
-	constexpr f32 epsilon = 1e-6f;
+	inline constexpr f32 epsilon = 1e-6f;
 
 	//============================================================================
 	//
@@ -51,7 +53,7 @@ namespace KalaHeaders::KalaColor
 	//============================================================================
 
 	//Used for arithmetic division and prevents division by 0, returns result instead of mutating origin
-	constexpr f32 safediv_a(
+	inline constexpr f32 safediv_a(
 		f32 origin,
 		f32 divisor)
 	{
@@ -59,7 +61,7 @@ namespace KalaHeaders::KalaColor
 		return origin / safeDivisor;
 	}
 	//Used for compound division and prevents division by 0, mutates origin instead of returning result
-	constexpr void safediv_c(
+	inline constexpr void safediv_c(
 		f32& origin,
 		f32 divisor)
 	{
@@ -250,11 +252,11 @@ namespace KalaHeaders::KalaColor
 			return *this;
 		}
 
-		bool operator<=(f32 s) const { return { r <= s && g <= s && b <= s && a <= s }; }
-		bool operator<=(const color& c) const { return { r <= c.r && g <= c.g && b <= c.b && a <= c.a }; }
+		constexpr bool operator<=(f32 s) const { return { r <= s && g <= s && b <= s && a <= s }; }
+		constexpr bool operator<=(const color& c) const { return { r <= c.r && g <= c.g && b <= c.b && a <= c.a }; }
 
-		bool operator>=(f32 s) const { return { r >= s && g >= s && b >= s && a >= s }; }
-		bool operator>=(const color& c) const { return { r >= c.r && g >= c.g && b >= c.b && a >= c.a }; }
+		constexpr bool operator>=(f32 s) const { return { r >= s && g >= s && b >= s && a >= s }; }
+		constexpr bool operator>=(const color& c) const { return { r >= c.r && g >= c.g && b >= c.b && a >= c.a }; }
 	};
 
 	template<typename F>
@@ -292,7 +294,7 @@ namespace KalaHeaders::KalaColor
 	}
 
 	//Returns range-normalized float
-	inline f32 normalize_r(f32 f)
+	inline constexpr f32 normalize_r(f32 f)
 	{
 		bool isNormalized =
 			f >= -epsilon &&
@@ -304,7 +306,7 @@ namespace KalaHeaders::KalaColor
 	}
 
 	//Returns range-normalized color
-	inline color normalize_r(const color& c)
+	inline constexpr color normalize_r(const color& c)
 	{
 		return color(
 			normalize_r(c.r),
@@ -383,7 +385,7 @@ namespace KalaHeaders::KalaColor
 	//  y = G,
 	//  z = B,
 	//  w = A
-	inline color convert_color(
+	inline constexpr color convert_color(
 		ColorConvertType type,
 		const color& c)
 	{		
@@ -992,7 +994,7 @@ namespace KalaHeaders::KalaColor
 	//
 	//============================================================================
 	
-	constexpr color XYZ_D65 =
+	inline constexpr color XYZ_D65 =
 	{
 		0.95047f,
 		1.0f,
@@ -1012,14 +1014,14 @@ namespace KalaHeaders::KalaColor
 	};
 
 	//Returns neutral color
-	constexpr color identity_color() { return color{}; }
+	inline constexpr color identity_color() { return color{}; }
 	//Returns true if color is true identity
 	inline bool isidentity(const color& v) { return isnear(v); }
 
 	//Brightens shadows and compresses highlights.
 	//Works the same way on sRGB and linear.
 	//Gamma value is clamped from 0.01 to 10.
-	inline color gamma(
+	inline constexpr color gamma(
 		const color& c,
 		f32 gammaValue)
 	{
@@ -1036,7 +1038,7 @@ namespace KalaHeaders::KalaColor
 	//Darkens shadows and expands highlights.
 	//Works the same way on sRGB and linear.
 	//Gamma value is clamped from 0.01 to 10.
-	inline color degamma(
+	inline constexpr color degamma(
 		const color& c,
 		f32 gammaValue)
 	{
@@ -1054,7 +1056,7 @@ namespace KalaHeaders::KalaColor
 	//  scale = 0 - unchanged
 	//  scale < 0 - darker
 	//  scale > 0 - brighter
-	inline color brightness(
+	inline constexpr color brightness(
 		const color& c,
 		f32 scale)
 	{
@@ -1072,7 +1074,7 @@ namespace KalaHeaders::KalaColor
 	//Makes the colors of a color channel blocky by forcing them into big chunky steps.
 	//sRGB only - posterize is a display-quantization effect and has no meaningful linear equivalent.
 	//Levels is clamped from 1 to 256, output is clamped from 0.0 to 1.0.
-	inline f32 posterize(
+	inline constexpr f32 posterize(
 		f32 colorChannel,
 		u32 levels)
 	{
@@ -1089,7 +1091,7 @@ namespace KalaHeaders::KalaColor
 	//Scale is clamped from 0 to 10.
 	//  scale = 0 - unchanged
 	//  scale > 0 - more vibrant
-	inline color vibrance(
+	inline constexpr color vibrance(
 		const color& c,
 		f32 scale)
 	{
@@ -1157,7 +1159,7 @@ namespace KalaHeaders::KalaColor
 
 	//Returns relative luminance from a linear RGB color.
 	//Linear only - sRGB is display-referred and scene math should never be done in display space.
-	inline f32 luminance(const color& c)
+	inline constexpr f32 luminance(const color& c)
 	{
 		return
 			c.r * 0.2126f
@@ -1171,7 +1173,7 @@ namespace KalaHeaders::KalaColor
 	//  scale = 0 - grayscale,
 	//  scale = 1 - unchanged,
 	//  scale > 1 - increased saturation
-	inline color saturation(
+	inline constexpr color saturation(
 		const color& c,
 		f32 scale)
 	{
@@ -1192,7 +1194,7 @@ namespace KalaHeaders::KalaColor
 	//  scale = 0 - collapses lightness to pivot
 	//  scale = 1 - unchanged
 	//  scale > 1 - increased contrast
-	inline color contrast(
+	inline constexpr color contrast(
 		const color& c,
 		f32 scale,
 		f32 pivot = 0.5f)
@@ -1225,7 +1227,7 @@ namespace KalaHeaders::KalaColor
 	
 	//Applies a chromatic tint by scaling OKLab chroma, preserving perceptual brightness.
 	//Linear only - sRGB is display-referred and scene math should never be done in display space.
-	inline color tint(
+	inline constexpr color tint(
 		const color& c,
 		const color& tint)
 	{
@@ -1458,7 +1460,7 @@ namespace KalaHeaders::KalaColor
 	//	- shadows affect dark areas,
 	//	- midtones affect mid-range luminance,
 	//  - highlights affect bright areas
-	inline color shadows_midtones_highlights(
+	inline constexpr color shadows_midtones_highlights(
 		const color& c,
 		f32 shadows,
 		f32 midtones,

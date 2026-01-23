@@ -113,10 +113,10 @@ using f64 = double;
 namespace KalaHeaders::KalaMath
 {	
 	//6-digit precision PI
-	constexpr f32 PI = 3.131593f;
+	inline constexpr f32 PI = 3.131593f;
 
 	//32-bit precision
-	constexpr f32 epsilon = 1e-6f;
+	inline constexpr f32 epsilon = 1e-6f;
 
 	//============================================================================
 	//
@@ -125,7 +125,7 @@ namespace KalaHeaders::KalaMath
 	//============================================================================
 
 	//Used for arithmetic division and prevents division by 0, returns result instead of mutating origin
-	constexpr f32 safediv_a(
+	inline constexpr f32 safediv_a(
 		f32 origin,
 		f32 divisor)
 	{
@@ -133,7 +133,7 @@ namespace KalaHeaders::KalaMath
 		return origin / safeDivisor;
 	}
 	//Used for compound division and prevents division by 0, mutates origin instead of returning result
-	constexpr void safediv_c(
+	inline constexpr void safediv_c(
 		f32& origin,
 		f32 divisor)
 	{
@@ -468,7 +468,7 @@ namespace KalaHeaders::KalaMath
 	};
 
 	template<typename F, size_t N>
-	constexpr vec<N> apply_scalar(const vec<N>& v, f32 s, F func)
+	inline constexpr vec<N> apply_scalar(const vec<N>& v, f32 s, F func)
 	{
 		if constexpr (N == 2) return { func(v.x, s), func(v.y, s) };
 		if constexpr (N == 3) return { func(v.x, s), func(v.y, s), func(v.z, s) };
@@ -476,7 +476,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	template<typename F, size_t N>
-	constexpr vec<N> apply_scalar(const vec<N>& v1, const vec<N>& v2, F func)
+	inline constexpr vec<N> apply_scalar(const vec<N>& v1, const vec<N>& v2, F func)
 	{
 		if constexpr (N == 2) return { func(v1.x, v2.x), func(v1.y, v2.y) };
 		if constexpr (N == 3) return { func(v1.x, v2.x), func(v1.y, v2.y), func(v1.z, v2.z) };
@@ -487,13 +487,13 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr vec<N> operator+(f32 s, const vec<N>& v)
+	inline constexpr vec<N> operator+(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a + b; });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1> operator+(const vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1> operator+(const vec<N1>& a, const vec<N2>& b)
 	{
 		vec<N1> r = a;
 
@@ -507,7 +507,7 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1>& operator+=(vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1>& operator+=(vec<N1>& a, const vec<N2>& b)
 	{
 		a.x += b.x;
 		a.y += b.y;
@@ -521,13 +521,13 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr vec<N> operator-(f32 s, const vec<N>& v)
+	inline constexpr vec<N> operator-(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a - b; });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1> operator-(const vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1> operator-(const vec<N1>& a, const vec<N2>& b)
 	{
 		vec<N1> r = a;
 
@@ -541,7 +541,7 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1>& operator-=(vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1>& operator-=(vec<N1>& a, const vec<N2>& b)
 	{
 		a.x -= b.x;
 		a.y -= b.y;
@@ -555,13 +555,13 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr vec<N> operator*(f32 s, const vec<N>& v)
+	inline constexpr vec<N> operator*(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return a * b; });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1> operator*(const vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1> operator*(const vec<N1>& a, const vec<N2>& b)
 	{
 		vec<N1> r = a;
 
@@ -575,7 +575,7 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1>& operator*=(vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1>& operator*=(vec<N1>& a, const vec<N2>& b)
 	{
 		a.x *= b.x;
 		a.y *= b.y;
@@ -589,13 +589,13 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N>
 		requires (N >= 2 && N <= 4)
-	constexpr vec<N> operator/(f32 s, const vec<N>& v)
+	inline constexpr vec<N> operator/(f32 s, const vec<N>& v)
 	{
 		return apply_scalar(v, s, [](f32 a, f32 b) { return safediv_a(a, b); });
 	}
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1> operator/(const vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1> operator/(const vec<N1>& a, const vec<N2>& b)
 	{
 		vec<N1> r = a;
 
@@ -609,7 +609,7 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N1, size_t N2>
 		requires (N1 > N2 && N1 <= 4 && N2 >= 2)
-	constexpr vec<N1>& operator/=(vec<N1>& a, const vec<N2>& b)
+	inline constexpr vec<N1>& operator/=(vec<N1>& a, const vec<N2>& b)
 	{
 		safediv_c(a.x, b.x);
 		safediv_c(a.y, b.y);
@@ -1234,7 +1234,7 @@ namespace KalaHeaders::KalaMath
 
 	template<size_t N>
 		requires(N >= 2 && N <= 4)
-	constexpr vec<N> operator*(const mat<N>& m, const vec<N>& v)
+	inline constexpr vec<N> operator*(const mat<N>& m, const vec<N>& v)
 	{
 		if constexpr (N == 2)
 			return 
@@ -1348,7 +1348,7 @@ namespace KalaHeaders::KalaMath
 	};
 	
 	//rotate vector by quaternion
-	constexpr vec3 operator*(const quat& q, const vec3& v)
+	inline constexpr vec3 operator*(const quat& q, const vec3& v)
 	{
 		auto cross = [](
 			const vec3& a,
@@ -1376,7 +1376,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns the inverse (congjugated) rotation of a quaternion,
 	//assuming the quat input is already normalized
-	constexpr quat inverse(const quat& q)
+	inline constexpr quat inverse(const quat& q)
 	{
 		return { q.w, -q.x, -q.y, -q.z };
 	}
@@ -1508,7 +1508,7 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Measures alignment between two vec2s
-	inline f32 dot(
+	inline constexpr f32 dot(
 		const vec2 a,
 		const vec2 b)
 	{
@@ -1517,7 +1517,7 @@ namespace KalaHeaders::KalaMath
 			+ a.y * b.y;
 	}
 	//Measures alignment between two vec3s
-	inline f32 dot(
+	inline constexpr f32 dot(
 		const vec3& a,
 		const vec3& b)
 	{
@@ -1527,7 +1527,7 @@ namespace KalaHeaders::KalaMath
 			+ a.z * b.z;
 	}
 	//Measures alignment between two vec4s
-	inline f32 dot(
+	inline constexpr f32 dot(
 		const vec4& a,
 		const vec4& b)
 	{
@@ -1539,7 +1539,7 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Measures alignment between two quats
-	inline f32 dot(
+	inline constexpr f32 dot(
 		const quat& a,
 		const quat& b)
 	{
@@ -1551,25 +1551,25 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns true if float is range-normalized
-	inline bool isnormalized_r(f32 v)
+	inline constexpr bool isnormalized_r(f32 v)
 	{
 		return v >= -epsilon && v <= 1.0f + epsilon;
 	}
 	//Returns true if vec2 is range-normalized
-	inline bool isnormalized_r(vec2 v)
+	inline constexpr bool isnormalized_r(vec2 v)
 	{
 		return isnormalized_r(v.x)
 			&& isnormalized_r(v.y);
 	}
 	//Returns true if vec3 is range-normalized
-	inline bool isnormalized_r(const vec3& v)
+	inline constexpr bool isnormalized_r(const vec3& v)
 	{
 		return isnormalized_r(v.x)
 			&& isnormalized_r(v.y)
 			&& isnormalized_r(v.z);
 	}
 	//Returns true if vec4 is range-normalized
-	inline bool isnormalized_r(const vec4& v)
+	inline constexpr bool isnormalized_r(const vec4& v)
 	{
 		return isnormalized_r(v.x)
 			&& isnormalized_r(v.y)
@@ -1578,7 +1578,7 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns range-normalized float
-	inline f32 normalize_r(f32 v) 
+	inline constexpr f32 normalize_r(f32 v)
 	{ 
 		return 
 			isnormalized_r(v)
@@ -1586,14 +1586,14 @@ namespace KalaHeaders::KalaMath
 			: clamp(v, 0.0f, 1.0f);
 	}
 	//Returns range-normalized vec2
-	inline vec2 normalize_r(vec2 v) 
+	inline constexpr vec2 normalize_r(vec2 v)
 	{ 
 		return vec2(
 			normalize_r(v.x),
 			normalize_r(v.y)); 
 	}
 	//Returns range-normalized vec3
-	inline vec3 normalize_r(const vec3& v)
+	inline constexpr vec3 normalize_r(const vec3& v)
 	{ 
 		return vec3(
 			normalize_r(v.x),
@@ -1601,7 +1601,7 @@ namespace KalaHeaders::KalaMath
 			normalize_r(v.z)); 
 	}
 	//Returns range-normalized vec4
-	inline vec4 normalize_r(const vec4& v)
+	inline constexpr vec4 normalize_r(const vec4& v)
 	{ 
 		return vec4(
 			normalize_r(v.x),
@@ -1692,37 +1692,37 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Convert degrees to radians
-	inline f32 radians(f32 deg) { return deg * 0.017453f; }
+	inline constexpr f32 radians(f32 deg) { return deg * 0.017453f; }
 	//Convert degrees to radians
-	inline vec2 radians(const vec2 v)
+	inline constexpr vec2 radians(const vec2 v)
 	{
 		return { radians(v.x), radians(v.y) };
 	}
 	//Convert degrees to radians
-	inline vec3 radians(const vec3& v)
+	inline constexpr vec3 radians(const vec3& v)
 	{
 		return { radians(v.x), radians(v.y), radians(v.z) };
 	}
 	//Convert degrees to radians
-	inline vec4 radians(const vec4& v)
+	inline constexpr vec4 radians(const vec4& v)
 	{
 		return { radians(v.x), radians(v.y), radians(v.z), radians(v.w) };
 	}
 
 	//Convert radians to degrees
-	inline f32 degrees(f32 rad) { return rad * 57.295780f; }
+	inline constexpr f32 degrees(f32 rad) { return rad * 57.295780f; }
 	//Convert radians to degrees
-	inline vec2 degrees(const vec2 v)
+	inline constexpr vec2 degrees(const vec2 v)
 	{
 		return { degrees(v.x), degrees(v.y) };
 	}
 	//Convert radians to degrees
-	inline vec3 degrees(const vec3& v)
+	inline constexpr vec3 degrees(const vec3& v)
 	{
 		return { degrees(v.x), degrees(v.y), degrees(v.z) };
 	}
 	//Convert radians to degrees
-	inline vec4 degrees(const vec4& v)
+	inline constexpr vec4 degrees(const vec4& v)
 	{
 		return { degrees(v.x), degrees(v.y), degrees(v.z), degrees(v.w) };
 	}
@@ -1824,7 +1824,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Converts mat3 to quat
-	inline quat toquat(const mat3& m)
+	inline constexpr quat toquat(const mat3& m)
 	{
 		const f32 trace = m.m00 + m.m11 + m.m22;
 		quat q{};
@@ -1865,7 +1865,7 @@ namespace KalaHeaders::KalaMath
 		return q;
 	}
 	//Converts mat4 to quat
-	inline quat toquat(const mat4& m)
+	inline constexpr quat toquat(const mat4& m)
 	{
 		const f32 trace = m.m00 + m.m11 + m.m22;
 		quat q{};
@@ -1953,7 +1953,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Converts a 2D matrix to 3D
-	inline mat4 tomat4(const mat3& m)
+	inline constexpr mat4 tomat4(const mat3& m)
 	{
 		return
 		{
@@ -1980,7 +1980,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Returns the perpendicular magnitude in 2D
-	inline f32 cross(
+	inline constexpr f32 cross(
 		const vec2 a,
 		const vec2 b)
 	{
@@ -1989,7 +1989,7 @@ namespace KalaHeaders::KalaMath
 			- a.y * b.x;
 	}
 	//Returns the normal vec3 in 3D
-	inline vec3 cross(
+	inline constexpr vec3 cross(
 		const vec3& a,
 		const vec3& b)
 	{
@@ -2002,7 +2002,7 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Restricts a vec2 to given ranges
-	inline vec2 kclamp(
+	inline constexpr vec2 kclamp(
 		const vec2 v,
 		const vec2 min,
 		const vec2 max)
@@ -2014,7 +2014,7 @@ namespace KalaHeaders::KalaMath
 		};
 	}
 	//Restricts a vec3 to given ranges
-	inline vec3 kclamp(
+	inline constexpr vec3 kclamp(
 		const vec3& v,
 		const vec3& min,
 		const vec3& max)
@@ -2027,7 +2027,7 @@ namespace KalaHeaders::KalaMath
 		};
 	}
 	//Restricts a vec4 to given ranges
-	inline vec4 kclamp(
+	inline constexpr vec4 kclamp(
 		const vec4& v,
 		const vec4& min,
 		const vec4& max)
@@ -2064,7 +2064,7 @@ namespace KalaHeaders::KalaMath
 	//ortographic projection, bottom-left origin, Y-up projection,
 	//viewport size is clamped internally from 100x100 to 8192x8192,
 	//near and far are clamped internally from -10000.0 to 10000.0
-	inline mat4 ortho(
+	inline constexpr mat4 ortho(
 		const vec2 viewport,
 		f32 zNear = -1.0f,
 		f32 zFar = 1.0f)
@@ -2201,7 +2201,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Linear interpolation between two floats by t
-	inline f32 lerp(
+	inline constexpr f32 lerp(
 		f32 a,
 		f32 b,
 		f32 t)
@@ -2209,7 +2209,7 @@ namespace KalaHeaders::KalaMath
 		return a + (b - a) * t;
 	}
 	//Linear interpolation between two vec2s by t
-	inline vec2 lerp(
+	inline constexpr vec2 lerp(
 		const vec2 a,
 		const vec2 b,
 		f32 t)
@@ -2221,7 +2221,7 @@ namespace KalaHeaders::KalaMath
 		};
 	}
 	//Linear interpolation between two vec3s by t
-	inline vec3 lerp(
+	inline constexpr vec3 lerp(
 		const vec3& a,
 		const vec3& b,
 		f32 t)
@@ -2234,7 +2234,7 @@ namespace KalaHeaders::KalaMath
 		};
 	}
 	//Linear interpolation between two vec4s by t
-	inline vec4 lerp(
+	inline constexpr vec4 lerp(
 		const vec4& a,
 		const vec4& b,
 		f32 t)
@@ -2302,7 +2302,7 @@ namespace KalaHeaders::KalaMath
 		});
 	}
 
-	inline f32 smoothstep(
+	inline constexpr f32 smoothstep(
 		const f32 edge0,
 		const f32 edge1,
 		const f32 x)
@@ -2312,7 +2312,7 @@ namespace KalaHeaders::KalaMath
 		return t * t * (3.0f - 2.0f * t);
 	}
 
-	inline vec2 smoothstep(
+	inline constexpr vec2 smoothstep(
 		const vec2 edge0,
 		const vec2 edge1,
 		const vec2 x)
@@ -2323,7 +2323,7 @@ namespace KalaHeaders::KalaMath
 			smoothstep(edge0.y, edge1.y, x.y)
 		};
 	}
-	inline vec3 smoothstep(
+	inline constexpr vec3 smoothstep(
 		const vec3& edge0,
 		const vec3& edge1,
 		const vec3& x)
@@ -2335,7 +2335,7 @@ namespace KalaHeaders::KalaMath
 			smoothstep(edge0.z, edge1.z, x.z)
 		};
 	}
-	inline vec4 smoothstep(
+	inline constexpr vec4 smoothstep(
 		const vec4& edge0,
 		const vec4& edge1,
 		const vec4& x)
@@ -2372,7 +2372,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Does not use std::sqrtf and returns squared distance between two vec2s
-	inline f32 distancefast(
+	inline constexpr f32 distancefast(
 		const vec2 a, 
 		const vec2 b)
 	{
@@ -2382,7 +2382,7 @@ namespace KalaHeaders::KalaMath
 		return dx * dx + dy * dy;
 	}
 	//Does not use std::sqrtf and returns squared distance between two vec3s
-	inline f32 distancefast(
+	inline constexpr f32 distancefast(
 		const vec3& a, 
 		const vec3& b)
 	{
@@ -2523,14 +2523,14 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Projects vec2 a onto vec2 b
-	inline vec2 project(
+	inline constexpr vec2 project(
 		const vec2 a, 
 		const vec2 b)
 	{
 		return (dot(a, b) / dot(b, b)) * b;
 	}
 	//Projects vec3 a onto vec3 b
-	inline vec3 project(
+	inline constexpr vec3 project(
 		const vec3& a, 
 		const vec3& b)
 	{
@@ -2538,22 +2538,22 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns neutral vec2
-	constexpr vec2 identity_vec2() { return vec2{}; }
+	inline constexpr vec2 identity_vec2() { return vec2{}; }
 	//Returns true if vec2 is true identity
 	inline bool isidentity(const vec2& v) { return isnear(v); }
 	
 	//Returns neutral vec3
-	constexpr vec3 identity_vec3() { return vec3{}; }
+	inline constexpr vec3 identity_vec3() { return vec3{}; }
 	//Returns true if vec3 is true identity
 	inline bool isidentity(const vec3& v) { return isnear(v); }
 	
 	//Returns neutral vec4
-	constexpr vec4 identity_vec4() { return vec4{}; }
+	inline constexpr vec4 identity_vec4() { return vec4{}; }
 	//Returns true if vec4 is true identity
 	inline bool isidentity(const vec4& v) { return isnear(v); }
 	
 	//Returns neutral quat
-	constexpr quat identity_quat() { return quat{}; }
+	inline constexpr quat identity_quat() { return quat{}; }
 	//Returns true if quat is true identity
 	inline bool isidentity_q(const quat& q)
 	{
@@ -2564,7 +2564,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	//Returns neutral mat2
-	constexpr mat2 identity_mat2() { return mat2{}; }
+	inline constexpr mat2 identity_mat2() { return mat2{}; }
 	//Returns true if mat2 is true identity
 	inline bool isidentity(const mat2& m)
 	{
@@ -2576,7 +2576,7 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns neutral mat3
-	constexpr mat3 identity_mat3() { return mat3{}; }
+	inline constexpr mat3 identity_mat3() { return mat3{}; }
 	//Returns true if mat3 is true identity
 	inline bool isidentity(const mat3& m)
 	{
@@ -2594,7 +2594,7 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns neutral mat4
-	constexpr mat4 identity_mat4() { return mat4{}; }
+	inline constexpr mat4 identity_mat4() { return mat4{}; }
 	//Returns true if mat4 is true identity
 	inline bool isidentity(const mat4& m)
 	{
@@ -2647,11 +2647,11 @@ namespace KalaHeaders::KalaMath
 		SIZE_COMBINED //final position after combining world and local position
 	};
 	
-	constexpr vec2 MIN_POS2 = vec2(-10000.0f);
-	constexpr vec2 MAX_POS2 = vec2(10000.0f);
+	inline constexpr vec2 MIN_POS2 = vec2(-10000.0f);
+	inline constexpr vec2 MAX_POS2 = vec2(10000.0f);
 	
-	constexpr vec2 MIN_SIZE2 = vec2(epsilon);
-	constexpr vec2 MAX_SIZE2 = vec2(10000.0f);
+	inline constexpr vec2 MIN_SIZE2 = vec2(epsilon);
+	inline constexpr vec2 MAX_SIZE2 = vec2(10000.0f);
 	
 	struct Transform2D
 	{
@@ -2668,11 +2668,11 @@ namespace KalaHeaders::KalaMath
 		vec2 size_combined = vec2(1.0f);
 	};
 	
-	constexpr vec3 MIN_POS3 = vec3(-10000.0f);
-	constexpr vec3 MAX_POS3 = vec3(10000.0f);
+	inline constexpr vec3 MIN_POS3 = vec3(-10000.0f);
+	inline constexpr vec3 MAX_POS3 = vec3(10000.0f);
 	
-	constexpr vec3 MIN_SIZE3 = vec3(epsilon);
-	constexpr vec3 MAX_SIZE3 = vec3(10000.0f);
+	inline constexpr vec3 MIN_SIZE3 = vec3(epsilon);
+	inline constexpr vec3 MAX_SIZE3 = vec3(10000.0f);
 	
 	struct Transform3D
 	{
@@ -2739,7 +2739,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Incrementally update position over time,
 	//adding parent updates this position relative to parent
-	inline void addpos(
+	inline constexpr void addpos(
 		Transform2D& target,
 		const Transform2D& parent,
 		PosTarget type,
@@ -2768,7 +2768,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Snaps to given position,
 	//adding parent updates this position relative to parent
-	inline void setpos(
+	inline constexpr void setpos(
 		Transform2D& target,
 		const Transform2D& parent,
 		PosTarget type,
@@ -2791,7 +2791,7 @@ namespace KalaHeaders::KalaMath
 
 		combine(target, parent);
 	}
-	inline vec2 getpos(
+	inline constexpr vec2 getpos(
 		const Transform2D& target,
 		PosTarget type)
 	{
@@ -2805,13 +2805,13 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns true local right direction of this transform
-	inline vec2 getdirright(Transform2D& target)
+	inline constexpr vec2 getdirright(Transform2D& target)
 	{
 		float r = radians(target.rot_combined);
 		return vec2(cosf(r), sinf(r));
 	}
 	//Returns true local up direction of this transform
-	inline vec2 getdirup(Transform2D& target)
+	inline constexpr vec2 getdirup(Transform2D& target)
 	{
 		float r = radians(target.rot_combined);
 		return vec2(-sinf(r), cosf(r));
@@ -2820,7 +2820,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in rotation in euler (degrees) and incrementally rotates over time,
 	//adding parent updates this rotation relative to parent,
 	//clamps between -360 and 360, you're expected to wrap according to your needs on your end
-	inline void addrot(
+	inline constexpr void addrot(
 		Transform2D& target,
 		const Transform2D& parent,
 		RotTarget type,
@@ -2848,7 +2848,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in rotation in euler (degrees) and snaps to given rotation,
 	//adding parent updates this rotation relative to parent,
 	//clamps between -360 and 360, you're expected to wrap according to your needs on your end
-	inline void setrot(
+	inline constexpr void setrot(
 		Transform2D& target,
 		const Transform2D& parent,
 		RotTarget type,
@@ -2869,7 +2869,7 @@ namespace KalaHeaders::KalaMath
 		combine(target, parent);
 	}
 	//Returns rotation in euler (degrees)
-	inline f32 getrot(
+	inline constexpr f32 getrot(
 		const Transform2D& target,
 		RotTarget type)
 	{
@@ -2884,7 +2884,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Incrementally scales over time,
 	//adding parent updates this size relative to parent
-	inline void addsize(
+	inline constexpr void addsize(
 		Transform2D& target,
 		const Transform2D& parent,
 		SizeTarget type,
@@ -2913,7 +2913,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Snaps to given size,
 	//adding parent updates this size relative to parent
-	inline void setsize(
+	inline constexpr void setsize(
 		Transform2D& target,
 		const Transform2D& parent,
 		SizeTarget type,
@@ -2936,7 +2936,7 @@ namespace KalaHeaders::KalaMath
 
 		combine(target, parent);
 	}
-	inline vec2 getsize(
+	inline constexpr vec2 getsize(
 		const Transform2D& target,
 		SizeTarget type)
 	{
@@ -3018,7 +3018,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Incrementally moves over time,
 	//if parent is identity then target combined is target world
-	inline void addpos(
+	inline constexpr void addpos(
 		Transform3D& target,
 		const Transform3D& parent,
 		PosTarget type,
@@ -3047,7 +3047,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Snaps to given position,
 	//if parent is identity then target combined is target world
-	inline void setpos(
+	inline constexpr void setpos(
 		Transform3D& target,
 		const Transform3D& parent,
 		PosTarget type,
@@ -3070,7 +3070,7 @@ namespace KalaHeaders::KalaMath
 
 		combine(target, parent);
 	}
-	inline vec3 getpos(
+	inline constexpr vec3 getpos(
 		const Transform3D& target,
 		PosTarget type)
 	{
@@ -3085,7 +3085,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Rotate towards target position,
 	//if parent is identity then target combined is target world
-	inline void lookat(
+	inline constexpr void lookat(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3135,7 +3135,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in rotation in euler (degrees) and incrementally rotates over time,
 	//if parent is identity then target combined is target world,
 	//clamps internally between -360 and 360, you're expected to wrap according to your needs on your end
-	inline void addrot(
+	inline constexpr void addrot(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3167,7 +3167,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in rotation in euler (degrees) and snaps to given rotation,
 	//if parent is identity then target combined is target world,
 	//clamps internally between -360 and 360, you're expected to wrap according to your needs on your end
-	inline void setrot(
+	inline constexpr void setrot(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3187,7 +3187,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Takes in rotation in quaternion and snaps to given rotation,
 	//if parent is identity then target combined is target world
-	inline void setrot(
+	inline constexpr void setrot(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3208,7 +3208,7 @@ namespace KalaHeaders::KalaMath
 		combine(target, parent);
 	}
 	//Returns rotation in euler (degrees)
-	inline vec3 getroteuler(
+	inline constexpr vec3 getroteuler(
 		const Transform3D& target,
 		RotTarget type)
 	{
@@ -3221,7 +3221,7 @@ namespace KalaHeaders::KalaMath
 		}
 	}
 	//Returns quaternion rotation
-	inline quat getrotquat(
+	inline constexpr quat getrotquat(
 		const Transform3D& target,
 		RotTarget type)
 	{
@@ -3235,24 +3235,24 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns true local front direction of this transform
-	inline vec3 getdirfront(Transform3D& target)
+	inline constexpr vec3 getdirfront(Transform3D& target)
 	{
 		return target.rot_combined * DIR_FRONT;
 	}
 	//Returns true local right direction of this transform
-	inline vec3 getdirright(Transform3D& target)
+	inline constexpr vec3 getdirright(Transform3D& target)
 	{
 		return target.rot_combined * DIR_RIGHT;
 	}
 	//Returns true local up direction of this transform
-	inline vec3 getdirup(Transform3D& target)
+	inline constexpr vec3 getdirup(Transform3D& target)
 	{
 		return target.rot_combined * DIR_UP;
 	}
 	
 	//Increments pitch over time with degrees,
 	//if parent is identity then target combined is target world
-	inline void addpitch(
+	inline constexpr void addpitch(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3262,7 +3262,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Increments yaw over time with degrees,
 	//if parent is identity then target combined is target world
-	inline void addyaw(
+	inline constexpr void addyaw(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3272,7 +3272,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Increments roll over time with degrees,
 	//if parent is identity then target combined is target world
-	inline void addroll(
+	inline constexpr void addroll(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3283,7 +3283,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Snaps pitch to given degrees,
 	//if parent is identity then target combined is target world
-	inline void setpitch(
+	inline constexpr void setpitch(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3295,7 +3295,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Snaps pitch to given degrees,
 	//if parent is identity then target combined is target world
-	inline void setyaw(
+	inline constexpr void setyaw(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3307,7 +3307,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Snaps pitch to given degrees,
 	//if parent is identity then target combined is target world
-	inline void setroll(
+	inline constexpr void setroll(
 		Transform3D& target,
 		const Transform3D& parent,
 		RotTarget type,
@@ -3319,21 +3319,21 @@ namespace KalaHeaders::KalaMath
 	}
 	
 	//Returns pitch as degrees for current transform
-	inline f32 getpitch(
+	inline constexpr f32 getpitch(
 		Transform3D& target,
 		RotTarget type)
 	{
 		return getroteuler(target, type).x;
 	}
 	//Returns yaw as degrees for current transform
-	inline f32 getyaw(
+	inline constexpr f32 getyaw(
 		Transform3D& target,
 		RotTarget type)
 	{
 		return getroteuler(target, type).y;
 	}
 	//Returns roll as degrees for current transform
-	inline f32 getroll(
+	inline constexpr f32 getroll(
 		Transform3D& target,
 		RotTarget type)
 	{
@@ -3342,7 +3342,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Incrementally scales over time,
 	//if parent is identity then target combined is target world
-	inline void addsize(
+	inline constexpr void addsize(
 		Transform3D& target,
 		const Transform3D& parent,
 		SizeTarget type,
@@ -3371,7 +3371,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Snaps to given scale,
 	//if parent is identity then target combined is target world
-	inline void setsize(
+	inline constexpr void setsize(
 		Transform3D& target,
 		const Transform3D& parent,
 		SizeTarget type,
@@ -3394,7 +3394,7 @@ namespace KalaHeaders::KalaMath
 
 		combine(target, parent);
 	}
-	inline vec3 getsize(
+	inline constexpr vec3 getsize(
 		Transform3D& target,
 		SizeTarget type)
 	{

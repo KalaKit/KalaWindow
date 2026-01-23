@@ -120,46 +120,46 @@ namespace KalaHeaders::KalaFontData
 	using i16 = int16_t;
 	
 	//The magic that must exist in all kfd files at the first four bytes
-	constexpr u32 KFD_MAGIC = 0x0044464B;
+	inline constexpr u32 KFD_MAGIC = 0x0044464B;
 	
 	//The version that must exist in all kfd files as the fifth byte
-	constexpr u8 KFD_VERSION = 1;
+	inline constexpr u8 KFD_VERSION = 1;
 	
 	//The true top header size that is always required
-	constexpr u8 CORRECT_GLYPH_HEADER_SIZE = 42u;
+	inline constexpr u8 CORRECT_GLYPH_HEADER_SIZE = 42u;
 	
 	//The true per-glyph table size that is always required
-	constexpr u8 CORRECT_GLYPH_TABLE_SIZE = 12u;
+	inline constexpr u8 CORRECT_GLYPH_TABLE_SIZE = 12u;
 	
 	//The offset where pixel data must always start relative to each glyph block
-	constexpr u8 RAW_PIXEL_DATA_OFFSET = 34u;
+	inline constexpr u8 RAW_PIXEL_DATA_OFFSET = 34u;
 	
 	//Max allowed glyphs
-	constexpr u16 MAX_GLYPH_COUNT = 4096u;
+	inline constexpr u16 MAX_GLYPH_COUNT = 4096u;
 	
 	//Max allowed total glyph table size: 12 * 4096 = 48 KB
-	constexpr u32 MAX_GLYPH_TABLE_SIZE = 49152u;
+	inline constexpr u32 MAX_GLYPH_TABLE_SIZE = 49152u;
 	
 	//Max allowed total glyph blocks size in bytes.
 	//Max possible single glyph block size: 40KB (100x100 RGBA glyph raw pixels)
 	//Max total glyph block size: 40064  * 4096 = 156.5 MB
-	constexpr u32 MAX_GLYPH_BLOCK_SIZE = 164102144u;
+	inline constexpr u32 MAX_GLYPH_BLOCK_SIZE = 164102144u;
 	
-	constexpr u32 MIN_TOTAL_SIZE = 
+	inline constexpr u32 MIN_TOTAL_SIZE =
 		CORRECT_GLYPH_HEADER_SIZE
 		+ CORRECT_GLYPH_TABLE_SIZE
 		+ RAW_PIXEL_DATA_OFFSET;
 	
 	//Max allowed size for kfd files
-	constexpr u32 MAX_TOTAL_SIZE = 
+	inline constexpr u32 MAX_TOTAL_SIZE =
 		CORRECT_GLYPH_HEADER_SIZE 
 		+ MAX_GLYPH_TABLE_SIZE 
 		+ MAX_GLYPH_BLOCK_SIZE;
 	
 	//Min allowed glyph height
-	constexpr u8 MIN_GLYPH_HEIGHT = 10;
+	inline constexpr u8 MIN_GLYPH_HEIGHT = 10;
 	//Max allowed glyph height
-	constexpr u8 MAX_GLYPH_HEIGHT = 100;
+	inline constexpr u8 MAX_GLYPH_HEIGHT = 100;
 	
 	//The main header at the top of each kfd file
 	struct GlyphHeader
@@ -240,7 +240,7 @@ namespace KalaHeaders::KalaFontData
 		RESULT_UNEXPECTED_EOF              = 16  //file reached end sooner than expected
 	};
 	
-	inline string ResultToString(ImportResult result)
+	inline constexpr string ResultToString(ImportResult result)
 	{
 		switch (result)
 		{

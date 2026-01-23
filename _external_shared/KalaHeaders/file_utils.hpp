@@ -36,11 +36,6 @@
 
 namespace KalaHeaders::KalaFile
 {	
-	constexpr size_t TEN_MB = 10ULL * 1024 * 1024;
-	constexpr size_t ONE_GB = 1ULL * 1024 * 1024 * 1024;
-	constexpr size_t CHUNK_64KB = 64ULL * 1024;
-	constexpr size_t CHUNK_1MB = 1ULL * 1024 * 1024;
-
 	using std::exception;
 	using std::string;
 	using std::vector;
@@ -77,6 +72,11 @@ namespace KalaHeaders::KalaFile
 	using i8 = int8_t;
 	using i16 = int16_t;
 	using i32 = int32_t;
+
+	inline constexpr size_t TEN_MB = 10ULL * 1024 * 1024;
+	inline constexpr size_t ONE_GB = 1ULL * 1024 * 1024 * 1024;
+	inline constexpr size_t CHUNK_64KB = 64ULL * 1024;
+	inline constexpr size_t CHUNK_1MB = 1ULL * 1024 * 1024;
 
 	enum class FileType
 	{
@@ -129,7 +129,7 @@ namespace KalaHeaders::KalaFile
 	//Create regular or binary file at target path. If you also want data written
 	//to the new file after its been created then pass a fileData struct
 	//with one of the fields filled in, only the first found field data is used
-	inline string CreateFile(
+	inline string CreateNewFile(
 		const path& target,
 		FileType targetFileType = FileType::FILE_BINARY,
 		const FileData& fileData = FileData{})
@@ -257,7 +257,7 @@ namespace KalaHeaders::KalaFile
 
 	//Create a directory at target path, this also creates all
 	//parent folders up to it that don't exist yet
-	inline string CreateDirectory(const path& target)
+	inline string CreateNewDirectory(const path& target)
 	{
 		ostringstream oss{};
 
@@ -1369,7 +1369,7 @@ namespace KalaHeaders::KalaFile
 	//
 
 	//Simple helper to get binary chunk stream size for efficient binary reading
-	inline size_t GetBinaryChunkStreamSize(size_t fileSize)
+	inline constexpr size_t GetBinaryChunkStreamSize(size_t fileSize)
 	{
 		//empty file
 		if (fileSize == 0) return 0;
@@ -1689,7 +1689,7 @@ namespace KalaHeaders::KalaFile
 			else data[offset + i] = 0; //null-pad remaining bytes
 		}
 	}
-	inline string ReadFixedString(
+	inline constexpr string ReadFixedString(
 		const vector<u8>& data,
 		size_t offset,
 		size_t length)
@@ -1710,7 +1710,7 @@ namespace KalaHeaders::KalaFile
 		return result;
 	}
 	
-	inline void WriteU8(
+	inline constexpr void WriteU8(
 		vector<u8>& data,
 		size_t offset,
 		u8 value)
@@ -1727,7 +1727,7 @@ namespace KalaHeaders::KalaFile
 		
 		data[offset] = value;
 	}
-	inline void WriteU16(
+	inline constexpr void WriteU16(
 		vector<u8>& data,
 		size_t offset,
 		u16 value)
@@ -1746,7 +1746,7 @@ namespace KalaHeaders::KalaFile
 		data[offset]     = scast<u8>(value & 0xFF);
 		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
 	}
-	inline void WriteU32(
+	inline constexpr void WriteU32(
 		vector<u8>& data,
 		size_t offset,
 		u32 value)
@@ -1770,7 +1770,7 @@ namespace KalaHeaders::KalaFile
 		data[offset + 3] = scast<u8>((value >> 24) & 0xFF);
 	}
 	
-	inline u8 ReadU8(
+	inline constexpr u8 ReadU8(
 		const vector<u8>& data,
 		size_t offset)
 	{
@@ -1778,7 +1778,7 @@ namespace KalaHeaders::KalaFile
 			? 0x00
 			: scast<u8>(data[offset]);
 	}
-	inline u16 ReadU16(
+	inline constexpr u16 ReadU16(
 		const vector<u8>& data,
 		size_t offset)
 	{
@@ -1787,7 +1787,7 @@ namespace KalaHeaders::KalaFile
 			: scast<u16>(data[offset])
 			| scast<u16>(data[offset + 1]) << 8;
 	}
-	inline u32 ReadU32(
+	inline constexpr u32 ReadU32(
 		const vector<u8>& data,
 		size_t offset)
 	{
@@ -1799,7 +1799,7 @@ namespace KalaHeaders::KalaFile
 			| scast<u32>(data[offset + 3]) << 24;
 	}
 	
-	inline void WriteI8(
+	inline constexpr void WriteI8(
 		vector<u8>& data,
 		size_t offset,
 		i8 value)
@@ -1816,7 +1816,7 @@ namespace KalaHeaders::KalaFile
 		
 		data[offset] = value;
 	}
-	inline void WriteI16(
+	inline constexpr void WriteI16(
 		vector<u8>& data,
 		size_t offset,
 		i16 value)
@@ -1835,7 +1835,7 @@ namespace KalaHeaders::KalaFile
 		data[offset]     = scast<u8>(value & 0xFF);
 		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
 	}
-	inline void WriteI32(
+	inline constexpr void WriteI32(
 		vector<u8>& data,
 		size_t offset,
 		i32 value)
@@ -1859,7 +1859,7 @@ namespace KalaHeaders::KalaFile
 		data[offset + 3] = scast<u8>((value >> 24) & 0xFF);
 	}
 	
-	inline i8 ReadI8(
+	inline constexpr i8 ReadI8(
 		const vector<u8>& data,
 		size_t offset)
 	{
@@ -1867,7 +1867,7 @@ namespace KalaHeaders::KalaFile
 			? 0
 			: scast<i8>(data[offset]);
 	}
-	inline i16 ReadI16(
+	inline constexpr i16 ReadI16(
 		const vector<u8>& data,
 		size_t offset)
 	{
@@ -1879,7 +1879,7 @@ namespace KalaHeaders::KalaFile
 			
 		return scast<i16>(value);
 	}
-	inline i32 ReadI32(
+	inline constexpr i32 ReadI32(
 		const vector<u8>& data,
 		size_t offset)
 	{
