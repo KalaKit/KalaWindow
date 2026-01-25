@@ -38,6 +38,7 @@ namespace KalaHeaders::KalaFile
 {	
 	using std::exception;
 	using std::string;
+	using std::string_view;
 	using std::vector;
 	using std::ostringstream;
 	using std::istreambuf_iterator;
@@ -113,7 +114,7 @@ namespace KalaHeaders::KalaFile
 
 	inline string WriteTextToFile(
 		const path& target,
-		const string& inText,
+		string_view inText,
 		bool append = false);
 
 	inline string WriteLinesToFile(
@@ -304,7 +305,188 @@ namespace KalaHeaders::KalaFile
 		return{};
 	}
 
-	//List all the contents of a folder, with optional recursive flag
+	//Returns all files that match the extension or string
+	//depending on the side opposite to the asterisk (*.example or example.*),
+	//will not return any directories,
+	//can search recursively if recursive is true
+	inline string GetRelativeFiles(
+		const path& dir,
+		string_view extensionOrName,
+		vector<path>& outPaths,
+		bool recursive = false)
+	{
+		auto is_valid_star_pattern = [&dir](
+			string_view extensionOrName,
+			string& outExtension,
+			string& outName,
+			string& outErrorResult) -> bool
+			{
+				ostringstream oss{};
+
+				if (!exists(dir))
+				{
+					oss << "Failed to get files relative to path '" << dir
+						<< "' because it does not exist!";
+
+					outErrorResult = oss.str();
+					return false;
+				}
+				if (!is_directory(dir))
+				{
+					oss << "Failed to get files relative to path '" << dir
+						<< "' because it is not a directory!";
+
+					outErrorResult = oss.str();
+					return false;
+				}
+
+				if (extensionOrName.empty())
+				{
+					oss << "Failed to get files relative to path '" << dir
+						<< "' because no extension or name value was passed!";
+
+					outErrorResult = oss.str();
+					return false;
+				}
+
+				if (extensionOrName == ".")
+				{
+					oss << "Failed to get files relative to path '" << dir
+						<< "' because the extension or name value '" << extensionOrName << "' has no value on both sides of the dot!";
+
+					outErrorResult = oss.str();
+					return false;
+				}
+
+				auto splitstring = [](
+					string_view origin,
+					string_view splitter) -> vector<string>
+					{
+						vector<string> splitResult{};
+						size_t start{};
+						size_t pos{};
+
+						while ((pos = origin.find(splitter, start)) != string::npos)
+						{
+							splitResult.emplace_back(origin.substr(start, pos - start));
+							start = pos + splitter.length();
+						}
+
+						//push the remainder (or whole string if no delimiter was found)
+						splitResult.emplace_back(origin.substr(start));
+
+						return splitResult;
+					};
+
+				vector<string> splitpath = splitstring(
+					extensionOrName,
+					".");
+
+				if (splitpath.size() > 2)
+				{
+					oss << "Failed to get files relative to path '" << dir
+						<< "' because the extension or name value '" << extensionOrName << "' has more than one dot!";
+
+					outErrorResult = oss.str();
+					return false;
+				}
+
+				string_view name = splitpath[0];
+				string_view extension = splitpath[1];
+
+				if (name != "*"
+					&& extension != "*")
+				{
+					oss << "Failed to get files relative to path '" << dir
+						<< "' because neither the extension or name value '" << extensionOrName << "' was an asterisk!";
+
+					outErrorResult = oss.str();
+					return false;
+				}
+
+				outExtension = extension;
+				outName = name;
+
+				return true;
+			};
+
+		string extension{};
+		string name{};
+		string errorResult{};
+
+		if (!is_valid_star_pattern(
+			extensionOrName,
+			extension,
+			name,
+			errorResult))
+		{
+			return errorResult;
+		}
+
+		auto fileStatus = status(dir);
+		auto filePerms = fileStatus.permissions();
+
+		bool canRead = (filePerms & (
+			perms::owner_read
+			| perms::group_read
+			| perms::others_read))
+			!= perms::none;
+
+		ostringstream oss{};
+
+		if (!canRead)
+		{
+			oss << "Failed to get files relative to path '" << dir << "' because of insufficient read permissions!";
+
+			return oss.str();
+		}
+
+		auto is_valid_name = [&name, &extension](const path& target)
+			{
+				return extension == "*"
+					&& !is_directory(target)
+					&& path(target).has_extension()
+					&& path(target).stem() == name;
+			};
+		auto is_valid_extension = [&name, &extension](const path& target)
+			{
+				return name == "*"
+					&& !is_directory(target)
+					&& path(target).has_filename()
+					&& path(target).extension() == "." + string(extension);
+			};
+
+		try
+		{
+			if (recursive)
+			{
+				for (auto& entry : recursive_directory_iterator(dir))
+				{
+					if (is_valid_name(entry))           outPaths.push_back(entry.path());
+					else if (is_valid_extension(entry)) outPaths.push_back(entry.path());
+				}
+			}
+			else
+			{
+				for (auto& entry : directory_iterator(dir))
+				{
+					if (is_valid_name(entry))           outPaths.push_back(entry.path());
+					else if (is_valid_extension(entry)) outPaths.push_back(entry.path());
+				}
+			}
+		}
+		catch (exception& e)
+		{
+			oss << "Failed to get files relative to path '" << dir << "'! Reason: " << e.what();
+
+			return oss.str();
+		}
+
+		return{};
+	}
+
+	//List all the contents of a folder,
+	//can search recursively if recursive is true
 	inline string ListDirectoryContents(
 		const path& target,
 		vector<path>& outEntries,
@@ -371,7 +553,7 @@ namespace KalaHeaders::KalaFile
 	//Rename file or folder in its current directory
 	inline string RenamePath(
 		const path& target,
-		const string& newName)
+		string_view newName)
 	{
 		ostringstream oss{};
 
@@ -888,7 +1070,7 @@ namespace KalaHeaders::KalaFile
 	//Set the extension of the target
 	inline string SetPathExtension(
 		const path& target,
-		const string& newExtension,
+		string_view newExtension,
 		string& outResult)
 	{
 		ostringstream oss{};
@@ -946,7 +1128,7 @@ namespace KalaHeaders::KalaFile
 		catch (exception& e)
 		{
 			oss << "Failed to set extension for target '"
-				<< target << "' to '" + newExtension + "'! Reason: " << e.what();
+				<< target << "' to '" + string(newExtension) + "'! Reason: " << e.what();
 
 			return oss.str();
 		}
@@ -962,7 +1144,7 @@ namespace KalaHeaders::KalaFile
 	//A new file is created at target path if it doesn't already exist
 	inline string WriteTextToFile(
 		const path& target,
-		const string& inText,
+		string_view inText,
 		bool append)
 	{
 		ostringstream oss{};
@@ -1897,7 +2079,7 @@ namespace KalaHeaders::KalaFile
 	//Return all start and end of defined string in a binary
 	inline string GetRangeByValue(
 		const path& target,
-		const string& inData,
+		string_view inData,
 		vector<BinaryRange>& outData)
 	{
 		ostringstream oss{};

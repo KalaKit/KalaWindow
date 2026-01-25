@@ -16,6 +16,9 @@
 #include <cstring>
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
+#include <map>
+#include <array>
 
 //static_cast
 #ifndef scast
@@ -35,7 +38,6 @@ namespace KalaHeaders::KalaString
 	using std::string;
 	using std::string_view;
 	using std::to_string;
-	using std::vector;
 	using std::search;
 	using std::transform;
 	using std::toupper;
@@ -44,6 +46,10 @@ namespace KalaHeaders::KalaString
 	using std::isspace;
 	using std::memcpy;
 	using std::memset;
+	using std::vector;
+	using std::array;
+	using std::unordered_map;
+	using std::map;
 
 	//
 	// CONVERSION FUNCTIONS
@@ -119,7 +125,7 @@ namespace KalaHeaders::KalaString
 		memset(&outValue[i + 1], 0, N - (i + 1));
 	}
 
-	//Check if origin contains target, with optional case sensitivity flag
+	//Returns true if origin string contains target string, with optional case sensitivity flag
 	inline constexpr bool ContainsString(
 		string_view origin,
 		string_view target,
@@ -150,6 +156,41 @@ namespace KalaHeaders::KalaString
 			});
 
 		return it != origin.end();
+	}
+
+	//Returns true if origin vector contains target string
+	inline constexpr bool ContainsString(
+		const vector<string>& origin,
+		string_view target)
+	{
+		return find(origin.begin(), origin.end(), target) != origin.end();
+	}
+
+	//Returns true if origin array contains target string
+	template <typename T, size_t S>
+	inline constexpr bool ContainsString(
+		const array<T, S>& origin,
+		string_view target)
+	{
+		return find(origin.begin(), origin.end(), target) != origin.end();
+	}
+
+	//Returns true if origin unordered map contains target string
+	template <typename K, typename V>
+	inline constexpr bool ContainsString(
+		const unordered_map<K, V>& origin,
+		string_view target)
+	{
+		return origin.contains(target);
+	}
+
+	//Returns true if origin map contains target string
+	template <typename K, typename V>
+	inline constexpr bool ContainsString(
+		const map<K, V>& origin,
+		string_view target)
+	{
+		return origin.contains(target);
 	}
 
 	//Check if origin is the same as target, with optional case sensitivity flag

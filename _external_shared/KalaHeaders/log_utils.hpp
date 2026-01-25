@@ -51,7 +51,7 @@ namespace KalaHeaders::KalaLog
 	using u32 = uint32_t;
 
 	//Max allowed print message length
-	constexpr u16 MAX_MESSAGE_LENGTH = 2000;
+	constexpr u16 MAX_MESSAGE_LENGTH = 5000;
 	//Max allowed full print tag length
 	constexpr u8 MAX_TAG_LENGTH = 50;
 	//Max allowed indentation length per message
