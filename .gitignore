@@ -2,6 +2,8 @@
 out/
 build/
 .vs/
+*.sln
+*.vcxproj*
 
 # Release and Debug in root folder
 /release/
