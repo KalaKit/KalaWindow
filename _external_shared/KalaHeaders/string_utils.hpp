@@ -14,11 +14,8 @@
 
 #include <string>
 #include <cstring>
-#include <vector>
 #include <algorithm>
-#include <unordered_map>
-#include <map>
-#include <array>
+#include <vector>
 
 //static_cast
 #ifndef scast
@@ -46,10 +43,13 @@ namespace KalaHeaders::KalaString
 	using std::isspace;
 	using std::memcpy;
 	using std::memset;
+	using std::is_array_v;
+	using std::is_enum_v;
+	using std::same_as;
+	using std::remove_cvref_t;
+	using std::remove_reference_t;
+	using std::remove_extent_t;
 	using std::vector;
-	using std::array;
-	using std::unordered_map;
-	using std::map;
 
 	//
 	// CONVERSION FUNCTIONS
@@ -64,7 +64,7 @@ namespace KalaHeaders::KalaString
 
 	template<typename T> inline constexpr T FromString(string_view s); //Convert string to T
 
-	template<> inline constexpr bool               FromString<bool>(string_view s) { return (s == "true"); }                   //Convert string to bool
+	template<> inline constexpr bool     FromString<bool>(string_view s) { return (s == "true"); }                   //Convert string to bool
 
 	template<> inline int                FromString<int>(string_view s) { return stoi(string(s)); }                  //Convert string to int
 	template<> inline long               FromString<long>(string_view s) { return stol(string(s)); }                 //Convert string to long
@@ -75,6 +75,79 @@ namespace KalaHeaders::KalaString
 	template<> inline float              FromString<float>(string_view s) { return stof(string(s)); }                //Convert string to float
 	template<> inline double             FromString<double>(string_view s) { return stod(string(s)); }               //Convert string to double
 	template<> inline long double        FromString<long double>(string_view s) { return stold(string(s)); }         //Convert string to long double
+
+	//
+	// STRING-ENUM GETTERS
+	//
+
+	//This value is map<K, V> or unordered_map<K, V>
+	template<typename M>
+	concept TargetIsAnyMap =
+		requires(M & m, typename M::key_type k)
+	{
+		typename M::key_type;
+		typename M::mapped_type;
+
+		{ m.find(k) };
+		{ m.end() };
+
+		{ m.begin()->second };
+	};
+
+	//This value is string, string_view, const char* or const charArrayName[N]
+	template<typename T>
+	concept TargetIsAnyString =
+		same_as<remove_cvref_t<T>, string>
+		|| same_as<remove_cvref_t<T>, string_view>
+		|| same_as<remove_cvref_t<T>, const char*>
+		|| (is_array_v<remove_reference_t<T>>
+		&& same_as<remove_extent_t<remove_reference_t<T>>, const char>);
+
+	//This value is map<K, V> or unordered_map<K, V> that stores enums in K and string types in V
+	template<typename M>
+	concept TargetIsForStringAndEnumMap =
+		TargetIsAnyMap<M>
+		&& is_enum_v<typename M::key_type>
+		&& TargetIsAnyString<typename M::mapped_type>;
+
+	//Converts string type to known enum type,
+	//assumes map or unordered map key is known enum type and value is string type,
+	//returns false if unsuccessful
+	template<TargetIsAnyString S, TargetIsForStringAndEnumMap M>
+	inline constexpr bool StringToEnum(
+		S&& value,
+		const M& map,
+		typename M::key_type& target)
+	{
+		string_view sv{ value };
+
+		for (const auto& [k, v] : map)
+		{
+			if (v == sv)
+			{
+				target = k;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//Converts known enum type to string_view,
+	//assumes map or unordered map key known enum type and value is string type,
+	//returns false if unsuccessful
+	template<TargetIsForStringAndEnumMap M>
+	inline constexpr bool EnumToString(
+		typename M::key_type key,
+		const M& map,
+		string_view& out)
+	{
+		auto it = map.find(key);
+		if (it == map.end()) return false;
+
+		out = it->second;
+		return true;
+	}
 
 	//
 	// GENERAL FUNCTIONS
@@ -158,43 +231,8 @@ namespace KalaHeaders::KalaString
 		return it != origin.end();
 	}
 
-	//Returns true if origin vector contains target string
-	inline constexpr bool ContainsString(
-		const vector<string>& origin,
-		string_view target)
-	{
-		return find(origin.begin(), origin.end(), target) != origin.end();
-	}
-
-	//Returns true if origin array contains target string
-	template <typename T, size_t S>
-	inline constexpr bool ContainsString(
-		const array<T, S>& origin,
-		string_view target)
-	{
-		return find(origin.begin(), origin.end(), target) != origin.end();
-	}
-
-	//Returns true if origin unordered map contains target string
-	template <typename K, typename V>
-	inline constexpr bool ContainsString(
-		const unordered_map<K, V>& origin,
-		string_view target)
-	{
-		return origin.contains(target);
-	}
-
-	//Returns true if origin map contains target string
-	template <typename K, typename V>
-	inline constexpr bool ContainsString(
-		const map<K, V>& origin,
-		string_view target)
-	{
-		return origin.contains(target);
-	}
-
 	//Check if origin is the same as target, with optional case sensitivity flag
-	inline constexpr bool CompareStrings(
+	inline constexpr bool StringsMatch(
 		string_view origin,
 		string_view target,
 		bool ignoreCase = true)

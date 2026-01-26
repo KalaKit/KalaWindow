@@ -6,10 +6,9 @@ type: link-runtime
 
 //compilation stuff
 compiler: clang-cl
-warninglevel: none
 standard: c++20
 defines: LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
-rellinks: opengl32.lib, gdi32.lib
+links: opengl32.lib, gdi32.lib
 customflags: standard-required, release
 
 //files

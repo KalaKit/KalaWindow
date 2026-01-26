@@ -105,10 +105,10 @@ KalaLua is a C++ 20 wrapper library around Lua for Windows (Linux coming in the 
 
 ## Elypso Engine
 
-**Elypso engine** is currently not maintained and will be rewritten in 2026. It will use KalaWindow, KalaUI, KalaAudio and KalaPhysics and will heavily rely on them to build a powerful game engine for game development with OpenGL and Vulkan.
+**Elypso engine** is a powerful game engine for game development with OpenGL and Vulkan that is currently being rewritten. It will use KalaWindow, KalaUI, KalaAudio and KalaPhysics and will heavily rely on them.
 
 ---
 
 ## Elypso Hub
 
-**Elypso hub** is the project manager and updater for Elypso Engine that will be rewritten in 2026 alongside the engine. It will heavily rely on KalaWindow and KalaUI.
+**Elypso hub** is the project manager and updater for Elypso Engine that is currently being rewritten alongside the engine and it heavily relies on KalaWindow and KalaUI.

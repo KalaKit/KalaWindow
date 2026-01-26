@@ -5,14 +5,16 @@ Header-only scripts made in C++ 20 for various purposes. Completely self-dependa
 ## core_utils.hpp
 
 Provides:
-- Cross-platform export/import macro (LIB_API)
-- Win32 machine level function calling convenction (LIB_APIENTRY)
-- Function inlining control (FORCE_INLINE, NO_INLINE)
-- Deprecation marker (DEPRECATED)
-- Debug-only assertion (DEBUG_ASSERT)
-- Shorthands for casters
-- Helpers for removing duplicates from vector, map and unordered_map
-- Safe conversions between uintptr_t and pointers, integrals, enums
+  - Cross-platform export/import macro (LIB_API)
+  - Win32 machine level function calling convenction (LIB_APIENTRY)
+  - Function inlining control (FORCE_INLINE, NO_INLINE)
+  - Deprecation marker (DEPRECATED)
+  - Debug-only assertion (DEBUG_ASSERT)
+  - Shorthands for casters
+  - Common container concepts
+  - Helpers for checking if raw array, array, vector, map or unordered map contains key or value
+  - Helpers for removing duplicates from vector, map and unordered_map
+  - Safe conversions between uintptr_t and pointers, integrals, enums
 
 ---
 
