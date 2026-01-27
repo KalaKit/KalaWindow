@@ -14,6 +14,7 @@
 #include <chrono>
 #include <csignal>
 #include <string>
+#include <algorithm>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -50,6 +51,7 @@ using std::to_string;
 using std::chrono::steady_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
+using std::clamp;
 
 static function<void()> userRegularShutdown;
 

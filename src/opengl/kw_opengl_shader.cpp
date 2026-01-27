@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 #include <memory>
+#include <algorithm>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -39,6 +40,7 @@ using std::filesystem::exists;
 using std::filesystem::path;
 using std::array;
 using std::vector;
+using std::min;
 
 static void CheckShaderData(
     const string& shaderName,

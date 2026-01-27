@@ -14,32 +14,31 @@
 #include <cmath>
 #include <algorithm>
 
-using std::clamp;
-using std::min;
-using std::max;
-using std::fabsf;
-
-//8-bit unsigned int
-//Min: 0
-//Max: 255
-using u8 = uint8_t;
-
-//32-bit unsigned int
-//Min: 0
-//Max: 4,294,967,295
-using u32 = uint32_t;
-
-//32-bit float
-//6 decimal precision
-using f32 = float;
-
-//static_cast
+namespace KalaHeaders::KalaColor
+{
 #ifndef scast
 	#define scast static_cast
 #endif
 
-namespace KalaHeaders::KalaColor
-{
+	using std::clamp;
+	using std::min;
+	using std::max;
+	using std::fabsf;
+
+	//8-bit unsigned int
+	//Min: 0
+	//Max: 255
+	using u8 = uint8_t;
+
+	//32-bit unsigned int
+	//Min: 0
+	//Max: 4,294,967,295
+	using u32 = uint32_t;
+
+	//32-bit float
+	//6 decimal precision
+	using f32 = float;
+
 	//6-digit precision PI
 	inline constexpr f32 PI = 3.141593f;
 

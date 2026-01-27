@@ -33,30 +33,6 @@
 #include <type_traits>
 #include <concepts>
 
-using std::string_view;
-using std::unordered_set;
-using std::vector;
-using std::array;
-using std::unordered_map;
-using std::map;
-using std::tuple_size;
-using std::false_type;
-using std::true_type;
-using std::is_pointer_v;
-using std::is_integral_v;
-using std::is_array_v;
-using std::is_enum_v;
-using std::convertible_to;
-using std::equality_comparable;
-using std::equality_comparable_with;
-using std::same_as;
-using std::remove_cvref_t;
-using std::remove_reference_t;
-using std::remove_extent_t;
-using std::underlying_type_t;
-using std::hash;
-using std::bit_cast;
-
 //
 // CROSS-PLATFORM IMPORT/EXPORT
 //
@@ -121,42 +97,57 @@ using std::bit_cast;
 	#define DEBUG_ASSERT(x) assert(x)
 #endif
 
-//
-// SHORTHANDS FOR CASTERS
-//
-
-//reinterpret_cast
+namespace KalaHeaders::KalaCore
+{
 #ifndef rcast
 	#define rcast reinterpret_cast
 #endif
-
-//static_cast
 #ifndef scast
 	#define scast static_cast
 #endif
 
-//dynamic_cast
-#ifndef dcast
-	#define dcast dynamic_cast
-#endif
+	using std::string;
+	using std::string_view;
+	using std::unordered_set;
+	using std::vector;
+	using std::array;
+	using std::unordered_map;
+	using std::map;
+	using std::tuple_size;
+	using std::false_type;
+	using std::true_type;
+	using std::is_pointer_v;
+	using std::is_integral_v;
+	using std::is_array_v;
+	using std::is_enum_v;
+	using std::convertible_to;
+	using std::equality_comparable;
+	using std::equality_comparable_with;
+	using std::same_as;
+	using std::remove_cv_t;
+	using std::remove_pointer_t;
+	using std::remove_cvref_t;
+	using std::remove_reference_t;
+	using std::remove_extent_t;
+	using std::underlying_type_t;
+	using std::hash;
+	using std::bit_cast;
 
-//const_cast
-#ifndef ccast
-	#define ccast const_cast
-#endif
-
-//bit_cast
-template<typename T, typename U>
-inline constexpr T bcast(const U& v) noexcept
-{
-	return bit_cast<T>(v);
-}
-
-namespace KalaHeaders::KalaCore
-{
 	//
 	// CONCEPTS FOR COMMON CONTAINERS
 	//
+
+	//Enables enums to be used as keys in unordered containers
+	template<typename T>
+		requires is_enum_v<T>
+	struct EnumHash
+	{
+		constexpr size_t operator()(T e) const noexcept
+		{
+			using U = underlying_type_t<T>;
+			return scast<size_t>(scast<U>(e));
+		}
+	};
 
 	//Type X and Y can be compared with each other
 	template<typename X, typename Y>
@@ -171,11 +162,23 @@ namespace KalaHeaders::KalaCore
 		{ hash<T>{}(v) } -> convertible_to<size_t>;
 	};
 
+	//String, string_view, char* or charArrayName[N]
 	template<typename T>
-	struct IsUnorderedMap : false_type{};
-
-	template<typename K, typename V, typename H, typename E, typename A>
-	struct IsUnorderedMap<unordered_map<K, V, H, E, A>> : true_type{};
+	concept AnyString =
+		same_as<remove_cvref_t<T>, string>
+		|| same_as<remove_cvref_t<T>, string_view>
+		|| (is_pointer_v<remove_cvref_t<T>>
+		&& same_as
+			<
+				remove_cv_t<remove_pointer_t<remove_cvref_t<T>>>,
+				char
+			>)
+		|| (is_array_v<remove_reference_t<T>>
+			&& same_as
+			<
+				remove_cv_t<remove_extent_t<remove_reference_t<T>>>,
+				char
+			>);
 
 	//Raw array of type T and size N (T arrayName[N])
 	template<typename T>
@@ -208,6 +211,12 @@ namespace KalaHeaders::KalaCore
 		same_as<remove_cvref_t<T>,
 		vector<typename remove_cvref_t<T>::value_type>>;
 
+	template<typename T>
+	struct IsUnorderedMap : false_type {};
+
+	template<typename K, typename V, typename H, typename E, typename A>
+	struct IsUnorderedMap<unordered_map<K, V, H, E, A>> : true_type {};
+
 	//Map or unordered map with key of type K and value of type V (map<K, V>/unordered_map<K, V>)
 	template<typename T>
 	concept AnyMap =
@@ -223,6 +232,56 @@ namespace KalaHeaders::KalaCore
 
 		{ m.begin()->second };
 	};
+
+	//Any map or unordered map that stores enums in K and string types in V
+	template<typename M>
+	concept AnyEnumAndStringMap =
+		AnyMap<M>
+		&& is_enum_v<typename M::key_type>
+		&& AnyString<typename M::mapped_type>;
+
+	//
+	// CONTAINS ENUM OR STRING
+	//
+
+	//Converts string type to known enum type,
+	//assumes map or unordered map key is known enum type and value is string type,
+	//returns false if unsuccessful
+	template<AnyString S, AnyEnumAndStringMap M>
+	inline constexpr bool StringToEnum(
+		S&& value,
+		const M& map,
+		typename M::key_type& target)
+	{
+		string_view sv{ value };
+
+		for (const auto& [k, v] : map)
+		{
+			if (v == sv)
+			{
+				target = k;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//Converts known enum type to string_view,
+	//assumes map or unordered map key known enum type and value is string type,
+	//returns false if unsuccessful
+	template<AnyEnumAndStringMap M>
+	inline constexpr bool EnumToString(
+		typename M::key_type key,
+		const M& map,
+		string_view& out)
+	{
+		auto it = map.find(key);
+		if (it == map.end()) return false;
+
+		out = it->second;
+		return true;
+	}
 
 	//
 	// CHECK IF CONTAINER CONTAINS VALUE
@@ -256,7 +315,7 @@ namespace KalaHeaders::KalaCore
 		return false;
 	}
 
-	//Returns true if vector of type T contains the requested value 
+	//Returns true if vector of type T contains the requested value
 	template<AnyVector V, typename T>
 		requires IsComparable<typename V::value_type, T>
 	bool ContainsValue(const V& container, const T& value)

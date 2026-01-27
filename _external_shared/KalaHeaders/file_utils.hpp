@@ -24,18 +24,15 @@
 #include <cerrno>
 #include <cstring>
 
-//reinterpret_cast
+namespace KalaHeaders::KalaFile
+{	
 #ifndef rcast
 	#define rcast reinterpret_cast
 #endif
-
-//static_cast
 #ifndef scast
 	#define scast static_cast
 #endif
 
-namespace KalaHeaders::KalaFile
-{	
 	using std::exception;
 	using std::string;
 	using std::string_view;

@@ -24,13 +24,12 @@
 #include <array>
 #include <algorithm>
 
-//static_cast
-#ifndef scast
-	#define scast static_cast
-#endif	
-
 namespace KalaHeaders::KalaLog
 {
+#ifndef scast
+	#define scast static_cast
+#endif
+
 	using std::string;
 	using std::string_view;
 	using std::chrono::system_clock;

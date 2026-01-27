@@ -21,17 +21,16 @@
 #include <string>
 #include <algorithm>
 
-//static_cast
+namespace KalaHeaders::KalaKeyStandards
+{	
 #ifndef scast
 	#define scast static_cast
 #endif
 
 #ifndef MAXSIZE_T
-#define MAXSIZE_T SIZE_MAX
+	#define MAXSIZE_T SIZE_MAX
 #endif
 
-namespace KalaHeaders::KalaKeyStandards
-{	
 	using std::array;
 	using std::vector;
 	using std::string;
