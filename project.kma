@@ -16,10 +16,12 @@ targetprofile: release-windows, debug-windows
 buildname: KalaWindow1
 buildtype: release
 buildpath: build/release
+links: opengl32.lib, gdi32.lib
 defines: LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
 #profile debug-windows
 buildname: KalaWindow1d
 buildtype: debug
 buildpath: build/debug
+//links: opengl32.lib, gdi32.lib
 defines: LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
