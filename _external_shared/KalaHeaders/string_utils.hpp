@@ -7,7 +7,7 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - Various string conversions and functions to improve workflow with string operations
+//   - various string conversions and functions to improve workflow with string operations
 //------------------------------------------------------------------------------
 
 #pragma once

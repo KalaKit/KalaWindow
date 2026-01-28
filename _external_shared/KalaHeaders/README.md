@@ -5,48 +5,44 @@ Header-only scripts made in C++ 20 for various purposes. Completely self-dependa
 ## core_utils.hpp
 
 Provides:
-  - Cross-platform export/import macro (LIB_API)
-  - Win32 machine level function calling convenction (LIB_APIENTRY)
-  - Function inlining control (FORCE_INLINE, NO_INLINE)
-  - Deprecation marker (DEPRECATED)
-  - Debug-only assertion (DEBUG_ASSERT)
-  - Shorthands for casters
-  - Common container concepts
-  - Helpers for checking if raw array, array, vector, map or unordered map contains key or value
-  - Helpers for removing duplicates from vector, map and unordered_map
-  - Safe conversions between uintptr_t and pointers, integrals, enums
+  - useful low level macros
+  - common container concepts
+  - helpers for getting enum or string from any enum to string or string to enum in any map or unordered map
+  - helpers for checking if raw array, array, vector, map or unordered map contains key or value
+  - helpers for removing duplicates from vector, map and unordered_map
+  - safe conversions between uintptr_t and pointers, integrals, enums
 
 ---
 
 ## math_utils.hpp
 
 Provides:
-- shorthands for math variables
-- GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
-- operators and helpers for vec, mat and quat types
-- mat containers as column-major and scalar form
+  - shorthands for math variables
+  - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
+  - operators and helpers for vec, mat and quat types
+  - mat containers as column-major and scalar form
 
 ## color_utils.hpp
 
 Provides:
-- custom color container as a variable for linear RGBA operations
-- color conversion, color operators
+  - custom color container as a variable for linear RGBA operations
+  - color conversion, color operators
 
 Provides:
-- shorthands for math variables
-- GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
-- operators and helpers for vec, mat and quat types
-- mat containers as column-major and scalar form
+  - shorthands for math variables
+  - GLM-like containers as vec2, vec3, vec4, mat2, mat3, mat4, quat
+  - operators and helpers for vec, mat and quat types
+  - mat containers as column-major and scalar form
 
 ---
 
 ## thread_utils.hpp
 
 Provides:
-- lock, lockwait and unlock overrides for handling safe access to variables
-- lock_m, lockwait_m (where applicable) and unlock_m for mutexes
-- jthread (joinable thread) which returns the created thread so it can be joined
-- dthread (self-exiting thread)
+  - lock, lockwait and unlock overrides for handling safe access to variables
+  - lock_m, lockwait_m (where applicable) and unlock_m for mutexes
+  - jthread (joinable thread) which returns the created thread so it can be joined
+  - dthread (self-exiting thread)
 
 ---
 
@@ -58,7 +54,12 @@ Various string conversions and functions to improve workflow with string operati
 
 ## file_utils.hpp
 
-Provides file management, file metadata, text I/O and binary I/O helper functions
+Provides: 
+  - wildcards - Get files and folders via wildcards non-recursively and recusively
+  - file management - create file, create directory, list directory contents, rename, delete, copy, move
+  - file metadata - file size, directory size, line count, set extension
+  - text I/O - read/write data for text files with vector of string lines or string blob
+  - binary I/O - read/write data for binary files with vector of bytes or buffer + size
 
 ---
 
@@ -66,10 +67,12 @@ Provides file management, file metadata, text I/O and binary I/O helper function
 
 Comprehensive logger header for any logging needs - sends stdout and stderr messages to your console.
 
-- Simple logger - just a fwrite to the console with a single string parameter
-- Log types - info (no log type stamp), debug (skipped in release), success, warning, error
-- Time stamp, date stamp accurate to system clock
-- LogHook - user-defined function that allows emitting logs to another target like the crash log storage in kalawindow
+Provides:
+  - detailed logger - time, date, log type, origin tag
+  - simple logger - just a fwrite to the console with a single string parameter
+  - log types - info (no log type stamp), debug (skipped in release), success, warning, error
+  - time stamp, date stamp accurate to system clock
+  - logHook - user-defined function that allows emitting logs to another target like the crash log storage in kalawindow
 
 ## Full and basic Print function differences
 
@@ -117,13 +120,13 @@ Comprehensive logger header for any logging needs - sends stdout and stderr mess
 Import kfd (kalafontdata) binaries into your program for runtime fonts. Use the [KalaFont cli](https://github.com/kalakit/kalafont) for exporting ttf or otf fonts as kfd.
 
 Each kfd contains this structure:
-	for per-glyph kfd:
-	- one top header
-	- table and block pair per glyph
+    for per-glyph kfd:
+    - one top header
+    - table and block pair per glyph
 	
-	for bitmap kfd:
-	- one top header
-	- tables for each glyph, one block for the bitmap texture
+    for bitmap kfd:
+    - one top header
+    - tables for each glyph, one block for the bitmap texture
 	
 The tables are used for looking up glyphs, each table contains the glyph char code, its block size and offset.
 
@@ -134,8 +137,8 @@ The tables are used for looking up glyphs, each table contains the glyph char co
 Import kmd (kalamodeldata) binaries into your program for runtime models. Use the [KalaModel cli](https://github.com/kalakit/kalamodel) for exporting fbx, obj or gltf models as kmd.
 
 Each kmd contains this structure:
-	- one top header
-	- table and block pair per model
+  - one top header
+  - table and block pair per model
 	
 The tables are used for looking up models, each table contains the model name, its block size and offset.
 

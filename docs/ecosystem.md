@@ -39,7 +39,7 @@ Header-only scripts made in C++ 20 for various purposes. Completely self-dependa
 
 ## KalaMake
 
-**KalaMake** is an executable that uses `.kma` files that are designed as my own take for an alternative to CMake, Make and others of its kind with my own syntax. The core idea is the same - compile your set of code into a runtime-ready binary.
+**KalaMake** is an executable that uses `.kmake` files that are designed as my own take for an alternative to CMake, Make and others of its kind with my own syntax. The core idea is the same - compile your set of code into a runtime-ready binary.
 
 ---
 

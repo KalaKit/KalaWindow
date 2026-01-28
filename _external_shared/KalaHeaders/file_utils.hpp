@@ -7,6 +7,7 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
+//   - wildcards - Get files and folders via wildcards non-recursively and recusively
 //   - file management - create file, create directory, list directory contents, rename, delete, copy, move
 //   - file metadata - file size, directory size, line count, set extension
 //   - text I/O - read/write data for text files with vector of string lines or string blob
@@ -23,6 +24,8 @@
 #include <filesystem>
 #include <cerrno>
 #include <cstring>
+#include <concepts>
+#include <type_traits>
 
 namespace KalaHeaders::KalaFile
 {	
@@ -63,6 +66,14 @@ namespace KalaHeaders::KalaFile
 	using std::filesystem::directory_iterator;
 	using std::filesystem::status;
 	using std::filesystem::perms;
+	using std::is_pointer_v;
+	using std::is_array_v;
+	using std::same_as;
+	using std::remove_cv_t;
+	using std::remove_cvref_t;
+	using std::remove_pointer_t;
+	using std::remove_reference_t;
+	using std::remove_extent_t;
 	
 	using u8 = uint8_t;
 	using u16 = uint16_t;
@@ -102,6 +113,174 @@ namespace KalaHeaders::KalaFile
 		size_t start{};
 		size_t end{};
 	};
+
+	//
+	// WILDCARDS
+	//
+
+	//String, string_view, char* or charArrayName[N]
+	template<typename T>
+	concept AnyString =
+		same_as<remove_cvref_t<T>, string>
+		|| same_as<remove_cvref_t<T>, string_view>
+		|| (is_pointer_v<remove_cvref_t<T>>
+			&& same_as
+			<
+			remove_cv_t<remove_pointer_t<remove_cvref_t<T>>>,
+			char
+			>)
+		|| (is_array_v<remove_reference_t<T>>
+			&& same_as
+			<
+			remove_cv_t<remove_extent_t<remove_reference_t<T>>>,
+			char
+			>);
+
+	//Path, string, string_view, char* or charArrayName[N]
+	template<typename T>
+	concept AnyPath =
+		same_as<remove_cvref_t<T>, path>
+		|| AnyString<T>;
+
+	//Returns all files relative to wildcard recursive state and file path with found extension,
+	//if recursive is true then all subfolders are also searched
+	template<AnyPath T>
+	inline string GetFilesWithWildcard(
+		const T& filePath,
+		vector<path>& outFilePaths,
+		bool recursive = false)
+	{
+		auto get_extension = [](string_view f) -> string_view
+			{
+				auto pos = f.rfind('.');
+
+				//return empty extension, valid for GNU
+				if (pos == string_view::npos) return{};
+				//returns found extension
+				return f.substr(pos);
+			};
+
+		auto get_valid_file = [](
+			const path& file,
+			string_view ext,
+			vector<path>& output)
+			{
+				bool hasValidExtension = 
+					file.has_extension()
+					&& file.extension() == ext;
+
+				bool hasNoExtension = 
+					!file.has_extension() 
+					&& ext.empty();
+
+				if (is_regular_file(file)
+					&& (hasValidExtension
+					|| hasNoExtension))
+				{
+					output.push_back(file);
+				}
+			};
+
+		path p{ filePath };
+
+		string filename = p.filename().string();
+		string_view ext = get_extension(filename);
+
+		if (p.empty()) return "Failed to get files with wild card because the file path is empty!";
+
+		string fullFileName = recursive
+			? "**" + string(ext)
+			: "*" + string(ext);
+
+		if (filename != fullFileName)
+		{
+			return 
+				"Failed to get files with wild card because the file path "
+				"'" + p.string() + "' does not match any known wildcard pattern!";
+		}
+
+		vector<path> tempOutFilePaths{};
+
+		path baseDir = p.parent_path().empty()
+			? "."
+			: p.parent_path();
+
+		if (!recursive)
+		{
+			for (const auto& f : directory_iterator(baseDir))
+			{
+				const path& fpath{ f };
+
+				get_valid_file(
+					fpath,
+					ext,
+					tempOutFilePaths);
+			}
+		}
+		else
+		{
+			for (const auto& f : recursive_directory_iterator(baseDir))
+			{
+				const path& fpath{ f };
+
+				get_valid_file(
+					fpath,
+					ext,
+					tempOutFilePaths);
+			}
+		}
+
+		outFilePaths = std::move(tempOutFilePaths);
+		return{};
+	}
+
+	//Returns all directories relative to wildcard recursive state and directory path,
+	//if recursive is true then all subfolders are also searched
+	template<AnyPath T>
+	inline string GetDirectoriesWithWildcard(
+		const T& dirPath,
+		vector<path>& outDirPaths,
+		bool recursive = false)
+	{
+		path p{ dirPath };
+
+		if (p.empty()) return "Failed to get directories with wild card because the directory path is empty!";
+
+		string fullDirName = recursive
+			? "**"
+			: "*";
+
+		if (p.filename().string() != fullDirName)
+		{
+			return 
+				"Failed to get directories with wild card because the directory path "
+				"'" + p.string() + "' does not match any known wildcard pattern!";
+		}
+
+		vector<path> tempOutDirPaths{};
+
+		path baseDir = p.parent_path().empty()
+			? "."
+			: p.parent_path();
+
+		if (!recursive)
+		{
+			for (const auto& d : directory_iterator(baseDir))
+			{
+				if (is_directory(d)) tempOutDirPaths.push_back(path(d));
+			}
+		}
+		else
+		{
+			for (const auto& d : recursive_directory_iterator(baseDir))
+			{
+				if (is_directory(d)) tempOutDirPaths.push_back(path(d));
+			}
+		}
+
+		outDirPaths = std::move(tempOutDirPaths);
+		return{};
+	}
 
 	//
 	// FILE MANAGEMENT
@@ -147,8 +326,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path baseDir = target.parent_path().empty()
+			? "."
+			: target.parent_path();
 		
-		auto fileStatus = status(target.parent_path());
+		auto fileStatus = status(baseDir);
 		auto filePerms = fileStatus.permissions();
 		
 		bool canWrite = (filePerms & (
@@ -271,8 +454,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path baseDir = target.parent_path().empty()
+			? "."
+			: target.parent_path();
 		
-		auto fileStatus = status(target.parent_path());
+		auto fileStatus = status(baseDir);
 		auto filePerms = fileStatus.permissions();
 		
 		bool canWrite = (filePerms & (
@@ -577,8 +764,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path baseDir = target.parent_path().empty()
+			? "."
+			: target.parent_path();
 		
-		auto fileStatus = status(target.parent_path());
+		auto fileStatus = status(baseDir);
 		auto filePerms = fileStatus.permissions();
 		
 		bool canWrite = (filePerms & (
@@ -596,7 +787,7 @@ namespace KalaHeaders::KalaFile
 
 		try
 		{
-			path newTarget = target.parent_path() / newName;
+			path newTarget = baseDir / newName;
 			rename(target, newTarget);
 		}
 		catch (exception& e)
@@ -623,8 +814,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path baseDir = target.parent_path().empty()
+			? "."
+			: target.parent_path();
 		
-		auto fileStatus = status(target.parent_path());
+		auto fileStatus = status(baseDir);
 		auto filePerms = fileStatus.permissions();
 		
 		bool canWrite = (filePerms & (
@@ -700,8 +895,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path originBaseDir = origin.parent_path().empty()
+			? "."
+			: origin.parent_path();
 		
-		auto fileStatusOrigin = status(origin.parent_path());
+		auto fileStatusOrigin = status(originBaseDir);
 		auto filePermsOrigin = fileStatusOrigin.permissions();
 		
 		bool canWriteOrigin = (filePermsOrigin & (
@@ -716,8 +915,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path targetBaseDir = target.parent_path().empty()
+			? "."
+			: target.parent_path();
 		
-		auto fileStatusTarget = status(target.parent_path());
+		auto fileStatusTarget = status(targetBaseDir);
 		auto filePermsTarget = fileStatusTarget.permissions();
 		
 		bool canWriteTarget = (filePermsTarget & (
@@ -810,8 +1013,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path originBaseDir = origin.parent_path().empty()
+			? "."
+			: origin.parent_path();
 		
-		auto fileStatusOrigin = status(origin.parent_path());
+		auto fileStatusOrigin = status(originBaseDir);
 		auto filePermsOrigin = fileStatusOrigin.permissions();
 		
 		bool canWriteOrigin = (filePermsOrigin & (
@@ -827,7 +1034,11 @@ namespace KalaHeaders::KalaFile
 			return oss.str();
 		}
 		
-		auto fileStatusTarget = status(target.parent_path());
+		path targetBaseDir = target.parent_path().empty()
+			? "."
+			: target.parent_path();
+
+		auto fileStatusTarget = status(targetBaseDir);
 		auto filePermsTarget = fileStatusTarget.permissions();
 		
 		bool canWriteTarget = (filePermsTarget & (
@@ -882,8 +1093,12 @@ namespace KalaHeaders::KalaFile
 
 			return oss.str();
 		}
+
+		path baseDir = target.parent_path().empty()
+			? "."
+			: target.parent_path();
 		
-		auto fileStatus = status(target.parent_path());
+		auto fileStatus = status(baseDir);
 		auto filePerms = fileStatus.permissions();
 		
 		bool canRead = (filePerms & (
