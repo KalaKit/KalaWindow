@@ -1,12 +1,9 @@
 cmake_minimum_required(VERSION 3.29.2)
 
-set(PROGRAM_VERSION "KalaWindow 1.0")
+set(PROGRAM_VERSION "KalaWindow")
 set(PROGRAM_VERSION_NUMBER 1.0.0.0)
 
 project("KalaWindow" VERSION ${PROGRAM_VERSION_NUMBER} LANGUAGES C CXX)
-
-# Adds a '_' prefix in front of the created binary files if set to TRUE
-set(KALA_PRERELEASE TRUE)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,8 +17,10 @@ endif()
 # Platform Detection
 if (WIN32)
     message(STATUS "[KALAWINDOW] Platform = Windows")
+elseif(UNIX)
+	message(STATUS "[KALAWINDOW] Platform = Unix")
 else()
-    message(FATAL_ERROR "[KALAWINDOW] Unsupported platform. Only Windows is supported.")
+    message(FATAL_ERROR "[KALAWINDOW] Unsupported platform. Only Windows and Unix are supported.")
 endif()
 
 # Build Type Detection
@@ -99,7 +98,7 @@ add_compile_definitions(
 )
 
 # Copy important files
-set(COPY_TARGETS README.md LICENSE.md logo.png)
+set(COPY_TARGETS readme.md LICENSE.md logo.png)
 foreach(FILE ${COPY_TARGETS})
 add_custom_command(TARGET KalaWindow POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rm -f 

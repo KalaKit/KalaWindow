@@ -7,41 +7,26 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - Cross-platform export/import macro (LIB_API)
-//   - Win32 machine level function calling convenction (LIB_APIENTRY)
-//   - Function inlining control (FORCE_INLINE, NO_INLINE)
-//   - Deprecation marker (DEPRECATED)
-//   - Debug-only assertion (DEBUG_ASSERT)
-//   - Shorthands for casters
-//   - Helpers for removing duplicates from vector, map and unordered_map
-//   - Safe conversions between uintptr_t and pointers, integrals, enums
+//   - useful low level macros
+//   - common container concepts
+//   - helpers for getting enum or string from any enum to string or string to enum in any map or unordered map
+//   - helpers for checking if raw array, array, vector, map or unordered map contains key or value
+//   - helpers for removing duplicates from vector, map and unordered_map
+//   - safe conversions between uintptr_t and pointers, integrals, enums
 //------------------------------------------------------------------------------
 
 #pragma once
 
-#include <cstdint>
-#include <type_traits>
-#include <bit>
-#include <unordered_set>
+#include <string>
 #include <vector>
 #include <unordered_map>
 #include <map>
+#include <array>
+#include <tuple>
+#include <cstdint>
+#include <bit>
+#include <type_traits>
 #include <concepts>
-#include <functional>
-
-using std::is_pointer_v;
-using std::is_integral_v;
-using std::is_enum_v;
-using std::underlying_type_t;
-using std::uint64_t;
-using std::bit_cast;
-using std::unordered_set;
-using std::vector;
-using std::unordered_map;
-using std::map;
-using std::equality_comparable;
-using std::hash;
-using std::convertible_to;
 
 //
 // CROSS-PLATFORM IMPORT/EXPORT
@@ -107,158 +92,379 @@ using std::convertible_to;
 	#define DEBUG_ASSERT(x) assert(x)
 #endif
 
-//
-// SHORTHANDS FOR CASTERS
-//
-
-//reinterpret_cast
+namespace KalaHeaders::KalaCore
+{
 #ifndef rcast
 	#define rcast reinterpret_cast
 #endif
-
-//static_cast
 #ifndef scast
 	#define scast static_cast
 #endif
 
-//dynamic_cast
-#ifndef dcast
-	#define dcast dynamic_cast
-#endif
+	using std::string;
+	using std::string_view;
+	using std::vector;
+	using std::array;
+	using std::unordered_map;
+	using std::map;
+	using std::tuple_size;
+	using std::false_type;
+	using std::true_type;
+	using std::assignable_from;
+	using std::is_pointer_v;
+	using std::is_integral_v;
+	using std::is_array_v;
+	using std::is_enum_v;
+	using std::convertible_to;
+	using std::equality_comparable;
+	using std::equality_comparable_with;
+	using std::same_as;
+	using std::remove_cv_t;
+	using std::remove_pointer_t;
+	using std::remove_cvref_t;
+	using std::remove_reference_t;
+	using std::remove_extent_t;
+	using std::underlying_type_t;
+	using std::hash;
+	using std::bit_cast;
 
-//const_cast
-#ifndef ccast
-	#define ccast const_cast
-#endif
+	//
+	// CONCEPTS FOR COMMON CONTAINERS
+	//
 
-//bit_cast
-template<typename T, typename U>
-inline constexpr T bcast(const U& v) noexcept
-{
-	return bit_cast<T>(v);
-}
+	template<typename T>
+	concept AnyEnum = is_enum_v<T>;
 
-namespace KalaHeaders::KalaCore
-{
+	//String, string_view, char* or charArrayName[N]
+	template<typename T>
+	concept AnyString =
+		same_as<remove_cvref_t<T>, string>
+		|| same_as<remove_cvref_t<T>, string_view>
+		|| (is_pointer_v<remove_cvref_t<T>>
+			&& same_as
+			<
+				remove_cv_t<remove_pointer_t<remove_cvref_t<T>>>,
+				char
+			>)
+		|| (is_array_v<remove_reference_t<T>>
+			&& same_as
+			<
+				remove_cv_t<remove_extent_t<remove_reference_t<T>>>,
+				char
+			>);
+
+	//Enables enums to be used as keys in unordered containers
+	template<typename T>
+		requires AnyEnum<T>
+	struct EnumHash
+	{
+		constexpr size_t operator()(T e) const noexcept
+		{
+			using U = underlying_type_t<T>;
+			return scast<size_t>(scast<U>(e));
+		}
+	};
+
+	//Type X and Y can be compared with each other
+	template<typename X, typename Y>
+	concept IsComparable = equality_comparable_with<X, Y>;
+
+	//Type X can be assigned as the value of type Y
+	template<typename X, typename Y>
+	concept IsAssignable = assignable_from<X, Y>;
+
+	//Type T supports equality comparison and hashing
+	template<typename T>
+	concept IsHashable =
+		IsComparable<T, T>
+		&& requires (T v)
+	{
+		{ hash<T>{}(v) } -> convertible_to<size_t>;
+	};
+
+	//Raw array of type T and size N (T arrayName[N])
+	template<typename T>
+	concept AnyRawArray = is_array_v<remove_reference_t<T>>;
+
+	//Element of type T of a raw array and size N (T arrayName[N])
+	template<typename A>
+	using AnyRawArrayElement = remove_extent_t<remove_reference_t<A>>;
+
+	//Regular array of type T and size N (arrayName array<T, N>)
+	template<typename T>
+	concept AnyArray =
+		requires
+	{
+		typename remove_cvref_t<T>::value_type;
+		tuple_size<remove_cvref_t<T>>::value;
+	}&& same_as
+		<
+			remove_cvref_t<T>,
+			array
+			<
+				typename remove_cvref_t<T>::value_type,
+				tuple_size<remove_cvref_t<T>>::value
+			>
+		>;
+
+	//Vector of type T (vector<T>)
+	template<typename T>
+	concept AnyVector =
+		same_as<remove_cvref_t<T>,
+		vector<typename remove_cvref_t<T>::value_type>>;
+
+	template<typename T>
+	struct IsUnorderedMap : false_type {};
+
+	template<typename K, typename V, typename H, typename E, typename A>
+	struct IsUnorderedMap<unordered_map<K, V, H, E, A>> : true_type {};
+
+	//Map or unordered map with key of type K and value of type V (map<K, V>/unordered_map<K, V>)
+	template<typename T>
+	concept AnyMap =
+		requires(
+			remove_cvref_t<T>& m, 
+			typename remove_cvref_t<T>::key_type k)
+	{
+		typename remove_cvref_t<T>::key_type;
+		typename remove_cvref_t<T>::mapped_type;
+
+		{ m.find(k) };
+		{ m.end() };
+
+		{ m.begin()->second };
+	};
+
+	//Any map or unordered map that stores enums in K and string types in V
+	template<typename M>
+	concept AnyEnumAndStringMap =
+		AnyMap<M>
+		&& AnyEnum<typename M::key_type>
+		&& AnyString<typename M::mapped_type>;
+
+	//
+	// CONVERT BETWEEN ENUM AND STRING
+	//
+
+	//Converts string type to known enum type,
+	//assumes map or unordered map key is known enum type and value is string type,
+	//returns false if unsuccessful
+	template<AnyString S, AnyEnumAndStringMap M>
+	inline constexpr bool StringToEnum(
+		S&& value,
+		const M& map,
+		typename M::key_type& target)
+	{
+		string_view sv{ value };
+
+		for (const auto& [k, v] : map)
+		{
+			if (v == sv)
+			{
+				target = k;
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	//Converts known enum type to string_view,
+	//assumes map or unordered map key known enum type and value is string type,
+	//returns false if unsuccessful
+	template<AnyEnumAndStringMap M>
+	inline constexpr bool EnumToString(
+		typename M::key_type key,
+		const M& map,
+		string_view& out)
+	{
+		auto it = map.find(key);
+		if (it == map.end()) return false;
+
+		out = it->second;
+		return true;
+	}
+
+	//
+	// GET VALUE FROM MAP
+	//
+
+	//Get all keys by value from map or unordered_map,
+	//if append is true then the output vector won't be cleared
+	template<AnyMap T, typename K, typename V>
+		requires (
+		IsComparable<typename T::mapped_type, V>
+		&& IsAssignable<K&, typename T::key_type>)
+	bool GetMapKeys(
+		const T& map, 
+		const V& value, 
+		vector<K>& keys,
+		bool append = false)
+	{
+		if (!append) keys.clear();
+
+		for (const auto& [k, v] : map)
+		{
+			if (v == value) keys.push_back(k);
+		}
+
+		return !keys.empty();
+	}
+
+	//Get value by key from map or unordered_map
+	template<AnyMap T, typename K, typename V>
+		requires (
+			IsComparable<typename T::key_type, K>
+			&& IsAssignable<V&, typename T::mapped_type>)
+	bool GetMapValue(
+		const T& map, 
+		const K& key, 
+		V& value)
+	{
+		auto it = map.find(key);
+		if (it == map.end()) return false;
+
+		value = it->second;
+		return true;
+	}
+
+	//
+	// CHECK IF CONTAINER CONTAINS VALUE
+	//
+
+	//Returns true if raw array of type T contains the requested value 
+	template<AnyRawArray A, typename T>
+		requires IsComparable<AnyRawArrayElement<A>, T>
+	bool ContainsValue(
+		const A& container, 
+		const T& value)
+	{
+		using Element = AnyRawArrayElement<A>;
+
+		for (const Element& e : container)
+		{
+			if (e == value) return true;
+		}
+		return false;
+	}
+
+	//Returns true if array of type T contains the requested value 
+	template<AnyArray A, typename T>
+		requires IsComparable<typename A::value_type, T>
+	bool ContainsValue(
+		const A& container, 
+		const T& value)
+	{
+		using Element = A::value_type;
+
+		for (const Element& e : container)
+		{
+			if (e == value) return true;
+		}
+		return false;
+	}
+
+	//Returns true if vector of type T contains the requested value
+	template<AnyVector V, typename T>
+		requires IsComparable<typename V::value_type, T>
+	bool ContainsValue(
+		const V& container, 
+		const T& value)
+	{
+		using Element = V::value_type;
+
+		for (const Element& e : container)
+		{
+			if (e == value) return true;
+		}
+		return false;
+	}
+
+	//Returns true if map or unordered map with value of type T contains the requested key 
+	template<AnyMap M, typename T>
+		requires IsComparable<typename M::key_type, T>
+	bool ContainsKey(
+		const M& container, 
+		const T& key)
+	{
+		return container.contains(key);
+	}
+
+	//Returns true if map or unordered map with value of type T contains the requested value 
+	template<AnyMap M, typename T>
+		requires IsComparable<typename M::mapped_type, T>
+	bool ContainsValue(
+		const M& container, 
+		const T& value)
+	{
+		for (const auto& [k, v] : container)
+		{
+			if (v == value) return true;
+		}
+		return false;
+	}
+
 	//
 	// REMOVE DUPLICATES FROM CONTAINER
 	//
 
-	template<typename T>
-	concept Hashable =
-		requires(T v)
-		{
-			{ hash<T>{}(v) } -> convertible_to<size_t>;
-		};
-
-	//Returns true if any value appears more than once in the vector
-	template <typename T>
-		requires equality_comparable<T> && Hashable<T>
-	inline constexpr bool ContainsDuplicates(const vector<T>& v)
-	{
-		if (v.size() < 2) return false;
-
-		unordered_set<T> seen{};
-		seen.reserve(v.size());
-
-		for (const auto& x : v)
-		{
-			if (!seen.insert(x).second) return true;
-		}
-
-		return false;
-	}
-
-	//Returns true if any value appears more than once in the map
-	template <typename K, typename T>
-		requires equality_comparable<T> && Hashable<T>
-	inline constexpr bool ContainsDuplicates(const map<K, T>& m)
-	{
-		if (m.size() < 2) return false;
-
-		unordered_set<T> seen{};
-		seen.reserve(m.size());
-
-		for (const auto& [key, value] : m)
-		{
-			if (!seen.insert(value).second) return true;
-		}
-
-		return false;
-	}
-
-	//Returns true if any value appears more than once in the unordered map
-	template <typename K, typename T>
-		requires equality_comparable<T> && Hashable<T>
-	inline constexpr bool ContainsDuplicates(const unordered_map<K, T>& m)
-	{
-		if (m.size() < 2) return false;
-
-		unordered_set<T> seen{};
-		seen.reserve(m.size());
-
-		for (const auto& [key, value] : m)
-		{
-			if (!seen.insert(value).second) return true;
-		}
-
-		return false;
-	}
-
-	//Remove all duplicates from vector that appear more than once, order is preserved
-	template <typename T>
-		requires equality_comparable<T> && Hashable<T>
-	inline constexpr void RemoveDuplicates(vector<T>& v)
+	//Remove all duplicate values the from vector that appear more than once, order is preserved
+	template <AnyVector T>
+		requires IsHashable<typename T::value_type>
+	inline constexpr void RemoveDuplicates(T& v)
 	{
 		if (v.size() < 2) return;
 
-		unordered_map<T, size_t> counts{};
+		unordered_map<typename T::value_type, typename T::size_type> counts{};
+		counts.reserve(v.size());
 
 		for (const auto& x : v) ++counts[x];
 
-		vector<T> result{};
+		vector<typename T::value_type> result{};
 		result.reserve(v.size());
 
 		for (const auto& x : v) if (counts[x] == 1) result.push_back(x);
 
 		v = std::move(result);
+
+		return;
 	}
 
-	//Remove all duplicates from map that appear more than once, key order is preserved
-	template <typename K, typename T>
-		requires equality_comparable<T> && Hashable<T>
-	inline constexpr void RemoveDuplicates(map<K, T>& m)
+	//Remove all duplicate values from the map or unordered map that appear more than once, key order is preserved for maps
+	template <AnyMap T>
+		requires IsHashable<typename T::mapped_type>
+	inline constexpr void RemoveDuplicates(T& m)
 	{
 		if (m.size() < 2) return;
 
-		unordered_map<T, size_t> counts{};
-		counts.reserve(m.size());
+		using Value = typename T::mapped_type;
+		using Count = typename T::size_type;
 
-		for (const auto& [key, value] : m) ++counts[value];
-
-		for (auto it = m.begin(); it != m.end();)
+		if constexpr (IsUnorderedMap<remove_cvref_t<T>>::value)
 		{
-			if (counts[it->second] > 1) it = m.erase(it);
-			else ++it;
+			unordered_map<Value, Count> counts{};
+			counts.reserve(m.size());
+
+			for (const auto& [k, v] : m) ++counts[v];
+
+			for (auto it = m.begin(); it != m.end();)
+			{
+				if (counts[it->second] > 1) it = m.erase(it);
+				else ++it;
+			}
 		}
-	}
-
-	//Remove all duplicates from unordered map that appear more than once
-	template <typename K, typename T>
-		requires equality_comparable<T> && Hashable<T>
-	inline constexpr void RemoveDuplicates(unordered_map<K, T>& m)
-	{
-		if (m.size() < 2) return;
-
-		unordered_map<T, size_t> counts{};
-		counts.reserve(m.size());
-
-		for (const auto& [key, value] : m) ++counts[value];
-
-		for (auto it = m.begin(); it != m.end();)
+		else
 		{
-			if (counts[it->second] > 1) it = m.erase(it);
-			else ++it;
+			map<Value, Count> counts{};
+			counts.reserve(m.size());
+
+			for (const auto& [k, v] : m) ++counts[v];
+
+			for (auto it = m.begin(); it != m.end();)
+			{
+				if (counts[it->second] > 1) it = m.erase(it);
+				else ++it;
+			}
 		}
 	}
 
@@ -301,7 +507,7 @@ namespace KalaHeaders::KalaCore
 	//  - strongly typed API handles
 	template<typename T>
 	inline constexpr T ToVar(uintptr_t h)
-		requires is_enum_v<T>
+		requires AnyEnum<T>
 	{
 		return scast<T>(scast<underlying_type_t<T>>(h));
 	}
@@ -337,7 +543,7 @@ namespace KalaHeaders::KalaCore
 	//  - strongly typed API handles
 	template<typename T>
 	inline constexpr uint64_t FromVar(T h)
-		requires is_enum_v<T>
+		requires AnyEnum<T>
 	{
 		return scast<uint64_t>(scast<underlying_type_t<T>>(h));
 	}	

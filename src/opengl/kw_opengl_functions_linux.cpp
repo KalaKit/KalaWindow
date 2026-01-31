@@ -5,24 +5,30 @@
 
 #ifdef __linux__
 
+#include <GL/glx.h>
+
 #include <string>
 #include <dlfcn.h>
 
-#include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/core_utils.hpp"
+#include "KalaHeaders/log_utils.hpp"
 
 #include "opengl/kw_opengl_functions_linux.hpp"
 #include "opengl/kw_opengl.hpp"
 #include "core/kw_core.hpp"
 
+using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using namespace KalaWindow::OpenGL::OpenGLFunctions;
-using KalaWindow::OpenGL::OpenGL_Global;
 
 using std::string;
+
+#ifdef __linux__
+using GLProc = void (*)();
+#endif
 
 struct LinuxGLFunction
 {
@@ -39,21 +45,23 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
         return &glLinux;
     }
 
-    LinuxGLFunction functions[] =
+    LinuxGLFunction linuxFunctions[] =
     {
         //add functions here...
     };
 
 	void OpenGL_Functions_Linux::LoadAllLinuxFunctions()
 	{
-        for (auto& entry : functions)
+        for (auto& entry : linuxFunctions)
         {
-            void* ptr = reinterpret_cast<void*>(glXGetProcAddress(
-                reinterpret_cast<const GLubyte*>(entry.name)));
+            GLProc proc = rcast<GLProc>(glXGetProcAddress(
+                rcast<const GLubyte*>(entry.name)));
+
+            void* ptr = rcast<void*>(proc);
 
             if (!ptr)
             {
-                void* module = ToVar<void*>(OpenGL_Global::GetOpenGLHandle());
+                void* module = ToVar<void*>(OpenGL_Global::GetOpenGLLibrary());
                 ptr = dlsym(module, entry.name);
             }
 

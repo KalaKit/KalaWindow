@@ -23,19 +23,6 @@
 #include <basetsd.h>
 #endif
 
-using std::sinf;
-using std::cosf;
-using std::tanf;
-using std::sqrtf;
-using std::fabsf;
-using std::atan2f;
-using std::clamp;
-using std::min;
-using std::max;
-using std::fmodf;
-using std::powf;
-using std::floorf;
-
 //============================================================================
 //
 // DEFINE SHORTHANDS FOR SAFE MATH VARIABLES
@@ -105,13 +92,25 @@ using f32 = float;
 //15 decimal precision
 using f64 = double;
 
-//static_cast
+namespace KalaHeaders::KalaMath
+{	
 #ifndef scast
 	#define scast static_cast
 #endif
 
-namespace KalaHeaders::KalaMath
-{	
+	using std::sinf;
+	using std::cosf;
+	using std::tanf;
+	using std::sqrtf;
+	using std::fabsf;
+	using std::atan2f;
+	using std::clamp;
+	using std::min;
+	using std::max;
+	using std::fmodf;
+	using std::powf;
+	using std::floorf;
+
 	//6-digit precision PI
 	inline constexpr f32 PI = 3.131593f;
 

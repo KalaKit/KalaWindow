@@ -25,7 +25,6 @@ using KalaWindow::OpenGL::OpenGL_Shader;
 using KalaWindow::OpenGL::OpenGL_ShaderType;
 using KalaWindow::OpenGL::OpenGL_ShaderData;
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::OpenGL::OpenGL_Global;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 
@@ -54,6 +53,8 @@ static string GetShaderTypeString(OpenGL_ShaderType shaderType)
 
     switch (shaderType)
     {
+    default:
+    case OpenGL_ShaderType::SHADER_NONE:     return "ERROR";
     case OpenGL_ShaderType::SHADER_VERTEX:   return "VERTEX";
     case OpenGL_ShaderType::SHADER_FRAGMENT: return "FRAGMENT";
     case OpenGL_ShaderType::SHADER_GEOMETRY: return "GEOMETRY";
@@ -462,7 +463,7 @@ namespace KalaWindow::OpenGL
 
         shaderPtr->isInitialized = true;
 
-        registry.AddContent(newID, move(newShader));
+        registry.AddContent(newID, std::move(newShader));
 
         Log::Print(
             "Created OpenGL shader '" + name + "' with ID '" + to_string(newID) + "'!",
@@ -501,7 +502,9 @@ namespace KalaWindow::OpenGL
 
         switch (targetType)
         {
-        case OpenGL_ShaderType::SHADER_VERTEX: return vertData.shaderData;
+        default:
+        case OpenGL_ShaderType::SHADER_NONE:     return empty;
+        case OpenGL_ShaderType::SHADER_VERTEX:   return vertData.shaderData;
         case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.shaderData;
         case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.shaderData;
         }
@@ -516,7 +519,9 @@ namespace KalaWindow::OpenGL
 
         switch (targetType)
         {
-        case OpenGL_ShaderType::SHADER_VERTEX: return vertData.shaderPath;
+        default:
+        case OpenGL_ShaderType::SHADER_NONE:     return empty;
+        case OpenGL_ShaderType::SHADER_VERTEX:   return vertData.shaderPath;
         case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.shaderPath;
         case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.shaderPath;
         }
@@ -529,7 +534,9 @@ namespace KalaWindow::OpenGL
 
         switch (targetType)
         {
-        case OpenGL_ShaderType::SHADER_VERTEX: return vertData.ID;
+        default:
+        case OpenGL_ShaderType::SHADER_NONE:     return 0;
+        case OpenGL_ShaderType::SHADER_VERTEX:   return vertData.ID;
         case OpenGL_ShaderType::SHADER_FRAGMENT: return fragData.ID;
         case OpenGL_ShaderType::SHADER_GEOMETRY: return geomData.ID;
         }
@@ -974,7 +981,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
         {
             if (logLength > 0)
             {
-                const GLsizei safeLength = min(logLength, 4096);
+                const GLsizei safeLength = std::min(logLength, 4096);
 
                 vector<char> infoLog(safeLength);
                 coreFunc->glGetProgramInfoLog(
@@ -1020,7 +1027,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
         {
             if (logLength > 0)
             {
-                const GLsizei safeLength = min(logLength, 4096);
+                const GLsizei safeLength = std::min(logLength, 4096);
 
                 vector<char> infoLog(safeLength);
                 coreFunc->glGetShaderInfoLog(
@@ -1091,6 +1098,9 @@ void InitShader(OpenGL_ShaderData& data)
     GLenum shaderEnum{};
     switch (type)
     {
+    default:
+    case OpenGL_ShaderType::SHADER_NONE:
+        shaderEnum = 0; break;
     case OpenGL_ShaderType::SHADER_VERTEX:
         shaderEnum = GL_VERTEX_SHADER; break;
     case OpenGL_ShaderType::SHADER_FRAGMENT:
@@ -1110,6 +1120,9 @@ void InitShader(OpenGL_ShaderData& data)
     string capitalShaderName{};
     switch (type)
     {
+    default:
+    case OpenGL_ShaderType::SHADER_NONE:
+        capitalShaderName = "ERROR"; break;
     case OpenGL_ShaderType::SHADER_VERTEX:
         capitalShaderName = "VERTEX"; break;
     case OpenGL_ShaderType::SHADER_FRAGMENT:

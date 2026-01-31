@@ -7,23 +7,22 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - Various string conversions and functions to improve workflow with string operations
+//   - various string conversions and functions to improve workflow with string operations
 //------------------------------------------------------------------------------
 
 #pragma once
 
+#include <vector>
 #include <string>
 #include <cstring>
-#include <vector>
 #include <algorithm>
 
-//static_cast
+namespace KalaHeaders::KalaString
+{	
 #ifndef scast
 	#define scast static_cast
 #endif
 
-namespace KalaHeaders::KalaString
-{	
 	using std::stoi;
 	using std::stoll;
 	using std::stoul;
@@ -32,10 +31,10 @@ namespace KalaHeaders::KalaString
 	using std::stod;
 	using std::stold;
 
+	using std::vector;
 	using std::string;
 	using std::string_view;
 	using std::to_string;
-	using std::vector;
 	using std::search;
 	using std::transform;
 	using std::toupper;
@@ -58,7 +57,7 @@ namespace KalaHeaders::KalaString
 
 	template<typename T> inline constexpr T FromString(string_view s); //Convert string to T
 
-	template<> inline constexpr bool               FromString<bool>(string_view s) { return (s == "true"); }                   //Convert string to bool
+	template<> inline constexpr bool     FromString<bool>(string_view s) { return (s == "true"); }                   //Convert string to bool
 
 	template<> inline int                FromString<int>(string_view s) { return stoi(string(s)); }                  //Convert string to int
 	template<> inline long               FromString<long>(string_view s) { return stol(string(s)); }                 //Convert string to long
@@ -119,7 +118,7 @@ namespace KalaHeaders::KalaString
 		memset(&outValue[i + 1], 0, N - (i + 1));
 	}
 
-	//Check if origin contains target, with optional case sensitivity flag
+	//Returns true if origin string contains target string, with optional case sensitivity flag
 	inline constexpr bool ContainsString(
 		string_view origin,
 		string_view target,
@@ -153,7 +152,7 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Check if origin is the same as target, with optional case sensitivity flag
-	inline constexpr bool CompareStrings(
+	inline constexpr bool StringsMatch(
 		string_view origin,
 		string_view target,
 		bool ignoreCase = true)

@@ -166,9 +166,11 @@ namespace KalaWindow::Graphics
 		//Bring this window to the foreground and make it focused
 		void BringToFocus();
 
+#ifdef _WIN32
 		//Set Windows window rounding state. Has no effect in Linux.
 		void SetWindowRounding(WindowRounding roundState) const;
 		WindowRounding GetWindowRoundingState() const;
+#endif
 
 		//Set logical window size (client area, in DPI-independent units)
 		void SetClientRectSize(vec2 newSize);
@@ -260,6 +262,7 @@ namespace KalaWindow::Graphics
 		void SetShutdownBlockState(bool state);
 		bool IShutdownBlockEnabled() const;
 
+#ifdef _WIN32
 		//Flash the window or taskbar to attract user attention
 		void Flash(
 			FlashTarget target,
@@ -273,6 +276,7 @@ namespace KalaWindow::Graphics
 			TaskbarProgressBarMode,
 			u8 currentProgress,
 			u8 maxProgress) const;
+#endif
 
 		//Correctly handle aspect ratio during window resize for camera
 		void TriggerResize();

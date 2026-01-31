@@ -7,11 +7,11 @@
 // Read LICENSE.md for more information.
 //
 // Provides:
-//   - Detailed logger - time, date, log type, origin tag
-//   - Simple logger - just a fwrite to the console with a single string parameter
-//   - Log types - info (no log type stamp), debug (skipped in release), success, warning, error
-//   - Time stamp, date stamp accurate to system clock
-//   - LogHook - user-defined function that allows emitting logs to another target like the crash log storage in kalawindow
+//   - detailed logger - time, date, log type, origin tag
+//   - simple logger - just a fwrite to the console with a single string parameter
+//   - log types - info (no log type stamp), debug (skipped in release), success, warning, error
+//   - time stamp, date stamp accurate to system clock
+//   - logHook - user-defined function that allows emitting logs to another target like the crash log storage in kalawindow
 //------------------------------------------------------------------------------
 
 #pragma once
@@ -51,7 +51,7 @@ namespace KalaHeaders::KalaLog
 	using u32 = uint32_t;
 
 	//Max allowed print message length
-	constexpr u16 MAX_MESSAGE_LENGTH = 2000;
+	constexpr u16 MAX_MESSAGE_LENGTH = 5000;
 	//Max allowed full print tag length
 	constexpr u8 MAX_TAG_LENGTH = 50;
 	//Max allowed indentation length per message
@@ -151,8 +151,13 @@ namespace KalaHeaders::KalaLog
 			const auto in_time_t = system_clock::to_time_t(now);
 			const int ms = (us_since_epoch / 1000) % 1000; //sub-millisecond precision
 
+#ifdef _WIN32
 			localtime_s(&cachedLocal, &in_time_t);
 			gmtime_s(&cachedUTC, &in_time_t);
+#else
+			localtime_r(&in_time_t, &cachedLocal);
+			gmtime_r(&in_time_t, &cachedUTC);
+#endif
 
 			char buffer[32]{};
 			switch (timeFormat)
@@ -235,7 +240,13 @@ namespace KalaHeaders::KalaLog
 			const auto now = system_clock::now();
 
 			const auto in_time_t = system_clock::to_time_t(now);
+
+#ifdef _WIN32
 			localtime_s(&cachedLocal, &in_time_t);
+#else
+			localtime_r(&in_time_t, &cachedLocal);
+#endif
+
 			if (!cached[idx].empty()
 				&& cachedLocal.tm_yday == last_yday)
 			{

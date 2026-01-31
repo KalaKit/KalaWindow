@@ -38,7 +38,7 @@ namespace KalaWindow::Core
 
 		//Use this when you absolutely need a hard crash at this very moment.
 		//Aborts and doesn't clean up data.
-		[[noreturn]] static void ForceClose(
+		static void ForceClose(
 			const string& title,
 			const string& reason);
 
@@ -63,7 +63,7 @@ namespace KalaWindow::Core
 		///     called dynamically either before window and render pipeline shutdown
 		///     if useWindowShutdown is true, otherwise it is called after.
 		/// </param>
-		[[noreturn]] static void Shutdown(
+		static void Shutdown(
 			ShutdownState state,
 			bool useWindowShutdown = true,
 			const function<void()>& userShutdown = nullptr);

@@ -10,10 +10,10 @@
 //TODO: ADD LINUX EQUIVALENT
 #endif
 #include <functional>
-#include <cstdint>
 #include <chrono>
 #include <csignal>
 #include <string>
+#include <algorithm>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -21,7 +21,6 @@
 #include "core/kw_crash.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
-#include "graphics/kw_window_global.hpp"
 #include "graphics/kw_menubar_windows.hpp"
 #include "opengl/kw_opengl.hpp"
 #include "opengl/kw_opengl_shader.hpp"
@@ -33,16 +32,11 @@ using KalaHeaders::KalaLog::DateFormat;
 
 using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::Window;
-using KalaWindow::Graphics::Window_Global;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupResult;
-using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::MenuBar;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::OpenGL::OpenGL_Shader;
 
 using std::string_view;
-using std::abort;
 using std::raise;
 using std::function;
 using std::exception;
@@ -50,6 +44,7 @@ using std::to_string;
 using std::chrono::steady_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
+using std::clamp;
 
 static function<void()> userRegularShutdown;
 

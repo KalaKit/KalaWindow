@@ -1,7 +1,10 @@
-# Default VS stuff
+# Default IDE stuff
 out/
 build/
 .vs/
+.vscode/
+.cache/
+compile_commands.json
 
 # Release and Debug in root folder
 /release/
