@@ -987,7 +987,7 @@ static bool ProcessMessage(
 			}
 		}
 
-		window->SetLastDraggedFiles(move(droppedFiles));
+		window->SetLastDraggedFiles(std::move(droppedFiles));
 
 		return true; //we handled it
 	}
