@@ -7,17 +7,24 @@
   },
   "configurePresets": [
     {
-      "name": "windows-base",
+      "name": "windows-mingw-base",
       "hidden": true,
       "generator": "Ninja",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
-        "rhs": "Windows"
+        "rhs": "Linux"
       },
       "cacheVariables": {
-        "CMAKE_C_COMPILER": "clang-cl",
-        "CMAKE_CXX_COMPILER": "clang-cl",
+        "CMAKE_SYSTEM_NAME": "Windows",
+        "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
+        "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++",
+
+        "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
+        "CMAKE_TOOLCHAIN_FILE": "/home/greenlaser/dev/vcpkg/scripts/buildsystems/vcpkg.cmake",
+        "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
+        "VCPKG_APPLOCAL_DEPS": "OFF",
+
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_CXX_STANDARD_REQUIRED": "ON",
         "CMAKE_CXX_EXTENSIONS": "OFF",
@@ -26,25 +33,25 @@
     },
     {
       "name": "windows-debug",
-      "inherits": "windows-base",
-      "binaryDir": "${sourceDir}/debug",
+      "inherits": "windows-mingw-base",
+      "binaryDir": "${sourceDir}/build/windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "windows-release",
-      "inherits": "windows-base",
+      "inherits": "windows-mingw-base",
       
-      "binaryDir": "${sourceDir}/release",
+      "binaryDir": "${sourceDir}/build/windows-release",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
       "name": "windows-relwithdebinfo",
-      "inherits": "windows-base",
-      "binaryDir": "${sourceDir}/release",
+      "inherits": "windows-mingw-base",
+      "binaryDir": "${sourceDir}/build/windows-reldebug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
@@ -86,7 +93,7 @@
     {
       "name": "linux-relwithdebinfo",
       "inherits": "linux-base",
-      "binaryDir": "${sourceDir}/build/linux-relwithdebinfo",
+      "binaryDir": "${sourceDir}/build/linux-reldebug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }

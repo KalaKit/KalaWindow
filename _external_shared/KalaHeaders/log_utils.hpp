@@ -311,7 +311,7 @@ namespace KalaHeaders::KalaLog
 
 			const string& prefix = GetCachedPrefix(type, target);
 
-			char* p = logBuffer.data();
+			char* p = logBuffer().data();
 
 			//append [ date ] [ time ]
 			if (!dateStamp.empty())
@@ -362,12 +362,12 @@ namespace KalaHeaders::KalaLog
 				? stderr
 				: stdout;
 
-			const size_t length = scast<size_t>(p - logBuffer.data());
+			const size_t length = scast<size_t>(p - logBuffer().data());
 
 			//push to log observer
-			EmitLog(string_view(logBuffer.data(), length));
+			EmitLog(string_view(logBuffer().data(), length));
 
-			fwrite(logBuffer.data(), 1, length, out);
+			fwrite(logBuffer().data(), 1, length, out);
 
 			if (flush
 				|| type == LogType::LOG_ERROR)
@@ -391,13 +391,13 @@ namespace KalaHeaders::KalaLog
 			const size_t length = trimmed.size();
 			const size_t totalLength = length + 1; //+1 for '\n'
 
-			memcpy(logBuffer.data(), trimmed.data(), length);
-			logBuffer[length] = '\n';
+			memcpy(logBuffer().data(), trimmed.data(), length);
+			logBuffer()[length] = '\n';
 
 			//push to log observer
-			EmitLog(string_view(logBuffer.data(), totalLength));
+			EmitLog(string_view(logBuffer().data(), totalLength));
 
-			fwrite(logBuffer.data(), 1, totalLength, stdout);
+			fwrite(logBuffer().data(), 1, totalLength, stdout);
 
 			if (flush) fflush(stdout);
 		}
@@ -456,7 +456,7 @@ namespace KalaHeaders::KalaLog
 
 			for (size_t i = 0; i < prefixSize; ++i)
 			{
-				const auto& e = prefixCache[i];
+				const auto& e = prefixCache()[i];
 				if (e.type == type
 					&& e.target == target)
 				{
@@ -485,17 +485,26 @@ namespace KalaHeaders::KalaLog
 			p[4 + tagLength + targetLength] = ' ';
 
 			size_t index{};
-			if (prefixSize < prefixCache.size()) index = prefixSize++;
-			else index = (prefixClock++ % prefixCache.size());
+			if (prefixSize < prefixCache().size()) index = prefixSize++;
+			else index = (prefixClock++ % prefixCache().size());
 
-			prefixCache[index] = { type, string(target), std::move(built) };
-			return prefixCache[index].prefix;
+			prefixCache()[index] = { type, string(target), std::move(built) };
+			return prefixCache()[index].prefix;
 		}
 
 		//Message length + headroom for tag, date stamp, time stamp and indent
-		static inline thread_local array<char, MAX_MESSAGE_LENGTH + 256> logBuffer{};
+		static inline array<char, MAX_MESSAGE_LENGTH + 256>& logBuffer()
+		{
+			thread_local array<char, MAX_MESSAGE_LENGTH + 256> buffer{};
+			return buffer;
+		}
 
-		static inline thread_local array<CachedPrefix, CACHED_TAGS_LENGTH> prefixCache{};
+		static inline array<CachedPrefix, CACHED_TAGS_LENGTH>& prefixCache()
+		{
+			thread_local array<CachedPrefix, CACHED_TAGS_LENGTH> cache{};
+			return cache;
+		}
+
 		static inline thread_local size_t prefixSize{};  //total filled cached prefixes
 		static inline thread_local size_t prefixClock{}; //where to overwrite next once the cache is full
 	};

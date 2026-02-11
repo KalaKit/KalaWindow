@@ -118,6 +118,7 @@ namespace KalaHeaders::KalaCore
 	using std::convertible_to;
 	using std::equality_comparable;
 	using std::equality_comparable_with;
+	using std::constructible_from;
 	using std::same_as;
 	using std::remove_cv_t;
 	using std::remove_pointer_t;
@@ -172,6 +173,10 @@ namespace KalaHeaders::KalaCore
 	//Type X can be assigned as the value of type Y
 	template<typename X, typename Y>
 	concept IsAssignable = assignable_from<X, Y>;
+
+	//Type X can be constructoed to type Y
+	template<typename X, typename Y>
+	concept IsConstrutible = constructible_from<X, Y>;
 
 	//Type T supports equality comparison and hashing
 	template<typename T>

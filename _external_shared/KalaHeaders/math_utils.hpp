@@ -124,7 +124,7 @@ namespace KalaHeaders::KalaMath
 	//============================================================================
 
 	//Used for arithmetic division and prevents division by 0, returns result instead of mutating origin
-	inline constexpr f32 safediv_a(
+	inline f32 safediv_a(
 		f32 origin,
 		f32 divisor)
 	{
@@ -132,7 +132,7 @@ namespace KalaHeaders::KalaMath
 		return origin / safeDivisor;
 	}
 	//Used for compound division and prevents division by 0, mutates origin instead of returning result
-	inline constexpr void safediv_c(
+	inline void safediv_c(
 		f32& origin,
 		f32 divisor)
 	{

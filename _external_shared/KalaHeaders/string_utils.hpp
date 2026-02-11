@@ -118,39 +118,6 @@ namespace KalaHeaders::KalaString
 		memset(&outValue[i + 1], 0, N - (i + 1));
 	}
 
-	//Returns true if origin string contains target string, with optional case sensitivity flag
-	inline constexpr bool ContainsString(
-		string_view origin,
-		string_view target,
-		bool ignoreCase = true)
-	{
-		//return false if origin or target is empty
-		if (origin.empty()
-			|| target.empty())
-		{
-			return false;
-		}
-
-		//can't contain something longer than itself
-		if (target.size() > origin.size()) return false;
-
-		//case-sensitive search
-		if (!ignoreCase) return origin.find(target) != string::npos;
-
-		//case-insensitive search
-		auto it = search(
-			origin.begin(), 
-			origin.end(),
-			target.begin(), 
-			target.end(),
-			[](unsigned char char1, unsigned char char2)
-			{
-				return tolower(char1) == tolower(char2);
-			});
-
-		return it != origin.end();
-	}
-
 	//Check if origin is the same as target, with optional case sensitivity flag
 	inline constexpr bool StringsMatch(
 		string_view origin,
@@ -360,6 +327,76 @@ namespace KalaHeaders::KalaString
 		return result;
 	}
 
+	//Replaces everything after the start of target with replacer and returns the result
+	inline constexpr string ReplaceAfter(
+		string_view origin, 
+		string_view target, 
+		string_view replacer = {})
+	{
+		if (origin.empty()) return {};
+		if (target.empty()) return string(origin);
+
+		size_t pos = origin.find(target);
+		if (pos == string_view::npos) return string(origin);
+
+		string result{};
+		result.reserve(pos + replacer.size());
+
+		result.append(origin.substr(0, pos));
+		result.append(replacer);
+
+		return result;
+	}
+
+	//Replaces everything before the end of target with replacer and returns the result
+	inline constexpr string ReplaceBefore(
+		string_view origin, 
+		string_view target,
+		string_view replacer = {})
+	{
+		if (origin.empty()) return {};
+		if (target.empty()) return string(origin);
+
+		size_t pos = origin.find(target);
+		if (pos == string_view::npos) return string(origin);
+
+		string result{};
+		result.reserve(replacer.size() + origin.size() - pos - target.size());
+
+		result.append(replacer);
+		result.append(origin.substr(pos + target.size()));
+
+		return result;
+	}
+
+	//Returns everything after the start of target
+	inline constexpr string GetAfter(
+		string_view origin, 
+		string_view target)
+	{
+		if (origin.empty()) return {};
+		if (target.empty()) return string(origin);
+
+		size_t pos = origin.find(target);
+		if (pos == string_view::npos) return string(origin);
+
+		return string(origin.substr(pos + target.size()));
+	}
+
+	//Returns everything before the end of target
+	inline constexpr string GetBefore(
+		string_view origin, 
+		string_view target)
+	{
+		if (origin.empty()) return {};
+		if (target.empty()) return string(origin);
+
+		size_t pos = origin.find(target);
+		if (pos == string_view::npos) return string(origin);
+
+		return string(origin.substr(0, pos));
+	}
+
 	//Set all letters of this string to uppercase letters
 	inline constexpr string ToUpperString(string_view origin)
 	{
@@ -420,43 +457,19 @@ namespace KalaHeaders::KalaString
 		return false;
 	}
 
-	//Check if origin starts with target
-	inline constexpr bool StartsWith(
-		string_view origin,
-		string_view target)
+	//Returns true if string contains any unsafe field characters,
+	//Safe: 'A-Z', 'a-z', '0-9', '_', '-'
+	inline constexpr bool HasAnyUnsafeFieldChar(string_view origin)
 	{
-		//an empty origin does not make sense to be checked
-		if (origin.empty()) return false;
-
-		//an empty target always matches
-		if (target.empty()) return true;
-
-		//can't start with something longer than itself
-		if (target.size() > origin.size()) return false;
-
-		return origin.compare(
-			0,
-			target.size(),
-			target) == 0;
-	}
-
-	//Check if origin ends with target
-	inline constexpr bool EndsWith(
-		string_view origin,
-		string_view target)
-	{
-		//an empty origin does not make sense to be checked
-		if (origin.empty()) return false;
-
-		//an empty target always matches
-		if (target.empty()) return true;
-
-		//can't end with something longer than itself
-		if (target.size() > origin.size()) return false;
-
-		return origin.compare(
-			origin.size() - target.size(),
-			target.size(),
-			target) == 0;
+		for (unsigned char c : origin)
+		{
+			if (!(isalnum(c)
+				|| c == '_'
+				|| c == '-'))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 }

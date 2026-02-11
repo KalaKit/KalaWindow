@@ -72,11 +72,15 @@ namespace KalaHeaders::KalaFile
 	using std::is_pointer_v;
 	using std::is_array_v;
 	using std::same_as;
+	using std::equality_comparable_with;
+	using std::assignable_from;
+	using std::constructible_from;
 	using std::remove_cv_t;
 	using std::remove_cvref_t;
 	using std::remove_pointer_t;
 	using std::remove_reference_t;
 	using std::remove_extent_t;
+	using std::filesystem::filesystem_error;
 	
 	using u8 = uint8_t;
 	using u16 = uint16_t;
@@ -117,8 +121,32 @@ namespace KalaHeaders::KalaFile
 		size_t end{};
 	};
 
+	//Returns true if string contains any unsafe path characters.
+	//Safe: 'A-Z', 'a-z', '0-9', '_', '-', '.', '/', '\\', ':'.
+	//If ignoreWildcards is true then '*' is also safe
+	inline constexpr bool HasAnyUnsafePathChar(
+		string_view origin, 
+		bool ignoreWildcards = false)
+	{
+		for (unsigned char c : origin)
+		{
+			if (!(isalnum(c)
+				|| c == '_'
+				|| c == '-'
+				|| c == '.'
+				|| c == ':'
+				|| c == '/'
+				|| c == '\\'
+				|| (ignoreWildcards && c == '*')))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
 	//
-	// WILDCARDS
+	// COMMON CONCEPTS
 	//
 
 	//String, string_view, char* or charArrayName[N]
@@ -145,144 +173,442 @@ namespace KalaHeaders::KalaFile
 		same_as<remove_cvref_t<T>, path>
 		|| AnyString<T>;
 
-	//Returns all files relative to wildcard recursive state and file path with found extension,
-	//if recursive is true then all subfolders are also searched
-	template<AnyPath T>
-	inline string GetFilesWithWildcard(
-		const T& filePath,
-		vector<path>& outFilePaths,
-		bool recursive = false)
+	//Vector of type T (vector<T>)
+	template<typename T>
+	concept AnyVector =
+		same_as<remove_cvref_t<T>,
+		vector<typename remove_cvref_t<T>::value_type>>;
+
+	//Type X and Y can be compared with each other
+	template<typename X, typename Y>
+	concept IsComparable = equality_comparable_with<X, Y>;
+
+	//Type X can be assigned as the value of type Y
+	template<typename X, typename Y>
+	concept IsAssignable = assignable_from<X, Y>;
+
+	//Type X can be constructoed to type Y
+	template<typename X, typename Y>
+	concept IsConstrutible = constructible_from<X, Y>;
+
+	//
+	// WILDCARDS
+	//
+
+	enum class PathTarget : u8
 	{
-		auto get_extension = [](string_view f) -> string_view
-		{
-			auto pos = f.rfind('.');
+		P_ANY = 0,
+		P_FILE_ONLY = 1,
+		P_DIR_ONLY = 2
+	};
 
-			//return empty extension, valid for GNU
-			if (pos == string_view::npos) return{};
-			//returns found extension
-			return f.substr(pos);
-		};
-
-		auto get_valid_file = [](
-			const path& file,
-			string_view ext,
-			vector<path>& output)
-		{
-			bool hasValidExtension =
-				file.has_extension()
-				&& file.extension() == ext;
-
-			bool hasNoExtension =
-				!file.has_extension()
-				&& ext.empty();
-
-			if (is_regular_file(file)
-				&& (hasValidExtension
-				|| hasNoExtension))
-			{
-				output.push_back(file);
-			}
-		};
-
-		path p{ filePath };
-
-		string filename = p.filename().string();
-		string_view ext = get_extension(filename);
-
-		if (p.empty()) return "Failed to get files with wild card because the file path is empty!";
-
-		string fullFileName = recursive
-		? "**" + string(ext)
-		: "*" + string(ext);
-
-		if (filename != fullFileName)
-		{
-			return
-			"Failed to get files with wild card because the file path "
-			"'" + p.string() + "' does not match any known wildcard pattern!";
-		}
-
-		vector<path> tempOutFilePaths{};
-
-		path baseDir = p.parent_path().empty()
-		? "."
-		: p.parent_path();
-
-		if (!recursive)
-		{
-			for (const auto& f : directory_iterator(baseDir))
-			{
-				const path& fpath{ f };
-
-				get_valid_file(
-					fpath,
-				   ext,
-				   tempOutFilePaths);
-			}
-		}
-		else
-		{
-			for (const auto& f : recursive_directory_iterator(baseDir))
-			{
-				const path& fpath{ f };
-
-				get_valid_file(
-					fpath,
-				   ext,
-				   tempOutFilePaths);
-			}
-		}
-
-		outFilePaths = std::move(tempOutFilePaths);
-		return{};
-	}
-
-	//Returns all directories relative to wildcard recursive state and directory path,
-	//if recursive is true then all subfolders are also searched
-	template<AnyPath T>
-	inline string GetDirectoriesWithWildcard(
-		const T& dirPath,
-		vector<path>& outDirPaths,
-		bool recursive = false)
+	//Resolve any path-like field into a vector of paths (wildcards may return multiple values),
+	//PathTarget let you select both files and dirs, or files only, or dirs only
+	inline string ResolveAnyPath(
+		string_view input,
+		string_view relativeDir,
+		vector<path>& out,
+		PathTarget target = PathTarget::P_ANY)
 	{
-		path p{ dirPath };
-
-		if (p.empty()) return "Failed to get directories with wild card because the directory path is empty!";
-
-		string fullDirName = recursive
-		? "**"
-		: "*";
-
-		if (p.filename().string() != fullDirName)
+		if (input.empty()) return "Failed to resolve empty path!";
+		if (input.ends_with("*.")
+			|| input.ends_with("**."))
 		{
-			return
-			"Failed to get directories with wild card because the directory path "
-			"'" + p.string() + "' does not match any known wildcard pattern!";
+			return "Failed to resolve extensionless file path!";
 		}
 
-		vector<path> tempOutDirPaths{};
+		vector<path> results{};
 
-		path baseDir = p.parent_path().empty()
+		auto complete = [&out, &results]() -> void
+			{
+				out.insert(
+					out.end(),
+					make_move_iterator(results.begin()),
+					make_move_iterator(results.end()));
+			};
+
+		auto clean_paths = [&results]() -> string
+			{
+				for (path& p : results)
+				{
+					try
+					{
+						p = weakly_canonical(p);
+					}
+					catch (const filesystem_error&)
+					{
+						return "Failed to resolve target path '" + p.string() + "'!";
+					}
+				}
+
+				return {};
+			};
+
+		auto contains_string = [](string_view origin, string_view target) -> bool
+			{
+				//return false if origin or target is empty
+				if (origin.empty()
+					|| target.empty())
+				{
+					return false;
+				}
+
+				//can't contain something longer than itself
+				if (target.size() > origin.size()) return false;
+
+				//case-insensitive search
+				auto it = search(
+					origin.begin(), 
+					origin.end(),
+					target.begin(), 
+					target.end(),
+					[](unsigned char char1, unsigned char char2)
+					{
+						return tolower(char1) == tolower(char2);
+					});
+
+				return it != origin.end();
+			};
+
+		path p = path(input);
+
+		//File or directory exists as a real path
+		if (exists(p))
+		{
+			results.push_back((p));
+
+			string cleanupResult = clean_paths();
+			if (!cleanupResult.empty()) return cleanupResult;
+
+			complete();
+
+			return {};
+		}
+
+		if (!contains_string(p.string(), "*"))
+		{
+			p = relativeDir / p;
+		}
+
+		//File or directory exists as a real relative path
+		if (exists(p))
+		{
+			results.push_back((p));
+
+			string cleanupResult = clean_paths();
+			if (!cleanupResult.empty()) return cleanupResult;
+
+			complete();
+
+			return {};
+		}
+
+		auto get_all_wildcards = [&target](
+			path input,
+			vector<path>& out,
+			bool recursive = false) -> string
+			{
+				path p{ input };
+
+				if (p.empty()) return "Failed to get paths with wildcard because the directory path is empty!";
+
+				string fullDirName = recursive
+					? "**"
+					: "*";
+
+				if (p.filename().string() != fullDirName)
+				{
+					return
+					"Failed to get paths with wildcard because the directory path "
+					"'" + p.string() + "' does not match any known wildcard pattern!";
+				}
+
+				vector<path> tempOutTargetPaths{};
+
+				path baseDir = p.parent_path().empty()
+					? "."
+					: p.parent_path();
+
+				if (!recursive)
+				{
+					for (const auto& t : directory_iterator(baseDir))
+					{
+						if (target == PathTarget::P_ANY
+							|| (target == PathTarget::P_FILE_ONLY
+							&& is_regular_file(t))
+							|| (target == PathTarget::P_DIR_ONLY
+							&& is_directory(t)))
+						{
+							tempOutTargetPaths.push_back(path(t));
+						}
+					}
+				}
+				else
+				{
+					for (const auto& t : recursive_directory_iterator(baseDir))
+					{
+						if (target == PathTarget::P_ANY
+							|| (target == PathTarget::P_FILE_ONLY
+							&& is_regular_file(t))
+							|| (target == PathTarget::P_DIR_ONLY
+							&& is_directory(t)))
+						{
+							tempOutTargetPaths.push_back(path(t));
+						}
+					}
+				}
+
+				out.insert(
+					out.end(),
+					make_move_iterator(tempOutTargetPaths.begin()),
+					make_move_iterator(tempOutTargetPaths.end()));
+
+				return{};
+			};
+
+		auto get_file_wildcards = [](
+			const path& input,
+			vector<path>& out,
+			bool recursive = false) -> string
+		{
+			auto get_extension = [](string_view f) -> string_view
+			{
+				auto pos = f.rfind('.');
+
+				//return empty extension, valid for GNU
+				if (pos == string_view::npos) return{};
+				//returns found extension
+				return f.substr(pos);
+			};
+
+			auto get_valid_file = [](
+				const path& file,
+				string_view ext,
+				vector<path>& output)
+			{
+				bool hasValidExtension =
+					file.has_extension()
+					&& file.extension() == ext;
+
+				bool hasNoExtension =
+					!file.has_extension()
+					&& ext.empty();
+
+				if (is_regular_file(file)
+					&& (hasValidExtension
+					|| hasNoExtension))
+				{
+					output.push_back(file);
+				}
+			};
+
+			path p{ input };
+
+			string filename = p.filename().string();
+			string_view ext = get_extension(filename);
+
+			if (p.empty()) return "Failed to get files with wildcard because the file path is empty!";
+
+			string fullFileName = recursive
+				? "**" + string(ext)
+				: "*" + string(ext);
+
+			if (filename != fullFileName)
+			{
+				return
+				"Failed to get files with wildcard because the file path "
+				"'" + p.string() + "' does not match any known wildcard pattern!";
+			}
+
+			vector<path> tempOutFilePaths{};
+
+			path baseDir = p.parent_path().empty()
 			? "."
 			: p.parent_path();
 
-		if (!recursive)
-		{
-			for (const auto& d : directory_iterator(baseDir))
+			if (!recursive)
 			{
-				if (is_directory(d)) tempOutDirPaths.push_back(path(d));
+				for (const auto& f : directory_iterator(baseDir))
+				{
+					const path& fpath{ f };
+
+					get_valid_file(
+						fpath,
+					ext,
+					tempOutFilePaths);
+				}
 			}
+			else
+			{
+				for (const auto& f : recursive_directory_iterator(baseDir))
+				{
+					const path& fpath{ f };
+
+					get_valid_file(
+						fpath,
+					ext,
+					tempOutFilePaths);
+				}
+			}
+
+			out.insert(
+				out.end(),
+				make_move_iterator(tempOutFilePaths.begin()),
+				make_move_iterator(tempOutFilePaths.end()));
+
+			return{};
+		};
+
+		vector<path> foundPaths{};
+
+		//Directory or file is recursive
+		if (p.string() == "**"
+			|| p.string().ends_with("**"))
+		{
+			string result = get_all_wildcards(
+				p, 
+				foundPaths,
+				true);
+
+			if (!result.empty())
+			{
+				return
+					"Failed to resolve recursive directory or file path '" + string(input) 
+					+ "' because of wildcard error! Reason: " + result;
+			}
+
+			results.insert(
+				results.end(),
+				make_move_iterator(foundPaths.begin()),
+				make_move_iterator(foundPaths.end()));
+
+			string cleanupResult = clean_paths();
+			if (!cleanupResult.empty()) return cleanupResult;
+
+			complete();
+
+			return {};
 		}
-		else
+		//Directory or file is not recursive
+		else if (input == "*"
+				 || input.ends_with("*"))
 		{
-			for (const auto& d : recursive_directory_iterator(baseDir))
+			string result = get_all_wildcards(
+				p, 
+				foundPaths);
+
+			if (!result.empty())
 			{
-				if (is_directory(d)) tempOutDirPaths.push_back(path(d));
+				return
+					"Failed to resolve directory or file path '" + string(input) 
+					+ "' because of wildcard error! Reason: " + result;
 			}
+
+			results.insert(
+				results.end(),
+				make_move_iterator(foundPaths.begin()),
+				make_move_iterator(foundPaths.end()));
+
+			string cleanupResult = clean_paths();
+			if (!cleanupResult.empty()) return cleanupResult;
+
+			complete();
+
+			return {};
+		}
+		//File is recursive
+		else if (contains_string(input, "**."))
+		{
+			if (target == PathTarget::P_DIR_ONLY) return {};
+
+			string result = get_file_wildcards(
+				p, 
+				foundPaths, 
+				true);
+
+			if (!result.empty())
+			{
+				return 
+					"Failed to resolve recursive file path '" + string(input) 
+					+ "' because of wildcard error! Reason: " + result;
+			}
+
+			results.insert(
+				results.end(),
+				make_move_iterator(foundPaths.begin()),
+				make_move_iterator(foundPaths.end()));
+
+			string cleanupResult = clean_paths();
+			if (!cleanupResult.empty()) return cleanupResult;
+
+			complete();
+
+			return {};
+		}
+		//File is not recursive
+		else if (contains_string(input, "*."))
+		{
+			if (target == PathTarget::P_DIR_ONLY) return {};
+
+			string result = get_file_wildcards(
+				p, 
+				foundPaths);
+
+			if (!result.empty())
+			{
+				return 
+					"Failed to resolve file path '" + string(input) 
+					+ "' because of wildcard error! Reason: " + result;
+			}
+
+			results.insert(
+				results.end(),
+				make_move_iterator(foundPaths.begin()),
+				make_move_iterator(foundPaths.end()));
+
+			string cleanupResult = clean_paths();
+			if (!cleanupResult.empty()) return cleanupResult;
+
+			complete();
+
+			return {};
 		}
 
-		outDirPaths = std::move(tempOutDirPaths);
-		return{};
+		return "Failed to resolve path '" + string(input) + "' because it had no matching wildcard pattern, or its relative or full path was not found!";
+	}
+
+	//
+	// CONVERT CONTAINER
+	//
+
+	//Convert a path vector to a string vector
+	inline string ToStringVector(
+		const vector<path>& in, 
+		vector<string>& out)
+	{
+		if (in.empty()) return "Failed to convert path vector because it was empty!";
+
+		out.clear();
+		out.reserve(in.size());
+
+		for (const path& p : in) out.push_back(p.string());
+
+		return {};
+	}
+
+	//Convert a string vector to a path vector
+	inline string ToPathVector(
+		const vector<string>& in, 
+		vector<path>& out)
+	{
+		if (in.empty()) return "Failed to convert string vector because it was empty!";
+
+		out.clear();
+		out.reserve(in.size());
+
+		for (const string& s : in) out.push_back(path(s));
+
+		return {};
 	}
 
 	//
