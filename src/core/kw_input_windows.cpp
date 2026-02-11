@@ -90,7 +90,7 @@ namespace KalaWindow::Core
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 
-		registry.AddContent(newID, move(newInput));
+		registry.AddContent(newID, std::move(newInput));
 		window->SetInputID(newID);
 
 		inputPtr->windowID = window->GetID();

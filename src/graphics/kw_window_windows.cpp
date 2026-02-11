@@ -234,7 +234,7 @@ namespace KalaWindow::Graphics
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
 
-		registry.AddContent(newID, move(newWindow));
+		registry.AddContent(newID, std::move(newWindow));
 
 		Log::Print(
 			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",

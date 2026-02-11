@@ -84,7 +84,7 @@ namespace KalaWindow::Graphics
 		SetMenu(hwnd, hMenu);
 		DrawMenuBar(hwnd);
 
-		registry.AddContent(newID, move(newMenu));
+		registry.AddContent(newID, std::move(newMenu));
 		window->SetMenuBarID(newID);
 
 		menuPtr->isInitialized = true;
