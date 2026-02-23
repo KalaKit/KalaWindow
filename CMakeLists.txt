@@ -91,9 +91,6 @@ if (WIN32)
 	target_link_libraries(KalaWindow PRIVATE
 		OpenGL::GL
 		${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib
-		Ole32
-		Shell32
-		Uuid
 		winmm
 		runtimeobject
 		dbghelp

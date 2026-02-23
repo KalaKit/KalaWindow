@@ -494,7 +494,7 @@ namespace KalaHeaders::KalaFontData
 				tables.push_back(t);
 			}
 			
-			outTables = move(tables);
+			outTables = std::move(tables);
 			
 			return ImportResult::RESULT_SUCCESS;
 		}
@@ -569,12 +569,12 @@ namespace KalaHeaders::KalaFontData
 				b.rawPixels.resize(b.rawPixelSize);
 				in.read(rcast<char*>(b.rawPixels.data()), b.rawPixelSize);
 				
-				blocks.push_back(move(b));
+				blocks.push_back(std::move(b));
 			}
 			
 			in.close();
 			
-			outBlocks = move(blocks);
+			outBlocks = std::move(blocks);
 			
 			return ImportResult::RESULT_SUCCESS;
 		}
@@ -677,12 +677,12 @@ namespace KalaHeaders::KalaFontData
 				b.rawPixels.resize(b.rawPixelSize);
 				memcpy(b.rawPixels.data(), blockData.data() + relativeOffset + RAW_PIXEL_DATA_OFFSET, b.rawPixelSize);
 				
-				blocks.push_back(move(b));
+				blocks.push_back(std::move(b));
 			}
 			
 			outHeader = header;
-			outTables = move(tables);
-			outBlocks = move(blocks);
+			outTables = std::move(tables);
+			outBlocks = std::move(blocks);
 			
 			return ImportResult::RESULT_SUCCESS;
 		}

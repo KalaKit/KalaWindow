@@ -251,11 +251,11 @@ namespace KalaHeaders::KalaColor
 			return *this;
 		}
 
-		constexpr bool operator<=(f32 s) const { return { r <= s && g <= s && b <= s && a <= s }; }
-		constexpr bool operator<=(const color& c) const { return { r <= c.r && g <= c.g && b <= c.b && a <= c.a }; }
+		constexpr bool operator<=(f32 s) const { return r <= s && g <= s && b <= s && a <= s ; }
+		constexpr bool operator<=(const color& c) const { return r <= c.r && g <= c.g && b <= c.b && a <= c.a; }
 
-		constexpr bool operator>=(f32 s) const { return { r >= s && g >= s && b >= s && a >= s }; }
-		constexpr bool operator>=(const color& c) const { return { r >= c.r && g >= c.g && b >= c.b && a >= c.a }; }
+		constexpr bool operator>=(f32 s) const { return r >= s && g >= s && b >= s && a >= s; }
+		constexpr bool operator>=(const color& c) const { return r >= c.r && g >= c.g && b >= c.b && a >= c.a; }
 	};
 
 	template<typename F>

@@ -19,6 +19,7 @@
 #include <concepts>
 #include <thread>
 #include <chrono>
+#include <mutex>
 
 namespace KalaHeaders::KalaThread
 {	

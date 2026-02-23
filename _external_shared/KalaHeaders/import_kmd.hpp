@@ -491,7 +491,7 @@ namespace KalaHeaders::KalaModelData
 				tables.push_back(t);
 			}
 			
-			outTables = move(tables);
+			outTables = std::move(tables);
 			
 			return ImportResult::RESULT_SUCCESS;
 		}
@@ -640,12 +640,12 @@ namespace KalaHeaders::KalaModelData
 				b.indices.resize(indexCount);
 				in.read(rcast<char*>(b.indices.data()), b.indicesSize);
 				
-				blocks.push_back(move(b));
+				blocks.push_back(std::move(b));
 			}
 			
 			in.close();
 			
-			outBlocks = move(blocks);
+			outBlocks = std::move(blocks);
 			
 			return ImportResult::RESULT_SUCCESS;
 		}
@@ -822,12 +822,12 @@ namespace KalaHeaders::KalaModelData
 				b.indices.resize(indexCount);
 				memcpy(b.indices.data(), blockData.data() + relativeOffset + VERTICE_DATA_OFFSET + b.verticesSize, b.indicesSize);
 				
-				blocks.push_back(move(b));
+				blocks.push_back(std::move(b));
 			}
 			
 			outHeader = header;
-			outTables = move(tables);
-			outBlocks = move(blocks);
+			outTables = std::move(tables);
+			outBlocks = std::move(blocks);
 			
 			return ImportResult::RESULT_SUCCESS;
 		}
