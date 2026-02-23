@@ -21,7 +21,6 @@ using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using namespace KalaWindow::OpenGL::OpenGLFunctions;
-using KalaWindow::OpenGL::OpenGL_Global;
 
 using std::string;
 

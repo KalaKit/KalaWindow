@@ -30,7 +30,6 @@ using KalaHeaders::KalaLog::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::OpenGL::OpenGL_Global;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Windows;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;

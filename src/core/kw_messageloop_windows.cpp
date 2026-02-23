@@ -19,8 +19,6 @@
 	#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 #endif
 
-#include "OpenGL/wglext.h"
-
 #include "KalaHeaders/log_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 #include "KalaHeaders/key_standards.hpp"
@@ -43,7 +41,6 @@ using KalaHeaders::KalaKeyStandards::KeyboardButton;
 using KalaHeaders::KalaKeyStandards::MouseButton;
 using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
-using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::KalaWindowRegistry;
@@ -64,8 +61,6 @@ using std::string;
 using std::to_string;
 using std::vector;
 using std::ostringstream;
-using std::hex;
-using std::dec;
 using std::function;
 using std::wstring;
 

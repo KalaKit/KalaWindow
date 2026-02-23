@@ -26,7 +26,6 @@
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
-using KalaHeaders::KalaLog::DateFormat;
 
 using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::Window_Global;
@@ -41,7 +40,6 @@ using std::string_view;
 using std::array;
 using std::ofstream;
 using std::ostringstream;
-using std::filesystem::path;
 using std::filesystem::current_path;
 using std::function;
 using std::hex;

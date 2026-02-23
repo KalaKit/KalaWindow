@@ -6,7 +6,6 @@
 #ifdef _WIN32
 
 #include <windows.h>
-#include <unordered_map>
 #include <string>
 #include <memory>
 
@@ -18,7 +17,6 @@
 #include "graphics/kw_window.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
-using KalaHeaders::KalaCore::FromVar;
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -28,7 +26,6 @@ using KalaHeaders::KalaKeyStandards::MouseToIndex;
 using KalaHeaders::KalaKeyStandards::IndexToKey;
 using KalaHeaders::KalaKeyStandards::IndexToMouse;
 
-using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window;
 using KalaWindow::Graphics::WindowData;
 

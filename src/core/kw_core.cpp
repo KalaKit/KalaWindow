@@ -7,11 +7,10 @@
 #include <windows.h>
 #include <mmsystem.h>
 #else
-//TODO: ADD LINUX EQUIVALENT
+#include <csignal>
 #endif
 #include <functional>
 #include <chrono>
-#include <csignal>
 #include <string>
 #include <algorithm>
 
@@ -36,8 +35,11 @@ using KalaWindow::Graphics::MenuBar;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::OpenGL::OpenGL_Shader;
 
-using std::string_view;
+#ifdef __linux__
 using std::raise;
+#endif
+
+using std::string_view;
 using std::function;
 using std::exception;
 using std::to_string;

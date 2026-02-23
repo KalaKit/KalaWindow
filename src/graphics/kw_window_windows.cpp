@@ -43,7 +43,6 @@ using KalaWindow::Graphics::MenuBar;
 using KalaWindow::OpenGL::OpenGL_Context;
 
 using std::make_unique;
-using std::move;
 using std::to_string;
 using std::unique_ptr;
 using std::clamp;

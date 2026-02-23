@@ -16,6 +16,8 @@ namespace KalaWindow::Core
 {
 	using std::function;
 
+	using u32 = uint32_t;
+
 	class LIB_API MessageLoop
 	{
 	public:

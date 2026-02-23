@@ -8,27 +8,27 @@
 
 //copy readme
 origin: readme.md
-target: ..@elypso-engine@_external_shared@KalaWindow@readme.md, ..@elypso-hub@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@readme.md
+target: ..@elypso-engine@_external_shared@KalaWindow@readme.md, ..@elypso-hub@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@_external_shared@KalaWindow@readme.md
 action: forcecopy
 
 //copy license
 origin: LICENSE.md
-target: ..@elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@LICENSE.md
+target: ..@elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@_external_shared@KalaWindow@LICENSE.md
 action: forcecopy
 
 //copy logo
 origin: logo.png
-target: ..@elypso-engine@_external_shared@KalaWindow@logo.png, ..@elypso-hub@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@logo.png
+target: ..@elypso-engine@_external_shared@KalaWindow@logo.png, ..@elypso-hub@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@_external_shared@KalaWindow@logo.png
 action: forcecopy
 
 //copy include files
 origin: include
-target: ..@elypso-engine@_external_shared@KalaWindow@include, ..@elypso-hub@_external_shared@KalaWindow@include, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@include, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@include
+target: ..@elypso-engine@_external_shared@KalaWindow@include, ..@elypso-hub@_external_shared@KalaWindow@include, ..@kalakit_test_projects@_external_shared@KalaWindow@include
 action: forcecopy
 
 //copy docs
 origin: docs
-target: ..@elypso-engine@_external_shared@KalaWindow@docs, ..@elypso-hub@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@docs
+target: ..@elypso-engine@_external_shared@KalaWindow@docs, ..@elypso-hub@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@_external_shared@KalaWindow@docs
 action: forcecopy
 
 //
@@ -37,12 +37,12 @@ action: forcecopy
 
 //copy debug dll
 origin: build@linux-debug@libKalaWindow1d.so
-target: ..@elypso-engine@_external_shared@KalaWindow@debug@libKalaWindow1d.so, ..@elypso-hub@_external_shared@KalaWindow@debug@libKalaWindow1d.so, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@debug@libKalaWindow1d.so, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@debug@libKalaWindow1d.so
+target: ..@elypso-engine@_external_shared@KalaWindow@debug@libKalaWindow1d.so, ..@elypso-hub@_external_shared@KalaWindow@debug@libKalaWindow1d.so, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@libKalaWindow1d.so
 action: forcecopy
 
 //copy release dll
 origin: build@linux-release@libKalaWindow1.so
-target: ..@elypso-engine@_external_shared@KalaWindow@release@libKalaWindow1.so, ..@elypso-hub@_external_shared@KalaWindow@release@libKalaWindow1.so, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@release@libKalaWindow1.so, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@release@libKalaWindow1.so
+target: ..@elypso-engine@_external_shared@KalaWindow@release@libKalaWindow1.so, ..@elypso-hub@_external_shared@KalaWindow@release@libKalaWindow1.so, ..@kalakit_test_projects@_external_shared@KalaWindow@release@libKalaWindow1.so
 action: forcecopy
 
 //
@@ -51,10 +51,10 @@ action: forcecopy
 
 //KalaHeaders
 origin: _external_shared@KalaHeaders
-target: ..@elypso-engine@_external_shared@KalaHeaders, ..@elypso-hub@_external_shared@KalaHeaders, ..@kalakit_test_projects@Game-test@_external_shared@KalaHeaders, ..@kalakit_test_projects@UI-test@_external_shared@KalaHeaders
+target: ..@elypso-engine@_external_shared@KalaHeaders, ..@elypso-hub@_external_shared@KalaHeaders, ..@kalakit_test_projects@_external_shared@KalaHeaders
 action: copy
 
 //OpenGL
 origin: _external_shared@OpenGL
-target: ..@elypso-engine@_external_shared@OpenGL, ..@elypso-hub@_external_shared@OpenGL, ..@kalakit_test_projects@Game-test@_external_shared@KalaHeaders, ..@kalakit_test_projects@UI-test@_external_shared@KalaHeaders
+target: ..@elypso-engine@_external_shared@OpenGL, ..@elypso-hub@_external_shared@OpenGL, ..@kalakit_test_projects@_external_shared@KalaHeaders
 action: copy
