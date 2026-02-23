@@ -1,0 +1,75 @@
+#KMF VERSION 1.0
+
+//Manifest file for use with KalaMove. Read more at https://github.com/kalakit/kalamove
+
+//
+// CORE STUFF
+//
+
+//copy readme
+origin: readme.md
+target: ..@elypso-engine@_external_shared@KalaWindow@readme.md, ..@elypso-hub@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@readme.md
+action: forcecopy
+
+//copy license
+origin: LICENSE.md
+target: ..@elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@LICENSE.md
+action: forcecopy
+
+//copy logo
+origin: logo.png
+target: ..@elypso-engine@_external_shared@KalaWindow@logo.png, ..@elypso-hub@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@logo.png
+action: forcecopy
+
+//copy include files
+origin: include
+target: ..@elypso-engine@_external_shared@KalaWindow@include, ..@elypso-hub@_external_shared@KalaWindow@include, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@include, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@include
+action: forcecopy
+
+//copy docs
+origin: docs
+target: ..@elypso-engine@_external_shared@KalaWindow@docs, ..@elypso-hub@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@docs
+action: forcecopy
+
+//
+// BINARIES
+//
+
+//copy debug dll
+origin: build@windows-debug@KalaWindow1d.dll
+target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@debug@KalaWindow1d.dll
+action: forcecopy
+
+//copy debug lib
+origin: build@windows-debug@KalaWindow1d.lib
+target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@debug@KalaWindow1d.lib
+action: forcecopy
+
+//copy debug pdb
+origin: build@windows-debug@KalaWindow1d.pdb
+target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@debug@KalaWindow1d.pdb
+action: forcecopy
+
+//copy release dll
+origin: build@windows-release@KalaWindow1.dll
+target: ..@elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@release@KalaWindow1.dll
+action: forcecopy
+
+//copy release lib
+origin: build@windows-release@KalaWindow1.lib
+target: ..@elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@kalakit_test_projects@Game-test@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@kalakit_test_projects@UI-test@_external_shared@KalaWindow@release@KalaWindow1.lib
+action: forcecopy
+
+//
+// EXTERNAL LIBRARIES
+//
+
+//KalaHeaders
+origin: _external_shared@KalaHeaders
+target: ..@elypso-engine@_external_shared@KalaHeaders, ..@elypso-hub@_external_shared@KalaHeaders, ..@kalakit_test_projects@Game-test@_external_shared@KalaHeaders, ..@kalakit_test_projects@UI-test@_external_shared@KalaHeaders
+action: copy
+
+//OpenGL
+origin: _external_shared@OpenGL
+target: ..@elypso-engine@_external_shared@OpenGL, ..@elypso-hub@_external_shared@OpenGL, ..@kalakit_test_projects@Game-test@_external_shared@KalaHeaders, ..@kalakit_test_projects@UI-test@_external_shared@KalaHeaders
+action: copy

@@ -7,14 +7,11 @@
 
 #include <windows.h>
 #include <objbase.h>
-#pragma comment(lib, "Ole32.lib")
-#include <ShObjIdl.h>
+#include <shobjidl.h>
 #include <wrl/client.h>
 #include <winrt/windows.ui.notifications.h>
 #include <winrt/windows.data.xml.dom.h>
-#pragma comment(lib, "runtimeobject.lib")
 #include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")
 
 #include <filesystem>
 #include <sstream>

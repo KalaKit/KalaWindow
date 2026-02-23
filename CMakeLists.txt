@@ -77,20 +77,36 @@ target_include_directories(KalaWindow PRIVATE
 	${EXT_SHARED_DIR}
 )
 
-target_compile_definitions(KalaWindow PRIVATE
-	ENABLE_EMIT_LOG     # allow user to define EmitLog in log_utils.hpp
-	LIB_EXPORT          # dll import/export
-	WIN32_LEAN_AND_MEAN # cleaner windows.h
-	NOMINMAX            # skips min/max windows macros in favor of the std variants
-	UNICODE             # selects wide api variants over ansi for UTF16 windows functions
-	_UNICODE            # uses wide text types in the C runtime layer
-)
+if (WIN32)
+	target_compile_definitions(KalaWindow PRIVATE
+		ENABLE_EMIT_LOG     # allow user to define EmitLog in log_utils.hpp
+		LIB_EXPORT          # dll import/export
+		WIN32_LEAN_AND_MEAN # cleaner windows.h
+		NOMINMAX            # skips min/max windows macros in favor of the std variants
+		UNICODE             # selects wide api variants over ansi for UTF16 windows functions
+		_UNICODE            # uses wide text types in the C runtime layer
+	)
 
-# Link libraries
-target_link_libraries(KalaWindow PRIVATE
-	OpenGL::GL
-	${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib
-)
+	# Link libraries
+	target_link_libraries(KalaWindow PRIVATE
+		OpenGL::GL
+		${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib
+		Ole32
+		Shell32
+		Uuid
+		winmm
+		runtimeobject
+		dbghelp
+		dwmapi
+		Wtsapi32
+	)
+else()
+	# Link libraries
+	target_link_libraries(KalaWindow PRIVATE
+		OpenGL::GL
+		${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib
+	)
+endif()
 	
 # Expose version string
 add_compile_definitions(

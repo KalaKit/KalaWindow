@@ -31,8 +31,8 @@ namespace KalaHeaders::KalaThread
 	using std::is_pointer_v;
 	using std::same_as;
 	using std::thread;
+	using std::mutex;
 	using std::this_thread::yield;
-	using std::forward;
 	using std::invocable;
 	using std::chrono::milliseconds;
 	using std::chrono::steady_clock;
@@ -41,6 +41,7 @@ namespace KalaHeaders::KalaThread
 	using std::remove_cvref_t;
 	
 	using abool = atomic<bool>;
+	using auptr = atomic<uintptr_t>;
 	
 	//
 	// CREATE THREAD
@@ -48,16 +49,16 @@ namespace KalaHeaders::KalaThread
 	
 	//Creates, runs and returns a joinable thread
 	template <invocable F>
-    inline thread jthread(F&& func)
+    inline thread joinable_thread(F&& func)
 	{
-		return thread(forward<F>(func));
+		return thread(std::forward<F>(func));
 	}
 	
 	//Creates, runs and detaches a non-joinable thread
 	template <invocable F>
-	inline void dthread(F&& func)
+	inline void detached_thread(F&& func)
 	{
-		thread t(forward<F>(func));
+		thread t(std::forward<F>(func));
 		t.detach();
 	}
 	

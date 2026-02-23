@@ -5,9 +5,8 @@
 
 #ifdef _WIN32
 
-#include <Windows.h>
+#include <windows.h>
 #include <dbghelp.h>
-#pragma comment(lib, "dbghelp.lib")
 
 #include <cstring>
 #include <string>

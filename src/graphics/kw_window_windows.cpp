@@ -7,14 +7,11 @@
 
 #include <windows.h>
 #include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")
-#include <ShObjIdl.h>
+#include <shobjidl.h>
 #include <dwmapi.h>
-#pragma comment(lib, "dwmapi.lib")
 #include <atlbase.h>
 #include <atlcomcli.h>
 #include <wtsapi32.h>
-#pragma comment(lib, "Wtsapi32.lib")
 #include <shellapi.h>
 
 #include <algorithm>
@@ -2027,21 +2024,26 @@ wstring ToWide(const string& input)
 
 	int size_needed = MultiByteToWideChar(
 		CP_UTF8,
-		0,
+		MB_ERR_INVALID_CHARS,
 		input.data(),
 		scast<int>(input.size()),
 		nullptr,
 		0);
 
+	if (size_needed <= 0) return {};
+
 	wstring wstr(size_needed, 0);
 
-	MultiByteToWideChar(
+	if (MultiByteToWideChar(
 		CP_UTF8,
-		0,
+		MB_ERR_INVALID_CHARS,
 		input.data(),
 		scast<int>(input.size()),
 		wstr.data(),
-		size_needed);
+		size_needed) <= 0)
+	{
+		return {};
+	}
 
 	return wstr;
 }
@@ -2059,9 +2061,11 @@ string ToShort(const wstring& str)
 		nullptr,
 		nullptr);
 
+	if (size_needed <= 0) return {};
+
 	string result(size_needed, 0);
 
-	WideCharToMultiByte(
+	if (WideCharToMultiByte(
 		CP_UTF8,
 		0,
 		str.data(),
@@ -2069,7 +2073,10 @@ string ToShort(const wstring& str)
 		result.data(),
 		size_needed,
 		nullptr,
-		nullptr);
+		nullptr) <= 0)
+	{
+		return {};
+	}
 
 	return result;
 }

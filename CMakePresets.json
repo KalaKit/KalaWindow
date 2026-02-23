@@ -7,24 +7,17 @@
   },
   "configurePresets": [
     {
-      "name": "windows-mingw-base",
+      "name": "windows-base",
       "hidden": true,
       "generator": "Ninja",
       "condition": {
         "type": "equals",
         "lhs": "${hostSystemName}",
-        "rhs": "Linux"
+        "rhs": "Windows"
       },
       "cacheVariables": {
-        "CMAKE_SYSTEM_NAME": "Windows",
-        "CMAKE_C_COMPILER": "x86_64-w64-mingw32-gcc",
-        "CMAKE_CXX_COMPILER": "x86_64-w64-mingw32-g++",
-
-        "CMAKE_RC_COMPILER": "x86_64-w64-mingw32-windres",
-        "CMAKE_TOOLCHAIN_FILE": "/home/greenlaser/dev/vcpkg/scripts/buildsystems/vcpkg.cmake",
-        "VCPKG_TARGET_TRIPLET": "x64-mingw-static",
-        "VCPKG_APPLOCAL_DEPS": "OFF",
-
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl",
         "CMAKE_CXX_STANDARD": "20",
         "CMAKE_CXX_STANDARD_REQUIRED": "ON",
         "CMAKE_CXX_EXTENSIONS": "OFF",
@@ -33,7 +26,7 @@
     },
     {
       "name": "windows-debug",
-      "inherits": "windows-mingw-base",
+      "inherits": "windows-base",
       "binaryDir": "${sourceDir}/build/windows-debug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
@@ -41,7 +34,7 @@
     },
     {
       "name": "windows-release",
-      "inherits": "windows-mingw-base",
+      "inherits": "windows-base",
       
       "binaryDir": "${sourceDir}/build/windows-release",
       "cacheVariables": {
@@ -50,7 +43,7 @@
     },
     {
       "name": "windows-relwithdebinfo",
-      "inherits": "windows-mingw-base",
+      "inherits": "windows-base",
       "binaryDir": "${sourceDir}/build/windows-reldebug",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
