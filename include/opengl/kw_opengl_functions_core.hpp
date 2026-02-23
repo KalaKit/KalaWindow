@@ -52,10 +52,10 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 		PFNGLDELETEVERTEXARRAYSPROC glDeleteVertexArrays;
 
 		//Draws non-indexed primitives from array data
-		//PFNGLDRAWARRAYSPROC glDrawArrays;
+		PFNGLDRAWARRAYSPROC glDrawArrays;
 
 		//Draws indexed primitives using array data and element indices
-		//PFNGLDRAWELEMENTSPROC glDrawElements;
+		PFNGLDRAWELEMENTSPROC glDrawElements;
 
 		//Enables a generic vertex attribute array
 		PFNGLENABLEVERTEXATTRIBARRAYPROC glEnableVertexAttribArray;
@@ -226,19 +226,19 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 		//
 
 		//Binds a named texture to a texturing target
-		//PFNGLBINDTEXTUREPROC glBindTexture;
+		PFNGLBINDTEXTUREPROC glBindTexture;
 
 		//Activates the specified texture unit
 		PFNGLACTIVETEXTUREPROC glActiveTexture;
 
 		//Deletes one or more named textures
-		//PFNGLDELETETEXTURESPROC glDeleteTextures;
+		PFNGLDELETETEXTURESPROC glDeleteTextures;
 
 		//Generates mipmaps for the currently bound texture
 		PFNGLGENERATEMIPMAPPROC glGenerateMipmap;
 
 		//Generates texture object names
-		//PFNGLGENTEXTURESPROC glGenTextures;
+		PFNGLGENTEXTURESPROC glGenTextures;
 
 		//Specifies a 2D texture image
 		PFNGLTEXIMAGE2DPROC glTexImage2D;
@@ -259,10 +259,10 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 		PFNGLTEXSTORAGE3DPROC glTexStorage3D;
 
 		//Specifies a subregion of a 2D texture image (upload pixels into an allocated level)
-		//PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
+		PFNGLTEXSUBIMAGE2DPROC glTexSubImage2D;
 
 		//Specifies a subregion of a 3D or array texture image (upload pixels into an allocated level)
-		//PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
+		PFNGLTEXSUBIMAGE3DPROC glTexSubImage3D;
 
 		//Specifies a subregion of a compressed 2D texture image (upload compressed blocks into an allocated level)
 		PFNGLCOMPRESSEDTEXSUBIMAGE2DPROC glCompressedTexSubImage2D;
