@@ -7,8 +7,8 @@
 //
 
 //copy readme
-origin: readme.md
-target: ..@elypso-engine@_external_shared@KalaWindow@readme.md, ..@elypso-hub@_external_shared@KalaWindow@readme.md, ..@kalakit_test_projects@_external_shared@KalaWindow@readme.md
+origin: README.md
+target: ..@elypso-engine@_external_shared@KalaWindow@README.md, ..@elypso-hub@_external_shared@KalaWindow@README.md, ..@kalakit_test_projects@_external_shared@KalaWindow@README.md
 action: forcecopy
 
 //copy license
