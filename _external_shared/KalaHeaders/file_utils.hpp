@@ -620,17 +620,20 @@ namespace KalaHeaders::KalaFile
 	inline string WriteTextToFile(
 		const path& target,
 		string_view inText,
-		bool append = false);
+		bool append = false,
+		bool overwrite = false);
 
 	inline string WriteLinesToFile(
 		const path& target,
 		const vector<string>& inLines,
-		bool append = false);
+		bool append = false,
+		bool overwrite = false);
 
-	inline string WriteBinaryLinesToFile(
+	inline string WriteBinaryDataToFile(
 		const path& target,
 		const vector<uint8_t>& inData,
-		bool append = false);
+		bool append = false,
+		bool overwrite = false);
 
 	//Create regular or binary file at target path. If you also want data written
 	//to the new file after its been created then pass a fileData struct
@@ -746,7 +749,7 @@ namespace KalaHeaders::KalaFile
 			{
 				string result{};
 
-				result = WriteBinaryLinesToFile(
+				result = WriteBinaryDataToFile(
 					target,
 					fileData.inData);
 
@@ -1697,12 +1700,13 @@ namespace KalaHeaders::KalaFile
 	// TEXT I/O
 	//
 
-	//Write all text from a string to a text file, with optional append flag.
+	//Write all text from a string to a text file, with optional append and overwrite flags.
 	//A new file is created at target path if it doesn't already exist
 	inline string WriteTextToFile(
 		const path& target,
 		string_view inText,
-		bool append)
+		bool append,
+		bool overwrite)
 	{
 		ostringstream oss{};
 
@@ -1738,6 +1742,19 @@ namespace KalaHeaders::KalaFile
 			oss << "Failed to write text to target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
+		}
+
+		if (overwrite
+			&& exists(target))
+		{
+			string deleteResult = DeletePath(target);
+
+			if (!deleteResult.empty())
+			{
+				oss << "Failed to delete existing file before writing text to target '" << target << "'! Reason: " + deleteResult;
+
+				return oss.str();	
+			}
 		}
 
 		try
@@ -1886,12 +1903,13 @@ namespace KalaHeaders::KalaFile
 		return{};
 	}
 
-	//Write all lines from a vector to a text file, with optional append flag.
+	//Write all lines from a vector to a text file, with optional append and overwrite flags.
 	//A new file is created at target path if it doesn't already exist
 	inline string WriteLinesToFile(
 		const path& target,
 		const vector<string>& inLines,
-		bool append)
+		bool append,
+		bool overwrite)
 	{
 		ostringstream oss{};
 
@@ -1927,6 +1945,19 @@ namespace KalaHeaders::KalaFile
 			oss << "Failed to write lines to target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
+		}
+
+		if (overwrite
+			&& exists(target))
+		{
+			string deleteResult = DeletePath(target);
+
+			if (!deleteResult.empty())
+			{
+				oss << "Failed to delete existing file before writing lines to target '" << target << "'! Reason: " + deleteResult;
+
+				return oss.str();	
+			}
 		}
 
 		try
@@ -2159,12 +2190,13 @@ namespace KalaHeaders::KalaFile
 		return CHUNK_1MB;
 	}
 
-	//Write all binary data from a vector<uint8_t> to a file, with optional append flag.
+	//Write all binary data from a vector<uint8_t> to a file, with optional append and overwrite flags.
 	//A new file is created at target path if it doesn't already exist
-	inline string WriteBinaryLinesToFile(
+	inline string WriteBinaryDataToFile(
 		const path& target,
 		const vector<uint8_t>& inData,
-		bool append)
+		bool append,
+		bool overwrite)
 	{
 		ostringstream oss{};
 
@@ -2197,9 +2229,22 @@ namespace KalaHeaders::KalaFile
 		
 		if (!canWrite)
 		{
-			oss << "Failed to write binary lines to target '" << target << "' because of insufficient write permissions!";
+			oss << "Failed to write binary data to target '" << target << "' because of insufficient write permissions!";
 
 			return oss.str();
+		}
+
+		if (overwrite
+			&& exists(target))
+		{
+			string deleteResult = DeletePath(target);
+
+			if (!deleteResult.empty())
+			{
+				oss << "Failed to delete existing file before writing binary data to target '" << target << "'! Reason: " + deleteResult;
+
+				return oss.str();	
+			}
 		}
 
 		try
@@ -2236,7 +2281,7 @@ namespace KalaHeaders::KalaFile
 				strerror_r(err, errbuf, sizeof(errbuf));
 #endif
 
-				oss << "Failed to write binary lines to target '" << target
+				oss << "Failed to write binary data to target '" << target
 					<< "' because it couldn't be opened! "
 					<< "Reason: (errno " << err << "): " << errbuf;
 
@@ -2260,7 +2305,7 @@ namespace KalaHeaders::KalaFile
 				strerror_r(err, errbuf, sizeof(errbuf));
 #endif
 
-				oss << "Failed to write binary lines to target '" << target
+				oss << "Failed to write binary data to target '" << target
 					<< "' because it couldn't be opened! "
 					<< "Reason: (errno " << err << "): " << errbuf;
 
@@ -2271,7 +2316,7 @@ namespace KalaHeaders::KalaFile
 		}
 		catch (exception& e)
 		{
-			oss << "Failed to write binary lines to target '" << target << "'! Reason: " << e.what();
+			oss << "Failed to write binary data to target '" << target << "'! Reason: " << e.what();
 
 			return oss.str();
 		}
@@ -2281,7 +2326,7 @@ namespace KalaHeaders::KalaFile
 	//Read all binary data from a file into a vector<uint8_t> with optional 
 	//rangeStart and rangeEnd values to avoid placing whole binary file to memory.
 	//If rangeEnd is 0 and rangeStart isnt, then this function defaults end to EOF
-	inline string ReadBinaryLinesFromFile(
+	inline string ReadBinaryDataFromFile(
 		const path& target,
 		vector<uint8_t>& outData,
 		size_t rangeStart = 0,
@@ -2318,7 +2363,7 @@ namespace KalaHeaders::KalaFile
 		
 		if (!canRead)
 		{
-			oss << "Failed to read binary lines from target '" << target << "' because of insufficient read permissions!";
+			oss << "Failed to read binary data from target '" << target << "' because of insufficient read permissions!";
 
 			return oss.str();
 		}
@@ -2343,7 +2388,7 @@ namespace KalaHeaders::KalaFile
 				strerror_r(err, errbuf, sizeof(errbuf));
 #endif
 
-				oss << "Failed to read binary lines from target '" << target
+				oss << "Failed to read binary data from target '" << target
 					<< "' because it couldn't be opened! "
 					<< "Reason: (errno " << err << "): " << errbuf;
 
@@ -2357,7 +2402,7 @@ namespace KalaHeaders::KalaFile
 			{
 				in.close();
 
-				oss << "Failed to read binary lines from target '" << target << "' because it had no data!";
+				oss << "Failed to read binary data from target '" << target << "' because it had no data!";
 
 				return oss.str();
 			}
@@ -2368,7 +2413,7 @@ namespace KalaHeaders::KalaFile
 			{
 				in.close();
 
-				oss << "Failed to read binary lines from target '" << target << "' because rangeEnd '"
+				oss << "Failed to read binary data from target '" << target << "' because rangeEnd '"
 					<< rangeEnd << "' is lower or equal to rangeStart '" << rangeStart << "'!";
 
 				return oss.str();
@@ -2377,7 +2422,7 @@ namespace KalaHeaders::KalaFile
 			{
 				in.close();
 
-				oss << "Failed to read binary lines from target '" << target << "' because rangeStart '"
+				oss << "Failed to read binary data from target '" << target << "' because rangeStart '"
 					<< rangeStart << "' is higher or equal to rangeEnd '" << rangeEnd << "'!";
 
 				return oss.str();
@@ -2386,7 +2431,7 @@ namespace KalaHeaders::KalaFile
 			{
 				in.close();
 
-				oss << "Failed to read binary lines from target '" << target << "' because rangeStart '"
+				oss << "Failed to read binary data from target '" << target << "' because rangeStart '"
 					<< rangeStart << "' is higher or equal to file size '" << fileSize << "'!";
 
 				return oss.str();
@@ -2395,7 +2440,7 @@ namespace KalaHeaders::KalaFile
 			{
 				in.close();
 
-				oss << "Failed to read binary lines from target '" << target << "' because rangeEnd '"
+				oss << "Failed to read binary data from target '" << target << "' because rangeEnd '"
 					<< rangeEnd << "' is higher than file size '" << fileSize << "'!";
 
 				return oss.str();
@@ -2422,7 +2467,7 @@ namespace KalaHeaders::KalaFile
 				strerror_r(err, errbuf, sizeof(errbuf));
 #endif
 
-				oss << "Failed to read binary lines from target '" << target
+				oss << "Failed to read binary data from target '" << target
 					<< "' because it couldn't be opened! "
 					<< "Reason: (errno " << err << "): " << errbuf;
 
@@ -2435,7 +2480,7 @@ namespace KalaHeaders::KalaFile
 
 			if (bytesRead != readSize)
 			{
-				oss << "Failed to read binary lines from target '" << target << "'!"
+				oss << "Failed to read binary data from target '" << target << "'!"
 					<< " Expected size was '" << readSize << "' bytes but result was '" << bytesRead << "' bytes.";
 
 				return oss.str();
