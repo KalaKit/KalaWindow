@@ -111,7 +111,7 @@ add_compile_definitions(
 )
 
 # Copy important files
-set(COPY_TARGETS readme.md LICENSE.md logo.png)
+set(COPY_TARGETS README.md LICENSE.md logo.png)
 foreach(FILE ${COPY_TARGETS})
 add_custom_command(TARGET KalaWindow POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E rm -f 
