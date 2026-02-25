@@ -15,6 +15,24 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 {
 	using std::string;
 
+#ifdef __linux__
+	typedef void (*PFNGLDRAWARRAYSPROC)(GLenum mode, GLint first, GLsizei count);
+	typedef void (*PFNGLDRAWELEMENTSPROC)(GLenum mode, GLsizei count, GLenum type, const void* indices);
+	typedef void (*PFNGLBINDTEXTUREPROC)(GLenum target, GLuint texture);
+	typedef void (*PFNGLDELETETEXTURESPROC)(GLsizei n, const GLuint* textures);
+	typedef void (*PFNGLGENTEXTURESPROC)(GLsizei n, GLuint* textures);
+	typedef void (*PFNGLTEXSUBIMAGE2DPROC)(
+		GLenum target,
+		GLint level,
+		GLint xoffset,
+		GLint yoffset,
+		GLsizei width,
+		GLsizei height,
+		GLenum format,
+		GLenum type,
+		const void* pixels);
+#endif
+
 	struct GL_Core
 	{
 		//Set OpenGL debug callback
