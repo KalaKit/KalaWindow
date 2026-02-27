@@ -3,6 +3,8 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+#ifdef _WIN32
+
 #pragma once
 
 #include <string>
@@ -99,3 +101,5 @@ namespace KalaWindow::Graphics
 		vector<MenuBarEvent> events{};
 	};
 }
+
+#endif //_WIN32

@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include <string>
+#include <string_view>
 #include <array>
 #include <functional>
 
@@ -13,7 +13,6 @@
 
 namespace KalaWindow::Core
 {
-	using std::string;
 	using std::string_view;
 	using std::array;
 	using std::function;
@@ -32,16 +31,15 @@ namespace KalaWindow::Core
 		//the optional function that will be called for your content that you wanna handle at crash
 		//and an optional flag to choose whether or not you want a crash dump
 		static void Initialize(
-			const string& programName,
+			string_view programName,
 			const function<void()>& shutdownFunction = nullptr,
 			bool createDump = false);
+
+		static bool IsInitialized();
 
 		//Pushes a string of up to max allowed characters characters to the crash log ring buffer.
 		//Stores up to 10 messages and overwrites the oldest entries as new ones arrive.
 		//Safe for multithreaded pushing.
 		static void AppendToCrashLog(string_view message);
-
-		//Returns crash log content so that oldest is at the top and newest at the bottom
-		static array<string_view, 10> GetCrashLogContent();
 	};
 }

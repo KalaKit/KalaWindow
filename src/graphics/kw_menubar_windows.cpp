@@ -21,7 +21,7 @@ using KalaHeaders::KalaCore::FromVar;
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
-using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Core::KalaWindowCore;
 
@@ -49,7 +49,7 @@ namespace KalaWindow::Graphics
 
 	MenuBar* MenuBar::CreateMenuBar(u32 windowID)
 	{
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -99,7 +99,7 @@ namespace KalaWindow::Graphics
 	}
 	bool MenuBar::IsInitialized() const
 	{
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -121,7 +121,7 @@ namespace KalaWindow::Graphics
 
 	void MenuBar::SetMenuBarState(bool state)
 	{
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -166,7 +166,7 @@ namespace KalaWindow::Graphics
 	}
 	bool MenuBar::IsEnabled() const
 	{
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -194,7 +194,7 @@ namespace KalaWindow::Graphics
 		const string& labelRef,
 		const function<void()> func)
 	{
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -430,7 +430,7 @@ namespace KalaWindow::Graphics
 		const string& parentRef,
 		const string& labelRef) const
 	{
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -610,7 +610,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())

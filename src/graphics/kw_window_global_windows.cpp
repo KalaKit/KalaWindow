@@ -60,7 +60,7 @@ namespace KalaWindow::Graphics
 	void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
-	void Window_Global::Initialize()
+	bool Window_Global::Initialize()
 	{
 		if (isInitialized)
 		{
@@ -70,7 +70,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
-			return;
+			return false;
 		}
 
 		version = GetVersion();
@@ -88,7 +88,7 @@ namespace KalaWindow::Graphics
 				"Global window error",
 				oss.str());
 
-			return;
+			return false;
 		}
 
 		if (isVerboseLoggingEnabled)
@@ -145,7 +145,7 @@ namespace KalaWindow::Graphics
 				"Global window error",
 				message);
 
-			return;
+			return false;
 		}
 
 		isInitialized = true;
@@ -154,6 +154,8 @@ namespace KalaWindow::Graphics
 			"Initialized global window context!",
 			"WINDOW_GLOBAL",
 			LogType::LOG_SUCCESS);
+
+		return true;
 	}
 
 	bool Window_Global::IsInitialized() { return isInitialized; }
@@ -211,6 +213,8 @@ namespace KalaWindow::Graphics
 		return version;
 	}
 
+	const string& Window_Global::GetAppID() { return appID; }
+
 	PopupResult Window_Global::CreatePopup(
 		const string& title,
 		const string& message,
@@ -257,8 +261,6 @@ namespace KalaWindow::Graphics
 		default:       return PopupResult::POPUP_RESULT_NONE;
 		}
 	}
-
-	const string& Window_Global::GetAppID() { return appID; }
 
 	vector<string> Window_Global::GetFile(
 		FileType type,
@@ -722,7 +724,7 @@ namespace KalaWindow::Graphics
 			GMEM_MOVEABLE,
 			(wstr.size() + 1) * sizeof(wchar_t));
 
-		if (hGlob == NULL)
+		if (!hGlob)
 		{
 			Log::Print(
 				"Failed to construct hGlobal when saving text to clipboard!",

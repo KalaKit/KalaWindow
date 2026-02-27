@@ -9,11 +9,13 @@
 #include <vector>
 
 #include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/math_utils.hpp"
+#include "core/kw_core.hpp"
+#include "graphics/kw_window.hpp"
 
 namespace KalaWindow::Graphics
 {
 	using std::string;
+	using std::string_view;
 	using std::vector;
 
 	//Buttons shown on the popup
@@ -68,48 +70,68 @@ namespace KalaWindow::Graphics
 		SOUND_ERROR
 	};
 
+#if defined(__linux__) && defined(KW_USE_X11)
+	struct X11GlobalData
+	{
+		uintptr_t display{};
+		uintptr_t window_root{};
+		uintptr_t atom_wmDelete{};
+	};
+#endif
+
 	class LIB_API Window_Global
 	{
+	friend ProcessWindow;
+	friend KalaWindow::Core::KalaWindowCore;
 	public:
 		//Toggle verbose logging. If true, then global window context 
 		//and all windows will dump their logs into the console.
 		static void SetVerboseLoggingState(bool newState);
 		static bool IsVerboseLoggingEnabled();
 
-		static void Initialize();
+		static bool Initialize();
 		static bool IsInitialized();
 
+#ifdef _WIN32
 		//Returns Windows version as xxyyyyyy format,
 		//where XX is windows version and YYYYYY is build version.
 		//Six digits are reserved for build numbers, so builds are 0yyyyy mostly
 		static u32 GetVersion();
 
-		//Display any kind of a popup on screen for info that should be shown immediately.
+		static const string& GetAppID();
+#endif
+
+		//Display any kind of a popup on screen for info that should be shown immediately..
+		//Requires zenity on X11 and Wayland.
 		static PopupResult CreatePopup(
-			const string& title,
-			const string& message,
+			string_view title,
+			string_view message,
 			PopupAction action,
 			PopupType type);
 
-		static const string& GetAppID();
-
 		//Uses the file explorer to get a path to selected files by chosen type.
-		//Set multiple to true to allow returning more than one item
+		//Set multiple to true to allow returning more than one item.
+		//Requires zenity on X11 and Wayland.
 		static vector<string> GetFile(
 			FileType type,
 			bool multiple = false);
 
-		//Create a notification that shows up on your screen
+		//Create a notification that shows up on the screen
 		static void CreateNotification(
-			const string& title,
-			const string& nessage);
+			string_view title,
+			string_view message);
 
-		//Play a system sound once of the chosen type
+		//Play a system sound once of the chosen type.
+		//Requires libcanberra on X11 and Wayland
 		static void PlaySystemSound(SoundType type);
 
 		//Places selected string to clipboard
-		static void SetClipboardText(const string& text);
+		static void SetClipboardText(string_view text);
 		//Returns string from clipboard
 		static string GetClipboardText();
+	private:
+#if defined(__linux__) && defined(KW_USE_X11)
+		static const X11GlobalData& GetGlobalData();
+#endif
 	};
 }

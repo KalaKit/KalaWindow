@@ -45,7 +45,7 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::KalaWindowRegistry;
 using KalaWindow::Core::Input;
-using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
@@ -191,7 +191,7 @@ static KeyboardButton TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 
 static bool ProcessMessage(
 	const MSG& msg,
-	Window* window);
+	ProcessWindow* window);
 
 static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
@@ -1224,7 +1224,7 @@ static bool ProcessMessage(
 	{
 		window->CloseWindow();
 
-		if (Window::GetRegistry().runtimeContent.empty())
+		if (ProcessWindow::GetRegistry().runtimeContent.empty())
 		{
 			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
 		}
@@ -1235,7 +1235,7 @@ static bool ProcessMessage(
 	//full shutdown if all windows were destroyed
 	case WM_DESTROY:
 	{
-		if (Window::GetRegistry().runtimeContent.empty()) PostQuitMessage(0);
+		if (ProcessWindow::GetRegistry().runtimeContent.empty()) PostQuitMessage(0);
 
 		return true; //we handled it
 	}

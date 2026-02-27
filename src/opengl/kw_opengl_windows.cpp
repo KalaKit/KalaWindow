@@ -23,12 +23,14 @@
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
+
 using KalaHeaders::KalaMath::vec2;
+
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Windows;
@@ -161,7 +163,7 @@ namespace KalaWindow::OpenGL
 	}
 	uintptr_t OpenGL_Global::GetOpenGLLibrary()
 	{
-		if (openGL32Lib == NULL) SetOpenGLLibrary();
+		if (!openGL32Lib) SetOpenGLLibrary();
 
 		return openGL32Lib;
 	}
@@ -418,7 +420,7 @@ namespace KalaWindow::OpenGL
 			return nullptr;
 		}
 
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -888,7 +890,7 @@ namespace KalaWindow::OpenGL
 			return;
 		}
 
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -907,7 +909,6 @@ namespace KalaWindow::OpenGL
 			"OPENGL",
 			LogType::LOG_DEBUG);
 
-#ifdef _WIN32
 		HGLRC storedHGLRC = ToVar<HGLRC>(hglrc);
 
 		if (storedHGLRC != NULL)
@@ -915,9 +916,6 @@ namespace KalaWindow::OpenGL
 			if (wglGetCurrentContext() == storedHGLRC) wglMakeCurrent(nullptr, nullptr);
 			wglDeleteContext(storedHGLRC);
 		}
-#elif __linux__
-		//TODO: DEFINE
-#endif
 	}
 }
 

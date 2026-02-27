@@ -38,7 +38,7 @@ using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Input;
-using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::MenuBar;
 using KalaWindow::OpenGL::OpenGL_Context;
 
@@ -54,7 +54,13 @@ using std::vector;
 constexpr u16 MAX_TITLE_LENGTH = 512;
 
 //KalaWindow will dynamically update window idle state
-static void UpdateIdleState(Window* window, bool& isIdle);
+static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
+{
+	isIdle =
+		!window->IsForegroundWindow()
+		|| window->IsMinimized()
+		|| !window->IsVisible();
+}
 
 /*
 TODO: add texture support back
@@ -65,21 +71,21 @@ static HICON SetUpIcon(OpenGL_Texture* texture);
 static HICON exeIcon{};
 static HICON overlayIcon{};
 
-static wstring ToWide(const string& str);
+static wstring ToWide(string_view str);
 static string ToShort(const wstring& str);
 
 static string HResultToString(HRESULT hr);
 
 namespace KalaWindow::Graphics
 {
-	static KalaWindowRegistry<Window> registry{};
+	static KalaWindowRegistry<ProcessWindow> registry{};
 
-	KalaWindowRegistry<Window>& Window::GetRegistry() { return registry; }
+	KalaWindowRegistry<ProcessWindow>& ProcessWindow::GetRegistry() { return registry; }
 
-	Window* Window::Initialize(
-		const string& title,
+	ProcessWindow* ProcessWindow::Initialize(
+		string_view title,
 		vec2 size,
-		Window* parentWindow,
+		ProcessWindow* parentWindow,
 		DpiContext context)
 	{
 		if (!Window_Global::IsInitialized())
@@ -94,8 +100,8 @@ namespace KalaWindow::Graphics
 		u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
-		unique_ptr<Window> newWindow = make_unique<Window>();
-		Window* windowPtr = newWindow.get();
+		unique_ptr<ProcessWindow> newWindow = make_unique<ProcessWindow>();
+		ProcessWindow* windowPtr = newWindow.get();
 
 		Log::Print(
 			"Creating window '" + title + "' with ID '" + to_string(newID) + "'.",
@@ -216,7 +222,7 @@ namespace KalaWindow::Graphics
 			break;
 		}
 		
-		windowPtr->window_windows = newWindowStruct;
+		windowPtr->windowData = newWindowStruct;
 
 		windowPtr->SetTitle(title);
 		windowPtr->ID = newID;
@@ -240,11 +246,11 @@ namespace KalaWindow::Graphics
 		return windowPtr;
 	}
 
-	bool Window::IsInitialized() const { return isInitialized; }
+	bool ProcessWindow::IsInitialized() const { return isInitialized; }
 
-	u32 Window::GetID() const { return ID; }
+	u32 ProcessWindow::GetID() const { return ID; }
 
-	void Window::Update()
+	void ProcessWindow::Update()
 	{
 		if (!isInitialized)
 		{
@@ -272,13 +278,11 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	//Assigns paths of last dragged files. This is called through WM_DROPFILES.
-	void Window::SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
-	const vector<string>& Window::GetLastDraggedFiles() const { return lastDraggedFiles; };
-	//Clears paths to last file paths that were dragged onto window
-	void Window::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
+	void ProcessWindow::SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
+	const vector<string>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
+	void ProcessWindow::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
-	void Window::SetTitle(const string& newTitle) const
+	void ProcessWindow::SetTitle(string_view newTitle) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window title"));
 		if (!window) return;
@@ -319,7 +323,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	const string& Window::GetTitle() const
+	string_view ProcessWindow::GetTitle() const
 	{
 		static string result{};
 
@@ -346,7 +350,7 @@ namespace KalaWindow::Graphics
 		return result;
 	}
 
-	void Window::SetIcon(u32 texture) const
+	void ProcessWindow::SetIcon(u32 texture) const
 	{
 		/*
 		TODO: add texture support back
@@ -424,8 +428,8 @@ namespace KalaWindow::Graphics
 		}
 		*/
 	}
-	u32 Window::GetIcon() const { return iconID; }
-	void Window::ClearIcon() const
+	u32 ProcessWindow::GetIcon() const { return iconID; }
+	void ProcessWindow::ClearIcon() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("clear window icon"));
 		if (!window) return;
@@ -443,9 +447,9 @@ namespace KalaWindow::Graphics
 			(LPARAM)nullptr);
 	}
 
-	void Window::SetTaskbarOverlayIcon(
+	void ProcessWindow::SetTaskbarOverlayIcon(
 		u32 texture,
-		const string& tooltip) const
+		string_view tooltip) const
 	{
 		/*
 		TODO: add texture support back
@@ -546,8 +550,8 @@ namespace KalaWindow::Graphics
 		}
 		*/
 	}
-	u32 Window::GetTaskbarOverlayIcon() const { return overlayIconID; }
-	void Window::ClearTaskbarOverlayIcon() const
+	u32 ProcessWindow::GetTaskbarOverlayIcon() const { return overlayIconID; }
+	void ProcessWindow::ClearTaskbarOverlayIcon() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("clear taskbar overlay icon"));
 		if (!window) return;
@@ -576,7 +580,7 @@ namespace KalaWindow::Graphics
 			nullptr);
 	}
 
-	void Window::BringToFocus()
+	void ProcessWindow::BringToFocus()
 	{
 		if (IsFocused()) return; //skip all logic if already focused
 
@@ -636,7 +640,7 @@ namespace KalaWindow::Graphics
 		SetFocus(window);
 	}
 
-	void Window::SetWindowRounding(WindowRounding roundState) const
+	void ProcessWindow::SetWindowRounding(WindowRounding roundState) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window rounding"));
 		if (!window) return;
@@ -688,7 +692,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	WindowRounding Window::GetWindowRoundingState() const
+	WindowRounding ProcessWindow::GetWindowRoundingState() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window rounding state"));
 		if (!window) return WindowRounding::ROUNDING_DEFAULT;
@@ -723,7 +727,7 @@ namespace KalaWindow::Graphics
 		return WindowRounding::ROUNDING_NONE;
 	}
 
-	void Window::SetClientRectSize(vec2 newSize)
+	void ProcessWindow::SetClientRectSize(vec2 newSize)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window client rect size"));
 		if (!window) return;
@@ -770,7 +774,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	vec2 Window::GetClientRectSize() const
+	vec2 ProcessWindow::GetClientRectSize() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window client rect size"));
 		if (!window) return{};
@@ -785,7 +789,7 @@ namespace KalaWindow::Graphics
 		};
 	}
 
-	void Window::SetOuterSize(vec2 newSize)
+	void ProcessWindow::SetOuterSize(vec2 newSize)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window outer size"));
 		if (!window) return;
@@ -816,7 +820,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	vec2 Window::GetOuterSize() const
+	vec2 ProcessWindow::GetOuterSize() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window outer size"));
 		if (!window) return{};
@@ -831,7 +835,7 @@ namespace KalaWindow::Graphics
 		};
 	}
 
-	void Window::SetPosition(vec2 newPosition) const
+	void ProcessWindow::SetPosition(vec2 newPosition) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window position"));
 		if (!window) return;
@@ -856,7 +860,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	vec2 Window::GetPosition()
+	vec2 ProcessWindow::GetPosition()
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window position"));
 		if (!window) return{};
@@ -874,16 +878,16 @@ namespace KalaWindow::Graphics
 		return vec2{ 0, 0 };
 	}
 
-	void Window::SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
-	vec2 Window::GetMaxSize() const { return maxSize; }
+	void ProcessWindow::SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
+	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
 
-	void Window::SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
-	vec2 Window::GetMinSize() const { return minSize; }
+	void ProcessWindow::SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
+	vec2 ProcessWindow::GetMinSize() const { return minSize; }
 
-	void Window::SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
-	bool Window::IsFocusRequired() const { return isWindowFocusRequired; }
+	void ProcessWindow::SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
+	bool ProcessWindow::IsFocusRequired() const { return isWindowFocusRequired; }
 
-	void Window::SetAlwaysOnTopState(bool state) const
+	void ProcessWindow::SetAlwaysOnTopState(bool state) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window always on top state"));
 		if (!window) return;
@@ -908,7 +912,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsAlwaysOnTop() const
+	bool ProcessWindow::IsAlwaysOnTop() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window always on top state"));
 		if (!window) return false;
@@ -920,7 +924,7 @@ namespace KalaWindow::Graphics
 		return (exStyle & WS_EX_TOPMOST) != 0;
 	}
 
-	void Window::SetResizableState(bool state) const
+	void ProcessWindow::SetResizableState(bool state) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window resizable state"));
 		if (!window) return;
@@ -967,7 +971,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsResizable() const
+	bool ProcessWindow::IsResizable() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window resizable state"));
 		if (!window) return false;
@@ -981,7 +985,7 @@ namespace KalaWindow::Graphics
 			| WS_MAXIMIZEBOX)) != 0;
 	}
 
-	void Window::SetTopBarState(bool state) const
+	void ProcessWindow::SetTopBarState(bool state) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window top bar state"));
 		if (!window) return;
@@ -1018,7 +1022,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsTopBarEnabled() const
+	bool ProcessWindow::IsTopBarEnabled() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window top bar state"));
 		if (!window) return false;
@@ -1030,7 +1034,7 @@ namespace KalaWindow::Graphics
 		return (style & WS_CAPTION) != 0;
 	}
 
-	void Window::SetMinimizeButtonState(bool state) const
+	void ProcessWindow::SetMinimizeButtonState(bool state) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window minimize button state"));
 		if (!window) return;
@@ -1067,7 +1071,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsMinimizeButtonEnabled() const
+	bool ProcessWindow::IsMinimizeButtonEnabled() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window minimize button state"));
 		if (!window) return false;
@@ -1079,7 +1083,7 @@ namespace KalaWindow::Graphics
 		return (style & WS_MINIMIZEBOX) != 0;
 	}
 
-	void Window::SetMaximizeButtonState(bool state) const
+	void ProcessWindow::SetMaximizeButtonState(bool state) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window maximize button state"));
 		if (!window) return;
@@ -1116,7 +1120,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsMaximizeButtonEnabled() const
+	bool ProcessWindow::IsMaximizeButtonEnabled() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window maximize button state"));
 		if (!window) return false;
@@ -1128,7 +1132,7 @@ namespace KalaWindow::Graphics
 		return (style & WS_MAXIMIZEBOX) != 0;
 	}
 
-	void Window::SetCloseButtonState(bool state) const
+	void ProcessWindow::SetCloseButtonState(bool state) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window close button state"));
 		if (!window) return;
@@ -1157,7 +1161,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsCloseButtonEnabled() const
+	bool ProcessWindow::IsCloseButtonEnabled() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window close button state"));
 		if (!window) return false;
@@ -1171,7 +1175,7 @@ namespace KalaWindow::Graphics
 			MF_BYCOMMAND) != (UINT)-1);
 	}
 
-	void Window::SetSystemMenuState(bool state) const
+	void ProcessWindow::SetSystemMenuState(bool state) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window system menu state"));
 		if (!window) return;
@@ -1208,7 +1212,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IsSystemMenuEnabled() const
+	bool ProcessWindow::IsSystemMenuEnabled() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window system menu state"));
 		if (!window) return false;
@@ -1220,7 +1224,7 @@ namespace KalaWindow::Graphics
 		return (style & WS_SYSMENU) != 0;
 	}
 
-	void Window::SetOpacity(float alpha) const
+	void ProcessWindow::SetOpacity(float alpha) const
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window opacity"));
 		if (!window) return;
@@ -1258,7 +1262,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	float Window::GetOpacity() const
+	float ProcessWindow::GetOpacity() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window opacity"));
 		if (!window) return{};
@@ -1281,23 +1285,23 @@ namespace KalaWindow::Graphics
 		return 1.0f;
 	}
 
-	bool Window::IsForegroundWindow() const
+	bool ProcessWindow::IsIdle() const { return isIdle; }
+
+	bool ProcessWindow::IsForegroundWindow() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window foreground state"));
 		if (!window) return false;
 
 		return GetForegroundWindow() == window;
 	}
-
-	bool Window::IsFocused() const
+	bool ProcessWindow::IsFocused() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window focused state"));
 		if (!window) return false;
 
 		return GetFocus() == window;
 	}
-
-	bool Window::IsFullscreen()
+	bool ProcessWindow::IsFullscreen()
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window fullscreen state"));
 		if (!window) return false;
@@ -1332,8 +1336,7 @@ namespace KalaWindow::Graphics
 
 		return rectMatches && undecorated;
 	}
-
-	bool Window::IsMinimized() const
+	bool ProcessWindow::IsMinimized() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window minimized state"));
 		if (!window) return false;
@@ -1341,8 +1344,7 @@ namespace KalaWindow::Graphics
 		//IsIconic returns TRUE if the window is minimized
 		return IsIconic(window);
 	}
-
-	bool Window::IsVisible() const
+	bool ProcessWindow::IsVisible() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window visible state"));
 		if (!window) return false;
@@ -1350,7 +1352,10 @@ namespace KalaWindow::Graphics
 		return IsWindowVisible(window);
 	}
 
-	void Window::SetWindowMode(WindowMode mode)
+	void ProcessWindow::SetResizingState(bool newState) { isResizing = newState; }
+	bool ProcessWindow::IsResizing() const { return isResizing; }
+
+	void ProcessWindow::SetWindowMode(WindowMode mode)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window mode"));
 		if (!window) return;
@@ -1491,7 +1496,7 @@ namespace KalaWindow::Graphics
 		TriggerResize();
 		TriggerRedraw();
 	}
-	WindowMode Window::GetWindowMode()
+	WindowMode ProcessWindow::GetWindowMode()
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window mode"));
 		if (!window) return WindowMode::WINDOWMODE_WINDOWED;
@@ -1530,7 +1535,7 @@ namespace KalaWindow::Graphics
 		else                     return WindowMode::WINDOWMODE_WINDOWED;
 	}
 
-	void Window::SetWindowState(WindowState state)
+	void ProcessWindow::SetWindowState(WindowState state)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window state"));
 		if (!window) return;
@@ -1578,7 +1583,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	WindowState Window::GetWindowState() const
+	WindowState ProcessWindow::GetWindowState() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window state"));
 		if (!window) return WindowState::WINDOW_NORMAL;
@@ -1613,7 +1618,7 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::SetShutdownBlockState(bool state)
+	void ProcessWindow::SetShutdownBlockState(bool state)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window shutdown block state"));
 		if (!window) return;
@@ -1642,9 +1647,9 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	bool Window::IShutdownBlockEnabled() const { return shutdownBlockState; }
+	bool ProcessWindow::IShutdownBlockEnabled() const { return shutdownBlockState; }
 
-	void Window::Flash(
+	void ProcessWindow::Flash(
 		FlashTarget target,
 		FlashType type,
 		u32 count) const
@@ -1725,7 +1730,7 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::SetTaskbarProgressBarState(
+	void ProcessWindow::SetTaskbarProgressBarState(
 		TaskbarProgressBarMode mode,
 		u8 current,
 		u8 max) const
@@ -1809,42 +1814,31 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window::TriggerResize() { if (resizeCallback) resizeCallback(); }
-	void Window::SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
+	void ProcessWindow::TriggerResize() { if (resizeCallback) resizeCallback(); }
+	void ProcessWindow::SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
 
-	void Window::TriggerRedraw() { if (redrawCallback) redrawCallback(); }
-	void Window::SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
+	void ProcessWindow::TriggerRedraw() { if (redrawCallback) redrawCallback(); }
+	void ProcessWindow::SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
-#ifdef _WIN32
-	void Window::SetWindowData(const WindowData& newWindowStruct)
-	{
-		window_windows = newWindowStruct;
-	}
-	const WindowData& Window::GetWindowData() const { return window_windows; }
-#else
-	void Window::SetWindowData(const WindowData& newWindowStruct)
-	{
-		window_x11 = newWindowStruct;
-	}
-	const WindowData& Window::GetWindowData() const { return window_x11; }
-#endif
+	void ProcessWindow::SetWindowData(const WindowData& newWindowStruct) { windowData = newWindowStruct; }
+	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }
 
 	//
 	// WINDOW CONTENT
 	//
 
-	u32 Window::GetInputID() const { return inputID; }
-	void Window::SetInputID(u32 newValue) { inputID = newValue; }
+	u32 ProcessWindow::GetInputID() const { return inputID; }
+	void ProcessWindow::SetInputID(u32 newValue) { inputID = newValue; }
 
-	u32 Window::GetGLID() const { return glID; }
-	void Window::SetGLID(u32 newValue) { glID = newValue; }
+	u32 ProcessWindow::GetGLID() const { return glID; }
+	void ProcessWindow::SetGLID(u32 newValue) { glID = newValue; }
 
-	u32 Window::GetMenuBarID() const { return menuBarID; }
-	void Window::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
+	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
+	void ProcessWindow::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
 
-	void Window::SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
+	void ProcessWindow::SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
 
-	void Window::CloseWindow()
+	void ProcessWindow::CloseWindow()
 	{
 		if (cleanExternalContent) cleanExternalContent(ID);
 		
@@ -1853,10 +1847,10 @@ namespace KalaWindow::Graphics
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
 		
-		KalaWindowRegistry<Window>::RemoveContent(ID);
+		KalaWindowRegistry<ProcessWindow>::RemoveContent(ID);
 	}
 
-	Window::~Window()
+	ProcessWindow::~ProcessWindow()
 	{
 		string title = GetTitle();
 
@@ -1869,16 +1863,16 @@ namespace KalaWindow::Graphics
 		glID = 0;
 		menuBarID = 0;
 
-		HWND winRef = ToVar<HWND>(window_windows.hwnd);
+		HWND winRef = ToVar<HWND>(windowData.hwnd);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
-		if (window_windows.wndProc) window_windows.wndProc = NULL;
+		if (windowData.wndProc) windowData.wndProc = NULL;
 
-		if (window_windows.hdc)
+		if (windowData.hdc)
 		{
 			ReleaseDC(
-				ToVar<HWND>(window_windows.hwnd),
-				ToVar<HDC>(window_windows.hdc));
+				ToVar<HWND>(windowData.hwnd),
+				ToVar<HDC>(windowData.hdc));
 		}
 
 		if (exeIcon)
@@ -1894,17 +1888,17 @@ namespace KalaWindow::Graphics
 
 		if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
 
-		if (window_windows.hwnd)
+		if (windowData.hwnd)
 		{
 			DestroyWindow(winRef);
-			window_windows.hwnd = NULL;
+			windowData.hwnd = NULL;
 		}
-		window_windows.hInstance = NULL;
+		windowData.hInstance = NULL;
 	}
 
-	uintptr_t Window::GetHWND(const string& errorMessage) const
+	uintptr_t ProcessWindow::GetHWND(string_view errorMessage) const
 	{
-		uintptr_t win = window_windows.hwnd;
+		uintptr_t win = windowData.hwnd;
 		if (win) return win;
 		
 		KalaWindowCore::ForceClose(
@@ -1913,14 +1907,6 @@ namespace KalaWindow::Graphics
 
 		return 0;
 	}
-}
-
-void UpdateIdleState(Window* window, bool& isIdle)
-{
-	isIdle =
-		!window->IsForegroundWindow()
-		|| window->IsMinimized()
-		|| !window->IsVisible();
 }
 
 /*
@@ -2017,7 +2003,7 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 }
 */
 
-wstring ToWide(const string& input)
+wstring ToWide(string_view input)
 {
 	if (input.empty()) return wstring();
 

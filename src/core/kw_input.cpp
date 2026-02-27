@@ -4,8 +4,8 @@
 //Read LICENSE.md for more information.
 
 #ifdef _WIN32
-
 #include <windows.h>
+#endif //_WIN32
 #include <string>
 #include <memory>
 
@@ -26,7 +26,7 @@ using KalaHeaders::KalaKeyStandards::MouseToIndex;
 using KalaHeaders::KalaKeyStandards::IndexToKey;
 using KalaHeaders::KalaKeyStandards::IndexToMouse;
 
-using KalaWindow::Graphics::Window;
+using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 
 using std::string;
@@ -47,7 +47,7 @@ namespace KalaWindow::Core
 
 	Input* Input::Initialize(u32 windowID)
 	{
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -76,6 +76,7 @@ namespace KalaWindow::Core
 		// MOUSE RAW INPUT
 		//
 
+#ifdef _WIN32
 		const WindowData& win = window->GetWindowData();
 		HWND winRef = ToVar<HWND>(win.hwnd);
 
@@ -86,6 +87,7 @@ namespace KalaWindow::Core
 		rid.hwndTarget = winRef;
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
+#endif
 
 		registry.AddContent(newID, std::move(newInput));
 		window->SetInputID(newID);
@@ -418,8 +420,19 @@ namespace KalaWindow::Core
 	{
 		isMouseVisible = state;
 
-		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
-		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
+		if (state)
+		{
+#ifdef _WIN32
+			while (ShowCursor(TRUE) < 0);   //increment until visible
+#endif
+		}
+		else
+		{
+#ifdef _WIN32
+			while (ShowCursor(FALSE) >= 0); //decrement until hidden
+#endif
+		}
+
 
 		if (isVerboseLoggingEnabled)
 		{
@@ -440,11 +453,13 @@ namespace KalaWindow::Core
 
 		if (!state)
 		{
+#ifdef _WIN32
 			ClipCursor(nullptr);
+#endif
 		}
 		else
 		{
-			Window* window = Window::GetRegistry().GetContent(windowID);
+			ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 			if (!window
 				|| !window->IsInitialized())
@@ -457,6 +472,7 @@ namespace KalaWindow::Core
 				return;
 			}
 
+#ifdef _WIN32
 			HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
 
 			RECT rect{};
@@ -469,7 +485,9 @@ namespace KalaWindow::Core
 			rect.right = lr.x; rect.bottom = lr.y;
 
 			ClipCursor(&rect);
+#endif
 		}
+
 
 		if (isVerboseLoggingEnabled)
 		{
@@ -487,49 +505,53 @@ namespace KalaWindow::Core
 
 	void Input::SetMouseVisibilityBetweenFocus(bool state) const
 	{
-		if (!isMouseVisible)
-		{
-			if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
-			else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
-		}
+		if (isMouseVisible) return;
+
+#ifdef _WIN32
+		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
+		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
+#endif
 	}
 
 	void Input::SetMouseLockStateBetweenFocus(bool state) const
 	{
-		if (isMouseLocked)
+		if (isMouseLocked) return;
+
+		if (!state)
 		{
-			if (!state)
+#ifdef _WIN32
+			ClipCursor(nullptr);
+#endif
+		}
+		else
+		{
+			ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
+
+			if (!window
+				|| !window->IsInitialized())
 			{
-				ClipCursor(nullptr);
+				Log::Print(
+					"Cannot set mouse lock state between focus because its window was not found!",
+					"INPUT",
+					LogType::LOG_ERROR);
+
+				return;
 			}
-			else
-			{
-				Window* window = Window::GetRegistry().GetContent(windowID);
 
-				if (!window
-					|| !window->IsInitialized())
-				{
-					Log::Print(
-						"Cannot set mouse lock state between focus because its window was not found!",
-						"INPUT",
-						LogType::LOG_ERROR);
+#ifdef _WIN32
+			HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
 
-					return;
-				}
+			RECT rect{};
+			GetClientRect(hwnd, &rect);
+			POINT ul{ rect.left, rect.top };
+			POINT lr{ rect.right, rect.bottom };
+			ClientToScreen(hwnd, &ul);
+			ClientToScreen(hwnd, &lr);
+			rect.left = ul.x; rect.top = ul.y;
+			rect.right = lr.x; rect.bottom = lr.y;
 
-				HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
-
-				RECT rect{};
-				GetClientRect(hwnd, &rect);
-				POINT ul{ rect.left, rect.top };
-				POINT lr{ rect.right, rect.bottom };
-				ClientToScreen(hwnd, &ul);
-				ClientToScreen(hwnd, &lr);
-				rect.left = ul.x; rect.top = ul.y;
-				rect.right = lr.x; rect.bottom = lr.y;
-
-				ClipCursor(&rect);
-			}
+			ClipCursor(&rect);
+#endif
 		}
 	}
 
@@ -559,7 +581,7 @@ namespace KalaWindow::Core
 
 		if (isMouseLocked)
 		{
-			Window* window = Window::GetRegistry().GetContent(windowID);
+			ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 			if (!window
 				|| !window->IsInitialized())
@@ -573,6 +595,8 @@ namespace KalaWindow::Core
 			}
 
 			const WindowData& windowData = window->GetWindowData();
+
+#ifdef _WIN32
 			HWND windowRef = ToVar<HWND>(windowData.hwnd);
 
 			RECT rect{};
@@ -593,6 +617,7 @@ namespace KalaWindow::Core
 			{
 				SetCursorPos(center.x, center.y);
 			}
+#endif
 		}
 	}
 
@@ -609,7 +634,7 @@ namespace KalaWindow::Core
 			return;
 		}
 
-		Window* window = Window::GetRegistry().GetContent(windowID);
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
 			|| !window->IsInitialized())
@@ -631,5 +656,3 @@ namespace KalaWindow::Core
 		EndFrameUpdate();
 	}
 }
-
-#endif //_WIN32

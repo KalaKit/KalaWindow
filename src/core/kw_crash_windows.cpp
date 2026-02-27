@@ -15,9 +15,9 @@
 #include <sstream>
 #include <filesystem>
 #include <functional>
-#include <atomic>
 
 #include "KalaHeaders/log_utils.hpp"
+#include "KalaHeaders/thread_utils.hpp"
 
 #include "core/kw_crash.hpp"
 #include "core/kw_core.hpp"
@@ -27,7 +27,11 @@ using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 
+using KalaHeaders::KalaThread::auptr;
+using KalaHeaders::KalaThread::memory_order_relaxed;
+
 using KalaWindow::Core::CrashHandler;
+using KalaWindow::Core::MAX_MESSAGE_LENGTH;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
@@ -55,6 +59,11 @@ static function<void()> assignedShutdownFunction{};
 //Whether or not to create a dump file at crash
 static bool canCreateDump;
 
+//reserve (10 * MAX_MESSAGE_LENGTH) bytes for the last 10 log messages
+static inline char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
+//Which slot are we currently on
+static inline auptr crashLogIndex{};
+
 //Windows crash handler that calls the minidump creator function
 //and sends error info to error popup
 static LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info);
@@ -62,8 +71,8 @@ static LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info);
 //Creates a windows crash .dmp file to exe location.
 static void WriteMiniDump(
 	EXCEPTION_POINTERS* info,
-	const string& exePath,
-	const string& timeStamp);
+	string_view exePath,
+	string_view timeStamp);
 
 //Appends up to to last 10 frames of the call stack upon crash
 static void AppendCallStackToStream(
@@ -72,20 +81,13 @@ static void AppendCallStackToStream(
 
 //Write crash log to exe path
 static void WriteLog(
-	const string& message,
-	const string& timeStamp);
-
-static array<char, 10> crashLogBuffer;
+	string_view message,
+	string_view timeStamp);
 
 namespace KalaWindow::Core
 {
-	//reserve (10 * MAX_MESSAGE_LENGTH) bytes for the last 10 log messages
-	static inline char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
-	//Which slot are we currently on
-	static inline atomic<u32> crashLogIndex{};
-
 	void CrashHandler::Initialize(
-		const string& programName,
+		string_view programName,
 		const function<void()>& shutdownFunction,
 		bool createDump)
 	{
@@ -155,27 +157,27 @@ namespace KalaWindow::Core
 		//explicit null-termination
 		slot[copyLength] = '\0';
 	}
-
-	array<string_view, 10> CrashHandler::GetCrashLogContent()
-	{
-		array<string_view, 10> content{};
-
-		const u32 head = crashLogIndex.load(memory_order_relaxed);
-
-		for (u32 i = 0; i < 10; ++i)
-		{
-			const u32 index = (head + i) % 10;
-			const char* entry = crashLogBuffer[index];
-
-			if (entry[0] != '\0') content[i] = string_view(entry);
-		}
-
-		return content;
-	}
 }
 
 LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 {
+	auto get_crash_log_content = []()
+        {
+            array<string_view, 10> content{};
+
+            const u32 head = crashLogIndex.load(memory_order_relaxed);
+
+            for (u32 i = 0; i < 10; ++i)
+            {
+                const u32 index = (head + i) % 10;
+                const char* entry = crashLogBuffer[index];
+
+                if (entry[0] != '\0') content[i] = string_view(entry);
+            }
+
+            return content;
+        };
+
 	DWORD code = info->ExceptionRecord->ExceptionCode;
 
 	//special breakpoint-only stream
@@ -188,8 +190,8 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	oss << "\n[CRASH DETECTED]\n\n";
 
-	oss << "Exception code: " << hex << code << "\n";
-	oss << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << "\n\n";
+	oss << "Exception code: " << hex << code << dec << "\n";
+	oss << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << dec << "\n\n";
 
 	switch (code)
 	{
@@ -210,7 +212,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		}
 
 		oss << "Reason: Access violation - attempted to " << accessStr
-			<< " invalid memory at address 0x" << hex << accessType[1];
+			<< " invalid memory at address 0x" << hex << accessType[1] << dec;
 
 		if (accessType[0] == 8)
 		{
@@ -262,7 +264,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	}
 
 	default:
-		oss << "Reason: Unknown exception (code: 0x" << hex << code << ")\n";
+		oss << "Reason: Unknown exception\n";
 		break;
 	}
 
@@ -272,7 +274,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	oss << "\nRecent log activity before crash:\n\n";
 
-	array<string_view, 10> content = CrashHandler::GetCrashLogContent();
+	array<string_view, 10> content = get_crash_log_content();
 	for (const auto& c : content)
 	{
 		if (!c.empty())
@@ -326,8 +328,8 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 void WriteMiniDump(
 	EXCEPTION_POINTERS* info,
-	const string& exePath,
-	const string& timeStamp)
+	string_view exePath,
+	string_view timeStamp)
 {
 	string filePath = timeStamp + ".dmp";
 
@@ -493,7 +495,7 @@ void AppendCallStackToStream(
 			oss << "\n        line: " << dec << lineInfo.LineNumber;
 		}
 
-		oss << " [0x" << hex << addr << "]\n";
+		oss << " [0x" << hex << addr << "]\n" << dec;
 	}
 
 	SymCleanup(process);
@@ -502,8 +504,8 @@ void AppendCallStackToStream(
 }
 
 void WriteLog(
-	const string& message,
-	const string& timeStamp)
+	string_view message,
+	string_view timeStamp)
 {
 	string fileName = timeStamp + ".txt";
 	string fullPath = (current_path() / fileName).string();

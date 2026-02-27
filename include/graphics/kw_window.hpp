@@ -35,7 +35,8 @@ namespace KalaWindow::Graphics
 		//stays alt-tab friendly and uses the compositor, best for low-performance applications and games
 		WINDOWMODE_BORDERLESS,
 		//Window will go fullscreen and will hide decorations and top bar,
-		//flashes when alt-tabbing and uses full gpu, best for high-performance applications and games
+		//flashes when alt-tabbing and uses full gpu, best for high-performance applications and games,
+		//uses WINDOWMODE_BORDERLESS on x11 and wayland
 		WINDOWMODE_EXCLUSIVE
 	};
 
@@ -46,22 +47,18 @@ namespace KalaWindow::Graphics
 		WINDOW_MAXIMIZE,      //Maximize window to full monitor size
 		WINDOW_MINIMIZE,      //Minimize window to taskbar
 		WINDOW_HIDE,          //Hide the window, including from taskbar
-		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it
+		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it, uses WINDOW_NORMAL on x11 and wayland
 	};
 
 	enum class DpiContext
 	{
-		//sharpest, ideal DPI scaling between monitors,
-		//nearly identical in performance compared to DPI_SYSTEM_AWARE
-		//but slower than DPI_UNAWARE at higher resolutions
+		//sharpest, ideal DPI scaling between monitors
 		DPI_PER_MONITOR,
 
-		//sharp on primary monitor, blurry if dragged to higher DPI monitor,
-		//nearly identical in performance compared to DPI_PER_MONITOR
-		//but slower than DPI_UNAWARE at higher resolutions
+		//sharp on primary monitor, blurry if dragged to higher DPI monitor
 		DPI_SYSTEM_AWARE,
 
-		//always as 96 DPI, blurry on high DPI screens, fastest performance
+		//blurry on high DPI screens, fastest performance
 		DPI_UNAWARE
 	};
 
@@ -104,27 +101,28 @@ namespace KalaWindow::Graphics
 		PROGRESS_ERROR          //red bar
 	};
 #else
+#if defined(KW_USE_X11)
 	struct LIB_API WindowData
 	{
-		uintptr_t display{};
 		uintptr_t window{};
-		uintptr_t visual{};
 	};
+#elif defined(KW_USE_WAYLAND)
+#endif
 #endif
 
-	class LIB_API Window
+	class LIB_API ProcessWindow
 	{
 	public:
-		static KalaWindowRegistry<Window>& GetRegistry();
+		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
 		//Create a new window that is always hidden by default, you must manually make it visible.
 		//Assign a parent window to display this window as a child of that window.
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
-		static Window* Initialize(
+		static ProcessWindow* Initialize(
 			const string& title,
 			vec2 size,
-			Window* parentWindow = nullptr,
+			ProcessWindow* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 
 		bool IsInitialized() const;
@@ -134,7 +132,7 @@ namespace KalaWindow::Graphics
 		//Draws the window, handles messages for active frame
 		void Update();
 
-		//Assigns paths of last dragged files. This is called through WM_DROPFILES.
+		//Assigns paths of last dragged files. This is called through WM_DROPFILES on windows.
 		void SetLastDraggedFiles(const vector<string>& files);
 		const vector<string>& GetLastDraggedFiles() const;
 		//Clears paths to last file paths that were dragged onto window
@@ -203,6 +201,7 @@ namespace KalaWindow::Graphics
 		void SetResizableState(bool state) const;
 		bool IsResizable() const;
 
+#ifdef _WIN32
 		//If true, then this window shows its top bar
 		void SetTopBarState(bool state) const;
 		bool IsTopBarEnabled() const;
@@ -227,12 +226,13 @@ namespace KalaWindow::Graphics
 		//Set window opacity/transparency. Internally clamped between 0.0f and 1.0f
 		void SetOpacity(float alpha) const;
 		float GetOpacity() const;
+#endif
 
 		//Returns true if one of these is true:
 		//  - not foreground
 		//  - minimized
 		//  - not visible
-		bool IsIdle() const { return isIdle; }
+		bool IsIdle() const;
 
 		//Returns true if this window is in the front
 		bool IsForegroundWindow() const;
@@ -246,8 +246,8 @@ namespace KalaWindow::Graphics
 		bool IsVisible() const;
 
 		//Called internally in message loop
-		void SetResizingState(bool newState) { isResizing = newState; }
-		bool IsResizing() const { return isResizing; }
+		void SetResizingState(bool newState);
+		bool IsResizing() const;
 
 		//Can assign the window mode to one of the supported types
 		void SetWindowMode(WindowMode mode);
@@ -257,12 +257,12 @@ namespace KalaWindow::Graphics
 		void SetWindowState(WindowState state);
 		WindowState GetWindowState() const;
 
+#ifdef _WIN32
 		//If true, then Windows stops this app from closing
 		//when shutting down or logging off to enable you to close your work
 		void SetShutdownBlockState(bool state);
 		bool IShutdownBlockEnabled() const;
 
-#ifdef _WIN32
 		//Flash the window or taskbar to attract user attention
 		void Flash(
 			FlashTarget target,
@@ -278,7 +278,7 @@ namespace KalaWindow::Graphics
 			u8 maxProgress) const;
 #endif
 
-		//Correctly handle aspect ratio during window resize for camera
+		//Correctly handle aspect ratio during window resize
 		void TriggerResize();
 		void SetResizeCallback(const function<void()>& callback);
 
@@ -286,13 +286,8 @@ namespace KalaWindow::Graphics
 		void TriggerRedraw();
 		void SetRedrawCallback(const function<void()>& callback);
 
-#ifdef _WIN32
 		void SetWindowData(const WindowData& newWindowStruct);
 		const WindowData& GetWindowData() const;
-#else
-		void SetWindowData(const WindowData& newWindowStruct);
-		const WindowData& GetWindowData() const;
-#endif
 
 		//
 		// WINDOW CONTENT
@@ -315,7 +310,7 @@ namespace KalaWindow::Graphics
 		void CloseWindow();
 
 		//Do not destroy manually, erase from registry instead
-		~Window();
+		~ProcessWindow();
 	private:
 		uintptr_t GetHWND(const string& errorMessage) const;
 
@@ -345,11 +340,7 @@ namespace KalaWindow::Graphics
 		//functional for cleaning the external content of this window
 		function<void(u32)> cleanExternalContent{};
 
-#ifdef _WIN32
-		WindowData window_windows{}; //The windows data of this window
-#else
-		WindowData window_x11{};     //The X11 data of this window
-#endif
+		WindowData windowData{};
 
 		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
 		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn

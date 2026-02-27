@@ -3,18 +3,41 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+//ensure definitions are sane
+#if defined(_WIN32)
+	#if defined(KW_USE_X11) || defined(KW_USE_WAYLAND)
+	#error "Cannot use X11 or Wayland on Windows!"
+	#endif
+#elif defined(__linux__)
+	#if defined(KW_USE_X11) && defined(KW_USE_WAYLAND)
+		#error "Cannot use X11 and Wayland together!"
+	#endif
+	#if !defined(KW_USE_X11) && !defined(KW_USE_WAYLAND)
+		#error "You must define KW_USE_X11 or KW_USE_WAYLAND!"
+	#endif
+#endif
+
+#if defined(_WIN32)
 #include <windows.h>
 #include <mmsystem.h>
-#else
+#elif defined(__linux__)
 #include <csignal>
+#if defined(KW_USE_X11)
+#include <X11/Xlib.h>
 #endif
+#endif
+
 #include <functional>
 #include <chrono>
 #include <string>
 #include <algorithm>
 
+#include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/log_utils.hpp"
+
+#if defined(__linux__)
+#include "graphics/kw_window_global.hpp"
+#endif
 
 #include "core/kw_core.hpp"
 #include "core/kw_crash.hpp"
@@ -24,14 +47,26 @@
 #include "opengl/kw_opengl.hpp"
 #include "opengl/kw_opengl_shader.hpp"
 
+using KalaHeaders::KalaCore::ToVar;
+
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 using KalaHeaders::KalaLog::DateFormat;
 
-using KalaWindow::Core::CrashHandler;
-using KalaWindow::Graphics::Window;
+#ifdef _WIN32
 using KalaWindow::Graphics::MenuBar;
+#endif
+
+#if defined(__linux__)
+using KalaWindow::Graphics::Window_Global;
+#if defined(KW_USE_X11)
+using KalaWindow::Graphics::X11GlobalData;
+#endif
+#endif
+
+using KalaWindow::Core::CrashHandler;
+using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::OpenGL::OpenGL_Shader;
 
@@ -170,8 +205,19 @@ namespace KalaWindow::Core
 		OpenGL_Context::GetRegistry().RemoveAllContent();
 
 		Input::GetRegistry().RemoveAllContent();
+#ifdef _WIN32
 		MenuBar::GetRegistry().RemoveAllContent();
-		Window::GetRegistry().RemoveAllContent();
+#endif
+		ProcessWindow::GetRegistry().RemoveAllContent();
+
+#if defined(__linux__) && defined(KW_USE_X11)
+		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+		if (globalData.display)
+		{
+			Display* display = ToVar<Display*>(globalData.display);
+			XCloseDisplay(display);
+		}
+#endif
 
 		if (!useWindowShutdown
 			&& userShutdown)
