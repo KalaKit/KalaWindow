@@ -180,18 +180,18 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	DWORD code = info->ExceptionRecord->ExceptionCode;
 
-	//special breakpoint-only stream
-	ostringstream bposs{};
-	bool isBreakpoint{};
+    //What the user sees
+	ostringstream userStream{};
 
-	ostringstream oss{};
+    //Whats written to the log file
+    ostringstream logStream{};
 
-	oss << "\n========================================\n";
+	logStream << "\n========================================\n";
 
-	oss << "\n[CRASH DETECTED]\n\n";
+	logStream << "\n[CRASH DETECTED]\n\n";
 
-	oss << "Exception code: " << hex << code << dec << "\n";
-	oss << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << dec << "\n\n";
+	logStream << "Exception code: " << hex << code << dec << "\n";
+	logStream << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << dec << "\n\n";
 
 	switch (code)
 	{
@@ -211,21 +211,23 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		case 8: accessStr = "execute"; break;
 		}
 
-		oss << "Reason: Access violation - attempted to " << accessStr
+		logStream << "Reason: Access violation - attempted to " << accessStr
 			<< " invalid memory at address 0x" << hex << accessType[1] << dec;
 
 		if (accessType[0] == 8)
 		{
-			oss << "(possible code execution or exploit attempt)";
+			logStream << "(possible code execution or exploit attempt)";
 		}
-		oss << "\n";
+		logStream << "\n";
 		break;
 	}
 	case EXCEPTION_STACK_OVERFLOW:
-		oss << "Reason: Stack overflow (likely due to infinite recursion)\n";
+		logStream << "Reason: Stack overflow (likely due to infinite recursion)\n";
+		userStream << "A stack overflow was hit";
 		break;
 	case EXCEPTION_INT_DIVIDE_BY_ZERO:
-		oss << "Reason: Integer divide by zero\n";
+		logStream << "Reason: Integer divide by zero\n";
+		userStream << "An integer divide by zero error was reached";
 		break;
 
 		//
@@ -233,19 +235,24 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		//
 
 	case EXCEPTION_ILLEGAL_INSTRUCTION:
-		oss << "Reason: Illegal CPU instruction executed\n";
+		logStream << "Reason: Illegal CPU instruction executed\n";
+		userStream << "An illegal CPU instruction was executed";
 		break;
 	case EXCEPTION_GUARD_PAGE:
-		oss << "Reason: Guard page accessed (likely stack guard or memory protection violation)\n";
+		logStream << "Reason: Guard page accessed (likely stack guard or memory protection violation)\n";
+		userStream << "The guard page was accessed";
 		break;
 	case EXCEPTION_PRIV_INSTRUCTION:
-		oss << "Reason: Privileged instruction executed in user mode\n";
+		logStream << "Reason: Privileged instruction executed in user mode\n";
+		userStream << "A privileged instruction was executed in user mode";
 		break;
 	case EXCEPTION_NONCONTINUABLE_EXCEPTION:
-		oss << "Reason: Attempted to continue after a non-continuable exception (fatal logic error)\n";
+		logStream << "Reason: Attempted to continue after a non-continuable exception (fatal logic error)\n";
+		userStream << "An attempt to continue after a non-continuable exception was reached";
 		break;
 	case EXCEPTION_IN_PAGE_ERROR:
-		oss << "Reason: Memory access failed (I/O or paging failure)\n";
+		logStream << "Reason: Memory access failed (I/O or paging failure)\n";
+		userStream << "Memory access failed";
 		break;
 
 
@@ -254,37 +261,39 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	{
 		isBreakpoint = true;
 
-		oss << "Reason: Breakpoint hit (INT 3 instruction executed)\n";
-
-		bposs << "A breakpoint or force close state was reached!\n\n"
-			<< "The application must close and cannot continue running.\n"
-			<< "A log file has been created in the folder of this application.";
+		logStream << "Reason: Breakpoint hit (INT 3 instruction executed)\n";
+		userStream << "A breakpoint or force close state was reached";
 
 		break;
 	}
 
 	default:
-		oss << "Reason: Unknown exception\n";
+		logStream << "Reason: Unknown exception\n";
+		userStream << "An unknown exception was reached";
 		break;
 	}
+
+	userStream << "!\n\n"
+        << "The application must close and cannot continue running.\n"
+        << "A log file has been created in the folder of this application.";
 
 	AppendCallStackToStream(oss, info->ContextRecord);
 
 	//append crash log buffer
 
-	oss << "\nRecent log activity before crash:\n\n";
+	logStream << "\nRecent log activity before crash:\n\n";
 
 	array<string_view, 10> content = get_crash_log_content();
 	for (const auto& c : content)
 	{
 		if (!c.empty())
 		{
-			oss << c;
-			if (c.back() != '\n') oss << '\n';
+			logStream << c;
+			if (c.back() != '\n') logStream << '\n';
 		}
 	}
 
-	oss << "\n========================================\n";
+	logStream << "\n========================================\n";
 
 	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
@@ -295,7 +304,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 			current_path().string().c_str(),
 			timeStamp);
 
-		oss << "A dump file '" << timeStamp << ".dmp" << "' was created at exe root folder.";
+		logStream << "A dump file '" << timeStamp << ".dmp" << "' was created at exe root folder.";
 	}
 	else
 	{
@@ -315,7 +324,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	if (Window_Global::CreatePopup(
 		assignedProgramName,
-		isBreakpoint ? bposs.str() : oss.str(),
+		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
 		PopupType::POPUP_TYPE_ERROR) ==
 		PopupResult::POPUP_RESULT_OK)
@@ -387,7 +396,7 @@ void WriteMiniDump(
 }
 
 void AppendCallStackToStream(
-	ostringstream& oss, 
+	ostringstream& logStream, 
 	CONTEXT* context)
 {
 	HANDLE process = GetCurrentProcess();
@@ -423,8 +432,8 @@ void AppendCallStackToStream(
 	stack.AddrFrame.Mode = AddrModeFlat;
 	stack.AddrStack.Mode = AddrModeFlat;
 
-	oss << "\n========================================\n";
-	oss << "\nCall stack:\n\n";
+	logStream << "\n========================================\n";
+	logStream << "\nCall stack:\n\n";
 
 	for (int i = 0; i < 10; ++i)
 	{
@@ -450,7 +459,7 @@ void AppendCallStackToStream(
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 		symbol->MaxNameLen = MAX_SYM_NAME;
 
-		oss << "  " << i << ": ";
+		logStream << "  " << i << ": ";
 		DWORD64 displacement = 0;
 		if (SymFromAddr(
 			process,
@@ -465,11 +474,11 @@ void AppendCallStackToStream(
 				sizeof(demangled),
 				UNDNAME_COMPLETE))
 			{
-				oss << demangled;
+				logStream << demangled;
 			}
-			else oss << symbol->Name;
+			else logStream << symbol->Name;
 		}
-		else oss << "(symbol not found)\n";
+		else logStream << "(symbol not found)\n";
 
 		//file and line info
 		IMAGEHLP_LINE64 lineInfo;
@@ -491,16 +500,16 @@ void AppendCallStackToStream(
 				? fullPath.substr(secondLastSlash + 1)
 				: fullPath;
 
-			oss << "\n        script: " << shortPath;
-			oss << "\n        line: " << dec << lineInfo.LineNumber;
+			logStream << "\n        script: " << shortPath;
+			logStream << "\n        line: " << dec << lineInfo.LineNumber;
 		}
 
-		oss << " [0x" << hex << addr << "]\n" << dec;
+		logStream << " [0x" << hex << addr << "]\n" << dec;
 	}
 
 	SymCleanup(process);
 
-	oss << "\n========================================\n";
+	logStream << "\n========================================\n";
 }
 
 void WriteLog(

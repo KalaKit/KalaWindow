@@ -182,6 +182,10 @@ namespace KalaWindow::Core
             SIGABRT,
             &sa,
             nullptr);
+        sigaction(
+            SIGTRAP,
+            &sa,
+            nullptr);
 
 		assignedProgramName = programName;
 		assignedShutdownFunction = shutdownFunction;
@@ -284,22 +288,23 @@ void GenerateFullCrashReport(
             return content;
         };
 
-	//special breakpoint-only stream
-	ostringstream bposs{};
-	bool isBreakpoint{};
+    //What the user sees
+	ostringstream userStream{};
 
-    ostringstream oss{};
-    oss << "\n========================================\n";
-    oss << "\n[CRASH DETECTED]\n\n";
+    //Whats written to the log file
+    ostringstream logStream{};
 
-    oss << "Exception code: " << hex << signal << dec << "\n";
+    logStream << "\n========================================\n";
+    logStream << "\n[CRASH DETECTED]\n\n";
+
+    logStream << "Exception code: " << hex << signal << dec << "\n";
 
     uintptr_t addr = (info && info->si_addr)
         ? (uintptr_t)info->si_addr
         : 0;
-    oss << "Address: 0x" << hex << addr << "\n\n";
+    logStream << "Address: 0x" << hex << addr << "\n\n";
 
-    oss << "Reason: ";
+    logStream << "Reason: ";
 
     switch (signal)
     {
@@ -320,100 +325,85 @@ void GenerateFullCrashReport(
                     && fault <= rsp
                     && (rsp - fault) < threshold)
                 {
-                    oss << "Stack overflow (likely due to infinite recursion)\n";
+                    logStream << "Stack overflow (likely due to infinite recursion)\n";
+                    userStream << "A stack overflow was hit";
                     break;
                 }
             }
 
             //otherwise treat as normal access violation
-            oss << "Access violation - attempted to ";
-
-            if (info 
-                && SEGV_ACCERR)
-            {
-                oss << "access protected memory";
-            }
-            else oss << "access invalid memory";
-
-            oss << " at address 0x" << hex << addr << dec << "\n";
+            logStream << "Access violation - attempted to access invalid memory at address 0x" << hex << addr << dec << "\n";
+            userStream << "An attempt to access invalid memory was reached";
             break;
         }
         case SIGFPE:
             if (info
                 && info->si_code == FPE_INTDIV)
             {
-                oss << "Integer divide by zero";
+                logStream << "Integer divide by zero";
+                userStream << "An integer divide by zero error was reached";
             }
-            else oss << "Arithmetic exception";
+            else
+            {
+                logStream << "Arithmetic exception";
+                userStream << "An arithmetic exception was reached";
+            }
 
-            oss << "\n";
+            logStream << "\n";
             break;
         case SIGILL:
-            if (info)
-            {
-                switch (info->si_code)
-                {
-                    case ILL_PRVOPC:
-                    case ILL_PRVREG:
-                        oss << "Privileged instruction executed in user mode";
-                        break;
-                    default:
-                        oss << "Illegal CPU instruction executed";
-                        break;
-                }
-            }
-            else oss << "Illegal CPU instruction executed";
-
-            oss << "\n";
+            logStream << "Illegal CPU instruction executed\n";
+            userStream << "An illegal CPU instruction was executed";
             break;
         case SIGABRT:
-            oss << "Abort signal received\n";
+            logStream << "Abort signal received\n";
+            userStream << "An abort signal was reached";
             break;
 
         //don't throw a scary call stack error popup for breakpoint (or force close via raise(SIGTRAP))
         case SIGTRAP:
         {
-            isBreakpoint = true;
-
-            oss << "Breakpoint hit (INT 3 instruction executed)\n";
-
-            bposs << "A breakpoint or force close state was reached!\n\n"
-                << "The application must close and cannot continue running.\n"
-                << "A log file has been created in the folder of this application.";
+            logStream << "Breakpoint hit (INT 3 instruction executed)\n";
+            userStream << "A breakpoint or force close state was hit";
 
             break;
         }
         
         default:
-            oss << "Unknown exception\n";
+            logStream << "Unknown exception\n";
+            userStream << "An unknown exception was reached";
             break;
     }
+
+    userStream << "!\n\n"
+        << "The application must close and cannot continue running.\n"
+        << "A log file has been created in the folder of this application.";
 
     if (ucontext)
     {
         ucontext_t* ctx = (ucontext_t*)ucontext;
         uintptr_t rip = ctx->uc_mcontext.gregs[REG_RIP];
 
-        oss << "Instruction pointer: " << hex << rip << dec << "\n";
+        logStream << "Instruction pointer: " << hex << rip << dec << "\n";
     }
 
-    AppendCallStackToStream(oss);
+    AppendCallStackToStream(logStream);
 
 	//append crash log buffer
 
-	oss << "\nRecent log activity before crash:\n\n";
+	logStream << "\nRecent log activity before crash:\n\n";
 
 	array<string_view, 10> content = get_crash_log_content();
 	for (const auto& c : content)
 	{
 		if (!c.empty())
 		{
-			oss << c;
-			if (c.back() != '\n') oss << '\n';
+			logStream << c;
+			if (c.back() != '\n') logStream << '\n';
 		}
 	}
 
-	oss << "\n========================================\n";
+	logStream << "\n========================================\n";
 
 	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
@@ -423,7 +413,7 @@ void GenerateFullCrashReport(
 			GetExePath(),
 			timeStamp);
 
-        oss << "A dump file '" << timeStamp << ".dmp" << "' was created at exe root folder.";
+        logStream << "A dump file '" << timeStamp << ".dmp" << "' was created at exe root folder.";
     }
     else
     {
@@ -435,15 +425,15 @@ void GenerateFullCrashReport(
 			true);
     }
 
-	Log::Print(oss.str(), true);
+	Log::Print(logStream.str(), true);
 
 	WriteLog(
-		oss.str(),
+		logStream.str(),
 		timeStamp);
 
 	if (Window_Global::CreatePopup(
 		assignedProgramName,
-		isBreakpoint ? bposs.str() : oss.str(),
+		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
 		PopupType::POPUP_TYPE_ERROR) ==
 		PopupResult::POPUP_RESULT_OK)
@@ -484,21 +474,21 @@ void WriteMiniDump(
     if (pid > 0) waitpid(pid, nullptr, 0);
 }
 
-void AppendCallStackToStream(ostringstream& oss)
+void AppendCallStackToStream(ostringstream& logStream)
 {
     constexpr int MAX_FRAMES = 32;
 
     void* frames[MAX_FRAMES]{};
     int frameCount = backtrace(frames, MAX_FRAMES);
 
-    oss << "\n========================================\n";
-    oss << "\nCall stack:\n\n";
+    logStream << "\n========================================\n";
+    logStream << "\nCall stack:\n\n";
 
     for (int i = 0; i < frameCount && i < 10; ++i)
     {
         void* addr = frames[i];
 
-        oss << "  " << i << ": ";
+        logStream << "  " << i << ": ";
 
         Dl_info info{};
         if (dladdr(addr, &info)
@@ -514,19 +504,19 @@ void AppendCallStackToStream(ostringstream& oss)
             if (status == 0
                 && demangled)
             {
-                oss << demangled;
+                logStream << demangled;
                 free(demangled);
             }
-            else oss << info.dli_sname;
+            else logStream << info.dli_sname;
 
-            if (info.dli_fname) oss << "\n        module: " << info.dli_fname;
+            if (info.dli_fname) logStream << "\n        module: " << info.dli_fname;
         }
-        else oss << "(symbol not found)";
+        else logStream << "(symbol not found)";
 
-        oss << "[0x" << hex << rcast<uintptr_t>(addr) << dec << "]\n";
+        logStream << "[0x" << hex << rcast<uintptr_t>(addr) << dec << "]\n";
     }
 
-    oss << "\n========================================\n";
+    logStream << "\n========================================\n";
 }
 
 void WriteLog(

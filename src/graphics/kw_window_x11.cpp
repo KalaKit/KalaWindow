@@ -3,6 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+#include <X11/Xutil.h>
 #if defined(__linux__) && defined(KW_USE_X11)
 
 #include <X11/Xlib.h>
@@ -37,6 +38,8 @@ using std::make_unique;
 using std::unique_ptr;
 using std::to_string;
 
+constexpr u16 MAX_TITLE_LENGTH = 50;
+
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
 {
@@ -53,16 +56,16 @@ namespace KalaWindow::Graphics
 	KalaWindowRegistry<ProcessWindow>& ProcessWindow::GetRegistry() { return registry; }
 
     ProcessWindow* ProcessWindow::Initialize(
-		const string& title,
+		string_view title,
 		vec2 size,
-		ProcessWindow* parentWindow ,
+		ProcessWindow* parentWindow,
 		DpiContext context)
     {
 		if (!Window_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
 				"Window error",
-				"Failed to create window '" + title + "' because global window context has not been created!");
+				"Failed to create window '" + string(title) + "' because global window context has not been created!");
 
 			return nullptr;
 		}
@@ -76,21 +79,24 @@ namespace KalaWindow::Graphics
 		ProcessWindow* windowPtr = newWindow.get();
 
 		Log::Print(
-			"Creating window '" + title + "' with ID '" + to_string(newID) + "'.",
+			"Creating window '" + string(title) + "' with ID '" + to_string(newID) + "'.",
 			"WINDOW",
 			LogType::LOG_DEBUG);
 
         Display* display = ToVar<Display*>(globalData.display);
 
+        Window root = ToVar<Window>(globalData.window_root);
         Window parent = parentWindow
             ? ToVar<Window>(parentWindow->windowData.window)
-            : ToVar<Window>(globalData.window_root);
+            : 0;
+
+        bool isChild = parentWindow;
 
         Atom wmDelete = ToVar<Atom>(globalData.atom_wmDelete);
 
         Window window = XCreateSimpleWindow(
             display,
-            parent,
+            root,
             100,
             100,
             size.x,
@@ -98,6 +104,35 @@ namespace KalaWindow::Graphics
             1,
             BlackPixel(display, DefaultScreen(display)),
             WhitePixel(display, DefaultScreen(display)));
+
+        if (isChild)
+        {
+            //assign parent window
+            XSetTransientForHint(
+                display,
+                window,
+                parent);
+        }
+
+        Atom net_wm_pid = ToVar<Atom>(globalData.atom_net_wm_pid);
+
+        //set task manager title via PID
+        pid_t pid = getpid();
+        XChangeProperty(
+            display,
+            window,
+            net_wm_pid,
+            XA_CARDINAL,
+            32,
+            PropModeReplace,
+            rcast<unsigned char*>(&pid),
+            1);
+
+        XSetWMProtocols(
+            display,
+            window,
+            &wmDelete,
+            1);
 
         //allow events
         XSelectInput(
@@ -107,17 +142,6 @@ namespace KalaWindow::Graphics
             | KeyPressMask
             | StructureNotifyMask);
 
-        XSetWMProtocols(
-            display,
-            window,
-            &wmDelete,
-            1);
-
-        //show window
-        XMapWindow(
-            display,
-            window);
-
         WindowData newWindowStruct{};
 
         //set window dpi aware state here...
@@ -126,14 +150,21 @@ namespace KalaWindow::Graphics
 
         windowPtr->windowData = newWindowStruct;
 
-		windowPtr->SetTitle(title);
+        windowPtr->SetTitle(title);
 		windowPtr->ID = newID;
 		windowPtr->SetClientRectSize(size);
+
+        windowPtr->SetWindowClass(title);
 
 		windowPtr->isInitialized = true;
 
 		windowPtr->oldPos = windowPtr->GetPosition();
 		windowPtr->oldSize = windowPtr->GetClientRectSize();
+
+        //show window
+        XMapWindow(
+            display,
+            window);
 
 		//allow files to be dragged to this window
 		//DragAcceptFiles(newHwnd, TRUE);
@@ -141,7 +172,7 @@ namespace KalaWindow::Graphics
 		registry.AddContent(newID, std::move(newWindow));
 
 		Log::Print(
-			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
+			"Created window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
 			"WINDOW",
 			LogType::LOG_SUCCESS);
 
@@ -168,36 +199,62 @@ namespace KalaWindow::Graphics
         UpdateIdleState(
 			this,
 			isIdle);
-
-        XEvent event{};
-
-        const X11GlobalData& globalData = Window_Global::GetGlobalData();
-
-        Display* display = ToVar<Display*>(globalData.display);
-        Atom wmDelete = ToVar<Atom>(globalData.atom_wmDelete);
-
-        XNextEvent(display, &event);
-
-        switch (event.type)
-        {
-            case Expose: break;
-            case KeyPress: CloseWindow(); break;
-            case ClientMessage:
-            {
-                if ((Atom)event.xclient.data.l[0] == wmDelete)
-                {
-                    CloseWindow();
-                    break;
-                }
-            }
-        }
     }
 
 	void ProcessWindow::SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
 	const vector<string>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
 	void ProcessWindow::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
-    void ProcessWindow::SetTitle(const string& newTitle) const {}
+    void ProcessWindow::SetTitle(string_view newValue) const
+    {
+        if (newValue.empty())
+		{
+			Log::Print(
+				"Window title cannot be empty!",
+				"WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (newValue.length() > MAX_TITLE_LENGTH)
+		{
+			Log::Print(
+				"Window title exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
+				"WINDOW",
+				LogType::LOG_ERROR,
+                2);
+
+            return;
+		}
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            string value(newValue);
+            Display* display = ToVar<Display*>(globalData.display);
+
+            Atom net_wm_name = ToVar<Atom>(globalData.atom_net_wm_name);
+            Atom utf8 = ToVar<Atom>(globalData.atom_utf8);
+
+            XStoreName(
+                display, 
+                windowData.window, 
+                value.c_str());
+
+            XChangeProperty(
+                display,
+                windowData.window,
+                net_wm_name,
+                utf8,
+                8,
+                PropModeReplace,
+                rcast<const unsigned char*>(value.c_str()),
+                value.size());
+        }
+    }
     const string& ProcessWindow::GetTitle() const { static string title{}; return title; }
 
     void ProcessWindow::SetIcon(u32 texture) const {}
@@ -206,7 +263,7 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::SetTaskbarOverlayIcon(
 		u32 texture,
-		const string& tooltip) const {}
+		string_view tooltip) const {}
 	u32 ProcessWindow::GetTaskbarOverlayIcon() const { return overlayIconID; }
 	void ProcessWindow::ClearTaskbarOverlayIcon() const {}
 
@@ -235,6 +292,47 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::SetResizableState(bool state) const {}
     bool ProcessWindow::IsResizable() const { bool res{}; return res; }
+
+    void ProcessWindow::SetWindowClass(string_view newValue)
+    {
+		if (newValue.empty())
+		{
+			Log::Print(
+				"Class value cannot be empty!",
+				"WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (newValue.length() > MAX_TITLE_LENGTH)
+		{
+			Log::Print(
+				"Class value exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
+				"WINDOW",
+				LogType::LOG_ERROR,
+                2);
+
+            return;
+		}
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            string value(newValue);
+
+            XClassHint classHint{};
+                classHint.res_name = const_cast<char*>(value.c_str());
+                classHint.res_class = const_cast<char*>(value.c_str());
+
+            XSetClassHint(
+                ToVar<Display*>(globalData.display),
+                windowData.window,
+                &classHint);
+        }
+    }
 
     bool ProcessWindow::IsIdle() const { return isIdle; }
 

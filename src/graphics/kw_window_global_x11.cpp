@@ -100,6 +100,21 @@ namespace KalaWindow::Graphics
 
         Window root = DefaultRootWindow(display);
 
+        Atom utf8 = XInternAtom(
+            display, 
+            "UTF8_STRING", 
+            False);
+
+        Atom net_wm_name = XInternAtom(
+            display, 
+            "_NET_WM_NAME", 
+            False);
+
+        Atom net_wm_pid = XInternAtom(
+            display,
+            "_NET_WM_PID",
+            False);
+
         Atom wmDelete = XInternAtom(
             display,
             "WM_DELETE_WINDOW",
@@ -107,7 +122,11 @@ namespace KalaWindow::Graphics
 
         globalData.display = FromVar(display);
         globalData.window_root = FromVar(root);
-        globalData.atom_wmDelete = FromVar(wmDelete);
+
+        globalData.atom_utf8        = FromVar(utf8);
+        globalData.atom_net_wm_name = FromVar(net_wm_name);
+        globalData.atom_net_wm_pid  = FromVar(net_wm_pid);
+        globalData.atom_wmDelete    = FromVar(wmDelete);
 
         isInitialized = true;
 

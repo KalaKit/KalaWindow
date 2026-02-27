@@ -18,6 +18,7 @@
 namespace KalaWindow::Graphics
 {
 	using std::string;
+	using std::string_view;
 	using std::function;
 	using std::vector;
 	using std::array;
@@ -120,7 +121,7 @@ namespace KalaWindow::Graphics
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
 		static ProcessWindow* Initialize(
-			const string& title,
+			string_view title,
 			vec2 size,
 			ProcessWindow* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
@@ -138,7 +139,7 @@ namespace KalaWindow::Graphics
 		//Clears paths to last file paths that were dragged onto window
 		void ClearLastDraggedFiles();
 
-		void SetTitle(const string& newTitle) const;
+		void SetTitle(string_view newTitle) const;
 		const string& GetTitle() const;
 
 		//Set executable icon. Loaded via the texture framework.
@@ -156,7 +157,7 @@ namespace KalaWindow::Graphics
 		//The first parameter requires an ID to the texture.
 		void SetTaskbarOverlayIcon(
 			u32 texture,
-			const string& tooltip = "") const;
+			string_view tooltip = "") const;
 		u32 GetTaskbarOverlayIcon() const;
 		//Clears the current overlay icon and its tooltip
 		void ClearTaskbarOverlayIcon() const;
@@ -226,6 +227,9 @@ namespace KalaWindow::Graphics
 		//Set window opacity/transparency. Internally clamped between 0.0f and 1.0f
 		void SetOpacity(float alpha) const;
 		float GetOpacity() const;
+#else
+		void SetWindowClass(string_view newValue);
+		string GetWindowClass() const;
 #endif
 
 		//Returns true if one of these is true:
@@ -312,7 +316,9 @@ namespace KalaWindow::Graphics
 		//Do not destroy manually, erase from registry instead
 		~ProcessWindow();
 	private:
+#ifdef _WIN32
 		uintptr_t GetHWND(const string& errorMessage) const;
+#endif
 
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
 

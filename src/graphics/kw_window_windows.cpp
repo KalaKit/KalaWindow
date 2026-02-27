@@ -51,7 +51,7 @@ using std::wstring;
 using std::string;
 using std::vector;
 
-constexpr u16 MAX_TITLE_LENGTH = 512;
+constexpr u16 MAX_TITLE_LENGTH = 50;
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
@@ -304,9 +304,10 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Window title exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
 				"WINDOW",
-				LogType::LOG_WARNING);
+				LogType::LOG_ERROR,
+                2);
 
-			titleToSet = titleToSet.substr(0, MAX_TITLE_LENGTH);
+            return;
 		}
 
 		wstring wideTitle = ToWide(titleToSet);
