@@ -41,22 +41,22 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 
     WinGLFunction functions[] =
     {
-        { "wglCreateContextAttribsARB",   reinterpret_cast<void**>(&glWindows.wglCreateContextAttribsARB) },
-        { "wglChoosePixelFormatARB",      reinterpret_cast<void**>(&glWindows.wglChoosePixelFormatARB) },
-        { "wglSwapIntervalEXT",           reinterpret_cast<void**>(&glWindows.wglSwapIntervalEXT) },
-        { "wglGetPixelFormatAttribfvARB", reinterpret_cast<void**>(&glWindows.wglGetPixelFormatAttribfvARB) },
-        { "wglGetPixelFormatAttribivARB", reinterpret_cast<void**>(&glWindows.wglGetPixelFormatAttribivARB) }
+        { "wglCreateContextAttribsARB",   rcast<void**>(&glWindows.wglCreateContextAttribsARB) },
+        { "wglChoosePixelFormatARB",      rcast<void**>(&glWindows.wglChoosePixelFormatARB) },
+        { "wglSwapIntervalEXT",           rcast<void**>(&glWindows.wglSwapIntervalEXT) },
+        { "wglGetPixelFormatAttribfvARB", rcast<void**>(&glWindows.wglGetPixelFormatAttribfvARB) },
+        { "wglGetPixelFormatAttribivARB", rcast<void**>(&glWindows.wglGetPixelFormatAttribivARB) }
     };
 
 	void OpenGL_Functions_Windows::LoadAllWindowsFunctions()
 	{
         for (auto& entry : functions)
         {
-            void* ptr = reinterpret_cast<void*>(wglGetProcAddress(entry.name));
+            void* ptr = rcast<void*>(wglGetProcAddress(entry.name));
             if (!ptr)
             {
                 HMODULE module = ToVar<HMODULE>(OpenGL_Global::GetOpenGLLibrary());
-                ptr = reinterpret_cast<void*>(GetProcAddress(module, entry.name));
+                ptr = rcast<void*>(GetProcAddress(module, entry.name));
             }
 
             if (!ptr)

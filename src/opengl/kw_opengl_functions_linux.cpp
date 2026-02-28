@@ -47,7 +47,8 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 
     LinuxGLFunction linuxFunctions[] =
     {
-        //add functions here...
+        { "glXCreateContextAttribsARB",   rcast<void**>(&glLinux.glXCreateContextAttribsARB) },
+        { "glXSwapIntervalEXT",           rcast<void**>(&glLinux.glXSwapIntervalEXT) }
     };
 
 	void OpenGL_Functions_Linux::LoadAllLinuxFunctions()

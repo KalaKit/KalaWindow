@@ -209,7 +209,7 @@ namespace KalaWindow::Core
 		WPARAM wParam,
 		LPARAM lParam)
 	{
-		Window* window = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+		Window* window = rcast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
 		if (!window
 			|| !window->IsInitialized())
@@ -893,7 +893,7 @@ static bool ProcessMessage(
 			return false;
 		}
 
-		const RAWMOUSE& mouse = reinterpret_cast<RAWINPUT*>(buffer.data())->data.mouse;
+		const RAWMOUSE& mouse = rcast<RAWINPUT*>(buffer.data())->data.mouse;
 
 		//sets raw mouse movement
 		if (mouse.usFlags == MOUSE_MOVE_RELATIVE
@@ -1129,7 +1129,7 @@ static bool ProcessMessage(
 		UINT dpiX = LOWORD(msg.wParam);
 		UINT dpiY = HIWORD(msg.wParam);
 
-		RECT* suggestedRect = reinterpret_cast<RECT*>(msg.lParam);
+		RECT* suggestedRect = rcast<RECT*>(msg.lParam);
 
 		//resize window to suggestedRect
 		SetWindowPos(
@@ -1167,7 +1167,7 @@ static bool ProcessMessage(
 
 	case WM_GETMINMAXINFO:
 	{
-		MINMAXINFO* mmi = reinterpret_cast<MINMAXINFO*>(msg.lParam);
+		MINMAXINFO* mmi = rcast<MINMAXINFO*>(msg.lParam);
 
 		mmi->ptMinTrackSize.x = window->GetMinSize().x;
 		mmi->ptMinTrackSize.y = window->GetMinSize().y;

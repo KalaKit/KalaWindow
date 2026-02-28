@@ -3,11 +3,12 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include <X11/Xutil.h>
+
 #if defined(__linux__) && defined(KW_USE_X11)
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xutil.h>
 #include <X11/X.h>
 
 #include <memory>

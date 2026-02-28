@@ -52,6 +52,13 @@ using std::atomic;
 using std::memory_order_relaxed;
 using std::memcpy;
 
+constexpr size_t MAX_TITLE  = 50;
+constexpr size_t MAX_REASON = 256;
+
+static string forceCloseTitle{};
+static string forceCloseReason{};
+static bool hasForceClose{};
+
 //The name of this program that is displayed in the title of the error popup
 static string assignedProgramName;
 //The user-defined function that is called when a crash occurs
@@ -157,6 +164,16 @@ namespace KalaWindow::Core
 		//explicit null-termination
 		slot[copyLength] = '\0';
 	}
+
+	void CrashHandler::SetForceCloseContent(
+        string_view title,
+        string_view reason)
+    {
+		forceCloseTitle  = title.substr(0, MAX_TITLE);
+		forceCloseReason = reason.substr(0, MAX_REASON);
+
+        hasForceClose = true;
+    }
 }
 
 LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
@@ -179,6 +196,23 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
         };
 
 	DWORD code = info->ExceptionRecord->ExceptionCode;
+
+	if (code == EXCEPTION_BREAKPOINT)
+	{
+		if (!hasForceClose) return EXCEPTION_CONTINUE_SEARCH;
+		else
+		{
+			if (Window_Global::CreatePopup(
+				forceCloseTitle,
+				forceCloseReason,
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_ERROR) ==
+				PopupResult::POPUP_RESULT_OK)
+			{
+				return EXCEPTION_EXECUTE_HANDLER;
+			}
+		}
+	}
 
     //What the user sees
 	ostringstream userStream{};
@@ -256,15 +290,10 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		break;
 
 
-	//don't throw a scary call stack error popup for breakpoint (or force close via __debugbreak())
-	case EXCEPTION_BREAKPOINT:
+	//ignore single step
+	case EXCEPTION_SINGLE_STEP:
 	{
-		isBreakpoint = true;
-
-		logStream << "Reason: Breakpoint hit (INT 3 instruction executed)\n";
-		userStream << "A breakpoint or force close state was reached";
-
-		break;
+		return EXCEPTION_CONTINUE_SEARCH;
 	}
 
 	default:
@@ -376,7 +405,7 @@ void WriteMiniDump(
 		dumpInfo.ExceptionPointers = info;
 		dumpInfo.ClientPointers = FALSE;
 
-		constexpr MINIDUMP_TYPE dumpType = static_cast<MINIDUMP_TYPE>(
+		constexpr MINIDUMP_TYPE dumpType = scast<MINIDUMP_TYPE>(
 			MiniDumpWithIndirectlyReferencedMemory  //includes memory referenced by the stack
 			| MiniDumpScanMemory                    //helps resolve pointers for better stack analysis
 			| MiniDumpWithThreadInfo                //thread names and IDs
@@ -455,7 +484,7 @@ void AppendCallStackToStream(
 		if (addr == 0) break;
 
 		char symbolBuffer[sizeof(SYMBOL_INFO) + MAX_SYM_NAME]{};
-		SYMBOL_INFO* symbol = reinterpret_cast<SYMBOL_INFO*>(symbolBuffer);
+		SYMBOL_INFO* symbol = rcast<SYMBOL_INFO*>(symbolBuffer);
 		symbol->SizeOfStruct = sizeof(SYMBOL_INFO);
 		symbol->MaxNameLen = MAX_SYM_NAME;
 

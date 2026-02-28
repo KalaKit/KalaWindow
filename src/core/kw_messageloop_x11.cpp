@@ -74,6 +74,8 @@ void DispatchEvents(
 
         switch (event.type)
         {
+            //TODO: add input events here
+
             case ClientMessage:
                 if ((Atom)event.xclient.data.l[0] == wmDelete) w->CloseWindow();
                 break;

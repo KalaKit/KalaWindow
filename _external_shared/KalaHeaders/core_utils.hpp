@@ -524,9 +524,9 @@ namespace KalaHeaders::KalaCore
 	//  - functions
 	//  - arrays
 	template<typename T>
-	inline constexpr uint64_t FromVar(T* h)
+	inline constexpr uintptr_t FromVar(T* h)
 	{
-		return rcast<uint64_t>(h);
+		return rcast<uintptr_t>(h);
 	}
 
 	//Converts an integral handle to an uintptr_t.
@@ -535,10 +535,10 @@ namespace KalaHeaders::KalaCore
 	//  - bitmask flags
 	//  - opaque handles
 	template<typename T>
-	inline constexpr uint64_t FromVar(T h)
+	inline constexpr uintptr_t FromVar(T h)
 		requires is_integral_v<T>
 	{
-		return scast<uint64_t>(h);
+		return scast<uintptr_t>(h);
 	}
 
 	//Converts an enum handle to an uintptr_t.
@@ -547,9 +547,9 @@ namespace KalaHeaders::KalaCore
 	//  - enum-based bitmask flags
 	//  - strongly typed API handles
 	template<typename T>
-	inline constexpr uint64_t FromVar(T h)
+	inline constexpr uintptr_t FromVar(T h)
 		requires AnyEnum<T>
 	{
-		return scast<uint64_t>(scast<underlying_type_t<T>>(h));
+		return scast<uintptr_t>(scast<underlying_type_t<T>>(h));
 	}	
 }

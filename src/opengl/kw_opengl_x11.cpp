@@ -3,27 +3,42 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
+
 #if defined(__linux__) && defined(KW_USE_X11)
+
+#include <X11/Xlib.h>
+#include <X11/X.h>
+#include <X11/Xutil.h>
+#include <dlfcn.h>
+
+#include <GL/glx.h>
+#include <OpenGL/glext.h>
 
 #include <string>
 
-#include <GL/gl.h>
-#include "OpenGL/glext.h"
-
+#include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/log_utils.hpp"
 
 #include "opengl/kw_opengl.hpp"
 #include "opengl/kw_opengl_functions_core.hpp"
+#include "opengl/kw_opengl_functions_linux.hpp"
 #include "core/kw_core.hpp"
 #include "graphics/kw_window.hpp"
+#include "graphics/kw_window_global.hpp"
+
+using KalaHeaders::KalaCore::ToVar;
+using KalaHeaders::KalaCore::FromVar;
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
+using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Linux;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::ProcessWindow;
+using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Graphics::X11GlobalData;
 
 using std::string;
 using std::to_string;
@@ -50,14 +65,163 @@ namespace KalaWindow::OpenGL
 			Log::Print(
 				"Cannot initialize global OpenGL more than once!",
 				"OPENGL",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
 
-        //initialize here...
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL init error",
+				"Cannot initialize global OpenGL because global window manager has not been initialized!");
 
-        Log::Print(
+			return;
+		}
+
+		//
+		// SET UP FBCONFIG
+		//
+
+		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+		Display* display = ToVar<Display*>(globalData.display);
+
+		int visualAttribs[] =
+		{
+			GLX_X_RENDERABLE, True,
+			GLX_DRAWABLE_TYPE, GLX_WINDOW_BIT,
+			GLX_RENDER_TYPE, GLX_RGBA_BIT,
+			GLX_X_VISUAL_TYPE, GLX_TRUE_COLOR,
+			GLX_RED_SIZE, 8,
+			GLX_GREEN_SIZE, 8,
+			GLX_BLUE_SIZE, 8,
+			GLX_ALPHA_SIZE, 8,
+			GLX_DEPTH_SIZE, 24,
+			GLX_STENCIL_SIZE, 8,
+			GLX_DOUBLEBUFFER, True,
+			None
+		};
+
+		int fbCount{};
+		GLXFBConfig* fbConfigs =
+			glXChooseFBConfig(
+				display,
+				DefaultScreen(display),
+				visualAttribs,
+				&fbCount);
+
+		if (!fbConfigs
+			|| fbCount == 0)
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL init error",
+				"Failed to choose FB config!");
+
+			return;
+		}
+
+		XVisualInfo* vi = glXGetVisualFromFBConfig(display, fbConfigs[0]);
+
+		if (!vi)
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL init error",
+				"Failed to get visual from FB config!");
+
+			return;
+		}
+
+		//
+		// CREATE DUMMY WINDOW FOR GLX
+		//
+
+		XSetWindowAttributes swa{};
+		swa.colormap = XCreateColormap(
+			display,
+			RootWindow(display, vi->screen),
+			vi->visual,
+			AllocNone);
+
+		swa.event_mask = StructureNotifyMask;
+
+		Window dummyWindow = XCreateWindow(
+			display,
+			RootWindow(display, vi->screen),
+			0, 0, 1, 1,
+			0,
+			vi->depth,
+			InputOutput,
+			vi->visual,
+			CWColormap
+			| CWEventMask,
+			&swa);
+
+		XMapWindow(display, dummyWindow);
+
+		//
+		// CREATE GLX CONTEXT
+		//
+
+		GLXContext dummyContext = 
+			glXCreateNewContext(
+				display,
+				fbConfigs[0],
+				GLX_RGBA_TYPE,
+				nullptr,
+				True);
+
+		if (!dummyContext)
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL init error",
+				"Failed to create dummy context!");
+
+			return;
+		}
+
+		if (!glXMakeCurrent(
+			display,
+			dummyWindow,
+			dummyContext))
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL init error",
+				"Failed to make glx context current!");
+
+			return;
+		}
+
+		//
+		// LOAD OS AND CORE GL FUNCTIONS
+		//
+
+		OpenGL_Functions_Core::LoadAllCoreFunctions();
+		OpenGL_Functions_Linux::LoadAllLinuxFunctions();
+
+		//
+		// CLEAN UP DUMMY
+		//
+
+		glXMakeCurrent(
+			display,
+			None,
+			nullptr);
+		glXDestroyContext(
+			display,
+			dummyContext);
+
+		XDestroyWindow(
+			display,
+			dummyWindow);
+
+		XFreeColormap(
+			display,
+			swa.colormap);
+		XFree(vi);
+		XFree(fbConfigs);
+
+		Log::Print(
 			"Initialized global OpenGL context!",
 			"OPENGL",
 			LogType::LOG_SUCCESS);
@@ -67,7 +231,21 @@ namespace KalaWindow::OpenGL
 
     bool OpenGL_Global::IsInitialized() { return isInitialized; }
 
-    void OpenGL_Global::SetOpenGLLibrary() {}
+    void OpenGL_Global::SetOpenGLLibrary()
+	{
+		void* handle = dlopen(
+			"libGL.so.1",
+			RTLD_NOW
+			| RTLD_GLOBAL);
+		 if (!handle)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Failed to load 'libGL.so.1'");
+		}
+
+    	openGL32Lib = FromVar(handle);
+	}
 	uintptr_t OpenGL_Global::GetOpenGLLibrary()
     {
 		if (!openGL32Lib) SetOpenGLLibrary();
@@ -103,7 +281,7 @@ namespace KalaWindow::OpenGL
 
 		for (i32 i = 0; i < numExtensions; ++i)
 		{
-			const char* extName = reinterpret_cast<const char*>(
+			const char* extName = rcast<const char*>(
 				coreFunc->glGetStringi(GL_EXTENSIONS, i));
 			if (name == extName) return true;
 		}
@@ -115,24 +293,212 @@ namespace KalaWindow::OpenGL
 		OpenGL_Context* context,
 		uintptr_t handle)
     {
+		if (!context)
+		{
+			Log::Print(
+				"Cannot set OpenGL context because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
 
+			return;
+		}
+		
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot set OpenGL context because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Cannot set OpenGL context because global window manager has not been initialized!");
+
+			return;
+		}
+			
+		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+		Display* display = ToVar<Display*>(globalData.display);
+
+		GLXContext stored = ToVar<GLXContext>(context->GetContext());
+		GLXDrawable drawable = scast<GLXDrawable>(handle);
+
+		if (glXGetCurrentContext() != stored
+			&& !glXMakeCurrent(display, drawable, stored))
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Failed to make OpenGL context current!");
+		}
     }
     void OpenGL_Global::MakeContextCurrent(
 		uintptr_t context,
 		uintptr_t handle)
     {
+		if (!context)
+		{
+			Log::Print(
+				"Cannot set OpenGL context because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
 
+			return;
+		}
+
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot set OpenGL context because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot set OpenGL context because global window manager has not been initialized!");
+
+			return;
+		}
+
+		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+		Display* display = ToVar<Display*>(globalData.display);
+
+		GLXContext stored = ToVar<GLXContext>(context);
+		GLXDrawable drawable = scast<GLXDrawable>(handle);
+
+		if (glXGetCurrentContext() != stored
+			&& !glXMakeCurrent(display, drawable, stored))
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Failed to make OpenGL context current!");
+		}
     }
 
     bool OpenGL_Global::IsContextValid(OpenGL_Context* context)
     {
-        static bool cont{};
-        return cont;
+        if (!context)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+		
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot check context validity because global window manager has not been initialized!");
+
+			return false;
+		}
+			
+		GLXContext stored = ToVar<GLXContext>(context->GetContext());
+		GLXContext current = glXGetCurrentContext();
+
+		if (!current)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"No context is currently bound!");
+
+			return false;
+		}
+
+		if (current != stored)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Current OpenGL context does not match stored context!");
+
+			return false;
+		}
+
+		return true;
     }
     bool OpenGL_Global::IsContextValid(uintptr_t context)
     {
-        static bool cont{};
-        return cont;
+        if (!context)
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because the attached context doesn't exist!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+		
+		if (OpenGL_Context::GetRegistry().runtimeContent.empty())
+		{
+			Log::Print(
+				"Cannot check OpenGL context validity because no OpenGL contexts have been created!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot check context validity because global window manager has not been initialized!");
+
+			return false;
+		}
+			
+		GLXContext stored = ToVar<GLXContext>(context);
+		GLXContext current = glXGetCurrentContext();
+
+		if (!current)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"No context is currently bound!");
+
+			return false;
+		}
+
+		if (current != stored)
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Current OpenGL context does not match stored context!");
+
+			return false;
+		}
+
+		return true;
     }
 
     string OpenGL_Global::GetError()

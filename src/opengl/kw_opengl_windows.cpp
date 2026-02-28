@@ -11,7 +11,7 @@
 #include <sstream>
 #include <memory>
 
-#include "OpenGL/wglext.h"
+#include <GL/wglext.h>
 
 #include "KalaHeaders/log_utils.hpp"
 
@@ -72,6 +72,15 @@ namespace KalaWindow::OpenGL
 				"Cannot initialize global OpenGL more than once!",
 				"OPENGL",
 				LogType::LOG_ERROR);
+
+			return;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot initialize global OpenGL because global window manager has not been initialized!");
 
 			return;
 		}
@@ -196,7 +205,7 @@ namespace KalaWindow::OpenGL
 
 		for (i32 i = 0; i < numExtensions; ++i)
 		{
-			const char* extName = reinterpret_cast<const char*>(
+			const char* extName = rcast<const char*>(
 				coreFunc->glGetStringi(GL_EXTENSIONS, i));
 			if (name == extName) return true;
 		}
@@ -226,6 +235,15 @@ namespace KalaWindow::OpenGL
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
+
+			return;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot set OpenGL context because global window manager has not been initialized!");
 
 			return;
 		}
@@ -262,6 +280,15 @@ namespace KalaWindow::OpenGL
 			return;
 		}
 
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot set OpenGL context because global window manager has not been initialized!");
+
+			return;
+		}
+
 		HGLRC storedHGLRC = ToVar<HGLRC>(context);
 
 		if (wglGetCurrentContext() != storedHGLRC) wglMakeCurrent(
@@ -289,6 +316,15 @@ namespace KalaWindow::OpenGL
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
+
+			return false;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot check context validity because global window manager has not been initialized!");
 
 			return false;
 		}
@@ -336,6 +372,15 @@ namespace KalaWindow::OpenGL
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
+
+			return false;
+		}
+
+		if (!Window_Global::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot check context validity because global window manager has not been initialized!");
 
 			return false;
 		}
@@ -524,7 +569,7 @@ namespace KalaWindow::OpenGL
 			pixelAttribs.push_back(WGL_SAMPLE_BUFFERS_ARB);
 			pixelAttribs.push_back(1);
 			pixelAttribs.push_back(WGL_SAMPLES_ARB);
-			pixelAttribs.push_back(static_cast<int>(msaa));
+			pixelAttribs.push_back(scast<int>(msaa));
 		}
 
 		//srgb
@@ -760,10 +805,10 @@ namespace KalaWindow::OpenGL
 			(GLsizei)clientRectSize.x,
 			(GLsizei)clientRectSize.y);
 
-		const char* glVersion  = reinterpret_cast<const char*>(coreFunc->glGetString(GL_VERSION));
-		const char* glVendor   = reinterpret_cast<const char*>(coreFunc->glGetString(GL_VENDOR));
-		const char* glRenderer = reinterpret_cast<const char*>(coreFunc->glGetString(GL_RENDERER));
-		const char* glslVer    = reinterpret_cast<const char*>(coreFunc->glGetString(GL_SHADING_LANGUAGE_VERSION));
+		const char* glVersion  = rcast<const char*>(coreFunc->glGetString(GL_VERSION));
+		const char* glVendor   = rcast<const char*>(coreFunc->glGetString(GL_VENDOR));
+		const char* glRenderer = rcast<const char*>(coreFunc->glGetString(GL_RENDERER));
+		const char* glslVer    = rcast<const char*>(coreFunc->glGetString(GL_SHADING_LANGUAGE_VERSION));
 
 		string profileVal{};
 		GLint profile = 0;
@@ -923,7 +968,7 @@ bool IsCorrectVersion()
 {
 	const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
-	const char* versionStr = reinterpret_cast<const char*>(coreFunc->glGetString(GL_VERSION));
+	const char* versionStr = rcast<const char*>(coreFunc->glGetString(GL_VERSION));
 	if (!versionStr) return false;
 
 	int major = 0;

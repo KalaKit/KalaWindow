@@ -81,6 +81,7 @@ Offset | Size | Field
 
 #include <vector>
 #include <array>
+#include <cstring>
 #include <string>
 #include <fstream>
 #include <filesystem>
@@ -109,6 +110,7 @@ namespace KalaHeaders::KalaFontData
 	using std::streamsize;
 	using std::ios;
 	using std::move;
+	using std::memcpy;
 	
 	using u8 = uint8_t;
 	using u16 = uint16_t;

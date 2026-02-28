@@ -90,6 +90,7 @@ if (WIN32)
 	# Link libraries
 	target_link_libraries(KalaWindow PRIVATE
 		ENABLE_EMIT_LOG     # allow user to define EmitLog in log_utils.hpp
+		KW_USE_GL
 		OpenGL::GL
 		${EXT_SHARED_DIR}/Vulkan/vulkan-1.lib
 		winmm
@@ -101,6 +102,7 @@ if (WIN32)
 else()
 	target_compile_definitions(KalaWindow PRIVATE
 		KW_USE_X11
+		KW_USE_GL
 	)
 
 	# Link libraries

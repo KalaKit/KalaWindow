@@ -60,10 +60,19 @@ using std::dec;
 using std::array;
 using std::ofstream;
 using std::filesystem::path;
+using std::min;
+using std::memcpy;
+
+constexpr size_t MAX_TITLE  = 50;
+constexpr size_t MAX_REASON = 256;
 
 static bool isInitialized{};
 
 static volatile sig_atomic_t inCrashHandler{};
+
+static char forceCloseTitle[MAX_TITLE]{};
+static char forceCloseReason[MAX_REASON]{};
+static volatile sig_atomic_t hasForceClose{};
 
 static stack_t altStack{};
 
@@ -167,6 +176,10 @@ namespace KalaWindow::Core
         sigemptyset(&sa.sa_mask);
 
         sigaction(
+            SIGBUS,
+            &sa,
+            nullptr);
+        sigaction(
             SIGSEGV,
             &sa,
             nullptr);
@@ -250,6 +263,21 @@ namespace KalaWindow::Core
 		//explicit null-termination
 		slot[copyLength] = '\0';
     }
+
+    void CrashHandler::SetForceCloseContent(
+        string_view title,
+        string_view reason)
+    {
+        size_t tlen = min(title.size(), sizeof(forceCloseTitle) - 1);
+        memcpy(forceCloseTitle, title.data(), tlen);
+        forceCloseTitle[tlen] = '\0';
+
+        size_t rlen = min(reason.size(), sizeof(forceCloseReason) - 1);
+        memcpy(forceCloseReason, reason.data(), rlen);
+        forceCloseReason[rlen] = '\0';
+
+        hasForceClose = 1;
+    }
 }
 
 void HandleCrash(
@@ -261,7 +289,23 @@ void HandleCrash(
     inCrashHandler = 1;
 
     pid_t pid = fork();
-    if (pid == 0) GenerateFullCrashReport(signal, info, ucontext);
+    if (pid == 0)
+    {
+        if (signal == SIGTRAP)
+        {
+            if (hasForceClose)
+            {
+                execlp(
+                    "zenity",
+                    "zenity",
+                    "--error",
+                    "--title", forceCloseTitle,
+                    "--text", forceCloseReason,
+                    nullptr);
+            }
+        }
+        else GenerateFullCrashReport(signal, info, ucontext);
+    }
 
     _exit(1);
 }
@@ -306,8 +350,15 @@ void GenerateFullCrashReport(
 
     logStream << "Reason: ";
 
+    bool isBreakpoint{};
     switch (signal)
     {
+        case SIGBUS:
+        {
+            logStream << "Bus error - invalid physical memory access at address 0x" << hex << addr << dec << "\n";
+            userStream << "A bus error (invalid physical memory access) was reached";
+            break;
+        }
         case SIGSEGV:
         {
             uintptr_t fault = addr;
@@ -359,15 +410,6 @@ void GenerateFullCrashReport(
             logStream << "Abort signal received\n";
             userStream << "An abort signal was reached";
             break;
-
-        //don't throw a scary call stack error popup for breakpoint (or force close via raise(SIGTRAP))
-        case SIGTRAP:
-        {
-            logStream << "Breakpoint hit (INT 3 instruction executed)\n";
-            userStream << "A breakpoint or force close state was hit";
-
-            break;
-        }
         
         default:
             logStream << "Unknown exception\n";

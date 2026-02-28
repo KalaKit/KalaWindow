@@ -810,7 +810,7 @@ namespace KalaWindow::Graphics
 			return{};
 		}
 
-		wchar_t* wstr = static_cast<wchar_t*>(GlobalLock(hData));
+		wchar_t* wstr = scast<wchar_t*>(GlobalLock(hData));
 		if (!wstr)
 		{
 			Log::Print(
@@ -903,16 +903,16 @@ string HResultToString(HRESULT hr)
 		| FORMAT_MESSAGE_FROM_SYSTEM
 		| FORMAT_MESSAGE_IGNORE_INSERTS,
 		nullptr,
-		static_cast<DWORD>(hr),
+		scast<DWORD>(hr),
 		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		reinterpret_cast<LPWSTR>(&buffer),
+		rcast<LPWSTR>(&buffer),
 		0,
 		nullptr);
 
 	string result{};
 
 	char tmp[32]{};
-	sprintf_s(tmp, "0x%08X", static_cast<unsigned int>(hr));
+	sprintf_s(tmp, "0x%08X", scast<unsigned int>(hr));
 	string fmtHex = tmp;
 
 	if (len

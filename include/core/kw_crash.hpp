@@ -10,6 +10,7 @@
 #include <functional>
 
 #include "KalaHeaders/core_utils.hpp"
+#include "core/kw_core.hpp"
 
 namespace KalaWindow::Core
 {
@@ -24,6 +25,7 @@ namespace KalaWindow::Core
 
 	class LIB_API CrashHandler
 	{
+	friend KalaWindowCore;
 	public:
 		//Initialize the crash handler. Always creates a timestamped
 		//crash log file at exe root if programm crashes.
@@ -41,5 +43,7 @@ namespace KalaWindow::Core
 		//Stores up to 10 messages and overwrites the oldest entries as new ones arrive.
 		//Safe for multithreaded pushing.
 		static void AppendToCrashLog(string_view message);
+	private:
+		static void SetForceCloseContent(string_view title, string_view reason);
 	};
 }

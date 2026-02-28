@@ -47,7 +47,7 @@ namespace KalaWindow::Core
 			return 
 			{ 
 				Type::Key, 
-				static_cast<u32>(k) 
+				scast<u32>(k) 
 			}; 
 		}
 		static inline constexpr InputCode FromMouse(MouseButton k)
@@ -55,7 +55,7 @@ namespace KalaWindow::Core
 			return 
 			{ 
 				Type::Mouse, 
-				static_cast<u32>(k) 
+				scast<u32>(k) 
 			}; 
 		}
 	};

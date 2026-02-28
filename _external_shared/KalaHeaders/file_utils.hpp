@@ -27,7 +27,7 @@
 #include <concepts>
 #include <type_traits>
 
-//reinterpret_cast
+//rcast
 #ifndef rcast
 	#define rcast reinterpret_cast
 #endif

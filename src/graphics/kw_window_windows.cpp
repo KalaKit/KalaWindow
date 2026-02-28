@@ -193,7 +193,7 @@ namespace KalaWindow::Graphics
 		SetWindowLongPtr(
 			newHwnd,
 			GWLP_USERDATA,
-			reinterpret_cast<LONG_PTR>(windowPtr));
+			rcast<LONG_PTR>(windowPtr));
 			
 		HDC newHDC = GetDC(newHwnd);
 
@@ -785,8 +785,8 @@ namespace KalaWindow::Graphics
 
 		return vec2
 		{
-			static_cast<float>(rect.right - rect.left),
-			static_cast<float>(rect.bottom - rect.top)
+			scast<float>(rect.right - rect.left),
+			scast<float>(rect.bottom - rect.top)
 		};
 	}
 
@@ -831,8 +831,8 @@ namespace KalaWindow::Graphics
 
 		return vec2
 		{
-			static_cast<float>(rect.right - rect.left),
-			static_cast<float>(rect.bottom - rect.top)
+			scast<float>(rect.right - rect.left),
+			scast<float>(rect.bottom - rect.top)
 		};
 	}
 
@@ -871,8 +871,8 @@ namespace KalaWindow::Graphics
 		{
 			return vec2
 			{ 
-				static_cast<float>(rect.left),
-				static_cast<float>(rect.top)
+				scast<float>(rect.left),
+				scast<float>(rect.top)
 			};
 		}
 
@@ -1232,7 +1232,7 @@ namespace KalaWindow::Graphics
 
 		float clamped = clamp(alpha, 0.0f, 1.0f);
 
-		BYTE bAlpha = static_cast<BYTE>(alpha * 255.0f);
+		BYTE bAlpha = scast<BYTE>(alpha * 255.0f);
 
 		//WS_EX_LAYERED is required for opacity
 
@@ -1279,7 +1279,7 @@ namespace KalaWindow::Graphics
 			&flags)
 			&& (flags & LWA_ALPHA))
 		{
-			return static_cast<float>(bAlpha) / 255;
+			return scast<float>(bAlpha) / 255;
 		}
 
 		//treat as fully opaque when not layered
@@ -1741,13 +1741,13 @@ namespace KalaWindow::Graphics
 
 		u8 maxClamped = clamp(
 			max, 
-			static_cast<u8>(1), 
-			static_cast<u8>(100));
+			scast<u8>(1), 
+			scast<u8>(100));
 
 		u8 currentClamped = clamp(
 			current, 
-			static_cast<u8>(0),
-			static_cast<u8>(maxClamped - 1));
+			scast<u8>(0),
+			scast<u8>(maxClamped - 1));
 
 		CComPtr<ITaskbarList3> taskbar{};
 		HRESULT hr = CoCreateInstance(
@@ -1917,8 +1917,8 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 {
 	string name = texture->GetName();
 	vec2 size = texture->GetSize();
-	string sizeX = to_string(static_cast<int>(size.x));
-	string sizeY = to_string(static_cast<int>(size.y));
+	string sizeX = to_string(scast<int>(size.x));
+	string sizeY = to_string(scast<int>(size.y));
 
 	if (texture->GetSize().x < 32)
 	{
@@ -1940,7 +1940,7 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 	const vector<u8>& pixels = texture->GetPixels();
 	vector<u8> pixelsBGRA(pixels.size());
 
-	for (size_t i = 0; i < static_cast<size_t>(size.x) * size.y; i++)
+	for (size_t i = 0; i < scast<size_t>(size.x) * size.y; i++)
 	{
 		size_t idx = i * 4;
 		pixelsBGRA[idx + 0] = pixels[idx + 2]; // B
@@ -1966,7 +1966,7 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 	void* pvBits = nullptr;
 	HBITMAP hBitMap = CreateDIBSection(
 		hdc,
-		reinterpret_cast<BITMAPINFO*>(&bi),
+		rcast<BITMAPINFO*>(&bi),
 		DIB_RGB_COLORS,
 		&pvBits,
 		nullptr,

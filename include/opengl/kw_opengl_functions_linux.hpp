@@ -9,11 +9,18 @@
 
 #include "KalaHeaders/core_utils.hpp"
 
+#include <GL/glx.h>
+#include <GL/glxext.h>
+
 namespace KalaWindow::OpenGL::OpenGLFunctions
 {
 	struct GL_Linux
 	{
-		//add functions here...
+		//Creates an OpenGL rendering context with specific attributes (version, profile)
+		PFNGLXCREATECONTEXTATTRIBSARBPROC glXCreateContextAttribsARB;
+
+		//Sets the swap interval for buffer swaps (vsync control)
+		PFNGLXSWAPINTERVALEXTPROC         glXSwapIntervalEXT;
 	};
 
 	class LIB_API OpenGL_Functions_Linux

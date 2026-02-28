@@ -3,18 +3,25 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-//ensure definitions are sane
+//sane linux definitions
 #if defined(_WIN32)
 	#if defined(KW_USE_X11) || defined(KW_USE_WAYLAND)
-	#error "Cannot use X11 or Wayland on Windows!"
+	#error "Cannot use X11 and Wayland on Windows!"
 	#endif
 #elif defined(__linux__)
 	#if defined(KW_USE_X11) && defined(KW_USE_WAYLAND)
 		#error "Cannot use X11 and Wayland together!"
 	#endif
 	#if !defined(KW_USE_X11) && !defined(KW_USE_WAYLAND)
-		#error "You must define KW_USE_X11 or KW_USE_WAYLAND!"
+		#error "You must pick X11 or Wayland!"
 	#endif
+#endif
+
+//sane graphics definitions
+#if defined(KW_USE_GL) && defined(KW_USE_VK)
+#error "Cannot use OpenGL and Vulkan together!"
+#elif !defined(KW_USE_GL) && !defined(KW_USE_VK)
+#error "You have to pick OpenGL or Vulkan!"
 #endif
 
 #if defined(_WIN32)
@@ -140,6 +147,10 @@ namespace KalaWindow::Core
 			TimeFormat::TIME_NONE,
 			DateFormat::DATE_NONE);
 
+		CrashHandler::SetForceCloseContent(
+			target,
+			reason);
+
 #ifdef _WIN32
 		__debugbreak();
 #else
@@ -246,7 +257,7 @@ namespace KalaWindow::Core
 		}
 
 		Log::Print(
-			"KalaWindow shutting down with state = " + to_string(static_cast<int>(state)),
+			"KalaWindow shutting down with state = " + to_string(scast<int>(state)),
 			"WINDOW",
 			LogType::LOG_SUCCESS);
 
