@@ -1,0 +1,41 @@
+//Build script for use with kalamake. Read more at https://github.com/kalakit/kalamake
+
+#version 1.0
+
+#include
+kh: "_external_shared"
+
+#global
+standard: c++20
+binarytype: shared
+sources: "src"
+headers: "include", #kh
+warninglevel: normal
+
+#profile debug-windows
+binaryname: KalaWindow1d
+compiler: clang-cl
+buildtype: debug
+buildpath: "build/debug-windows"
+defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG, LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
+
+#profile release-windows
+binaryname: KalaWindow1
+compiler: clang-cl
+buildtype: release
+buildpath: "build/release-windows"
+defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG, LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
+
+#profile debug-linux
+binaryname: libKalaWindow1d
+compiler: clang++
+buildtype: debug
+buildpath: "build/debug-linux"
+defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
+
+#profile release-linux
+binaryname: libKalaWindow1
+compiler: clang++
+buildtype: release
+buildpath: "build/release-linux"
+defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
