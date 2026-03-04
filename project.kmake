@@ -31,6 +31,7 @@ binaryname: libKalaWindow1d
 compiler: clang++
 buildtype: debug
 buildpath: "build/debug-linux"
+links: X11, GL
 defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
 
 #profile release-linux
@@ -38,4 +39,5 @@ binaryname: libKalaWindow1
 compiler: clang++
 buildtype: minsizerel
 buildpath: "build/release-linux"
+links: X11, GL
 defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
