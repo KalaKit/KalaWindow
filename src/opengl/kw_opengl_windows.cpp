@@ -71,7 +71,8 @@ namespace KalaWindow::OpenGL
 			Log::Print(
 				"Cannot initialize global OpenGL more than once!",
 				"OPENGL",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -248,11 +249,11 @@ namespace KalaWindow::OpenGL
 			return;
 		}
 			
-		HGLRC storedHGLRC = ToVar<HGLRC>(context->GetContext());
+		HGLRC storedContext = ToVar<HGLRC>(context->GetContext());
 
-		if (wglGetCurrentContext() != storedHGLRC) wglMakeCurrent(
+		if (wglGetCurrentContext() != storedContext) wglMakeCurrent(
 			ToVar<HDC>(handle),
-			storedHGLRC);
+			storedContext);
 	}
 	void OpenGL_Global::MakeContextCurrent(
 		uintptr_t context,
@@ -289,11 +290,11 @@ namespace KalaWindow::OpenGL
 			return;
 		}
 
-		HGLRC storedHGLRC = ToVar<HGLRC>(context);
+		HGLRC storedContext = ToVar<HGLRC>(context);
 
-		if (wglGetCurrentContext() != storedHGLRC) wglMakeCurrent(
+		if (wglGetCurrentContext() != storedContext) wglMakeCurrent(
 			ToVar<HDC>(handle),
-			storedHGLRC);
+			storedContext);
 	}
 
 	bool OpenGL_Global::IsContextValid(OpenGL_Context* context)
@@ -329,7 +330,7 @@ namespace KalaWindow::OpenGL
 			return false;
 		}
 			
-		HGLRC storedHGLRC = ToVar<HGLRC>(context->GetContext());
+		HGLRC storedContext = ToVar<HGLRC>(context->GetContext());
 
 		HGLRC current = wglGetCurrentContext();
 		if (!current)
@@ -341,7 +342,7 @@ namespace KalaWindow::OpenGL
 			return false;
 		}
 
-		if (current != storedHGLRC)
+		if (current != storedContext)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
@@ -385,7 +386,7 @@ namespace KalaWindow::OpenGL
 			return false;
 		}
 
-		HGLRC storedHGLRC = ToVar<HGLRC>(context);
+		HGLRC storedContext = ToVar<HGLRC>(context);
 
 		HGLRC current = wglGetCurrentContext();
 		if (!current)
@@ -397,7 +398,7 @@ namespace KalaWindow::OpenGL
 			return false;
 		}
 
-		if (current != storedHGLRC)
+		if (current != storedContext)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
@@ -453,8 +454,7 @@ namespace KalaWindow::OpenGL
 		SRGBMode srgb,
 		ColorBufferBits cBits,
 		DepthBufferBits dBits,
-		StencilBufferBits sBits,
-		AlphaChannel aChannel)
+		StencilBufferBits sBits)
 	{
 		if (!OpenGL_Global::IsInitialized())
 		{
@@ -546,19 +546,6 @@ namespace KalaWindow::OpenGL
 			break;
 		case StencilBufferBits::STENCIL_8:
 			pixelAttribs.push_back(WGL_STENCIL_BITS_ARB);
-			pixelAttribs.push_back(8);
-			break;
-		}
-
-		//alpha channel
-		switch (aChannel)
-		{
-		case AlphaChannel::ALPHA_NONE:
-			pixelAttribs.push_back(WGL_ALPHA_BITS_ARB);
-			pixelAttribs.push_back(0);
-			break;
-		case AlphaChannel::ALPHA_8:
-			pixelAttribs.push_back(WGL_ALPHA_BITS_ARB);
 			pixelAttribs.push_back(8);
 			break;
 		}
@@ -772,18 +759,19 @@ namespace KalaWindow::OpenGL
 					Log::Print(
 						"OperGL parent context ID cannot be same as this context ID!",
 						"OPENGL",
-						LogType::LOG_ERROR);
+						LogType::LOG_ERROR,
+						2);
 				}
-				else existing = ToVar<HGLRC>(parentCont->hglrc);
+				else existing = ToVar<HGLRC>(parentCont->context);
 			}
 		}
 
-		HGLRC newHGLRC = windowsFunc->wglCreateContextAttribsARB(
+		HGLRC newContext = windowsFunc->wglCreateContextAttribsARB(
 			hdc,
 			existing,
 			attribs);
 
-		if (!newHGLRC)
+		if (!newContext)
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
@@ -792,9 +780,9 @@ namespace KalaWindow::OpenGL
 			return nullptr;
 		}
 
-		contPtr->hglrc = FromVar(newHGLRC);
+		contPtr->context = FromVar(newContext);
 
-		wglMakeCurrent(hdc, newHGLRC);
+		wglMakeCurrent(hdc, newContext);
 		windowsFunc->wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size
@@ -880,10 +868,21 @@ namespace KalaWindow::OpenGL
 	
 	void OpenGL_Context::SwapOpenGLBuffers(uintptr_t handle)
 	{
+		if (!Window_Global::IsInitialized())
+		{
+			Log::Print(
+				"Cannot swap OpenGL buffers because the global window manager has not been initialized!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
 		if (!handle)
 		{
 			Log::Print(
-				"Cannot swap OpenGL buffers because the window handle (hdc) is invalid!",
+				"Cannot swap OpenGL buffers because the window handle is invalid!",
 				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
@@ -896,11 +895,22 @@ namespace KalaWindow::OpenGL
 
 	const string& OpenGL_Context::GetContextData() { return contextData; }
 
-	uintptr_t OpenGL_Context::GetContext() const { return hglrc; }
-	uintptr_t OpenGL_Context::GetParentContext() const { return parentHglrc; }
+	uintptr_t OpenGL_Context::GetContext() const { return context; }
+	uintptr_t OpenGL_Context::GetParentContext() const { return parentContext; }
 	
 	void OpenGL_Context::SetVSyncState(VSyncState newValue)
 	{		
+		if (!Window_Global::IsInitialized())
+		{
+			Log::Print(
+				"Cannot set vsync state because the global window manager has not been initialized!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
 		const GL_Windows* windowsFunc = OpenGL_Functions_Windows::GetGLWindows();
 
 		if (!windowsFunc->wglSwapIntervalEXT)
@@ -954,12 +964,15 @@ namespace KalaWindow::OpenGL
 			"OPENGL",
 			LogType::LOG_DEBUG);
 
-		HGLRC storedHGLRC = ToVar<HGLRC>(hglrc);
+		HGLRC storedContext = ToVar<HGLRC>(context);
 
-		if (storedHGLRC != NULL)
+		if (storedContext != NULL)
 		{
-			if (wglGetCurrentContext() == storedHGLRC) wglMakeCurrent(nullptr, nullptr);
-			wglDeleteContext(storedHGLRC);
+			if (wglGetCurrentContext() == storedContext)
+			{
+				wglMakeCurrent(nullptr, nullptr);
+			}
+			wglDeleteContext(storedContext);
 		}
 	}
 }
@@ -1031,7 +1044,7 @@ string GetErrorType(const string& errorOrigin)
 	}
 
 	ostringstream oss{};
-	oss << errorOrigin << " failed! Win32 error = "
+	oss << errorOrigin << " failed! GL error = "
 		<< message << " (" << dec << err << " / 0x" << hex << err << dec << ")";
 
 	return oss.str();

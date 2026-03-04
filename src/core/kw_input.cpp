@@ -467,7 +467,8 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Cannot set mouse lock state because its window was not found!",
 					"INPUT",
-					LogType::LOG_ERROR);
+					LogType::LOG_ERROR,
+					2);
 
 				return;
 			}
@@ -533,7 +534,8 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Cannot set mouse lock state between focus because its window was not found!",
 					"INPUT",
-					LogType::LOG_ERROR);
+					LogType::LOG_ERROR,
+					2);
 
 				return;
 			}
@@ -589,7 +591,8 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Cannot get window reference at input end frame update because its window was not found!",
 					"INPUT",
-					LogType::LOG_ERROR);
+					LogType::LOG_ERROR,
+					2);
 
 				return;
 			}

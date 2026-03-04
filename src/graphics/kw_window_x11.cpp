@@ -140,8 +140,13 @@ namespace KalaWindow::Graphics
             display,
             window,
             ExposureMask
+            | StructureNotifyMask
+            | FocusChangeMask
             | KeyPressMask
-            | StructureNotifyMask);
+            | KeyReleaseMask
+            | ButtonPressMask
+            | ButtonReleaseMask
+            | PointerMotionMask);
 
         WindowData newWindowStruct{};
 
@@ -338,7 +343,7 @@ namespace KalaWindow::Graphics
     bool ProcessWindow::IsIdle() const { return isIdle; }
 
     bool ProcessWindow::IsForegroundWindow() const { static bool fore{}; return fore; }
-    bool ProcessWindow::IsFocused() const { static bool focu{}; return focu; }
+    bool ProcessWindow::IsFocused() const { static bool focu{}; return isFocused; }
     bool ProcessWindow::IsFullscreen() { static bool full{}; return full; }
     bool ProcessWindow::IsMinimized() const { static bool mini{}; return mini; }
     bool ProcessWindow::IsVisible() const { static bool visi{}; return visi; }

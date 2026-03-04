@@ -57,7 +57,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot create menu bar because its window reference is invalid!",
 				"MENUBAR",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
@@ -107,7 +108,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot check if menu bar is initialized because its window reference is invalid!",
 				"MENUBAR",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return false;
 		}
@@ -129,7 +131,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot set menu bar state because its window reference is invalid!",
 				"MENUBAR",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -174,7 +177,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot check if menu bar is enabled because its window reference is invalid!",
 				"MENUBAR",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return false;
 		}
@@ -202,7 +206,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot create label for menu bar because its window reference is invalid!",
 				"MENUBAR",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -438,7 +443,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot add separator to menu bar because its window reference is invalid!",
 				"MENUBAR",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -618,7 +624,8 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot destroy menu bar with ID '" + to_string(ID) + "' because its window was not found!",
 				"MENUBAR",
-				LogType::LOG_ERROR);
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}

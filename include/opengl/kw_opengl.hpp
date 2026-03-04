@@ -56,11 +56,6 @@ namespace KalaWindow::OpenGL
 		STENCIL_NONE, //Disables stencil completely (default)
 		STENCIL_8     //8-bit stencil
 	};
-	enum class AlphaChannel
-	{
-		ALPHA_NONE, //Disables alpha channel completely, cannot have transparent meshes or textures
-		ALPHA_8     //8-bit alpha channel (default)
-	};
 
 	class OpenGL_Context;
 
@@ -123,8 +118,7 @@ namespace KalaWindow::OpenGL
 			SRGBMode srgb = SRGBMode::SRGB_ENABLED,
 			ColorBufferBits cBits = ColorBufferBits::COLOR_RGBA8,
 			DepthBufferBits dBits = DepthBufferBits::DEPTH_24,
-			StencilBufferBits sBits = StencilBufferBits::STENCIL_NONE,
-			AlphaChannel aChannel = AlphaChannel::ALPHA_8);
+			StencilBufferBits sBits = StencilBufferBits::STENCIL_NONE);
 
 		bool IsInitialized() const;
 
@@ -150,8 +144,8 @@ namespace KalaWindow::OpenGL
 		u32 ID{};
 		u32 windowID{};
 
-		uintptr_t hglrc{};
-		uintptr_t parentHglrc{};
+		uintptr_t context{};
+		uintptr_t parentContext{};
 
 		string contextData{};
 
@@ -161,6 +155,5 @@ namespace KalaWindow::OpenGL
 		ColorBufferBits cBits{};
 		DepthBufferBits dBits{};
 		StencilBufferBits sBits{};
-		AlphaChannel aChannel{};
 	};
 }

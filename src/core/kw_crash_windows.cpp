@@ -555,7 +555,8 @@ void WriteLog(
 		Log::Print(
 			"Failed to open log file to write into it!",
 			"CRASH_HANDLER",
-			LogType::LOG_ERROR);
+			LogType::LOG_ERROR,
+			2);
 
 		return;
 	}

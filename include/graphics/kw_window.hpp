@@ -13,6 +13,7 @@
 #include "KalaHeaders/core_utils.hpp"
 #include "KalaHeaders/math_utils.hpp"
 
+#include "core/kw_messageloop_x11.hpp"
 #include "core/kw_registry.hpp"
 
 namespace KalaWindow::Graphics
@@ -113,6 +114,7 @@ namespace KalaWindow::Graphics
 
 	class LIB_API ProcessWindow
 	{
+	friend KalaWindow::Core::MessageLoop;
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
@@ -326,6 +328,11 @@ namespace KalaWindow::Graphics
 		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
 		bool isResizing = false;           //If true, then this window is currently being resized
 		bool shutdownBlockState = false;   //Prevents Windows from shutting off or logging off if this is true so you can save your data
+
+#if __linux__
+		friend void SetFocused(bool state);
+		bool isFocused = false;
+#endif
 
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
 		vec2 minSize = vec2{ 400, 300 };   //The minimum size this window can become

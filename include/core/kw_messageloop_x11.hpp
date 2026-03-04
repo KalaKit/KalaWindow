@@ -7,6 +7,8 @@
 
 #pragma once
 
+#include <X11/Xlib.h>
+
 #include "KalaHeaders/core_utils.hpp"
 
 namespace KalaWindow::Core
@@ -16,6 +18,8 @@ namespace KalaWindow::Core
     public:
         //Updates the global X11 event loop once per call
         static void Update();
+    private:
+        static void DispatchEvents(const XEvent& event);
     };
 }
 
