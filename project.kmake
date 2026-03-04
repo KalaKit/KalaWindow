@@ -22,7 +22,7 @@ defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG, LIB_EXPORT, WIN32_LEAN_AND_MEAN
 #profile release-windows
 binaryname: KalaWindow1
 compiler: clang-cl
-buildtype: release
+buildtype: minsizerel
 buildpath: "build/release-windows"
 defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG, LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
@@ -36,6 +36,6 @@ defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
 #profile release-linux
 binaryname: libKalaWindow1
 compiler: clang++
-buildtype: release
+buildtype: minsizerel
 buildpath: "build/release-linux"
 defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
