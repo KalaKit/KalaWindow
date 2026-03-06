@@ -6,11 +6,13 @@
 kh: "_external_shared"
 
 #global
+compilerlauncher: ccache
 standard: c++20
 binarytype: shared
 sources: "src"
 headers: "include", #kh
 warninglevel: normal
+customflags: export-compile-commands
 
 #profile debug-windows
 binaryname: KalaWindow1d
