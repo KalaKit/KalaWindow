@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // thread_utils.hpp
 //
 // Copyright (C) 2026 Lost Empire Entertainment
@@ -11,7 +11,7 @@
 //   - lock_m, lockwait_m (where applicable) and unlock_m for mutexes
 //   - jthread (joinable thread) which returns the created thread so it can be joined
 //   - dthread (self-exiting thread)
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #pragma once
 

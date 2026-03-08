@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // core_utils.hpp
 //
 // Copyright (C) 2026 Lost Empire Entertainment
@@ -13,7 +13,7 @@
 //   - helpers for checking if raw array, array, vector, map or unordered map contains key or value
 //   - helpers for removing duplicates from vector, map and unordered_map
 //   - safe conversions between uintptr_t and pointers, integrals, enums
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #pragma once
 

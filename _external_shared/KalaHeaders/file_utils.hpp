@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // file_utils.hpp
 //
 // Copyright (C) 2026 Lost Empire Entertainment
@@ -12,7 +12,7 @@
 //   - file metadata - file size, directory size, line count, set extension
 //   - text I/O - read/write data for text files with vector of string lines or string blob
 //   - binary I/O - read/write data for binary files with vector of bytes or buffer + size
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #pragma once
 

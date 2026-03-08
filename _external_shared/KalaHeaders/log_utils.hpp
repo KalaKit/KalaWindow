@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // log_utils.hpp
 //
 // Copyright (C) 2026 Lost Empire Entertainment
@@ -12,7 +12,7 @@
 //   - log types - info (no log type stamp), debug (skipped in release), success, warning, error
 //   - time stamp, date stamp accurate to system clock
 //   - logHook - user-defined function that allows emitting logs to another target like the crash log storage in kalawindow
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #pragma once
 

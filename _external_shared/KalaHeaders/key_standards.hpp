@@ -1,4 +1,4 @@
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 // key_standards.hpp
 //
 // Copyright (C) 2026 Lost Empire Entertainment
@@ -11,7 +11,7 @@
 //   - standard layout for typography, math and currency symbols
 //   - standard layout for latin and cyrillic alphabet letters
 //   - standard layout for emojis
-//------------------------------------------------------------------------------
+//---------------------------------------------------------------------------
 
 #pragma once
 
