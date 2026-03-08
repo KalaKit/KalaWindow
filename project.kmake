@@ -2,44 +2,49 @@
 
 #version 1.0
 
-#include
-kh: "_external_shared"
+#references
+name_bin: KalaWindow1
+dir_release: build/release-
+dir_debug: build/debug-
+lin_lin: X11, GL
+def_main: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
+def_win: LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
 #global
 compilerlauncher: ccache
 standard: c++20
 binarytype: shared
 sources: "src"
-headers: "include", #kh
+headers: "include", "_external_shared"
 warninglevel: normal
 customflags: export-compile-commands
 
 #profile debug-windows
-binaryname: KalaWindow1d
+binaryname: ${name_bin}d
 compiler: clang-cl
 buildtype: debug
-buildpath: "build/debug-windows"
-defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG, LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
+buildpath: "${dir_debug}windows"
+defines: ${def_main}, ${def_win}
 
 #profile release-windows
-binaryname: KalaWindow1
+binaryname: ${name_bin}
 compiler: clang-cl
 buildtype: minsizerel
-buildpath: "build/release-windows"
-defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG, LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
+buildpath: "${dir_release}windows"
+defines: ${def_main}, ${def_win}
 
 #profile debug-linux
-binaryname: libKalaWindow1d
+binaryname: lib${name_bin}d
 compiler: clang++
 buildtype: debug
-buildpath: "build/debug-linux"
-links: X11, GL
-defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
+buildpath: "${dir_debug}linux"
+links: ${lin_lin}
+defines: ${def_main}
 
 #profile release-linux
-binaryname: libKalaWindow1
+binaryname: lib${name_bin}
 compiler: clang++
 buildtype: minsizerel
-buildpath: "build/release-linux"
-links: X11, GL
-defines: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
+buildpath: "${dir_release}linux"
+links: ${lin_lin}
+defines: ${def_main}
