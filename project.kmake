@@ -16,7 +16,7 @@ standard: c++20
 binarytype: shared
 sources: "src"
 headers: "include", "_external_shared/KalaHeaders", "_external_shared/OpenGL"
-warninglevel: none
+warninglevel: normal
 customflags: export-compile-commands
 
 #profile debug-windows
