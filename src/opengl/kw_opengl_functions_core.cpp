@@ -11,8 +11,8 @@
 #include <GL/glx.h>
 #endif
 
-#include "KalaHeaders/log_utils.hpp"
-#include "KalaHeaders/core_utils.hpp"
+#include "log_utils.hpp"
+#include "core_utils.hpp"
 
 #include "opengl/kw_opengl_functions_core.hpp"
 #include "opengl/kw_opengl.hpp"

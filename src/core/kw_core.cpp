@@ -39,8 +39,8 @@
 #include <string>
 #include <algorithm>
 
-#include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/log_utils.hpp"
+#include "core_utils.hpp"
+#include "log_utils.hpp"
 
 #if defined(__linux__)
 #include "graphics/kw_window_global.hpp"

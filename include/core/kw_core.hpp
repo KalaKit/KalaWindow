@@ -8,7 +8,7 @@
 #include <string>
 #include <functional>
 
-#include "KalaHeaders/core_utils.hpp"
+#include "core_utils.hpp"
 
 namespace KalaWindow::Core
 {

@@ -7,7 +7,7 @@
 
 #ifdef __linux__
 
-#include "KalaHeaders/core_utils.hpp"
+#include "core_utils.hpp"
 
 #include <GL/glx.h>
 #include <GL/glxext.h>

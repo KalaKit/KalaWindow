@@ -16,8 +16,8 @@
 #include <filesystem>
 #include <functional>
 
-#include "KalaHeaders/log_utils.hpp"
-#include "KalaHeaders/thread_utils.hpp"
+#include "log_utils.hpp"
+#include "thread_utils.hpp"
 
 #include "core/kw_crash.hpp"
 #include "core/kw_core.hpp"

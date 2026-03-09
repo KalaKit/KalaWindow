@@ -2,11 +2,11 @@ changes
 
 file: glcorearb.h
 	old:  <KHR/khrplatform.h>
-	new:  #include "OpenGL/KHR/khrplatform.h"
+	new:  #include "KHR/khrplatform.h"
 	
 file: glext.h
 	old:  <KHR/khrplatform.h>
-	new:  #include "OpenGL/KHR/khrplatform.h"
+	new:  #include "KHR/khrplatform.h"
 	
 file: wglext.h
 	added: #include "glcorearb.h"

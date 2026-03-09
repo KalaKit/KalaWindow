@@ -7,7 +7,7 @@
 
 #ifdef _WIN32
 
-#include "KalaHeaders/core_utils.hpp"
+#include "core_utils.hpp"
 
 #include <GL/wglext.h> //Windows-only OpenGL extension header
 

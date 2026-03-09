@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <memory>
 
-#include "KalaHeaders/core_utils.hpp"
+#include "core_utils.hpp"
 
 #include "core/kw_registry.hpp"
 

@@ -19,9 +19,9 @@
 #include <vector>
 #include <sstream>
 
-#include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/log_utils.hpp"
-#include "KalaHeaders/math_utils.hpp"
+#include "core_utils.hpp"
+#include "log_utils.hpp"
+#include "math_utils.hpp"
 
 #include "opengl/kw_opengl.hpp"
 #include "opengl/kw_opengl_functions_core.hpp"

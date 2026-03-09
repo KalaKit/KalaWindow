@@ -10,9 +10,9 @@
 #include <span>
 #include <string>
 
-#include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/math_utils.hpp"
-#include "KalaHeaders/key_standards.hpp"
+#include "core_utils.hpp"
+#include "math_utils.hpp"
+#include "key_standards.hpp"
 
 #include "core/kw_registry.hpp"
 

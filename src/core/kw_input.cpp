@@ -9,8 +9,8 @@
 #include <string>
 #include <memory>
 
-#include "KalaHeaders/log_utils.hpp"
-#include "KalaHeaders/key_standards.hpp"
+#include "log_utils.hpp"
+#include "key_standards.hpp"
 
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"

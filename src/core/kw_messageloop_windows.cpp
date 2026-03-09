@@ -19,9 +19,9 @@
 	#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 #endif
 
-#include "KalaHeaders/log_utils.hpp"
-#include "KalaHeaders/math_utils.hpp"
-#include "KalaHeaders/key_standards.hpp"
+#include "log_utils.hpp"
+#include "math_utils.hpp"
+#include "key_standards.hpp"
 
 #include "core/kw_messageloop_windows.hpp"
 #include "core/kw_input.hpp"

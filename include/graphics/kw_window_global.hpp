@@ -8,7 +8,8 @@
 #include <string>
 #include <vector>
 
-#include "KalaHeaders/core_utils.hpp"
+#include "core_utils.hpp"
+
 #include "core/kw_core.hpp"
 #include "core/kw_messageloop_x11.hpp"
 #include "graphics/kw_window.hpp"

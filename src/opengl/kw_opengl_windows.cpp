@@ -13,7 +13,7 @@
 
 #include <GL/wglext.h>
 
-#include "KalaHeaders/log_utils.hpp"
+#include "log_utils.hpp"
 
 #include "opengl/kw_opengl.hpp"
 #include "opengl/kw_opengl_functions_core.hpp"

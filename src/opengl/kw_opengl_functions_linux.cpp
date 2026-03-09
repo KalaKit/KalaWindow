@@ -10,8 +10,8 @@
 #include <string>
 #include <dlfcn.h>
 
-#include "KalaHeaders/core_utils.hpp"
-#include "KalaHeaders/log_utils.hpp"
+#include "core_utils.hpp"
+#include "log_utils.hpp"
 
 #include "opengl/kw_opengl_functions_linux.hpp"
 #include "opengl/kw_opengl.hpp"

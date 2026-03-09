@@ -9,7 +9,7 @@
 #include <array>
 #include <functional>
 
-#include "KalaHeaders/core_utils.hpp"
+#include "core_utils.hpp"
 #include "core/kw_core.hpp"
 
 namespace KalaWindow::Core

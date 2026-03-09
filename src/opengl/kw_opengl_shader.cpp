@@ -11,7 +11,7 @@
 #include <vector>
 #include <memory>
 
-#include "KalaHeaders/log_utils.hpp"
+#include "log_utils.hpp"
 
 #include "opengl/kw_opengl_shader.hpp"
 #include "opengl/kw_opengl.hpp"

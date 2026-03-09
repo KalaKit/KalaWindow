@@ -10,7 +10,7 @@
 #include <string>
 #include <memory>
 
-#include "KalaHeaders/log_utils.hpp"
+#include "log_utils.hpp"
 
 #include "graphics/kw_menubar_windows.hpp"
 #include "graphics/kw_window.hpp"

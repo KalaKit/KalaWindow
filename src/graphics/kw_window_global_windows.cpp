@@ -17,7 +17,7 @@
 #include <sstream>
 #include <string>
 
-#include "KalaHeaders/log_utils.hpp"
+#include "log_utils.hpp"
 
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_window.hpp"

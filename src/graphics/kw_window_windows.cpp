@@ -20,7 +20,7 @@
 #include <string>
 #include <vector>
 
-#include "KalaHeaders/log_utils.hpp"
+#include "log_utils.hpp"
 
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
