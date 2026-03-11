@@ -1092,7 +1092,7 @@ static bool ProcessMessage(
 	{
 		if (window->IsResizable())
 		{
-			vec2 fbSize = window->GetClientRectSize();
+			vec2 winSize = window->GetClientRectSize();
 
 			if (OpenGL_Global::IsInitialized())
 			{
@@ -1101,12 +1101,11 @@ static bool ProcessMessage(
 				coreFunc->glViewport(
 					0,
 					0,
-					(GLsizei)fbSize.x,
-					(GLsizei)fbSize.y);
+					(GLsizei)winSize.x,
+					(GLsizei)winSize.y);
 			}
 
 			window->TriggerResize();
-
 			window->SetResizingState(false);
 		}
 

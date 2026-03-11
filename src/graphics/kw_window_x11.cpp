@@ -3,7 +3,6 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-
 #if defined(__linux__) && defined(KW_USE_X11)
 
 #include <X11/Xlib.h>
@@ -34,6 +33,8 @@ using KalaWindow::Core::Input;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::X11GlobalData;
+using KalaWindow::Graphics::WindowMode;
+using KalaWindow::Graphics::WindowState;
 
 using std::make_unique;
 using std::unique_ptr;
@@ -58,7 +59,7 @@ namespace KalaWindow::Graphics
 
     ProcessWindow* ProcessWindow::Initialize(
 		string_view title,
-		vec2 size,
+		vec2 newSize,
 		ProcessWindow* parentWindow,
 		DpiContext context)
     {
@@ -93,15 +94,18 @@ namespace KalaWindow::Graphics
 
         bool isChild = parentWindow;
 
-        Atom wmDelete = ToVar<Atom>(globalData.atom_wmDelete);
+        Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
+
+        vec2 newPos = 800.0f;
+        vec2 clampedSize = kclamp(newSize, 1.0f, 10000.0f);
 
         Window window = XCreateSimpleWindow(
             display,
             root,
-            100,
-            100,
-            size.x,
-            size.y,
+            scast<int>(newPos.x),
+            scast<int>(newPos.y),
+            scast<int>(clampedSize.x),
+            scast<int>(clampedSize.y),
             1,
             BlackPixel(display, DefaultScreen(display)),
             WhitePixel(display, DefaultScreen(display)));
@@ -132,7 +136,7 @@ namespace KalaWindow::Graphics
         XSetWMProtocols(
             display,
             window,
-            &wmDelete,
+            &atom_wm_delete,
             1);
 
         //allow events
@@ -141,6 +145,7 @@ namespace KalaWindow::Graphics
             window,
             ExposureMask
             | StructureNotifyMask
+            | PropertyChangeMask
             | FocusChangeMask
             | KeyPressMask
             | KeyReleaseMask
@@ -158,14 +163,16 @@ namespace KalaWindow::Graphics
 
         windowPtr->SetTitle(title);
 		windowPtr->ID = newID;
-		windowPtr->SetClientRectSize(size);
 
         windowPtr->SetWindowClass(title);
 
 		windowPtr->isInitialized = true;
 
-		windowPtr->oldPos = windowPtr->GetPosition();
-		windowPtr->oldSize = windowPtr->GetClientRectSize();
+        windowPtr->pos = newPos;
+        windowPtr->size = clampedSize;
+
+		windowPtr->oldPos = newPos;
+		windowPtr->oldSize = clampedSize;
 
         //show window
         XMapWindow(
@@ -275,29 +282,235 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::BringToFocus() {}
 
-    void ProcessWindow::SetClientRectSize(vec2 newSize) {}
-    vec2 ProcessWindow::GetClientRectSize() const { static vec2 rect{}; return rect; }
+    void ProcessWindow::SetClientRectSize(vec2 newSize)
+    { 
+        vec2 winSize = kclamp(newSize, minSize, maxSize);
 
-    void ProcessWindow::SetOuterSize(vec2 newSize) {}
-    vec2 ProcessWindow::GetOuterSize() const { static vec2 outer{}; return outer; }
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
 
-    void ProcessWindow::SetPosition(vec2 newPosition) const {}
+            XResizeWindow(
+                display,
+                window,
+                scast<int>(winSize.x),
+                scast<int>(winSize.y));
+
+            XFlush(display);
+        }
+    }
+    vec2 ProcessWindow::GetClientRectSize() const { return size; }
+
+    void ProcessWindow::SetOuterSize(vec2 newSize) { SetClientRectSize(newSize); }
+    vec2 ProcessWindow::GetOuterSize() const { return GetClientRectSize(); }
+
+    void ProcessWindow::SetPosition(vec2 newPosition)
+    { 
+        vec2 winPos = newPosition;
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
+
+            XMoveWindow(
+                display,
+                window,
+                scast<int>(winPos.x),
+                scast<int>(winPos.y));
+
+            XFlush(display);
+        }
+    }
     vec2 ProcessWindow::GetPosition() { static vec2 pos{}; return pos; }
 
-    void ProcessWindow::SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
+    void ProcessWindow::SetMaxSize(vec2 newMaxSize)
+    { 
+        maxSize = kclamp(newMaxSize, minSize + 1.0f, 10000.0f);
+
+        if (size > maxSize) SetClientRectSize(maxSize);
+    }
 	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
 
-	void ProcessWindow::SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
+	void ProcessWindow::SetMinSize(vec2 newMinSize)
+    { 
+        minSize = kclamp(newMinSize, 1.0f, maxSize - 1.0f);
+
+        if (size < minSize) SetClientRectSize(minSize);
+    }
 	vec2 ProcessWindow::GetMinSize() const { return minSize; }
 
-	void ProcessWindow::SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
-	bool ProcessWindow::IsFocusRequired() const { return isWindowFocusRequired; }
+    void ProcessWindow::SetAlwaysOnTopState(bool state)
+    { 
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
 
-    void ProcessWindow::SetAlwaysOnTopState(bool state) const {}
-    bool ProcessWindow::IsAlwaysOnTop() const { static bool top{}; return top; }
+            Atom atom_net_wm_state       = ToVar<Atom>(globalData.atom_net_wm_state);
+            Atom atom_net_wm_state_above = ToVar<Atom>(globalData.atom_net_wm_state_above);
+        
+            XEvent event{};
+            event.xclient.type = ClientMessage;
+            event.xclient.window = window;
+            event.xclient.message_type = atom_net_wm_state;
+            event.xclient.format = 32;
+            event.xclient.data.l[0] = state;
+            event.xclient.data.l[1] = atom_net_wm_state_above;
+            event.xclient.data.l[2] = 0;
+            event.xclient.data.l[3] = 0;
+            event.xclient.data.l[4] = 0;
 
-    void ProcessWindow::SetResizableState(bool state) const {}
-    bool ProcessWindow::IsResizable() const { bool res{}; return res; }
+            XSendEvent(
+                display,
+                DefaultRootWindow(display),
+                False,
+                SubstructureRedirectMask
+                | SubstructureNotifyMask,
+                &event);
+
+            XFlush(display);
+        }
+    }
+    bool ProcessWindow::IsAlwaysOnTop() const
+    { 
+        bool isAbove{};
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
+
+            Atom atom_net_wm_state       = ToVar<Atom>(globalData.atom_net_wm_state);
+            Atom atom_net_wm_state_above = ToVar<Atom>(globalData.atom_net_wm_state_above);
+
+            Atom actualType{};
+            int actualFormat{};
+            unsigned long nItems{}, bytesAfter{};
+            unsigned char* data{};
+
+            if (XGetWindowProperty(
+                display,
+                window,
+                atom_net_wm_state,
+                0,
+                1024,
+                False,
+                XA_ATOM,
+                &actualType,
+                &actualFormat,
+                &nItems,
+                &bytesAfter,
+                &data) != Success)
+            {
+                return false;
+            }
+
+            if (data)
+            {
+                Atom* atoms = (Atom*)data;
+                for (unsigned long i = 0; i < nItems; i++)
+                {
+                    if (atoms[i] == atom_net_wm_state_above)
+                    {
+                        isAbove = true;
+                        break;
+                    }
+                }
+                XFree(data);
+            }
+        }
+
+        return isAbove;
+    }
+
+    void ProcessWindow::SetResizableState(bool state)
+    { 
+        bool resizable = state;
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
+
+            XSizeHints hints{};
+            long supplied{};
+
+            if (!XGetWMNormalHints(
+                display,
+                window,
+                &hints,
+                &supplied))
+            {
+                memset(&hints, 0, sizeof(hints));
+            }
+
+            if (resizable)
+            {
+                hints.flags |= PMinSize | PMaxSize;
+
+                hints.min_width = 1;
+                hints.min_height = 1;
+
+                hints.max_width = scast<int>(maxSize.x);
+                hints.max_height = scast<int>(maxSize.y);
+            }
+            else
+            {
+                hints.flags |= PMinSize | PMaxSize;
+
+                hints.min_width = hints.max_width = scast<int>(size.x);
+                hints.min_height = hints.max_height = scast<int>(size.y);
+            }
+
+            XSetWMNormalHints(display, window, &hints);
+            XFlush(display);
+        }
+    }
+    bool ProcessWindow::IsResizable() const
+    {
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
+
+            XSizeHints hints{};
+            long supplied{};
+
+            if (!XGetWMNormalHints(
+                display,
+                window,
+                &hints,
+                &supplied))
+            {
+                //assume resizable if hints are missing
+                return true;
+            }
+
+            if ((hints.flags & PMinSize)
+                && (hints.flags & PMaxSize))
+            {
+                return !(
+                    hints.min_width == hints.max_width
+                    && hints.min_height == hints.max_height);
+            }
+        }
+
+        return false;
+    }
 
     void ProcessWindow::SetWindowClass(string_view newValue)
     {
@@ -342,20 +555,177 @@ namespace KalaWindow::Graphics
 
     bool ProcessWindow::IsIdle() const { return isIdle; }
 
-    bool ProcessWindow::IsForegroundWindow() const { static bool fore{}; return fore; }
-    bool ProcessWindow::IsFocused() const { static bool focu{}; return isFocused; }
-    bool ProcessWindow::IsFullscreen() { static bool full{}; return full; }
-    bool ProcessWindow::IsMinimized() const { static bool mini{}; return mini; }
-    bool ProcessWindow::IsVisible() const { static bool visi{}; return visi; }
+    bool ProcessWindow::IsForegroundWindow() const { return isFocused; }
+    bool ProcessWindow::IsFocused() const { return isFocused; }
+    bool ProcessWindow::IsFullscreen() { return isFullscreen; }
+    bool ProcessWindow::IsMinimized() const { return !isVisible; }
+    bool ProcessWindow::IsVisible() const { return isVisible; }
 
     void ProcessWindow::SetResizingState(bool newState) { isResizing = newState; }
 	bool ProcessWindow::IsResizing() const { return isResizing; }
 
-    void ProcessWindow::SetWindowMode(WindowMode mode) {}
-    WindowMode ProcessWindow::GetWindowMode() { static WindowMode mode{}; return mode; }
+    void ProcessWindow::SetWindowMode(WindowMode mode)
+    {
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
 
-    void ProcessWindow::SetWindowState(WindowState state) {}
-    WindowState ProcessWindow::GetWindowState() const { static WindowState state{}; return state; }
+            Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
+            Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+
+            long action{};
+
+            switch (mode)
+            {
+                default:
+                case WindowMode::WINDOWMODE_WINDOWED:
+                    action = 0;
+                    break;
+                case WindowMode::WINDOWMODE_BORDERLESS:
+                case WindowMode::WINDOWMODE_EXCLUSIVE:
+                    action = 1;
+                    SetPosition(oldPos);
+                    SetClientRectSize(oldSize);
+                    break;
+            }
+
+            XEvent event{};
+            event.xclient.type = ClientMessage;
+            event.xclient.window = window;
+            event.xclient.message_type = atom_net_wm_state;
+            event.xclient.format = 32;
+            event.xclient.data.l[0] = action;
+            event.xclient.data.l[1] = atom_net_wm_state_fullscreen;
+            event.xclient.data.l[2] = 0;
+            event.xclient.data.l[3] = 0;
+            event.xclient.data.l[4] = 0;
+
+            XSendEvent(
+                display,
+                DefaultRootWindow(display),
+                False,
+                SubstructureRedirectMask
+                | SubstructureNotifyMask,
+                &event);
+
+            if (mode == WindowMode::WINDOWMODE_WINDOWED)
+            {
+                SetPosition(oldPos);
+                SetClientRectSize(oldSize);
+            }
+
+            XFlush(display);
+
+            windowMode = mode;
+        }
+    }
+    WindowMode ProcessWindow::GetWindowMode() { return windowMode; }
+
+    void ProcessWindow::SetWindowState(WindowState state)
+    {
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
+
+            switch (state)
+            {
+                default:
+                case WindowState::WINDOW_NORMAL:
+                case WindowState::WINDOW_SHOWNOACTIVATE:
+                {
+                    Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
+                    Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+                    Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
+                    Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
+                    
+                    XEvent event{};
+                    event.xclient.type = ClientMessage;
+                    event.xclient.window = window;
+                    event.xclient.message_type = atom_net_wm_state;
+                    event.xclient.format = 32;
+                    event.xclient.data.l[0] = 0; //remove hints
+                    event.xclient.data.l[1] = atom_net_wm_state_vertical;
+                    event.xclient.data.l[2] = atom_net_wm_state_horizontal;
+                    event.xclient.data.l[3] = atom_net_wm_state_fullscreen;
+                    event.xclient.data.l[4] = 0;
+
+                    XSendEvent(
+                        display,
+                        DefaultRootWindow(display),
+                        False,
+                        SubstructureRedirectMask
+                        | SubstructureNotifyMask,
+                        &event);
+
+                    XMapWindow(display, window);
+
+                    SetPosition(oldPos);
+                    SetClientRectSize(oldSize);
+
+                    break;
+                }
+                case WindowState::WINDOW_MAXIMIZE:
+                {
+                    SetPosition(oldPos);
+                    SetClientRectSize(oldSize);
+
+                    Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
+                    Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
+                    Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
+                    
+                    XEvent event{};
+                    event.xclient.type = ClientMessage;
+                    event.xclient.window = window;
+                    event.xclient.message_type = atom_net_wm_state;
+                    event.xclient.format = 32;
+                    event.xclient.data.l[0] = 1; //add hints
+                    event.xclient.data.l[1] = atom_net_wm_state_vertical;
+                    event.xclient.data.l[2] = atom_net_wm_state_horizontal;
+                    event.xclient.data.l[3] = 0;
+                    event.xclient.data.l[4] = 0;
+
+                    XSendEvent(
+                        display,
+                        DefaultRootWindow(display),
+                        False,
+                        SubstructureRedirectMask
+                        | SubstructureNotifyMask,
+                        &event);
+
+                    XMapWindow(display, window);
+                    break;
+                }
+                case WindowState::WINDOW_MINIMIZE:
+                {
+                    SetPosition(oldPos);
+                    SetClientRectSize(oldSize);
+
+                    int screen = DefaultScreen(display);
+                    XIconifyWindow(display, window, screen);
+                    break;
+                }
+                case WindowState::WINDOW_HIDE:
+                {
+                    SetPosition(oldPos);
+                    SetClientRectSize(oldSize);
+
+                    XUnmapWindow(display, window);
+                    break;
+                }
+            }
+
+            XFlush(display);
+
+            windowState = state;
+        }
+    }
+    WindowState ProcessWindow::GetWindowState() const { return windowState; }
 
     void ProcessWindow::TriggerResize() { if (resizeCallback) resizeCallback(); }
 	void ProcessWindow::SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
@@ -377,8 +747,61 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
 
+    void ProcessWindow::UpdateFullscreenState()
+    {
+        Atom actualType{};
+        int actualFormat{};
+        unsigned long nItems{}, bytesAfter{};
+        unsigned char* data{};
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
+
+            Atom netWmState = ToVar<Atom>(globalData.atom_net_wm_state);
+            Atom netWmStateFullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+
+            XGetWindowProperty(
+                display,
+                window,
+                netWmState,
+                0,
+                1024,
+                False,
+                XA_ATOM,
+                &actualType,
+                &actualFormat,
+                &nItems,
+                &bytesAfter,
+                &data);
+
+            isFullscreen = false;
+
+            if (data)
+            {
+                Atom* atoms = (Atom*)data;
+
+                for (unsigned long i = 0; i < nItems; i++)
+                {
+                    if (atoms[i] == netWmStateFullscreen)
+                    {
+                        isFullscreen = true;
+                        break;
+                    }
+                }
+
+                XFree(data);
+            }
+        }
+    }
+
     void ProcessWindow::CloseWindow()
     {
+        Log::Print("closing window...");
+
         if (cleanExternalContent) cleanExternalContent(ID);
 		
 		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);

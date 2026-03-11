@@ -8,9 +8,12 @@
 #include <X11/X.h>
 #include <X11/extensions/Xrandr.h>
 
+#include "glcorearb.h"
+
 #include <vector>
 
 #include "core_utils.hpp"
+#include "math_utils.hpp"
 
 #include "core/kw_messageloop_x11.hpp"
 #include "core/kw_registry.hpp"
@@ -29,6 +32,8 @@ using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 
 using KalaHeaders::KalaCore::ToVar;
+
+using KalaHeaders::KalaMath::vec2;
 
 using std::vector;
 
@@ -55,7 +60,10 @@ namespace KalaWindow::Core
 
         const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::runtimeContent;
 
-        Atom wmDelete = ToVar<Atom>(globalData.atom_wmDelete);
+        Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
+
+        Atom atom_net_wm_state = ToVar<Atom>(globalData.atom_net_wm_state);
+
         Window target = event.xany.window;
 
         for (const auto& w : activeWindows)
@@ -74,42 +82,55 @@ namespace KalaWindow::Core
 
             switch (event.type)
             {
-                case Expose:
-                {
-                    if (event.xexpose.count == 0) w->TriggerRedraw();
-                    break;
-                }
-
+                //same idea as WM_SIZE
                 case ConfigureNotify:
                 {
-                    if (w->IsResizable())
-                    {
-                        int width = event.xconfigure.width;
-                        int height = event.xconfigure.height;
+                    vec2 newPos = vec2(event.xconfigure.x, event.xconfigure.y);
+                    vec2 newSize = vec2(event.xconfigure.width, event.xconfigure.height);
 
-                        if (OpenGL_Global::IsInitialized()
-                            && width > 0
-                            && height > 0)
+                    vec2 oldSize = w->size;
+
+                    w->pos = newPos;
+                    w->size = newSize;
+
+                    if (w->IsResizable()
+                        && oldSize != newSize)
+                    {
+                        vec2 winSize = w->GetClientRectSize();
+
+                        if (OpenGL_Global::IsInitialized())
                         {
                             const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
                             coreFunc->glViewport(
                                 0,
                                 0,
-                                width,
-                                height);
+                                (GLsizei)winSize.x,
+					            (GLsizei)winSize.y);
                         }
-
-                        w->TriggerResize();
-                        w->TriggerRedraw();
                     }
 
                     break;
                 }
 
+                case Expose:
+                {
+                    if (event.xexpose.count == 0) w->TriggerRedraw();
+                    break;
+                }
+
                 case ClientMessage:
                 {
-                    if ((Atom)event.xclient.data.l[0] == wmDelete) w->CloseWindow();
+                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete) w->CloseWindow();
+                    break;
+                }
+
+                case PropertyNotify:
+                {
+                    if (event.xproperty.atom == atom_net_wm_state)
+                    {
+                        w->UpdateFullscreenState();
+                    }
                     break;
                 }
 
@@ -124,10 +145,28 @@ namespace KalaWindow::Core
                     break;
                 }
 
+                case MapNotify:
+                {   
+                    w->isVisible = true;
+                    break;
+                }
+                case UnmapNotify:
+                {   
+                    w->isVisible = false;
+                    break;
+                }
+
+                //mouse is hovering over window
+                case EnterNotify:   break;
+                //mouse is no longer hovering over window
+                case LeaveNotify:   break;
+
                 case KeyPress:      break;
                 case KeyRelease:    break;
+
                 case ButtonPress:   break;
                 case ButtonRelease: break;
+
                 case MotionNotify:  break;
             }
 

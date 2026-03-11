@@ -80,9 +80,17 @@ namespace KalaWindow::Graphics
 		uintptr_t window_root{};
 
 		uintptr_t atom_utf8{};
+
 		uintptr_t atom_net_wm_name{};
 		uintptr_t atom_net_wm_pid{};
-		uintptr_t atom_wmDelete{};
+
+		uintptr_t atom_net_wm_state{};
+		uintptr_t atom_net_wm_state_fullscreen{};
+		uintptr_t atom_net_wm_state_vertical{};
+		uintptr_t atom_net_wm_state_horizontal{};
+		uintptr_t atom_net_wm_state_above{};
+
+		uintptr_t atom_wm_delete{};
 	};
 #endif
 

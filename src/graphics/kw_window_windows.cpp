@@ -836,7 +836,7 @@ namespace KalaWindow::Graphics
 		};
 	}
 
-	void ProcessWindow::SetPosition(vec2 newPosition) const
+	void ProcessWindow::SetPosition(vec2 newPosition)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window position"));
 		if (!window) return;
@@ -879,16 +879,23 @@ namespace KalaWindow::Graphics
 		return vec2{ 0, 0 };
 	}
 
-	void ProcessWindow::SetMaxSize(vec2 newMaxSize) { maxSize = newMaxSize; }
+    void ProcessWindow::SetMaxSize(vec2 newMaxSize)
+    { 
+        maxSize = kclamp(newMaxSize, minSize + 1.0f, 10000.0f);
+
+        if (size > maxSize) SetClientRectSize(maxSize);
+    }
 	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
 
-	void ProcessWindow::SetMinSize(vec2 newMinSize) { minSize = newMinSize; }
+	void ProcessWindow::SetMinSize(vec2 newMinSize)
+    { 
+        minSize = kclamp(newMinSize, 1.0f, maxSize - 1.0f);
+
+        if (size < minSize) SetClientRectSize(minSize);
+    }
 	vec2 ProcessWindow::GetMinSize() const { return minSize; }
 
-	void ProcessWindow::SetFocusRequired(bool newFocusRequired) { isWindowFocusRequired = newFocusRequired; }
-	bool ProcessWindow::IsFocusRequired() const { return isWindowFocusRequired; }
-
-	void ProcessWindow::SetAlwaysOnTopState(bool state) const
+	void ProcessWindow::SetAlwaysOnTopState(bool state)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window always on top state"));
 		if (!window) return;
@@ -925,7 +932,7 @@ namespace KalaWindow::Graphics
 		return (exStyle & WS_EX_TOPMOST) != 0;
 	}
 
-	void ProcessWindow::SetResizableState(bool state) const
+	void ProcessWindow::SetResizableState(bool state)
 	{
 		HWND window = ToVar<HWND>(GetHWND("set window resizable state"));
 		if (!window) return;

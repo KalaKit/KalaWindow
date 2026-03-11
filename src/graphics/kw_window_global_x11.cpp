@@ -115,7 +115,28 @@ namespace KalaWindow::Graphics
             "_NET_WM_PID",
             False);
 
-        Atom wmDelete = XInternAtom(
+        Atom atom_net_wm_state = XInternAtom(
+            display,
+            "_NET_WM_STATE",
+            False);
+        Atom atom_net_wm_state_fullscreen = XInternAtom(
+            display,
+           "_NET_WM_STATE_FULLSCREEN",
+            False);
+        Atom atom_net_wm_state_vertical = XInternAtom(
+            display,
+           "_NET_WM_STATE_MAXIMIZED_VERT",
+            False);
+        Atom atom_net_wm_state_horizontal = XInternAtom(
+            display,
+           "_NET_WM_STATE_MAXIMIZED_HORZ",
+            False);
+        Atom atom_net_wm_state_above = XInternAtom(
+            display,
+           "_NET_WM_STATE_ABOVE",
+            False);
+
+        Atom atom_wm_delete = XInternAtom(
             display,
             "WM_DELETE_WINDOW",
             False);
@@ -124,9 +145,17 @@ namespace KalaWindow::Graphics
         globalData.window_root = FromVar(root);
 
         globalData.atom_utf8        = FromVar(utf8);
+        
         globalData.atom_net_wm_name = FromVar(net_wm_name);
         globalData.atom_net_wm_pid  = FromVar(net_wm_pid);
-        globalData.atom_wmDelete    = FromVar(wmDelete);
+
+        globalData.atom_net_wm_state            = FromVar(atom_net_wm_state);
+        globalData.atom_net_wm_state_fullscreen = FromVar(atom_net_wm_state_fullscreen);
+        globalData.atom_net_wm_state_vertical   = FromVar(atom_net_wm_state_vertical);
+        globalData.atom_net_wm_state_horizontal = FromVar(atom_net_wm_state_horizontal);
+        globalData.atom_net_wm_state_above      = FromVar(atom_net_wm_state_above);
+
+        globalData.atom_wm_delete    = FromVar(atom_wm_delete);
 
         isInitialized = true;
 
