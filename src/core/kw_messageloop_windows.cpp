@@ -544,8 +544,28 @@ static bool ProcessMessage(
 
 			input->SetMousePosition(newPos);
 			input->SetMouseDelta(delta);
+
+			if (!w->isHovered)
+			{
+				w->isHovered = true;
+
+				const WindowData& win = window->GetWindowData();
+				HWND hwnd = ToVar<HWND>(win.hwnd);
+
+				TRACKMOUSEEVENT tme{};
+				tme.cbSize = sizeof(tme);
+				tme.dwFlags = TME_LEAVE;
+				tme.hwndTrack = hwnd;
+
+				TrackMouseEvent(&tme);
+			}
 		}
 
+		return false;
+	}
+	case WM_MOUSELEAVE:
+	{
+		w->isHovered = false;
 		return false;
 	}
 

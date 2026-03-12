@@ -6,14 +6,13 @@
 name_bin: KalaWindow1
 dir_release: build/release-
 dir_debug: build/debug-
-lin_lin: X11, GL
-def_main: KW_USE_X11, KW_USE_GL, ENABLE_EMIT_LOG
+def_main: ENABLE_EMIT_LOG
 def_win: LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
 #global
 compilerlauncher: ccache
 standard: c++20
-binarytype: shared
+binarytype: static
 sources: "src"
 headers: "include", "_external_shared/KalaHeaders", "_external_shared/OpenGL"
 warninglevel: normal
@@ -38,7 +37,6 @@ binaryname: lib${name_bin}d
 compiler: clang++
 buildtype: debug
 buildpath: "${dir_debug}linux"
-links: ${lin_lin}
 defines: ${def_main}
 
 #profile release-linux
@@ -46,5 +44,5 @@ binaryname: lib${name_bin}
 compiler: clang++
 buildtype: minsizerel
 buildpath: "${dir_release}linux"
-links: ${lin_lin}
 defines: ${def_main}
+postbuildaction: strip --strip-unneeded ${dir_release}linux/lib${name_bin}.a

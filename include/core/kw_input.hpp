@@ -153,24 +153,24 @@ namespace KalaWindow::Core
 
 		//Return true if cursor is not hidden.
 		bool IsMouseVisible() const;
-		//Allows to set the visibility state of the cursor, if true then the cursor is visible.
-		void SetMouseVisibility(bool isVisible);
+		//Allows to set the visibility state of the cursor, if true then the cursor is visible,
+		//if updateBetweenFocus is true, then mouse visibility is disabled when unfocused without clearing internal flag
+		void SetMouseVisibility(
+			bool newState,
+			bool updateBetweenFocus = true);
 
 		//Return true if the cursor is locked to the center of the window.
 		bool IsMouseLocked() const;
 		//Allows to set the lock state of the cursor, if true 
-		//then the cursor is locked to the center of the window.
-		void SetMouseLockState(bool newState);
+		//then the cursor is locked to the center of the window,
+		//if updateBetweenFocus is true, then mouse lock is disabled when unfocused without clearing internal flag
+		void SetMouseLockState(
+			bool newState,
+			bool updateBetweenFocus = true);
 
 		//If true, then mouse delta, raw delta and scroll delta wont be reset per frame.
 		bool GetKeepMouseDeltaState() const;
 		void SetKeepMouseDeltaState(bool newState);
-
-		//If true, then mouse visibility is disabled when unfocused without clearing internal flag
-		void SetMouseVisibilityBetweenFocus(bool state) const;
-
-		//If true, then mouse lock is disabled when unfocused without clearing internal flag
-		void SetMouseLockStateBetweenFocus(bool state) const;
 
 		//Clear all keyboard and mouse input events and mouse position values,
 		//used internally to "forget" any mouse and keyboard events if window is unfocused

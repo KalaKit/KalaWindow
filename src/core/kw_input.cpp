@@ -5,7 +5,11 @@
 
 #ifdef _WIN32
 #include <windows.h>
-#endif //_WIN32
+#else
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/extensions/XInput2.h>
+#endif
 #include <string>
 #include <memory>
 
@@ -15,6 +19,7 @@
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
+#include "graphics/kw_window_global.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 
@@ -28,6 +33,8 @@ using KalaHeaders::KalaKeyStandards::IndexToMouse;
 
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
+using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Graphics::X11GlobalData;
 
 using std::string;
 using std::to_string;
@@ -47,10 +54,10 @@ namespace KalaWindow::Core
 
 	Input* Input::Initialize(u32 windowID)
 	{
-		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
+		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!w
+			|| !w->IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
 				"Input error",
@@ -66,7 +73,7 @@ namespace KalaWindow::Core
 		Input* inputPtr = newInput.get();
 
 		Log::Print(
-			"Creating input context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"Creating input context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'.",
 			"INPUT",
 			LogType::LOG_DEBUG);
 
@@ -76,6 +83,7 @@ namespace KalaWindow::Core
 		// MOUSE RAW INPUT
 		//
 
+		//x11 raw input is enabled globally in x11 global window init
 #ifdef _WIN32
 		const WindowData& win = window->GetWindowData();
 		HWND winRef = ToVar<HWND>(win.hwnd);
@@ -90,14 +98,14 @@ namespace KalaWindow::Core
 #endif
 
 		registry.AddContent(newID, std::move(newInput));
-		window->SetInputID(newID);
+		w->SetInputID(newID);
 
-		inputPtr->windowID = window->GetID();
+		inputPtr->windowID = w->GetID();
 
 		inputPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized input context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Initialized input context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'!",
 			"INPUT",
 			LogType::LOG_SUCCESS);
 
@@ -415,24 +423,62 @@ namespace KalaWindow::Core
 	void Input::SetScrollwheelDelta(float delta) { mouseWheelDelta = delta; }
 
 	bool Input::IsMouseVisible() const { return isMouseVisible; }
-
-	void Input::SetMouseVisibility(bool state)
+	void Input::SetMouseVisibility(
+		bool state,
+		bool updateBetweenFocus)
 	{
-		isMouseVisible = state;
+		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
+		if (!w) return;
 
-		if (state)
-		{
-#ifdef _WIN32
-			while (ShowCursor(TRUE) < 0);   //increment until visible
-#endif
-		}
-		else
-		{
-#ifdef _WIN32
-			while (ShowCursor(FALSE) >= 0); //decrement until hidden
-#endif
-		}
+		if (updateBetweenFocus) isMouseVisible = state;
 
+#ifdef _WIN32
+		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
+		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
+#else
+		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+		const WindowData& windowData = w->GetWindowData();
+
+		if (globalData.display
+			&& windowData.window)
+		{
+			Display* display = ToVar<Display*>(globalData.display);
+			Window window = ToVar<Window>(windowData.window);
+			
+			if (state) XUndefineCursor(display, window);
+			else
+			{
+				static Cursor hiddenCursor{};
+
+				if (!hiddenCursor)
+				{
+					char data[1]{};
+					Pixmap blank = XCreateBitmapFromData(
+						display,
+						window,
+						data,
+						1,
+						1);
+
+					XColor dummy{};
+					hiddenCursor = XCreatePixmapCursor(
+						display,
+						blank,
+						blank,
+						&dummy,
+						&dummy,
+						0,
+						0);
+
+					XFreePixmap(display, blank);
+				}
+
+				XDefineCursor(display, window, hiddenCursor);
+			}
+
+			XFlush(display);
+		}
+#endif
 
 		if (isVerboseLoggingEnabled)
 		{
@@ -446,35 +492,20 @@ namespace KalaWindow::Core
 	}
 
 	bool Input::IsMouseLocked() const { return isMouseLocked; }
-
-	void Input::SetMouseLockState(bool state)
+	void Input::SetMouseLockState(
+		bool state,
+		bool updateBetweenFocus)
 	{
-		isMouseLocked = state;
+		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
+		if (!w) return;
 
-		if (!state)
-		{
+		if (updateBetweenFocus) isMouseLocked = state;
+
 #ifdef _WIN32
-			ClipCursor(nullptr);
-#endif
-		}
+		if (!state) ClipCursor(nullptr);
 		else
 		{
-			ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
-			if (!window
-				|| !window->IsInitialized())
-			{
-				Log::Print(
-					"Cannot set mouse lock state because its window was not found!",
-					"INPUT",
-					LogType::LOG_ERROR,
-					2);
-
-				return;
-			}
-
-#ifdef _WIN32
-			HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+			HWND hwnd = ToVar<HWND>(w->GetWindowData().hwnd);
 
 			RECT rect{};
 			GetClientRect(hwnd, &rect);
@@ -486,9 +517,35 @@ namespace KalaWindow::Core
 			rect.right = lr.x; rect.bottom = lr.y;
 
 			ClipCursor(&rect);
-#endif
 		}
+#else
+		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+		const WindowData& windowData = w->GetWindowData();
 
+		if (globalData.display
+			&& windowData.window)
+		{
+			Display* display = ToVar<Display*>(globalData.display);
+			Window window = ToVar<Window>(windowData.window);
+
+			if (!state) XUngrabPointer(display, CurrentTime);
+			else
+			{
+				XGrabPointer(
+					display,
+					window,
+					True,
+					ButtonPressMask
+					| ButtonReleaseMask
+					| PointerMotionMask,
+					GrabModeAsync,
+					GrabModeAsync,
+					window,
+					None,
+					CurrentTime);
+			}
+		}
+#endif
 
 		if (isVerboseLoggingEnabled)
 		{
@@ -503,59 +560,6 @@ namespace KalaWindow::Core
 
 	bool Input::GetKeepMouseDeltaState() const { return keepMouseDelta; }
 	void Input::SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
-
-	void Input::SetMouseVisibilityBetweenFocus(bool state) const
-	{
-		if (isMouseVisible) return;
-
-#ifdef _WIN32
-		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
-		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
-#endif
-	}
-
-	void Input::SetMouseLockStateBetweenFocus(bool state) const
-	{
-		if (isMouseLocked) return;
-
-		if (!state)
-		{
-#ifdef _WIN32
-			ClipCursor(nullptr);
-#endif
-		}
-		else
-		{
-			ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
-			if (!window
-				|| !window->IsInitialized())
-			{
-				Log::Print(
-					"Cannot set mouse lock state between focus because its window was not found!",
-					"INPUT",
-					LogType::LOG_ERROR,
-					2);
-
-				return;
-			}
-
-#ifdef _WIN32
-			HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
-
-			RECT rect{};
-			GetClientRect(hwnd, &rect);
-			POINT ul{ rect.left, rect.top };
-			POINT lr{ rect.right, rect.bottom };
-			ClientToScreen(hwnd, &ul);
-			ClientToScreen(hwnd, &lr);
-			rect.left = ul.x; rect.top = ul.y;
-			rect.right = lr.x; rect.bottom = lr.y;
-
-			ClipCursor(&rect);
-#endif
-		}
-	}
 
 	void Input::ClearInputEvents()
 	{
@@ -583,21 +587,10 @@ namespace KalaWindow::Core
 
 		if (isMouseLocked)
 		{
-			ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
+			ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
+			if (!w) return;
 
-			if (!window
-				|| !window->IsInitialized())
-			{
-				Log::Print(
-					"Cannot get window reference at input end frame update because its window was not found!",
-					"INPUT",
-					LogType::LOG_ERROR,
-					2);
-
-				return;
-			}
-
-			const WindowData& windowData = window->GetWindowData();
+			const WindowData& windowData = w->GetWindowData();
 
 #ifdef _WIN32
 			HWND windowRef = ToVar<HWND>(windowData.hwnd);
@@ -620,39 +613,38 @@ namespace KalaWindow::Core
 			{
 				SetCursorPos(center.x, center.y);
 			}
+#else
+			const X11GlobalData& globalData = Window_Global::GetGlobalData();
+			if (globalData.display
+				&& windowData.window)
+			{
+				Display* display = ToVar<Display*>(globalData.display);
+				Window window = ToVar<Window>(windowData.window);
+
+				vec2 windowSize = w->GetClientRectSize();
+
+				int centerX = windowSize.x / 2;
+				int centerY = windowSize.y / 2;
+
+				XWarpPointer(
+					display,
+					None,
+					window,
+					0, 0, 0, 0,
+					centerX,
+					centerY);
+			}
 #endif
 		}
 	}
 
 	Input::~Input()
 	{
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Cannot destroy input with ID '" + to_string(ID) + "' because it is not initialized!",
-				"INPUT",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
-		if (!window
-			|| !window->IsInitialized())
-		{
-			Log::Print(
-				"Cannot destroy input with ID '" + to_string(ID) + "' because its window was not found!",
-				"INPUT",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
+		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
+		if (!w) return;
 
 		Log::Print(
-			"Destroying input with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
+			"Destroying input with ID '" + to_string(ID) + "' for window '" + w->GetTitle() + "'.",
 			"INPUT",
 			LogType::LOG_DEBUG);
 

@@ -35,11 +35,6 @@ action: forcecopy
 // BINARIES
 //
 
-//copy debug dll
-origin: build@debug-windows@KalaWindow1d.dll
-target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.dll, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@KalaWindow1d.dll
-action: forcecopy
-
 //copy debug lib
 origin: build@debug-windows@KalaWindow1d.lib
 target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@KalaWindow1d.lib
@@ -48,11 +43,6 @@ action: forcecopy
 //copy debug pdb
 origin: build@debug-windows@KalaWindow1d.pdb
 target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@KalaWindow1d.pdb
-action: forcecopy
-
-//copy release dll
-origin: build@release-windows@KalaWindow1.dll
-target: ..@elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.dll, ..@kalakit_test_projects@_external_shared@KalaWindow@release@KalaWindow1.dll
 action: forcecopy
 
 //copy release lib

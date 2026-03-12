@@ -103,13 +103,11 @@ namespace KalaWindow::Graphics
 		PROGRESS_ERROR          //red bar
 	};
 #else
-#if defined(KW_USE_X11)
 	struct LIB_API WindowData
 	{
 		uintptr_t window{};
+		uintptr_t xic{};
 	};
-#elif defined(KW_USE_WAYLAND)
-#endif
 #endif
 
 	class LIB_API ProcessWindow
@@ -235,6 +233,8 @@ namespace KalaWindow::Graphics
 		//  - not visible
 		bool IsIdle() const;
 
+		//Returns true if this window is being hovered over by the cursor
+		bool IsHovered() const;
 		//Returns true if this window is in the front, maps to IsFocused on X11
 		bool IsForegroundWindow() const;
 		//Returns true if this window is currently receiving keyboard input
@@ -319,12 +319,13 @@ namespace KalaWindow::Graphics
 
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
 
+		bool isWindowHovered = false;      //If true, then this window is currently being hovered by the cursor.
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
 		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
 		bool isResizing = false;           //If true, then this window is currently being resized
 		bool shutdownBlockState = false;   //Prevents Windows from shutting off or logging off if this is true so you can save your data
 
-#if __linux__
+#ifdef __linux__
 		bool isFocused = false;
 		bool isVisible = false;
 		

@@ -3,7 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#if defined(__linux__) && defined(KW_USE_X11)
+#ifdef __linux__
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -92,6 +92,8 @@ namespace KalaWindow::Graphics
             ? ToVar<Window>(parentWindow->windowData.window)
             : 0;
 
+        XIM xim = ToVar<XIM>(globalData.xim);
+
         bool isChild = parentWindow;
 
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
@@ -117,6 +119,21 @@ namespace KalaWindow::Graphics
                 display,
                 window,
                 parent);
+        }
+
+        XIC xic = XCreateIC(
+            xim,
+            XNInputStyle,
+            XIMPreeditNothing | XIMStatusNothing,
+            XNClientWindow, window,
+            XNFocusWindow, window,
+            nullptr);
+
+        if (!xic)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to create XIC for window '" + string(title) + "'");
         }
 
         Atom net_wm_pid = ToVar<Atom>(globalData.atom_net_wm_pid);
@@ -147,6 +164,8 @@ namespace KalaWindow::Graphics
             | StructureNotifyMask
             | PropertyChangeMask
             | FocusChangeMask
+            | EnterWindowMask
+            | LeaveWindowMask
             | KeyPressMask
             | KeyReleaseMask
             | ButtonPressMask
@@ -158,6 +177,7 @@ namespace KalaWindow::Graphics
         //set window dpi aware state here...
 
         newWindowStruct.window = FromVar(window);
+        newWindowStruct.xic = FromVar(xic);
 
         windowPtr->windowData = newWindowStruct;
 
@@ -555,6 +575,7 @@ namespace KalaWindow::Graphics
 
     bool ProcessWindow::IsIdle() const { return isIdle; }
 
+    bool ProcessWindow::IsHovered() const { return isWindowHovered; }
     bool ProcessWindow::IsForegroundWindow() const { return isFocused; }
     bool ProcessWindow::IsFocused() const { return isFocused; }
     bool ProcessWindow::IsFullscreen() { return isFullscreen; }
@@ -824,9 +845,12 @@ namespace KalaWindow::Graphics
             Display* display = ToVar<Display*>(globalData.display);
             Window window = ToVar<Window>(windowData.window);
 
+            XIC xic = ToVar<XIC>(windowData.xic);
+
             XDestroyWindow(display, window);
+            XDestroyIC(xic);
         }
     }
 }
 
-#endif //__linux__ and KW_USE_X11
+#endif //__linux__

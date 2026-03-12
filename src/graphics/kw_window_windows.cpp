@@ -1295,6 +1295,7 @@ namespace KalaWindow::Graphics
 
 	bool ProcessWindow::IsIdle() const { return isIdle; }
 
+	bool ProcessWindow::IsHovered() const { return isWindowHovered; }
 	bool ProcessWindow::IsForegroundWindow() const
 	{
 		HWND window = ToVar<HWND>(GetHWND("get window foreground state"));

@@ -3,35 +3,12 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-//sane linux definitions
-#if defined(_WIN32)
-	#if defined(KW_USE_X11) || defined(KW_USE_WAYLAND)
-	#error "Cannot use X11 and Wayland on Windows!"
-	#endif
-#elif defined(__linux__)
-	#if defined(KW_USE_X11) && defined(KW_USE_WAYLAND)
-		#error "Cannot use X11 and Wayland together!"
-	#endif
-	#if !defined(KW_USE_X11) && !defined(KW_USE_WAYLAND)
-		#error "You must pick X11 or Wayland!"
-	#endif
-#endif
-
-//sane graphics definitions
-#if defined(KW_USE_GL) && defined(KW_USE_VK)
-#error "Cannot use OpenGL and Vulkan together!"
-#elif !defined(KW_USE_GL) && !defined(KW_USE_VK)
-#error "You have to pick OpenGL or Vulkan!"
-#endif
-
-#if defined(_WIN32)
+#ifdef _WIN32
 #include <windows.h>
 #include <mmsystem.h>
-#elif defined(__linux__)
+#else
 #include <csignal>
-#if defined(KW_USE_X11)
 #include <X11/Xlib.h>
-#endif
 #endif
 
 #include <functional>
@@ -42,7 +19,7 @@
 #include "core_utils.hpp"
 #include "log_utils.hpp"
 
-#if defined(__linux__)
+#ifdef __linux__
 #include "graphics/kw_window_global.hpp"
 #endif
 
@@ -65,11 +42,9 @@ using KalaHeaders::KalaLog::DateFormat;
 using KalaWindow::Graphics::MenuBar;
 #endif
 
-#if defined(__linux__)
+#ifdef __linux__
 using KalaWindow::Graphics::Window_Global;
-#if defined(KW_USE_X11)
 using KalaWindow::Graphics::X11GlobalData;
-#endif
 #endif
 
 using KalaWindow::Core::CrashHandler;
@@ -221,10 +196,13 @@ namespace KalaWindow::Core
 #endif
 		ProcessWindow::GetRegistry().RemoveAllContent();
 
-#if defined(__linux__) && defined(KW_USE_X11)
+#ifdef __linux__
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		if (globalData.display)
 		{
+			XIM xim = ToVar<XIM>(globalData.xim);
+			XCloseIM(xim);
+
 			Display* display = ToVar<Display*>(globalData.display);
 			XCloseDisplay(display);
 		}

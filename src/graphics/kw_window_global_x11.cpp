@@ -4,9 +4,10 @@
 //Read LICENSE.md for more information.
 
 #ifdef __linux__
-#if defined(KW_USE_X11)
 
 #include <X11/Xlib.h>
+#include <X11/extensions/XI2.h>
+#include <X11/extensions/XInput2.h>
 #include <X11/Xatom.h>
 #include <sys/wait.h>
 
@@ -98,7 +99,53 @@ namespace KalaWindow::Graphics
         XSetErrorHandler(ErrorHandler);
         XSetIOErrorHandler(IOErrorHandler);
 
+        XIM xim = XOpenIM(display, nullptr, nullptr, nullptr);
+
         Window root = DefaultRootWindow(display);
+
+        int event{};
+        int error{};
+        int opCode{};
+
+        if (!XQueryExtension(
+            display,
+            "XInputExtension",
+            &opCode,
+            &event,
+            &error))
+        {
+            KalaWindowCore::ForceClose(
+                "X11 init error",
+                "XInput event is not available.");
+
+            return false;
+        }
+
+        int major = 2;
+        int minor{};
+
+        if (XIQueryVersion(display, &major, &minor) != Success)
+        {
+            KalaWindowCore::ForceClose(
+                "X11 init error",
+                "XInput2 is not available.");
+
+            return false;
+        }
+
+        XIEventMask mask{};
+        unsigned char maskData[(XI_LASTEVENT + 7) / 8]{};
+
+        mask.deviceid = XIAllMasterDevices;
+        mask.mask_len = sizeof(maskData);
+        mask.mask = maskData;
+
+        XISetMask(mask.mask, XI_RawMotion);
+        XISelectEvents(
+            display, 
+            root, 
+            &mask, 
+            1);
 
         Atom utf8 = XInternAtom(
             display, 
@@ -143,6 +190,10 @@ namespace KalaWindow::Graphics
 
         globalData.display = FromVar(display);
         globalData.window_root = FromVar(root);
+
+        globalData.xim = FromVar(xim);
+
+        globalData.xiOpcode = opCode;
 
         globalData.atom_utf8        = FromVar(utf8);
         
@@ -286,5 +337,4 @@ namespace KalaWindow::Graphics
     const X11GlobalData& Window_Global::GetGlobalData() { return globalData; }
 }
 
-#endif //KW_USE_X11
 #endif //__linux__

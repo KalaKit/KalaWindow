@@ -3,8 +3,8 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include "core/kw_registry.hpp"
-#if defined(__linux__) && defined(KW_USE_X11)
+
+#ifdef __linux__
 
 #include <X11/Xlib.h>
 #include <X11/X.h>
@@ -27,6 +27,7 @@
 #include "opengl/kw_opengl_functions_core.hpp"
 #include "opengl/kw_opengl_functions_linux.hpp"
 #include "core/kw_core.hpp"
+#include "core/kw_registry.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 
@@ -1040,4 +1041,4 @@ namespace KalaWindow::OpenGL
 	}
 }
 
-#endif //__linux__ and KW_USE_X11
+#endif //__linux__
