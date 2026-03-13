@@ -20,17 +20,13 @@ and make sure these are toggled on at the right side panel:
 
 ## Windows and Linux
 
-[Download](https://github.com/Kitware/CMake/releases) and install CMake binary (cmake-4.x.x-windows-x86_64.zip
- or cmake-4.x.x-linux-x86_64.tar.gz).
-
-[Download](https://github.com/ninja-build/ninja/releases) and install Ninja (ninja-win.zip or ninja-linux.xip).
+[Download KalaMake](https://github.com/KalaKit/KalaMake/releases) and get the latest Windows or Linux build.
 
 # How to build from source
 
-1) open your console in the folder where CMakeLists.txt is at.
-2) type cmake --preset "presetname"
-3) type cmake --build --preset "presetname"
+1) open your console in the folder where project.kmake is at.
+2) type kalamake --compile presetname
 
-Presetname can be windows-debug, windows-release, linux-debug or linux-release.
+Presetname can be release-windows, debug-windows, release-linux or debug-linux.
 
 The compiled executable/binary/cli and its files will be placed to `build/` inside the folder with the name of the preset you chose.
