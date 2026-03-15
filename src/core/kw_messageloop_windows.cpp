@@ -1013,9 +1013,6 @@ namespace KalaWindow::Core
 				{
 					if (input)
 					{
-						input->SetMouseVisibility(false, true);
-						input->SetMouseLockState(false, true);
-
 						if (Window_Global::IsVerboseLoggingEnabled())
 						{
 							Log::Print(
@@ -1029,16 +1026,11 @@ namespace KalaWindow::Core
 
 					return false;
 				}
-
 				//window loses focus
 				case WM_KILLFOCUS:
 				{
 					if (input)
 					{
-						input->SetMouseVisibility(true, true);
-						input->SetMouseLockState(true, true);
-						input->ClearInputEvents();
-
 						if (Window_Global::IsVerboseLoggingEnabled())
 						{
 							Log::Print(
