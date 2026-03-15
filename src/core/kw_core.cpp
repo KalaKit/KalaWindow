@@ -29,7 +29,6 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_menubar_windows.hpp"
 #include "opengl/kw_opengl.hpp"
-#include "opengl/kw_opengl_shader.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -47,7 +46,6 @@ using KalaWindow::Graphics::X11GlobalData;
 
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::OpenGL::OpenGL_Context;
-using KalaWindow::OpenGL::OpenGL_Shader;
 
 #ifdef __linux__
 using std::raise;
@@ -180,7 +178,6 @@ namespace KalaWindow::Core
 			}
 		}
 		
-		OpenGL_Shader::GetRegistry().RemoveAllContent();
 		OpenGL_Context::GetRegistry().RemoveAllContent();
 
 		Input::GetRegistry().RemoveAllContent();
