@@ -380,45 +380,66 @@ namespace KalaHeaders::KalaFile
 				//returns found extension
 				return f.substr(pos);
 			};
+			
+			path p{ input };
+			
+			string filenamePattern = p.filename().string();
+			
+			bool startsWithWildcard = filenamePattern.starts_with('*');
+			bool endsWithWildcard = filenamePattern.ends_with('*');
+			
+			string pattern = filenamePattern;
+			
+			if (startsWithWildcard) pattern.erase(0, 1);
+			if (endsWithWildcard
+				&& !pattern.empty())
+			{
+				pattern.pop_back();
+			}
 
-			auto get_valid_file = [](
+			auto get_valid_file = [
+				&startsWithWildcard,
+				&endsWithWildcard,
+				&pattern](
 				const path& file,
 				string_view ext,
 				vector<path>& output)
 			{
+				if (!is_regular_file(file)) return;
+				
+				string name = file.filename().string();
+				
+				bool match{};
+				
+				if (startsWithWildcard
+					&& endsWithWildcard)
+				{
+					match = name.find(pattern) != string::npos;
+				}
+				else if (startsWithWildcard) match = name.ends_with(pattern);
+				else if (endsWithWildcard) match = name.starts_with(pattern);
+				else match = name == pattern;
+				
+				if (!match) return;
+				
+				bool extSpecified = !ext.empty();
 				bool hasValidExtension =
-					file.has_extension()
+					extSpecified
 					&& file.extension() == ext;
+					
+				bool allowAnyExtension = !extSpecified;
 
-				bool hasNoExtension =
-					!file.has_extension()
-					&& ext.empty();
-
-				if (is_regular_file(file)
-					&& (hasValidExtension
-					|| hasNoExtension))
+				if (hasValidExtension
+					|| allowAnyExtension)
 				{
 					output.push_back(file);
 				}
 			};
 
-			path p{ input };
-
 			string filename = p.filename().string();
 			string_view ext = get_extension(filename);
 
 			if (p.empty()) return "Failed to get files with wildcard because the file path is empty!";
-
-			string fullFileName = recursive
-				? "**" + string(ext)
-				: "*" + string(ext);
-
-			if (filename != fullFileName)
-			{
-				return
-				"Failed to get files with wildcard because the file path "
-				"'" + p.string() + "' does not match any known wildcard pattern!";
-			}
 
 			vector<path> tempOutFilePaths{};
 
@@ -446,8 +467,8 @@ namespace KalaHeaders::KalaFile
 
 					get_valid_file(
 						fpath,
-					ext,
-					tempOutFilePaths);
+						ext,
+						tempOutFilePaths);
 				}
 			}
 
@@ -490,8 +511,7 @@ namespace KalaHeaders::KalaFile
 			return {};
 		}
 		//Directory or file is not recursive
-		else if (input == "*"
-				 || input.ends_with("*"))
+		else if (input == "*")
 		{
 			string result = get_all_wildcards(
 				p, 
@@ -550,6 +570,32 @@ namespace KalaHeaders::KalaFile
 		{
 			if (target == PathTarget::P_DIR_ONLY) return {};
 
+			string result = get_file_wildcards(
+				p, 
+				foundPaths);
+
+			if (!result.empty())
+			{
+				return 
+					"Failed to resolve file path '" + string(input) 
+					+ "' because of wildcard error! Reason: " + result;
+			}
+
+			results.insert(
+				results.end(),
+				make_move_iterator(foundPaths.begin()),
+				make_move_iterator(foundPaths.end()));
+
+			string cleanupResult = clean_paths();
+			if (!cleanupResult.empty()) return cleanupResult;
+
+			complete();
+
+			return {};
+		}
+		//Prefix, suffix, contains wildcard
+		else if (contains_string(input, "*"))
+		{
 			string result = get_file_wildcards(
 				p, 
 				foundPaths);

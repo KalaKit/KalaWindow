@@ -15,6 +15,7 @@
 namespace KalaWindow::OpenGL
 {
 	using std::string;
+	using std::string_view;
 	using std::function;
 
 	using u32 = uint32_t;
@@ -76,7 +77,7 @@ namespace KalaWindow::OpenGL
 		static uintptr_t GetOpenGLLibrary();
 
 		//Check if this extension is supported by the current context (OpenGL 3.3)
-		static bool IsExtensionSupported(const string& name);
+		static bool IsExtensionSupported(string_view name);
 		
 		//Make the GL context correct for the current window,
 		//accepts the context class which stores the context
@@ -150,10 +151,5 @@ namespace KalaWindow::OpenGL
 		string contextData{};
 
 		VSyncState vsyncState{};
-		MultiSampling msaa{};
-		SRGBMode srgb{};
-		ColorBufferBits cBits{};
-		DepthBufferBits dBits{};
-		StencilBufferBits sBits{};
 	};
 }

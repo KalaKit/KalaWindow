@@ -33,7 +33,13 @@
 //
 
 #ifdef _WIN32
-	#ifdef LIB_EXPORT
+	#if defined(LIB_STATIC) && defined(LIB_EXPORT)
+		#error "Choose either LIB_STATIC or LIB_EXPORT, not both!"
+	#endif
+
+	#ifdef LIB_STATIC
+		#define LIB_API
+	#elif defined(LIB_EXPORT)
 		#define LIB_API  __declspec(dllexport)
 	#else
 		#define LIB_API  __declspec(dllimport)

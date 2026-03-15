@@ -24,6 +24,7 @@ namespace KalaWindow::Core
 	using std::prev;
 	using std::span;
 	using std::string;
+	using std::string_view;
 
 	using KalaHeaders::KalaMath::vec2;
 	using KalaHeaders::KalaKeyStandards::KeyboardButton;
@@ -77,10 +78,9 @@ namespace KalaWindow::Core
 		u32 GetID() const;
 		u32 GetWindowID() const;
 
-
 		//Get the letter that was typed this frame
 		const string& GetTypedLetter() const;
-		void SetTypedLetter(const string& letter);
+		void SetTypedLetter(string_view letter);
 
 		void SetKeyState(
 			KeyboardButton key,

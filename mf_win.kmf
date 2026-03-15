@@ -36,18 +36,13 @@ action: forcecopy
 //
 
 //copy debug lib
-origin: build@debug-windows@KalaWindow1d.lib
-target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.lib, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@KalaWindow1d.lib
-action: forcecopy
-
-//copy debug pdb
-origin: build@debug-windows@KalaWindow1d.pdb
-target: ..@elypso-engine@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@elypso-hub@_external_shared@KalaWindow@debug@KalaWindow1d.pdb, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@KalaWindow1d.pdb
+origin: build@debug-windows@kalawindowd.lib
+target: ..@elypso-engine@_external_shared@KalaWindow@debug@kalawindowd.lib, ..@elypso-hub@_external_shared@KalaWindow@debug@kalawindowd.lib, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@kalawindowd.lib
 action: forcecopy
 
 //copy release lib
-origin: build@release-windows@KalaWindow1.lib
-target: ..@elypso-engine@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@elypso-hub@_external_shared@KalaWindow@release@KalaWindow1.lib, ..@kalakit_test_projects@_external_shared@KalaWindow@release@KalaWindow1.lib
+origin: build@release-windows@kalawindow.lib
+target: ..@elypso-engine@_external_shared@KalaWindow@release@kalawindow.lib, ..@elypso-hub@_external_shared@KalaWindow@release@kalawindow.lib, ..@kalakit_test_projects@_external_shared@KalaWindow@release@kalawindow.lib
 action: forcecopy
 
 //

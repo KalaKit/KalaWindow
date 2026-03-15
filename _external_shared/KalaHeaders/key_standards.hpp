@@ -136,7 +136,7 @@ namespace KalaHeaders::KalaKeyStandards
 
 		return invalid;
 	}
-	inline constexpr MouseButton StringToMouse(const string& s)
+	inline constexpr MouseButton StringToMouse(string_view s)
 	{
 		for (const auto& _m : mouseButtons)
 		{
@@ -241,7 +241,7 @@ namespace KalaHeaders::KalaKeyStandards
 
 		return invalid;
 	}
-	inline constexpr GamepadButton StringToGamepad(const string& s)
+	inline constexpr GamepadButton StringToGamepad(string_view s)
 	{
 		for (const auto& _g : gamepadButtons)
 		{
@@ -444,7 +444,7 @@ namespace KalaHeaders::KalaKeyStandards
 
 		return invalid;
 	}
-	inline constexpr KeyboardButton StringToKey(const string& s)
+	inline constexpr KeyboardButton StringToKey(string_view s)
 	{
 		for (const auto& _k : keyboardButtons)
 		{
@@ -476,7 +476,7 @@ namespace KalaHeaders::KalaKeyStandards
 
 		{226, 0x0020, "space"}, {227, 0x00A0, "non-breaking-space"},
 
-		{228, 0x005C, "backslash"}, // \
+		{228, 0x005C, "backslash"}, // '\'
 
 		{229, 0x2013, "endash"},   // –
 		{230, 0x2014, "emdash"},   // —

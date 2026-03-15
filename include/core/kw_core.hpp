@@ -13,6 +13,7 @@
 namespace KalaWindow::Core
 {
 	using std::string;
+	using std::string_view;
 	using std::function;
 
 	using u32 = uint32_t;
@@ -39,8 +40,8 @@ namespace KalaWindow::Core
 		//Use this when you absolutely need a hard crash at this very moment.
 		//Aborts and doesn't clean up data.
 		static void ForceClose(
-			const string& title,
-			const string& reason);
+			string_view title,
+			string_view reason);
 
 		//Intended to be used for regular shutdown conditions, if program exited
 		//with no errors and so on. Called at shutdown stage before any

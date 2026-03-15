@@ -49,6 +49,7 @@ using std::clamp;
 using std::ostringstream;
 using std::wstring;
 using std::string;
+using std::string_view;
 using std::vector;
 
 constexpr u16 MAX_TITLE_LENGTH = 50;
@@ -74,8 +75,6 @@ static HICON overlayIcon{};
 static wstring ToWide(string_view str);
 static string ToShort(const wstring& str);
 
-static string HResultToString(HRESULT hr);
-
 namespace KalaWindow::Graphics
 {
 	static KalaWindowRegistry<ProcessWindow> registry{};
@@ -92,7 +91,7 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"Window error",
-				"Failed to create window '" + title + "' because global window context has not been created!");
+				"Failed to create window '" + string(title) + "' because global window context has not been created!");
 
 			return nullptr;
 		}
@@ -104,7 +103,7 @@ namespace KalaWindow::Graphics
 		ProcessWindow* windowPtr = newWindow.get();
 
 		Log::Print(
-			"Creating window '" + title + "' with ID '" + to_string(newID) + "'.",
+			"Creating window '" + string(title) + "' with ID '" + to_string(newID) + "'.",
 			"WINDOW",
 			LogType::LOG_DEBUG);
 
@@ -118,18 +117,18 @@ namespace KalaWindow::Graphics
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
-					"Failed to create child window '" + title + "' because parent window pointer does not exist!");
+					"Failed to create child window '" + string(title) + "' because parent window pointer does not exist!");
 
 				return nullptr;
 			}
 
-			parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().hwnd);
+			parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().window);
 
 			if (!parentWindowRef)
 			{
 				KalaWindowCore::ForceClose(
 					"Window error",
-					"Failed to create child window '" + title + "' because parent window handle is invalid!");
+					"Failed to create child window '" + string(title) + "' because parent window handle is invalid!");
 
 				return nullptr;
 			}
@@ -199,7 +198,7 @@ namespace KalaWindow::Graphics
 
 		WindowData newWindowStruct =
 		{
-			.hwnd = FromVar(newHwnd),
+			.window = FromVar(newHwnd),
 			.hdc = FromVar(newHDC),
 			.hInstance = FromVar(newHInstance),
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
@@ -239,7 +238,7 @@ namespace KalaWindow::Graphics
 		registry.AddContent(newID, std::move(newWindow));
 
 		Log::Print(
-			"Created window '" + title + "' with ID '" + to_string(newID) + "'!",
+			"Created window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
 			"WINDOW",
 			LogType::LOG_SUCCESS);
 
@@ -298,7 +297,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		string titleToSet = newTitle;
+		string titleToSet = string(newTitle);
 		if (newTitle.length() > MAX_TITLE_LENGTH)
 		{
 			Log::Print(
@@ -319,12 +318,12 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window title to '" + newTitle + "'",
+				"Set window title to '" + string(newTitle) + "'",
 				"WINDOW",
 				LogType::LOG_SUCCESS);
 		}
 	}
-	string_view ProcessWindow::GetTitle() const
+	const string& ProcessWindow::GetTitle() const
 	{
 		static string result{};
 
@@ -883,7 +882,7 @@ namespace KalaWindow::Graphics
     { 
         maxSize = kclamp(newMaxSize, minSize + 1.0f, 10000.0f);
 
-        if (size > maxSize) SetClientRectSize(maxSize);
+        if (GetClientRectSize() > maxSize) SetClientRectSize(maxSize);
     }
 	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
 
@@ -891,7 +890,7 @@ namespace KalaWindow::Graphics
     { 
         minSize = kclamp(newMinSize, 1.0f, maxSize - 1.0f);
 
-        if (size < minSize) SetClientRectSize(minSize);
+        if (GetClientRectSize() < minSize) SetClientRectSize(minSize);
     }
 	vec2 ProcessWindow::GetMinSize() const { return minSize; }
 
@@ -1239,7 +1238,7 @@ namespace KalaWindow::Graphics
 
 		float clamped = clamp(alpha, 0.0f, 1.0f);
 
-		BYTE bAlpha = scast<BYTE>(alpha * 255.0f);
+		BYTE bAlpha = scast<BYTE>(clamped * 255.0f);
 
 		//WS_EX_LAYERED is required for opacity
 
@@ -1872,7 +1871,7 @@ namespace KalaWindow::Graphics
 		glID = 0;
 		menuBarID = 0;
 
-		HWND winRef = ToVar<HWND>(windowData.hwnd);
+		HWND winRef = ToVar<HWND>(windowData.window);
 		SetWindowState(WindowState::WINDOW_HIDE);
 
 		if (windowData.wndProc) windowData.wndProc = NULL;
@@ -1880,7 +1879,7 @@ namespace KalaWindow::Graphics
 		if (windowData.hdc)
 		{
 			ReleaseDC(
-				ToVar<HWND>(windowData.hwnd),
+				ToVar<HWND>(windowData.window),
 				ToVar<HDC>(windowData.hdc));
 		}
 
@@ -1897,22 +1896,22 @@ namespace KalaWindow::Graphics
 
 		if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
 
-		if (windowData.hwnd)
+		if (windowData.window)
 		{
 			DestroyWindow(winRef);
-			windowData.hwnd = NULL;
+			windowData.window = NULL;
 		}
 		windowData.hInstance = NULL;
 	}
 
 	uintptr_t ProcessWindow::GetHWND(string_view errorMessage) const
 	{
-		uintptr_t win = windowData.hwnd;
+		uintptr_t win = windowData.window;
 		if (win) return win;
 		
 		KalaWindowCore::ForceClose(
 			"Window error",
-			"Failed to " + errorMessage + " because its context was missing!");
+			"Failed to " + string(errorMessage) + " because its context was missing!");
 
 		return 0;
 	}

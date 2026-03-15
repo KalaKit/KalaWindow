@@ -20,6 +20,7 @@
 namespace KalaWindow::Graphics
 {
 	using std::string;
+	using std::string_view;
 	using std::function;
 	using std::unordered_map;
 	using std::vector;
@@ -76,15 +77,15 @@ namespace KalaWindow::Graphics
 		//Leave parentRef empty if you want this label to be root
 		void CreateLabel(
 			LabelType type,
-			const string& parentRef,
-			const string& labelRef,
+			string_view parentRef,
+			string_view labelRef,
 			const function<void()> func = nullptr);
 
 		//Add a horizontal separator line to the menu label.
 		//If itemLabel isn't empty and exists then the separator is placed after the item label,
 		//otherwise it is placed at the end of the menu label
 		void AddSeparator(
-			const string& parentRef,
+			string_view parentRef,
 			const string& labelRef = "") const;
 
 		const vector<MenuBarEvent>& GetEvents() const;

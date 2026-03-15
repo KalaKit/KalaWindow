@@ -3,11 +3,10 @@
 #version 1.0
 
 #references
-name_bin: KalaWindow1
+name_bin: kalawindow
 dir_release: build/release-
 dir_debug: build/debug-
-def_main: ENABLE_EMIT_LOG
-def_win: LIB_EXPORT, WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
+def_win: WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
 #global
 compilerlauncher: ccache
@@ -15,34 +14,33 @@ standard: c++20
 binarytype: static
 sources: "src"
 headers: "include", "_external_shared/KalaHeaders", "_external_shared/OpenGL"
+defines: LIB_STATIC
 warninglevel: normal
-customflags: export-compile-commands
+customflags: export-compile-commands, export-vscode-sln
 
 #profile debug-windows
 binaryname: ${name_bin}d
 compiler: clang-cl
 buildtype: debug
 buildpath: "${dir_debug}windows"
-defines: ${def_main}, ${def_win}
+defines: ${def_win}
 
 #profile release-windows
 binaryname: ${name_bin}
 compiler: clang-cl
 buildtype: minsizerel
 buildpath: "${dir_release}windows"
-defines: ${def_main}, ${def_win}
+defines: ${def_win}
 
 #profile debug-linux
 binaryname: lib${name_bin}d
 compiler: clang++
 buildtype: debug
 buildpath: "${dir_debug}linux"
-defines: ${def_main}
 
 #profile release-linux
 binaryname: lib${name_bin}
 compiler: clang++
 buildtype: minsizerel
 buildpath: "${dir_release}linux"
-defines: ${def_main}
-postbuildaction: strip --strip-unneeded ${dir_release}linux/lib${name_bin}.a
+postbuildaction: strip --strip-unneeded ${dir_release}linux/${name_bin}.a

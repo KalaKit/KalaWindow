@@ -17,6 +17,7 @@
 namespace KalaWindow::OpenGL
 {
 	using std::string;
+	using std::string_view;
 	using std::array;
 
 	using KalaHeaders::KalaMath::vec2;
@@ -68,13 +69,13 @@ namespace KalaWindow::OpenGL
 		//Geometry shaders are optional but vert and frag shader must always be filled
 		static OpenGL_Shader* Initialize(
 			OpenGL_Context* glContext,
-			const string& shaderName,
+			string_view shaderName,
 			const array<OpenGL_ShaderData, 3>& shaderData);
 
 		bool IsInitialized() const;
 
 		const string& GetName() const;
-		bool SetName(const string& newName);
+		bool SetName(string_view newName);
 
 		//Returns the global ID of this shader
 		u32 GetID() const;
@@ -96,17 +97,17 @@ namespace KalaWindow::OpenGL
 
 		bool HotReload();
 
-		void SetBool(const string& name, bool value) const;
-		void SetInt(const string& name, i32 value) const;
-		void SetFloat(const string& name, f32 value) const;
+		void SetBool(string_view name, bool value) const;
+		void SetInt(string_view name, i32 value) const;
+		void SetFloat(string_view name, f32 value) const;
 
-		void SetVec2(const string& name, const vec2& value) const;
-		void SetVec3(const string& name, const vec3& value) const;
-		void SetVec4(const string& name, const vec4& value) const;
+		void SetVec2(string_view name, const vec2& value) const;
+		void SetVec3(string_view name, const vec3& value) const;
+		void SetVec4(string_view name, const vec4& value) const;
 
-		void SetMat2(const string& name, const mat2& mat) const;
-		void SetMat3(const string& name, const mat3& mat) const;
-		void SetMat4(const string& name, const mat4& mat) const;
+		void SetMat2(string_view name, const mat2& mat) const;
+		void SetMat3(string_view name, const mat3& mat) const;
+		void SetMat4(string_view name, const mat4& mat) const;
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Shader();

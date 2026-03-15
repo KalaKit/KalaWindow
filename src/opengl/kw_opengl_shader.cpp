@@ -29,6 +29,7 @@ using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 
 using std::string;
+using std::string_view;
 using std::to_string;
 using std::ifstream;
 using std::stringstream;
@@ -40,10 +41,10 @@ using std::array;
 using std::vector;
 
 static void CheckShaderData(
-    const string& shaderName,
+    string_view shaderName,
     const array<OpenGL_ShaderData, 3>& shaderData);
 
-static bool CheckCompileErrors(u32 shader, const string& type);
+static bool CheckCompileErrors(u32 shader, string_view type);
 
 static void InitShader(OpenGL_ShaderData& data);
 
@@ -92,14 +93,14 @@ namespace KalaWindow::OpenGL
 
     OpenGL_Shader* OpenGL_Shader::Initialize(
 		OpenGL_Context* glContext,
-        const string& name,
+        string_view name,
         const array<OpenGL_ShaderData, 3>& shaderData)
     {
 		if (!OpenGL_Global::IsContextValid(glContext))
 		{
             KalaWindowCore::ForceClose(
 				"OpenGL shader error",
-				"Failed to load shader '" + name + "' because its gl context was invalid!");
+				"Failed to load shader '" + string(name) + "' because its gl context was invalid!");
 
 			return nullptr;
 		}
@@ -113,7 +114,7 @@ namespace KalaWindow::OpenGL
         OpenGL_Shader* shaderPtr = newShader.get();
 
         Log::Print(
-            "Creating shader '" + name + "' with ID '" + to_string(newID) + "'.",
+            "Creating shader '" + string(name) + "' with ID '" + to_string(newID) + "'.",
             "OPENGL_SHADER",
             LogType::LOG_DEBUG);
 
@@ -196,7 +197,7 @@ namespace KalaWindow::OpenGL
         if (!vertShaderExists)
         {
             Log::Print(
-                "Cannot create shader '" + name + "' because its vertex data is missing!",
+                "Cannot create shader '" + string(name) + "' because its vertex data is missing!",
                 "OPENGL_SHADER",
                 LogType::LOG_ERROR,
 				2);
@@ -207,7 +208,7 @@ namespace KalaWindow::OpenGL
         if (!fragShaderExists)
         {
             Log::Print(
-                "Cannot create shader '" + name + "' because its fragment data is missing!",
+                "Cannot create shader '" + string(name) + "' because its fragment data is missing!",
                 "OPENGL_SHADER",
                 LogType::LOG_ERROR,
 				2);
@@ -218,7 +219,7 @@ namespace KalaWindow::OpenGL
         if (vertDuplicateExists)
         {
             Log::Print(
-                "Cannot create shader '" + name + "' because more than one vertex shader was added!",
+                "Cannot create shader '" + string(name) + "' because more than one vertex shader was added!",
                 "OPENGL_SHADER",
                 LogType::LOG_ERROR,
 				2);
@@ -229,7 +230,7 @@ namespace KalaWindow::OpenGL
         if (fragDuplicateExists)
         {
             Log::Print(
-                "Cannot create shader '" + name + "' because more than one fragment shader was added!",
+                "Cannot create shader '" + string(name) + "' because more than one fragment shader was added!",
                 "OPENGL_SHADER",
                 LogType::LOG_ERROR,
 				2);
@@ -240,7 +241,7 @@ namespace KalaWindow::OpenGL
         if (geomDuplicateExists)
         {
             Log::Print(
-                "Cannot create shader '" + name + "' because more than one geometry shader was added!",
+                "Cannot create shader '" + string(name) + "' because more than one geometry shader was added!",
                 "OPENGL_SHADER",
                 LogType::LOG_ERROR,
 				2);
@@ -389,14 +390,14 @@ namespace KalaWindow::OpenGL
 
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader program validation failed for shader '" + name + "'! Reason:\n" + logStr);
+                    "Shader program validation failed for shader '" + string(name) + "'! Reason:\n" + logStr);
 
                 return nullptr;
             }
 
             KalaWindowCore::ForceClose(
                 "OpenGL shader error",
-                "Shader program validation failed for shader '" + name + "'! No log info was provided.");
+                "Shader program validation failed for shader '" + string(name) + "'! No log info was provided.");
 
             return nullptr;
         }
@@ -414,7 +415,7 @@ namespace KalaWindow::OpenGL
                 } });
 
             string title = "OpenGL shader error";
-            string reason = "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + name + "' is not valid!";
+            string reason = "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + string(name) + "' is not valid!";
 
             KalaWindowCore::ForceClose(title, reason);
 
@@ -425,7 +426,7 @@ namespace KalaWindow::OpenGL
             if (isVerboseLoggingEnabled)
             {
                 Log::Print(
-                    "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + name + "' is valid!",
+                    "Shader program ID " + to_string(shaderPtr->programID) + " for shader '" + string(name) + "' is valid!",
                     "OPENGL_SHADER",
                     LogType::LOG_SUCCESS);
             }
@@ -466,7 +467,7 @@ namespace KalaWindow::OpenGL
         registry.AddContent(newID, std::move(newShader));
 
         Log::Print(
-            "Created OpenGL shader '" + name + "' with ID '" + to_string(newID) + "'!",
+            "Created OpenGL shader '" + string(name) + "' with ID '" + to_string(newID) + "'!",
             "OPENGL_SHADER",
             LogType::LOG_SUCCESS);
 
@@ -476,7 +477,7 @@ namespace KalaWindow::OpenGL
     bool OpenGL_Shader::IsInitialized() const { return isInitialized; }
 
     const string& OpenGL_Shader::GetName() const { return name; }
-    bool OpenGL_Shader::SetName(const string& newName)
+    bool OpenGL_Shader::SetName(string_view newName)
     {
         if (newName.empty()
             || newName.size() > 50)
@@ -700,70 +701,70 @@ namespace KalaWindow::OpenGL
     }
 
     void OpenGL_Shader::SetBool(
-        const string& name, 
+        string_view name, 
         bool value) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
         coreFunc->glUniform1i(coreFunc->glGetUniformLocation(
             programID, 
-            name.c_str()), 
+            string(name).c_str()), 
             (i32)value);
     }
     void OpenGL_Shader::SetInt(
-        const string& name, 
+        string_view name, 
         i32 value) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
         coreFunc->glUniform1i(coreFunc->glGetUniformLocation(
             programID, 
-            name.c_str()), 
+            string(name).c_str()), 
             value);
     }
     void OpenGL_Shader::SetFloat(
-        const string& name, 
+        string_view name, 
         f32 value) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
         coreFunc->glUniform1f(coreFunc->glGetUniformLocation(
             programID, 
-            name.c_str()), 
+            string(name).c_str()), 
             value);
     }
 
     void OpenGL_Shader::SetVec2(
-        const string& name, 
+        string_view name, 
         const vec2& value) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
-        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        auto loc = coreFunc->glGetUniformLocation(programID, string(name).c_str());
         coreFunc->glUniform2fv(
             loc, 
             1, 
             &value.x);
     }
     void OpenGL_Shader::SetVec3(
-        const string& name, 
+        string_view name, 
         const vec3& value) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
-        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        auto loc = coreFunc->glGetUniformLocation(programID, string(name).c_str());
         coreFunc->glUniform3fv(
             loc, 
             1, 
             &value.x);
     }
     void OpenGL_Shader::SetVec4(
-        const string& name, 
+        string_view name, 
         const vec4& value) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
-        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        auto loc = coreFunc->glGetUniformLocation(programID, string(name).c_str());
         coreFunc->glUniform4fv(
             loc, 
             1, 
@@ -771,12 +772,12 @@ namespace KalaWindow::OpenGL
     }
 
     void OpenGL_Shader::SetMat2(
-        const string& name, 
+        string_view name, 
         const mat2& mat) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
-        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        auto loc = coreFunc->glGetUniformLocation(programID, string(name).c_str());
         coreFunc->glUniformMatrix2fv(
             loc, 
             1, 
@@ -784,12 +785,12 @@ namespace KalaWindow::OpenGL
             &mat.m00);
     }
     void OpenGL_Shader::SetMat3(
-        const string& name, 
+        string_view name, 
         const mat3& mat) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
-        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        auto loc = coreFunc->glGetUniformLocation(programID, string(name).c_str());
         coreFunc->glUniformMatrix3fv(
             loc, 
             1, 
@@ -797,12 +798,12 @@ namespace KalaWindow::OpenGL
             &mat.m00);
     }
     void OpenGL_Shader::SetMat4(
-        const string& name, 
+        string_view name, 
         const mat4& mat) const
     {
         const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
-        auto loc = coreFunc->glGetUniformLocation(programID, name.c_str());
+        auto loc = coreFunc->glGetUniformLocation(programID, string(name).c_str());
         coreFunc->glUniformMatrix4fv(
             loc, 
             1, 
@@ -846,7 +847,7 @@ namespace KalaWindow::OpenGL
 }
 
 void CheckShaderData(
-    const string& name,
+    string_view name,
     const array<OpenGL_ShaderData, 3>& shaderData)
 {
     //shader data must not be empty
@@ -854,7 +855,7 @@ void CheckShaderData(
     {
         KalaWindowCore::ForceClose(
             "OpenGL shader error",
-            "Shader '" + name + "' has no data to load!");
+            "Shader '" + string(name) + "' has no data to load!");
 
         return;
     }
@@ -877,7 +878,7 @@ void CheckShaderData(
         {
             KalaWindowCore::ForceClose(
                 "OpenGL shader error",
-                "Shader '" + name + "' with type '" + type + "' has no file paths or shader data to load data from!");
+                "Shader '" + string(name) + "' with type '" + type + "' has no file paths or shader data to load data from!");
 
             return;
         }
@@ -891,7 +892,7 @@ void CheckShaderData(
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader '" + name + "' path '" + shaderFileName + "' does not exist!");
+                    "Shader '" + string(name) + "' path '" + shaderFileName + "' does not exist!");
 
                 return;
             }
@@ -901,7 +902,7 @@ void CheckShaderData(
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader '" + name + "' path '" + shaderFileName + "' has no extension!");
+                    "Shader '" + string(name) + "' path '" + shaderFileName + "' has no extension!");
 
                 return;
             }
@@ -918,7 +919,7 @@ void CheckShaderData(
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader '" + name + "' path '" + shaderFileName + "' has an invalid extension '" + thisExtension + "'!");
+                    "Shader '" + string(name) + "' path '" + shaderFileName + "' has an invalid extension '" + thisExtension + "'!");
 
                 return;
             }
@@ -929,7 +930,7 @@ void CheckShaderData(
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader '" + name + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_VERTEX'! Only '.vert' is allowed for vertex shaders.");
+                    "Shader '" + string(name) + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_VERTEX'! Only '.vert' is allowed for vertex shaders.");
 
                 return;
             }
@@ -941,7 +942,7 @@ void CheckShaderData(
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader '" + name + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_FRAGMENT'! Only '.frag' is allowed for fragment shaders.");
+                    "Shader '" + string(name) + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_FRAGMENT'! Only '.frag' is allowed for fragment shaders.");
 
                 return;
             }
@@ -952,7 +953,7 @@ void CheckShaderData(
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader '" + name + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_GEOMETRY'! Only '.geom' is allowed for geometry shaders.");
+                    "Shader '" + string(name) + "' path '" + shaderFileName + "' has extension '" + thisExtension + "' but its type was set to 'SHADER_GEOMETRY'! Only '.geom' is allowed for geometry shaders.");
 
                 return;
             }
@@ -960,7 +961,7 @@ void CheckShaderData(
     }
 }
 
-bool CheckCompileErrors(u32 shader, const string& type)
+bool CheckCompileErrors(u32 shader, string_view type)
 {
     const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
@@ -992,13 +993,13 @@ bool CheckCompileErrors(u32 shader, const string& type)
 
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader linking failed (" + type + "):\n" + string(infoLog.data()));
+                    "Shader linking failed (" + string(type) + "):\n" + string(infoLog.data()));
             }
             else
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader linking failed (" + type + "), but no log was returned.");
+                    "Shader linking failed (" + string(type) + "), but no log was returned.");
             }
             return false;
         }
@@ -1007,7 +1008,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
             if (OpenGL_Shader::IsVerboseLoggingEnabled())
             {
                 Log::Print(
-                    "Shader linking succeeded (" + type + ")",
+                    "Shader linking succeeded (" + string(type) + ")",
                     "OPENGL_SHADER",
                     LogType::LOG_SUCCESS);
             }
@@ -1038,13 +1039,13 @@ bool CheckCompileErrors(u32 shader, const string& type)
 
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader compilation failed (" + type + "):\n" + string(infoLog.data()));
+                    "Shader compilation failed (" + string(type) + "):\n" + string(infoLog.data()));
             }
             else
             {
                 KalaWindowCore::ForceClose(
                     "OpenGL shader error",
-                    "Shader compilation failed (" + type + "), but no log was returned.");
+                    "Shader compilation failed (" + string(type) + "), but no log was returned.");
             }
             return false;
         }
@@ -1053,7 +1054,7 @@ bool CheckCompileErrors(u32 shader, const string& type)
             if (OpenGL_Shader::IsVerboseLoggingEnabled())
             {
                 Log::Print(
-                    "Shader compilation succeeded (" + type + ")",
+                    "Shader compilation succeeded (" + string(type) + ")",
                     "OPENGL_SHADER",
                     LogType::LOG_SUCCESS);
             }

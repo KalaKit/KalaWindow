@@ -27,12 +27,13 @@ using KalaWindow::Core::KalaWindowCore;
 
 using std::ostringstream;
 using std::string;
+using std::string_view;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
 using std::wstring;
 
-static wstring ToWide(const string& str);
+static wstring ToWide(string_view str);
 
 constexpr u8 MAX_LABEL_LENGTH = 64;
 
@@ -74,7 +75,7 @@ namespace KalaWindow::Graphics
 			"MENUBAR",
 			LogType::LOG_DEBUG);
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
 
 		WindowData wData = window->GetWindowData();
 
@@ -137,7 +138,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
 		if (!window) return;
 
 		HMENU storedHMenu = ToVar<HMENU>(window->GetWindowData().hMenu);
@@ -183,7 +184,7 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
 		HMENU attached = GetMenu(hwnd);
 
 		return
@@ -194,8 +195,8 @@ namespace KalaWindow::Graphics
 
 	void MenuBar::CreateLabel(
 		LabelType type,
-		const string& parentRef,
-		const string& labelRef,
+		string_view parentRef,
+		string_view labelRef,
 		const function<void()> func)
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
@@ -212,11 +213,11 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
 
 		string typeName = type == LabelType::LABEL_LEAF ? "leaf" : "branch";
 
-		string parentName = parentRef;
+		string parentName = string(parentRef);
 		if (parentName.empty()) parentName = "root";
 
 		if (!isInitialized)
@@ -432,7 +433,7 @@ namespace KalaWindow::Graphics
 	}
 
 	void MenuBar::AddSeparator(
-		const string& parentRef,
+		string_view parentRef,
 		const string& labelRef) const
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
@@ -449,7 +450,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
 
 		if (!isInitialized)
 		{
@@ -465,8 +466,6 @@ namespace KalaWindow::Graphics
 
 			return;
 		}
-
-		HMENU hMenu = GetMenu(hwnd);
 
 		for (const auto& e : events)
 		{
@@ -511,7 +510,7 @@ namespace KalaWindow::Graphics
 					if (MenuBar::IsVerboseLoggingEnabled())
 					{
 						Log::Print(
-							"Placed separator to the end of parent label '" + parentRef + "' in window '" + window->GetTitle() + "'!",
+							"Placed separator to the end of parent label '" + string(parentRef) + "' in window '" + window->GetTitle() + "'!",
 							"MENUBAR",
 							LogType::LOG_SUCCESS);
 					}
@@ -630,7 +629,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().hwnd);
+		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
 
 		events.clear();
 
@@ -645,7 +644,7 @@ namespace KalaWindow::Graphics
 	}
 }
 
-wstring ToWide(const string& input)
+wstring ToWide(string_view input)
 {
 	if (input.empty()) return wstring();
 

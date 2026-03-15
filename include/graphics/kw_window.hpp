@@ -13,7 +13,12 @@
 #include "core_utils.hpp"
 #include "math_utils.hpp"
 
+#ifdef _WIN32
+#include "core/kw_messageloop_windows.hpp"
+#else
 #include "core/kw_messageloop_x11.hpp"
+#endif
+
 #include "core/kw_registry.hpp"
 
 namespace KalaWindow::Graphics
@@ -67,7 +72,7 @@ namespace KalaWindow::Graphics
 #ifdef _WIN32
 	struct LIB_API WindowData
 	{
-		uintptr_t hwnd{};
+		uintptr_t window{};
 		uintptr_t hdc{};
 		uintptr_t hInstance{};
 		uintptr_t hMenu{};
@@ -314,7 +319,7 @@ namespace KalaWindow::Graphics
 		~ProcessWindow();
 	private:
 #ifdef _WIN32
-		uintptr_t GetHWND(const string& errorMessage) const;
+		uintptr_t GetHWND(string_view errorMessage) const;
 #endif
 
 		bool isInitialized = false;        //Cannot use this window if it is not yet initialized

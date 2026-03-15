@@ -41,8 +41,6 @@ using KalaHeaders::KalaKeyStandards::KeyboardButton;
 using KalaHeaders::KalaKeyStandards::MouseButton;
 using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::KalaWindowRegistry;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::ProcessWindow;
@@ -58,6 +56,7 @@ using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 
 using std::string;
+using std::string_view;
 using std::to_string;
 using std::vector;
 using std::ostringstream;
@@ -189,11 +188,6 @@ static KeyboardButton TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 	return KeyboardButton::K_INVALID;
 }
 
-static bool ProcessMessage(
-	const MSG& msg,
-	ProcessWindow* window);
-
-static wstring ToWide(const string& str);
 static string ToShort(const wstring& str);
 
 static function<void(u32)> addCharCallback{};
@@ -209,7 +203,7 @@ namespace KalaWindow::Core
 		WPARAM wParam,
 		LPARAM lParam)
 	{
-		Window* window = rcast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+		ProcessWindow* window = rcast<ProcessWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
 		if (!window
 			|| !window->IsInitialized())
@@ -239,10 +233,7 @@ namespace KalaWindow::Core
 			else return FALSE; //user clicked no, cancelling logoff/shutdown
 		}
 		//actually go through with logoff/shutdown
-		case WM_ENDSESSION:
-		{
-			return 0;
-		}
+		case WM_ENDSESSION: return 0;
 
 		case WM_MOUSEACTIVATE:
 		{
@@ -282,7 +273,46 @@ namespace KalaWindow::Core
 		/*
 		if (msg == WM_NCHITTEST)
 		{
-			auto result = CursorTest(hwnd, msg, wParam, lParam);
+			auto cursor_test = [](
+				HWND hwnd,
+				UINT msg,
+				WPARAM wParam,
+				LPARAM lParam) -> LRESULT
+				{
+					POINT cursor{};
+					cursor.x = GET_X_LPARAM(lParam);
+					cursor.y = GET_Y_LPARAM(lParam);
+
+					RECT rect{};
+					GetWindowRect(hwnd, &rect);
+
+					//if cursor isnt inside the window
+					if (!PtInRect(&rect, cursor)) return HTNOWHERE;
+
+					constexpr int border = 10;
+
+					bool onLeft = cursor.x >= rect.left && cursor.x < rect.left + border;
+					bool onRight = cursor.x < rect.right && cursor.x >= rect.right - border;
+					bool onTop = cursor.y >= rect.top && cursor.y < rect.top + border;
+					bool onBottom = cursor.y < rect.bottom && cursor.y >= rect.bottom - border;
+
+					//corners
+					if (onLeft && onTop) return HTTOPLEFT;
+					if (onRight && onTop) return HTTOPRIGHT;
+					if (onLeft && onBottom) return HTBOTTOMLEFT;
+					if (onRight && onBottom) return HTBOTTOMRIGHT;
+
+					//edges
+					if (onLeft) return HTLEFT;
+					if (onRight) return HTRIGHT;
+					if (onTop) return HTTOP;
+					if (onBottom) return HTBOTTOM;
+
+					//not near border
+					return HTCLIENT;
+				};
+
+			auto result = cursor_test(hwnd, msg, wParam, lParam);
 
 			string resultValue{};
 
@@ -315,8 +345,889 @@ namespace KalaWindow::Core
 		msgObj.wParam = wParam;
 		msgObj.lParam = lParam;
 
+		auto process_message = [](
+			const MSG& msg,
+			ProcessWindow* window) -> bool
+			{
+				if (!window)
+				{
+					Log::Print(
+						"Cannot use 'ProcessMessage' because its window was not found!",
+						"MESSAGELOOP",
+						LogType::LOG_ERROR,
+						2);
+
+					return false;
+				}
+
+				u32 windowID = window->GetID();
+				vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+				Input* input = inputs.empty() ? nullptr : inputs.front();
+
+				/*
+				if (msg.message == 0)
+				{
+					Log::Print(
+						"Received empty or WM_NULL message.",
+						"MESSAGELOOP",
+						LogType::LOG_INFO);
+				}
+				else
+				{
+					stringstream ss{};
+					ss << "MSG { " << "\n"
+						<< "hwnd: " << msg.hwnd << "\n"
+						<< ", message: 0x" << hex << msg.message << "\n"
+						<< ", wParam: 0x" << hex << msg.wParam << "\n"
+						<< ", lParam: 0x" << hex << msg.lParam << "\n"
+						<< ", time: " << dec << msg.time << "\n"
+						<< ", pt: (" << msg.pt.x << ", " << msg.pt.y << ")" << "\n"
+						<< " }";
+
+					Log::Print(
+						"Got message: " + ss.str(),
+						"MESSAGELOOP",
+						LogType::LOG_INFO);
+				}
+				*/
+
+				switch (msg.message)
+				{
+				//
+				// KEYBOARD INPUT
+				//
+
+				//typing text
+				case WM_UNICHAR:
+				case WM_CHAR:
+				{
+					if (addCharCallback) addCharCallback(scast<u32>(msg.wParam));
+
+					return true; //we handled it
+				}
+
+				case WM_SYSKEYDOWN:
+				case WM_KEYDOWN:
+				{
+					if (msg.wParam == VK_LBUTTON
+						|| msg.wParam == VK_RBUTTON
+						|| msg.wParam == VK_MBUTTON
+						|| msg.wParam == VK_XBUTTON1
+						|| msg.wParam == VK_XBUTTON2)
+					{
+						return false;
+					}
+
+					KeyboardButton key = TranslateVirtualKey(msg.wParam, msg.lParam);
+
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' down.",
+							"INPUT",
+							LogType::LOG_INFO);
+					}
+
+					if (input)
+					{
+						input->SetKeyState(
+							key,
+							true);
+							
+						switch (msg.wParam)
+						{
+						case VK_BACK:
+							if (removeFromBackCallback) removeFromBackCallback();
+							break;
+						case VK_TAB:
+							if (addTabCallback) addTabCallback();
+							break;
+						case VK_RETURN:
+							if (addNewlineCallback) addNewlineCallback();
+							break;
+						}
+					}
+
+					return false;
+				}
+				case WM_SYSKEYUP:
+				case WM_KEYUP:
+				{
+					if (msg.wParam == VK_LBUTTON
+						|| msg.wParam == VK_RBUTTON
+						|| msg.wParam == VK_MBUTTON
+						|| msg.wParam == VK_XBUTTON1
+						|| msg.wParam == VK_XBUTTON2)
+					{
+						return false;
+					}
+
+					KeyboardButton key = TranslateVirtualKey(msg.wParam, msg.lParam);
+
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' up.",
+							"INPUT",
+							LogType::LOG_INFO);
+					}
+
+					if (input)
+					{
+						input->SetKeyState(
+							key,
+							false);
+					}
+
+					return false;
+				}
+
+				//
+				// MOUSE MOVE
+				//
+
+				case WM_MOUSEMOVE:
+				{
+					vec2 newPos =
+					{
+						float(GET_X_LPARAM(msg.lParam)),
+						float(GET_Y_LPARAM(msg.lParam))
+					};
+
+					if (input)
+					{
+						//get the old position before updating
+						vec2 oldPos = input->GetMousePosition();
+
+						vec2 delta =
+						{
+							newPos.x - oldPos.x,
+							newPos.y - oldPos.y
+						};
+
+						input->SetMousePosition(newPos);
+						input->SetMouseDelta(delta);
+
+						if (!window->isWindowHovered)
+						{
+							window->isWindowHovered = true;
+
+							const WindowData& win = window->GetWindowData();
+							HWND hwnd = ToVar<HWND>(win.window);
+
+							TRACKMOUSEEVENT tme{};
+							tme.cbSize = sizeof(tme);
+							tme.dwFlags = TME_LEAVE;
+							tme.hwndTrack = hwnd;
+
+							TrackMouseEvent(&tme);
+						}
+					}
+
+					return false;
+				}
+				case WM_MOUSELEAVE:
+				{
+					window->isWindowHovered = false;
+					return false;
+				}
+
+				//
+				// MOUSE WHEEL
+				//
+
+				case WM_MOUSEWHEEL:
+				{
+					int delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
+
+					//convert to float steps (+1 or -1)
+					float scroll = 0.0f;
+					if (delta > 0) scroll = +1.0f;
+					else if (delta < 0) scroll = -1.0f;
+
+					if (input) input->SetScrollwheelDelta(scroll);
+
+					return false;
+				}
+
+				//
+				// MOUSE BUTTONS
+				//
+
+				case WM_LBUTTONDOWN:
+				{
+					if (input)
+					{
+						input->SetMouseButtonState(
+							MouseButton::M_LEFT,
+							true);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected left mouse key down.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+				case WM_LBUTTONUP:
+				{
+					if (input)
+					{
+						input->SetMouseButtonState(
+							MouseButton::M_LEFT,
+							false);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected left mouse key up.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+
+				case WM_RBUTTONDOWN:
+				{
+					if (input)
+					{
+						input->SetMouseButtonState(
+							MouseButton::M_RIGHT,
+							true);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected right mouse key down.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+				case WM_RBUTTONUP:
+				{
+					if (input)
+					{
+						input->SetMouseButtonState(
+							MouseButton::M_RIGHT,
+							false);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected right mouse key up.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+
+				case WM_MBUTTONDOWN:
+				{
+					if (input)
+					{
+						input->SetMouseButtonState(
+							MouseButton::M_MIDDLE,
+							true);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected middle mouse key down.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+				case WM_MBUTTONUP:
+				{
+					if (input)
+					{
+						input->SetMouseButtonState(
+							MouseButton::M_MIDDLE,
+							false);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected middle mouse key up.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+
+				case WM_XBUTTONDOWN:
+				{
+					WORD button = GET_XBUTTON_WPARAM(msg.wParam);
+					if (button == XBUTTON1)
+					{
+						if (input)
+						{
+							input->SetMouseButtonState(
+								MouseButton::M_X1,
+								true);
+
+							if (Input::IsVerboseLoggingEnabled())
+							{
+								Log::Print(
+									"Detected x1 mouse key down.",
+									"INPUT",
+									LogType::LOG_INFO);
+							}
+						}
+					}
+					if (button == XBUTTON2)
+					{
+						if (input)
+						{
+							input->SetMouseButtonState(
+								MouseButton::M_X2,
+								true);
+
+							if (Input::IsVerboseLoggingEnabled())
+							{
+								Log::Print(
+									"Detected x2 mouse key down.",
+									"INPUT",
+									LogType::LOG_INFO);
+							}
+						}
+					}
+					return false;
+				}
+				case WM_XBUTTONUP:
+				{
+					WORD button = GET_XBUTTON_WPARAM(msg.wParam);
+					if (button == XBUTTON1)
+					{
+						if (input)
+						{
+							input->SetMouseButtonState(
+								MouseButton::M_X1,
+								false);
+
+							if (Input::IsVerboseLoggingEnabled())
+							{
+								Log::Print(
+									"Detected x1 mouse key up.",
+									"INPUT",
+									LogType::LOG_INFO);
+							}
+						}
+					}
+					if (button == XBUTTON2)
+					{
+						if (input)
+						{
+							input->SetMouseButtonState(
+								MouseButton::M_X2,
+								false);
+
+							if (Input::IsVerboseLoggingEnabled())
+							{
+								Log::Print(
+									"Detected x2 mouse key up.",
+									"INPUT",
+									LogType::LOG_INFO);
+							}
+						}
+					}
+					return false;
+				}
+
+				//
+				// MOUSE DOUBLE CLICK
+				//
+
+				//TODO: figure out if double click timing delay slows down single clicks
+
+				case WM_LBUTTONDBLCLK:
+				{
+					if (input)
+					{
+						input->SetMouseButtonDoubleClickState(
+							MouseButton::M_LEFT,
+							true);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected left mouse key double click.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+				case WM_RBUTTONDBLCLK:
+				{
+					if (input)
+					{
+						input->SetMouseButtonDoubleClickState(
+							MouseButton::M_RIGHT,
+							true);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected right mouse key double click.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+				case WM_MBUTTONDBLCLK:
+				{
+					if (input)
+					{
+						input->SetMouseButtonDoubleClickState(
+							MouseButton::M_MIDDLE,
+							true);
+
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected middle mouse key double click.",
+								"INPUT",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+				case WM_XBUTTONDBLCLK:
+				{
+					WORD button = GET_XBUTTON_WPARAM(msg.wParam);
+
+					if (input)
+					{
+						if (button == XBUTTON1)
+						{
+							input->SetMouseButtonDoubleClickState(
+								MouseButton::M_X1,
+								true);
+
+							if (Input::IsVerboseLoggingEnabled())
+							{
+								Log::Print(
+									"Detected x1 mouse key double click.",
+									"INPUT",
+									LogType::LOG_INFO);
+							}
+						}
+						if (button == XBUTTON2)
+						{
+							input->SetMouseButtonDoubleClickState(
+								MouseButton::M_X2,
+								true);
+
+							if (Input::IsVerboseLoggingEnabled())
+							{
+								Log::Print(
+									"Detected x2 mouse key double click.",
+									"INPUT",
+									LogType::LOG_INFO);
+							}
+						}
+					}
+					return false;
+				}
+
+				//
+				// RAW MOUSE INPUT FOR EXTRA BUTTONS
+				//
+
+				case WM_INPUT:
+				{
+					UINT size = 0;
+					GetRawInputData(
+						(HRAWINPUT)msg.lParam,
+						RID_INPUT,
+						nullptr,
+						&size,
+						sizeof(RAWINPUTHEADER));
+
+					vector<BYTE> buffer(size);
+					if (GetRawInputData(
+						(HRAWINPUT)msg.lParam,
+						RID_INPUT,
+						buffer.data(),
+						&size,
+						sizeof(RAWINPUTHEADER)) != size)
+					{
+						return false;
+					}
+
+					const RAWMOUSE& mouse = rcast<RAWINPUT*>(buffer.data())->data.mouse;
+
+					//sets raw mouse movement
+					if (mouse.usFlags == MOUSE_MOVE_RELATIVE
+						&& input)
+					{
+						vec2 newMouseRawDelta = input->GetRawMouseDelta();
+
+						newMouseRawDelta.x += mouse.lLastX;
+						newMouseRawDelta.y += mouse.lLastY;
+
+						input->SetRawMouseDelta(newMouseRawDelta);
+					}
+
+					return false;
+				}
+
+				//
+				// CURSOR ICON
+				//
+
+				case WM_SETCURSOR:
+				{
+					//use default cursor if cursor is over client area
+					if (LOWORD(msg.lParam) == HTCLIENT)
+					{
+						SetCursor(LoadCursor(nullptr, IDC_ARROW));
+						return true;
+					}
+
+					//let windows handle non-client areas
+					return false;
+				}
+
+				//
+				// FILE WAS DRAGGED ONTO WINDOW
+				//
+
+				case WM_DROPFILES:
+				{
+					HDROP hDrop = (HDROP)msg.wParam;
+
+					//count how many files were dropped
+					UINT fileCount = DragQueryFileW(
+						hDrop,
+						0xFFFFFFFF,
+						nullptr,
+						0);
+
+					vector<string> droppedFiles{};
+					droppedFiles.reserve(fileCount);
+
+					for (UINT i = 0; i < fileCount; i++)
+					{
+						//get length of this file path
+						UINT length = DragQueryFileW(
+							hDrop, 
+							i, 
+							nullptr, 
+							0);
+
+						if (length == 0) continue;
+
+						wstring wstr(length + 1, L'\0');
+						DragQueryFileW(
+							hDrop,
+							i,
+							&wstr[0],
+							length + 1);
+
+						wstr.resize(length);
+
+						string path = ToShort(wstr);
+						droppedFiles.push_back(path);
+					}
+
+					DragFinish(hDrop);
+
+					if (Window_Global::IsVerboseLoggingEnabled())
+					{
+						for (const auto& file : droppedFiles)
+						{
+							Log::Print(
+								"File '" + file + "' was dragged to window '" + window->GetTitle() + "'",
+								"WINDOW_WINDOWS",
+								LogType::LOG_INFO);
+						}
+					}
+
+					window->SetLastDraggedFiles(std::move(droppedFiles));
+
+					return true; //we handled it
+				}
+
+				//
+				// WINDOW FOCUS
+				//
+
+				case WM_ACTIVATE:
+				{
+					switch (LOWORD(msg.wParam))
+					{
+					case WA_INACTIVE:
+					{
+						if (Window_Global::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Window '" + window->GetTitle() + "' was deactivated.",
+								"MESSAGELOOP",
+								LogType::LOG_INFO);
+						}
+
+						break;
+					}
+					case WA_ACTIVE:      //outside focus
+					case WA_CLICKACTIVE: //direct click focus
+					{
+						if (Window_Global::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Window '" + window->GetTitle() + "' was activated.",
+								"MESSAGELOOP",
+								LogType::LOG_INFO);
+						}
+
+						break;
+					}
+					}
+
+					return false;
+				}
+
+				//window gains focus
+				case WM_SETFOCUS:
+				{
+					if (input)
+					{
+						input->SetMouseVisibility(false, true);
+						input->SetMouseLockState(false, true);
+
+						if (Window_Global::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Returned focus to window '" + window->GetTitle() + "'!",
+								"MESSAGELOOP",
+								LogType::LOG_INFO);
+						}
+					}
+
+					if (!window->IsFocused()) window->BringToFocus();
+
+					return false;
+				}
+
+				//window loses focus
+				case WM_KILLFOCUS:
+				{
+					if (input)
+					{
+						input->SetMouseVisibility(true, true);
+						input->SetMouseLockState(true, true);
+						input->ClearInputEvents();
+
+						if (Window_Global::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"No longer focusing on window '" + window->GetTitle() + "'.",
+								"MESSAGELOOP",
+								LogType::LOG_INFO);
+						}
+					}
+
+					return false;
+				}
+
+				//
+				// WINDOW REDRAW
+				//
+
+				case WM_PAINT:
+				{
+					const WindowData& win = window->GetWindowData();
+					HWND hwnd = ToVar<HWND>(win.window);
+					
+					PAINTSTRUCT ps;
+					BeginPaint(hwnd, &ps);
+					EndPaint(hwnd, &ps);
+
+					return true; //we handled it
+				}
+
+				//
+				// WINDOW RESIZE
+				//
+
+				case WM_SIZE:
+				{
+					if (window->IsResizable())
+					{
+						vec2 winSize = window->GetClientRectSize();
+
+						if (OpenGL_Global::IsInitialized())
+						{
+							const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+							coreFunc->glViewport(
+								0,
+								0,
+								(GLsizei)winSize.x,
+								(GLsizei)winSize.y);
+						}
+
+						window->TriggerResize();
+						window->SetResizingState(false);
+					}
+
+					return true; //we handled it
+				}
+				case WM_SIZING:
+				{
+					if (window->IsResizable())
+					{
+						if (!window->IsResizing()) window->SetResizingState(true);
+
+						window->TriggerRedraw();
+					}
+
+					return true; //we handled it
+				}
+				//scale correctly when going to other monitor
+				case WM_DPICHANGED:
+				{
+					RECT* suggestedRect = rcast<RECT*>(msg.lParam);
+
+					//resize window to suggestedRect
+					SetWindowPos(
+						ToVar<HWND>(window->GetWindowData().window),
+						nullptr,
+						suggestedRect->left,
+						suggestedRect->top,
+						suggestedRect->right - suggestedRect->left,
+						suggestedRect->bottom - suggestedRect->top,
+						SWP_NOZORDER
+						| SWP_NOACTIVATE);
+
+					if (OpenGL_Global::IsInitialized())
+					{
+						const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+						vec2 vpSize = window->GetClientRectSize();
+
+						coreFunc->glViewport(
+							0,
+							0,
+							vpSize.x,
+							vpSize.y);
+					}
+
+					window->TriggerResize();
+					window->TriggerRedraw();
+
+					return true; //we handled it
+				}
+
+				//
+				// CAP MIN AND MAX WINDOW SIZE
+				//
+
+				case WM_GETMINMAXINFO:
+				{
+					MINMAXINFO* mmi = rcast<MINMAXINFO*>(msg.lParam);
+
+					mmi->ptMinTrackSize.x = window->GetMinSize().x;
+					mmi->ptMinTrackSize.y = window->GetMinSize().y;
+
+					mmi->ptMaxTrackSize.x = window->GetMaxSize().x;
+					mmi->ptMaxTrackSize.y = window->GetMaxSize().y;
+
+					return true; //we handled it
+				}
+
+				//
+				// MENU BAR EVENTS
+				//
+
+				//leaf was clicked
+				case WM_COMMAND:
+				{
+					u32 IDRef = LOWORD(msg.wParam);
+
+					if (window)
+					{
+						vector<MenuBar*> menuBars = KalaWindowRegistry<MenuBar>::GetAllWindowContent(windowID);
+						MenuBar* menuBar = menuBars.empty() ? nullptr : menuBars.front();
+
+						if (menuBar)
+						{
+							const vector<MenuBarEvent> events = menuBar->GetEvents();
+							for (const auto& e : events)
+							{
+								u32 ID = e.labelID;
+								if (ID == IDRef)
+								{
+									e.function();
+									return true; //we handled it
+								}
+							}
+						}
+
+						Log::Print(
+							"Did not find leaf event with ID '" + to_string(IDRef) + "'.",
+							"MESSAGELOOP",
+							LogType::LOG_INFO);
+					}
+
+					return false;
+				}
+
+				//
+				// SHUTDOWN
+				//
+
+				//destroy current window if user clicked X button or pressed Alt + F4
+				case WM_CLOSE:
+				{
+					window->CloseWindow();
+
+					if (ProcessWindow::GetRegistry().runtimeContent.empty())
+					{
+						KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+					}
+
+					return true; //we handled it
+				}
+
+				//full shutdown if all windows were destroyed
+				case WM_DESTROY:
+				{
+					if (ProcessWindow::GetRegistry().runtimeContent.empty()) PostQuitMessage(0);
+
+					return true; //we handled it
+				}
+
+				default:
+					return false;
+				}
+
+				return false;
+			};
+
 		//return false if we handled the message ourselves
-		if (ProcessMessage(msgObj, window)) return false;
+		if (process_message(msgObj, window)) return false;
 
 		return DefWindowProc(
 			hwnd, 
@@ -343,953 +1254,6 @@ namespace KalaWindow::Core
 	}
 }
 
-static LRESULT CursorTest(
-	HWND hwnd,
-	UINT msg,
-	WPARAM wParam,
-	LPARAM lParam)
-{
-	POINT cursor{};
-	cursor.x = GET_X_LPARAM(lParam);
-	cursor.y = GET_Y_LPARAM(lParam);
-
-	RECT rect{};
-	GetWindowRect(hwnd, &rect);
-
-	//if cursor isnt inside the window
-	if (!PtInRect(&rect, cursor)) return HTNOWHERE;
-
-	constexpr int border = 10;
-
-	bool onLeft = cursor.x >= rect.left && cursor.x < rect.left + border;
-	bool onRight = cursor.x < rect.right && cursor.x >= rect.right - border;
-	bool onTop = cursor.y >= rect.top && cursor.y < rect.top + border;
-	bool onBottom = cursor.y < rect.bottom && cursor.y >= rect.bottom - border;
-
-	//corners
-	if (onLeft && onTop) return HTTOPLEFT;
-	if (onRight && onTop) return HTTOPRIGHT;
-	if (onLeft && onBottom) return HTBOTTOMLEFT;
-	if (onRight && onBottom) return HTBOTTOMRIGHT;
-
-	//edges
-	if (onLeft) return HTLEFT;
-	if (onRight) return HTRIGHT;
-	if (onTop) return HTTOP;
-	if (onBottom) return HTBOTTOM;
-
-	//not near border
-	return HTCLIENT;
-}
-
-static bool ProcessMessage(
-	const MSG& msg,
-	Window* window)
-{
-	if (!window)
-	{
-		Log::Print(
-			"Cannot use 'ProcessMessage' because its window was not found!",
-			"MESSAGELOOP",
-			LogType::LOG_ERROR,
-			2);
-
-		return false;
-	}
-
-	u32 windowID = window->GetID();
-	vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
-	Input* input = inputs.empty() ? nullptr : inputs.front();
-
-	/*
-	if (msg.message == 0)
-	{
-		Log::Print(
-			"Received empty or WM_NULL message.",
-			"MESSAGELOOP",
-			LogType::LOG_INFO);
-	}
-	else
-	{
-		stringstream ss{};
-		ss << "MSG { " << "\n"
-			<< "hwnd: " << msg.hwnd << "\n"
-			<< ", message: 0x" << hex << msg.message << "\n"
-			<< ", wParam: 0x" << hex << msg.wParam << "\n"
-			<< ", lParam: 0x" << hex << msg.lParam << "\n"
-			<< ", time: " << dec << msg.time << "\n"
-			<< ", pt: (" << msg.pt.x << ", " << msg.pt.y << ")" << "\n"
-			<< " }";
-
-		Log::Print(
-			"Got message: " + ss.str(),
-			"MESSAGELOOP",
-			LogType::LOG_INFO);
-	}
-	*/
-
-	switch (msg.message)
-	{
-	//
-	// KEYBOARD INPUT
-	//
-
-	//typing text
-	case WM_UNICHAR:
-	case WM_CHAR:
-	{
-		if (addCharCallback) addCharCallback(scast<u32>(msg.wParam));
-
-		return true; //we handled it
-	}
-
-	case WM_SYSKEYDOWN:
-	case WM_KEYDOWN:
-	{
-		if (msg.wParam == VK_LBUTTON
-			|| msg.wParam == VK_RBUTTON
-			|| msg.wParam == VK_MBUTTON
-			|| msg.wParam == VK_XBUTTON1
-			|| msg.wParam == VK_XBUTTON2)
-		{
-			return false;
-		}
-
-		KeyboardButton key = TranslateVirtualKey(msg.wParam, msg.lParam);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' down.",
-				"INPUT",
-				LogType::LOG_INFO);
-		}
-
-		if (input)
-		{
-			input->SetKeyState(
-				key,
-				true);
-				
-			switch (msg.wParam)
-			{
-			case VK_BACK:
-				if (removeFromBackCallback) removeFromBackCallback();
-				break;
-			case VK_TAB:
-				if (addTabCallback) addTabCallback();
-				break;
-			case VK_RETURN:
-				if (addNewlineCallback) addNewlineCallback();
-				break;
-			}
-		}
-
-		return false;
-	}
-	case WM_SYSKEYUP:
-	case WM_KEYUP:
-	{
-		if (msg.wParam == VK_LBUTTON
-			|| msg.wParam == VK_RBUTTON
-			|| msg.wParam == VK_MBUTTON
-			|| msg.wParam == VK_XBUTTON1
-			|| msg.wParam == VK_XBUTTON2)
-		{
-			return false;
-		}
-
-		KeyboardButton key = TranslateVirtualKey(msg.wParam, msg.lParam);
-
-		if (Input::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' up.",
-				"INPUT",
-				LogType::LOG_INFO);
-		}
-
-		if (input)
-		{
-			input->SetKeyState(
-				key,
-				false);
-		}
-
-		return false;
-	}
-
-	//
-	// MOUSE MOVE
-	//
-
-	case WM_MOUSEMOVE:
-	{
-		vec2 newPos =
-		{
-			float(GET_X_LPARAM(msg.lParam)),
-			float(GET_Y_LPARAM(msg.lParam))
-		};
-
-		if (input)
-		{
-			//get the old position before updating
-			vec2 oldPos = input->GetMousePosition();
-
-			vec2 delta =
-			{
-				newPos.x - oldPos.x,
-				newPos.y - oldPos.y
-			};
-
-			input->SetMousePosition(newPos);
-			input->SetMouseDelta(delta);
-
-			if (!w->isHovered)
-			{
-				w->isHovered = true;
-
-				const WindowData& win = window->GetWindowData();
-				HWND hwnd = ToVar<HWND>(win.hwnd);
-
-				TRACKMOUSEEVENT tme{};
-				tme.cbSize = sizeof(tme);
-				tme.dwFlags = TME_LEAVE;
-				tme.hwndTrack = hwnd;
-
-				TrackMouseEvent(&tme);
-			}
-		}
-
-		return false;
-	}
-	case WM_MOUSELEAVE:
-	{
-		w->isHovered = false;
-		return false;
-	}
-
-	//
-	// MOUSE WHEEL
-	//
-
-	case WM_MOUSEWHEEL:
-	{
-		int delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
-
-		//convert to float steps (+1 or -1)
-		float scroll = 0.0f;
-		if (delta > 0) scroll = +1.0f;
-		else if (delta < 0) scroll = -1.0f;
-
-		if (input) input->SetScrollwheelDelta(scroll);
-
-		return false;
-	}
-
-	//
-	// MOUSE BUTTONS
-	//
-
-	case WM_LBUTTONDOWN:
-	{
-		if (input)
-		{
-			input->SetMouseButtonState(
-				MouseButton::M_LEFT,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected left mouse key down.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_LBUTTONUP:
-	{
-		if (input)
-		{
-			input->SetMouseButtonState(
-				MouseButton::M_LEFT,
-				false);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected left mouse key up.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-
-	case WM_RBUTTONDOWN:
-	{
-		if (input)
-		{
-			input->SetMouseButtonState(
-				MouseButton::M_RIGHT,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected right mouse key down.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_RBUTTONUP:
-	{
-		if (input)
-		{
-			input->SetMouseButtonState(
-				MouseButton::M_RIGHT,
-				false);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected right mouse key up.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-
-	case WM_MBUTTONDOWN:
-	{
-		if (input)
-		{
-			input->SetMouseButtonState(
-				MouseButton::M_MIDDLE,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected middle mouse key down.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_MBUTTONUP:
-	{
-		if (input)
-		{
-			input->SetMouseButtonState(
-				MouseButton::M_MIDDLE,
-				false);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected middle mouse key up.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-
-	case WM_XBUTTONDOWN:
-	{
-		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
-		if (button == XBUTTON1)
-		{
-			if (input)
-			{
-				input->SetMouseButtonState(
-					MouseButton::M_X1,
-					true);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x1 mouse key down.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-		}
-		if (button == XBUTTON2)
-		{
-			if (input)
-			{
-				input->SetMouseButtonState(
-					MouseButton::M_X2,
-					true);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x2 mouse key down.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-		}
-		return false;
-	}
-	case WM_XBUTTONUP:
-	{
-		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
-		if (button == XBUTTON1)
-		{
-			if (input)
-			{
-				input->SetMouseButtonState(
-					MouseButton::M_X1,
-					false);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x1 mouse key up.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-		}
-		if (button == XBUTTON2)
-		{
-			if (input)
-			{
-				input->SetMouseButtonState(
-					MouseButton::M_X2,
-					false);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x2 mouse key up.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-		}
-		return false;
-	}
-
-	//
-	// MOUSE DOUBLE CLICK
-	//
-
-	//TODO: figure out if double click timing delay slows down single clicks
-
-	case WM_LBUTTONDBLCLK:
-	{
-		if (input)
-		{
-			input->SetMouseButtonDoubleClickState(
-				MouseButton::M_LEFT,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected left mouse key double click.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_RBUTTONDBLCLK:
-	{
-		if (input)
-		{
-			input->SetMouseButtonDoubleClickState(
-				MouseButton::M_RIGHT,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected right mouse key double click.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_MBUTTONDBLCLK:
-	{
-		if (input)
-		{
-			input->SetMouseButtonDoubleClickState(
-				MouseButton::M_MIDDLE,
-				true);
-
-			if (Input::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Detected middle mouse key double click.",
-					"INPUT",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-	case WM_XBUTTONDBLCLK:
-	{
-		WORD button = GET_XBUTTON_WPARAM(msg.wParam);
-
-		if (input)
-		{
-			if (button == XBUTTON1)
-			{
-				input->SetMouseButtonDoubleClickState(
-					MouseButton::M_X1,
-					true);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x1 mouse key double click.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-			if (button == XBUTTON2)
-			{
-				input->SetMouseButtonDoubleClickState(
-					MouseButton::M_X2,
-					true);
-
-				if (Input::IsVerboseLoggingEnabled())
-				{
-					Log::Print(
-						"Detected x2 mouse key double click.",
-						"INPUT",
-						LogType::LOG_INFO);
-				}
-			}
-		}
-		return false;
-	}
-
-	//
-	// RAW MOUSE INPUT FOR EXTRA BUTTONS
-	//
-
-	case WM_INPUT:
-	{
-		UINT size = 0;
-		GetRawInputData(
-			(HRAWINPUT)msg.lParam,
-			RID_INPUT,
-			nullptr,
-			&size,
-			sizeof(RAWINPUTHEADER));
-
-		vector<BYTE> buffer(size);
-		if (GetRawInputData(
-			(HRAWINPUT)msg.lParam,
-			RID_INPUT,
-			buffer.data(),
-			&size,
-			sizeof(RAWINPUTHEADER)) != size)
-		{
-			return false;
-		}
-
-		const RAWMOUSE& mouse = rcast<RAWINPUT*>(buffer.data())->data.mouse;
-
-		//sets raw mouse movement
-		if (mouse.usFlags == MOUSE_MOVE_RELATIVE
-			&& input)
-		{
-			vec2 newMouseRawDelta = input->GetRawMouseDelta();
-
-			newMouseRawDelta.x += mouse.lLastX;
-			newMouseRawDelta.y += mouse.lLastY;
-
-			input->SetRawMouseDelta(newMouseRawDelta);
-		}
-
-		return false;
-	}
-
-	//
-	// CURSOR ICON
-	//
-
-	case WM_SETCURSOR:
-	{
-		//use default cursor if cursor is over client area
-		if (LOWORD(msg.lParam) == HTCLIENT)
-		{
-			SetCursor(LoadCursor(nullptr, IDC_ARROW));
-			return true;
-		}
-
-		//let windows handle non-client areas
-		return false;
-	}
-
-	//
-	// FILE WAS DRAGGED ONTO WINDOW
-	//
-
-	case WM_DROPFILES:
-	{
-		HDROP hDrop = (HDROP)msg.wParam;
-
-		//count how many files were dropped
-		UINT fileCount = DragQueryFileW(
-			hDrop,
-			0xFFFFFFFF,
-			nullptr,
-			0);
-
-		vector<string> droppedFiles{};
-		droppedFiles.reserve(fileCount);
-
-		for (UINT i = 0; i < fileCount; i++)
-		{
-			//get length of this file path
-			UINT length = DragQueryFileW(
-				hDrop, 
-				i, 
-				nullptr, 
-				0);
-
-			if (length == 0) continue;
-
-			wstring wstr(length + 1, L'\0');
-			DragQueryFileW(
-				hDrop,
-				i,
-				&wstr[0],
-				length + 1);
-
-			wstr.resize(length);
-
-			string path = ToShort(wstr);
-			droppedFiles.push_back(path);
-		}
-
-		DragFinish(hDrop);
-
-		if (Window_Global::IsVerboseLoggingEnabled())
-		{
-			for (const auto& file : droppedFiles)
-			{
-				Log::Print(
-					"File '" + file + "' was dragged to window '" + window->GetTitle() + "'",
-					"WINDOW_WINDOWS",
-					LogType::LOG_INFO);
-			}
-		}
-
-		window->SetLastDraggedFiles(std::move(droppedFiles));
-
-		return true; //we handled it
-	}
-
-	//
-	// WINDOW FOCUS
-	//
-
-	case WM_ACTIVATE:
-	{
-		switch (LOWORD(msg.wParam))
-		{
-		case WA_INACTIVE:
-		{
-			if (Window_Global::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Window '" + window->GetTitle() + "' was deactivated.",
-					"MESSAGELOOP",
-					LogType::LOG_INFO);
-			}
-
-			break;
-		}
-		case WA_ACTIVE:      //outside focus
-		case WA_CLICKACTIVE: //direct click focus
-		{
-			if (Window_Global::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Window '" + window->GetTitle() + "' was activated.",
-					"MESSAGELOOP",
-					LogType::LOG_INFO);
-			}
-
-			break;
-		}
-		}
-
-		return false;
-	}
-
-	//window gains focus
-	case WM_SETFOCUS:
-	{
-		if (input)
-		{
-			input->SetMouseVisibilityBetweenFocus(false);
-			input->SetMouseLockStateBetweenFocus(false);
-
-			if (Window_Global::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"Returned focus to window '" + window->GetTitle() + "'!",
-					"MESSAGELOOP",
-					LogType::LOG_INFO);
-			}
-		}
-
-		if (!window->IsFocused()) window->BringToFocus();
-
-		return false;
-	}
-
-	//window loses focus
-	case WM_KILLFOCUS:
-	{
-		if (input)
-		{
-			input->SetMouseVisibilityBetweenFocus(true);
-			input->SetMouseLockStateBetweenFocus(true);
-			input->ClearInputEvents();
-
-			if (Window_Global::IsVerboseLoggingEnabled())
-			{
-				Log::Print(
-					"No longer focusing on window '" + window->GetTitle() + "'.",
-					"MESSAGELOOP",
-					LogType::LOG_INFO);
-			}
-		}
-
-		return false;
-	}
-
-	//
-	// WINDOW REDRAW
-	//
-
-	case WM_PAINT:
-	{
-		const WindowData& win = window->GetWindowData();
-		HWND hwnd = ToVar<HWND>(win.hwnd);
-		
-		PAINTSTRUCT ps;
-		BeginPaint(hwnd, &ps);
-		EndPaint(hwnd, &ps);
-
-		return true; //we handled it
-	}
-
-	//
-	// WINDOW RESIZE
-	//
-
-	case WM_SIZE:
-	{
-		if (window->IsResizable())
-		{
-			vec2 winSize = window->GetClientRectSize();
-
-			if (OpenGL_Global::IsInitialized())
-			{
-				const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
-
-				coreFunc->glViewport(
-					0,
-					0,
-					(GLsizei)winSize.x,
-					(GLsizei)winSize.y);
-			}
-
-			window->TriggerResize();
-			window->SetResizingState(false);
-		}
-
-		return true; //we handled it
-	}
-	case WM_SIZING:
-	{
-		if (window->IsResizable())
-		{
-			if (!window->IsResizing()) window->SetResizingState(true);
-
-			window->TriggerRedraw();
-		}
-
-		return true; //we handled it
-	}
-	//scale correctly when going to other monitor
-	case WM_DPICHANGED:
-	{
-		UINT dpiX = LOWORD(msg.wParam);
-		UINT dpiY = HIWORD(msg.wParam);
-
-		RECT* suggestedRect = rcast<RECT*>(msg.lParam);
-
-		//resize window to suggestedRect
-		SetWindowPos(
-			ToVar<HWND>(window->GetWindowData().hwnd),
-			nullptr,
-			suggestedRect->left,
-			suggestedRect->top,
-			suggestedRect->right - suggestedRect->left,
-			suggestedRect->bottom - suggestedRect->top,
-			SWP_NOZORDER
-			| SWP_NOACTIVATE);
-
-		if (OpenGL_Global::IsInitialized())
-		{
-			const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
-
-			vec2 vpSize = window->GetClientRectSize();
-
-			coreFunc->glViewport(
-				0,
-				0,
-				vpSize.x,
-				vpSize.y);
-		}
-
-		window->TriggerResize();
-		window->TriggerRedraw();
-
-		return true; //we handled it
-	}
-
-	//
-	// CAP MIN AND MAX WINDOW SIZE
-	//
-
-	case WM_GETMINMAXINFO:
-	{
-		MINMAXINFO* mmi = rcast<MINMAXINFO*>(msg.lParam);
-
-		mmi->ptMinTrackSize.x = window->GetMinSize().x;
-		mmi->ptMinTrackSize.y = window->GetMinSize().y;
-
-		mmi->ptMaxTrackSize.x = window->GetMaxSize().x;
-		mmi->ptMaxTrackSize.y = window->GetMaxSize().y;
-
-		return true; //we handled it
-	}
-
-	//
-	// MENU BAR EVENTS
-	//
-
-	//leaf was clicked
-	case WM_COMMAND:
-	{
-		u32 IDRef = LOWORD(msg.wParam);
-
-		if (window)
-		{
-			vector<MenuBar*> menuBars = KalaWindowRegistry<MenuBar>::GetAllWindowContent(windowID);
-			MenuBar* menuBar = menuBars.empty() ? nullptr : menuBars.front();
-
-			if (menuBar)
-			{
-				const vector<MenuBarEvent> events = menuBar->GetEvents();
-				for (const auto& e : events)
-				{
-					u32 ID = e.labelID;
-					if (ID == IDRef)
-					{
-						e.function();
-						return true; //we handled it
-					}
-				}
-			}
-
-			Log::Print(
-				"Did not find leaf event with ID '" + to_string(IDRef) + "'.",
-				"MESSAGELOOP",
-				LogType::LOG_INFO);
-		}
-
-		return false;
-	}
-
-	//
-	// SHUTDOWN
-	//
-
-	//destroy current window if user clicked X button or pressed Alt + F4
-	case WM_CLOSE:
-	{
-		window->CloseWindow();
-
-		if (ProcessWindow::GetRegistry().runtimeContent.empty())
-		{
-			KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
-		}
-
-		return true; //we handled it
-	}
-
-	//full shutdown if all windows were destroyed
-	case WM_DESTROY:
-	{
-		if (ProcessWindow::GetRegistry().runtimeContent.empty()) PostQuitMessage(0);
-
-		return true; //we handled it
-	}
-
-	default:
-		return false;
-	}
-
-	return false;
-}
-
-wstring ToWide(const string& input)
-{
-	if (input.empty()) return wstring();
-
-	int size_needed = MultiByteToWideChar(
-		CP_UTF8,
-		0,
-		input.data(),
-		scast<int>(input.size()),
-		nullptr,
-		0);
-
-	wstring wstr(size_needed, 0);
-
-	MultiByteToWideChar(
-		CP_UTF8,
-		0,
-		input.data(),
-		scast<int>(input.size()),
-		wstr.data(),
-		size_needed);
-
-	return wstr;
-}
 string ToShort(const wstring& str)
 {
 	if (str.empty()) return{};

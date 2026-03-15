@@ -19,7 +19,6 @@
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
-#include "graphics/kw_window_global.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 
@@ -33,8 +32,9 @@ using KalaHeaders::KalaKeyStandards::IndexToMouse;
 
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::Window_Global;
+#ifdef __linux__
 using KalaWindow::Graphics::X11GlobalData;
+#endif
 
 using std::string;
 using std::to_string;
@@ -85,8 +85,8 @@ namespace KalaWindow::Core
 
 		//x11 raw input is enabled globally in x11 global window init
 #ifdef _WIN32
-		const WindowData& win = window->GetWindowData();
-		HWND winRef = ToVar<HWND>(win.hwnd);
+		const WindowData& win = w->GetWindowData();
+		HWND winRef = ToVar<HWND>(win.window);
 
 		RAWINPUTDEVICE rid{};
 		rid.usUsagePage = 0x01;
@@ -118,7 +118,7 @@ namespace KalaWindow::Core
 	u32 Input::GetWindowID() const { return windowID; }
 
 	const string& Input::GetTypedLetter() const { return lastLetter; }
-	void Input::SetTypedLetter(const string& letter) { lastLetter = letter; }
+	void Input::SetTypedLetter(string_view letter) { lastLetter = letter; }
 
 	void Input::SetKeyState(
 		KeyboardButton key,
@@ -505,7 +505,7 @@ namespace KalaWindow::Core
 		if (!state) ClipCursor(nullptr);
 		else
 		{
-			HWND hwnd = ToVar<HWND>(w->GetWindowData().hwnd);
+			HWND hwnd = ToVar<HWND>(w->GetWindowData().window);
 
 			RECT rect{};
 			GetClientRect(hwnd, &rect);
@@ -593,7 +593,7 @@ namespace KalaWindow::Core
 			const WindowData& windowData = w->GetWindowData();
 
 #ifdef _WIN32
-			HWND windowRef = ToVar<HWND>(windowData.hwnd);
+			HWND windowRef = ToVar<HWND>(windowData.window);
 
 			RECT rect{};
 			GetClientRect(windowRef, &rect);

@@ -288,6 +288,7 @@ namespace KalaWindow::Graphics
                 value.size());
         }
     }
+    //TODO: get actual title
     const string& ProcessWindow::GetTitle() const { static string title{}; return title; }
 
     void ProcessWindow::SetIcon(u32 texture) const {}

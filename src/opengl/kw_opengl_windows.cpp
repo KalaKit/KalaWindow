@@ -11,7 +11,7 @@
 #include <sstream>
 #include <memory>
 
-#include <GL/wglext.h>
+#include "wglext.h"
 
 #include "log_utils.hpp"
 
@@ -19,6 +19,7 @@
 #include "opengl/kw_opengl_functions_core.hpp"
 #include "opengl/kw_opengl_functions_windows.hpp"
 #include "graphics/kw_window.hpp"
+#include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
@@ -31,24 +32,46 @@ using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::ProcessWindow;
+using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Windows;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Windows;
+
 using std::string;
-using std::vector;
+using std::string_view;
 using std::to_string;
+using std::vector;
 using std::ostringstream;
 using std::dec;
 using std::hex;
 using std::unique_ptr;
 using std::make_unique;
 
-static bool IsCorrectVersion();
 static HWND CreateDummyWindow();
 
-static string GetErrorType(const string& errorOrigin);
+static string GetErrorType(string_view errorOrigin);
+
+static bool IsCorrectVersion()
+{
+	const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+	const char* versionStr = rcast<const char*>(coreFunc->glGetString(GL_VERSION));
+	if (!versionStr) return false;
+
+	int major = 0;
+	int minor = 0;
+	if (sscanf_s(versionStr, "%d.%d", &major, &minor) != 2)
+	{
+		return false;
+	}
+
+	return
+		(major > 3)
+		|| (major == 3
+		&& minor >= 3);
+}
 
 namespace KalaWindow::OpenGL
 {
@@ -138,6 +161,15 @@ namespace KalaWindow::OpenGL
 		OpenGL_Functions_Core::LoadAllCoreFunctions();
 		OpenGL_Functions_Windows::LoadAllWindowsFunctions();
 
+		if (!IsCorrectVersion())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Unsupported GL version! Must be 3.3 or higher.");
+
+			return;
+		}
+
 		//
 		// CLEAN UP DUMMY
 		//
@@ -178,7 +210,7 @@ namespace KalaWindow::OpenGL
 		return openGL32Lib;
 	}
 
-	bool OpenGL_Global::IsExtensionSupported(const string& name)
+	bool OpenGL_Global::IsExtensionSupported(string_view name)
 	{
 		const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
@@ -494,7 +526,6 @@ namespace KalaWindow::OpenGL
 		contPtr->ID = newID;
 
 		const WindowData& wData = window->GetWindowData();
-		HWND windowRef = ToVar<HWND>(wData.hwnd);
 
 		HDC hdc = ToVar<HDC>(wData.hdc);
 
@@ -587,8 +618,6 @@ namespace KalaWindow::OpenGL
 			1,
 			&pfID,
 			&numFormats));
-
-		bool success = result && numFormats > 0;
 
 		if (!result)
 		{
@@ -977,26 +1006,6 @@ namespace KalaWindow::OpenGL
 	}
 }
 
-bool IsCorrectVersion()
-{
-	const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
-
-	const char* versionStr = rcast<const char*>(coreFunc->glGetString(GL_VERSION));
-	if (!versionStr) return false;
-
-	int major = 0;
-	int minor = 0;
-	if (sscanf_s(versionStr, "%d.%d", &major, &minor) != 2)
-	{
-		return false;
-	}
-
-	return
-		(major > 3)
-		|| (major == 3
-		&& minor >= 3);
-}
-
 HWND CreateDummyWindow()
 {
 	WNDCLASSA wc = {};
@@ -1025,7 +1034,7 @@ HWND CreateDummyWindow()
 	return hwnd;
 }
 
-string GetErrorType(const string& errorOrigin)
+string GetErrorType(string_view errorOrigin)
 {
 	DWORD err = GetLastError();
 

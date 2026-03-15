@@ -59,18 +59,6 @@ namespace KalaHeaders::KalaLog
 	//How many type + tag combinations are cached
 	constexpr u8 CACHED_TAGS_LENGTH = 50;
 
-	//Receives log messages emitted via EmitLog and forwards them to a log sink
-	using LogHook = void(*)(string_view);
-#ifdef ENABLE_EMIT_LOG
-	//Registers a log sink function
-	void RegisterLogHook(LogHook hook);
-	//Emits a log to the registered log sink
-	void EmitLog(string_view);
-#else
-	inline void RegisterLogHook(LogHook hook) noexcept {}
-	inline void EmitLog(string_view) noexcept {}
-#endif
-
 	enum class LogType
 	{
 		LOG_INFO,    //General-purpose log message, sent to stdout
@@ -364,8 +352,8 @@ namespace KalaHeaders::KalaLog
 
 			const size_t length = scast<size_t>(p - logBuffer().data());
 
-			//push to log observer
-			EmitLog(string_view(logBuffer().data(), length));
+			//TODO: figure out how to make it work
+			//EmitLog(string_view(logBuffer().data(), length));
 
 			fwrite(logBuffer().data(), 1, length, out);
 
@@ -394,8 +382,8 @@ namespace KalaHeaders::KalaLog
 			memcpy(logBuffer().data(), trimmed.data(), length);
 			logBuffer()[length] = '\n';
 
-			//push to log observer
-			EmitLog(string_view(logBuffer().data(), totalLength));
+			//TODO: figure out how to make it work
+			//EmitLog(string_view(logBuffer().data(), totalLength));
 
 			fwrite(logBuffer().data(), 1, totalLength, stdout);
 

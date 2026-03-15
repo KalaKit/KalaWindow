@@ -37,14 +37,14 @@ using namespace winrt::Windows::Data::Xml::Dom;
 
 using std::filesystem::path;
 using std::ostringstream;
-using std::to_string;
 using std::string;
+using std::string_view;
+using std::to_string;
 
-static wstring ToWide(const string& str);
+static wstring ToWide(string_view str);
 static string ToShort(const wstring& str);
 static string HResultToString(HRESULT hr);
 
-static bool checkedOSVersion = false;
 constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
 
 static bool enabledBeginPeriod = false;
@@ -216,8 +216,8 @@ namespace KalaWindow::Graphics
 	const string& Window_Global::GetAppID() { return appID; }
 
 	PopupResult Window_Global::CreatePopup(
-		const string& title,
-		const string& message,
+		string_view title,
+		string_view message,
 		PopupAction action,
 		PopupType type)
 	{
@@ -652,8 +652,8 @@ namespace KalaWindow::Graphics
 	}
 
 	void Window_Global::CreateNotification(
-		const string& title,
-		const string& message)
+		string_view title,
+		string_view message)
 	{
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(message);
@@ -672,7 +672,7 @@ namespace KalaWindow::Graphics
 		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
-				"Created notification '" + title + "'!",
+				"Created notification '" + string(title) + "'!",
 				"WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
@@ -703,7 +703,7 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window_Global::SetClipboardText(const string& text)
+	void Window_Global::SetClipboardText(string_view text)
 	{
 		if (!OpenClipboard(nullptr))
 		{
@@ -762,7 +762,7 @@ namespace KalaWindow::Graphics
 		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
-				"Saved string to clipboard: '" + text + "'!",
+				"Saved string to clipboard: '" + string(text) + "'!",
 				"WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
@@ -841,7 +841,7 @@ namespace KalaWindow::Graphics
 	}
 }
 
-wstring ToWide(const string& input)
+wstring ToWide(string_view input)
 {
 	if (input.empty()) return wstring();
 

@@ -31,8 +31,6 @@
 #include "opengl/kw_opengl.hpp"
 #include "opengl/kw_opengl_shader.hpp"
 
-using KalaHeaders::KalaCore::ToVar;
-
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
@@ -47,7 +45,6 @@ using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 #endif
 
-using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::OpenGL::OpenGL_Shader;
@@ -67,12 +64,8 @@ using std::clamp;
 
 static function<void()> userRegularShutdown;
 
-#ifdef ENABLE_EMIT_LOG
-void KalaHeaders::KalaLog::EmitLog(string_view msg)
-{
-	CrashHandler::AppendToCrashLog(msg);
-}
-#endif
+//TODO: define somehow in log_utils.hpp
+//CrashHandler::AppendToCrashLog(msg);
 
 namespace KalaWindow::Core
 {
@@ -104,8 +97,8 @@ namespace KalaWindow::Core
 	}
 
 	void KalaWindowCore::ForceClose(
-		const string& target,
-		const string& reason)
+		string_view target,
+		string_view reason)
 	{
 		Log::Print(
 			"\n================"
@@ -114,8 +107,8 @@ namespace KalaWindow::Core
 			true);
 
 		Log::Print(
-			reason,
-			target,
+			string(reason),
+			string(target),
 			LogType::LOG_ERROR,
 			2,
 			true,
@@ -123,8 +116,8 @@ namespace KalaWindow::Core
 			DateFormat::DATE_NONE);
 
 		CrashHandler::SetForceCloseContent(
-			target,
-			reason);
+			string(target),
+			string(reason));
 
 #ifdef _WIN32
 		__debugbreak();

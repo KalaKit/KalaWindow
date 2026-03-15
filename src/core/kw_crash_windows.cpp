@@ -30,7 +30,6 @@ using KalaHeaders::KalaLog::TimeFormat;
 using KalaHeaders::KalaThread::auptr;
 using KalaHeaders::KalaThread::memory_order_relaxed;
 
-using KalaWindow::Core::CrashHandler;
 using KalaWindow::Core::MAX_MESSAGE_LENGTH;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -306,7 +305,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
         << "The application must close and cannot continue running.\n"
         << "A log file has been created in the folder of this application.";
 
-	AppendCallStackToStream(oss, info->ContextRecord);
+	AppendCallStackToStream(logStream, info->ContextRecord);
 
 	//append crash log buffer
 
@@ -345,10 +344,10 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 			true);
 	}
 
-	Log::Print(oss.str(), true);
+	Log::Print(userStream.str(), true);
 
 	WriteLog(
-		oss.str(),
+		logStream.str(),
 		timeStamp);
 
 	if (Window_Global::CreatePopup(
@@ -369,11 +368,11 @@ void WriteMiniDump(
 	string_view exePath,
 	string_view timeStamp)
 {
-	string filePath = timeStamp + ".dmp";
+	string filePath = string(timeStamp) + ".dmp";
 
-	int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, exePath.c_str(), -1, nullptr, 0);
+	int sizeNeeded = MultiByteToWideChar(CP_UTF8, 0, string(exePath).c_str(), -1, nullptr, 0);
 	wstring widePath(sizeNeeded - 1, 0); // -1 to exclude null terminator
-	MultiByteToWideChar(CP_UTF8, 0, exePath.c_str(), -1, &widePath[0], sizeNeeded);
+	MultiByteToWideChar(CP_UTF8, 0, string(exePath).c_str(), -1, &widePath[0], sizeNeeded);
 
 	//build full path to dump file
 	widePath += L"\\" + wstring(filePath.begin(), filePath.end());
@@ -545,7 +544,7 @@ void WriteLog(
 	string_view message,
 	string_view timeStamp)
 {
-	string fileName = timeStamp + ".txt";
+	string fileName = string(timeStamp) + ".txt";
 	string fullPath = (current_path() / fileName).string();
 
 	ofstream logFile(fullPath);

@@ -57,6 +57,26 @@ using std::make_unique;
 using std::vector;
 using std::ostringstream;
 
+static bool IsCorrectVersion()
+{
+	const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
+
+	const char* versionStr = rcast<const char*>(coreFunc->glGetString(GL_VERSION));
+	if (!versionStr) return false;
+
+	int major = 0;
+	int minor = 0;
+	if (sscanf_s(versionStr, "%d.%d", &major, &minor) != 2)
+	{
+		return false;
+	}
+
+	return
+		(major > 3)
+		|| (major == 3
+		&& minor >= 3);
+}
+
 namespace KalaWindow::OpenGL
 {
 	//
@@ -212,6 +232,15 @@ namespace KalaWindow::OpenGL
 		OpenGL_Functions_Core::LoadAllCoreFunctions();
 		OpenGL_Functions_Linux::LoadAllLinuxFunctions();
 
+		if (!IsCorrectVersion())
+		{
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Unsupported GL version! Must be 3.3 or higher.");
+
+			return;
+		}
+
 		//
 		// CLEAN UP DUMMY
 		//
@@ -266,7 +295,7 @@ namespace KalaWindow::OpenGL
 		return openGL32Lib;
 	}
 
-    bool OpenGL_Global::IsExtensionSupported(const string& name)
+    bool OpenGL_Global::IsExtensionSupported(string_view name)
 	{
 		const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
 
