@@ -16,11 +16,6 @@ origin: LICENSE.md
 target: ..@elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@_external_shared@KalaWindow@LICENSE.md
 action: forcecopy
 
-//copy logo
-origin: logo.png
-target: ..@elypso-engine@_external_shared@KalaWindow@logo.png, ..@elypso-hub@_external_shared@KalaWindow@logo.png, ..@kalakit_test_projects@_external_shared@KalaWindow@logo.png
-action: forcecopy
-
 //copy include files
 origin: include
 target: ..@elypso-engine@_external_shared@KalaWindow@include, ..@elypso-hub@_external_shared@KalaWindow@include, ..@kalakit_test_projects@_external_shared@KalaWindow@include

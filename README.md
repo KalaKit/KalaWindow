@@ -1,11 +1,5 @@
 # KalaWindow
 
-![Logo](logo.png)
-
-[![License](https://img.shields.io/badge/license-Zlib-blue)](LICENSE.md)
-![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux-brightgreen)
-![Development Stage](https://img.shields.io/badge/development-Alpha-yellow)
-
 **KalaWindow** is a C++20 window library for **Windows**, built for native desktop applications for Windows with support coming for Linux in the future.
 
 **KalaWindow** creates and owns the OpenGL 3.3 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework. Glad or any other opengl function loaders are not required because **KalaWindow** already provides most common ones for what you would need for OpenGL 3.3 use. **KalaWindow** also provides a comprehensive shader compiler system with helpful uniform functions and for binding the vert/frag/geometry shader as well.
