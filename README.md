@@ -1,17 +1,8 @@
 # KalaWindow
 
-**KalaWindow** is a C++20 window library for **Windows**, built for native desktop applications for Windows with support coming for Linux in the future.
+**KalaWindow** is a C++20 window library for Windows and Linux, it is used for making software and games.
 
-**KalaWindow** creates and owns the OpenGL 3.3 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework. Glad or any other opengl function loaders are not required because **KalaWindow** already provides most common ones for what you would need for OpenGL 3.3 use. **KalaWindow** also provides a comprehensive shader compiler system with helpful uniform functions and for binding the vert/frag/geometry shader as well.
-
-[KalaUI](https://github.com/kalakit/kalaui) is recommended to be used for UI stuff and KalaWindow does not contain any UI systems.
-
-Features built into **KalaWindow**:
-- windowing with support for multiple windows
-- input (keyboard and mouse)
-- native message loop
-- built in crash handler (previously known as KalaCrashHandler, now only maintained in this repository codebase)
-- OpenGl 3.3 context + gl functions + gl shader compiler
+**KalaWindow** creates and owns the OpenGL 3.3 and Vulkan 1.3 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework. **KalaWindow** owns the GL and VK functions so Glad or other similar ones are not needed.
 
 ---
 
@@ -20,7 +11,7 @@ Features built into **KalaWindow**:
 | Platform  | Status         | Notes                                                |
 |-----------|----------------|------------------------------------------------------|
 | Windows   | Supported      | Requires Windows 10 (build 1809 / 17763) or higher   |
-| Linux     | Planned        | Support coming in a future version                   |
+| Linux     | Supported      | Should work on any Linux distro released in the last ~10 years ago |
 | WebGL     | Planned        | Support coming in a future version                   |
 | Mac       | Not Supported  | No plans for macOS compatibility                     |
 | ARM       | Not Supported  | ARM architecture will not be targeted                |
