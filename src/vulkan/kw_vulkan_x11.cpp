@@ -19,7 +19,6 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
-#include "opengl/kw_opengl.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -31,7 +30,6 @@ using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
-using KalaWindow::OpenGL::OpenGL_Global;
 
 using std::to_string;
 using std::unique_ptr;
@@ -53,15 +51,6 @@ namespace KalaWindow::Vulkan
 
 	void Vulkan_Global::Initialize(const vector<string>& extensions)
     {
-        if (OpenGL_Global::IsInitialized())
-        {
-			KalaWindowCore::ForceClose(
-				"Global Vulkan error",
-				"Cannot initialize global Vulkan together with OpenGL!");
-
-			return;
-        }
-
 		if (isInitialized)
 		{
 			Log::Print(
@@ -176,15 +165,6 @@ namespace KalaWindow::Vulkan
 
 	Vulkan_Context* Vulkan_Context::Initialize(u32 windowID)
 	{
-        if (OpenGL_Global::IsInitialized())
-        {
-			KalaWindowCore::ForceClose(
-				"Vulkan error",
-				"Cannot initialize Vulkan context together with OpenGL!");
-
-			return nullptr;
-        }
-
 		if (!Vulkan_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
@@ -199,9 +179,22 @@ namespace KalaWindow::Vulkan
 		if (!w
 			|| !w->IsInitialized())
 		{
-			KalaWindowCore::ForceClose(
-				"Vulkan error",
-				"Cannot initialize Vulkan context because it's window was not found!");
+			Log::Print(
+				"Cannot initialize Vulkan context because it's window was not found!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
+		}
+
+		if (w->GetContextID() != 0)
+		{
+			Log::Print(
+				"Cannot add Vulkan context to window '" + w->GetTitle() + "' because it already has an existing context!",
+				"VULKAN",
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
@@ -214,7 +207,7 @@ namespace KalaWindow::Vulkan
 
 		Log::Print(
 			"Creating Vulakn context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'.",
-			"OPENGL",
+			"VULKAN",
 			LogType::LOG_DEBUG);
 
 		contPtr->ID = newID;
@@ -265,7 +258,7 @@ namespace KalaWindow::Vulkan
 
 		Log::Print(
 			"Initialized Vulkan context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'!",
-			"OPENGL",
+			"VULKAN",
 			LogType::LOG_SUCCESS);
 
 		return contPtr;
@@ -287,7 +280,7 @@ namespace KalaWindow::Vulkan
 		{
 			Log::Print(
 				"Cannot shut down Vulkan context because its window was not found!",
-				"OPENGL",
+				"VULKAN",
 				LogType::LOG_ERROR,
 				2);
 
@@ -296,7 +289,7 @@ namespace KalaWindow::Vulkan
 
 		Log::Print(
 			"Destroying Vulkan for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
-			"OPENGL",
+			"VULKAN",
 			LogType::LOG_DEBUG);
 
 		vkDestroySurfaceKHR(

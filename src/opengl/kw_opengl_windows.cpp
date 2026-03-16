@@ -21,7 +21,6 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
-#include "vulkan/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
@@ -39,7 +38,6 @@ using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Windows;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Windows;
-using KalaWindow::Vulkan::Vulkan_Global;
 
 using std::string;
 using std::string_view;
@@ -91,15 +89,6 @@ namespace KalaWindow::OpenGL
 
 	void OpenGL_Global::Initialize()
 	{
-		if (Vulkan_Global::IsInitialized())
-        {
-			KalaWindowCore::ForceClose(
-				"Global OpenGL error",
-				"Cannot initialize global OpenGL together with Vulkan!");
-
-			return;
-        }
-
 		if (isInitialized)
 		{
 			Log::Print(
@@ -506,15 +495,6 @@ namespace KalaWindow::OpenGL
 		DepthBufferBits dBits,
 		StencilBufferBits sBits)
 	{
-		if (Vulkan_Global::IsInitialized())
-        {
-			KalaWindowCore::ForceClose(
-				"OpenGL error",
-				"Cannot initialize OpenGL context together with Vulkan!");
-
-			return nullptr;
-        }
-
 		if (!OpenGL_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
@@ -524,14 +504,25 @@ namespace KalaWindow::OpenGL
 			return nullptr;
 		}
 
-		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
+		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!w
+			|| !w->IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
 				"OpenGL error",
 				"Cannot initialize OpenGL context because it's window was not found!");
+
+			return nullptr;
+		}
+
+		if (w->GetContextID() != 0)
+		{
+			Log::Print(
+				"Cannot add OpenGL context to window '" + w->GetTitle() + "' because it already has an existing context!",
+				"OPENGL",
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
@@ -546,13 +537,13 @@ namespace KalaWindow::OpenGL
 		OpenGL_Context* contPtr = newCont.get();
 
 		Log::Print(
-			"Creating OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"Creating OpenGL context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'.",
 			"OPENGL",
 			LogType::LOG_DEBUG);
 
 		contPtr->ID = newID;
 
-		const WindowData& wData = window->GetWindowData();
+		const WindowData& wData = w->GetWindowData();
 
 		HDC hdc = ToVar<HDC>(wData.hdc);
 
@@ -842,7 +833,7 @@ namespace KalaWindow::OpenGL
 		windowsFunc->wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size
-		vec2 clientRectSize = window->GetClientRectSize();
+		vec2 clientRectSize = w->GetClientRectSize();
 		coreFunc->glViewport(
 			0,
 			0,
@@ -905,12 +896,12 @@ namespace KalaWindow::OpenGL
 		registry.AddContent(newID, std::move(newCont));
 		window->SetContextID(newID);
 
-		contPtr->windowID = window->GetID();
+		contPtr->windowID = w->GetID();
 
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Initialized OpenGL context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'!",
 			"OPENGL",
 			LogType::LOG_SUCCESS);
 
