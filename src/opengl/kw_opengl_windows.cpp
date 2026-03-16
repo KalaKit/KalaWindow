@@ -912,72 +912,11 @@ namespace KalaWindow::OpenGL
 
 	u32 OpenGL_Context::GetID() const { return ID; }
 	u32 OpenGL_Context::GetWindowID() const { return windowID; }
-	
-	void OpenGL_Context::SwapOpenGLBuffers(uintptr_t handle)
-	{
-		if (!Window_Global::IsInitialized())
-		{
-			Log::Print(
-				"Cannot swap OpenGL buffers because the global window manager has not been initialized!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (!handle)
-		{
-			Log::Print(
-				"Cannot swap OpenGL buffers because the window handle is invalid!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		SwapBuffers(ToVar<HDC>(handle));
-	}
 
 	const string& OpenGL_Context::GetContextData() { return contextData; }
 
 	uintptr_t OpenGL_Context::GetContext() const { return context; }
 	uintptr_t OpenGL_Context::GetParentContext() const { return parentContext; }
-	
-	void OpenGL_Context::SetVSyncState(VSyncState newValue)
-	{		
-		if (!Window_Global::IsInitialized())
-		{
-			Log::Print(
-				"Cannot set vsync state because the global window manager has not been initialized!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		const GL_Windows* windowsFunc = OpenGL_Functions_Windows::GetGLWindows();
-
-		if (!windowsFunc->wglSwapIntervalEXT)
-		{
-			Log::Print(
-				"wglSwapIntervalEXT not supported! VSync setting ignored.",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-				
-			return;
-		}
-		
-		vsyncState = newValue;
-
-		windowsFunc->wglSwapIntervalEXT(newValue == VSyncState::VSYNC_ON
-			? 1
-			: 0);
-	}
-	VSyncState OpenGL_Context::GetVSyncState() const { return vsyncState; }
 
 	OpenGL_Context::~OpenGL_Context()
 	{

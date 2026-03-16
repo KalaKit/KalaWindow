@@ -21,12 +21,6 @@ namespace KalaWindow::OpenGL
 	using u32 = uint32_t;
 
 	using KalaWindow::Core::KalaWindowRegistry;
-	
-	enum class VSyncState
-	{
-		VSYNC_ON, //Framerate is capped to monitor refresh rate.
-		VSYNC_OFF //Framerate is uncapped, runs as fast as render loop allows, introduces tearing.
-	};
 
 	//Hardware accelerated antialiasing
 	enum class MultiSampling
@@ -127,17 +121,11 @@ namespace KalaWindow::OpenGL
 
 		u32 GetID() const;
 		u32 GetWindowID() const;
-		
-		//Called at the end of each frame, requires handle (HDC) from your window
-		void SwapOpenGLBuffers(uintptr_t handle);
 
 		const string& GetContextData();
 		
 		uintptr_t GetContext() const;
 		uintptr_t GetParentContext() const;
-		
-		void SetVSyncState(VSyncState newValue);
-		VSyncState GetVSyncState() const;
 
 		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();
@@ -151,7 +139,5 @@ namespace KalaWindow::OpenGL
 		uintptr_t parentContext{};
 
 		string contextData{};
-
-		VSyncState vsyncState{};
 	};
 }
