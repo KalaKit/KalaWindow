@@ -29,6 +29,7 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_menubar_windows.hpp"
 #include "opengl/kw_opengl.hpp"
+#include "vulkan/kw_vulkan.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -45,7 +46,8 @@ using KalaWindow::Graphics::X11GlobalData;
 #endif
 
 using KalaWindow::Graphics::ProcessWindow;
-using KalaWindow::OpenGL::OpenGL_Context;
+using KalaWindow::OpenGL::OpenGL_Global;
+using KalaWindow::Vulkan::Vulkan_Global;
 
 #ifdef __linux__
 using std::raise;
@@ -178,7 +180,8 @@ namespace KalaWindow::Core
 			}
 		}
 		
-		OpenGL_Context::GetRegistry().RemoveAllContent();
+		if (OpenGL_Global::IsInitialized()) OpenGL_Global::Shutdown();
+		if (Vulkan_Global::IsInitialized()) Vulkan_Global::Shutdown();
 
 		Input::GetRegistry().RemoveAllContent();
 #ifdef _WIN32

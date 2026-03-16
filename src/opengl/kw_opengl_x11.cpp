@@ -30,6 +30,7 @@
 #include "core/kw_registry.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
+#include "vulkan/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
@@ -48,6 +49,7 @@ using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::WindowData;
+using KalaWindow::Vulkan::Vulkan_Global;
 
 using std::string;
 using std::to_string;
@@ -93,6 +95,15 @@ namespace KalaWindow::OpenGL
 
 	void OpenGL_Global::Initialize()
     {
+		if (Vulkan_Global::IsInitialized())
+        {
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot initialize global OpenGL together with Vulkan!");
+
+			return;
+        }
+
 		if (isInitialized)
 		{
 			Log::Print(
@@ -572,6 +583,13 @@ namespace KalaWindow::OpenGL
 		return errorVal;
 	}
 
+	void OpenGL_Global::Shutdown()
+	{
+		OpenGL_Context::GetRegistry().RemoveAllContent();
+
+		isInitialized = false;
+	}
+
     //
 	// CONTEXT
 	//
@@ -589,6 +607,15 @@ namespace KalaWindow::OpenGL
 		DepthBufferBits dBits,
 		StencilBufferBits sBits)
 	{
+		if (Vulkan_Global::IsInitialized())
+        {
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Cannot initialize OpenGL context together with Vulkan!");
+
+			return nullptr;
+        }
+
         if (!OpenGL_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
@@ -925,7 +952,7 @@ namespace KalaWindow::OpenGL
 		contPtr->contextData = ss2.str();
 
 		registry.AddContent(newID, std::move(newCont));
-		window->SetGLID(newID);
+		window->SetContextID(newID);
 
 		contPtr->windowID = window->GetID();
 

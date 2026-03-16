@@ -302,8 +302,8 @@ namespace KalaWindow::Graphics
 		u32 GetInputID() const;
 		void SetInputID(u32 newValue);
 		
-		u32 GetGLID() const;
-		void SetGLID(u32 newValue);
+		u32 GetContextID() const;
+		void SetContextID(u32 newValue);
 		
 		u32 GetMenuBarID() const;
 		void SetMenuBarID(u32 newValue);
@@ -357,7 +357,7 @@ namespace KalaWindow::Graphics
 		vector<string> lastDraggedFiles{}; //The path of the last files which were dragged onto this window
 
 		u32 inputID{};
-		u32 glID{};
+		u32 contextID{};
 		u32 menuBarID{};
 		
 		//functional for cleaning the external content of this window

@@ -69,7 +69,6 @@ namespace KalaWindow::OpenGL
 		static bool IsVerboseLoggingEnabled();
 
 		//Global one-time OpenGL 3.3 init, needs to be called before per-window OpenGL init.
-		//Pass os and core gl function initializer functions from KalaGraphics if you are using that.
 		static void Initialize();
 		static bool IsInitialized();
 		
@@ -102,6 +101,9 @@ namespace KalaWindow::OpenGL
 		//Place after any gl call to check if an issue or error has occurred within that point.
 		//Loops through all errors so that all errors at that point are printed, not just the first one.
 		static string GetError();
+
+		//Shut down Global OpenGL and all contexts
+        static void Shutdown();
 	};
 
 	class LIB_API OpenGL_Context

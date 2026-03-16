@@ -761,11 +761,11 @@ namespace KalaWindow::Graphics
     u32 ProcessWindow::GetInputID() const { return inputID; }
 	void ProcessWindow::SetInputID(u32 newValue) { inputID = newValue; }
 
-	u32 ProcessWindow::GetGLID() const { return glID; }
-	void ProcessWindow::SetGLID(u32 newValue) { glID = newValue; }
+	u32 ProcessWindow::GetContextID() const { return contextID; }
+	void ProcessWindow::SetContextID(u32 newValue) { contextID = newValue; }
 
-	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
-	void ProcessWindow::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
+	u32 ProcessWindow::GetMenuBarID() const { return 0; }
+	void ProcessWindow::SetMenuBarID(u32 newValue) {}
 
 	void ProcessWindow::SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
 
@@ -840,6 +840,17 @@ namespace KalaWindow::Graphics
 
     ProcessWindow::~ProcessWindow()
     {
+        string title = GetTitle();
+
+		Log::Print(
+			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
+			"WINDOW",
+			LogType::LOG_DEBUG);
+
+		inputID = 0;
+		contextID = 0;
+		menuBarID = 0;
+
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
         if (globalData.display)
         {

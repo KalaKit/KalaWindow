@@ -21,6 +21,7 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
+#include "vulkan/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
@@ -38,6 +39,7 @@ using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::GL_Windows;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Windows;
+using KalaWindow::Vulkan::Vulkan_Global;
 
 using std::string;
 using std::string_view;
@@ -89,6 +91,15 @@ namespace KalaWindow::OpenGL
 
 	void OpenGL_Global::Initialize()
 	{
+		if (Vulkan_Global::IsInitialized())
+        {
+			KalaWindowCore::ForceClose(
+				"Global OpenGL error",
+				"Cannot initialize global OpenGL together with Vulkan!");
+
+			return;
+        }
+
 		if (isInitialized)
 		{
 			Log::Print(
@@ -471,6 +482,13 @@ namespace KalaWindow::OpenGL
 		return errorVal;
 	}
 
+	void OpenGL_Global::Shutdown()
+	{
+		OpenGL_Context::GetRegistry().RemoveAllContent();
+
+		isInitialized = false;
+	}
+
 	//
 	// CONTEXT
 	//
@@ -488,6 +506,15 @@ namespace KalaWindow::OpenGL
 		DepthBufferBits dBits,
 		StencilBufferBits sBits)
 	{
+		if (Vulkan_Global::IsInitialized())
+        {
+			KalaWindowCore::ForceClose(
+				"OpenGL error",
+				"Cannot initialize OpenGL context together with Vulkan!");
+
+			return nullptr;
+        }
+
 		if (!OpenGL_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
@@ -876,7 +903,7 @@ namespace KalaWindow::OpenGL
 		contPtr->contextData = ss2.str();
 
 		registry.AddContent(newID, std::move(newCont));
-		window->SetGLID(newID);
+		window->SetContextID(newID);
 
 		contPtr->windowID = window->GetID();
 
@@ -963,17 +990,6 @@ namespace KalaWindow::OpenGL
 
 	OpenGL_Context::~OpenGL_Context()
 	{
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Cannot shut down OpenGL context because it is not initialized!",
-				"OPENGL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
 		if (!window
