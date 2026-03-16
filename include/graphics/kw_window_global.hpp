@@ -10,8 +10,14 @@
 
 #include "core_utils.hpp"
 
-#include "core/kw_messageloop_x11.hpp"
+#ifdef __linux__
 #include "graphics/kw_window.hpp"
+#include "core/kw_input.hpp"
+#include "core/kw_core.hpp"
+#include "core/kw_messageloop_x11.hpp"
+#include "opengl/kw_opengl.hpp"
+#include "vulkan/kw_vulkan.hpp"
+#endif
 
 namespace KalaWindow::Graphics
 {
@@ -99,12 +105,13 @@ namespace KalaWindow::Graphics
 	class LIB_API Window_Global
 	{
 #ifdef __linux__
-	friend ProcessWindow;
-	friend KalaWindow::Core::Input;
-	friend KalaWindow::Core::KalaWindowCore;
-	friend KalaWindow::Core::MessageLoop;
-	friend KalaWindow::OpenGL::OpenGL_Global;
-	friend KalaWindow::OpenGL::OpenGL_Context;
+	friend class ProcessWindow;
+	friend class KalaWindow::Core::Input;
+	friend class KalaWindow::Core::KalaWindowCore;
+	friend class KalaWindow::Core::MessageLoop;
+	friend class KalaWindow::OpenGL::OpenGL_Global;
+	friend class KalaWindow::OpenGL::OpenGL_Context;
+	friend class KalaWindow::Vulkan::Vulkan_Context;
 #endif
 	public:
 		//Toggle verbose logging. If true, then global window context 

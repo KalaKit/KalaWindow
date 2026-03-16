@@ -31,6 +31,8 @@
 #include "opengl/kw_opengl.hpp"
 #include "vulkan/kw_vulkan.hpp"
 
+using KalaHeaders::KalaCore::ToVar;
+
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;

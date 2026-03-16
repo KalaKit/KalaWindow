@@ -20,6 +20,11 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
 
+#ifdef __linux__
+#include "core/kw_messageloop_x11.hpp"
+#include "graphics/kw_window_global.hpp"
+#endif
+
 using KalaHeaders::KalaCore::ToVar;
 
 using KalaHeaders::KalaLog::Log;
@@ -34,6 +39,7 @@ using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 #ifdef __linux__
 using KalaWindow::Graphics::X11GlobalData;
+using KalaWindow::Graphics::Window_Global;
 #endif
 
 using std::string;

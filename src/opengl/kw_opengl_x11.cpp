@@ -27,7 +27,6 @@
 #include "opengl/kw_opengl_functions_core.hpp"
 #include "opengl/kw_opengl_functions_linux.hpp"
 #include "core/kw_core.hpp"
-#include "core/kw_registry.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "vulkan/kw_vulkan.hpp"
@@ -68,7 +67,7 @@ static bool IsCorrectVersion()
 
 	int major = 0;
 	int minor = 0;
-	if (sscanf_s(versionStr, "%d.%d", &major, &minor) != 2)
+	if (sscanf(versionStr, "%d.%d", &major, &minor) != 2)
 	{
 		return false;
 	}
@@ -903,7 +902,7 @@ namespace KalaWindow::OpenGL
 		const char* glRenderer = rcast<const char*>(coreFunc->glGetString(GL_RENDERER));
 		const char* glslVer    = rcast<const char*>(coreFunc->glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-				string profileVal{};
+		string profileVal{};
 		GLint profile = 0;
 		coreFunc->glGetIntegerv(GL_CONTEXT_PROFILE_MASK, &profile);
 

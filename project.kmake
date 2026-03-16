@@ -13,9 +13,9 @@ compilerlauncher: ccache
 standard: c++20
 binarytype: static
 sources: "src"
-headers: "include", "_external_shared/KalaHeaders", "_external_shared/OpenGL", "_external_shared/Vulkan/include"
+headers: "include", "_external_shared/KalaHeaders", "_external_shared/OpenGL", "_external_shared/Vulkan/Include"
 defines: LIB_STATIC
-warninglevel: normal
+warninglevel: none
 customflags: export-compile-commands, export-vscode-sln
 
 #profile debug-windows
@@ -43,4 +43,4 @@ binaryname: lib${name_bin}
 compiler: clang++
 buildtype: minsizerel
 buildpath: "${dir_release}linux"
-postbuildaction: strip --strip-unneeded ${dir_release}linux/${name_bin}.a
+postbuildaction: strip --strip-unneeded ${dir_release}linux/lib${name_bin}.a

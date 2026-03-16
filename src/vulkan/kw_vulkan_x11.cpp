@@ -6,10 +6,12 @@
 
 #ifdef __linux__
 
+#include <X11/Xlib.h>
 #include <memory>
 
 #define VK_USE_PLATFORM_XLIB_KHR
-#include "vulkan/vulkan.h"
+#include "vulkan/vulkan_core.h"
+#include "vulkan/vulkan_xlib.h"
 
 #include "log_utils.hpp"
 
@@ -192,10 +194,10 @@ namespace KalaWindow::Vulkan
 			return nullptr;
 		}
 
-		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
+		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!w
+			|| !w->IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
 				"Vulkan error",
@@ -211,7 +213,7 @@ namespace KalaWindow::Vulkan
 		Vulkan_Context* contPtr = newCont.get();
 
 		Log::Print(
-			"Creating Vulakn context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"Creating Vulakn context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'.",
 			"OPENGL",
 			LogType::LOG_DEBUG);
 
@@ -220,29 +222,27 @@ namespace KalaWindow::Vulkan
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		const WindowData& windowData = w->GetWindowData();
 
-		if (globalData.display
-			&& windowData.window)
+		if (!globalData.display
+			|| !windowData.window)
 		{
-			Display* display = ToVar<Display*>(globalData.display);
-			Window window = ToVar<Window>(windowData.window);
-
-            VkXlibSurfaceCreateInfoKHR info{};
-            info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
-            info.dpy = display;
-            info.window = window;
-        }
-        else
-        {
 			KalaWindowCore::ForceClose(
 				"Vulkan error",
-				"Failed to create Vulkan surface for window '" + window->GetTitle() + "' because display or window was missing!");
+				"Failed to create Vulkan surface for window '" + w->GetTitle() + "' because display or window was missing!");
 
 			return nullptr;
-        }
+		}
+
+		Display* display = ToVar<Display*>(globalData.display);
+		Window window = ToVar<Window>(windowData.window);
+
+		VkXlibSurfaceCreateInfoKHR info{};
+		info.sType = VK_STRUCTURE_TYPE_XLIB_SURFACE_CREATE_INFO_KHR;
+		info.dpy = display;
+		info.window = window;
 
         VkSurfaceKHR surface{};
 
-        if (vkCreateWin32SurfaceKHR(
+        if (vkCreateXlibSurfaceKHR(
             instance,
             &info,
             nullptr,
@@ -250,21 +250,21 @@ namespace KalaWindow::Vulkan
         {
 			KalaWindowCore::ForceClose(
 				"Vulkan error",
-				"Failed to create Vulkan surface for window '" + window->GetTitle() + "'!");
+				"Failed to create Vulkan surface for window '" + w->GetTitle() + "'!");
 
 			return nullptr;
         }
 
         registry.AddContent(newID, std::move(newCont));
-		window->SetContextID(newID);
+		w->SetContextID(newID);
 
-		contPtr->windowID = window->GetID();
+		contPtr->windowID = w->GetID();
         contPtr->surface = surface;
 
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized Vulkan context for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Initialized Vulkan context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'!",
 			"OPENGL",
 			LogType::LOG_SUCCESS);
 
