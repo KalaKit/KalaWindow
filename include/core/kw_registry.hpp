@@ -36,7 +36,12 @@ namespace KalaWindow::Core
 		vector<T*> children{};
 		
 		//Returns the top-most parent of this target
-		inline T* GetRoot() { return parent ? T::registry.hierarchy[parent].GetRoot() : this; }
+		inline T* GetRoot()
+		{
+			return parent
+			? T::registry.hierarchy[parent].GetRoot()
+			: thisObject;
+		}
 
 		//Returns true if target target is connected
 		//to current target as a child, parent or sibling.
