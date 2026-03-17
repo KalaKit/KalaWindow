@@ -273,7 +273,6 @@ namespace KalaWindow::Core
 
             switch (event.type)
             {
-                //same idea as WM_SIZE
                 case ConfigureNotify:
                 {
                     vec2 newPos = vec2(event.xconfigure.x, event.xconfigure.y);
@@ -297,13 +296,19 @@ namespace KalaWindow::Core
                                 (GLsizei)newSize.x,
 					            (GLsizei)newSize.y);
                         }
+
+                        w->TriggerResize();
+                        w->TriggerRedraw();
                     }
 
                     break;
                 }
 
-                //unused for now
-                case Expose: break;
+                case Expose:
+                {
+                    if (event.xexpose.count == 0) w->TriggerRedraw();
+                    break;
+                }
 
                 case ClientMessage:
                 {

@@ -114,6 +114,9 @@ namespace KalaWindow::Graphics
             BlackPixel(display, DefaultScreen(display)),
             WhitePixel(display, DefaultScreen(display)));
 
+        //disable background pix map for cleaner redraw
+        XSetWindowBackgroundPixmap(display, window, None);
+
         if (isChild)
         {
             //assign parent window
