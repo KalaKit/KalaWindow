@@ -53,3 +53,8 @@ action: copy
 origin: _external_shared@OpenGL
 target: ..@elypso-engine@_external_shared@OpenGL, ..@elypso-hub@_external_shared@OpenGL, ..@kalakit_test_projects@_external_shared@KalaHeaders
 action: copy
+
+//Vulkan
+origin: _external_shared@Vulkan
+target: ..@elypso-engine@_external_shared@Vulkan, ..@elypso-hub@_external_shared@Vulkan, ..@kalakit_test_projects@_external_shared@Vulkan
+action: copy
