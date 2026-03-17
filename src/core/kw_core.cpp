@@ -72,10 +72,10 @@ static function<void()> userRegularShutdown;
 namespace KalaWindow::Core
 {
 	//The ID that is bumped by every object in KalaWindow when it needs a new ID
-	static inline u32 globalID{};
+	static u32 globalID{};
 
-	static inline f64 deltaTime{};
-	static inline f64 frameTime{};
+	static f64 deltaTime{};
+	static f64 frameTime{};
 
 	u32 KalaWindowCore::GetGlobalID() { return globalID; }
 	void KalaWindowCore::SetGlobalID(u32 newID) { globalID = newID; }

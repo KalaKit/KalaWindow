@@ -66,9 +66,9 @@ static function<void()> assignedShutdownFunction{};
 static bool canCreateDump;
 
 //reserve (10 * MAX_MESSAGE_LENGTH) bytes for the last 10 log messages
-static inline char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
+static char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
 //Which slot are we currently on
-static inline auptr crashLogIndex{};
+static auptr crashLogIndex{};
 
 //Windows crash handler that calls the minidump creator function
 //and sends error info to error popup

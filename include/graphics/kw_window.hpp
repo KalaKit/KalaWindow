@@ -117,7 +117,7 @@ namespace KalaWindow::Graphics
 
 	class LIB_API ProcessWindow
 	{
-	friend KalaWindow::Core::MessageLoop;
+	friend class KalaWindow::Core::MessageLoop;
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
