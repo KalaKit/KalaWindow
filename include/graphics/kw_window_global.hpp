@@ -10,15 +10,6 @@
 
 #include "core_utils.hpp"
 
-#ifdef __linux__
-#include "graphics/kw_window.hpp"
-#include "core/kw_input.hpp"
-#include "core/kw_core.hpp"
-#include "core/kw_messageloop_x11.hpp"
-#include "opengl/kw_opengl.hpp"
-#include "vulkan/kw_vulkan.hpp"
-#endif
-
 namespace KalaWindow::Graphics
 {
 	using std::string;
@@ -104,15 +95,6 @@ namespace KalaWindow::Graphics
 
 	class LIB_API Window_Global
 	{
-#ifdef __linux__
-	friend class ProcessWindow;
-	friend class KalaWindow::Core::Input;
-	friend class KalaWindow::Core::KalaWindowCore;
-	friend class KalaWindow::Core::MessageLoop;
-	friend class KalaWindow::OpenGL::OpenGL_Global;
-	friend class KalaWindow::OpenGL::OpenGL_Context;
-	friend class KalaWindow::Vulkan::Vulkan_Context;
-#endif
 	public:
 		//Toggle verbose logging. If true, then global window context 
 		//and all windows will dump their logs into the console.
@@ -121,6 +103,10 @@ namespace KalaWindow::Graphics
 
 		static bool Initialize();
 		static bool IsInitialized();
+
+#ifdef __linux__
+		static const X11GlobalData& GetGlobalData();
+#endif
 
 #ifdef _WIN32
 		//Returns Windows version as xxyyyyyy format,
@@ -159,9 +145,5 @@ namespace KalaWindow::Graphics
 		static void SetClipboardText(string_view text);
 		//Returns string from clipboard
 		static string GetClipboardText();
-	private:
-#ifdef __linux__
-		static const X11GlobalData& GetGlobalData();
-#endif
 	};
 }
