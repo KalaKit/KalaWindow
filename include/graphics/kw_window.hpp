@@ -145,7 +145,7 @@ namespace KalaWindow::Graphics
 		void ClearLastDraggedFiles();
 
 		void SetTitle(string_view newTitle) const;
-		const string& GetTitle() const;
+		string GetTitle() const;
 
 		//Set executable icon. Loaded via the texture framework.
 		//The first parameter requires an ID to the texture.

@@ -1372,6 +1372,118 @@ namespace KalaHeaders::KalaMath
 	// HELPER FUNCTIONS USING VEC, MAT AND QUAT
 	//
 	//================================================================================
+
+	inline constexpr vec2 kround(vec2 v)
+	{
+		return
+		{
+			scast<f32>(round(v.x)),
+			scast<f32>(round(v.y))	
+		};
+	}
+	inline constexpr vec3 kround(const vec3& v)
+	{
+		return
+		{
+			scast<f32>(round(v.x)),
+			scast<f32>(round(v.y)),
+			scast<f32>(round(v.z))	
+		};
+	}
+	inline constexpr vec4 kround(const vec4& v)
+	{
+		return
+		{
+			scast<f32>(round(v.x)),
+			scast<f32>(round(v.y)),
+			scast<f32>(round(v.z)),
+			scast<f32>(round(v.w))
+		};
+	}
+
+	inline constexpr vec2 kfloor(vec2 v)
+	{
+		return
+		{
+			scast<f32>(floor(v.x)),
+			scast<f32>(floor(v.y))	
+		};
+	}
+	inline constexpr vec3 kfloor(const vec3& v)
+	{
+		return
+		{
+			scast<f32>(floor(v.x)),
+			scast<f32>(floor(v.y)),
+			scast<f32>(floor(v.z))	
+		};
+	}
+	inline constexpr vec4 kfloor(const vec4& v)
+	{
+		return
+		{
+			scast<f32>(floor(v.x)),
+			scast<f32>(floor(v.y)),
+			scast<f32>(floor(v.z)),
+			scast<f32>(floor(v.w))
+		};
+	}
+
+	inline constexpr vec2 kceil(vec2 v)
+	{
+		return
+		{
+			scast<f32>(ceil(v.x)),
+			scast<f32>(ceil(v.y))	
+		};
+	}
+	inline constexpr vec3 kceil(const vec3& v)
+	{
+		return
+		{
+			scast<f32>(ceil(v.x)),
+			scast<f32>(ceil(v.y)),
+			scast<f32>(ceil(v.z))	
+		};
+	}
+	inline constexpr vec4 kceil(const vec4& v)
+	{
+		return
+		{
+			scast<f32>(ceil(v.x)),
+			scast<f32>(ceil(v.y)),
+			scast<f32>(ceil(v.z)),
+			scast<f32>(ceil(v.w))
+		};
+	}
+
+	inline constexpr vec2 toint(vec2 v)
+	{
+		return
+		{
+			scast<f32>(scast<int>(v.x)),
+			scast<f32>(scast<int>(v.y))	
+		};
+	}
+	inline constexpr vec3 toint(const vec3& v)
+	{
+		return
+		{
+			scast<f32>(scast<int>(v.x)),
+			scast<f32>(scast<int>(v.y)),
+			scast<f32>(scast<int>(v.z))	
+		};
+	}
+	inline constexpr vec4 toint(const vec4& v)
+	{
+		return
+		{
+			scast<f32>(scast<int>(v.x)),
+			scast<f32>(scast<int>(v.y)),
+			scast<f32>(scast<int>(v.z)),
+			scast<f32>(scast<int>(v.w))
+		};
+	}
 	
 	//Returns the inverse (congjugated) rotation of a quaternion,
 	//assuming the quat input is already normalized

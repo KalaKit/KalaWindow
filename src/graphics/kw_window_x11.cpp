@@ -293,8 +293,67 @@ namespace KalaWindow::Graphics
                 value.size());
         }
     }
-    //TODO: get actual title
-    const string& ProcessWindow::GetTitle() const { static string title{}; return title; }
+    string ProcessWindow::GetTitle() const
+    {
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+        if (globalData.display
+            && windowData.window)
+        {
+            Display* display = ToVar<Display*>(globalData.display);
+            Window window = ToVar<Window>(windowData.window);
+
+            Atom atom_utf8 = ToVar<Atom>(globalData.atom_utf8);
+            Atom atom_net_wm_name = ToVar<Atom>(globalData.atom_net_wm_name);
+
+            Atom actualType{};
+            int actualFormat{};
+            unsigned long nItems{};
+            unsigned long bytesAfter{};
+            unsigned char* prop{};
+
+            string title{};
+
+            if (XGetWindowProperty(
+                display,
+                window,
+                atom_net_wm_name,
+                0,
+                (~0L),
+                False,
+                atom_utf8,
+                &actualType,
+                &actualFormat,
+                &nItems,
+                &bytesAfter,
+                &prop) == Success)
+            {
+                if (prop)
+                {
+                    title.assign(rcast<char*>(prop), nItems);
+                    XFree(prop);
+                    
+                    return title;
+                }
+            }
+
+            //fallback
+
+            char* name{};
+            if (XFetchName(
+                display,
+                window,
+                &name) > 0
+                && name)
+            {
+                title = name;
+                XFree(name);
+            }
+
+            return title;
+        }
+
+        return {};
+    }
 
     void ProcessWindow::SetIcon(u32 texture) const {}
     u32 ProcessWindow::GetIcon() const { return iconID; }

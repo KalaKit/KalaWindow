@@ -325,12 +325,10 @@ namespace KalaWindow::Graphics
 				LogType::LOG_SUCCESS);
 		}
 	}
-	const string& ProcessWindow::GetTitle() const
+	string ProcessWindow::GetTitle() const
 	{
-		static string result{};
-
 		HWND window = ToVar<HWND>(GetHWND("get window title"));
-		if (!window) return result;
+		if (!window) return {};
 
 		int length = GetWindowTextLengthW(window);
 		if (length == 0)
@@ -340,14 +338,14 @@ namespace KalaWindow::Graphics
 				"WINDOW",
 				LogType::LOG_WARNING);
 
-			return result;
+			return {};
 		}
 
 		wstring title(length + 1, L'\0');
 		GetWindowTextW(window, title.data(), length + 1);
 
 		title.resize(wcslen(title.c_str()));
-		result = ToShort(title);
+		string result = ToShort(title);
 
 		return result;
 	}

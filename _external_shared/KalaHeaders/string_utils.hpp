@@ -73,6 +73,10 @@ namespace KalaHeaders::KalaString
 	// GENERAL FUNCTIONS
 	//
 
+	//1 = true
+	//0 = false
+	inline constexpr string_view BoolValue(bool state) { return state ? "true" : "false"; } 
+
 	//Cast a vector of strings into a vector of string_views
 	inline constexpr vector<string_view> MakeViews(const vector<string>& strings)
 	{
