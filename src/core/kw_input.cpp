@@ -91,8 +91,16 @@ namespace KalaWindow::Core
 
 		//x11 raw input is enabled globally in x11 global window init
 #ifdef _WIN32
-		const WindowData& win = w->GetWindowData();
-		HWND winRef = ToVar<HWND>(win.window);
+		const WindowData& windowData = w->GetWindowData();
+
+		if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize raw input device because the attached window was invalid!");
+        }
+
+		HWND winRef = ToVar<HWND>(windowData.window);
 
 		RAWINPUTDEVICE rid{};
 		rid.usUsagePage = 0x01;
@@ -445,45 +453,54 @@ namespace KalaWindow::Core
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		const WindowData& windowData = w->GetWindowData();
 
-		if (globalData.display
-			&& windowData.window)
+		if (!globalData.display)
+        {
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to set mouse visibility because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to set mouse visibility because the attached window was invalid!");
+        }
+
+		Display* display = ToVar<Display*>(globalData.display);
+		Window window = ToVar<Window>(windowData.window);
+		
+		if (state) XUndefineCursor(display, window);
+		else
 		{
-			Display* display = ToVar<Display*>(globalData.display);
-			Window window = ToVar<Window>(windowData.window);
-			
-			if (state) XUndefineCursor(display, window);
-			else
+			static Cursor hiddenCursor{};
+
+			if (!hiddenCursor)
 			{
-				static Cursor hiddenCursor{};
+				char data[1]{};
+				Pixmap blank = XCreateBitmapFromData(
+					display,
+					window,
+					data,
+					1,
+					1);
 
-				if (!hiddenCursor)
-				{
-					char data[1]{};
-					Pixmap blank = XCreateBitmapFromData(
-						display,
-						window,
-						data,
-						1,
-						1);
+				XColor dummy{};
+				hiddenCursor = XCreatePixmapCursor(
+					display,
+					blank,
+					blank,
+					&dummy,
+					&dummy,
+					0,
+					0);
 
-					XColor dummy{};
-					hiddenCursor = XCreatePixmapCursor(
-						display,
-						blank,
-						blank,
-						&dummy,
-						&dummy,
-						0,
-						0);
-
-					XFreePixmap(display, blank);
-				}
-
-				XDefineCursor(display, window, hiddenCursor);
+				XFreePixmap(display, blank);
 			}
 
-			XFlush(display);
+			XDefineCursor(display, window, hiddenCursor);
 		}
+
+		XFlush(display);
 #endif
 
 		if (isVerboseLoggingEnabled)
@@ -507,11 +524,20 @@ namespace KalaWindow::Core
 
 		if (updateBetweenFocus) isMouseLocked = state;
 
+		const WindowData& windowData = w->GetWindowData();
+
 #ifdef _WIN32
 		if (!state) ClipCursor(nullptr);
 		else
 		{
-			HWND hwnd = ToVar<HWND>(w->GetWindowData().window);
+			if (!windowData.window)
+			{
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Failed to set mouse lock state because the attached window was invalid!");
+			}
+
+			HWND hwnd = ToVar<HWND>(windowData.window);
 
 			RECT rect{};
 			GetClientRect(hwnd, &rect);
@@ -526,30 +552,38 @@ namespace KalaWindow::Core
 		}
 #else
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
-		const WindowData& windowData = w->GetWindowData();
+		
+		if (!globalData.display)
+        {
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to set mouse lock state because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to set mouse lock state because the attached window was invalid!");
+        }
 
-		if (globalData.display
-			&& windowData.window)
+		Display* display = ToVar<Display*>(globalData.display);
+		Window window = ToVar<Window>(windowData.window);
+
+		if (!state) XUngrabPointer(display, CurrentTime);
+		else
 		{
-			Display* display = ToVar<Display*>(globalData.display);
-			Window window = ToVar<Window>(windowData.window);
-
-			if (!state) XUngrabPointer(display, CurrentTime);
-			else
-			{
-				XGrabPointer(
-					display,
-					window,
-					True,
-					ButtonPressMask
-					| ButtonReleaseMask
-					| PointerMotionMask,
-					GrabModeAsync,
-					GrabModeAsync,
-					window,
-					None,
-					CurrentTime);
-			}
+			XGrabPointer(
+				display,
+				window,
+				True,
+				ButtonPressMask
+				| ButtonReleaseMask
+				| PointerMotionMask,
+				GrabModeAsync,
+				GrabModeAsync,
+				window,
+				None,
+				CurrentTime);
 		}
 #endif
 
@@ -599,6 +633,13 @@ namespace KalaWindow::Core
 			const WindowData& windowData = w->GetWindowData();
 
 #ifdef _WIN32
+			if (!windowData.window)
+			{
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Failed to end input frame update because the attached window was invalid!");
+			}
+
 			HWND windowRef = ToVar<HWND>(windowData.window);
 
 			RECT rect{};
@@ -621,25 +662,35 @@ namespace KalaWindow::Core
 			}
 #else
 			const X11GlobalData& globalData = Window_Global::GetGlobalData();
-			if (globalData.display
-				&& windowData.window)
+
+			if (!globalData.display)
 			{
-				Display* display = ToVar<Display*>(globalData.display);
-				Window window = ToVar<Window>(windowData.window);
-
-				vec2 windowSize = w->GetClientRectSize();
-
-				int centerX = windowSize.x / 2;
-				int centerY = windowSize.y / 2;
-
-				XWarpPointer(
-					display,
-					None,
-					window,
-					0, 0, 0, 0,
-					centerX,
-					centerY);
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Failed to end input frame update because the attached display was invalid!");
 			}
+			if (!windowData.window)
+			{
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Failed to end input frame update because the attached window was invalid!");
+			}
+
+			Display* display = ToVar<Display*>(globalData.display);
+			Window window = ToVar<Window>(windowData.window);
+
+			vec2 windowSize = w->GetClientRectSize();
+
+			int centerX = windowSize.x / 2;
+			int centerY = windowSize.y / 2;
+
+			XWarpPointer(
+				display,
+				None,
+				window,
+				0, 0, 0, 0,
+				centerX,
+				centerY);
 #endif
 		}
 	}

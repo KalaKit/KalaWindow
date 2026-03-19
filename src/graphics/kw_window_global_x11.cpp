@@ -33,6 +33,13 @@ static int ErrorHandler(
     Display* display,
     XErrorEvent* error)
 {
+    if (!display)
+    {
+        KalaWindowCore::ForceClose(
+            "Window error",
+            "Failed to call X11 error handler because the attached display was invalid!");
+    }
+
     char buffer[512]{};
     XGetErrorText(
         display,
@@ -54,6 +61,13 @@ static int ErrorHandler(
 
 static int IOErrorHandler(Display* display)
 {
+    if (!display)
+    {
+        KalaWindowCore::ForceClose(
+            "Window error",
+            "Failed to call X11 IO error handler because the attached display was invalid!");
+    }
+
     Log::Print(
         "Fatal X11 IO error!",
         "WINDOW_GLOBAL",
@@ -90,10 +104,8 @@ namespace KalaWindow::Graphics
         if (!display)
         {
             KalaWindowCore::ForceClose(
-                "X11 init error",
-                "Failed to open X display, ensure X server is running.");
-
-            return false;
+                "Window error",
+                "Failed to initialize global window because the created display was invalid!");
         }
 
         XSetErrorHandler(ErrorHandler);

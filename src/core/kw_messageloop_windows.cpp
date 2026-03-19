@@ -1206,8 +1206,7 @@ namespace KalaWindow::Core
 				//full shutdown if all windows were destroyed
 				case WM_DESTROY:
 				{
-					if (ProcessWindow::GetRegistry().runtimeContent.empty()) PostQuitMessage(0);
-
+					PostQuitMessage(0);
 					return true; //we handled it
 				}
 

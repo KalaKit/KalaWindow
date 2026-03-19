@@ -26,6 +26,7 @@
 
 #include "core/kw_messageloop_x11.hpp"
 #include "core/kw_registry.hpp"
+#include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_window.hpp"
@@ -33,6 +34,7 @@
 #include "opengl/kw_opengl_functions_core.hpp"
 
 using KalaWindow::Core::Input;
+using KalaWindow::Core::ShutdownState;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::ProcessWindow;
@@ -173,6 +175,13 @@ namespace KalaWindow::Core
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
 
+        if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to update message loop because the attached display was invalid!");
+        }
+
         Display* display = ToVar<Display*>(globalData.display);
 
         while (XPending(display))
@@ -259,6 +268,13 @@ namespace KalaWindow::Core
 
             const WindowData& wdata = w->GetWindowData();
 
+			if (!wdata.window)
+			{
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Failed to update message loop because the attached window was invalid!");
+			}
+
             Window window = ToVar<Window>(wdata.window);
 
             if (target != window) continue;
@@ -312,14 +328,18 @@ namespace KalaWindow::Core
 
                 case ClientMessage:
                 {
-                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete) w->CloseWindow();
+                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete)
+                    {
+                        w->CloseWindow();
+
+                        if (ProcessWindow::GetRegistry().runtimeContent.empty())
+                        {
+                            KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+                        }
+                    }
                     break;
                 }
-                case DestroyNotify:
-                {
-                    w->CloseWindow();
-                    break;
-                }
+                case DestroyNotify: break;
 
                 case PropertyNotify:
                 {

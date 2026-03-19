@@ -75,7 +75,16 @@ namespace KalaWindow::Graphics
 			"MENUBAR",
 			LogType::LOG_DEBUG);
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
+		const WindowData& windowData = window->GetWindowData();
+
+		if (!windowData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to create menu bar because the attached window was invalid!");
+		}
+
+		HWND hwnd = ToVar<HWND>(windowData.window);
 
 		WindowData wData = window->GetWindowData();
 
@@ -138,8 +147,16 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
-		if (!window) return;
+		const WindowData& windowData = window->GetWindowData();
+
+		if (!windowData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to set menu bar state because the attached window was invalid!");
+		}
+
+		HWND hwnd = ToVar<HWND>(windowData.window);
 
 		HMENU storedHMenu = ToVar<HMENU>(window->GetWindowData().hMenu);
 
@@ -184,7 +201,16 @@ namespace KalaWindow::Graphics
 			return false;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
+		const WindowData& windowData = window->GetWindowData();
+
+		if (!windowData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to check if menu bar is enabled because the attached window was invalid!");
+		}
+
+		HWND hwnd = ToVar<HWND>(windowData.window);
 		HMENU attached = GetMenu(hwnd);
 
 		return
@@ -213,7 +239,16 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
+		const WindowData& windowData = window->GetWindowData();
+
+		if (!windowData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to create menu bar label because the attached window was invalid!");
+		}
+
+		HWND hwnd = ToVar<HWND>(windowData.window);
 
 		string typeName = type == LabelType::LABEL_LEAF ? "leaf" : "branch";
 
@@ -450,7 +485,16 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
+		const WindowData& windowData = window->GetWindowData();
+
+		if (!windowData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to add menu bar separator because the attached window was invalid!");
+		}
+
+		HWND hwnd = ToVar<HWND>(windowData.window);
 
 		if (!isInitialized)
 		{
@@ -629,7 +673,16 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND hwnd = ToVar<HWND>(window->GetWindowData().window);
+		const WindowData& windowData = window->GetWindowData();
+
+		if (!windowData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to destroy menu because the attached window was invalid!");
+		}
+
+		HWND hwnd = ToVar<HWND>(windowData.window);
 
 		events.clear();
 

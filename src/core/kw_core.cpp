@@ -199,7 +199,7 @@ namespace KalaWindow::Core
 			XCloseIM(xim);
 
 			Display* display = ToVar<Display*>(globalData.display);
-			XCloseDisplay(display);
+			if (display) XCloseDisplay(display);
 		}
 #endif
 

@@ -29,7 +29,6 @@ using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::ShutdownState;
 using KalaWindow::Core::Input;
 using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::Vulkan::Vulkan_Context;
@@ -75,6 +74,13 @@ namespace KalaWindow::Graphics
 		}
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
+
+        if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize window because the attached display was invalid!");
+        }
 
         u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
@@ -268,91 +274,113 @@ namespace KalaWindow::Graphics
 		}
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            string value(newValue);
-            Display* display = ToVar<Display*>(globalData.display);
-
-            Atom net_wm_name = ToVar<Atom>(globalData.atom_net_wm_name);
-            Atom utf8 = ToVar<Atom>(globalData.atom_utf8);
-
-            XStoreName(
-                display, 
-                windowData.window, 
-                value.c_str());
-
-            XChangeProperty(
-                display,
-                windowData.window,
-                net_wm_name,
-                utf8,
-                8,
-                PropModeReplace,
-                rcast<const unsigned char*>(value.c_str()),
-                value.size());
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window title because the attached display was invalid!");
         }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window title because the attached window was invalid!");
+        }
+
+        string value(newValue);
+        Display* display = ToVar<Display*>(globalData.display);
+
+        Atom net_wm_name = ToVar<Atom>(globalData.atom_net_wm_name);
+        Atom utf8 = ToVar<Atom>(globalData.atom_utf8);
+
+        XStoreName(
+            display, 
+            windowData.window, 
+            value.c_str());
+
+        XChangeProperty(
+            display,
+            windowData.window,
+            net_wm_name,
+            utf8,
+            8,
+            PropModeReplace,
+            rcast<const unsigned char*>(value.c_str()),
+            value.size());
     }
     string ProcessWindow::GetTitle() const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to get window title because the attached display was invalid!");
 
-            Atom atom_utf8 = ToVar<Atom>(globalData.atom_utf8);
-            Atom atom_net_wm_name = ToVar<Atom>(globalData.atom_net_wm_name);
+            return {};
+        }
+        if (!windowData.window)
+        {
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to get window title because the attached window was invalid!");
 
-            Atom actualType{};
-            int actualFormat{};
-            unsigned long nItems{};
-            unsigned long bytesAfter{};
-            unsigned char* prop{};
-
-            string title{};
-
-            if (XGetWindowProperty(
-                display,
-                window,
-                atom_net_wm_name,
-                0,
-                (~0L),
-                False,
-                atom_utf8,
-                &actualType,
-                &actualFormat,
-                &nItems,
-                &bytesAfter,
-                &prop) == Success)
-            {
-                if (prop)
-                {
-                    title.assign(rcast<char*>(prop), nItems);
-                    XFree(prop);
-                    
-                    return title;
-                }
-            }
-
-            //fallback
-
-            char* name{};
-            if (XFetchName(
-                display,
-                window,
-                &name) > 0
-                && name)
-            {
-                title = name;
-                XFree(name);
-            }
-
-            return title;
+            return {};
         }
 
-        return {};
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        Atom atom_utf8 = ToVar<Atom>(globalData.atom_utf8);
+        Atom atom_net_wm_name = ToVar<Atom>(globalData.atom_net_wm_name);
+
+        Atom actualType{};
+        int actualFormat{};
+        unsigned long nItems{};
+        unsigned long bytesAfter{};
+        unsigned char* prop{};
+
+        string title{};
+
+        if (XGetWindowProperty(
+            display,
+            window,
+            atom_net_wm_name,
+            0,
+            (~0L),
+            False,
+            atom_utf8,
+            &actualType,
+            &actualFormat,
+            &nItems,
+            &bytesAfter,
+            &prop) == Success)
+        {
+            if (prop)
+            {
+                title.assign(rcast<char*>(prop), nItems);
+                XFree(prop);
+                
+                return title;
+            }
+        }
+
+        //fallback
+
+        char* name{};
+        if (XFetchName(
+            display,
+            window,
+            &name) > 0
+            && name)
+        {
+            title = name;
+            XFree(name);
+        }
+
+        return title;
     }
 
     void ProcessWindow::SetIcon(u32 texture) const {}
@@ -372,20 +400,30 @@ namespace KalaWindow::Graphics
         vec2 winSize = kclamp(newSize, minSize, maxSize);
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
-
-            XResizeWindow(
-                display,
-                window,
-                scast<int>(winSize.x),
-                scast<int>(winSize.y));
-
-            XFlush(display);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window client rect size because the attached display was invalid!");
         }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window client rect size because the attached window was invalid!");
+        }
+
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        XResizeWindow(
+            display,
+            window,
+            scast<int>(winSize.x),
+            scast<int>(winSize.y));
+
+        XFlush(display);
     }
     vec2 ProcessWindow::GetClientRectSize() const { return size; }
 
@@ -397,20 +435,30 @@ namespace KalaWindow::Graphics
         vec2 winPos = newPosition;
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
-
-            XMoveWindow(
-                display,
-                window,
-                scast<int>(winPos.x),
-                scast<int>(winPos.y));
-
-            XFlush(display);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window position because the attached display was invalid!");
         }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window position because the attached window was invalid!");
+        }
+
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        XMoveWindow(
+            display,
+            window,
+            scast<int>(winPos.x),
+            scast<int>(winPos.y));
+
+        XFlush(display);
     }
     vec2 ProcessWindow::GetPosition() { static vec2 pos{}; return pos; }
 
@@ -433,86 +481,106 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetAlwaysOnTopState(bool state)
     { 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
-
-            Atom atom_net_wm_state       = ToVar<Atom>(globalData.atom_net_wm_state);
-            Atom atom_net_wm_state_above = ToVar<Atom>(globalData.atom_net_wm_state_above);
-        
-            XEvent event{};
-            event.xclient.type = ClientMessage;
-            event.xclient.window = window;
-            event.xclient.message_type = atom_net_wm_state;
-            event.xclient.format = 32;
-            event.xclient.data.l[0] = state;
-            event.xclient.data.l[1] = atom_net_wm_state_above;
-            event.xclient.data.l[2] = 0;
-            event.xclient.data.l[3] = 0;
-            event.xclient.data.l[4] = 0;
-
-            XSendEvent(
-                display,
-                DefaultRootWindow(display),
-                False,
-                SubstructureRedirectMask
-                | SubstructureNotifyMask,
-                &event);
-
-            XFlush(display);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window always on top state because the attached display was invalid!");
         }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window always on top state because the attached window was invalid!");
+        }
+
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        Atom atom_net_wm_state       = ToVar<Atom>(globalData.atom_net_wm_state);
+        Atom atom_net_wm_state_above = ToVar<Atom>(globalData.atom_net_wm_state_above);
+    
+        XEvent event{};
+        event.xclient.type = ClientMessage;
+        event.xclient.window = window;
+        event.xclient.message_type = atom_net_wm_state;
+        event.xclient.format = 32;
+        event.xclient.data.l[0] = state;
+        event.xclient.data.l[1] = atom_net_wm_state_above;
+        event.xclient.data.l[2] = 0;
+        event.xclient.data.l[3] = 0;
+        event.xclient.data.l[4] = 0;
+
+        XSendEvent(
+            display,
+            DefaultRootWindow(display),
+            False,
+            SubstructureRedirectMask
+            | SubstructureNotifyMask,
+            &event);
+
+        XFlush(display);
     }
     bool ProcessWindow::IsAlwaysOnTop() const
     { 
         bool isAbove{};
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to get window always on top state because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to get window always on top state because the attached window was invalid!");
+        }
 
-            Atom atom_net_wm_state       = ToVar<Atom>(globalData.atom_net_wm_state);
-            Atom atom_net_wm_state_above = ToVar<Atom>(globalData.atom_net_wm_state_above);
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
 
-            Atom actualType{};
-            int actualFormat{};
-            unsigned long nItems{}, bytesAfter{};
-            unsigned char* data{};
+        Atom atom_net_wm_state       = ToVar<Atom>(globalData.atom_net_wm_state);
+        Atom atom_net_wm_state_above = ToVar<Atom>(globalData.atom_net_wm_state_above);
 
-            if (XGetWindowProperty(
-                display,
-                window,
-                atom_net_wm_state,
-                0,
-                1024,
-                False,
-                XA_ATOM,
-                &actualType,
-                &actualFormat,
-                &nItems,
-                &bytesAfter,
-                &data) != Success)
+        Atom actualType{};
+        int actualFormat{};
+        unsigned long nItems{}, bytesAfter{};
+        unsigned char* data{};
+
+        if (XGetWindowProperty(
+            display,
+            window,
+            atom_net_wm_state,
+            0,
+            1024,
+            False,
+            XA_ATOM,
+            &actualType,
+            &actualFormat,
+            &nItems,
+            &bytesAfter,
+            &data) != Success)
+        {
+            return false;
+        }
+
+        if (data)
+        {
+            Atom* atoms = (Atom*)data;
+            for (unsigned long i = 0; i < nItems; i++)
             {
-                return false;
-            }
-
-            if (data)
-            {
-                Atom* atoms = (Atom*)data;
-                for (unsigned long i = 0; i < nItems; i++)
+                if (atoms[i] == atom_net_wm_state_above)
                 {
-                    if (atoms[i] == atom_net_wm_state_above)
-                    {
-                        isAbove = true;
-                        break;
-                    }
+                    isAbove = true;
+                    break;
                 }
-                XFree(data);
             }
+            XFree(data);
         }
 
         return isAbove;
@@ -523,75 +591,95 @@ namespace KalaWindow::Graphics
         bool resizable = state;
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
-
-            XSizeHints hints{};
-            long supplied{};
-
-            if (!XGetWMNormalHints(
-                display,
-                window,
-                &hints,
-                &supplied))
-            {
-                memset(&hints, 0, sizeof(hints));
-            }
-
-            if (resizable)
-            {
-                hints.flags |= PMinSize | PMaxSize;
-
-                hints.min_width = 1;
-                hints.min_height = 1;
-
-                hints.max_width = scast<int>(maxSize.x);
-                hints.max_height = scast<int>(maxSize.y);
-            }
-            else
-            {
-                hints.flags |= PMinSize | PMaxSize;
-
-                hints.min_width = hints.max_width = scast<int>(size.x);
-                hints.min_height = hints.max_height = scast<int>(size.y);
-            }
-
-            XSetWMNormalHints(display, window, &hints);
-            XFlush(display);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window resizable state because the attached display was invalid!");
         }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window resizable state because the attached window was invalid!");
+        }
+        
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        XSizeHints hints{};
+        long supplied{};
+
+        if (!XGetWMNormalHints(
+            display,
+            window,
+            &hints,
+            &supplied))
+        {
+            memset(&hints, 0, sizeof(hints));
+        }
+
+        if (resizable)
+        {
+            hints.flags |= PMinSize | PMaxSize;
+
+            hints.min_width = 1;
+            hints.min_height = 1;
+
+            hints.max_width = scast<int>(maxSize.x);
+            hints.max_height = scast<int>(maxSize.y);
+        }
+        else
+        {
+            hints.flags |= PMinSize | PMaxSize;
+
+            hints.min_width = hints.max_width = scast<int>(size.x);
+            hints.min_height = hints.max_height = scast<int>(size.y);
+        }
+
+        XSetWMNormalHints(display, window, &hints);
+        XFlush(display);
     }
     bool ProcessWindow::IsResizable() const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to get window resizable state because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to get window resizable state because the attached window was invalid!");
+        }
 
-            XSizeHints hints{};
-            long supplied{};
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
 
-            if (!XGetWMNormalHints(
-                display,
-                window,
-                &hints,
-                &supplied))
-            {
-                //assume resizable if hints are missing
-                return true;
-            }
+        XSizeHints hints{};
+        long supplied{};
 
-            if ((hints.flags & PMinSize)
-                && (hints.flags & PMaxSize))
-            {
-                return !(
-                    hints.min_width == hints.max_width
-                    && hints.min_height == hints.max_height);
-            }
+        if (!XGetWMNormalHints(
+            display,
+            window,
+            &hints,
+            &supplied))
+        {
+            //assume resizable if hints are missing
+            return true;
+        }
+
+        if ((hints.flags & PMinSize)
+            && (hints.flags & PMaxSize))
+        {
+            return !(
+                hints.min_width == hints.max_width
+                && hints.min_height == hints.max_height);
         }
 
         return false;
@@ -622,20 +710,30 @@ namespace KalaWindow::Graphics
 		}
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            string value(newValue);
-
-            XClassHint classHint{};
-                classHint.res_name = const_cast<char*>(value.c_str());
-                classHint.res_class = const_cast<char*>(value.c_str());
-
-            XSetClassHint(
-                ToVar<Display*>(globalData.display),
-                windowData.window,
-                &classHint);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window class because the attached display was invalid!");
         }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window class because the attached window was invalid!");
+        }
+        
+        string value(newValue);
+
+        XClassHint classHint{};
+            classHint.res_name = const_cast<char*>(value.c_str());
+            classHint.res_class = const_cast<char*>(value.c_str());
+
+        XSetClassHint(
+            ToVar<Display*>(globalData.display),
+            windowData.window,
+            &classHint);
     }
 
     bool ProcessWindow::IsIdle() const { return isIdle; }
@@ -653,163 +751,183 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetWindowMode(WindowMode mode)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window mode because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window mode because the attached window was invalid!");
+        }
 
-            Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
-            Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
 
-            long action{};
+        Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
+        Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
 
-            switch (mode)
-            {
-                default:
-                case WindowMode::WINDOWMODE_WINDOWED:
-                    action = 0;
-                    break;
-                case WindowMode::WINDOWMODE_BORDERLESS:
-                case WindowMode::WINDOWMODE_EXCLUSIVE:
-                    action = 1;
-                    SetPosition(oldPos);
-                    SetClientRectSize(oldSize);
-                    break;
-            }
+        long action{};
 
-            XEvent event{};
-            event.xclient.type = ClientMessage;
-            event.xclient.window = window;
-            event.xclient.message_type = atom_net_wm_state;
-            event.xclient.format = 32;
-            event.xclient.data.l[0] = action;
-            event.xclient.data.l[1] = atom_net_wm_state_fullscreen;
-            event.xclient.data.l[2] = 0;
-            event.xclient.data.l[3] = 0;
-            event.xclient.data.l[4] = 0;
-
-            XSendEvent(
-                display,
-                DefaultRootWindow(display),
-                False,
-                SubstructureRedirectMask
-                | SubstructureNotifyMask,
-                &event);
-
-            if (mode == WindowMode::WINDOWMODE_WINDOWED)
-            {
+        switch (mode)
+        {
+            default:
+            case WindowMode::WINDOWMODE_WINDOWED:
+                action = 0;
+                break;
+            case WindowMode::WINDOWMODE_BORDERLESS:
+            case WindowMode::WINDOWMODE_EXCLUSIVE:
+                action = 1;
                 SetPosition(oldPos);
                 SetClientRectSize(oldSize);
-            }
-
-            XFlush(display);
-
-            windowMode = mode;
+                break;
         }
+
+        XEvent event{};
+        event.xclient.type = ClientMessage;
+        event.xclient.window = window;
+        event.xclient.message_type = atom_net_wm_state;
+        event.xclient.format = 32;
+        event.xclient.data.l[0] = action;
+        event.xclient.data.l[1] = atom_net_wm_state_fullscreen;
+        event.xclient.data.l[2] = 0;
+        event.xclient.data.l[3] = 0;
+        event.xclient.data.l[4] = 0;
+
+        XSendEvent(
+            display,
+            DefaultRootWindow(display),
+            False,
+            SubstructureRedirectMask
+            | SubstructureNotifyMask,
+            &event);
+
+        if (mode == WindowMode::WINDOWMODE_WINDOWED)
+        {
+            SetPosition(oldPos);
+            SetClientRectSize(oldSize);
+        }
+
+        XFlush(display);
+
+        windowMode = mode;
     }
     WindowMode ProcessWindow::GetWindowMode() { return windowMode; }
 
     void ProcessWindow::SetWindowState(WindowState state)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
-
-            switch (state)
-            {
-                default:
-                case WindowState::WINDOW_NORMAL:
-                case WindowState::WINDOW_SHOWNOACTIVATE:
-                {
-                    Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
-                    Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
-                    Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
-                    Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
-                    
-                    XEvent event{};
-                    event.xclient.type = ClientMessage;
-                    event.xclient.window = window;
-                    event.xclient.message_type = atom_net_wm_state;
-                    event.xclient.format = 32;
-                    event.xclient.data.l[0] = 0; //remove hints
-                    event.xclient.data.l[1] = atom_net_wm_state_vertical;
-                    event.xclient.data.l[2] = atom_net_wm_state_horizontal;
-                    event.xclient.data.l[3] = atom_net_wm_state_fullscreen;
-                    event.xclient.data.l[4] = 0;
-
-                    XSendEvent(
-                        display,
-                        DefaultRootWindow(display),
-                        False,
-                        SubstructureRedirectMask
-                        | SubstructureNotifyMask,
-                        &event);
-
-                    XMapWindow(display, window);
-
-                    SetPosition(oldPos);
-                    SetClientRectSize(oldSize);
-
-                    break;
-                }
-                case WindowState::WINDOW_MAXIMIZE:
-                {
-                    SetPosition(oldPos);
-                    SetClientRectSize(oldSize);
-
-                    Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
-                    Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
-                    Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
-                    
-                    XEvent event{};
-                    event.xclient.type = ClientMessage;
-                    event.xclient.window = window;
-                    event.xclient.message_type = atom_net_wm_state;
-                    event.xclient.format = 32;
-                    event.xclient.data.l[0] = 1; //add hints
-                    event.xclient.data.l[1] = atom_net_wm_state_vertical;
-                    event.xclient.data.l[2] = atom_net_wm_state_horizontal;
-                    event.xclient.data.l[3] = 0;
-                    event.xclient.data.l[4] = 0;
-
-                    XSendEvent(
-                        display,
-                        DefaultRootWindow(display),
-                        False,
-                        SubstructureRedirectMask
-                        | SubstructureNotifyMask,
-                        &event);
-
-                    XMapWindow(display, window);
-                    break;
-                }
-                case WindowState::WINDOW_MINIMIZE:
-                {
-                    SetPosition(oldPos);
-                    SetClientRectSize(oldSize);
-
-                    int screen = DefaultScreen(display);
-                    XIconifyWindow(display, window, screen);
-                    break;
-                }
-                case WindowState::WINDOW_HIDE:
-                {
-                    SetPosition(oldPos);
-                    SetClientRectSize(oldSize);
-
-                    XUnmapWindow(display, window);
-                    break;
-                }
-            }
-
-            XFlush(display);
-
-            windowState = state;
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window state because the attached display was invalid!");
         }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window state because the attached window was invalid!");
+        }
+
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        switch (state)
+        {
+            default:
+            case WindowState::WINDOW_NORMAL:
+            case WindowState::WINDOW_SHOWNOACTIVATE:
+            {
+                Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
+                Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+                Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
+                Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
+                
+                XEvent event{};
+                event.xclient.type = ClientMessage;
+                event.xclient.window = window;
+                event.xclient.message_type = atom_net_wm_state;
+                event.xclient.format = 32;
+                event.xclient.data.l[0] = 0; //remove hints
+                event.xclient.data.l[1] = atom_net_wm_state_vertical;
+                event.xclient.data.l[2] = atom_net_wm_state_horizontal;
+                event.xclient.data.l[3] = atom_net_wm_state_fullscreen;
+                event.xclient.data.l[4] = 0;
+
+                XSendEvent(
+                    display,
+                    DefaultRootWindow(display),
+                    False,
+                    SubstructureRedirectMask
+                    | SubstructureNotifyMask,
+                    &event);
+
+                XMapWindow(display, window);
+
+                SetPosition(oldPos);
+                SetClientRectSize(oldSize);
+
+                break;
+            }
+            case WindowState::WINDOW_MAXIMIZE:
+            {
+                SetPosition(oldPos);
+                SetClientRectSize(oldSize);
+
+                Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
+                Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
+                Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
+                
+                XEvent event{};
+                event.xclient.type = ClientMessage;
+                event.xclient.window = window;
+                event.xclient.message_type = atom_net_wm_state;
+                event.xclient.format = 32;
+                event.xclient.data.l[0] = 1; //add hints
+                event.xclient.data.l[1] = atom_net_wm_state_vertical;
+                event.xclient.data.l[2] = atom_net_wm_state_horizontal;
+                event.xclient.data.l[3] = 0;
+                event.xclient.data.l[4] = 0;
+
+                XSendEvent(
+                    display,
+                    DefaultRootWindow(display),
+                    False,
+                    SubstructureRedirectMask
+                    | SubstructureNotifyMask,
+                    &event);
+
+                XMapWindow(display, window);
+                break;
+            }
+            case WindowState::WINDOW_MINIMIZE:
+            {
+                SetPosition(oldPos);
+                SetClientRectSize(oldSize);
+
+                int screen = DefaultScreen(display);
+                XIconifyWindow(display, window, screen);
+                break;
+            }
+            case WindowState::WINDOW_HIDE:
+            {
+                SetPosition(oldPos);
+                SetClientRectSize(oldSize);
+
+                XUnmapWindow(display, window);
+                break;
+            }
+        }
+
+        XFlush(display);
+
+        windowState = state;
     }
     WindowState ProcessWindow::GetWindowState() const { return windowState; }
 
@@ -841,66 +959,69 @@ namespace KalaWindow::Graphics
         unsigned char* data{};
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (globalData.display
-            && windowData.window)
+
+        if (!globalData.display)
         {
-            Display* display = ToVar<Display*>(globalData.display);
-            Window window = ToVar<Window>(windowData.window);
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to update window fullscreen state because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to update window fullscreen state because the attached window was invalid!");
+        }
 
-            Atom netWmState = ToVar<Atom>(globalData.atom_net_wm_state);
-            Atom netWmStateFullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
 
-            XGetWindowProperty(
-                display,
-                window,
-                netWmState,
-                0,
-                1024,
-                False,
-                XA_ATOM,
-                &actualType,
-                &actualFormat,
-                &nItems,
-                &bytesAfter,
-                &data);
+        Atom netWmState = ToVar<Atom>(globalData.atom_net_wm_state);
+        Atom netWmStateFullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
 
-            isFullscreen = false;
+        XGetWindowProperty(
+            display,
+            window,
+            netWmState,
+            0,
+            1024,
+            False,
+            XA_ATOM,
+            &actualType,
+            &actualFormat,
+            &nItems,
+            &bytesAfter,
+            &data);
 
-            if (data)
+        isFullscreen = false;
+
+        if (data)
+        {
+            Atom* atoms = (Atom*)data;
+
+            for (unsigned long i = 0; i < nItems; i++)
             {
-                Atom* atoms = (Atom*)data;
-
-                for (unsigned long i = 0; i < nItems; i++)
+                if (atoms[i] == netWmStateFullscreen)
                 {
-                    if (atoms[i] == netWmStateFullscreen)
-                    {
-                        isFullscreen = true;
-                        break;
-                    }
+                    isFullscreen = true;
+                    break;
                 }
-
-                XFree(data);
             }
+
+            XFree(data);
         }
     }
 
     void ProcessWindow::CloseWindow()
     {
-        Log::Print("closing window...");
-
         if (cleanExternalContent) cleanExternalContent(ID);
 		
-		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);
-        KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<OpenGL_Context>::RemoveContent(ID);
+        KalaWindowRegistry<Vulkan_Context>::RemoveContent(ID);
 
-		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
+		KalaWindowRegistry<Input>::RemoveContent(ID);
 		
 		KalaWindowRegistry<ProcessWindow>::RemoveContent(ID);
-
-        if (KalaWindowRegistry<ProcessWindow>::createdContent.size() == 0)
-        {
-            KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
-        }
     }
 
     ProcessWindow::~ProcessWindow()

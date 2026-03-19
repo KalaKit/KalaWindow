@@ -117,6 +117,14 @@ namespace KalaWindow::OpenGL
 		//
 
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+
+		if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize lobal OpenGL because the attached display was invalid!");
+        }
+
 		Display* display = ToVar<Display*>(globalData.display);
 
 		int visualAttribs[] =
@@ -366,6 +374,14 @@ namespace KalaWindow::OpenGL
 		}
 			
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+
+		if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set OpenGL context to current because the attached display was invalid!");
+        }
+
 		Display* display = ToVar<Display*>(globalData.display);
 
 		GLXContext stored = ToVar<GLXContext>(context->GetContext());
@@ -415,6 +431,14 @@ namespace KalaWindow::OpenGL
 		}
 
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+
+	    if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set OpenGL context because the attached display was invalid!");
+        }
+
 		Display* display = ToVar<Display*>(globalData.display);
 
 		GLXContext stored = ToVar<GLXContext>(context);
@@ -645,6 +669,19 @@ namespace KalaWindow::OpenGL
 
 		const WindowData& wData = w->GetWindowData();
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
+
+        if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize OpenGL context because the attached display was invalid!");
+        }
+        if (!wData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize OpenGL context because the attached window was invalid!");
+        }
 
 		Display* display = ToVar<Display*>(globalData.display);
 		Window windowRef = ToVar<Window>(wData.window);
@@ -1003,7 +1040,8 @@ namespace KalaWindow::OpenGL
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		Display* display = ToVar<Display*>(globalData.display);
 
-		if (storedContext != NULL)
+		if (display
+			&& storedContext != NULL)
 		{
 			if (glXGetCurrentContext() == storedContext)
 			{

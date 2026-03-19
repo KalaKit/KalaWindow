@@ -212,6 +212,13 @@ namespace KalaWindow::Vulkan
 
 		const WindowData& wData = w->GetWindowData();
 
+		if (!wData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"Window error",
+				"Failed to initialize Vulkan context because the attached window was invalid!");
+		}
+
         HWND hwnd = ToVar<HWND>(wData.window);
         HINSTANCE hInstance = ToVar<HINSTANCE>(wData.hInstance);
 

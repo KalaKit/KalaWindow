@@ -199,6 +199,13 @@ namespace KalaWindow::Vulkan
 			return nullptr;
 		}
 
+		if (!instance)
+		{
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize Vulkan context because the passed Vulkan instance was invalid!");
+		}
+
         u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
@@ -215,15 +222,18 @@ namespace KalaWindow::Vulkan
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		const WindowData& windowData = w->GetWindowData();
 
-		if (!globalData.display
-			|| !windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"Vulkan error",
-				"Failed to create Vulkan surface for window '" + w->GetTitle() + "' because display or window was missing!");
-
-			return nullptr;
-		}
+        if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize Vulkan context because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to initialize Vulkan context because the attached window was invalid!");
+        }
 
 		Display* display = ToVar<Display*>(globalData.display);
 		Window window = ToVar<Window>(windowData.window);
