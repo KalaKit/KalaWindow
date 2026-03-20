@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 /*
-** Copyright 2013-2020 The Khronos Group Inc.
+** Copyright 2013-2026 The Khronos Group Inc.
 ** SPDX-License-Identifier: MIT
 **
 ** This header is generated from the Khronos OpenGL / OpenGL ES XML
@@ -19,9 +19,8 @@ extern "C" {
 #define WIN32_LEAN_AND_MEAN 1
 #include <windows.h>
 #endif
-#include "glcorearb.h"
 
-#define WGL_WGLEXT_VERSION 20250203
+#define WGL_WGLEXT_VERSION 20260126
 
 /* Generated C header for:
  * API: wgl

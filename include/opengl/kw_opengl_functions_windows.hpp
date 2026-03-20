@@ -9,6 +9,8 @@
 
 #include "core_utils.hpp"
 
+#include <windows.h>
+#include <GL/gl.h>
 #include "wglext.h" //Windows-only OpenGL extension header
 
 namespace KalaWindow::OpenGL::OpenGLFunctions

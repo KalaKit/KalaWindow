@@ -11,7 +11,7 @@
 #include <sstream>
 #include <memory>
 
-#include "wglext.h"
+#include "glcorearb.h"
 
 #include "log_utils.hpp"
 

@@ -6,7 +6,7 @@ extern "C" {
 #endif
 
 /*
-** Copyright 2013-2020 The Khronos Group Inc.
+** Copyright 2013-2026 The Khronos Group Inc.
 ** SPDX-License-Identifier: MIT
 **
 ** This header is generated from the Khronos OpenGL / OpenGL ES XML
@@ -15,7 +15,7 @@ extern "C" {
 **   https://github.com/KhronosGroup/OpenGL-Registry
 */
 
-#define GLX_GLXEXT_VERSION 20250203
+#define GLX_GLXEXT_VERSION 20260126
 
 /* Generated C header for:
  * API: glx
@@ -25,8 +25,6 @@ extern "C" {
  * Additional extensions included: _nomatch_^
  * Extensions removed: _nomatch_^
  */
-
-#include "glcorearb.h"
 
 #ifndef GLX_VERSION_1_3
 #define GLX_VERSION_1_3 1
