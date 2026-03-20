@@ -1,22 +1,22 @@
-# Core structure
+# Ecosystem
 
 the header collection:
 - kalaheaders
 
 the clis:
-- kalamove
 - kalamake
-- kalafont
+- kalamove
 - kalamodel
+- kalafont
 
-Note: All clis follow the same original cli template which means all clis follow the same cli command system and can also accept system commands through the run command.
+`All clis follow the same original cli template which means all clis follow the same cli command system.`
 
 the libraries (rely on clis or headers in some way):
 - kalawindow
-- kalaui
-- kalaaudio
-- kalaphysics
+- kalagraphics
 - kalaserver
+- kalaphysics
+- kalaaudio
 - kalalua
 
 the executables (rely on libs or clis or headers in some way):
@@ -25,90 +25,106 @@ the executables (rely on libs or clis or headers in some way):
 
 ---
 
-## KalaHeaders
-
-Header-only scripts made in C++ 20 for various purposes. Completely self-dependant, unrelated to each other and can be used independently without dragging any of the other ones in.
- 
----
-
-## KalaMove
-
-**KalaMove** is an executable that uses `.kmf` files that are designed as a lightweight, strict, and repeatable alternative to batch/shell scripts, CMake commands, or even full installers when all you need is reliable file movement.
-
----
-
-## KalaMake
-
-**KalaMake** is an executable that uses `.kma` files that are designed as my own take for an alternative to CMake, Make and others of its kind with my own syntax. The core idea is the same - compile your set of code into a runtime-ready binary.
-
----
-
-## KalaFont
-
-**KalaFont** compiles .ttf and .otf fonts into .kfd (kalafontdata) - a runtime-ready bitmap or per-glyph binary of vertices, indices, uvs and other relevant data related to the font that was passed. Locks to one base height and strips out all metadata of the original font file.
-
-**KalaFont** uses FreeType to help with font parsing but the runtime-ready binary or its importer header no longer requires FreeType. Use the [importer](https://github.com/KalaKit/KalaHeaders/blob/main/import_kfd.hpp) to import the binary to your target executable.
-
----
-
-## KalaModel
-
-**KalaModel** compiles .obj, .gltf and .fbx models into .kmd (kalamodeldata) - a runtime-ready model binary of vertices, indices, uvs and other relevant data related to the model that was passed. Strips out all metadata of the original model file.
-
-**KalaModel** uses Assimp to help with model parsing but the runtime-ready binary or its importer header no longer requires Assimp. Use the [importer](https://github.com/KalaKit/KalaHeaders/blob/main/import_kmd.hpp) to import the binary to your target executable.
-
----
-
-## KalaWindow
-
-**KalaWindow** is a C++20 window library for **Windows**, built for native desktop applications for Windows with support coming for Linux in the future.
-
-**KalaWindow** creates and owns the OpenGL 3.3 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework. Glad or any other opengl function loaders are not required because **KalaWindow** already provides most common ones for what you would need for OpenGL 3.3 use. **KalaWindow** also provides a comprehensive shader compiler system with helpful uniform functions and for binding the vert/frag/geometry shader as well.
-
----
-
-## KalaUI
-
-**KalaUI** is a retained mode production ready UI library for OpenGL 3.3 and it provides a fully self made UI framework, with a widget system where Image and Text are the root widgets that does not own or create a window or the GL context.
-
----
-
-## KalaAudio
-
-**KalaAudio** provides a simple wrapper with self-owned lifetime for MiniAudio. It supports up to 4 audio listeners, as many players as you want and covers most toggles that MiniAudio provides for audio listeners and players.
-
----
-
-## KalaPhysics
-
-**KalaPhysics** aims to cover most physics needs for ray casting, collision with most popular shapes in broadphase and narrowphase and will experiment with many various other things like **instant vs delayed rays**.
-
----
-
-## KalaServer
-
-A single .lib and .dll with no runtime of its own that can be attached to any executable or cli. Does not depend on KalaWindow, runs completely standalone from it. 
-
-Provides the networking stack required for sending and receiving packets for any server-related needs. Can autoban spammers, obvious bots trying to reach sensitive files etc.
-
-Also provides a framework for hosting websites. Can route root path to any path inside its own root so the original path is unreachable by the end user if they try to look what files are accessible.
-
-Uses completely original code with help from WinSock and Cloudflare Tunnel, does not rely on any external server stacks.
-
----
-
-## KalaLua
-
-KalaLua is a C++ 20 wrapper library around Lua for Windows (Linux coming in the future) that allows you to route Lua calls to one middleman library without needing Lua itself in any way inside your own program.
-
----
-
 ## Elypso Engine
 
-**Elypso engine** is currently not maintained and will be rewritten in 2026. It will use KalaWindow, KalaUI, KalaAudio and KalaPhysics and will heavily rely on them to build a powerful game engine for game development with OpenGL and Vulkan.
+C++20 OpenGL and Vulkan game engine for Windows and Linux.
+
+https://github.com/Lost-Empire-Entertainment/Elypso-engine
 
 ---
 
 ## Elypso Hub
 
-**Elypso hub** is the project manager and updater for Elypso Engine that will be rewritten in 2026 alongside the engine. It will heavily rely on KalaWindow and KalaUI.
+C++20 project launcher for Elypso Engine on Windows and Linux.
+
+https://github.com/Lost-Empire-Entertainment/Elypso-hub
+
+---
+
+## KalaHeaders
+
+C++20 standalone headers for game software development on Windows and Linux.
+
+https://github.com/KalaKit/KalaHeaders
+ 
+---
+
+## KalaMake
+
+C++20 CLI for compiling games, software and libraries with the .kmake format on Windows and Linux.
+
+https://github.com/KalaKit/KalaMake
+
+---
+
+## KalaMove
+
+C++20 CLI for mass file and folder IO operations with the .kmf format on Windows and Linux.
+
+https://github.com/KalaKit/KalaMove
+
+---
+
+
+## KalaModel
+
+C++20 CLI for converting .obj, .gltf and .fbx files to the .kmd for runtime use on Windows and Linux.
+
+
+https://github.com/KalaKit/KalaModel
+
+---
+
+## KalaFont
+
+C++20 CLI for converting .ttf and .otf files to the .kfd format for runtime use on Windows and Linux.
+
+https://github.com/KalaKit/KalaFont
+
+---
+
+## KalaWindow
+
+C++20 window library with input, crash handling and GL/VK context creation on Windows and Linux.
+
+https://github.com/KalaKit/KalaWindow
+
+---
+
+## KalaGraphics
+
+C++20 graphics library that utilizes a GL/VK agnostic API for game and software development on Windows and Linux.
+
+https://github.com/KalaKit/KalaGraphics
+
+---
+
+## KalaServer
+
+C++20 library for hosting web and media servers on Windows and Linux.
+
+https://github.com/KalaKit/KalaServer
+
+---
+
+## KalaPhysics
+
+C++20 physics library for games and simulations on Windows and Linux.
+
+https://github.com/KalaKit/KalaPhysics
+
+---
+
+## KalaAudio
+
+C++20 library for .mp3, .wav and .opus playback on Windows and Linux.
+
+https://github.com/KalaKit/KalaAudio
+
+---
+
+## KalaLua
+
+C++20 Lua wrapper library for games and software on Windows and Linux.
+
+https://github.com/KalaKit/KalaLua
