@@ -16,6 +16,8 @@ namespace KalaWindow::Graphics
 	using std::string_view;
 	using std::vector;
 
+	using u32 = uint32_t;
+
 	//Buttons shown on the popup
 	enum class PopupAction
 	{

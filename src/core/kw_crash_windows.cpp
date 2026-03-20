@@ -90,6 +90,8 @@ static void WriteLog(
 	string_view message,
 	string_view timeStamp);
 
+using u32 = uint32_t;
+
 namespace KalaWindow::Core
 {
 	void CrashHandler::Initialize(

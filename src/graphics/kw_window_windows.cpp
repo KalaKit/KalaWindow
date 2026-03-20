@@ -2153,11 +2153,11 @@ namespace KalaWindow::Graphics
 				overlayIcon = nullptr;
 			}
 
-			if (shutdownBlockState) WTSUnRegisterSessionNotification(winRef);
+			if (shutdownBlockState) WTSUnRegisterSessionNotification(hwnd);
 
 			if (windowData.window)
 			{
-				DestroyWindow(winRef);
+				DestroyWindow(hwnd);
 				windowData.window = NULL;
 			}
 			windowData.hInstance = NULL;

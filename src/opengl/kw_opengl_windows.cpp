@@ -894,7 +894,7 @@ namespace KalaWindow::OpenGL
 		contPtr->contextData = ss2.str();
 
 		registry.AddContent(newID, std::move(newCont));
-		window->SetContextID(newID);
+		w->SetContextID(newID);
 
 		contPtr->windowID = w->GetID();
 
