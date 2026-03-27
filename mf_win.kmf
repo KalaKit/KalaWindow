@@ -31,11 +31,11 @@ action: forcecopy
 //
 
 //copy debug
-origin: build@debug-linux@kalawindowd.lib
+origin: build@debug-windows@kalawindowd.lib
 target: ..@external-shared@KalaWindow@debug@kalawindowd.lib
 action: forcecopy
 
 //copy release
-origin: build@release-linux@kalawindow.lib
+origin: build@release-windows@kalawindow.lib
 target: ..@external-shared@KalaWindow@release@kalawindow.lib
 action: forcecopy
