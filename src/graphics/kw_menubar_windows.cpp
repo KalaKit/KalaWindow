@@ -6,7 +6,6 @@
 #ifdef _WIN32
 
 #include <windows.h>
-#include <sstream>
 #include <string>
 #include <memory>
 
@@ -25,7 +24,6 @@ using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Core::KalaWindowCore;
 
-using std::ostringstream;
 using std::string;
 using std::string_view;
 using std::to_string;
@@ -69,11 +67,6 @@ namespace KalaWindow::Graphics
 
 		unique_ptr<MenuBar> newMenu = make_unique<MenuBar>();
 		MenuBar* menuPtr = newMenu.get();
-
-		Log::Print(
-			"Creating new menu bar for window '" + window->GetTitle() + "'.",
-			"MENUBAR",
-			LogType::LOG_INFO);
 
 		const WindowData& windowData = window->GetWindowData();
 
@@ -257,11 +250,8 @@ namespace KalaWindow::Graphics
 
 		if (!isInitialized)
 		{
-			ostringstream oss{};
-			oss << "Failed to add " << typeName << " to window '" << window->GetTitle() << "' because no menu bar was created!";
-
 			Log::Print(
-				oss.str(),
+				"Failed to add " + typeName + " to window '" + window->GetTitle() + "' because no menu bar was created!",
 				"MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -271,11 +261,8 @@ namespace KalaWindow::Graphics
 
 		if (labelRef.empty())
 		{
-			ostringstream oss{};
-			oss << "Failed to add " << typeName << " to window '" << window->GetTitle() << "' because the label name is empty!";
-
 			Log::Print(
-				oss.str(),
+				"Failed to add " + typeName + " to window '" + window->GetTitle() + "' because the label name is empty!";,
 				"MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -284,14 +271,11 @@ namespace KalaWindow::Graphics
 		}
 		if (labelRef.length() > MAX_LABEL_LENGTH)
 		{
-			ostringstream oss{};
-			oss << "Failed to add " << typeName << " '" << labelRef
-				<< "' to window '" << window->GetTitle() << "' because the label length '"
-				<< labelRef.length() << "' is too long! You can only use label length up to '"
-				<< to_string(MAX_LABEL_LENGTH) << "' characters long.";
-
 			Log::Print(
-				oss.str(),
+				"Failed to add " + typeName + " '" + labelRef
+				"' to window '" + window->GetTitle() + "' because the label length '"
+				to_string(labelRef.length()) + "' is too long! You can only use label length up to '"
+				+ to_string(MAX_LABEL_LENGTH) + "' characters long.",
 				"MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -303,12 +287,9 @@ namespace KalaWindow::Graphics
 		if (type == LabelType::LABEL_LEAF
 			&& !func)
 		{
-			ostringstream oss{};
-			oss << "Failed to add leaf '" << labelRef << "' under parent '" << parentRef
-				<< "' in window '" << window->GetTitle() << "' because the leaf has an empty function!";
-
 			Log::Print(
-				oss.str(),
+				"Failed to add leaf '" + labelRef + "' under parent '" + parentRef
+				+ "' in window '" + window->GetTitle() + "' because the leaf has an empty function!",
 				"MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -325,12 +306,9 @@ namespace KalaWindow::Graphics
 				if (e.label == parentRef
 					&& e.labelID != 0)
 				{
-					ostringstream oss{};
-					oss << "Failed to add leaf '" << labelRef << "' under parent '" << parentRef
-						<< "' in window '" << window->GetTitle() << "' because the parent is also a leaf!";
-
 					Log::Print(
-						oss.str(),
+						"Failed to add leaf '" + labelRef + "' under parent '" + parentRef
+						+ "' in window '" + window->GetTitle() + "' because the parent is also a leaf!",
 						"MENUBAR",
 						LogType::LOG_ERROR,
 						2);
@@ -348,12 +326,9 @@ namespace KalaWindow::Graphics
 			if (parent.empty()
 				&& labelRef == label)
 			{
-				ostringstream oss{};
-				oss << "Failed to add " << typeName << " '" << labelRef << "' to window '" << window->GetTitle()
-					<< "' because the " << typeName << " already exists!";
-
 				Log::Print(
-					oss.str(),
+					"Failed to add " + typeName + " '" + labelRef + "' to window '" + window->GetTitle()
+					+ "' because the " + typeName + " already exists!",
 					"MENUBAR",
 					LogType::LOG_ERROR,
 					2);
@@ -363,13 +338,9 @@ namespace KalaWindow::Graphics
 			else if (parentRef == parent
 				&& labelRef == label)
 			{
-				ostringstream oss{};
-				oss << "Failed to add " << typeName << " '" << labelRef << "' under parent '" << parentName
-					<< "' in window '" << window->GetTitle()
-					<< "' because the " << typeName << " and its parent already exists!";
-
 				Log::Print(
-					oss.str(),
+					"Failed to add " + typeName + " '" + labelRef + "' under parent '" + parentName
+					+ "' in window '" + window->GetTitle() + "' because the " + typeName + " and its parent already exists!",
 					"MENUBAR",
 					LogType::LOG_ERROR,
 					2);
@@ -418,13 +389,10 @@ namespace KalaWindow::Graphics
 
 				if (MenuBar::IsVerboseLoggingEnabled())
 				{
-					ostringstream oss{};
-					oss << "Added " << typeName << " '" << labelRef << "' '" << to_string(newID)
-						<< "' under parent '" << parentName
-						<< "' in window '" << window->GetTitle() << "'!";
-
 					Log::Print(
-						oss.str(),
+						"Added " + typeName + " '" + labelRef + "' '" + to_string(newID)
+						+ "' under parent '" + parentName
+						+ "' in window '" + window->GetTitle() + "'!",
 						"MENUBAR",
 						LogType::LOG_SUCCESS);
 				}
@@ -446,12 +414,9 @@ namespace KalaWindow::Graphics
 
 			if (!parentMenu)
 			{
-				ostringstream oss{};
-				oss << "Failed to create " << typeName << " '" << labelRef << "' under parent '" << parentName
-					<< "' in window '" << window->GetTitle() << "' because the parent does not exist!";
-
 				Log::Print(
-					oss.str(),
+					"Failed to create " + typeName + " '" + labelRef + "' under parent '" + parentName
+					+ "' in window '" + window->GetTitle() + "' because the parent does not exist!",
 					"MENUBAR",
 					LogType::LOG_ERROR,
 					2);
@@ -498,12 +463,9 @@ namespace KalaWindow::Graphics
 
 		if (!isInitialized)
 		{
-			ostringstream oss{};
-			oss << "Failed to add separator to menu label '" << labelRef << "' in window '" << window->GetTitle()
-				<< "' because it has no menu bar!";
-
 			Log::Print(
-				oss.str(),
+				"Failed to add separator to menu label '" + labelRef + "' in window '" + window->GetTitle()
+				+ "' because it has no menu bar!",
 				"MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -532,12 +494,9 @@ namespace KalaWindow::Graphics
 
 					if (!parentMenu)
 					{
-						ostringstream oss{};
-						oss << "Failed to add separator at the end of parent '" << parentRef
-							<< "' in window '" << window->GetTitle() << "' because the parent does not exist!";
-
 						Log::Print(
-							oss.str(),
+							"Failed to add separator at the end of parent '" + parentRef
+							+ "' in window '" + window->GetTitle() + "' because the parent does not exist!",
 							"MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -582,12 +541,9 @@ namespace KalaWindow::Graphics
 
 					if (!parentMenu)
 					{
-						ostringstream oss{};
-						oss << "Failed to add separator under parent '" << parentRef << "' after label '" << labelRef
-							<< "' in window '" << window->GetTitle() << "' because the label does not exist!";
-
 						Log::Print(
-							oss.str(),
+							"Failed to add separator under parent '" + parentRef + "' after label '" + labelRef
+							+ "' in window '" + window->GetTitle() + "' because the label does not exist!",
 							"MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -633,12 +589,9 @@ namespace KalaWindow::Graphics
 			}
 		}
 
-		ostringstream oss{};
-		oss << "Failed to add separator at the end of parent '" << parentRef << "' or after label '" << labelRef
-			<< "' in window '" + window->GetTitle() + "' because parent or label does not exist!";
-
 		Log::Print(
-			oss.str(),
+			"Failed to add separator at the end of parent '" + parentRef + "' or after label '" + labelRef
+			+ "' in window '" + window->GetTitle() + "' because parent or label does not exist!",
 			"MENUBAR",
 			LogType::LOG_ERROR,
 			2);

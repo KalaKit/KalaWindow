@@ -251,7 +251,7 @@ namespace KalaWindow::Vulkan
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized Vulkan context for window '" + w->GetTitle() + "'!",
+			"Initialized Vulkan context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"VULKAN",
 			LogType::LOG_SUCCESS);
 

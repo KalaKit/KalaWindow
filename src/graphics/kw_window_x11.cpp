@@ -81,11 +81,6 @@ namespace KalaWindow::Graphics
                 "Failed to initialize window because the attached display was invalid!");
         }
 
-		Log::Print(
-			"Creating new window.",
-			"WINDOW",
-			LogType::LOG_INFO);
-
         u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 

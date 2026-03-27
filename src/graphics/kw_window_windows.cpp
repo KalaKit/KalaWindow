@@ -97,11 +97,6 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		Log::Print(
-			"Creating new window.",
-			"WINDOW",
-			LogType::LOG_INFO);
-
 		u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 

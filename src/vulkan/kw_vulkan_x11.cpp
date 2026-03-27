@@ -31,6 +31,7 @@ using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 
+using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
 
@@ -211,11 +212,6 @@ namespace KalaWindow::Vulkan
 		unique_ptr<Vulkan_Context> newCont = make_unique<Vulkan_Context>();
 		Vulkan_Context* contPtr = newCont.get();
 
-		Log::Print(
-			"Creating Vulkan context for window '" + w->GetTitle() + "'.",
-			"VULKAN",
-			LogType::LOG_INFO);
-
 		contPtr->ID = newID;
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
@@ -266,7 +262,7 @@ namespace KalaWindow::Vulkan
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized Vulkan context for window '" + w->GetTitle() + "'!",
+			"Initialized Vulkan context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"VULKAN",
 			LogType::LOG_SUCCESS);
 
@@ -288,7 +284,7 @@ namespace KalaWindow::Vulkan
 		{
 			Log::Print(
 				"Cannot shut down OpenGL context because its window was not found!",
-				"OPENGL",
+				"VULKAN",
 				LogType::LOG_ERROR,
 				2);
 
@@ -296,8 +292,8 @@ namespace KalaWindow::Vulkan
 		}
 
 		Log::Print(
-			"Destroying OpenGL context for window '" + window->GetTitle() + "'.",
-			"OPENGL",
+			"Destroying Vulkan context for window '" + window->GetTitle() + "'.",
+			"VULKAN",
 			LogType::LOG_INFO);
 
 		vkDestroySurfaceKHR(

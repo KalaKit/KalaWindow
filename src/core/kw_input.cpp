@@ -43,6 +43,7 @@ using KalaWindow::Graphics::Window_Global;
 #endif
 
 using std::string;
+using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
 
@@ -76,11 +77,6 @@ namespace KalaWindow::Core
 
 		unique_ptr<Input> newInput = make_unique<Input>();
 		Input* inputPtr = newInput.get();
-
-		Log::Print(
-			"Creating input context for window '" + w->GetTitle() + "'.",
-			"INPUT",
-			LogType::LOG_INFO);
 
 		inputPtr->ID = newID;
 
@@ -118,7 +114,7 @@ namespace KalaWindow::Core
 		inputPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized input context for window '" + w->GetTitle() + "'!",
+			"Initialized input context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"INPUT",
 			LogType::LOG_SUCCESS);
 

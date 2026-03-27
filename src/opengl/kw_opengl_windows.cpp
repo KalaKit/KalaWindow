@@ -536,11 +536,6 @@ namespace KalaWindow::OpenGL
 		unique_ptr<OpenGL_Context> newCont = make_unique<OpenGL_Context>();
 		OpenGL_Context* contPtr = newCont.get();
 
-		Log::Print(
-			"Creating OpenGL context for window '" + w->GetTitle() + "'.",
-			"OPENGL",
-			LogType::LOG_INFO);
-
 		contPtr->ID = newID;
 
 		const WindowData& wData = w->GetWindowData();
@@ -901,7 +896,7 @@ namespace KalaWindow::OpenGL
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized OpenGL context for window '" + w->GetTitle() + "'!",
+			"Initialized OpenGL context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"OPENGL",
 			LogType::LOG_SUCCESS);
 
