@@ -1,5 +1,0 @@
-1) download sdk: https://vulkan.lunarg.com/sdk/home
-2) run installer
-3) enable the following features:
-	- Vulkan Memory Allocator header
-	- Shader Toolchain Debug Symbols – 64-bit

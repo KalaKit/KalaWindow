@@ -13,7 +13,7 @@ compilerlauncher: ccache
 standard: c++20
 binarytype: static
 sources: "src"
-headers: "include", "_external_shared/KalaHeaders", "_external_shared/OpenGL", "_external_shared/Vulkan/Include"
+headers: "include", "../kalaheaders", "../external-shared/OpenGL", "../external-shared/Vulkan/Include"
 defines: LIB_STATIC
 warninglevel: normal
 customflags: export-compile-commands, export-vscode-sln

@@ -8,53 +8,34 @@
 
 //copy readme
 origin: README.md
-target: ..@elypso-engine@_external_shared@KalaWindow@README.md, ..@elypso-hub@_external_shared@KalaWindow@README.md, ..@_games@_external_shared@KalaWindow@README.md
+target: ..@external-shared@KalaWindow@README.md
 action: forcecopy
 
 //copy license
 origin: LICENSE.md
-target: ..@elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@_games@_external_shared@KalaWindow@LICENSE.md
+target: ..@external-shared@KalaWindow@LICENSE.md
 action: forcecopy
 
 //copy include files
 origin: include
-target: ..@elypso-engine@_external_shared@KalaWindow@include, ..@elypso-hub@_external_shared@KalaWindow@include, ..@_games@_external_shared@KalaWindow@include
+target: ..@external-shared@KalaWindow@include
 action: forcecopy
 
 //copy docs
 origin: docs
-target: ..@elypso-engine@_external_shared@KalaWindow@docs, ..@elypso-hub@_external_shared@KalaWindow@docs, ..@_games@_external_shared@KalaWindow@docs
+target: ..@external-shared@KalaWindow@docs
 action: forcecopy
 
 //
 // BINARIES
 //
 
-//copy debug lib
-origin: build@debug-windows@kalawindowd.lib
-target: ..@elypso-engine@_external_shared@KalaWindow@debug@kalawindowd.lib, ..@elypso-hub@_external_shared@KalaWindow@debug@kalawindowd.lib, ..@_games@_external_shared@KalaWindow@debug@kalawindowd.lib
+//copy debug
+origin: build@debug-linux@kalawindowd.lib
+target: ..@external-shared@KalaWindow@debug@kalawindowd.lib
 action: forcecopy
 
-//copy release lib
-origin: build@release-windows@kalawindow.lib
-target: ..@elypso-engine@_external_shared@KalaWindow@release@kalawindow.lib, ..@elypso-hub@_external_shared@KalaWindow@release@kalawindow.lib, ..@_games@_external_shared@KalaWindow@release@kalawindow.lib
+//copy release
+origin: build@release-linux@kalawindow.lib
+target: ..@external-shared@KalaWindow@release@kalawindow.lib
 action: forcecopy
-
-//
-// EXTERNAL LIBRARIES
-//
-
-//KalaHeaders
-origin: _external_shared@KalaHeaders
-target: ..@elypso-engine@_external_shared@KalaHeaders, ..@elypso-hub@_external_shared@KalaHeaders, ..@_games@_external_shared@KalaHeaders
-action: copy
-
-//OpenGL
-origin: _external_shared@OpenGL
-target: ..@elypso-engine@_external_shared@OpenGL, ..@elypso-hub@_external_shared@OpenGL, ..@_games@_external_shared@OpenGL
-action: copy
-
-//Vulkan
-origin: _external_shared@Vulkan
-target: ..@elypso-engine@_external_shared@Vulkan, ..@elypso-hub@_external_shared@Vulkan, ..@_games@_external_shared@Vulkan
-action: copy
