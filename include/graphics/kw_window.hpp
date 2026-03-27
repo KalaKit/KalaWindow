@@ -121,14 +121,13 @@ namespace KalaWindow::Graphics
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
-		//Create a new window that is always hidden by default, you must manually make it visible.
+		//Create a new window that is always hidden by default,
+		//you must manually make it visible by setting window state to WINDOW_NORMAL.
 		//Assign a parent window to display this window as a child of that window.
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
 		static ProcessWindow* Initialize(
 			string_view title,
-			vec2 pos = vec2(100),
-			vec2 size = vec2(1280, 720),
 			ProcessWindow* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 

@@ -85,8 +85,6 @@ namespace KalaWindow::Graphics
 
 	ProcessWindow* ProcessWindow::Initialize(
 		string_view title,
-        vec2 newPos,
-		vec2 newSize,
 		ProcessWindow* parentWindow,
 		DpiContext context)
 	{
@@ -146,9 +144,6 @@ namespace KalaWindow::Graphics
 		wstring appIDWide = ToWide(Window_Global::GetAppID());
 		wstring titleWide = ToWide(title);
 
-        vec2 clampedPos = kclamp(newPos, -20000.0f, 20000.0f);
-        vec2 clampedSize = kclamp(newSize, 1.0f, 10000.0f);
-
 		HWND newHwnd = CreateWindowExW(
 			exStyle,
 			appIDWide.c_str(),
@@ -156,8 +151,8 @@ namespace KalaWindow::Graphics
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT,
 			CW_USEDEFAULT,
-			clampedSize.x,
-			clampedSize.y,
+			800,
+			800,
 			parentWindowRef,
 			nullptr,
 			newHInstance,
@@ -231,8 +226,8 @@ namespace KalaWindow::Graphics
 
 		windowPtr->SetTitle(title);
 		windowPtr->ID = newID;
-		windowPtr->SetClientRectSize(clampedSize);
-		windowPtr->SetPosition(clampedPos);
+		windowPtr->SetClientRectSize(800);
+		windowPtr->SetPosition(800);
 
 		windowPtr->isInitialized = true;
 

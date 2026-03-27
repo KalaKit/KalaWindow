@@ -60,8 +60,6 @@ namespace KalaWindow::Graphics
 
     ProcessWindow* ProcessWindow::Initialize(
 		string_view title,
-        vec2 newPos,
-		vec2 newSize,
 		ProcessWindow* parentWindow,
 		DpiContext context)
     {
@@ -107,16 +105,13 @@ namespace KalaWindow::Graphics
 
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
 
-        vec2 clampedPos = kclamp(newPos, -20000.0f, 20000.0f);
-        vec2 clampedSize = kclamp(newSize, 1.0f, 10000.0f);
-
         Window window = XCreateSimpleWindow(
             display,
             root,
-            scast<int>(clampedPos.x),
-            scast<int>(clampedPos.y),
-            scast<int>(clampedSize.x),
-            scast<int>(clampedSize.y),
+            800,
+            800,
+            800,
+            800,
             1,
             BlackPixel(display, DefaultScreen(display)),
             WhitePixel(display, DefaultScreen(display)));
@@ -200,11 +195,11 @@ namespace KalaWindow::Graphics
 
 		windowPtr->isInitialized = true;
 
-        windowPtr->pos = newPos;
-        windowPtr->size = clampedSize;
+        windowPtr->pos = vec2(800);
+        windowPtr->size = vec2(800);
 
-		windowPtr->oldPos = newPos;
-		windowPtr->oldSize = clampedSize;
+		windowPtr->oldPos = vec2(800);
+		windowPtr->oldSize = vec2(800);
 
         //show window
         XMapWindow(
