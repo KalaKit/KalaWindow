@@ -11,9 +11,7 @@
 #include <X11/Xlib.h>
 #endif
 
-#include <functional>
 #include <chrono>
-#include <string>
 #include <algorithm>
 
 #include "core_utils.hpp"
@@ -56,15 +54,11 @@ using std::raise;
 #endif
 
 using std::string_view;
-using std::function;
-using std::exception;
-using std::to_string;
 using std::chrono::steady_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
 using std::clamp;
-
-static function<void()> userRegularShutdown;
+using std::exception;
 
 //TODO: define somehow in log_utils.hpp
 //CrashHandler::AppendToCrashLog(msg);
@@ -76,6 +70,8 @@ namespace KalaWindow::Core
 
 	static f64 deltaTime{};
 	static f64 frameTime{};
+
+	static function<void()> shutdownCallback{};
 
 	u32 KalaWindowCore::GetGlobalID() { return globalID; }
 	void KalaWindowCore::SetGlobalID(u32 newID) { globalID = newID; }
@@ -96,6 +92,11 @@ namespace KalaWindow::Core
 
 		//regular deltatime
 		deltaTime = clamp(delta.count(), 0.0, 0.1);
+	}
+
+	void KalaWindowCore::SetUserShutdownCallback(const function<void()>& shutdown)
+	{
+		if (shutdown) shutdownCallback = shutdown;
 	}
 
 	void KalaWindowCore::ForceClose(
@@ -128,55 +129,36 @@ namespace KalaWindow::Core
 #endif
 	}
 
-	void KalaWindowCore::SetUserShutdownFunction(const function<void()>& regularShutdown)
-	{
-		userRegularShutdown = regularShutdown;
-	}
-
-	void KalaWindowCore::Shutdown(
-		ShutdownState state,
-		bool useWindowShutdown,
-		const function<void()>& userShutdown)
+	void KalaWindowCore::Shutdown()
 	{
 		Log::Print(
-			"\n============="
+			"\n======================================================================"
 			"\nSHUTTING DOWN"
-			"\n=============\n",
+			"\n======================================================================\n",
 			true);
 		
 #ifdef _WIN32
 		timeEndPeriod(1);
 #endif //_WIN32
 
-		if (state == ShutdownState::SHUTDOWN_CRITICAL)
-		{
-#ifdef _DEBUG
-			//skip all cleanup if a critical error was detected, we have no time to waste with cleanup here
-			__debugbreak();
-#else
-			//clean, user-friendly exit in release
-			quick_exit(EXIT_FAILURE);  
-#endif
-		}
-
-		if (userRegularShutdown)
+		if (shutdownCallback)
 		{
 			try
 			{
 				Log::Print(
-					"Attempting to run user provided regular shutdown function...\n",
-					"WINDOW",
+					"Running user-provided shutdown callback.\n",
+					"WINDOW_CORE",
 					LogType::LOG_INFO);
 
-				userRegularShutdown();
+				shutdownCallback();
 
 				Log::Print("\n====================\n");
 			}
 			catch (const exception& e)
 			{
 				Log::Print(
-					"User-provided regular shutdown condition failed! Reason: " + string(e.what()),
-					"WINDOW",
+					"User-provided shutdown callback failed! Reason: " + string(e.what()),
+					"WINDOW_CORE",
 					LogType::LOG_ERROR,
 					2);
 			}
@@ -203,37 +185,11 @@ namespace KalaWindow::Core
 		}
 #endif
 
-		if (!useWindowShutdown
-			&& userShutdown)
-		{
-			try
-			{
-				Log::Print("\n====================\n");
-
-				Log::Print(
-					"Attempting to run user provided post-render shutdown function...\n",
-					"WINDOW",
-					LogType::LOG_INFO);
-
-				userShutdown();
-
-				Log::Print("\n====================\n");
-			}
-			catch (const exception& e)
-			{
-				Log::Print(
-					"User-provided post-render shutdown condition failed! Reason: " + string(e.what()),
-					"WINDOW",
-					LogType::LOG_ERROR,
-					2);
-			}
-		}
-
 		Log::Print(
-			"KalaWindow shutting down with state = " + to_string(scast<int>(state)),
-			"WINDOW",
+			"KalaWindow has been fully shut down!",
+			"WINDOW_CORE",
 			LogType::LOG_SUCCESS);
 
-		if (useWindowShutdown) exit(0);
+		exit(0);
 	}
 }

@@ -537,9 +537,9 @@ namespace KalaWindow::OpenGL
 		OpenGL_Context* contPtr = newCont.get();
 
 		Log::Print(
-			"Creating OpenGL context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"Creating OpenGL context for window '" + w->GetTitle() + "'.",
 			"OPENGL",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		contPtr->ID = newID;
 
@@ -901,7 +901,7 @@ namespace KalaWindow::OpenGL
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized OpenGL context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Initialized OpenGL context for window '" + w->GetTitle() + "'!",
 			"OPENGL",
 			LogType::LOG_SUCCESS);
 
@@ -922,8 +922,7 @@ namespace KalaWindow::OpenGL
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
 				"Cannot shut down OpenGL context because its window was not found!",
@@ -935,9 +934,9 @@ namespace KalaWindow::OpenGL
 		}
 
 		Log::Print(
-			"Destroying OpenGL context for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
+			"Destroying OpenGL context for window '" + window->GetTitle() + "'.",
 			"OPENGL",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		HGLRC storedContext = ToVar<HGLRC>(context);
 

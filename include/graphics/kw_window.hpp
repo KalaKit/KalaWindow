@@ -293,7 +293,7 @@ namespace KalaWindow::Graphics
 		void TriggerResize();
 
 		//Clean up the external content of this window before its own data is cleaned
-		void SetShutdownCallback(function<void(u32)> newValue);
+		void SetShutdownCallback(function<void()> newValue);
 
 		void SetWindowData(const WindowData& newWindowStruct);
 		const WindowData& GetWindowData() const;
@@ -364,6 +364,6 @@ namespace KalaWindow::Graphics
 
 		function<void()> redrawCallback{};
 		function<void()> resizeCallback{};
-		function<void(u32)> shutdownCallback{};
+		function<void()> shutdownCallback{};
 	};
 }

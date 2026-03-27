@@ -204,9 +204,9 @@ namespace KalaWindow::Vulkan
 		Vulkan_Context* contPtr = newCont.get();
 
 		Log::Print(
-			"Creating Vulakn context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"Creating Vulakn context for window '" + w->GetTitle() + "'.",
 			"VULKAN",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		contPtr->ID = newID;
 
@@ -251,7 +251,7 @@ namespace KalaWindow::Vulkan
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized Vulkan context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Initialized Vulkan context for window '" + w->GetTitle() + "'!",
 			"VULKAN",
 			LogType::LOG_SUCCESS);
 
@@ -269,12 +269,11 @@ namespace KalaWindow::Vulkan
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
-				"Cannot shut down Vulkan context because its window was not found!",
-				"VULKAN",
+				"Cannot shut down OpenGL context because its window was not found!",
+				"OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -282,9 +281,9 @@ namespace KalaWindow::Vulkan
 		}
 
 		Log::Print(
-			"Destroying Vulkan for window '" + window->GetTitle() + "' with ID '" + to_string(ID) + "'.",
-			"VULKAN",
-			LogType::LOG_DEBUG);
+			"Destroying OpenGL context for window '" + window->GetTitle() + "'.",
+			"OPENGL",
+			LogType::LOG_INFO);
 
 		vkDestroySurfaceKHR(
             instance,

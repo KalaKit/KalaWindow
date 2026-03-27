@@ -19,12 +19,6 @@ namespace KalaWindow::Core
 	using u32 = uint32_t;
 	using f64 = double;
 
-	enum class ShutdownState
-	{
-		SHUTDOWN_CLEAN,   //Regular exit (exit)
-		SHUTDOWN_CRITICAL //Catastrophic/forced shutdown, worst case scenario (abort)
-	};
-
 	class LIB_API KalaWindowCore
 	{
 	public:
@@ -37,36 +31,14 @@ namespace KalaWindow::Core
 		//Update deltatime and frametime
 		static void UpdateDeltaTime();
 
-		//Use this when you absolutely need a hard crash at this very moment.
-		//Aborts and doesn't clean up data.
+		static void SetUserShutdownCallback(const function<void()>& shutdown);
+
+		//Use this when you absolutely need a hard crash at this very moment
 		static void ForceClose(
 			string_view title,
 			string_view reason);
 
-		//Intended to be used for regular shutdown conditions, if program exited
-		//with no errors and so on. Called at shutdown stage before any
-		//windows or the render pipeline are destroyed.
-		static void SetUserShutdownFunction(const function<void()>& regularShutdown);
-
-		/// <summary>
-		/// Handles the shutdown conditions of KalaWindow.
-		/// </summary>
-		/// <param name="state">
-		///		Targets either regular exit, terminate or abort
-		///		based on ShutdownState enum.
-		/// </param>
-		/// <param name="useWindowShutdown">
-		///		If false, then KalaWindow ShutdownState and its actions are ignored
-		///		and user must provide their own setup that is called after all windows and the render pipeline are destroyed.
-		/// </param>
-		/// <param name="userShutdown">
-		///		The function user can optionally pass to KalaWindow shutdown procedure,
-		///     called dynamically either before window and render pipeline shutdown
-		///     if useWindowShutdown is true, otherwise it is called after.
-		/// </param>
-		static void Shutdown(
-			ShutdownState state,
-			bool useWindowShutdown = true,
-			const function<void()>& userShutdown = nullptr);
+		//Close KalaWindow and clean up resources.
+		static void Shutdown();
 	};
 }

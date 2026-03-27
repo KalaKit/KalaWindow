@@ -71,9 +71,9 @@ namespace KalaWindow::Graphics
 		MenuBar* menuPtr = newMenu.get();
 
 		Log::Print(
-			"Creating new menu bar for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"Creating new menu bar for window '" + window->GetTitle() + "'.",
 			"MENUBAR",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		const WindowData& windowData = window->GetWindowData();
 
@@ -102,7 +102,7 @@ namespace KalaWindow::Graphics
 		menuPtr->isEnabled = true;
 
 		Log::Print(
-			"Created new menu bar for window '" + window->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Created new menu bar for window '" + window->GetTitle() + "''!",
 			"MENUBAR",
 			LogType::LOG_SUCCESS);
 
@@ -419,7 +419,7 @@ namespace KalaWindow::Graphics
 				if (MenuBar::IsVerboseLoggingEnabled())
 				{
 					ostringstream oss{};
-					oss << "Added " << typeName << " '" << labelRef << "' with ID '" << to_string(newID)
+					oss << "Added " << typeName << " '" << labelRef << "' '" << to_string(newID)
 						<< "' under parent '" << parentName
 						<< "' in window '" << window->GetTitle() << "'!";
 
@@ -651,7 +651,7 @@ namespace KalaWindow::Graphics
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Cannot destroy menu bar with ID '" + to_string(ID) + "' because it is not initialized!",
+				"Cannot destroy menu bar '" + to_string(ID) + "' because it is not initialized!",
 				"MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -665,7 +665,7 @@ namespace KalaWindow::Graphics
 			|| !window->IsInitialized())
 		{
 			Log::Print(
-				"Cannot destroy menu bar with ID '" + to_string(ID) + "' because its window was not found!",
+				"Cannot destroy menu bar '" + to_string(ID) + "' because its window was not found!",
 				"MENUBAR",
 				LogType::LOG_ERROR,
 				2);

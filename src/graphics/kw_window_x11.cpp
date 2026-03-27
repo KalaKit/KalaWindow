@@ -81,16 +81,16 @@ namespace KalaWindow::Graphics
                 "Failed to initialize window because the attached display was invalid!");
         }
 
+		Log::Print(
+			"Creating new window.",
+			"WINDOW",
+			LogType::LOG_INFO);
+
         u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
 		unique_ptr<ProcessWindow> newWindow = make_unique<ProcessWindow>();
 		ProcessWindow* windowPtr = newWindow.get();
-
-		Log::Print(
-			"Creating window '" + string(title) + "' with ID '" + to_string(newID) + "'.",
-			"WINDOW",
-			LogType::LOG_DEBUG);
 
         Display* display = ToVar<Display*>(globalData.display);
 
@@ -945,7 +945,7 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return 0; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) {}
 
-	void ProcessWindow::SetShutdownCallback(function<void(u32)> newValue) { shutdownCallback = newValue; }
+	void ProcessWindow::SetShutdownCallback(function<void()> newValue) { shutdownCallback = newValue; }
 
     void ProcessWindow::UpdateFullscreenState()
     {
@@ -1010,12 +1010,12 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::CloseWindow()
     {
-        if (shutdownCallback) shutdownCallback(ID);
+        if (shutdownCallback) shutdownCallback();
 		
-		KalaWindowRegistry<OpenGL_Context>::RemoveContent(ID);
-        KalaWindowRegistry<Vulkan_Context>::RemoveContent(ID);
+		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);
+        KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
 
-		KalaWindowRegistry<Input>::RemoveContent(ID);
+		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		
 		KalaWindowRegistry<ProcessWindow>::RemoveContent(ID);
     }
@@ -1025,9 +1025,9 @@ namespace KalaWindow::Graphics
         string title = GetTitle();
 
 		Log::Print(
-			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
+			"Destroying window '" + title + "'.",
 			"WINDOW",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		inputID = 0;
 		contextID = 0;

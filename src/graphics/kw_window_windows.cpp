@@ -97,16 +97,16 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
+		Log::Print(
+			"Creating new window.",
+			"WINDOW",
+			LogType::LOG_INFO);
+
 		u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
 		unique_ptr<ProcessWindow> newWindow = make_unique<ProcessWindow>();
 		ProcessWindow* windowPtr = newWindow.get();
-
-		Log::Print(
-			"Creating window '" + string(title) + "' with ID '" + to_string(newID) + "'.",
-			"WINDOW",
-			LogType::LOG_DEBUG);
 
 		HWND parentWindowRef{};
 		if (parentWindow != nullptr)
@@ -2100,16 +2100,16 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
 
-	void ProcessWindow::SetShutdownCallback(function<void(u32)> newValue) { shutdownCallback = newValue; }
+	void ProcessWindow::SetShutdownCallback(function<void()> newValue) { shutdownCallback = newValue; }
 
 	void ProcessWindow::CloseWindow()
 	{
-		if (shutdownCallback) shutdownCallback(ID);
+		if (shutdownCallback) shutdownCallback();
 		
-		KalaWindowRegistry<OpenGL_Context>::RemoveContent(ID);
-        KalaWindowRegistry<Vulkan_Context>::RemoveContent(ID);
+		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);
+        KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
 
-		KalaWindowRegistry<Input>::RemoveContent(ID);
+		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
 		
 		KalaWindowRegistry<ProcessWindow>::RemoveContent(ID);
@@ -2120,9 +2120,9 @@ namespace KalaWindow::Graphics
 		string title = GetTitle();
 
 		Log::Print(
-			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
+			"Destroying window '" + title + "'.",
 			"WINDOW",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		inputID = 0;
 		contextID = 0;

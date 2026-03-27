@@ -322,7 +322,7 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
             *entry.target = ptr;
 
             Log::Print(
-                "Loaded '" + string(entry.name) + "'!",
+                "Loaded function '" + string(entry.name) + "'!",
                 "OPENGL_CORE",
                 LogType::LOG_DEBUG);
         }

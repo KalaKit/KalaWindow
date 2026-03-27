@@ -34,7 +34,6 @@
 #include "opengl/kw_opengl_functions_core.hpp"
 
 using KalaWindow::Core::Input;
-using KalaWindow::Core::ShutdownState;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::ProcessWindow;
@@ -334,7 +333,7 @@ namespace KalaWindow::Core
 
                         if (ProcessWindow::GetRegistry().runtimeContent.empty())
                         {
-                            KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+                            KalaWindowCore::Shutdown();
                         }
                     }
                     break;

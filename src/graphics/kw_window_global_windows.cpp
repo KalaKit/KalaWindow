@@ -289,19 +289,23 @@ namespace KalaWindow::Graphics
 			{
 				if (canUninit)
 				{
+					/*
 					Log::Print(
 						"Calling CoUninitialize",
 						"WINDOW_GLOBAL",
 						LogType::LOG_DEBUG);
+					*/
 
 					CoUninitialize();
 				}
 				else
 				{
+					/*
 					Log::Print(
 						"Skipping CoUninitialize()",
 						"WINDOW_GLOBAL",
 						LogType::LOG_DEBUG);
+					*/
 				}
 			};
 

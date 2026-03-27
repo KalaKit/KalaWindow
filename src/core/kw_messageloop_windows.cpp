@@ -227,7 +227,7 @@ namespace KalaWindow::Core
 				PopupType::POPUP_TYPE_WARNING)
 				== PopupResult::POPUP_RESULT_YES)
 			{
-				KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+				KalaWindowCore::Shutdown();
 				return TRUE; //user clicked yes, continuing to logoff/shutdown
 			}
 			else return FALSE; //user clicked no, cancelling logoff/shutdown
@@ -1197,7 +1197,7 @@ namespace KalaWindow::Core
 
 					if (ProcessWindow::GetRegistry().runtimeContent.empty())
 					{
-						KalaWindowCore::Shutdown(ShutdownState::SHUTDOWN_CLEAN);
+						KalaWindowCore::Shutdown();
 					}
 
 					return true; //we handled it

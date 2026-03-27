@@ -70,7 +70,7 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
             *entry.target = ptr;
 
             Log::Print(
-                "Loaded '" + string(entry.name) + "'!",
+                "Loaded function '" + string(entry.name) + "'!",
                 "OPENGL_WINDOWS",
                 LogType::LOG_DEBUG);
         }

@@ -43,7 +43,6 @@ using KalaWindow::Graphics::Window_Global;
 #endif
 
 using std::string;
-using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
 
@@ -79,9 +78,9 @@ namespace KalaWindow::Core
 		Input* inputPtr = newInput.get();
 
 		Log::Print(
-			"Creating input context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'.",
+			"Creating input context for window '" + w->GetTitle() + "'.",
 			"INPUT",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		inputPtr->ID = newID;
 
@@ -119,7 +118,7 @@ namespace KalaWindow::Core
 		inputPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized input context for window '" + w->GetTitle() + "' with ID '" + to_string(newID) + "'!",
+			"Initialized input context for window '" + w->GetTitle() + "'!",
 			"INPUT",
 			LogType::LOG_SUCCESS);
 
@@ -701,9 +700,9 @@ namespace KalaWindow::Core
 		if (!w) return;
 
 		Log::Print(
-			"Destroying input with ID '" + to_string(ID) + "' for window '" + w->GetTitle() + "'.",
+			"Destroying input context for window '" + w->GetTitle() + "'.",
 			"INPUT",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		EndFrameUpdate();
 	}
