@@ -15,7 +15,7 @@ binarytype: static
 sources: "src"
 headers: "include", "_external_shared/KalaHeaders", "_external_shared/OpenGL", "_external_shared/Vulkan/Include"
 defines: LIB_STATIC
-warninglevel: none
+warninglevel: normal
 customflags: export-compile-commands, export-vscode-sln
 
 #profile debug-windows

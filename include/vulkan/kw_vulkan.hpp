@@ -38,11 +38,12 @@ namespace KalaWindow::Vulkan
 		static bool IsVerboseLoggingEnabled();
         
         //Global one-time Vulkan 1.3 init, needs to be called before per-window Vulkan init.
-        //Automatically added:
+        //Add optional features via extensions list.
+        //Automatically added extensions required for core operation:
         //- VK_KHR_surface
         //- VK_KHR_win32_surface (on windows)
         //- VK_KHR_xlib_surface (on linux)
-		static void Initialize(const vector<string>& extensions);
+		static void Initialize(const vector<string>& extensions = {});
 		static bool IsInitialized();
 
         static VkInstance GetInstance();

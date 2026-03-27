@@ -127,7 +127,8 @@ namespace KalaWindow::Graphics
 		//window dpi state affects performance and quality of the framebuffer
 		static ProcessWindow* Initialize(
 			string_view title,
-			vec2 size,
+			vec2 pos = vec2(100),
+			vec2 size = vec2(1280, 720),
 			ProcessWindow* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 
@@ -284,13 +285,16 @@ namespace KalaWindow::Graphics
 			u8 maxProgress) const;
 #endif
 
-		//Correctly handle aspect ratio during window resize
-		void TriggerResize();
-		void SetResizeCallback(const function<void()>& callback);
-
-		//Ensure content is redrawn while window is being resized
-		void TriggerRedraw();
+		//Regular window draw call
 		void SetRedrawCallback(const function<void()>& callback);
+		void TriggerRedraw();
+
+		//Handle window content during resize
+		void SetResizeCallback(const function<void()>& callback);
+		void TriggerResize();
+
+		//Clean up the external content of this window before its own data is cleaned
+		void SetShutdownCallback(function<void(u32)> newValue);
 
 		void SetWindowData(const WindowData& newWindowStruct);
 		const WindowData& GetWindowData() const;
@@ -307,9 +311,6 @@ namespace KalaWindow::Graphics
 		
 		u32 GetMenuBarID() const;
 		void SetMenuBarID(u32 newValue);
-		
-		//Clean up the external content of this window
-		void SetCleanExternalContent(function<void(u32)> newValue);
 
 		//Clean up the content of this window and erase it from its registry.
 		//Calls the functional assigned with SetCleanExternalContent if it was assigned
@@ -360,12 +361,10 @@ namespace KalaWindow::Graphics
 		u32 contextID{};
 		u32 menuBarID{};
 		
-		//functional for cleaning the external content of this window
-		function<void(u32)> cleanExternalContent{};
-
 		WindowData windowData{};
 
-		function<void()> resizeCallback{}; //Called whenever the window needs to be resized
-		function<void()> redrawCallback{}; //Called whenever the window needs to be redrawn
+		function<void()> redrawCallback{};
+		function<void()> resizeCallback{};
+		function<void(u32)> shutdownCallback{};
 	};
 }

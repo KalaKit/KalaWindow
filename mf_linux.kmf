@@ -8,22 +8,22 @@
 
 //copy readme
 origin: README.md
-target: ..@elypso-engine@_external_shared@KalaWindow@README.md, ..@elypso-hub@_external_shared@KalaWindow@README.md, ..@kalakit_test_projects@_external_shared@KalaWindow@README.md
+target: ..@elypso-engine@_external_shared@KalaWindow@README.md, ..@elypso-hub@_external_shared@KalaWindow@README.md, ..@_games@_external_shared@KalaWindow@README.md
 action: forcecopy
 
 //copy license
 origin: LICENSE.md
-target: ..@elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@kalakit_test_projects@_external_shared@KalaWindow@LICENSE.md
+target: ..@elypso-engine@_external_shared@KalaWindow@LICENSE.md, ..@elypso-hub@_external_shared@KalaWindow@LICENSE.md, ..@_games@_external_shared@KalaWindow@LICENSE.md
 action: forcecopy
 
 //copy include files
 origin: include
-target: ..@elypso-engine@_external_shared@KalaWindow@include, ..@elypso-hub@_external_shared@KalaWindow@include, ..@kalakit_test_projects@_external_shared@KalaWindow@include
+target: ..@elypso-engine@_external_shared@KalaWindow@include, ..@elypso-hub@_external_shared@KalaWindow@include, ..@_games@_external_shared@KalaWindow@include
 action: forcecopy
 
 //copy docs
 origin: docs
-target: ..@elypso-engine@_external_shared@KalaWindow@docs, ..@elypso-hub@_external_shared@KalaWindow@docs, ..@kalakit_test_projects@_external_shared@KalaWindow@docs
+target: ..@elypso-engine@_external_shared@KalaWindow@docs, ..@elypso-hub@_external_shared@KalaWindow@docs, ..@_games@_external_shared@KalaWindow@docs
 action: forcecopy
 
 //
@@ -32,12 +32,12 @@ action: forcecopy
 
 //copy debug a
 origin: build@debug-linux@libkalawindowd.a
-target: ..@elypso-engine@_external_shared@KalaWindow@debug@libkalawindowd.a, ..@elypso-hub@_external_shared@KalaWindow@debug@libkalawindowd.a, ..@kalakit_test_projects@_external_shared@KalaWindow@debug@libkalawindowd.a
+target: ..@elypso-engine@_external_shared@KalaWindow@debug@libkalawindowd.a, ..@elypso-hub@_external_shared@KalaWindow@debug@libkalawindowd.a, ..@_games@_external_shared@KalaWindow@debug@libkalawindowd.a
 action: forcecopy
 
 //copy release a
 origin: build@release-linux@libkalawindow.a
-target: ..@elypso-engine@_external_shared@KalaWindow@release@libkalawindow.a, ..@elypso-hub@_external_shared@KalaWindow@release@libkalawindow.a, ..@kalakit_test_projects@_external_shared@KalaWindow@release@libkalawindow.a
+target: ..@elypso-engine@_external_shared@KalaWindow@release@libkalawindow.a, ..@elypso-hub@_external_shared@KalaWindow@release@libkalawindow.a, ..@_games@_external_shared@KalaWindow@release@libkalawindow.a
 action: forcecopy
 
 //
@@ -46,15 +46,15 @@ action: forcecopy
 
 //KalaHeaders
 origin: _external_shared@KalaHeaders
-target: ..@elypso-engine@_external_shared@KalaHeaders, ..@elypso-hub@_external_shared@KalaHeaders, ..@kalakit_test_projects@_external_shared@KalaHeaders
+target: ..@elypso-engine@_external_shared@KalaHeaders, ..@elypso-hub@_external_shared@KalaHeaders, ..@_games@_external_shared@KalaHeaders
 action: copy
 
 //OpenGL
 origin: _external_shared@OpenGL
-target: ..@elypso-engine@_external_shared@OpenGL, ..@elypso-hub@_external_shared@OpenGL, ..@kalakit_test_projects@_external_shared@KalaHeaders
+target: ..@elypso-engine@_external_shared@OpenGL, ..@elypso-hub@_external_shared@OpenGL, ..@_games@_external_shared@KalaHeaders
 action: copy
 
 //Vulkan
 origin: _external_shared@Vulkan
-target: ..@elypso-engine@_external_shared@Vulkan, ..@elypso-hub@_external_shared@Vulkan, ..@kalakit_test_projects@_external_shared@Vulkan
+target: ..@elypso-engine@_external_shared@Vulkan, ..@elypso-hub@_external_shared@Vulkan, ..@_games@_external_shared@Vulkan
 action: copy

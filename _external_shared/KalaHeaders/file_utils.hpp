@@ -272,10 +272,12 @@ namespace KalaHeaders::KalaFile
 
 		path p = path(input);
 
+		const string pstr = p.string();
+
 		//File or directory exists as a real path
 		if (exists(p))
 		{
-			results.push_back((p));
+			results.push_back(p);
 
 			string cleanupResult = clean_paths();
 			if (!cleanupResult.empty()) return cleanupResult;
@@ -285,15 +287,23 @@ namespace KalaHeaders::KalaFile
 			return {};
 		}
 
-		if (!contains_string(p.string(), "*"))
+		//check exclusion logic
+		if (pstr.find('!') != string::npos)
 		{
-			p = relativeDir / p;
-		}
+			if (pstr.find('*') != string::npos)
+			{
+				return "Exclusion does not support wildcards!";
+			}
+			if (!pstr.starts_with('!'))
+			{
+				return "Exclusion requires the exclamation mark to be in the front!";
+			}
+			if (pstr.find('!', 1) != string::npos)
+			{
+				return "Exclusion allows only one exclamation mark in a path!";
+			}
 
-		//File or directory exists as a real relative path
-		if (exists(p))
-		{
-			results.push_back((p));
+			results.push_back(p);
 
 			string cleanupResult = clean_paths();
 			if (!cleanupResult.empty()) return cleanupResult;
@@ -303,7 +313,9 @@ namespace KalaHeaders::KalaFile
 			return {};
 		}
 
-		auto get_all_wildcards = [&target](
+		if (!contains_string(pstr, "*")) p = relativeDir / p;
+
+		auto get_all_wildcards = [&pstr, &target](
 			path input,
 			vector<path>& out,
 			bool recursive = false) -> string
@@ -320,7 +332,7 @@ namespace KalaHeaders::KalaFile
 				{
 					return
 					"Failed to get paths with wildcard because the directory path "
-					"'" + p.string() + "' does not match any known wildcard pattern!";
+					"'" + pstr + "' does not match any known wildcard pattern!";
 				}
 
 				vector<path> tempOutTargetPaths{};
@@ -370,121 +382,121 @@ namespace KalaHeaders::KalaFile
 			const path& input,
 			vector<path>& out,
 			bool recursive = false) -> string
-		{
-			auto get_extension = [](string_view f) -> string_view
 			{
-				auto pos = f.rfind('.');
-
-				//return empty extension, valid for GNU
-				if (pos == string_view::npos) return{};
-				//returns found extension
-				return f.substr(pos);
-			};
-			
-			path p{ input };
-			
-			string filenamePattern = p.filename().string();
-			
-			bool startsWithWildcard = filenamePattern.starts_with('*');
-			bool endsWithWildcard = filenamePattern.ends_with('*');
-			
-			string pattern = filenamePattern;
-			
-			if (startsWithWildcard) pattern.erase(0, 1);
-			if (endsWithWildcard
-				&& !pattern.empty())
-			{
-				pattern.pop_back();
-			}
-
-			auto get_valid_file = [
-				&startsWithWildcard,
-				&endsWithWildcard,
-				&pattern](
-				const path& file,
-				string_view ext,
-				vector<path>& output)
-			{
-				if (!is_regular_file(file)) return;
-				
-				string name = file.filename().string();
-				
-				bool match{};
-				
-				if (startsWithWildcard
-					&& endsWithWildcard)
+				auto get_extension = [](string_view f) -> string_view
 				{
-					match = name.find(pattern) != string::npos;
+					auto pos = f.rfind('.');
+
+					//return empty extension, valid for GNU
+					if (pos == string_view::npos) return{};
+					//returns found extension
+					return f.substr(pos);
+				};
+				
+				path p{ input };
+				
+				string filenamePattern = p.filename().string();
+				
+				bool startsWithWildcard = filenamePattern.starts_with('*');
+				bool endsWithWildcard = filenamePattern.ends_with('*');
+				
+				string pattern = filenamePattern;
+				
+				if (startsWithWildcard) pattern.erase(0, 1);
+				if (endsWithWildcard
+					&& !pattern.empty())
+				{
+					pattern.pop_back();
 				}
-				else if (startsWithWildcard) match = name.ends_with(pattern);
-				else if (endsWithWildcard) match = name.starts_with(pattern);
-				else match = name == pattern;
-				
-				if (!match) return;
-				
-				bool extSpecified = !ext.empty();
-				bool hasValidExtension =
-					extSpecified
-					&& file.extension() == ext;
+
+				auto get_valid_file = [
+					&startsWithWildcard,
+					&endsWithWildcard,
+					&pattern](
+					const path& file,
+					string_view ext,
+					vector<path>& output)
+				{
+					if (!is_regular_file(file)) return;
 					
-				bool allowAnyExtension = !extSpecified;
+					string name = file.filename().string();
+					
+					bool match{};
+					
+					if (startsWithWildcard
+						&& endsWithWildcard)
+					{
+						match = name.find(pattern) != string::npos;
+					}
+					else if (startsWithWildcard) match = name.ends_with(pattern);
+					else if (endsWithWildcard) match = name.starts_with(pattern);
+					else match = name == pattern;
+					
+					if (!match) return;
+					
+					bool extSpecified = !ext.empty();
+					bool hasValidExtension =
+						extSpecified
+						&& file.extension() == ext;
+						
+					bool allowAnyExtension = !extSpecified;
 
-				if (hasValidExtension
-					|| allowAnyExtension)
+					if (hasValidExtension
+						|| allowAnyExtension)
+					{
+						output.push_back(file);
+					}
+				};
+
+				string filename = p.filename().string();
+				string_view ext = get_extension(filename);
+
+				if (p.empty()) return "Failed to get files with wildcard because the file path is empty!";
+
+				vector<path> tempOutFilePaths{};
+
+				path baseDir = p.parent_path().empty()
+					? "."
+					: p.parent_path();
+
+				if (!recursive)
 				{
-					output.push_back(file);
+					for (const auto& f : directory_iterator(baseDir))
+					{
+						const path& fpath{ f };
+
+						get_valid_file(
+							fpath,
+							ext,
+							tempOutFilePaths);
+					}
 				}
+				else
+				{
+					for (const auto& f : recursive_directory_iterator(baseDir))
+					{
+						const path& fpath{ f };
+
+						get_valid_file(
+							fpath,
+							ext,
+							tempOutFilePaths);
+					}
+				}
+
+				out.insert(
+					out.end(),
+					make_move_iterator(tempOutFilePaths.begin()),
+					make_move_iterator(tempOutFilePaths.end()));
+
+				return{};
 			};
-
-			string filename = p.filename().string();
-			string_view ext = get_extension(filename);
-
-			if (p.empty()) return "Failed to get files with wildcard because the file path is empty!";
-
-			vector<path> tempOutFilePaths{};
-
-			path baseDir = p.parent_path().empty()
-			? "."
-			: p.parent_path();
-
-			if (!recursive)
-			{
-				for (const auto& f : directory_iterator(baseDir))
-				{
-					const path& fpath{ f };
-
-					get_valid_file(
-						fpath,
-					ext,
-					tempOutFilePaths);
-				}
-			}
-			else
-			{
-				for (const auto& f : recursive_directory_iterator(baseDir))
-				{
-					const path& fpath{ f };
-
-					get_valid_file(
-						fpath,
-						ext,
-						tempOutFilePaths);
-				}
-			}
-
-			out.insert(
-				out.end(),
-				make_move_iterator(tempOutFilePaths.begin()),
-				make_move_iterator(tempOutFilePaths.end()));
-
-			return{};
-		};
 
 		vector<path> foundPaths{};
 
 		//Directory or file is recursive
-		if (p.string() == "**"
-			|| p.string().ends_with("**"))
+		if (pstr == "**"
+			|| pstr.ends_with("**"))
 		{
 			string result = get_all_wildcards(
 				p, 

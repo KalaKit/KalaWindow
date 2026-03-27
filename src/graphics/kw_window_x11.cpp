@@ -60,6 +60,7 @@ namespace KalaWindow::Graphics
 
     ProcessWindow* ProcessWindow::Initialize(
 		string_view title,
+        vec2 newPos,
 		vec2 newSize,
 		ProcessWindow* parentWindow,
 		DpiContext context)
@@ -106,14 +107,14 @@ namespace KalaWindow::Graphics
 
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
 
-        vec2 newPos = 800.0f;
+        vec2 clampedPos = kclamp(newPos, -20000.0f, 20000.0f);
         vec2 clampedSize = kclamp(newSize, 1.0f, 10000.0f);
 
         Window window = XCreateSimpleWindow(
             display,
             root,
-            scast<int>(newPos.x),
-            scast<int>(newPos.y),
+            scast<int>(clampedPos.x),
+            scast<int>(clampedPos.y),
             scast<int>(clampedSize.x),
             scast<int>(clampedSize.y),
             1,
@@ -949,7 +950,7 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return 0; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) {}
 
-	void ProcessWindow::SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
+	void ProcessWindow::SetShutdownCallback(function<void(u32)> newValue) { shutdownCallback = newValue; }
 
     void ProcessWindow::UpdateFullscreenState()
     {
@@ -1014,7 +1015,7 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::CloseWindow()
     {
-        if (cleanExternalContent) cleanExternalContent(ID);
+        if (shutdownCallback) shutdownCallback(ID);
 		
 		KalaWindowRegistry<OpenGL_Context>::RemoveContent(ID);
         KalaWindowRegistry<Vulkan_Context>::RemoveContent(ID);

@@ -85,7 +85,8 @@ namespace KalaWindow::Graphics
 
 	ProcessWindow* ProcessWindow::Initialize(
 		string_view title,
-		vec2 size,
+        vec2 newPos,
+		vec2 newSize,
 		ProcessWindow* parentWindow,
 		DpiContext context)
 	{
@@ -145,6 +146,9 @@ namespace KalaWindow::Graphics
 		wstring appIDWide = ToWide(Window_Global::GetAppID());
 		wstring titleWide = ToWide(title);
 
+        vec2 clampedPos = kclamp(newPos, -20000.0f, 20000.0f);
+        vec2 clampedSize = kclamp(newSize, 1.0f, 10000.0f);
+
 		HWND newHwnd = CreateWindowExW(
 			exStyle,
 			appIDWide.c_str(),
@@ -152,8 +156,8 @@ namespace KalaWindow::Graphics
 			WS_OVERLAPPEDWINDOW,
 			CW_USEDEFAULT,
 			CW_USEDEFAULT,
-			size.x,
-			size.y,
+			clampedSize.x,
+			clampedSize.y,
 			parentWindowRef,
 			nullptr,
 			newHInstance,
@@ -227,7 +231,8 @@ namespace KalaWindow::Graphics
 
 		windowPtr->SetTitle(title);
 		windowPtr->ID = newID;
-		windowPtr->SetClientRectSize(size);
+		windowPtr->SetClientRectSize(clampedSize);
+		windowPtr->SetPosition(clampedPos);
 
 		windowPtr->isInitialized = true;
 
@@ -2100,11 +2105,11 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
 
-	void ProcessWindow::SetCleanExternalContent(function<void(u32)> newValue) { cleanExternalContent = newValue; }
+	void ProcessWindow::SetShutdownCallback(function<void(u32)> newValue) { shutdownCallback = newValue; }
 
 	void ProcessWindow::CloseWindow()
 	{
-		if (cleanExternalContent) cleanExternalContent(ID);
+		if (shutdownCallback) shutdownCallback(ID);
 		
 		KalaWindowRegistry<OpenGL_Context>::RemoveContent(ID);
         KalaWindowRegistry<Vulkan_Context>::RemoveContent(ID);

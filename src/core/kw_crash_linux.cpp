@@ -350,7 +350,6 @@ void GenerateFullCrashReport(
 
     logStream << "Reason: ";
 
-    bool isBreakpoint{};
     switch (signal)
     {
         case SIGBUS:
