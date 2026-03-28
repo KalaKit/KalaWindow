@@ -16,11 +16,24 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 	using std::string;
 
 #ifdef __linux__
-	typedef void (*PFNGLDRAWARRAYSPROC)(GLenum mode, GLint first, GLsizei count);
-	typedef void (*PFNGLDRAWELEMENTSPROC)(GLenum mode, GLsizei count, GLenum type, const void* indices);
-	typedef void (*PFNGLBINDTEXTUREPROC)(GLenum target, GLuint texture);
-	typedef void (*PFNGLDELETETEXTURESPROC)(GLsizei n, const GLuint* textures);
-	typedef void (*PFNGLGENTEXTURESPROC)(GLsizei n, GLuint* textures);
+	typedef void (*PFNGLDRAWARRAYSPROC)(
+		GLenum mode, 
+		GLint first, 
+		GLsizei count);
+	typedef void (*PFNGLDRAWELEMENTSPROC)(
+		GLenum mode, 
+		GLsizei count, 
+		GLenum type, 
+		const void* indices);
+	typedef void (*PFNGLBINDTEXTUREPROC)(
+		GLenum target, 
+		GLuint texture);
+	typedef void (*PFNGLDELETETEXTURESPROC)(
+		GLsizei n, 
+		const GLuint* textures);
+	typedef void (*PFNGLGENTEXTURESPROC)(
+		GLsizei n, 
+		GLuint* textures);
 	typedef void (*PFNGLTEXSUBIMAGE2DPROC)(
 		GLenum target,
 		GLint level,
@@ -230,13 +243,13 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 		//Sets a vec4 int uniform from an array
 		PFNGLUNIFORM4IVPROC glUniform4iv;
 
-		//Sets a 2�2 matrix uniform from an array of floats
+		//Sets a 2x2 matrix uniform from an array of floats
 		PFNGLUNIFORMMATRIX2FVPROC glUniformMatrix2fv;
 
-		//Sets a 3�3 matrix uniform from an array of floats
+		//Sets a 3x3 matrix uniform from an array of floats
 		PFNGLUNIFORMMATRIX3FVPROC glUniformMatrix3fv;
 
-		//Sets a 4�4 matrix uniform from an array of floats
+		//Sets a 4x4 matrix uniform from an array of floats
 		PFNGLUNIFORMMATRIX4FVPROC glUniformMatrix4fv;
 
 		//
