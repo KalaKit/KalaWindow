@@ -73,7 +73,7 @@ namespace KalaWindow::Graphics
 	struct LIB_API WindowData
 	{
 		uintptr_t window{};
-		uintptr_t hdc{};
+		uintptr_t handle{};
 		uintptr_t hInstance{};
 		uintptr_t hMenu{};
 		uintptr_t wndProc{};

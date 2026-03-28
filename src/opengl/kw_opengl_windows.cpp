@@ -344,7 +344,7 @@ namespace KalaWindow::OpenGL
 
 		const WindowData& wData = w->GetWindowData();
 
-		HDC hdc = ToVar<HDC>(wData.hdc);
+		HDC handle = ToVar<HDC>(wData.handle);
 
 		vector<int> pixelAttribs =
 		{
@@ -429,7 +429,7 @@ namespace KalaWindow::OpenGL
 		UINT numFormats = 0;
 
 		BOOL result = (windowsFunc->wglChoosePixelFormatARB(
-			hdc,
+			handle,
 			pixelAttribs.data(),
 			nullptr,
 			1,
@@ -455,7 +455,7 @@ namespace KalaWindow::OpenGL
 
 		PIXELFORMATDESCRIPTOR pfd{};
 		int describeResult = DescribePixelFormat(
-			hdc,
+			handle,
 			pfID,
 			sizeof(pfd),
 			&pfd);
@@ -470,7 +470,7 @@ namespace KalaWindow::OpenGL
 		}
 
 		if (!SetPixelFormat(
-			hdc,
+			handle,
 			pfID,
 			&pfd))
 		{
@@ -483,55 +483,55 @@ namespace KalaWindow::OpenGL
 
 		int attrib_color_bits = WGL_COLOR_BITS_ARB;
 		int colorBits = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_color_bits, &colorBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_color_bits, &colorBits);
 
 		int attrib_depth_bits = WGL_DEPTH_BITS_ARB;
 		int depthBits = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_depth_bits, &depthBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_depth_bits, &depthBits);
 
 		int attrib_stencil_bits = WGL_STENCIL_BITS_ARB;
 		int stencilBits = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_stencil_bits, &stencilBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_stencil_bits, &stencilBits);
 
 		int attrib_alpha_bits = WGL_ALPHA_BITS_ARB;
 		int alphaBits = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_alpha_bits, &alphaBits);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_alpha_bits, &alphaBits);
 
 		int attrib_draw = WGL_DRAW_TO_WINDOW_ARB;
 		int drawToWindow = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_draw, &drawToWindow);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_draw, &drawToWindow);
 
 		int attrib_gl = WGL_SUPPORT_OPENGL_ARB;
 		int supportGL = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_gl, &supportGL);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_gl, &supportGL);
 
 		int attrib_double_buffer = WGL_DOUBLE_BUFFER_ARB;
 		int doubleBuffer = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_double_buffer, &doubleBuffer);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_double_buffer, &doubleBuffer);
 
 		//MSAA samples
 		int attrib_MSAA_buffers = WGL_SAMPLE_BUFFERS_ARB;
 		int sampleBuffer = 0;
 		int attrib_MSAA_samples = WGL_SAMPLES_ARB;
 		int samples = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_buffers, &sampleBuffer);
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_MSAA_samples, &samples);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_MSAA_buffers, &sampleBuffer);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_MSAA_samples, &samples);
 		string msaaVal = sampleBuffer == 1 ? to_string(samples) + "x" : "Disabled";
 
 		//sRGB capable
 		int attrib_srgb = WGL_FRAMEBUFFER_SRGB_CAPABLE_ARB;
 		int srgbBuffer = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_srgb, &srgbBuffer);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_srgb, &srgbBuffer);
 
 		//acceleration
 		int attrib_acceleration = WGL_ACCELERATION_ARB;
 		int accel = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_acceleration, &accel);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_acceleration, &accel);
 
 		//swap method
 		int attrib_swap_method = WGL_SWAP_METHOD_ARB;
 		int swap = 0;
-		windowsFunc->wglGetPixelFormatAttribivARB(hdc, pfID, 0, 1, &attrib_swap_method, &swap);
+		windowsFunc->wglGetPixelFormatAttribivARB(handle, pfID, 0, 1, &attrib_swap_method, &swap);
 
 		string accelVal = (accel == WGL_FULL_ACCELERATION_ARB)
 			? "Hardware"
@@ -613,7 +613,7 @@ namespace KalaWindow::OpenGL
 		}
 
 		HGLRC newContext = windowsFunc->wglCreateContextAttribsARB(
-			hdc,
+			handle,
 			existing,
 			attribs);
 
@@ -628,7 +628,7 @@ namespace KalaWindow::OpenGL
 
 		contPtr->context = FromVar(newContext);
 
-		wglMakeCurrent(hdc, newContext);
+		wglMakeCurrent(handle, newContext);
 		windowsFunc->wglSwapIntervalEXT(1); //default vsync is true
 
 		//and finally set opengl viewport size

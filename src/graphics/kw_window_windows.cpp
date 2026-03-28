@@ -195,7 +195,7 @@ namespace KalaWindow::Graphics
 		WindowData newWindowStruct =
 		{
 			.window = FromVar(newHwnd),
-			.hdc = FromVar(newHDC),
+			.handle = FromVar(newHDC),
 			.hInstance = FromVar(newHInstance),
 			.wndProc = FromVar((WNDPROC)GetWindowLongPtr(newHwnd, GWLP_WNDPROC))
 		};
@@ -2130,11 +2130,11 @@ namespace KalaWindow::Graphics
 
 			if (windowData.wndProc) windowData.wndProc = NULL;
 
-			if (windowData.hdc)
+			if (windowData.handle)
 			{
 				ReleaseDC(
 					hwnd,
-					ToVar<HDC>(windowData.hdc));
+					ToVar<HDC>(windowData.handle));
 			}
 
 			if (exeIcon)
@@ -2212,16 +2212,16 @@ HICON SetUpIcon(OpenGL_Texture* texture)
 	bi.bV5BlueMask = 0x000000FF;
 	bi.bV5AlphaMask = 0xFF000000;
 
-	HDC hdc = CreateCompatibleDC(nullptr);
+	HDC handle = CreateCompatibleDC(nullptr);
 	void* pvBits = nullptr;
 	HBITMAP hBitMap = CreateDIBSection(
-		hdc,
+		handle,
 		rcast<BITMAPINFO*>(&bi),
 		DIB_RGB_COLORS,
 		&pvBits,
 		nullptr,
 		0);
-	DeleteDC(hdc);
+	DeleteDC(handle);
 
 	if (!hBitMap)
 	{
