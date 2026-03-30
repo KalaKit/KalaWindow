@@ -681,6 +681,7 @@ namespace KalaWindow::OpenGL
 
 		contPtr->context = FromVar(newContext);
 
+		glXMakeCurrent(display, None, nullptr);
 		glXMakeCurrent(display, windowRef, newContext);
 		glFunc->glXSwapIntervalEXT(display, windowRef, 1); //default vsync is true
 

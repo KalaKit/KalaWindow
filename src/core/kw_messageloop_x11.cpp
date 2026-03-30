@@ -291,7 +291,10 @@ namespace KalaWindow::Core
                 case ConfigureNotify:
                 {
                     vec2 newPos = vec2(event.xconfigure.x, event.xconfigure.y);
-                    vec2 newSize = vec2(event.xconfigure.width, event.xconfigure.height);
+                    vec2 newSize = kclamp(
+                        vec2(event.xconfigure.width, event.xconfigure.height),
+                        w->minSize,
+                        w->maxSize);
 
                     vec2 oldSize = w->size;
 

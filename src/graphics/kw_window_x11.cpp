@@ -11,6 +11,7 @@
 #include <X11/X.h>
 
 #include <memory>
+#include <sstream>
 
 #include "core_utils.hpp"
 #include "log_utils.hpp"
@@ -40,6 +41,7 @@ using KalaWindow::Graphics::WindowState;
 using std::make_unique;
 using std::unique_ptr;
 using std::to_string;
+using std::ostringstream;
 
 constexpr u16 MAX_TITLE_LENGTH = 50;
 
@@ -458,6 +460,41 @@ namespace KalaWindow::Graphics
         maxSize = kclamp(newMaxSize, minSize + 1.0f, 10000.0f);
 
         if (size > maxSize) SetClientRectSize(maxSize);
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+
+        if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window max size because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window max size because the attached window was invalid!");
+        }
+
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        XSizeHints hints{};
+        hints.flags = PMinSize | PMaxSize;
+        hints.min_width = (int)minSize.x;
+        hints.min_height = (int)minSize.y;
+        hints.max_width = (int)maxSize.x;
+        hints.max_height = (int)maxSize.y;
+
+        ostringstream oss{};
+        oss << "min_x: " << hints.min_width 
+            << ", min_y: " << hints.min_height
+            << ", max_x: " << hints.max_width
+            << ", max_y: " << hints.max_height;
+        Log::Print(oss.str());
+
+        XSetWMNormalHints(display, window, &hints);
+        XFlush(display);
     }
 	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
 
@@ -466,6 +503,34 @@ namespace KalaWindow::Graphics
         minSize = kclamp(newMinSize, 1.0f, maxSize - 1.0f);
 
         if (size < minSize) SetClientRectSize(minSize);
+
+        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+
+        if (!globalData.display)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window min size because the attached display was invalid!");
+        }
+        if (!windowData.window)
+        {
+            KalaWindowCore::ForceClose(
+                "Window error",
+                "Failed to set window min size because the attached window was invalid!");
+        }
+
+        Display* display = ToVar<Display*>(globalData.display);
+        Window window = ToVar<Window>(windowData.window);
+
+        XSizeHints hints{};
+        hints.flags = PMinSize | PMaxSize;
+        hints.min_width = (int)minSize.x;
+        hints.min_height = (int)minSize.y;
+        hints.max_width = (int)maxSize.x;
+        hints.max_height = (int)maxSize.y;
+
+        XSetNormalHints(display, window, &hints);
+        XFlush(display);
     }
 	vec2 ProcessWindow::GetMinSize() const { return minSize; }
 
