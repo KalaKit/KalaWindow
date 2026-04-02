@@ -66,7 +66,6 @@ namespace KalaWindow::Vulkan
 		u32 GetID() const;
 		u32 GetWindowID() const;
 
-    	//Do not destroy manually, erase from registry instead
 		~Vulkan_Context();
 	private:
 		bool isInitialized{};

@@ -241,7 +241,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"Clicked on window '" + window->GetTitle() + "' client area.",
-					"MESSAGELOOP",
+					"KW_MESSAGE_LOOP",
 					LogType::LOG_INFO);
 			}
 
@@ -254,7 +254,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"Clicked on window '" + window->GetTitle() + "' non-client area.",
-					"MESSAGELOOP",
+					"KW_MESSAGE_LOOP",
 					LogType::LOG_INFO);
 			}
 
@@ -328,7 +328,7 @@ namespace KalaWindow::Core
 
 			Log::Print(
 				"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
-				"MESSAGELOOP",
+				"KW_MESSAGE_LOOP",
 				LogType::LOG_INFO);
 
 			return result;
@@ -353,7 +353,7 @@ namespace KalaWindow::Core
 				{
 					Log::Print(
 						"Cannot use 'ProcessMessage' because its window was not found!",
-						"MESSAGELOOP",
+						"KW_MESSAGE_LOOP",
 						LogType::LOG_ERROR,
 						2);
 
@@ -369,7 +369,7 @@ namespace KalaWindow::Core
 				{
 					Log::Print(
 						"Received empty or WM_NULL message.",
-						"MESSAGELOOP",
+						"KW_MESSAGE_LOOP",
 						LogType::LOG_INFO);
 				}
 				else
@@ -386,7 +386,7 @@ namespace KalaWindow::Core
 
 					Log::Print(
 						"Got message: " + ss.str(),
-						"MESSAGELOOP",
+						"KW_MESSAGE_LOOP",
 						LogType::LOG_INFO);
 				}
 				*/
@@ -984,7 +984,7 @@ namespace KalaWindow::Core
 						{
 							Log::Print(
 								"Window '" + window->GetTitle() + "' was deactivated.",
-								"MESSAGELOOP",
+								"KW_MESSAGE_LOOP",
 								LogType::LOG_INFO);
 						}
 
@@ -997,7 +997,7 @@ namespace KalaWindow::Core
 						{
 							Log::Print(
 								"Window '" + window->GetTitle() + "' was activated.",
-								"MESSAGELOOP",
+								"KW_MESSAGE_LOOP",
 								LogType::LOG_INFO);
 						}
 
@@ -1017,7 +1017,7 @@ namespace KalaWindow::Core
 						{
 							Log::Print(
 								"Returned focus to window '" + window->GetTitle() + "'!",
-								"MESSAGELOOP",
+								"KW_MESSAGE_LOOP",
 								LogType::LOG_INFO);
 						}
 					}
@@ -1035,7 +1035,7 @@ namespace KalaWindow::Core
 						{
 							Log::Print(
 								"No longer focusing on window '" + window->GetTitle() + "'.",
-								"MESSAGELOOP",
+								"KW_MESSAGE_LOOP",
 								LogType::LOG_INFO);
 						}
 					}
@@ -1179,7 +1179,7 @@ namespace KalaWindow::Core
 
 						Log::Print(
 							"Did not find leaf event with ID '" + to_string(IDRef) + "'.",
-							"MESSAGELOOP",
+							"KW_MESSAGE_LOOP",
 							LogType::LOG_INFO);
 					}
 

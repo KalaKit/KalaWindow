@@ -93,7 +93,7 @@ namespace KalaWindow::OpenGL
 		{
 			Log::Print(
 				"Cannot initialize global OpenGL more than once!",
-				"OPENGL",
+				"KW_OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -181,7 +181,7 @@ namespace KalaWindow::OpenGL
 
 		Log::Print(
 			"Initialized global OpenGL context!",
-			"OPENGL",
+			"KW_OPENGL",
 			LogType::LOG_SUCCESS);
 
 		isInitialized = true;
@@ -324,7 +324,7 @@ namespace KalaWindow::OpenGL
 		{
 			Log::Print(
 				"Cannot add OpenGL context to window '" + w->GetTitle() + "' because it already has an existing context!",
-				"OPENGL",
+				"KW_OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -567,7 +567,7 @@ namespace KalaWindow::OpenGL
 		{
 			Log::Print(
 				ss.str(),
-				"OPENGL",
+				"KW_OPENGL",
 				LogType::LOG_INFO);
 		}
 
@@ -604,7 +604,7 @@ namespace KalaWindow::OpenGL
 				{
 					Log::Print(
 						"OperGL parent context ID cannot be same as this context ID!",
-						"OPENGL",
+						"KW_OPENGL",
 						LogType::LOG_ERROR,
 						2);
 				}
@@ -686,7 +686,7 @@ namespace KalaWindow::OpenGL
 		{
 			Log::Print(
 				ss2.str(),
-				"OPENGL",
+				"KW_OPENGL",
 				LogType::LOG_INFO);
 		}
 
@@ -700,8 +700,8 @@ namespace KalaWindow::OpenGL
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized OpenGL context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
-			"OPENGL",
+			"Created new OpenGL context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"KW_OPENGL",
 			LogType::LOG_SUCCESS);
 
 		return contPtr;
@@ -720,12 +720,11 @@ namespace KalaWindow::OpenGL
 	OpenGL_Context::~OpenGL_Context()
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!window)
 		{
 			Log::Print(
 				"Cannot shut down OpenGL context because its window was not found!",
-				"OPENGL",
+				"KW_OPENGL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -733,8 +732,8 @@ namespace KalaWindow::OpenGL
 		}
 
 		Log::Print(
-			"Destroying OpenGL context for window '" + window->GetTitle() + "'.",
-			"OPENGL",
+			"Destroying OpenGL context with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
+			"KW_OPENGL",
 			LogType::LOG_INFO);
 
 		HGLRC storedContext = ToVar<HGLRC>(context);

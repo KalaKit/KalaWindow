@@ -323,7 +323,7 @@ namespace KalaWindow::OpenGL::OpenGLFunctions
 
             Log::Print(
                 "Loaded function '" + string(entry.name) + "'!",
-                "OPENGL_CORE",
+                "KW_OPENGL_CORE",
                 LogType::LOG_DEBUG);
         }
 	}

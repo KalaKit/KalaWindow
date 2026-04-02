@@ -315,7 +315,6 @@ namespace KalaWindow::Graphics
 		//Calls the functional assigned with SetCleanExternalContent if it was assigned
 		void CloseWindow();
 
-		//Do not destroy manually, erase from registry instead
 		~ProcessWindow();
 	private:
 #ifdef _WIN32

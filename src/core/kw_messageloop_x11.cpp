@@ -177,7 +177,7 @@ namespace KalaWindow::Core
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Message loop error",
                 "Failed to update message loop because the attached display was invalid!");
         }
 
@@ -270,7 +270,7 @@ namespace KalaWindow::Core
 			if (!wdata.window)
 			{
 				KalaWindowCore::ForceClose(
-					"Window error",
+					"Message loop error",
 					"Failed to update message loop because the attached window was invalid!");
 			}
 
@@ -404,7 +404,7 @@ namespace KalaWindow::Core
                     {
                         Log::Print(
                             "Detected keyboard key '" + TranslateKeySymToString(ks) + "' down.",
-                            "INPUT",
+                            "KW_MESSAGE_LOOP",
                             LogType::LOG_INFO);
                     }
 
@@ -496,7 +496,7 @@ namespace KalaWindow::Core
                     {
                         Log::Print(
                             "Detected keyboard key '" + TranslateKeySymToString(ks) + "' up.",
-                            "INPUT",
+                            "KW_MESSAGE_LOOP",
                             LogType::LOG_INFO);
                     }
 
@@ -538,7 +538,7 @@ namespace KalaWindow::Core
                             {
                                 Log::Print(
                                     "Detected left mouse key down.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -550,7 +550,7 @@ namespace KalaWindow::Core
 
                                 Log::Print(
                                     "Detected left mouse key double click.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -566,7 +566,7 @@ namespace KalaWindow::Core
                             {
                                 Log::Print(
                                     "Detected right mouse key down.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -578,7 +578,7 @@ namespace KalaWindow::Core
 
                                 Log::Print(
                                     "Detected right mouse key double click.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -594,7 +594,7 @@ namespace KalaWindow::Core
                             {
                                 Log::Print(
                                     "Detected middle mouse key down.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -606,7 +606,7 @@ namespace KalaWindow::Core
 
                                 Log::Print(
                                     "Detected middle mouse key double click.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -640,7 +640,7 @@ namespace KalaWindow::Core
                                     {
                                         Log::Print(
                                             "Detected x1 mouse key down.",
-                                            "INPUT",
+                                            "KW_MESSAGE_LOOP",
                                             LogType::LOG_INFO);
                                     }
 
@@ -652,7 +652,7 @@ namespace KalaWindow::Core
 
                                         Log::Print(
                                             "Detected x1 mouse key double click.",
-                                            "INPUT",
+                                            "KW_MESSAGE_LOOP",
                                             LogType::LOG_INFO);
                                     }
                                 }
@@ -666,7 +666,7 @@ namespace KalaWindow::Core
                                     {
                                         Log::Print(
                                             "Detected x2 mouse key down.",
-                                            "INPUT",
+                                            "KW_MESSAGE_LOOP",
                                             LogType::LOG_INFO);
                                     }
 
@@ -678,7 +678,7 @@ namespace KalaWindow::Core
 
                                         Log::Print(
                                             "Detected x2 mouse key double click.",
-                                            "INPUT",
+                                            "KW_MESSAGE_LOOP",
                                             LogType::LOG_INFO);
                                     }
                                 }
@@ -706,7 +706,7 @@ namespace KalaWindow::Core
                             {
                                 Log::Print(
                                     "Detected left mouse key up.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -722,7 +722,7 @@ namespace KalaWindow::Core
                             {
                                 Log::Print(
                                     "Detected right mouse key up.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -738,7 +738,7 @@ namespace KalaWindow::Core
                             {
                                 Log::Print(
                                     "Detected middle mouse key up.",
-                                    "INPUT",
+                                    "KW_MESSAGE_LOOP",
                                     LogType::LOG_INFO);
                             }
 
@@ -761,7 +761,7 @@ namespace KalaWindow::Core
                                     {
                                         Log::Print(
                                             "Detected x1 mouse key up.",
-                                            "INPUT",
+                                            "KW_MESSAGE_LOOP",
                                             LogType::LOG_INFO);
                                     }
                                 }
@@ -775,7 +775,7 @@ namespace KalaWindow::Core
                                     {
                                         Log::Print(
                                             "Detected x2 mouse key up.",
-                                            "INPUT",
+                                            "KW_MESSAGE_LOOP",
                                             LogType::LOG_INFO);
                                     }
                                 }

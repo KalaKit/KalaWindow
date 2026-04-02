@@ -158,7 +158,7 @@ namespace KalaWindow::Core
         {
             Log::Print(
 			    "Failed to initialize crash handler because it has already been initialized!",
-			    "CRASH_HANDLER",
+			    "KW_CRASH",
 			    LogType::LOG_ERROR,
                 2);
 
@@ -208,7 +208,7 @@ namespace KalaWindow::Core
 
 		Log::Print(
 			"Initialized crash handler!",
-			"CRASH_HANDLER",
+			"KW_CRASH",
 			LogType::LOG_SUCCESS);
     }
 
@@ -460,7 +460,7 @@ void GenerateFullCrashReport(
     {
         Log::Print(
 			"Dump file creation disabled by user.",
-			"CRASH_HANDLER",
+			"KW_CRASH",
 			LogType::LOG_DEBUG,
 			0,
 			true);
@@ -573,7 +573,7 @@ void WriteLog(
 	{
 		Log::Print(
 			"Failed to open log file to write into it!",
-			"CRASH_HANDLER",
+			"KW_CRASH",
 			LogType::LOG_ERROR,
             2);
 

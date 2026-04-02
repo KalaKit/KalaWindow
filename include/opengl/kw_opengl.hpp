@@ -107,7 +107,6 @@ namespace KalaWindow::OpenGL
 		uintptr_t GetContext() const;
 		uintptr_t GetParentContext() const;
 
-		//Do not destroy manually, erase from registry instead
 		~OpenGL_Context();
 	private:
 		bool isInitialized{};

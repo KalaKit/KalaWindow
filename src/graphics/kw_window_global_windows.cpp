@@ -66,7 +66,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot initialize global window context because it has already been initialized!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -95,7 +95,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Windows version '" + osVersion + "' build '" + buildVersion + "'",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_INFO);
 		}
 
@@ -152,7 +152,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			"Initialized global window context!",
-			"WINDOW_GLOBAL",
+			"KW_WINDOW_GLOBAL",
 			LogType::LOG_SUCCESS);
 
 		return true;
@@ -276,7 +276,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to initialize COM! Reason: " + HResultToString(hr),
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -292,7 +292,7 @@ namespace KalaWindow::Graphics
 					/*
 					Log::Print(
 						"Calling CoUninitialize",
-						"WINDOW_GLOBAL",
+						"KW_WINDOW_GLOBAL",
 						LogType::LOG_DEBUG);
 					*/
 
@@ -303,7 +303,7 @@ namespace KalaWindow::Graphics
 					/*
 					Log::Print(
 						"Skipping CoUninitialize()",
-						"WINDOW_GLOBAL",
+						"KW_WINDOW_GLOBAL",
 						LogType::LOG_DEBUG);
 					*/
 				}
@@ -321,7 +321,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to create file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -338,7 +338,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to set file filter to '" + typeVal + "' for dialog! Reason: " + HResultToString(hr),
-					"WINDOW_GLOBAL",
+					"KW_WINDOW_GLOBAL",
 					LogType::LOG_ERROR,
 					2);
 			};
@@ -564,7 +564,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"User cancelled file selection.",
-					"WINDOW_GLOBAL",
+					"KW_WINDOW_GLOBAL",
 					LogType::LOG_INFO);
 			}
 
@@ -576,7 +576,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to show file open dialog! Reason: " + HResultToString(hr),
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -591,7 +591,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to retrieve selected items from file dialog! Reason: " + HResultToString(hr),
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -612,7 +612,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to get item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW_GLOBAL",
+					"KW_WINDOW_GLOBAL",
 					LogType::LOG_ERROR,
 					2);
 
@@ -628,7 +628,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to get file path for item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
-					"WINDOW_GLOBAL",
+					"KW_WINDOW_GLOBAL",
 					LogType::LOG_ERROR,
 					2);
 
@@ -646,7 +646,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Selected file '" + path + "'",
-					"WINDOW_GLOBAL",
+					"KW_WINDOW_GLOBAL",
 					LogType::LOG_SUCCESS);
 			}
 		}
@@ -677,7 +677,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Created notification '" + string(title) + "'!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -702,7 +702,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Played sound type '" + soundType + "'!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -713,7 +713,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to open clipboard when writing text to clipboard!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -732,7 +732,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to construct hGlobal when saving text to clipboard!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -745,7 +745,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to lock hGlobal when saving text to clipboard!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -767,7 +767,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Saved string to clipboard: '" + string(text) + "'!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
 	}
@@ -777,7 +777,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to open clipboard when reading text from clipboard!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -790,7 +790,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Clipboard does not contain Unicode text.",
-					"WINDOW_GLOBAL",
+					"KW_WINDOW_GLOBAL",
 					LogType::LOG_WARNING,
 					2);
 			}
@@ -806,7 +806,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Clipboard had no data to read from.",
-					"WINDOW_GLOBAL",
+					"KW_WINDOW_GLOBAL",
 					LogType::LOG_WARNING);
 			}
 
@@ -819,7 +819,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to lock memory handle to get text from clipboard!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -837,7 +837,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Read string to clipboard: '" + shortVal + "'!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_SUCCESS);
 		}
 

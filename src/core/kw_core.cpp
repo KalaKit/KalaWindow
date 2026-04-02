@@ -147,7 +147,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"Running user-provided shutdown callback.\n",
-					"WINDOW_CORE",
+					"KW_CORE",
 					LogType::LOG_INFO);
 
 				shutdownCallback();
@@ -158,7 +158,7 @@ namespace KalaWindow::Core
 			{
 				Log::Print(
 					"User-provided shutdown callback failed! Reason: " + string(e.what()),
-					"WINDOW_CORE",
+					"KW_CORE",
 					LogType::LOG_ERROR,
 					2);
 			}
@@ -187,7 +187,7 @@ namespace KalaWindow::Core
 
 		Log::Print(
 			"KalaWindow has been fully shut down!",
-			"WINDOW_CORE",
+			"KW_CORE",
 			LogType::LOG_SUCCESS);
 
 		exit(0);

@@ -114,8 +114,8 @@ namespace KalaWindow::Core
 		inputPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized input context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
-			"INPUT",
+			"Created new input context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"KW_INPUT",
 			LogType::LOG_SUCCESS);
 
 		return inputPtr;
@@ -504,7 +504,7 @@ namespace KalaWindow::Core
 
 			Log::Print(
 				"Set mouse visibility state to " + val,
-				"INPUT",
+				"KW_INPUT",
 				LogType::LOG_INFO);
 		}
 	}
@@ -588,7 +588,7 @@ namespace KalaWindow::Core
 
 			Log::Print(
 				"Set mouse lock state to " + val,
-				"INPUT",
+				"KW_INPUT",
 				LogType::LOG_INFO);
 		}
 	}
@@ -693,11 +693,20 @@ namespace KalaWindow::Core
 	Input::~Input()
 	{
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!w) return;
+		if (!w)
+		{
+			Log::Print(
+				"Cannot shut down input context because its window was not found!",
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
 
 		Log::Print(
-			"Destroying input context for window '" + w->GetTitle() + "'.",
-			"INPUT",
+			"Destroying input context with ID '" + to_string(ID) + "' for window '" + w->GetTitle() + "'.",
+			"KW_INPUT",
 			LogType::LOG_INFO);
 
 		EndFrameUpdate();

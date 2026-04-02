@@ -209,8 +209,8 @@ namespace KalaWindow::Graphics
 		registry.AddContent(newID, std::move(newWindow));
 
 		Log::Print(
-			"Created window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
-			"WINDOW",
+			"Created new window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
+			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
 
 		return windowPtr;
@@ -226,7 +226,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot run window loop because window '" + GetTitle() + "' has not been initialized!",
-				"WINDOW",
+				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -248,7 +248,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Window title cannot be empty!",
-				"WINDOW",
+				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -259,7 +259,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Window title exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
-				"WINDOW",
+				"KW_WINDOW",
 				LogType::LOG_ERROR,
                 2);
 
@@ -747,7 +747,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Class value cannot be empty!",
-				"WINDOW",
+				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
@@ -758,7 +758,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Class value exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
-				"WINDOW",
+				"KW_WINDOW",
 				LogType::LOG_ERROR,
                 2);
 
@@ -1085,8 +1085,8 @@ namespace KalaWindow::Graphics
         string title = GetTitle();
 
 		Log::Print(
-			"Destroying window '" + title + "'.",
-			"WINDOW",
+			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
+			"KW_WINDOW",
 			LogType::LOG_INFO);
 
 		inputID = 0;

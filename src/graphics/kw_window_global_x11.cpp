@@ -52,7 +52,7 @@ static int ErrorHandler(
             + "request: " + to_string(error->request_code) + "\n"
             + "minor: " + to_string(error->minor_code) + "\n"
             + "reason: " + buffer,
-        "WINDOW_GLOBAL",
+        "KW_WINDOW_GLOBAL",
         LogType::LOG_ERROR,
         2);
 
@@ -70,7 +70,7 @@ static int IOErrorHandler(Display* display)
 
     Log::Print(
         "Fatal X11 IO error!",
-        "WINDOW_GLOBAL",
+        "KW_WINDOW_GLOBAL",
         LogType::LOG_ERROR,
         2);
 
@@ -93,7 +93,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Cannot initialize global window context because it has already been initialized!",
-				"WINDOW_GLOBAL",
+				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
 
@@ -224,7 +224,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			"Initialized global window context!",
-			"WINDOW_GLOBAL",
+			"KW_WINDOW_GLOBAL",
 			LogType::LOG_SUCCESS);
 
         return true;

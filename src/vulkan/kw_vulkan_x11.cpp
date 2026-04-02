@@ -55,7 +55,7 @@ namespace KalaWindow::Vulkan
 		{
 			Log::Print(
 				"Cannot initialize global Vulkan more than once!",
-				"VULKAN",
+				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
 
@@ -126,7 +126,7 @@ namespace KalaWindow::Vulkan
 
         Log::Print(
 			"Initialized global Vulkan context!",
-			"VULKAN",
+			"KW_VULKAN",
 			LogType::LOG_SUCCESS);
 
 		isInitialized = true;
@@ -181,7 +181,7 @@ namespace KalaWindow::Vulkan
 		{
 			Log::Print(
 				"Cannot initialize Vulkan context because it's window was not found!",
-				"VULKAN",
+				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
 
@@ -192,7 +192,7 @@ namespace KalaWindow::Vulkan
 		{
 			Log::Print(
 				"Cannot add Vulkan context to window '" + w->GetTitle() + "' because it already has an existing context!",
-				"VULKAN",
+				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
 
@@ -262,8 +262,8 @@ namespace KalaWindow::Vulkan
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Initialized Vulkan context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
-			"VULKAN",
+			"Created new Vulkan context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"KW_VULKAN",
 			LogType::LOG_SUCCESS);
 
 		return contPtr;
@@ -279,12 +279,11 @@ namespace KalaWindow::Vulkan
     Vulkan_Context::~Vulkan_Context()
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!window)
 		{
 			Log::Print(
-				"Cannot shut down OpenGL context because its window was not found!",
-				"VULKAN",
+				"Cannot shut down Vulkan context because its window was not found!",
+				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
 
@@ -292,8 +291,8 @@ namespace KalaWindow::Vulkan
 		}
 
 		Log::Print(
-			"Destroying Vulkan context for window '" + window->GetTitle() + "'.",
-			"VULKAN",
+			"Destroying Vulkan context with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
+			"KW_VULKAN",
 			LogType::LOG_INFO);
 
 		vkDestroySurfaceKHR(

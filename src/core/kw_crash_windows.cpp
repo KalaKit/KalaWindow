@@ -112,7 +112,7 @@ namespace KalaWindow::Core
 
 		Log::Print(
 			"Initialized crash handler!",
-			"CRASH_HANDLER",
+			"KW_CRASH",
 			LogType::LOG_SUCCESS);
 	}
 
@@ -340,7 +340,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	{
 		Log::Print(
 			"Dump file creation disabled by user.",
-			"CRASH_HANDLER",
+			"KW_CRASH",
 			LogType::LOG_DEBUG,
 			0,
 			true);
@@ -400,7 +400,7 @@ void WriteMiniDump(
 
 		Log::Print(
 			debugMsg.str(),
-			"CRASH_HANDLER",
+			"KW_CRASH",
 			LogType::LOG_DEBUG);
 
 		dumpInfo.ExceptionPointers = info;
@@ -439,7 +439,7 @@ void AppendCallStackToStream(
 
 	Log::Print(
 		debugMsg.str(),
-		"CRASH_HANDLER",
+		"KW_CRASH",
 		LogType::LOG_DEBUG);
 
 	SymSetOptions(
@@ -555,7 +555,7 @@ void WriteLog(
 	{
 		Log::Print(
 			"Failed to open log file to write into it!",
-			"CRASH_HANDLER",
+			"KW_CRASH",
 			LogType::LOG_ERROR,
 			2);
 
