@@ -1,10 +1,40 @@
 # Auto detect text files and perform LF normalization
 * text=auto
 
-# Detect build system
-CMakeLists.txt linguist-detectable=true
-*.cmake linguist-detectable=true
+# C++ source files
+*.cpp    text eol=lf diff=cpp
+*.hpp    text eol=lf diff=cpp
 
-# Documentation is excluded
-*.md linguist-documentation
-*.txt linguist-documentation
+# C source files
+*.c      text eol=lf diff=c
+*.h      text eol=lf diff=c
+
+# Coral source file
+*.coral  text eol=lf diff=cpp
+
+# Build files
+.gitignore        text eol=lf
+.gitattributes    text eol=lf
+.kmake            text eol=lf
+.kmf              text eol=lf
+
+# Text files
+*.md        text eol=lf
+*.txt       text eol=lf
+
+# Binaries - don't touch line endings
+*.exe    binary
+*.dll    binary
+*.so     binary
+*.o      binary
+*.a      binary
+*.lib    binary
+*.kmd    binary
+*.kfd    binary
+
+# GitHub language detection
+*.cpp    linguist-language=C++
+*.hpp    linguist-language=C++
+*.c      linguist-language=C
+*.h      linguist-language=C
+*.coral  linguist-language=Coral
