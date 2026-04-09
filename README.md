@@ -4,6 +4,8 @@
 
 **KalaWindow** creates and owns the OpenGL 3.3 and Vulkan 1.3 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework. **KalaWindow** owns the GL and VK functions so Glad or other similar ones are not needed.
 
+This project relies on several [external dependencies](https://github.com/greeenlaser/external-shared), they are not shipped inside this project, please make sure you have that repository cloned into a folder inside the same parent directory as this project folder before compiling this project from source.
+
 ---
 
 ## Supported platforms
@@ -22,12 +24,12 @@
 
 ## Supported render pipelines
 
-| Render Pipeline | Status         | Notes                                             |
-|-----------------|----------------|---------------------------------------------------|
-| OpenGL          | Supported      | Internally locked to OpenGL 3.3                   |
-| Vulkan          | Planned        | Support for Vulkan 1.3 coming in a future version |
-| DirectX         | Not Supported  | No plans for DirectX compatibility                |
-| MoltenVK        | Not Supported  | No plans for MoltenVK compatibility               |
+| Render Pipeline | Status         | Notes                                |
+|-----------------|----------------|--------------------------------------|
+| OpenGL          | Supported      | Internally locked to OpenGL 3.3      |
+| Vulkan          | Planned        | Internally locked to Vulkan 1.3      |
+| DirectX         | Not Supported  | No plans for DirectX compatibility   |
+| MoltenVK        | Not Supported  | No plans for MoltenVK compatibility  |
 
 ---
 

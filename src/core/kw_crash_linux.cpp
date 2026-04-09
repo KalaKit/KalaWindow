@@ -446,7 +446,7 @@ void GenerateFullCrashReport(
 
 	logStream << "\n========================================\n";
 
-	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
+	string_view timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
     if (canCreateDump)
     {
