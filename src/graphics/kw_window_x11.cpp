@@ -20,7 +20,6 @@
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
-#include "opengl/kw_opengl.hpp"
 #include "vulkan/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
@@ -31,7 +30,6 @@ using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Input;
-using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::Vulkan::Vulkan_Context;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::X11GlobalData;
@@ -1072,7 +1070,6 @@ namespace KalaWindow::Graphics
     {
         if (shutdownCallback) shutdownCallback();
 		
-		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);
         KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
 
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);

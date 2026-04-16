@@ -12,8 +12,6 @@
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
 
-#include "glcorearb.h"
-
 #include <vector>
 #include <unordered_map>
 #include <string>
@@ -30,8 +28,6 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_window.hpp"
-#include "opengl/kw_opengl.hpp"
-#include "opengl/kw_opengl_functions_core.hpp"
 
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::Window_Global;
@@ -39,9 +35,6 @@ using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::KalaWindowRegistry;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::OpenGL::OpenGL_Global;
-using KalaWindow::OpenGL::OpenGLFunctions::GL_Core;
-using KalaWindow::OpenGL::OpenGLFunctions::OpenGL_Functions_Core;
 
 using KalaHeaders::KalaCore::ToVar;
 
@@ -304,6 +297,7 @@ namespace KalaWindow::Core
                     if (w->IsResizable()
                         && oldSize != newSize)
                     {
+                        /*
                         if (OpenGL_Global::IsInitialized())
                         {
                             const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
@@ -314,6 +308,7 @@ namespace KalaWindow::Core
                                 (GLsizei)newSize.x,
 					            (GLsizei)newSize.y);
                         }
+                        */
 
                         w->TriggerResize();
                         w->TriggerRedraw();

@@ -27,7 +27,6 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_menubar_windows.hpp"
-#include "opengl/kw_opengl.hpp"
 #include "vulkan/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
@@ -41,7 +40,6 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::MenuBar;
-using KalaWindow::OpenGL::OpenGL_Context;
 using KalaWindow::Vulkan::Vulkan_Context;
 
 using std::make_unique;
@@ -2101,7 +2099,6 @@ namespace KalaWindow::Graphics
 	{
 		if (shutdownCallback) shutdownCallback();
 		
-		KalaWindowRegistry<OpenGL_Context>::RemoveAllWindowContent(ID);
         KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
 
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
