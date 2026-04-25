@@ -32,8 +32,7 @@ namespace KalaWindow::Vulkan
     class LIB_API Vulkan_Global
 	{
 	public:
-    	//Toggle verbose logging. If true, then usually frequently updated runtime values like
-		//VK notifications will dump their logs into the console.
+    	//Toggle verbose logging. If true and in Debug, then Vulkan will add its own debug messages to the console log messages.
 		static void SetVerboseLoggingState(bool newState);
 		static bool IsVerboseLoggingEnabled();
         

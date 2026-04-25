@@ -45,6 +45,7 @@ namespace KalaWindow::Vulkan
 	static bool isVerboseLoggingEnabled{};
 
     static VkInstance instance{};
+	static VkDebugUtilsMessengerEXT debugMessenger{};
 
 	void Vulkan_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool Vulkan_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
@@ -107,7 +108,9 @@ namespace KalaWindow::Vulkan
 
         finalExtensions.push_back("VK_KHR_surface");
         finalExtensions.push_back("VK_KHR_win32_surface");
-        //finalExtensions.push_back("VK_EXT_debug_utils");
+#ifdef KDEBUG
+        finalExtensions.push_back("VK_EXT_debug_utils");
+#endif
 
         createInfo.enabledExtensionCount = finalExtensions.size();
         createInfo.ppEnabledExtensionNames = finalExtensions.data();
@@ -123,6 +126,27 @@ namespace KalaWindow::Vulkan
 
 			return;
         }
+
+#ifdef KDEBUG
+		VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
+		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugInfo.messageSeverity = 
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		debugInfo.messageType =
+			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
+		debugInfo.pfnUserCallback = DebugCallback;
+
+		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+			instance, "vkCreateDebugUtilsMessengerEXT");
+
+		func(instance, &debugInfo, nullptr, &debugMessenger);
+#endif
 
         Log::Print(
 			"Initialized global Vulkan context!",
@@ -149,6 +173,13 @@ namespace KalaWindow::Vulkan
     void Vulkan_Global::Shutdown()
     {
         Vulkan_Context::GetRegistry().RemoveAllContent();
+
+#if DEBUG
+		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+			instance, "vkDestroyDebugUtilsMessengerEXT");
+
+		func(instance, debugMessenger, nullptr);
+#endif
 
         vkDestroyInstance(instance, nullptr);
 

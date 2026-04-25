@@ -219,13 +219,13 @@ namespace KalaWindow::Graphics
 
 		windowPtr->SetTitle(title);
 		windowPtr->ID = newID;
-		windowPtr->SetClientRectSize(800);
+		windowPtr->SetSize(800);
 		windowPtr->SetPosition(800);
 
 		windowPtr->isInitialized = true;
 
 		windowPtr->oldPos = windowPtr->GetPosition();
-		windowPtr->oldSize = windowPtr->GetClientRectSize();
+		windowPtr->oldSize = windowPtr->GetSize();
 
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
@@ -319,7 +319,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window title to '" + string(newTitle) + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	string ProcessWindow::GetTitle() const
@@ -433,7 +433,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' icon to '" + tex->GetName() + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 		*/
 	}
@@ -567,7 +567,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' overlay icon to '" + tex->GetName() + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 		*/
 	}
@@ -665,7 +665,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Set window '" + GetTitle() + "' focus through the fallback method.'",
 					"KW_WINDOW",
-					LogType::LOG_SUCCESS);
+					LogType::LOG_VERBOSE);
 			}
 		}
 
@@ -728,7 +728,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' rounding to '" + roundingVal + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	WindowRounding ProcessWindow::GetWindowRoundingState() const
@@ -772,7 +772,7 @@ namespace KalaWindow::Graphics
 		return WindowRounding::ROUNDING_NONE;
 	}
 
-	void ProcessWindow::SetClientRectSize(vec2 newSize)
+	void ProcessWindow::SetSize(vec2 newSize)
 	{
 		if (!windowData.window)
 		{
@@ -783,7 +783,7 @@ namespace KalaWindow::Graphics
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		vec2 oldSize = GetClientRectSize();
+		vec2 oldSize = GetSize();
 		if (isnear(oldSize, newSize)) return;
 
 		//desired client area
@@ -822,10 +822,10 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' client rect size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
-	vec2 ProcessWindow::GetClientRectSize() const
+	vec2 ProcessWindow::GetSize() const
 	{
 		if (!windowData.window)
 		{
@@ -880,7 +880,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' outer size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	vec2 ProcessWindow::GetOuterSize() const
@@ -932,7 +932,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' position to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	vec2 ProcessWindow::GetPosition()
@@ -961,17 +961,17 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::SetMaxSize(vec2 newMaxSize)
     { 
-        maxSize = kclamp(newMaxSize, minSize + 1.0f, 10000.0f);
+        maxSize = kclamp(newMaxSize, minSize + 1.0f, MAX_WINDOW_SIZE);
 
-        if (GetClientRectSize() > maxSize) SetClientRectSize(maxSize);
+        if (GetSize() > maxSize) SetSize(maxSize);
     }
 	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
 
 	void ProcessWindow::SetMinSize(vec2 newMinSize)
     { 
-        minSize = kclamp(newMinSize, 1.0f, maxSize - 1.0f);
+        minSize = kclamp(newMinSize, MIN_WINDOW_SIZE, maxSize - 1.0f);
 
-        if (GetClientRectSize() < minSize) SetClientRectSize(minSize);
+        if (GetSize() < minSize) SetSize(minSize);
     }
 	vec2 ProcessWindow::GetMinSize() const { return minSize; }
 
@@ -1003,7 +1003,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' always on state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IsAlwaysOnTop() const
@@ -1074,7 +1074,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' resizable state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IsResizable() const
@@ -1137,7 +1137,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' top bar state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IsTopBarEnabled() const
@@ -1198,7 +1198,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' minimize button state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IsMinimizeButtonEnabled() const
@@ -1259,7 +1259,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' maximize button state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IsMaximizeButtonEnabled() const
@@ -1312,7 +1312,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' close button state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IsCloseButtonEnabled() const
@@ -1375,7 +1375,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' system menu state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IsSystemMenuEnabled() const
@@ -1437,7 +1437,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	float ProcessWindow::GetOpacity() const
@@ -1621,7 +1621,7 @@ namespace KalaWindow::Graphics
 			//save current pos and size
 
 			oldPos = GetPosition();
-			oldSize = GetClientRectSize();
+			oldSize = GetSize();
 			LONG style = GetWindowLong(window, GWL_STYLE);
 
 			//remove decorations
@@ -1687,7 +1687,7 @@ namespace KalaWindow::Graphics
 				SetWindowLong(window, GWL_STYLE, style);
 
 				oldPos = GetPosition();
-				oldSize = GetClientRectSize();
+				oldSize = GetSize();
 
 				SetWindowPos(
 					window,
@@ -1813,7 +1813,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	WindowState ProcessWindow::GetWindowState() const
@@ -1889,7 +1889,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + GetTitle() + "' shutdown block state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool ProcessWindow::IShutdownBlockEnabled() const { return shutdownBlockState; }
@@ -1977,7 +1977,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Flashed " + targetMsg + " with type '" + val + "' for '" + dur + "' times",
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 
@@ -2067,7 +2067,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				oss.str(),
 				"KW_WINDOW",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 

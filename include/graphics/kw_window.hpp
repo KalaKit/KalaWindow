@@ -23,6 +23,9 @@
 
 namespace KalaWindow::Graphics
 {
+	constexpr f32 MIN_WINDOW_SIZE = 1.0f;
+	constexpr f32 MAX_WINDOW_SIZE = 10000.0f;
+
 	using std::string;
 	using std::string_view;
 	using std::function;
@@ -176,9 +179,9 @@ namespace KalaWindow::Graphics
 		WindowRounding GetWindowRoundingState() const;
 #endif
 
-		//Set logical window size (client area, in DPI-independent units)
-		void SetClientRectSize(vec2 newSize);
-		vec2 GetClientRectSize() const;
+		//Set window size
+		void SetSize(vec2 newSize);
+		vec2 GetSize() const;
 
 		//Set full window size (including borders), maps to client rect size on X11
 		void SetOuterSize(vec2 newSize);
@@ -338,6 +341,7 @@ namespace KalaWindow::Graphics
 
 		vec2 pos{};
 		vec2 size{};
+		vec2 outerSize{};
 
 		WindowMode windowMode{};
 		WindowState windowState{};

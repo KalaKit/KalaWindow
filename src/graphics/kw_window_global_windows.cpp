@@ -96,7 +96,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Windows version '" + osVersion + "' build '" + buildVersion + "'",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_INFO);
+				LogType::LOG_VERBOSE);
 		}
 
 		wchar_t buffer[MAX_PATH]{};
@@ -565,7 +565,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"User cancelled file selection.",
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_INFO);
+					LogType::LOG_VERBOSE);
 			}
 
 			UnInit();
@@ -647,7 +647,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Selected file '" + path + "'",
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_SUCCESS);
+					LogType::LOG_VERBOSE);
 			}
 		}
 
@@ -678,7 +678,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Created notification '" + string(title) + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 
@@ -703,7 +703,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Played sound type '" + soundType + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 
@@ -768,7 +768,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Saved string to clipboard: '" + string(text) + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	string Window_Global::GetClipboardText()
@@ -791,7 +791,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Clipboard does not contain Unicode text.",
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_WARNING,
+					LogType::LOG_VERBOSE,
 					2);
 			}
 
@@ -807,7 +807,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Clipboard had no data to read from.",
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_WARNING);
+					LogType::LOG_VERBOSE);
 			}
 
 			CloseClipboard();
@@ -838,7 +838,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Read string to clipboard: '" + shortVal + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 
 		return shortVal;

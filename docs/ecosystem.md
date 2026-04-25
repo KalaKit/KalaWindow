@@ -27,7 +27,7 @@ the executables (rely on libs or clis or headers in some way):
 
 ## Elypso Engine
 
-C++20 OpenGL and Vulkan game engine for Windows and Linux.
+C++20 Vulkan game engine for Windows and Linux.
 
 https://github.com/Lost-Empire-Entertainment/Elypso-engine
 

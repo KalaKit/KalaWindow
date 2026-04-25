@@ -109,10 +109,7 @@ namespace KalaWindow::Graphics
             800,
             1,
             BlackPixel(display, DefaultScreen(display)),
-            WhitePixel(display, DefaultScreen(display)));
-
-        //disable background pix map for cleaner redraw
-        XSetWindowBackgroundPixmap(display, window, None);
+            BlackPixel(display, DefaultScreen(display)));
 
         if (isChild)
         {
@@ -386,7 +383,7 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::BringToFocus() {}
 
-    void ProcessWindow::SetClientRectSize(vec2 newSize)
+    void ProcessWindow::SetSize(vec2 newSize)
     { 
         vec2 winSize = kclamp(newSize, minSize, maxSize);
 
@@ -416,10 +413,10 @@ namespace KalaWindow::Graphics
 
         XFlush(display);
     }
-    vec2 ProcessWindow::GetClientRectSize() const { return size; }
+    vec2 ProcessWindow::GetSize() const { return size; }
 
-    void ProcessWindow::SetOuterSize(vec2 newSize) { SetClientRectSize(newSize); }
-    vec2 ProcessWindow::GetOuterSize() const { return GetClientRectSize(); }
+    void ProcessWindow::SetOuterSize(vec2 newSize) { SetSize(newSize); }
+    vec2 ProcessWindow::GetOuterSize() const { return outerSize; }
 
     void ProcessWindow::SetPosition(vec2 newPosition)
     { 
@@ -455,9 +452,9 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::SetMaxSize(vec2 newMaxSize)
     { 
-        maxSize = kclamp(newMaxSize, minSize + 1.0f, 10000.0f);
+        maxSize = kclamp(newMaxSize, minSize + 1.0f, MAX_WINDOW_SIZE);
 
-        if (size > maxSize) SetClientRectSize(maxSize);
+        if (size > maxSize) SetSize(maxSize);
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
 
@@ -498,9 +495,9 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::SetMinSize(vec2 newMinSize)
     { 
-        minSize = kclamp(newMinSize, 1.0f, maxSize - 1.0f);
+        minSize = kclamp(newMinSize, MIN_WINDOW_SIZE, maxSize - 1.0f);
 
-        if (size < minSize) SetClientRectSize(minSize);
+        if (size < minSize) SetSize(minSize);
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
 
@@ -837,7 +834,7 @@ namespace KalaWindow::Graphics
             case WindowMode::WINDOWMODE_EXCLUSIVE:
                 action = 1;
                 SetPosition(oldPos);
-                SetClientRectSize(oldSize);
+                SetSize(oldSize);
                 break;
         }
 
@@ -863,7 +860,7 @@ namespace KalaWindow::Graphics
         if (mode == WindowMode::WINDOWMODE_WINDOWED)
         {
             SetPosition(oldPos);
-            SetClientRectSize(oldSize);
+            SetSize(oldSize);
         }
 
         XFlush(display);
@@ -925,14 +922,14 @@ namespace KalaWindow::Graphics
                 XMapWindow(display, window);
 
                 SetPosition(oldPos);
-                SetClientRectSize(oldSize);
+                SetSize(oldSize);
 
                 break;
             }
             case WindowState::WINDOW_MAXIMIZE:
             {
                 SetPosition(oldPos);
-                SetClientRectSize(oldSize);
+                SetSize(oldSize);
 
                 Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
                 Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
@@ -963,7 +960,7 @@ namespace KalaWindow::Graphics
             case WindowState::WINDOW_MINIMIZE:
             {
                 SetPosition(oldPos);
-                SetClientRectSize(oldSize);
+                SetSize(oldSize);
 
                 int screen = DefaultScreen(display);
                 XIconifyWindow(display, window, screen);
@@ -972,7 +969,7 @@ namespace KalaWindow::Graphics
             case WindowState::WINDOW_HIDE:
             {
                 SetPosition(oldPos);
-                SetClientRectSize(oldSize);
+                SetSize(oldSize);
 
                 XUnmapWindow(display, window);
                 break;

@@ -505,7 +505,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Set mouse visibility state to " + val,
 				"KW_INPUT",
-				LogType::LOG_INFO);
+				LogType::LOG_VERBOSE);
 		}
 	}
 
@@ -589,7 +589,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Set mouse lock state to " + val,
 				"KW_INPUT",
-				LogType::LOG_INFO);
+				LogType::LOG_VERBOSE);
 		}
 	}
 
@@ -674,7 +674,7 @@ namespace KalaWindow::Core
 			Display* display = ToVar<Display*>(globalData.display);
 			Window window = ToVar<Window>(windowData.window);
 
-			vec2 windowSize = w->GetClientRectSize();
+			vec2 windowSize = w->GetSize();
 
 			int centerX = windowSize.x / 2;
 			int centerY = windowSize.y / 2;

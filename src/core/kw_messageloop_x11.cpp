@@ -11,6 +11,7 @@
 #include <X11/extensions/XInput2.h>
 #include <X11/keysym.h>
 #include <X11/Xutil.h>
+#include <X11/Xatom.h>
 
 #include <vector>
 #include <unordered_map>
@@ -21,6 +22,7 @@
 #include "math_utils.hpp"
 #include "log_utils.hpp"
 #include "key_standards.hpp"
+#include "string_utils.hpp"
 
 #include "core/kw_messageloop_x11.hpp"
 #include "core/kw_registry.hpp"
@@ -46,11 +48,15 @@ using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaKeyStandards::KeyboardButton;
 using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
+using KalaHeaders::KalaString::BoolValue;
+
 using std::vector;
 using std::unordered_map;
 using std::string;
 using std::to_string;
 using std::function;
+
+static unordered_map<u32, bool> isPendingResize{};
 
 static function<void(u32)> addCharCallback{};
 static function<void()> removeFromBackCallback{};
@@ -233,7 +239,10 @@ namespace KalaWindow::Core
 
                         if (Input::IsVerboseLoggingEnabled())
                         {
-                            Log::Print("Raw mouse delta: " + to_string(dx) + ", " + to_string(dy));
+                            Log::Print(
+                            "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
+                            "KW_MESSAGE_LOOP",
+                            LogType::LOG_VERBOSE);
                         }
                     }
                 }
@@ -294,24 +303,58 @@ namespace KalaWindow::Core
                     w->pos = newPos;
                     w->size = newSize;
 
+                    Atom netFrameExtents = XInternAtom(display, "_NET_FRAME_EXTENTS", True);
+                    if (netFrameExtents)
+                    {
+                        Atom actualType{};
+                        int actualFormat{};
+                        unsigned long nItems{}, bytesAfter{};
+                        unsigned long* extents{};
+
+                        XGetWindowProperty(
+                            display,
+                            window,
+                            netFrameExtents,
+                            0, 4, False,
+                            XA_CARDINAL,
+                            &actualType, &actualFormat,
+                            &nItems,
+                            &bytesAfter,
+                            (unsigned char**)&extents);
+
+                        if (!extents)
+                        {
+                            Log::Print(
+                                "Failed to set window outer size because XGetWindowProperty failed!",
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_ERROR);
+                        }
+                        else
+                        {
+                            w->outerSize = vec2(
+                                w->size.x + extents[0] + extents[1],
+                                w->size.y + extents[2] + extents[3]);
+                            XFree(extents);
+                        }
+                    }
+
+                    if (Input::IsVerboseLoggingEnabled())
+                    {
+                        Log::Print(
+                            "[CONFIGURE_NOTIFY] Detecting resize conditions:\n"
+                            "  window ID: " + to_string(w->GetID()) + "\n"
+                            "  is resizable: " + string(BoolValue(w->IsResizable())) + "\n"
+                            "  old size: " + to_string(oldSize.x) + "x" + to_string(oldSize.y) + "\n"
+                            "  new size: " + to_string(newSize.x) + "x" + to_string(newSize.y) + "\n",
+                            "KW_MESSAGE_LOOP",
+                            LogType::LOG_VERBOSE);
+                    }
+
                     if (w->IsResizable()
                         && oldSize != newSize)
                     {
-                        /*
-                        if (OpenGL_Global::IsInitialized())
-                        {
-                            const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
-
-                            coreFunc->glViewport(
-                                0,
-                                0,
-                                (GLsizei)newSize.x,
-					            (GLsizei)newSize.y);
-                        }
-                        */
-
+                        //handle resize
                         w->TriggerResize();
-                        w->TriggerRedraw();
                     }
 
                     break;
@@ -400,7 +443,7 @@ namespace KalaWindow::Core
                         Log::Print(
                             "Detected keyboard key '" + TranslateKeySymToString(ks) + "' down.",
                             "KW_MESSAGE_LOOP",
-                            LogType::LOG_INFO);
+                            LogType::LOG_VERBOSE);
                     }
 
                     if (input)
@@ -492,7 +535,7 @@ namespace KalaWindow::Core
                         Log::Print(
                             "Detected keyboard key '" + TranslateKeySymToString(ks) + "' up.",
                             "KW_MESSAGE_LOOP",
-                            LogType::LOG_INFO);
+                            LogType::LOG_VERBOSE);
                     }
 
                     if (input)
@@ -534,7 +577,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                     "Detected left mouse key down.",
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                    LogType::LOG_VERBOSE);
                             }
 
                             if (doubleClick)
@@ -543,10 +586,13 @@ namespace KalaWindow::Core
                                     MouseButton::M_LEFT, 
                                     true);
 
-                                Log::Print(
-                                    "Detected left mouse key double click.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                if (Input::IsVerboseLoggingEnabled())
+                                {
+                                    Log::Print(
+                                        "Detected left mouse key double click.",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_VERBOSE);
+                                }
                             }
 
                             break;
@@ -562,7 +608,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                     "Detected right mouse key down.",
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                    LogType::LOG_VERBOSE);
                             }
 
                             if (doubleClick)
@@ -571,10 +617,13 @@ namespace KalaWindow::Core
                                     MouseButton::M_RIGHT, 
                                     true);
 
-                                Log::Print(
-                                    "Detected right mouse key double click.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                if (Input::IsVerboseLoggingEnabled())
+                                {
+                                    Log::Print(
+                                        "Detected right mouse key double click.",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_VERBOSE);
+                                }
                             }
 
                             break;
@@ -590,7 +639,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                     "Detected middle mouse key down.",
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                    LogType::LOG_VERBOSE);
                             }
 
                             if (doubleClick)
@@ -599,10 +648,13 @@ namespace KalaWindow::Core
                                     MouseButton::M_MIDDLE, 
                                     true);
 
-                                Log::Print(
-                                    "Detected middle mouse key double click.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                if (Input::IsVerboseLoggingEnabled())
+                                {
+                                    Log::Print(
+                                        "Detected middle mouse key double click.",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_VERBOSE);
+                                }
                             }
 
                             break;
@@ -636,7 +688,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "Detected x1 mouse key down.",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_INFO);
+                                            LogType::LOG_VERBOSE);
                                     }
 
                                     if (doubleClick)
@@ -645,10 +697,13 @@ namespace KalaWindow::Core
                                             MouseButton::M_X1, 
                                             true);
 
-                                        Log::Print(
-                                            "Detected x1 mouse key double click.",
-                                            "KW_MESSAGE_LOOP",
-                                            LogType::LOG_INFO);
+                                        if (Input::IsVerboseLoggingEnabled())
+                                        {
+                                            Log::Print(
+                                                "Detected x1 mouse key double click.",
+                                                "KW_MESSAGE_LOOP",
+                                                LogType::LOG_VERBOSE);
+                                        }
                                     }
                                 }
                                 else if (extra == 1)
@@ -662,7 +717,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "Detected x2 mouse key down.",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_INFO);
+                                            LogType::LOG_VERBOSE);
                                     }
 
                                     if (doubleClick)
@@ -671,10 +726,13 @@ namespace KalaWindow::Core
                                             MouseButton::M_X2, 
                                             true);
 
-                                        Log::Print(
-                                            "Detected x2 mouse key double click.",
-                                            "KW_MESSAGE_LOOP",
-                                            LogType::LOG_INFO);
+                                        if (Input::IsVerboseLoggingEnabled())
+                                        {
+                                            Log::Print(
+                                                "Detected x2 mouse key double click.",
+                                                "KW_MESSAGE_LOOP",
+                                                LogType::LOG_VERBOSE);
+                                        }
                                     }
                                 }
                             }
@@ -702,7 +760,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                     "Detected left mouse key up.",
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                    LogType::LOG_VERBOSE);
                             }
 
                             break;
@@ -718,7 +776,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                     "Detected right mouse key up.",
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                    LogType::LOG_VERBOSE);
                             }
 
                             break;
@@ -734,7 +792,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                     "Detected middle mouse key up.",
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_INFO);
+                                    LogType::LOG_VERBOSE);
                             }
 
                             break;
@@ -757,7 +815,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "Detected x1 mouse key up.",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_INFO);
+                                            LogType::LOG_VERBOSE);
                                     }
                                 }
                                 else if (extra == 1)
@@ -771,7 +829,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "Detected x2 mouse key up.",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_INFO);
+                                            LogType::LOG_VERBOSE);
                                     }
                                 }
                             }
@@ -805,7 +863,10 @@ namespace KalaWindow::Core
 
                         if (Input::IsVerboseLoggingEnabled())
                         {
-                            Log::Print("Mouse delta: " + to_string(delta.x) + ", " + to_string(delta.y));
+                            Log::Print(
+                                "Mouse delta: " + to_string(delta.x) + ", " + to_string(delta.y),
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_VERBOSE);
                         }
                     }
 

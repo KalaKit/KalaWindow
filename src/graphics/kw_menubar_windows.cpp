@@ -175,7 +175,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + window->GetTitle() + "' menu bar state to '" + val + "'",
 				"KW_MENUBAR",
-				LogType::LOG_SUCCESS);
+				LogType::LOG_VERBOSE);
 		}
 	}
 	bool MenuBar::IsEnabled() const
@@ -394,7 +394,7 @@ namespace KalaWindow::Graphics
 						+ "' under parent '" + parentName
 						+ "' in window '" + window->GetTitle() + "'!",
 						"KW_MENUBAR",
-						LogType::LOG_SUCCESS);
+						LogType::LOG_VERBOSE);
 				}
 			};
 
@@ -515,7 +515,7 @@ namespace KalaWindow::Graphics
 						Log::Print(
 							"Placed separator to the end of parent label '" + string(parentRef) + "' in window '" + window->GetTitle() + "'!",
 							"KW_MENUBAR",
-							LogType::LOG_SUCCESS);
+							LogType::LOG_VERBOSE);
 					}
 
 					DrawMenuBar(hwnd);
@@ -577,7 +577,7 @@ namespace KalaWindow::Graphics
 								Log::Print(
 									"Placed separator after label '" + labelRef + "' in window '" + window->GetTitle() + "'!",
 									"KW_MENUBAR",
-									LogType::LOG_SUCCESS);
+									LogType::LOG_VERBOSE);
 							}
 
 							DrawMenuBar(hwnd);
