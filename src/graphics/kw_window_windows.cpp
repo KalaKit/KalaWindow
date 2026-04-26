@@ -812,9 +812,6 @@ namespace KalaWindow::Graphics
 			SWP_NOMOVE
 			| SWP_NOZORDER);
 
-		TriggerResize();
-		TriggerRedraw();
-
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
 		if (Window_Global::IsVerboseLoggingEnabled())
@@ -869,9 +866,6 @@ namespace KalaWindow::Graphics
 			newSize.y,
 			SWP_NOMOVE
 			| SWP_NOZORDER);
-
-		TriggerResize();
-		TriggerRedraw();
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
@@ -1713,9 +1707,6 @@ namespace KalaWindow::Graphics
 		}
 
 		ShowWindow(window, SW_SHOWNORMAL);
-
-		TriggerResize();
-		TriggerRedraw();
 	}
 	WindowMode ProcessWindow::GetWindowMode()
 	{
@@ -1803,9 +1794,6 @@ namespace KalaWindow::Graphics
 			&& state != WindowState::WINDOW_MINIMIZE)
 		{
 			UpdateWindow(window);
-
-			TriggerResize();
-			TriggerRedraw();
 		}
 
 		if (Window_Global::IsVerboseLoggingEnabled())
@@ -2070,12 +2058,6 @@ namespace KalaWindow::Graphics
 				LogType::LOG_VERBOSE);
 		}
 	}
-
-	void ProcessWindow::TriggerResize() { if (resizeCallback) resizeCallback(); }
-	void ProcessWindow::SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
-
-	void ProcessWindow::TriggerRedraw() { if (redrawCallback) redrawCallback(); }
-	void ProcessWindow::SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
 	void ProcessWindow::SetWindowData(const WindowData& newWindowStruct) { windowData = newWindowStruct; }
 	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }

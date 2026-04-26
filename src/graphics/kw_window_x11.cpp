@@ -100,16 +100,21 @@ namespace KalaWindow::Graphics
 
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
 
-        Window window = XCreateSimpleWindow(
+        XSetWindowAttributes attrs{};
+        attrs.background_pixmap = None;
+        attrs.border_pixel = 0;
+
+        Window window = XCreateWindow(
             display,
             root,
-            800,
-            800,
-            800,
-            800,
-            1,
-            BlackPixel(display, DefaultScreen(display)),
-            BlackPixel(display, DefaultScreen(display)));
+            800, 800,
+            800, 800,
+            0,
+            CopyFromParent,
+            InputOutput,
+            CopyFromParent,
+            CWBackPixmap | CWBorderPixel,
+            &attrs);
 
         if (isChild)
         {
@@ -981,12 +986,6 @@ namespace KalaWindow::Graphics
         windowState = state;
     }
     WindowState ProcessWindow::GetWindowState() const { return windowState; }
-
-    void ProcessWindow::TriggerResize() { if (resizeCallback) resizeCallback(); }
-	void ProcessWindow::SetResizeCallback(const function<void()>& callback) { resizeCallback = callback; }
-
-	void ProcessWindow::TriggerRedraw() { if (redrawCallback) redrawCallback(); }
-	void ProcessWindow::SetRedrawCallback(const function<void()>& callback) { redrawCallback = callback; }
 
     void ProcessWindow::SetWindowData(const WindowData& newWindowStruct) { windowData = newWindowStruct; }
 	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }

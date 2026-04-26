@@ -1060,34 +1060,16 @@ namespace KalaWindow::Core
 
 				case WM_SIZE:
 				{
-					if (window->IsResizable())
-					{
-						vec2 winSize = window->GetSize();
-
-						if (OpenGL_Global::IsInitialized())
-						{
-							const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
-
-							coreFunc->glViewport(
-								0,
-								0,
-								(GLsizei)winSize.x,
-								(GLsizei)winSize.y);
-						}
-
-						window->TriggerResize();
-						window->SetResizingState(false);
-					}
+					if (window->IsResizable()) window->SetResizingState(false);
 
 					return true; //we handled it
 				}
 				case WM_SIZING:
 				{
-					if (window->IsResizable())
+					if (window->IsResizable()
+						&& !window->IsResizing())
 					{
-						if (!window->IsResizing()) window->SetResizingState(true);
-
-						window->TriggerRedraw();
+						window->SetResizingState(true);
 					}
 
 					return true; //we handled it
@@ -1107,22 +1089,6 @@ namespace KalaWindow::Core
 						suggestedRect->bottom - suggestedRect->top,
 						SWP_NOZORDER
 						| SWP_NOACTIVATE);
-
-					if (OpenGL_Global::IsInitialized())
-					{
-						const GL_Core* coreFunc = OpenGL_Functions_Core::GetGLCore();
-
-						vec2 vpSize = window->GetSize();
-
-						coreFunc->glViewport(
-							0,
-							0,
-							vpSize.x,
-							vpSize.y);
-					}
-
-					window->TriggerResize();
-					window->TriggerRedraw();
 
 					return true; //we handled it
 				}

@@ -292,16 +292,11 @@ namespace KalaWindow::Core
             {
                 case ConfigureNotify:
                 {
-                    vec2 newPos = vec2(event.xconfigure.x, event.xconfigure.y);
-                    vec2 newSize = kclamp(
+                    w->pos = vec2(event.xconfigure.x, event.xconfigure.y);
+                    w->size = kclamp(
                         vec2(event.xconfigure.width, event.xconfigure.height),
                         w->minSize,
                         w->maxSize);
-
-                    vec2 oldSize = w->size;
-
-                    w->pos = newPos;
-                    w->size = newSize;
 
                     Atom netFrameExtents = XInternAtom(display, "_NET_FRAME_EXTENTS", True);
                     if (netFrameExtents)
@@ -338,33 +333,10 @@ namespace KalaWindow::Core
                         }
                     }
 
-                    if (Input::IsVerboseLoggingEnabled())
-                    {
-                        Log::Print(
-                            "[CONFIGURE_NOTIFY] Detecting resize conditions:\n"
-                            "  window ID: " + to_string(w->GetID()) + "\n"
-                            "  is resizable: " + string(BoolValue(w->IsResizable())) + "\n"
-                            "  old size: " + to_string(oldSize.x) + "x" + to_string(oldSize.y) + "\n"
-                            "  new size: " + to_string(newSize.x) + "x" + to_string(newSize.y) + "\n",
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_VERBOSE);
-                    }
-
-                    if (w->IsResizable()
-                        && oldSize != newSize)
-                    {
-                        //handle resize
-                        w->TriggerResize();
-                    }
-
                     break;
                 }
 
-                case Expose:
-                {
-                    if (event.xexpose.count == 0) w->TriggerRedraw();
-                    break;
-                }
+                case Expose: break;
 
                 case ClientMessage:
                 {

@@ -287,14 +287,6 @@ namespace KalaWindow::Graphics
 			u8 maxProgress) const;
 #endif
 
-		//Regular window draw call
-		void SetRedrawCallback(const function<void()>& callback);
-		void TriggerRedraw();
-
-		//Handle window content during resize
-		void SetResizeCallback(const function<void()>& callback);
-		void TriggerResize();
-
 		//Clean up the external content of this window before its own data is cleaned
 		void SetShutdownCallback(function<void()> newValue);
 
@@ -365,8 +357,6 @@ namespace KalaWindow::Graphics
 		
 		WindowData windowData{};
 
-		function<void()> redrawCallback{};
-		function<void()> resizeCallback{};
 		function<void()> shutdownCallback{};
 	};
 }
