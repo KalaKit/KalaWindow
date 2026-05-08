@@ -994,8 +994,8 @@ namespace KalaWindow::Graphics
     u32 ProcessWindow::GetInputID() const { return inputID; }
 	void ProcessWindow::SetInputID(u32 newValue) { inputID = newValue; }
 
-	u32 ProcessWindow::GetContextID() const { return contextID; }
-	void ProcessWindow::SetContextID(u32 newValue) { contextID = newValue; }
+	u32 ProcessWindow::GetGraphicsContextID() const { return graphicsContextID; }
+	void ProcessWindow::SetGraphicsContextID(u32 newValue) { graphicsContextID = newValue; }
 
 	u32 ProcessWindow::GetMenuBarID() const { return 0; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) {}
@@ -1084,7 +1084,7 @@ namespace KalaWindow::Graphics
 			LogType::LOG_INFO);
 
 		inputID = 0;
-		contextID = 0;
+		graphicsContextID = 0;
 		menuBarID = 0;
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();

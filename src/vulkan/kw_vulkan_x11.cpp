@@ -274,7 +274,7 @@ namespace KalaWindow::Vulkan
 			return nullptr;
 		}
 
-		if (w->GetContextID() != 0)
+		if (w->GetGraphicsContextID() != 0)
 		{
 			Log::Print(
 				"Cannot add Vulkan context to window '" + w->GetTitle() + "' because it already has an existing context!",
@@ -340,7 +340,7 @@ namespace KalaWindow::Vulkan
         }
 
         registry.AddContent(newID, std::move(newCont));
-		w->SetContextID(newID);
+		w->SetGraphicsContextID(newID);
 
 		contPtr->windowID = w->GetID();
         contPtr->surface = surface;
