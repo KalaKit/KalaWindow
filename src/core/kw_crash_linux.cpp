@@ -60,19 +60,14 @@ using std::dec;
 using std::array;
 using std::ofstream;
 using std::filesystem::path;
-using std::min;
 using std::memcpy;
-
-constexpr size_t MAX_TITLE  = 50;
-constexpr size_t MAX_REASON = 256;
 
 static bool isInitialized{};
 
 static volatile sig_atomic_t inCrashHandler{};
 
-static char forceCloseTitle[MAX_TITLE]{};
-static char forceCloseReason[MAX_REASON]{};
-static volatile sig_atomic_t hasForceClose{};
+constexpr size_t MAX_MESSAGE_SIZE = 1024;
+static char fullZenityCommand[MAX_MESSAGE_SIZE]{};
 
 static stack_t altStack{};
 
@@ -90,7 +85,7 @@ static auptr crashLogIndex{};
 
 static string GetExePath()
 {
-	char buffer[PATH_MAX]{};
+	char buffer[255]{};
 	ssize_t len = readlink(
 		"/proc/self/exe", 
 		buffer,
@@ -170,7 +165,8 @@ namespace KalaWindow::Core
         struct sigaction sa{};
         sa.sa_flags = 
             SA_SIGINFO
-            | SA_ONSTACK;
+            | SA_ONSTACK
+            | SA_NODEFER;
 
         sa.sa_sigaction = HandleCrash;
         sigemptyset(&sa.sa_mask);
@@ -268,15 +264,12 @@ namespace KalaWindow::Core
         string_view title,
         string_view reason)
     {
-        size_t tlen = min(title.size(), sizeof(forceCloseTitle) - 1);
-        memcpy(forceCloseTitle, title.data(), tlen);
-        forceCloseTitle[tlen] = '\0';
-
-        size_t rlen = min(reason.size(), sizeof(forceCloseReason) - 1);
-        memcpy(forceCloseReason, reason.data(), rlen);
-        forceCloseReason[rlen] = '\0';
-
-        hasForceClose = 1;
+        snprintf(
+            fullZenityCommand,
+            MAX_MESSAGE_SIZE,
+            "zenity --error --title=\"%.*s\" --text=\"%.*s\"",
+            (int)title.size(), title.data(),
+            (int)reason.size(), reason.data());
     }
 }
 
@@ -289,25 +282,30 @@ void HandleCrash(
     inCrashHandler = 1;
 
     pid_t pid = fork();
+    if (pid == -1)
+    {
+        perror("KW_CRASH (failed to fork for Zenity)");
+        _exit(1);
+    }
+
     if (pid == 0)
     {
         if (signal == SIGTRAP)
         {
-            if (hasForceClose)
-            {
-                execlp(
-                    "zenity",
-                    "zenity",
-                    "--error",
-                    "--title", forceCloseTitle,
-                    "--text", forceCloseReason,
-                    nullptr);
-            }
+            if (fullZenityCommand[0] != '\0') system(fullZenityCommand);
+            else system("zenity --error --title='Fatal Error' --text='An unknown force-close occurred.'");
+
+            _exit(1);
         }
         else GenerateFullCrashReport(signal, info, ucontext);
+
+        _exit(0);
     }
 
-    _exit(1);
+    int status{};
+    waitpid(pid, &status, 0);
+
+    _exit(0);
 }
 
 void GenerateFullCrashReport(

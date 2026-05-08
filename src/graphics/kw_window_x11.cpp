@@ -10,6 +10,7 @@
 #include <X11/Xutil.h>
 #include <X11/X.h>
 
+#include <unistd.h>
 #include <memory>
 #include <sstream>
 

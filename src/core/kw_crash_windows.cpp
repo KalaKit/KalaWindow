@@ -56,7 +56,6 @@ constexpr size_t MAX_REASON = 256;
 
 static string forceCloseTitle{};
 static string forceCloseReason{};
-static bool hasForceClose{};
 
 //The name of this program that is displayed in the title of the error popup
 static string assignedProgramName;
@@ -172,8 +171,6 @@ namespace KalaWindow::Core
     {
 		forceCloseTitle  = title.substr(0, MAX_TITLE);
 		forceCloseReason = reason.substr(0, MAX_REASON);
-
-        hasForceClose = true;
     }
 }
 
@@ -200,18 +197,14 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	if (code == EXCEPTION_BREAKPOINT)
 	{
-		if (!hasForceClose) return EXCEPTION_CONTINUE_SEARCH;
-		else
+		if (Window_Global::CreatePopup(
+			forceCloseTitle,
+			forceCloseReason,
+			PopupAction::POPUP_ACTION_OK,
+			PopupType::POPUP_TYPE_ERROR) ==
+			PopupResult::POPUP_RESULT_OK)
 		{
-			if (Window_Global::CreatePopup(
-				forceCloseTitle,
-				forceCloseReason,
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_ERROR) ==
-				PopupResult::POPUP_RESULT_OK)
-			{
-				return EXCEPTION_EXECUTE_HANDLER;
-			}
+			return EXCEPTION_EXECUTE_HANDLER;
 		}
 	}
 
