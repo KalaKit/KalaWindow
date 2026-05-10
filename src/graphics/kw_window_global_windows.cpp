@@ -7,11 +7,11 @@
 
 #include <windows.h>
 #include <objbase.h>
+#include <atlbase.h>
+#include <atlcom.h>
 #include <shobjidl.h>
-#include <wrl/client.h>
-//#include <winrt/windows.ui.notifications.h>
-//#include <winrt/windows.data.xml.dom.h>
-#include <shellapi.h>
+#include <winrt/windows.ui.notifications.h>
+#include <winrt/windows.data.xml.dom.h>
 #include <mmsystem.h>
 
 #include <filesystem>
@@ -28,16 +28,12 @@
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
-using KalaHeaders::KalaCore::ToVar;
-using KalaHeaders::KalaCore::FromVar;
-
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MessageLoop;
 
 using std::wstring;
-using Microsoft::WRL::ComPtr;
-//using namespace winrt::Windows::UI::Notifications;
-//using namespace winrt::Windows::Data::Xml::Dom;
+using namespace winrt::Windows::UI::Notifications;
+using namespace winrt::Windows::Data::Xml::Dom;
 
 using std::filesystem::path;
 using std::ostringstream;
@@ -313,8 +309,7 @@ namespace KalaWindow::Graphics
 				}
 			};
 
-		ComPtr<IFileOpenDialog> fileOpen{};
-
+		CComPtr<IFileOpenDialog> fileOpen{};
 		hr = CoCreateInstance(
 			CLSID_FileOpenDialog,
 			nullptr,
@@ -588,7 +583,7 @@ namespace KalaWindow::Graphics
 			return{};
 		}
 
-		ComPtr<IShellItemArray> items{};
+		CComPtr<IShellItemArray> items{};
 		hr = fileOpen->GetResults(&items);
 
 		if (FAILED(hr))
@@ -609,7 +604,7 @@ namespace KalaWindow::Graphics
 
 		for (DWORD i = 0; i < count; ++i)
 		{
-			ComPtr<IShellItem> item{};
+			CComPtr<IShellItem> item{};
 			hr = items->GetItemAt(i, &item);
 
 			if (FAILED(hr))
@@ -661,10 +656,8 @@ namespace KalaWindow::Graphics
 
 	void Window_Global::CreateNotification(
 		string_view title,
-		string_view message,
-		uintptr_t window)
+		string_view message)
 	{
-		/*
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(message);
 
@@ -678,18 +671,6 @@ namespace KalaWindow::Graphics
 		ToastNotification toast(toastXml);
 
 		ToastNotificationManager::CreateToastNotifier(ToWide(appID)).Show(toast);
-		*/
-
-		NOTIFYICONDATAW nid = { sizeof(nid) };
-		nid.hWnd = ToVar<HWND>(window);
-		nid.uFlags = NIF_INFO;
-		nid.dwInfoFlags = NIIF_INFO;
-
-		wcsncpy(nid.szInfoTitle, ToWide(title).c_str(), title.size());
-		wcsncpy(nid.szInfo, ToWide(message).c_str(), message.size());
-
-		Shell_NotifyIconW(NIM_ADD, &nid);
-		Shell_NotifyIconW(NIM_MODIFY, &nid);
 
 		if (isVerboseLoggingEnabled)
 		{

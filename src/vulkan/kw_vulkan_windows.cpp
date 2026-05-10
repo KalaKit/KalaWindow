@@ -47,6 +47,59 @@ namespace KalaWindow::Vulkan
     static VkInstance instance{};
 	static VkDebugUtilsMessengerEXT debugMessenger{};
 
+	static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
+		VkDebugUtilsMessageSeverityFlagBitsEXT severity,
+		VkDebugUtilsMessageTypeFlagsEXT type,
+		const VkDebugUtilsMessengerCallbackDataEXT* data,
+		void* userData)
+	{
+		if ((severity == VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
+			|| (type & VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT))
+			&& !isVerboseLoggingEnabled)
+		{
+			return VK_FALSE;
+		}
+
+		LogType logType{};
+		switch (severity)
+		{
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
+		{
+			logType = LogType::LOG_VERBOSE;
+			break;
+		}
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
+		{
+			logType = LogType::LOG_INFO;
+			break;
+		}
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
+		{
+			logType = LogType::LOG_WARNING;
+			break;
+		}
+		case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
+		{
+			logType = LogType::LOG_ERROR;
+			break;
+		}
+		default: break;
+		}
+
+		string logTarget = "KW_VULKAN_LOG_";
+		if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT)                logTarget += "GENERAL";
+		if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)             logTarget += "VALIDATION";
+		if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)            logTarget += "PERFORMANCE";
+		if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT) logTarget += "DEVICE_ADDRESS";
+
+		Log::Print(
+			data->pMessage,
+			logTarget,
+			logType);
+
+		return VK_FALSE;
+	}
+
 	void Vulkan_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool Vulkan_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 

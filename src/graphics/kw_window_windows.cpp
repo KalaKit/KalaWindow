@@ -1720,8 +1720,6 @@ namespace KalaWindow::Graphics
 				"Failed to get window mode because the attached window was invalid!");
 		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
 		auto IsExclusive = [&]() -> bool
 			{
 				DEVMODE current{};

@@ -137,8 +137,7 @@ namespace KalaWindow::Graphics
 		//Create a notification that shows up on the screen
 		static void CreateNotification(
 			string_view title,
-			string_view message,
-			uintptr_t window);
+			string_view message);
 
 		//Play a system sound once of the chosen type.
 		//Requires libcanberra on X11 and Wayland
