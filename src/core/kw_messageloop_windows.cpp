@@ -1154,7 +1154,7 @@ namespace KalaWindow::Core
 				//destroy current window if user clicked X button or pressed Alt + F4
 				case WM_CLOSE:
 				{
-					window->CloseWindow();
+					window->Destroy();
 
 					if (ProcessWindow::GetRegistry().runtimeContent.empty())
 					{

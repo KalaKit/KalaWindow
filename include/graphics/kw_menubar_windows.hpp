@@ -90,7 +90,6 @@ namespace KalaWindow::Graphics
 
 		const vector<MenuBarEvent>& GetEvents() const;
 
-		//Destroy the existing menu bar inside the window
 		~MenuBar();
 	private:
 		bool isInitialized{};

@@ -9,8 +9,10 @@
 #include <mmsystem.h>
 #include <shobjidl.h>
 #include <dwmapi.h>
-#include <atlbase.h>
-#include <atlcomcli.h>
+//#include <atlbase.h>
+//#include <atlcomcli.h>
+#include <wrl/client.h>
+#include <shobjidl.h>
 #include <wtsapi32.h>
 #include <shellapi.h>
 
@@ -583,7 +585,8 @@ namespace KalaWindow::Graphics
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		CComPtr<ITaskbarList3> taskbar{};
+		//CComPtr<ITaskbarList3> taskbar{};
+		Microsoft::WRL::ComPtr<ITaskbarList3> taskbar{};
 		HRESULT hr = (CoCreateInstance(
 			CLSID_TaskbarList,
 			nullptr,
@@ -1993,7 +1996,8 @@ namespace KalaWindow::Graphics
 			scast<u8>(0),
 			scast<u8>(maxClamped - 1));
 
-		CComPtr<ITaskbarList3> taskbar{};
+		//CComPtr<ITaskbarList3> taskbar{};
+		Microsoft::WRL::ComPtr<ITaskbarList3> taskbar{};
 		HRESULT hr = CoCreateInstance(
 			CLSID_TaskbarList,
 			nullptr,
@@ -2069,7 +2073,7 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetInputID() const { return inputID; }
 	void ProcessWindow::SetInputID(u32 newValue) { inputID = newValue; }
 
-	u32 ProcessWindow::GetGraphics<ContextID() const { return graphicsContextID; }
+	u32 ProcessWindow::GetGraphicsContextID() const { return graphicsContextID; }
 	void ProcessWindow::SetGraphicsContextID(u32 newValue) { graphicsContextID = newValue; }
 
 	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
@@ -2077,7 +2081,7 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::SetShutdownCallback(function<void()> newValue) { shutdownCallback = newValue; }
 
-	void ProcessWindow::CloseWindow()
+	void ProcessWindow::Destroy()
 	{
 		if (shutdownCallback) shutdownCallback();
 		

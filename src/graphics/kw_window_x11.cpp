@@ -1063,7 +1063,7 @@ namespace KalaWindow::Graphics
         }
     }
 
-    void ProcessWindow::CloseWindow()
+    void ProcessWindow::Destroy()
     {
         if (shutdownCallback) shutdownCallback();
 		

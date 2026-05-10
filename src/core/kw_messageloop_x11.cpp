@@ -342,7 +342,7 @@ namespace KalaWindow::Core
                 {
                     if ((Atom)event.xclient.data.l[0] == atom_wm_delete)
                     {
-                        w->CloseWindow();
+                        w->Destroy();
 
                         if (ProcessWindow::GetRegistry().runtimeContent.empty())
                         {

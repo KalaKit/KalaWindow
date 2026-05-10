@@ -325,7 +325,8 @@ namespace KalaWindow::Graphics
 
     void Window_Global::CreateNotification(
 		string_view title,
-		string_view message)
+		string_view message,
+        uintptr_t window)
     {
 
     }

@@ -262,7 +262,7 @@ namespace KalaWindow::Graphics
 		if (labelRef.empty())
 		{
 			Log::Print(
-				"Failed to add " + typeName + " to window '" + window->GetTitle() + "' because the label name is empty!";,
+				"Failed to add " + typeName + " to window '" + window->GetTitle() + "' because the label name is empty!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -272,9 +272,9 @@ namespace KalaWindow::Graphics
 		if (labelRef.length() > MAX_LABEL_LENGTH)
 		{
 			Log::Print(
-				"Failed to add " + typeName + " '" + labelRef
-				"' to window '" + window->GetTitle() + "' because the label length '"
-				to_string(labelRef.length()) + "' is too long! You can only use label length up to '"
+				"Failed to add " + typeName + " '" + string(labelRef)
+				+ "' to window '" + window->GetTitle() + "' because the label length '"
+				+ to_string(labelRef.length()) + "' is too long! You can only use label length up to '"
 				+ to_string(MAX_LABEL_LENGTH) + "' characters long.",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
@@ -288,7 +288,7 @@ namespace KalaWindow::Graphics
 			&& !func)
 		{
 			Log::Print(
-				"Failed to add leaf '" + labelRef + "' under parent '" + parentRef
+				"Failed to add leaf '" + string(labelRef) + "' under parent '" + string(parentRef)
 				+ "' in window '" + window->GetTitle() + "' because the leaf has an empty function!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
@@ -307,7 +307,7 @@ namespace KalaWindow::Graphics
 					&& e.labelID != 0)
 				{
 					Log::Print(
-						"Failed to add leaf '" + labelRef + "' under parent '" + parentRef
+						"Failed to add leaf '" + string(labelRef) + "' under parent '" + string(parentRef)
 						+ "' in window '" + window->GetTitle() + "' because the parent is also a leaf!",
 						"KW_MENUBAR",
 						LogType::LOG_ERROR,
@@ -327,7 +327,7 @@ namespace KalaWindow::Graphics
 				&& labelRef == label)
 			{
 				Log::Print(
-					"Failed to add " + typeName + " '" + labelRef + "' to window '" + window->GetTitle()
+					"Failed to add " + typeName + " '" + string(labelRef) + "' to window '" + window->GetTitle()
 					+ "' because the " + typeName + " already exists!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
@@ -339,7 +339,7 @@ namespace KalaWindow::Graphics
 				&& labelRef == label)
 			{
 				Log::Print(
-					"Failed to add " + typeName + " '" + labelRef + "' under parent '" + parentName
+					"Failed to add " + typeName + " '" + string(labelRef) + "' under parent '" + parentName
 					+ "' in window '" + window->GetTitle() + "' because the " + typeName + " and its parent already exists!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
@@ -370,7 +370,7 @@ namespace KalaWindow::Graphics
 				if (type == LabelType::LABEL_BRANCH)
 				{
 					HMENU thisMenu = CreatePopupMenu();
-					AppendMenu(
+					AppendMenuW(
 						parentMenu,
 						MF_POPUP,
 						(UINT_PTR)thisMenu,
@@ -380,7 +380,7 @@ namespace KalaWindow::Graphics
 				}
 				else
 				{
-					AppendMenu(
+					AppendMenuW(
 						parentMenu,
 						MF_STRING,
 						newID,
@@ -390,7 +390,7 @@ namespace KalaWindow::Graphics
 				if (MenuBar::IsVerboseLoggingEnabled())
 				{
 					Log::Print(
-						"Added " + typeName + " '" + labelRef + "' '" + to_string(newID)
+						"Added " + typeName + " '" + string(labelRef) + "' '" + to_string(newID)
 						+ "' under parent '" + parentName
 						+ "' in window '" + window->GetTitle() + "'!",
 						"KW_MENUBAR",
@@ -415,7 +415,7 @@ namespace KalaWindow::Graphics
 			if (!parentMenu)
 			{
 				Log::Print(
-					"Failed to create " + typeName + " '" + labelRef + "' under parent '" + parentName
+					"Failed to create " + typeName + " '" + string(labelRef) + "' under parent '" + parentName
 					+ "' in window '" + window->GetTitle() + "' because the parent does not exist!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
@@ -495,7 +495,7 @@ namespace KalaWindow::Graphics
 					if (!parentMenu)
 					{
 						Log::Print(
-							"Failed to add separator at the end of parent '" + parentRef
+							"Failed to add separator at the end of parent '" + string(parentRef)
 							+ "' in window '" + window->GetTitle() + "' because the parent does not exist!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
@@ -542,7 +542,7 @@ namespace KalaWindow::Graphics
 					if (!parentMenu)
 					{
 						Log::Print(
-							"Failed to add separator under parent '" + parentRef + "' after label '" + labelRef
+							"Failed to add separator under parent '" + string(parentRef) + "' after label '" + labelRef
 							+ "' in window '" + window->GetTitle() + "' because the label does not exist!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
@@ -590,7 +590,7 @@ namespace KalaWindow::Graphics
 		}
 
 		Log::Print(
-			"Failed to add separator at the end of parent '" + parentRef + "' or after label '" + labelRef
+			"Failed to add separator at the end of parent '" + string(parentRef) + "' or after label '" + labelRef
 			+ "' in window '" + window->GetTitle() + "' because parent or label does not exist!",
 			"KW_MENUBAR",
 			LogType::LOG_ERROR,
@@ -627,7 +627,7 @@ namespace KalaWindow::Graphics
 		}
 
 		Log::Print(
-			"Destroying menu bar context with ID '" + to_string(ID) + "' for window '" + w->GetTitle() + "'.",
+			"Destroying menu bar context with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
 			"KW_MENUBAR",
 			LogType::LOG_INFO);
 

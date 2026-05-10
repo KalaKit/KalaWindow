@@ -306,9 +306,7 @@ namespace KalaWindow::Graphics
 		u32 GetMenuBarID() const;
 		void SetMenuBarID(u32 newValue);
 
-		//Clean up the content of this window and erase it from its registry.
-		//Calls the functional assigned with SetCleanExternalContent if it was assigned
-		void CloseWindow();
+		void Destroy();
 
 		~ProcessWindow();
 	private:
