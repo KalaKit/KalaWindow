@@ -20,14 +20,14 @@ customflags: export-compile-commands, export-vscode-sln
 
 #profile debug-windows
 binaryname: ${name_bin}d
-compiler: clang-cl
+compiler: clang++
 buildtype: debug
 buildpath: "${dir_debug}windows"
 defines: ${def_win}
 
 #profile release-windows
 binaryname: ${name_bin}
-compiler: clang-cl
+compiler: clang++
 buildtype: minsizerel
 buildpath: "${dir_release}windows"
 defines: ${def_win}
