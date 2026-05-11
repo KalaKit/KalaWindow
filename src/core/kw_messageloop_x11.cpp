@@ -331,6 +331,8 @@ namespace KalaWindow::Core
                                 w->size.y + extents[2] + extents[3]);
                             XFree(extents);
                         }
+
+                        w->ResizeCallback();
                     }
 
                     break;

@@ -1062,6 +1062,8 @@ namespace KalaWindow::Core
 				{
 					if (window->IsResizable()) window->SetResizingState(false);
 
+					window->ResizeCallback();
+
 					return true; //we handled it
 				}
 				case WM_SIZING:

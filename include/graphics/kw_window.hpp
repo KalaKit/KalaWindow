@@ -287,6 +287,9 @@ namespace KalaWindow::Graphics
 			u8 maxProgress) const;
 #endif
 
+		void SetResizeCallback(function<void()> newValue);
+		void ResizeCallback();
+
 		//Clean up the external content of this window before its own data is cleaned
 		void SetShutdownCallback(function<void()> newValue);
 
@@ -355,6 +358,7 @@ namespace KalaWindow::Graphics
 		
 		WindowData windowData{};
 
+		function<void()> resizeCallback{};
 		function<void()> shutdownCallback{};
 	};
 }

@@ -2077,7 +2077,38 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
 
-	void ProcessWindow::SetShutdownCallback(function<void()> newValue) { shutdownCallback = newValue; }
+	void ProcessWindow::SetResizeCallback(function<void()> newValue)
+	{
+		if (!newValue)
+		{
+			Log::Print(
+				"Cannot assign empty function to resize callback!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		resizeCallback = newValue;
+	}
+	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
+
+	void ProcessWindow::SetShutdownCallback(function<void()> newValue)
+	{ 
+		if (!newValue)
+		{
+			Log::Print(
+				"Cannot assign empty function to shutdown callback!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		shutdownCallback = newValue;
+	}
 
 	void ProcessWindow::Destroy()
 	{
