@@ -10,6 +10,7 @@ def_win: WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
 #global
 compilerlauncher: ccache
+compiler: clang++
 standard: c++20
 binarytype: static
 sources: "src"
@@ -20,27 +21,23 @@ customflags: export-compile-commands, export-vscode-sln
 
 #profile debug-windows
 binaryname: ${name_bin}d
-compiler: clang++
 buildtype: debug
 buildpath: "${dir_debug}windows"
 defines: ${def_win}
 
 #profile release-windows
 binaryname: ${name_bin}
-compiler: clang++
 buildtype: minsizerel
 buildpath: "${dir_release}windows"
 defines: ${def_win}
 
 #profile debug-linux
 binaryname: lib${name_bin}d
-compiler: clang++
 buildtype: debug
 buildpath: "${dir_debug}linux"
 
 #profile release-linux
 binaryname: lib${name_bin}
-compiler: clang++
 buildtype: minsizerel
 buildpath: "${dir_release}linux"
 postbuildaction: strip --strip-unneeded ${dir_release}linux/lib${name_bin}.a
