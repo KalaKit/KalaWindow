@@ -1000,8 +1000,6 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return 0; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) {}
 
-	void ProcessWindow::SetShutdownCallback(function<void()> newValue) { shutdownCallback = newValue; }
-
     void ProcessWindow::UpdateFullscreenState()
     {
         Atom actualType{};
@@ -1065,8 +1063,6 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::Destroy()
     {
-        if (shutdownCallback) shutdownCallback();
-		
         KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
 
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
