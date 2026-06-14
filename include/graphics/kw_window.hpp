@@ -290,6 +290,8 @@ namespace KalaWindow::Graphics
 		void SetResizeCallback(function<void()> newValue);
 		void ResizeCallback();
 
+		void SetShutdownCallback(function<void()> newValue);
+
 		void SetWindowData(const WindowData& newWindowStruct);
 		const WindowData& GetWindowData() const;
 
@@ -356,5 +358,6 @@ namespace KalaWindow::Graphics
 		WindowData windowData{};
 
 		function<void()> resizeCallback{};
+		function<void()> shutdownCallback{};
 	};
 }

@@ -2096,6 +2096,8 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::Destroy()
 	{
+		if (shutdownCallback) shutdownCallback();
+
         KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
 
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
