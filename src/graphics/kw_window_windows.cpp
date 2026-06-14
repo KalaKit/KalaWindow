@@ -2094,6 +2094,22 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
 
+	void ProcessWindow::SetShutdownCallback(function<void()> newValue)
+	{
+		if (!newValue)
+		{
+			Log::Print(
+				"Cannot assign empty function to shutdown callback!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		resizeCallback = newValue;
+	}
+
 	void ProcessWindow::Destroy()
 	{
 		if (shutdownCallback) shutdownCallback();
