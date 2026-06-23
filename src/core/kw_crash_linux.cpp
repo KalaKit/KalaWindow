@@ -73,10 +73,8 @@ static stack_t altStack{};
 
 //The name of this program that is displayed in the title of the error popup
 static string assignedProgramName;
-//The user-defined function that is called when a crash occurs
-static function<void()> assignedShutdownFunction{};
 //Whether or not to create a dump file at crash
-static bool canCreateDump;
+static bool canCreateDump = true;
 
 //reserve (10 * MAX_MESSAGE_LENGTH) bytes for the last 10 log messages
 static char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
@@ -144,10 +142,7 @@ static void WriteLog(
 
 namespace KalaWindow::Core
 {
-    void CrashHandler::Initialize(
-		string_view programName,
-		const function<void()>& shutdownFunction,
-		bool createDump)
+    void CrashHandler::Initialize(string_view programName)
     {
         if (isInitialized)
         {
@@ -197,8 +192,10 @@ namespace KalaWindow::Core
             nullptr);
 
 		assignedProgramName = programName;
-		assignedShutdownFunction = shutdownFunction;
-		canCreateDump = createDump;
+
+#ifdef __NODUMP__
+	    canCreateDump = false;
+#endif
 
         isInitialized = true;
 
@@ -470,15 +467,13 @@ void GenerateFullCrashReport(
 		logStream.str(),
 		timeStamp);
 
-	if (Window_Global::CreatePopup(
+	Window_Global::CreatePopup(
 		assignedProgramName,
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR) ==
-		PopupResult::POPUP_RESULT_OK)
-	{
-		if (assignedShutdownFunction) assignedShutdownFunction();
-	}
+		PopupType::POPUP_TYPE_ERROR);
+
+    _exit(1);
 }
 
 void WriteMiniDump(

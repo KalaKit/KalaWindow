@@ -30,6 +30,7 @@ binaryname: ${name_bin}
 buildtype: minsizerel
 buildpath: "${dir_release}windows"
 defines: ${def_win}
+//customflags: generate-symbols
 
 #profile debug-linux
 binaryname: lib${name_bin}d

@@ -242,13 +242,13 @@ namespace KalaWindow::Graphics
 		default:                             flags |= MB_ICONINFORMATION; break;
 		}
 
-		wstring messageWide = ToWide(message);
-		wstring titleWide = ToWide(title);
+		string finalTitle = title.empty() ? "NO TITLE" : string(title);
+		string finalMessage = message.empty() ? "NO MESSAGE" : string(message);
 
 		int result = MessageBoxW(
 			nullptr,
-			messageWide.c_str(),
-			titleWide.c_str(),
+			ToWide(finalMessage).c_str(),
+			ToWide(finalTitle).c_str(),
 			flags);
 
 		switch (result)

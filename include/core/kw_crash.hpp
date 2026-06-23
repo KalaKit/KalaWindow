@@ -28,14 +28,10 @@ namespace KalaWindow::Core
 	friend KalaWindowCore;
 	public:
 		//Initialize the crash handler. Always creates a timestamped
-		//crash log file at exe root if programm crashes.
+		//crash log file at exe root if program crashes.
 		//Assign the program name that will be displayed in the crash log,
-		//the optional function that will be called for your content that you wanna handle at crash
-		//and an optional flag to choose whether or not you want a crash dump
-		static void Initialize(
-			string_view programName,
-			const function<void()>& shutdownFunction = nullptr,
-			bool createDump = false);
+		//and define __NODUMP__ if you want to disable .dmp file creation
+		static void Initialize(string_view programName);
 
 		static bool IsInitialized();
 

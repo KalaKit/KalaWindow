@@ -7,6 +7,9 @@
 
 #include <windows.h>
 #include <dbghelp.h>
+#include <libloaderapi.h>
+#include <minwindef.h>
+#include <processthreadsapi.h>
 
 #include <cstring>
 #include <string>
@@ -14,10 +17,10 @@
 #include <fstream>
 #include <sstream>
 #include <filesystem>
-#include <functional>
 
 #include "log_utils.hpp"
 #include "thread_utils.hpp"
+#include "file_utils.hpp"
 
 #include "core/kw_crash.hpp"
 #include "core/kw_core.hpp"
@@ -29,6 +32,8 @@ using KalaHeaders::KalaLog::TimeFormat;
 
 using KalaHeaders::KalaThread::auptr;
 using KalaHeaders::KalaThread::memory_order_relaxed;
+
+using KalaHeaders::KalaFile::WriteTextToFile;
 
 using KalaWindow::Core::MAX_MESSAGE_LENGTH;
 using KalaWindow::Graphics::Window_Global;
@@ -43,8 +48,7 @@ using std::string_view;
 using std::array;
 using std::ofstream;
 using std::ostringstream;
-using std::filesystem::current_path;
-using std::function;
+using std::filesystem::path;
 using std::hex;
 using std::dec;
 using std::atomic;
@@ -54,15 +58,15 @@ using std::memcpy;
 constexpr size_t MAX_TITLE  = 50;
 constexpr size_t MAX_REASON = 256;
 
+static path exeDir{};
+
 static string forceCloseTitle{};
 static string forceCloseReason{};
 
 //The name of this program that is displayed in the title of the error popup
 static string assignedProgramName;
-//The user-defined function that is called when a crash occurs
-static function<void()> assignedShutdownFunction{};
 //Whether or not to create a dump file at crash
-static bool canCreateDump;
+static bool canCreateDump = true;
 
 //reserve (10 * MAX_MESSAGE_LENGTH) bytes for the last 10 log messages
 static char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
@@ -93,10 +97,7 @@ using u32 = uint32_t;
 
 namespace KalaWindow::Core
 {
-	void CrashHandler::Initialize(
-		string_view programName,
-		const function<void()>& shutdownFunction,
-		bool createDump)
+	void CrashHandler::Initialize(string_view programName)
 	{
 		//reserve emergency stack space (for stack overflow handling)
 
@@ -106,8 +107,19 @@ namespace KalaWindow::Core
 		SetUnhandledExceptionFilter(HandleCrash);
 
 		assignedProgramName = programName;
-		assignedShutdownFunction = shutdownFunction;
-		canCreateDump = createDump;
+
+#ifdef __NODUMP__
+		canCreateDump = false;
+#endif
+
+		wchar_t exePathBuffer[MAX_PATH];
+		GetModuleFileNameW(
+			nullptr,
+			exePathBuffer,
+			MAX_PATH);
+
+		path exePath(exePathBuffer);
+		exeDir = exePath.parent_path();
 
 		Log::Print(
 			"Initialized crash handler!",
@@ -247,15 +259,20 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 			logStream << "(possible code execution or exploit attempt)";
 		}
 		logStream << "\n";
+
+		userStream << "Attempted to " << accessStr << " invalid memory";
+
 		break;
 	}
 	case EXCEPTION_STACK_OVERFLOW:
 		logStream << "Reason: Stack overflow (likely due to infinite recursion)\n";
 		userStream << "A stack overflow was hit";
+
 		break;
 	case EXCEPTION_INT_DIVIDE_BY_ZERO:
 		logStream << "Reason: Integer divide by zero\n";
 		userStream << "An integer divide by zero error was reached";
+
 		break;
 
 		//
@@ -265,34 +282,36 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	case EXCEPTION_ILLEGAL_INSTRUCTION:
 		logStream << "Reason: Illegal CPU instruction executed\n";
 		userStream << "An illegal CPU instruction was executed";
+
 		break;
 	case EXCEPTION_GUARD_PAGE:
 		logStream << "Reason: Guard page accessed (likely stack guard or memory protection violation)\n";
 		userStream << "The guard page was accessed";
+
 		break;
 	case EXCEPTION_PRIV_INSTRUCTION:
 		logStream << "Reason: Privileged instruction executed in user mode\n";
 		userStream << "A privileged instruction was executed in user mode";
+
 		break;
 	case EXCEPTION_NONCONTINUABLE_EXCEPTION:
 		logStream << "Reason: Attempted to continue after a non-continuable exception (fatal logic error)\n";
 		userStream << "An attempt to continue after a non-continuable exception was reached";
+
 		break;
 	case EXCEPTION_IN_PAGE_ERROR:
 		logStream << "Reason: Memory access failed (I/O or paging failure)\n";
 		userStream << "Memory access failed";
+
 		break;
 
-
 	//ignore single step
-	case EXCEPTION_SINGLE_STEP:
-	{
-		return EXCEPTION_CONTINUE_SEARCH;
-	}
+	case EXCEPTION_SINGLE_STEP: return EXCEPTION_CONTINUE_SEARCH;
 
 	default:
 		logStream << "Reason: Unknown exception\n";
 		userStream << "An unknown exception was reached";
+
 		break;
 	}
 
@@ -318,13 +337,13 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	logStream << "\n========================================\n";
 
-	string_view timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
+	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
 	if (canCreateDump)
 	{
 		WriteMiniDump(
 			info, 
-			current_path().string().c_str(),
+			exeDir.string().c_str(),
 			timeStamp);
 
 		logStream << "A dump file '" << timeStamp << ".dmp" << "' was created at exe root folder.";
@@ -334,26 +353,26 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		Log::Print(
 			"Dump file creation disabled by user.",
 			"KW_CRASH",
-			LogType::LOG_DEBUG,
+			LogType::LOG_INFO,
 			0,
 			true);
 	}
 
-	Log::Print(userStream.str(), true);
+	Log::Print(userStream.str());
 
 	WriteLog(
 		logStream.str(),
 		timeStamp);
 
-	if (Window_Global::CreatePopup(
+	Window_Global::CreatePopup(
 		assignedProgramName,
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR) ==
-		PopupResult::POPUP_RESULT_OK)
-	{
-		if (assignedShutdownFunction) assignedShutdownFunction();
-	}
+		PopupType::POPUP_TYPE_ERROR);
+
+	TerminateProcess(
+		GetCurrentProcess(),
+		scast<UINT>(code));
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }
@@ -394,7 +413,7 @@ void WriteMiniDump(
 		Log::Print(
 			debugMsg.str(),
 			"KW_CRASH",
-			LogType::LOG_DEBUG);
+			LogType::LOG_INFO);
 
 		dumpInfo.ExceptionPointers = info;
 		dumpInfo.ClientPointers = FALSE;
@@ -433,7 +452,7 @@ void AppendCallStackToStream(
 	Log::Print(
 		debugMsg.str(),
 		"KW_CRASH",
-		LogType::LOG_DEBUG);
+		LogType::LOG_INFO);
 
 	SymSetOptions(
 		SYMOPT_LOAD_LINES         //file/line info
@@ -441,7 +460,7 @@ void AppendCallStackToStream(
 		| SYMOPT_DEFERRED_LOADS); //don't load all symbols immediately (faster)
 	SymInitialize(
 		process, 
-		nullptr, 
+		exeDir.string().c_str(), 
 		TRUE);
 
 	STACKFRAME64 stack = {};
@@ -540,24 +559,20 @@ void WriteLog(
 	string_view timeStamp)
 {
 	string fileName = string(timeStamp) + ".txt";
-	string fullPath = (current_path() / fileName).string();
+	path fullPath = exeDir / fileName;
 
-	ofstream logFile(fullPath);
+	string err = WriteTextToFile(
+		fullPath,
+		message);
 
-	if (!logFile.is_open())
+	if (!err.empty())
 	{
 		Log::Print(
-			"Failed to open log file to write into it!",
+			"Failed to write to log file '" + fullPath.string() + "'! Reason: " + err,
 			"KW_CRASH",
 			LogType::LOG_ERROR,
 			2);
-
-		return;
 	}
-
-	logFile << message;
-
-	logFile.close();
 }
 
 #endif //_WIN32
