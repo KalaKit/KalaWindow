@@ -2107,7 +2107,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		resizeCallback = newValue;
+		shutdownCallback = newValue;
 	}
 
 	void ProcessWindow::Destroy()
@@ -2119,7 +2119,7 @@ namespace KalaWindow::Graphics
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
 		
-		KalaWindowRegistry<ProcessWindow>::RemoveContent(ID);
+		registry.RemoveContent(ID);
 	}
 
 	ProcessWindow::~ProcessWindow()
@@ -2169,6 +2169,8 @@ namespace KalaWindow::Graphics
 			}
 			windowData.hInstance = NULL;
 		}
+
+		if (registry.runtimeContent.empty()) KalaWindowCore::Shutdown();
 	}
 }
 

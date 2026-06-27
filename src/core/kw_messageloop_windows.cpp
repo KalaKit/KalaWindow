@@ -1158,11 +1158,6 @@ namespace KalaWindow::Core
 				{
 					window->Destroy();
 
-					if (ProcessWindow::GetRegistry().runtimeContent.empty())
-					{
-						KalaWindowCore::Shutdown();
-					}
-
 					return true; //we handled it
 				}
 

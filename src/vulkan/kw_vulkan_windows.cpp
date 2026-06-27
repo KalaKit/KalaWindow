@@ -7,7 +7,9 @@
 
 #include <windows.h>
 #include <minwindef.h>
+
 #include <memory>
+#include <filesystem>
 
 #define VK_USE_PLATFORM_WIN32_KHR
 #include "vulkan/vulkan_core.h"
@@ -34,6 +36,7 @@ using KalaWindow::Graphics::Window_Global;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
+using std::filesystem::current_path;
 
 namespace KalaWindow::Vulkan
 {
@@ -127,6 +130,10 @@ namespace KalaWindow::Vulkan
 
         u32 version{};
 
+#ifdef KDEBUG
+		_putenv_s("VK_LAYER_PATH", current_path().string().c_str());
+#endif
+
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
             || version < VK_API_VERSION_1_3)
         {
@@ -145,7 +152,6 @@ namespace KalaWindow::Vulkan
 
         appInfo.pEngineName = "KalaWindow";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-
         appInfo.apiVersion = VK_API_VERSION_1_3;
 
         VkInstanceCreateInfo createInfo{};
@@ -165,8 +171,49 @@ namespace KalaWindow::Vulkan
         finalExtensions.push_back("VK_EXT_debug_utils");
 #endif
 
-        createInfo.enabledExtensionCount = finalExtensions.size();
+        createInfo.enabledExtensionCount = scast<u32>(finalExtensions.size());
         createInfo.ppEnabledExtensionNames = finalExtensions.data();
+
+		vector<const char*> finalLayers{};
+#ifdef KDEBUG
+		finalLayers.push_back("VK_LAYER_KHRONOS_validation");
+
+		VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
+		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugInfo.messageSeverity = 
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		debugInfo.messageType =
+			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		debugInfo.pfnUserCallback = DebugCallback;
+
+		static const vector<VkValidationFeatureEnableEXT> enabledFeatures =
+		{
+			VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,
+			VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
+			VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
+			VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT
+		};
+
+		VkValidationFeaturesEXT validationFeatures{};
+		validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;
+		validationFeatures.enabledValidationFeatureCount = scast<u32>(enabledFeatures.size());
+		validationFeatures.pEnabledValidationFeatures = enabledFeatures.data();
+
+		validationFeatures.pNext = &debugInfo;
+		createInfo.pNext = &validationFeatures;
+
+		createInfo.enabledLayerCount = scast<u32>(finalLayers.size());
+		createInfo.ppEnabledLayerNames = finalLayers.data();
+#else
+		createInfo.enabledLayerCount = 0;
+		createInfo.ppEnabledLayerNames = nullptr;
+		createInfo.pNext = nullptr;
+#endif
 
         if (vkCreateInstance(
             &createInfo,
@@ -181,24 +228,15 @@ namespace KalaWindow::Vulkan
         }
 
 #ifdef KDEBUG
-		VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
-		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		debugInfo.messageSeverity = 
-			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
-			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
-			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT
-			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		debugInfo.messageType =
-			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
-			| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
-			| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT
-			| VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT;
-		debugInfo.pfnUserCallback = DebugCallback;
 
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
 			instance, "vkCreateDebugUtilsMessengerEXT");
 
-		func(instance, &debugInfo, nullptr, &debugMessenger);
+		if (func) func(
+			instance,
+			&debugInfo,
+			nullptr,
+			&debugMessenger);
 #endif
 
         Log::Print(
@@ -287,11 +325,6 @@ namespace KalaWindow::Vulkan
 		unique_ptr<Vulkan_Context> newCont = make_unique<Vulkan_Context>();
 		Vulkan_Context* contPtr = newCont.get();
 
-		Log::Print(
-			"Creating Vulakn context for window '" + w->GetTitle() + "'.",
-			"KW_VULKAN",
-			LogType::LOG_INFO);
-
 		contPtr->ID = newID;
 
 		const WindowData& wData = w->GetWindowData();
@@ -368,10 +401,34 @@ namespace KalaWindow::Vulkan
 			"KW_VULKAN",
 			LogType::LOG_INFO);
 
-		vkDestroySurfaceKHR(
-            instance,
-            surface,
-            nullptr);
+		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+			instance, "vkDestroyDebugUtilsMessengerEXT");
+
+		if (func != nullptr
+			&& debugMessenger != VK_NULL_HANDLE)
+		{
+			func(instance, debugMessenger, nullptr);
+			debugMessenger = VK_NULL_HANDLE;
+		}
+
+		if (surface != VK_NULL_HANDLE)
+		{
+			vkDestroySurfaceKHR(
+				instance,
+				surface,
+				nullptr);
+
+			surface = VK_NULL_HANDLE;
+		}
+
+		if (instance != VK_NULL_HANDLE)
+		{
+			vkDestroyInstance(
+				instance,
+				nullptr);
+
+			instance = VK_NULL_HANDLE;
+		}
 	}
 }
 

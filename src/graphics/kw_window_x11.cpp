@@ -1112,6 +1112,8 @@ namespace KalaWindow::Graphics
             XDestroyWindow(display, window);
             XDestroyIC(xic);
         }
+
+        if (registry.runtimeContent.empty()) KalaWindowCore::Shutdown();
     }
 }
 
