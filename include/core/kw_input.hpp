@@ -73,8 +73,6 @@ namespace KalaWindow::Core
 
 		static Input* Initialize(u32 windowID);
 
-		bool IsInitialized() const;
-
 		u32 GetID() const;
 		u32 GetWindowID() const;
 
@@ -181,8 +179,6 @@ namespace KalaWindow::Core
 
 		~Input();
 	private:
-		bool isInitialized{};
-
 		u32 ID{};
 		u32 windowID{};
 

@@ -62,8 +62,7 @@ namespace KalaWindow::Core
 	{
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!w
-			|| !w->IsInitialized())
+		if (!w)
 		{
 			KalaWindowCore::ForceClose(
 				"Input error",
@@ -111,8 +110,6 @@ namespace KalaWindow::Core
 
 		inputPtr->windowID = w->GetID();
 
-		inputPtr->isInitialized = true;
-
 		Log::Print(
 			"Created new input context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"KW_INPUT",
@@ -120,8 +117,6 @@ namespace KalaWindow::Core
 
 		return inputPtr;
 	}
-
-	bool Input::IsInitialized() const { return isInitialized; }
 
 	u32 Input::GetID() const { return ID; }
 	u32 Input::GetWindowID() const { return windowID; }

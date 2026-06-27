@@ -319,8 +319,7 @@ namespace KalaWindow::Vulkan
 
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!w
-			|| !w->IsInitialized())
+		if (!w)
 		{
 			Log::Print(
 				"Cannot initialize Vulkan context because it's window was not found!",

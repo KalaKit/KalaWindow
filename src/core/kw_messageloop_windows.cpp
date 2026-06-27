@@ -200,8 +200,7 @@ namespace KalaWindow::Core
 	{
 		ProcessWindow* window = rcast<ProcessWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			return DefWindowProc(
 				hwnd, 

@@ -58,7 +58,6 @@ namespace KalaWindow::Vulkan
 
         //Initialize a per-window Vulkan context
 		static Vulkan_Context* Initialize(u32 windowID);
-		bool IsInitialized() const;
 
         VkSurfaceKHR GetSurface() const;
 
@@ -67,8 +66,6 @@ namespace KalaWindow::Vulkan
 
 		~Vulkan_Context();
 	private:
-		bool isInitialized{};
-
 		u32 ID{};
 		u32 windowID{};
 

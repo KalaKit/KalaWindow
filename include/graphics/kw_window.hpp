@@ -131,10 +131,10 @@ namespace KalaWindow::Graphics
 		//window dpi state affects performance and quality of the framebuffer
 		static ProcessWindow* Initialize(
 			string_view title,
+			vec2 pos = 800,
+			vec2 size = 800,
 			ProcessWindow* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
-
-		bool IsInitialized() const;
 
 		u32 GetID() const;
 
@@ -315,8 +315,6 @@ namespace KalaWindow::Graphics
 #ifdef _WIN32
 		uintptr_t GetHWND(string_view errorMessage) const;
 #endif
-
-		bool isInitialized = false;        //Cannot use this window if it is not yet initialized
 
 		bool isWindowHovered = false;      //If true, then this window is currently being hovered by the cursor.
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.

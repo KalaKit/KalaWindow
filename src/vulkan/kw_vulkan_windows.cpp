@@ -316,8 +316,7 @@ namespace KalaWindow::Vulkan
 
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!w
-			|| !w->IsInitialized())
+		if (!w)
 		{
 			KalaWindowCore::ForceClose(
 				"Vulkan error",
@@ -383,8 +382,6 @@ namespace KalaWindow::Vulkan
 		contPtr->windowID = w->GetID();
         contPtr->surface = surface;
 
-		contPtr->isInitialized = true;
-
 		Log::Print(
 			"Created new Vulkan context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"KW_VULKAN",
@@ -392,8 +389,6 @@ namespace KalaWindow::Vulkan
 
 		return contPtr;
     }
-
-    bool Vulkan_Context::IsInitialized() const { return isInitialized; }
 
 	u32 Vulkan_Context::GetID() const { return ID; }
 	u32 Vulkan_Context::GetWindowID() const { return windowID; }

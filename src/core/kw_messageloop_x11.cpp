@@ -219,11 +219,7 @@ namespace KalaWindow::Core
 
                     for (const auto& w : activeWindows)
                     {
-                        if (!w
-                            || !w->IsInitialized())
-                        {
-                            continue;
-                        }
+                        if (!w) continue;
 
                         u32 windowID = w->GetID();
 
@@ -261,8 +257,7 @@ namespace KalaWindow::Core
 
         for (const auto& w : activeWindows)
         {
-            if (!w
-                || !w->IsInitialized())
+            if (!w)
             {
                 continue;
             }

@@ -16,8 +16,11 @@ namespace KalaWindow::Core
 	using std::string_view;
 	using std::function;
 
+	using u8 = uint8_t;
 	using u32 = uint32_t;
 	using f64 = double;
+
+	constexpr u8 MAX_NAME_LENGTH = 50;
 
 	class LIB_API KalaWindowCore
 	{

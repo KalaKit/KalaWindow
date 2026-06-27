@@ -50,8 +50,7 @@ namespace KalaWindow::Graphics
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
 				"Cannot create menu bar because its window reference is invalid!",
@@ -105,8 +104,7 @@ namespace KalaWindow::Graphics
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
 				"Cannot check if menu bar is initialized because its window reference is invalid!",
@@ -128,8 +126,7 @@ namespace KalaWindow::Graphics
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
 				"Cannot set menu bar state because its window reference is invalid!",
@@ -182,8 +179,7 @@ namespace KalaWindow::Graphics
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
 				"Cannot check if menu bar is enabled because its window reference is invalid!",
@@ -220,8 +216,7 @@ namespace KalaWindow::Graphics
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
 				"Cannot create label for menu bar because its window reference is invalid!",
@@ -438,8 +433,7 @@ namespace KalaWindow::Graphics
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 
-		if (!window
-			|| !window->IsInitialized())
+		if (!window)
 		{
 			Log::Print(
 				"Cannot add separator to menu bar because its window reference is invalid!",

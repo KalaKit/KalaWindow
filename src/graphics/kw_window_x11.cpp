@@ -30,6 +30,7 @@ using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
 using KalaWindow::Vulkan::Vulkan_Context;
 using KalaWindow::Graphics::ProcessWindow;
@@ -41,8 +42,6 @@ using std::make_unique;
 using std::unique_ptr;
 using std::to_string;
 using std::ostringstream;
-
-constexpr u16 MAX_TITLE_LENGTH = 50;
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
@@ -61,6 +60,8 @@ namespace KalaWindow::Graphics
 
     ProcessWindow* ProcessWindow::Initialize(
 		string_view title,
+		vec2 pos,
+		vec2 size,
 		ProcessWindow* parentWindow,
 		DpiContext context)
     {
@@ -69,6 +70,39 @@ namespace KalaWindow::Graphics
 			KalaWindowCore::ForceClose(
 				"Window error",
 				"Failed to create window '" + string(title) + "' because global window context has not been created!");
+
+			return nullptr;
+		}
+
+		if (title.empty())
+		{
+			Log::Print(
+				"Window title cannot be empty!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
+		}
+
+		if (title.length() > MAX_NAME_LENGTH)
+		{
+			Log::Print(
+				"Window title cannot be over '" + to_string(MAX_NAME_LENGTH) + "' characters long!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
+		}
+
+		if (size < 100.0f)
+		{
+			Log::Print(
+				"Cannot set window '" + string(title) + "' size less than 100x100!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
@@ -108,8 +142,10 @@ namespace KalaWindow::Graphics
         Window window = XCreateWindow(
             display,
             root,
-            800, 800,
-            800, 800,
+            pos.x,
+            pos.y,
+            size.x,
+            size.y,
             0,
             CopyFromParent,
             InputOutput,
@@ -191,20 +227,18 @@ namespace KalaWindow::Graphics
 
         windowPtr->SetWindowClass(title);
 
-		windowPtr->isInitialized = true;
+        windowPtr->pos = pos;
+        windowPtr->size = size;
 
-        windowPtr->pos = vec2(800);
-        windowPtr->size = vec2(800);
-
-		windowPtr->oldPos = vec2(800);
-		windowPtr->oldSize = vec2(800);
+		windowPtr->oldPos = pos;
+		windowPtr->oldSize = size;
 
         //show window
         XMapWindow(
             display,
             window);
 
-		//allow files to be dragged to this window
+		//todo: add allow files to be dragged to this window
 		//DragAcceptFiles(newHwnd, TRUE);
 
 		registry.AddContent(newID, std::move(newWindow));
@@ -217,23 +251,10 @@ namespace KalaWindow::Graphics
 		return windowPtr;
     }
 
-    bool ProcessWindow::IsInitialized() const { return isInitialized; }
-
 	u32 ProcessWindow::GetID() const { return ID; }
 
     void ProcessWindow::Update()
 	{
-		if (!isInitialized)
-		{
-			Log::Print(
-				"Cannot run window loop because window '" + GetTitle() + "' has not been initialized!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
         UpdateIdleState(
 			this,
 			isIdle);
@@ -245,7 +266,7 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::SetTitle(string_view newValue) const
     {
-        if (newValue.empty())
+		if (newTitle.empty())
 		{
 			Log::Print(
 				"Window title cannot be empty!",
@@ -256,15 +277,15 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (newValue.length() > MAX_TITLE_LENGTH)
+		if (newTitle.length() > MAX_NAME_LENGTH)
 		{
 			Log::Print(
-				"Window title exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
+				"Window title cannot be over '" + to_string(MAX_NAME_LENGTH) + "' characters long!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
-                2);
+				2);
 
-            return;
+			return;
 		}
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
@@ -390,8 +411,22 @@ namespace KalaWindow::Graphics
     void ProcessWindow::BringToFocus() {}
 
     void ProcessWindow::SetSize(vec2 newSize)
-    { 
-        vec2 winSize = kclamp(newSize, minSize, maxSize);
+    {
+		vec2 oldSize = GetSize();
+		if (isnear(oldSize, newSize)) return;
+
+		if (newSize < 100.0f)
+		{
+			Log::Print(
+				"Cannot set window '" + GetTitle() + "' size less than 100x100!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+        newSize = kclamp(newSize, minSize, maxSize);
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
 
@@ -414,8 +449,8 @@ namespace KalaWindow::Graphics
         XResizeWindow(
             display,
             window,
-            scast<int>(winSize.x),
-            scast<int>(winSize.y));
+            scast<int>(newSize.x),
+            scast<int>(newSize.y));
 
         XFlush(display);
     }
