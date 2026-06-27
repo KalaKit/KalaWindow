@@ -100,17 +100,27 @@ namespace KalaWindow::Graphics
 		}
 
 		wchar_t buffer[MAX_PATH]{};
-		GetModuleFileNameW(
+		DWORD length = GetModuleFileNameW(
 			nullptr,
 			buffer,
 			MAX_PATH);
 
-		path exePath(buffer);
+		if (length > 0
+			&& length < MAX_PATH)
+		{
+			path exePath(buffer);
 
-		appID = exePath.stem().string();
+			appID = exePath.stem().string();
 
-		//Treat this process as a real app with a stable identity
-		SetCurrentProcessExplicitAppUserModelID(ToWide(appID).c_str());
+			//Treat this process as a real app with a stable identity
+			SetCurrentProcessExplicitAppUserModelID(ToWide(appID).c_str());
+		}
+		else
+		{
+			KalaWindowCore::ForceClose(
+				"Global window error",
+				"Failed to get path to executable!");
+		}
 
 		if (!enabledBeginPeriod)
 		{

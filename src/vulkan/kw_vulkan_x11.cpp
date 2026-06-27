@@ -7,6 +7,9 @@
 #ifdef __linux__
 
 #include <X11/Xlib.h>
+#include <unistd.h>
+#include <limits.h>
+#include <stdlib.h>
 
 #include <memory>
 #include <filesystem>
@@ -37,7 +40,7 @@ using std::string;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
-using std::filesystem::current_path;
+using std::filesystem::path;
 
 static bool isVerboseLoggingEnabled{};
 
@@ -133,7 +136,22 @@ namespace KalaWindow::Vulkan
         u32 version{};
 
 #ifdef KDEBUG
-		setenv("VK_LAYER_PATH", current_path().string().c_str(), 1);
+		char buffer[PATH_MAX];
+		ssize_t length = readlink("/proc/self/exe", buffer, PATH_MAX - 1);
+
+		if (length != -1)
+		{
+			buffer[length] = '\0';
+			path exeDir = path(buffer).parent_path();
+
+			setenv("VK_LAYER_PATH", exeDir.c_str(), 1);
+		}
+		else
+		{
+			KalaWindowCore::ForceClose(
+				"Global Vulkan error",
+				"Failed to get path to executable!");
+		}
 #endif
 
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS

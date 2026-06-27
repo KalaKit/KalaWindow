@@ -112,14 +112,24 @@ namespace KalaWindow::Core
 		canCreateDump = false;
 #endif
 
-		wchar_t exePathBuffer[MAX_PATH];
-		GetModuleFileNameW(
+		wchar_t buffer[MAX_PATH]{};
+		DWORD length = GetModuleFileNameW(
 			nullptr,
-			exePathBuffer,
+			buffer,
 			MAX_PATH);
 
-		path exePath(exePathBuffer);
-		exeDir = exePath.parent_path();
+		if (length > 0
+			&& length < MAX_PATH)
+		{	
+			path exePath(buffer);
+			exeDir = exePath.parent_path();
+		}
+		else
+		{
+			KalaWindowCore::ForceClose(
+				"Crash handler init error",
+				"Failed to get path to executable!");
+		}
 
 		Log::Print(
 			"Initialized crash handler!",

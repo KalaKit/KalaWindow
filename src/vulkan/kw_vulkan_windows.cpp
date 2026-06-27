@@ -36,7 +36,7 @@ using KalaWindow::Graphics::Window_Global;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
-using std::filesystem::current_path;
+using std::filesystem::path;
 
 namespace KalaWindow::Vulkan
 {
@@ -131,7 +131,25 @@ namespace KalaWindow::Vulkan
         u32 version{};
 
 #ifdef KDEBUG
-		_putenv_s("VK_LAYER_PATH", current_path().string().c_str());
+		wchar_t buffer[MAX_PATH]{};
+		DWORD length = GetModuleFileNameW(
+			nullptr,
+			buffer,
+			MAX_PATH);
+
+		if (length > 0
+			&& length < MAX_PATH)
+		{	
+			path exeDir = path(buffer).parent_path();
+
+			_putenv_s("VK_LAYER_PATH", exeDir.string().c_str());
+		}
+		else
+		{
+			KalaWindowCore::ForceClose(
+				"Global Vulkan error",
+				"Failed to get path to executable!");
+		}
 #endif
 
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
