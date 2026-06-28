@@ -124,15 +124,14 @@ namespace KalaWindow::Graphics
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
-		//Create a new window that is always hidden by default,
-		//you must manually make it visible by setting window state to WINDOW_NORMAL.
+		//Create a new window with a title and at the desired position and size.
 		//Assign a parent window to display this window as a child of that window.
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
 		static ProcessWindow* Initialize(
 			string_view title,
-			vec2 pos = 800,
-			vec2 size = 800,
+			vec2 pos = 600,
+			vec2 size = { 800, 600 },
 			ProcessWindow* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 
@@ -312,17 +311,16 @@ namespace KalaWindow::Graphics
 
 		~ProcessWindow();
 	private:
-#ifdef _WIN32
-		uintptr_t GetHWND(string_view errorMessage) const;
-#endif
-
 		bool isWindowHovered = false;      //If true, then this window is currently being hovered by the cursor.
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
 		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
 		bool isResizing = false;           //If true, then this window is currently being resized
 		bool shutdownBlockState = false;   //Prevents Windows from shutting off or logging off if this is true so you can save your data
 
-#ifdef __linux__
+#ifdef _WIN32
+		u32 parentID = UINT32_MAX;
+		vector<u32> childIDs{};
+#else
 		bool isFocused = false;
 		bool isVisible = false;
 		

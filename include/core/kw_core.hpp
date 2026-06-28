@@ -20,7 +20,7 @@ namespace KalaWindow::Core
 	using u32 = uint32_t;
 	using f64 = double;
 
-	constexpr u8 MAX_NAME_LENGTH = 50;
+	constexpr u8 MAX_NAME_LENGTH = 64;
 
 	class LIB_API KalaWindowCore
 	{

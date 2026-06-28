@@ -434,7 +434,9 @@ namespace KalaWindow::Vulkan
 			surface = VK_NULL_HANDLE;
 		}
 
-		if (instance != VK_NULL_HANDLE)
+		//only destroy the instance if all windows are destroyed
+		if (ProcessWindow::GetRegistry().runtimeContent.empty()
+			&& instance != VK_NULL_HANDLE)
 		{
 			vkDestroyInstance(
 				instance,

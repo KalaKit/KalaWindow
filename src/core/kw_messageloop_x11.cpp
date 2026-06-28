@@ -317,7 +317,8 @@ namespace KalaWindow::Core
                             Log::Print(
                                 "Failed to set window outer size because XGetWindowProperty failed!",
                                 "KW_MESSAGE_LOOP",
-                                LogType::LOG_ERROR);
+                                LogType::LOG_ERROR,
+                                2);
                         }
                         else
                         {

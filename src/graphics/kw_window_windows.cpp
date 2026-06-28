@@ -6,6 +6,7 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <winuser.h>
 #include <mmsystem.h>
 #include <shobjidl.h>
 #include <dwmapi.h>
@@ -22,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "core_utils.hpp"
 #include "log_utils.hpp"
 
 #include "graphics/kw_window.hpp"
@@ -137,52 +139,18 @@ namespace KalaWindow::Graphics
 		unique_ptr<ProcessWindow> newWindow = make_unique<ProcessWindow>();
 		ProcessWindow* windowPtr = newWindow.get();
 
-		HWND parentWindowRef{};
-		if (parentWindow)
-		{
-			if (find(registry.runtimeContent.begin(),
-				registry.runtimeContent.end(),
-				parentWindow)
-				== registry.runtimeContent.end())
-			{
-				KalaWindowCore::ForceClose(
-					"Window error",
-					"Failed to create child window '" + string(title) + "' because parent window pointer does not exist!");
-
-				return nullptr;
-			}
-
-			parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().window);
-
-			if (!parentWindowRef)
-			{
-				KalaWindowCore::ForceClose(
-					"Window error",
-					"Failed to create child window '" + string(title) + "' because parent window handle is invalid!");
-
-				return nullptr;
-			}
-		}
-
-		DWORD exStyle =
-			WS_EX_APPWINDOW
-			| WS_EX_ACCEPTFILES;
-
 		HINSTANCE newHInstance = GetModuleHandle(nullptr);
 
-		wstring appIDWide = ToWide(Window_Global::GetAppID());
-		wstring titleWide = ToWide(title);
-
 		HWND newHwnd = CreateWindowExW(
-			exStyle,
-			appIDWide.c_str(),
-			titleWide.c_str(),
-			WS_OVERLAPPEDWINDOW,
+			WS_EX_ACCEPTFILES | WS_EX_APPWINDOW,
+			ToWide(Window_Global::GetAppID()).c_str(),
+			ToWide(title).c_str(),
+			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN,
 			pos.x,
 			pos.y,
 			size.x,
 			size.y,
-			parentWindowRef,
+			nullptr,
 			nullptr,
 			newHInstance,
 			windowPtr);
@@ -261,6 +229,38 @@ namespace KalaWindow::Graphics
 		//allow files to be dragged to this window
 		DragAcceptFiles(newHwnd, TRUE);
 
+		if (parentWindow)
+		{
+			if (find(registry.runtimeContent.begin(),
+				registry.runtimeContent.end(),
+				parentWindow)
+				== registry.runtimeContent.end())
+			{
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Failed to create child window '" + string(title) + "' because parent window pointer does not exist!");
+
+				return nullptr;
+			}
+
+			HWND parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().window);
+
+			if (!parentWindowRef
+				|| !IsWindow(parentWindowRef))
+			{
+				KalaWindowCore::ForceClose(
+					"Window error",
+					"Failed to create child window '" + string(title) + "' because parent window handle is invalid!");
+
+				return nullptr;
+			}
+
+			parentWindow->childIDs.push_back(newID);
+			windowPtr->parentID = parentWindow->ID;
+		}
+
+		SetForegroundWindow(newHwnd);
+
 		registry.AddContent(newID, std::move(newWindow));
 
 		Log::Print(
@@ -275,6 +275,19 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::Update()
 	{
+		if (!windowData.window
+			|| !IsWindow(ToVar<HWND>(windowData.window)))
+		{
+			Log::Print(
+				"Destroying window '" + to_string(ID) + "' because its HWND was lost or became invalid!",
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+
+			Destroy();
+
+			return;
+		}
+
 		UpdateIdleState(
 			this,
 			isIdle);
@@ -2155,11 +2168,44 @@ namespace KalaWindow::Graphics
 	{
 		if (shutdownCallback) shutdownCallback();
 
+		vector<u32> children = std::move(childIDs);
+
+		for (const auto& w : children)
+		{
+			if (Window_Global::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Destroying child window '" + to_string(w) + "' of parent window '" + to_string(ID) + "'",
+					"KW_WINDOW",
+					LogType::LOG_VERBOSE);
+			}
+
+			ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(w);
+			if (pw) pw->Destroy();
+		}
+		if (parentID != UINT32_MAX)
+		{
+			if (Window_Global::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Destroying child window '" + to_string(ID) + "' of parent window '" + to_string(parentID) + "'",
+					"KW_WINDOW",
+					LogType::LOG_VERBOSE);
+			}
+
+			ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(parentID);
+			if (pw)
+			{
+				auto it = find(pw->childIDs.begin(), pw->childIDs.end(), ID);
+				if (it != pw->childIDs.end()) pw->childIDs.erase(it);
+			}
+		}
+
         KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
 
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
-		
+
 		registry.RemoveContent(ID);
 	}
 
@@ -2210,8 +2256,6 @@ namespace KalaWindow::Graphics
 			}
 			windowData.hInstance = NULL;
 		}
-
-		if (registry.runtimeContent.empty()) KalaWindowCore::Shutdown();
 	}
 }
 

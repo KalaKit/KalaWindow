@@ -6,6 +6,7 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <winuser.h>
 #include <shellapi.h> 
 #include <string>
 #include <vector>
@@ -41,6 +42,7 @@ using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
 using KalaWindow::Core::KalaWindowRegistry;
 using KalaWindow::Core::Input;
+using KalaWindow::Graphics::WindowState;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -341,7 +343,7 @@ namespace KalaWindow::Core
 
 		auto process_message = [](
 			const MSG& msg,
-			ProcessWindow* window) -> bool
+			ProcessWindow* window) -> LRESULT
 			{
 				if (!window)
 				{
@@ -351,7 +353,7 @@ namespace KalaWindow::Core
 						LogType::LOG_ERROR,
 						2);
 
-					return false;
+					return 0;
 				}
 
 				u32 windowID = window->GetID();
@@ -397,7 +399,7 @@ namespace KalaWindow::Core
 				{
 					if (addCharCallback) addCharCallback(scast<u32>(msg.wParam));
 
-					return true; //we handled it
+					return 0; //we handled it
 				}
 
 				case WM_SYSKEYDOWN:
@@ -442,7 +444,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_SYSKEYUP:
 				case WM_KEYUP:
@@ -453,7 +459,11 @@ namespace KalaWindow::Core
 						|| msg.wParam == VK_XBUTTON1
 						|| msg.wParam == VK_XBUTTON2)
 					{
-						return false;
+						return DefWindowProc(
+							msg.hwnd,
+							msg.message,
+							msg.wParam,
+							msg.lParam);
 					}
 
 					KeyboardButton key = TranslateVirtualKey(msg.wParam, msg.lParam);
@@ -473,7 +483,11 @@ namespace KalaWindow::Core
 							false);
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -518,12 +532,21 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_MOUSELEAVE:
 				{
 					window->isWindowHovered = false;
-					return false;
+
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -541,7 +564,11 @@ namespace KalaWindow::Core
 
 					if (input) input->SetScrollwheelDelta(scroll);
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -565,7 +592,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_LBUTTONUP:
 				{
@@ -584,7 +615,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				case WM_RBUTTONDOWN:
@@ -604,7 +639,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_RBUTTONUP:
 				{
@@ -623,7 +662,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				case WM_MBUTTONDOWN:
@@ -643,7 +686,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_MBUTTONUP:
 				{
@@ -662,7 +709,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				case WM_XBUTTONDOWN:
@@ -702,7 +753,12 @@ namespace KalaWindow::Core
 							}
 						}
 					}
-					return false;
+
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_XBUTTONUP:
 				{
@@ -741,7 +797,12 @@ namespace KalaWindow::Core
 							}
 						}
 					}
-					return false;
+
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -767,7 +828,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_RBUTTONDBLCLK:
 				{
@@ -786,7 +851,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_MBUTTONDBLCLK:
 				{
@@ -805,7 +874,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				case WM_XBUTTONDBLCLK:
 				{
@@ -842,7 +915,12 @@ namespace KalaWindow::Core
 							}
 						}
 					}
-					return false;
+
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -867,7 +945,11 @@ namespace KalaWindow::Core
 						&size,
 						sizeof(RAWINPUTHEADER)) != size)
 					{
-						return false;
+						return DefWindowProc(
+							msg.hwnd,
+							msg.message,
+							msg.wParam,
+							msg.lParam);
 					}
 
 					const RAWMOUSE& mouse = rcast<RAWINPUT*>(buffer.data())->data.mouse;
@@ -884,7 +966,11 @@ namespace KalaWindow::Core
 						input->SetRawMouseDelta(newMouseRawDelta);
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -897,11 +983,15 @@ namespace KalaWindow::Core
 					if (LOWORD(msg.lParam) == HTCLIENT)
 					{
 						SetCursor(LoadCursor(nullptr, IDC_ARROW));
-						return true;
+
+						return 1;
 					}
 
-					//let windows handle non-client areas
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -961,7 +1051,7 @@ namespace KalaWindow::Core
 
 					window->SetLastDraggedFiles(std::move(droppedFiles));
 
-					return true; //we handled it
+					return 0; //we handled it
 				}
 
 				//
@@ -999,7 +1089,11 @@ namespace KalaWindow::Core
 					}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//window gains focus
@@ -1018,7 +1112,11 @@ namespace KalaWindow::Core
 
 					if (!window->IsFocused()) window->BringToFocus();
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 				//window loses focus
 				case WM_KILLFOCUS:
@@ -1034,7 +1132,11 @@ namespace KalaWindow::Core
 						}
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -1050,7 +1152,7 @@ namespace KalaWindow::Core
 					BeginPaint(hwnd, &ps);
 					EndPaint(hwnd, &ps);
 
-					return true; //we handled it
+					return 0; //we handled it
 				}
 
 				//
@@ -1059,11 +1161,43 @@ namespace KalaWindow::Core
 
 				case WM_SIZE:
 				{
+					switch (msg.wParam)
+					{
+					case SIZE_MINIMIZED:
+					{
+						for (u32 childID : window->childIDs)
+						{
+							ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(childID);
+							if (pw)
+							{
+								pw->SetWindowState(WindowState::WINDOW_MINIMIZE);
+							}
+						}
+
+						break;
+					}
+
+					case SIZE_MAXIMIZED:
+					case SIZE_RESTORED:
+					{
+						for (u32 childID : window->childIDs)
+						{
+							ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(childID);
+							if (pw)
+							{
+								pw->BringToFocus();
+							}
+						}
+
+						break;
+					}
+					}
+
 					if (window->IsResizable()) window->SetResizingState(false);
 
 					window->ResizeCallback();
 
-					return true; //we handled it
+					return 0; //we handled it
 				}
 				case WM_SIZING:
 				{
@@ -1073,7 +1207,7 @@ namespace KalaWindow::Core
 						window->SetResizingState(true);
 					}
 
-					return true; //we handled it
+					return 0; //we handled it
 				}
 				//scale correctly when going to other monitor
 				case WM_DPICHANGED:
@@ -1091,7 +1225,7 @@ namespace KalaWindow::Core
 						SWP_NOZORDER
 						| SWP_NOACTIVATE);
 
-					return true; //we handled it
+					return 0; //we handled it
 				}
 
 				//
@@ -1108,7 +1242,7 @@ namespace KalaWindow::Core
 					mmi->ptMaxTrackSize.x = window->GetMaxSize().x;
 					mmi->ptMaxTrackSize.y = window->GetMaxSize().y;
 
-					return true; //we handled it
+					return 0; //we handled it
 				}
 
 				//
@@ -1134,7 +1268,8 @@ namespace KalaWindow::Core
 								if (ID == IDRef)
 								{
 									e.function();
-									return true; //we handled it
+
+									return 0; //we handled it
 								}
 							}
 						}
@@ -1145,7 +1280,11 @@ namespace KalaWindow::Core
 							LogType::LOG_INFO);
 					}
 
-					return false;
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
 
 				//
@@ -1157,31 +1296,26 @@ namespace KalaWindow::Core
 				{
 					window->Destroy();
 
-					return true; //we handled it
-				}
+					if (ProcessWindow::GetRegistry().runtimeContent.empty())
+					{
+						KalaWindowCore::Shutdown();
+					}
 
-				//full shutdown if all windows were destroyed
-				case WM_DESTROY:
-				{
-					PostQuitMessage(0);
-					return true; //we handled it
+					return 0; //we handled it
 				}
 
 				default:
-					return false;
+				{
+					return DefWindowProc(
+						msg.hwnd,
+						msg.message,
+						msg.wParam,
+						msg.lParam);
 				}
-
-				return false;
+				}
 			};
 
-		//return false if we handled the message ourselves
-		if (process_message(msgObj, window)) return false;
-
-		return DefWindowProc(
-			hwnd, 
-			msg, 
-			wParam, 
-			lParam);
+		return process_message(msgObj, window);
 	}
 
 	void MessageLoop::SetAddCharCallback(const function<void(u32)>& newCallback)

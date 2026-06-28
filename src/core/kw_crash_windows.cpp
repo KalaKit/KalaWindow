@@ -35,6 +35,7 @@ using KalaHeaders::KalaThread::memory_order_relaxed;
 
 using KalaHeaders::KalaFile::WriteTextToFile;
 
+using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::MAX_MESSAGE_LENGTH;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -55,7 +56,6 @@ using std::atomic;
 using std::memory_order_relaxed;
 using std::memcpy;
 
-constexpr size_t MAX_TITLE  = 50;
 constexpr size_t MAX_REASON = 256;
 
 static path exeDir{};
@@ -191,7 +191,7 @@ namespace KalaWindow::Core
         string_view title,
         string_view reason)
     {
-		forceCloseTitle  = title.substr(0, MAX_TITLE);
+		forceCloseTitle  = title.substr(0, MAX_NAME_LENGTH);
 		forceCloseReason = reason.substr(0, MAX_REASON);
     }
 }
