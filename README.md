@@ -37,7 +37,7 @@ This project relies on several [external dependencies](https://github.com/greeen
 
 [Donate on PayPal](https://www.paypal.com/donate/?hosted_button_id=QWG8SAYX5TTP6)
 
-[Official Discord server](https://discord.gg/jkvasmTND5)
+[Official Discord server](https://discord.gg/BZ2eJ5Cdr8)
 
 [Official Youtube channel](https://youtube.com/greenlaser)
 
