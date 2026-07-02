@@ -13,7 +13,6 @@ once its installed run the visual studio installer exe and enable this checkbox:
 and make sure these are toggled on at the right side panel:
 - msvc build tools
 - windows 11 sdk
-- c++ cmake tools
 - c++ atl
 - c++ mfc
 - c++ clang

@@ -8,28 +8,39 @@ This project relies on several [external dependencies](https://github.com/greeen
 
 ---
 
-## Supported platforms
+## Platform support
 
-| Platform  | Status         | Notes                                                |
-|-----------|----------------|------------------------------------------------------|
-| Windows   | Supported      | Requires Windows 10 (build 1809 / 17763) or higher   |
-| Linux     | Supported      | Should work on any Linux distro released in the last ~10 years ago |
-| WebGL     | Planned        | Support coming in a future version                   |
-| Mac       | Not Supported  | No plans for macOS compatibility                     |
-| ARM       | Not Supported  | ARM architecture will not be targeted                |
-| Console   | Not Supported  | No plans for console platforms                       |
-| Mobile    | Not Supported  | No plans for mobile platforms                        |
+| Platform  | Status        | Notes                                                |
+|-----------|---------------|------------------------------------------------------|
+| Windows   | Supported     | Requires Windows 10 (build 1809 / 17763) or higher   |
+| Linux     | Supported     | Should work on any Linux distro released in the last ~10 years ago |
+| BSD       | Planned       | BSD support is planned for a future version          |
+| Mac       | Not Supported | No plans for Mac support                             |
+| WebGL     | Not Supported | No plans for web support                             |
+| Console   | Not Supported | No plans for console support                         |
+| Mobile    | Not Supported | No plans for mobile support                          |
 
 ---
 
-## Supported render pipelines
+## Architecture support
 
-| Render Pipeline | Status         | Notes                                |
-|-----------------|----------------|--------------------------------------|
-| Vulkan          | Support        | Internally locked to Vulkan 1.3      |
-| OpenGL          | Not supported  | Has been deprecated and removed      |
-| DirectX         | Not Supported  | No plans for DirectX compatibility   |
-| MoltenVK        | Not Supported  | No plans for MoltenVK compatibility  |
+| Architecture | Status        | Notes                                      |
+|--------------|---------------|--------------------------------------------|
+| x64          | Supported     | x64 is fully supported                     |
+| x86          | Not supported | No plans for x86 support                   |
+| Arm          | Planned       | Arm support is planned in a future release |
+| Risc-v       | Not supported | No plans for Risc-v support                |
+
+---
+
+## Render pipeline support
+
+| Render Pipeline | Status        | Notes                                |
+|-----------------|---------------|--------------------------------------|
+| Vulkan          | Supported     | Internally locked to Vulkan 1.3      |
+| OpenGL          | Not supported | No plans for OpenGL support          |
+| DirectX         | Not Supported | No plans for DirectX support         |
+| MoltenVK        | Not Supported | No plans for MoltenVK support        |
 
 ---
 
