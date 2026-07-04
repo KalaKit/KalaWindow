@@ -111,7 +111,7 @@ namespace KalaWindow::Core
 		inputPtr->windowID = w->GetID();
 
 		Log::Print(
-			"Created new input context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"Created new input context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"KW_INPUT",
 			LogType::LOG_SUCCESS);
 
@@ -685,22 +685,20 @@ namespace KalaWindow::Core
 		}
 	}
 
+	void Input::Destroy() { registry.RemoveContent(ID); }
+
 	Input::~Input()
 	{
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 		if (!w)
 		{
-			Log::Print(
-				"Cannot shut down input context because its window was not found!",
-				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+			KalaWindowCore::ForceClose(
+				"Input destruction error",
+				"Failed to destroy input context '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
 		}
 
 		Log::Print(
-			"Destroying input context with ID '" + to_string(ID) + "' for window '" + w->GetTitle() + "'.",
+			"Destroying input context '" + to_string(ID) + "' for window '" + to_string(windowID) + "'.",
 			"KW_INPUT",
 			LogType::LOG_INFO);
 

@@ -90,6 +90,8 @@ namespace KalaWindow::Graphics
 
 		const vector<MenuBarEvent>& GetEvents() const;
 
+		void Destroy();
+
 		~MenuBar();
 	private:
 		bool isInitialized{};

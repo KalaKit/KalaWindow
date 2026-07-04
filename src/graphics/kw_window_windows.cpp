@@ -31,7 +31,7 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_menubar_windows.hpp"
-#include "vulkan/kw_vulkan.hpp"
+#include "graphics/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
@@ -45,7 +45,7 @@ using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::MenuBar;
-using KalaWindow::Vulkan::Vulkan_Context;
+using KalaWindow::Graphics::VulkanContext;
 
 using std::make_unique;
 using std::to_string;
@@ -2201,7 +2201,7 @@ namespace KalaWindow::Graphics
 			}
 		}
 
-        KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
+        KalaWindowRegistry<VulkanContext>::RemoveAllWindowContent(ID);
 
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);

@@ -94,7 +94,7 @@ namespace KalaWindow::Graphics
 		menuPtr->isEnabled = true;
 
 		Log::Print(
-			"Created new menu bar with ID '" + to_string(newID) + "' for window '" + window->GetTitle() + "''!",
+			"Created new menu bar '" + to_string(newID) + "' for window '" + window->GetTitle() + "''!",
 			"KW_MENUBAR",
 			LogType::LOG_SUCCESS);
 
@@ -593,35 +593,29 @@ namespace KalaWindow::Graphics
 
 	const vector<MenuBarEvent>& MenuBar::GetEvents() const { return events; }
 
+	void MenuBar::Destroy() { registry.RemoveContent(ID); }
+
 	MenuBar::~MenuBar()
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 		if (!window)
 		{
-			Log::Print(
-				"Cannot shut down menu bar context because its window was not found!",
-				"KW_MENUBAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+			KalaWindowCore::ForceClose(
+				"Menubar destruction error",
+				"Cannot shut down menu bar '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
 		}
 
 		const WindowData& windowData = window->GetWindowData();
 
 		if (!windowData.window)
 		{
-			Log::Print(
-				"Failed to destroy menu bar because its window was invalid!",
-				"KW_MENUBAR",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+			KalaWindowCore::ForceClose(
+				"Menubar destruction error",
+				"Failed to destroy menu bar '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' had no valid HWND!");
 		}
 
 		Log::Print(
-			"Destroying menu bar context with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
+			"Destroying menu bar '" + to_string(ID) + "' for window '" + to_string(windowID) + "'.",
 			"KW_MENUBAR",
 			LogType::LOG_INFO);
 

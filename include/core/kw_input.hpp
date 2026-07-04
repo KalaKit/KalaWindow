@@ -177,6 +177,8 @@ namespace KalaWindow::Core
 		//Call at end of frame to reset pressed/released states
 		void EndFrameUpdate();
 
+		void Destroy();
+
 		~Input();
 	private:
 		u32 ID{};

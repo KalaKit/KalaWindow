@@ -32,7 +32,7 @@ using KalaHeaders::KalaLog::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
-using KalaWindow::Vulkan::Vulkan_Context;
+using KalaWindow::Vulkan::VulkanContext;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::WindowMode;
@@ -1116,7 +1116,7 @@ namespace KalaWindow::Graphics
     {
 		if (shutdownCallback) shutdownCallback();
 
-        KalaWindowRegistry<Vulkan_Context>::RemoveAllWindowContent(ID);
+        KalaWindowRegistry<VulkanContext>::RemoveAllWindowContent(ID);
 
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
 		

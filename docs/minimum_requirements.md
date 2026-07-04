@@ -6,7 +6,7 @@ All targets assume **64-bit systems with Windows 10/11 or Linux distro from the 
 
 Minimum available disk space: 50MB
 
-## Vulkan 1.3
+## Vulkan 1.4
 
 | Type    | AMD CPU                 | Intel CPU               |
 |---------|-------------------------|-------------------------|

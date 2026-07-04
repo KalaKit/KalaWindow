@@ -2,7 +2,7 @@
 
 **KalaWindow** is a C++20 window library for Windows and Linux, it is used for making software and games.
 
-**KalaWindow** creates and owns the Vulkan 1.3 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework.
+**KalaWindow** creates and owns the Vulkan 1.4 context, manages the message loop, handles crashes safely through the crash handler and handles all inputs through the input framework.
 
 This project relies on several [external dependencies](https://github.com/greeenlaser/external-shared), they are not shipped inside this project, please make sure you have that repository cloned into a folder inside the same parent directory as this project folder before compiling this project from source.
 
@@ -37,7 +37,7 @@ This project relies on several [external dependencies](https://github.com/greeen
 
 | Render Pipeline | Status        | Notes                                |
 |-----------------|---------------|--------------------------------------|
-| Vulkan          | Supported     | Internally locked to Vulkan 1.3      |
+| Vulkan          | Supported     | Internally locked to Vulkan 1.4      |
 | OpenGL          | Not supported | No plans for OpenGL support          |
 | DirectX         | Not Supported | No plans for DirectX support         |
 | MoltenVK        | Not Supported | No plans for MoltenVK support        |

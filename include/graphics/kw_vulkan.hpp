@@ -18,7 +18,7 @@ using VkInstance = VkInstance_T*;
 struct VkSurfaceKHR_T;
 using VkSurfaceKHR = VkSurfaceKHR_T*;
 
-namespace KalaWindow::Vulkan
+namespace KalaWindow::Graphics
 {
     using std::string;
     using std::vector;
@@ -27,44 +27,38 @@ namespace KalaWindow::Vulkan
 
     using KalaWindow::Core::KalaWindowRegistry;
 
-    class Vulkan_Context;
-
-    class LIB_API Vulkan_Global
+    class LIB_API VulkanContext
 	{
 	public:
+        static KalaWindowRegistry<VulkanContext>& GetRegistry();
+
     	//Toggle verbose logging. If true and in Debug, then Vulkan will add its own debug messages to the console log messages.
 		static void SetVerboseLoggingState(bool newState);
 		static bool IsVerboseLoggingEnabled();
+
+        static VkInstance GetInstance();
         
-        //Global one-time Vulkan 1.3 init, needs to be called before per-window Vulkan init.
+        //Global one-time Vulkan 1.4 instance init,
+        //needs to be called before per-window Vulkan init.
         //Add optional features via extensions list.
         //Automatically added extensions required for core operation:
         //- VK_KHR_surface
         //- VK_KHR_win32_surface (on windows)
         //- VK_KHR_xlib_surface (on linux)
-		static void Initialize(const vector<string>& extensions = {});
+		static void InitializeGlobal(const vector<string>& extensions = {});
 		static bool IsInitialized();
 
-        static VkInstance GetInstance();
-
-        //Shut down Vulkan instance and all surfaces
-        static void Shutdown();
-    };
-
-    class LIB_API Vulkan_Context
-	{
-	public:
-        static KalaWindowRegistry<Vulkan_Context>& GetRegistry();
-
-        //Initialize a per-window Vulkan context
-		static Vulkan_Context* Initialize(u32 windowID);
+        //Initialize a per-window Vulkan context, creates a surface
+		static VulkanContext* Initialize(u32 windowID);
 
         VkSurfaceKHR GetSurface() const;
 
 		u32 GetID() const;
 		u32 GetWindowID() const;
 
-		~Vulkan_Context();
+        void Destroy();
+
+		~VulkanContext();
 	private:
 		u32 ID{};
 		u32 windowID{};

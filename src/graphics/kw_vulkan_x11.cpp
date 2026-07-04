@@ -20,7 +20,7 @@
 
 #include "log_utils.hpp"
 
-#include "vulkan/kw_vulkan.hpp"
+#include "graphics/kw_vulkan.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
@@ -42,7 +42,11 @@ using std::unique_ptr;
 using std::make_unique;
 using std::filesystem::path;
 
+static bool isInitialized{};
 static bool isVerboseLoggingEnabled{};
+
+static VkInstance instance{};
+static VkDebugUtilsMessengerEXT debugMessenger{};
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -97,21 +101,32 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	return VK_FALSE;
 }
 
-namespace KalaWindow::Vulkan
+namespace KalaWindow::Graphics
 {
     //
 	// GLOBAL
 	//
 
-	static bool isInitialized{};
+	static KalaWindowRegistry<VulkanContext> registry{};
 
-    static VkInstance instance{};
-	static VkDebugUtilsMessengerEXT debugMessenger{};
+	KalaWindowRegistry<VulkanContext>& VulkanContext::GetRegistry() { return registry; }
 
-	void Vulkan_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
-	bool Vulkan_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+	void VulkanContext::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
+	bool VulkanContext::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
-	void Vulkan_Global::Initialize(const vector<string>& extensions)
+    VkInstance VulkanContext::GetInstance()
+    {
+        if (!isInitialized)
+		{
+			KalaWindowCore::ForceClose(
+				"Vulkan instance error",
+				"Cannot get Vulkan instance because Global Vulkan has not been initialized!");
+		}
+
+        return instance;
+    }
+
+	void VulkanContext::InitializeGlobal(const vector<string>& extensions)
     {
 		if (isInitialized)
 		{
@@ -127,7 +142,7 @@ namespace KalaWindow::Vulkan
 		if (!Window_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
-				"Global Vulkan error",
+				"Global Vulkan context init error",
 				"Cannot initialize global Vulkan because global window manager has not been initialized!");
 
 			return;
@@ -149,17 +164,17 @@ namespace KalaWindow::Vulkan
 		else
 		{
 			KalaWindowCore::ForceClose(
-				"Global Vulkan error",
+				"Vulkan context init error",
 				"Failed to get path to executable!");
 		}
 #endif
 
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
-            || version < VK_API_VERSION_1_3)
+            || version < VK_API_VERSION_1_4)
         {
 			KalaWindowCore::ForceClose(
-				"Global Vulkan error",
-				"Vulkan 1.3 is not supported on this system!");
+				"Vulkan context init error",
+				"Vulkan 1.4 is not supported on this system!");
 
 			return;
         }
@@ -172,7 +187,7 @@ namespace KalaWindow::Vulkan
 
         appInfo.pEngineName = "KalaWindow";
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.apiVersion = VK_API_VERSION_1_3;
+        appInfo.apiVersion = VK_API_VERSION_1_4;
 
         VkInstanceCreateInfo createInfo{};
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -187,20 +202,20 @@ namespace KalaWindow::Vulkan
 
         finalExtensions.push_back("VK_KHR_surface");
         finalExtensions.push_back("VK_KHR_xlib_surface");
-#ifdef KDEBUG
         finalExtensions.push_back("VK_EXT_debug_utils");
-#endif
 
         createInfo.enabledExtensionCount = scast<u32>(finalExtensions.size());
         createInfo.ppEnabledExtensionNames = finalExtensions.data();
+
+		VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
+		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugInfo.pfnUserCallback = DebugCallback;
 
 		vector<const char*> finalLayers{};
 		
 #ifdef KDEBUG
 		finalLayers.push_back("VK_LAYER_KHRONOS_validation");
 
-		VkDebugUtilsMessengerCreateInfoEXT debugInfo{};
-		debugInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugInfo.messageSeverity = 
 			VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT
 			| VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT
@@ -210,7 +225,6 @@ namespace KalaWindow::Vulkan
 			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
 			| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
 			| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		debugInfo.pfnUserCallback = DebugCallback;
 
 		static const vector<VkValidationFeatureEnableEXT> enabledFeatures =
 		{
@@ -231,9 +245,16 @@ namespace KalaWindow::Vulkan
 		createInfo.enabledLayerCount = scast<u32>(finalLayers.size());
 		createInfo.ppEnabledLayerNames = finalLayers.data();
 #else
+		debugInfo.messageSeverity = 
+			VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		debugInfo.messageType =
+			VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
+			| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+
 		createInfo.enabledLayerCount = 0;
 		createInfo.ppEnabledLayerNames = nullptr;
-		createInfo.pNext = nullptr;
+		createInfo.pNext = &debugInfo;
 #endif
 
         if (vkCreateInstance(
@@ -242,13 +263,11 @@ namespace KalaWindow::Vulkan
             &instance) != VK_SUCCESS)
         {
 			KalaWindowCore::ForceClose(
-				"Global Vulkan error",
+				"Vulkan context init error",
 				"Failed to create Vulkan instance!");
 
 			return;
         }
-
-#ifdef KDEBUG
 
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
 			instance, "vkCreateDebugUtilsMessengerEXT");
@@ -258,7 +277,6 @@ namespace KalaWindow::Vulkan
 			&debugInfo,
 			nullptr,
 			&debugMessenger);
-#endif
 
         Log::Print(
 			"Initialized global Vulkan context!",
@@ -268,50 +286,14 @@ namespace KalaWindow::Vulkan
 		isInitialized = true;
     }
 
-    bool Vulkan_Global::IsInitialized() { return isInitialized; }
+    bool VulkanContext::IsInitialized() { return isInitialized; }
 
-    VkInstance Vulkan_Global::GetInstance()
-    {
-        if (!isInitialized)
-		{
-			KalaWindowCore::ForceClose(
-				"Global Vulkan error",
-				"Cannot get Vulkan instance because Global Vulkan has not been initialized!");
-		}
-
-        return instance;
-    }
-
-    void Vulkan_Global::Shutdown()
-    {
-        Vulkan_Context::GetRegistry().RemoveAllContent();
-
-#ifdef KDEBUG
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-			instance, "vkDestroyDebugUtilsMessengerEXT");
-
-		func(instance, debugMessenger, nullptr);
-#endif
-
-        vkDestroyInstance(instance, nullptr);
-
-        isInitialized = false;
-    }
-
-    //
-	// CONTEXT
-	//
-
-	static KalaWindowRegistry<Vulkan_Context> registry{};
-
-	KalaWindowRegistry<Vulkan_Context>& Vulkan_Context::GetRegistry() { return registry; }
-
-	Vulkan_Context* Vulkan_Context::Initialize(u32 windowID)
+	VulkanContext* VulkanContext::Initialize(u32 windowID)
 	{
-		if (!Vulkan_Global::IsInitialized())
+		if (!VulkanContext::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
-				"Vulkan error",
+				"Vulkan context init error",
 				"Cannot initialize Vulkan context because global Vulkan has not yet been initialized!");
 
 			return nullptr;
@@ -344,15 +326,15 @@ namespace KalaWindow::Vulkan
 		if (!instance)
 		{
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Vulkan context init error",
                 "Failed to initialize Vulkan context because the passed Vulkan instance was invalid!");
 		}
 
         u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
-		unique_ptr<Vulkan_Context> newCont = make_unique<Vulkan_Context>();
-		Vulkan_Context* contPtr = newCont.get();
+		unique_ptr<VulkanContext> newCont = make_unique<VulkanContext>();
+		VulkanContext* contPtr = newCont.get();
 
 		contPtr->ID = newID;
 
@@ -362,13 +344,13 @@ namespace KalaWindow::Vulkan
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Vulkan context init error",
                 "Failed to initialize Vulkan context because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Vulkan context init error",
                 "Failed to initialize Vulkan context because the attached window was invalid!");
         }
 
@@ -389,7 +371,7 @@ namespace KalaWindow::Vulkan
             &surface) != VK_SUCCESS)
         {
 			KalaWindowCore::ForceClose(
-				"Vulkan error",
+				"Vulkan context init error",
 				"Failed to create Vulkan surface for window '" + w->GetTitle() + "'!");
 
 			return nullptr;
@@ -404,36 +386,34 @@ namespace KalaWindow::Vulkan
 		contPtr->isInitialized = true;
 
 		Log::Print(
-			"Created new Vulkan context with ID '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"Created new Vulkan context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"KW_VULKAN",
 			LogType::LOG_SUCCESS);
 
 		return contPtr;
     }
 
-    bool Vulkan_Context::IsInitialized() const { return isInitialized; }
+    bool VulkanContext::IsInitialized() const { return isInitialized; }
 
-	u32 Vulkan_Context::GetID() const { return ID; }
-	u32 Vulkan_Context::GetWindowID() const { return windowID; }
+	u32 VulkanContext::GetID() const { return ID; }
+	u32 VulkanContext::GetWindowID() const { return windowID; }
 
-    VkSurfaceKHR Vulkan_Context::GetSurface() const { return surface; }
+    VkSurfaceKHR VulkanContext::GetSurface() const { return surface; }
 
-    Vulkan_Context::~Vulkan_Context()
+	void VulkanContext::Destroy() { registry.RemoveContent(ID); }
+
+    VulkanContext::~VulkanContext()
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
 		if (!window)
 		{
-			Log::Print(
-				"Cannot shut down Vulkan context because its window was not found!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+			KalaWindowCore::ForceClose(
+				"Vulkan context destruction error",
+				"Failed to destroy Vulkan context '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
 		}
 
 		Log::Print(
-			"Destroying Vulkan context with ID '" + to_string(ID) + "' for window '" + window->GetTitle() + "'.",
+			"Destroying Vulkan context '" + to_string(ID) + "' for window '" + to_string(windowID) + "'.",
 			"KW_VULKAN",
 			LogType::LOG_INFO);
 
@@ -464,6 +444,25 @@ namespace KalaWindow::Vulkan
 				nullptr);
 
 			instance = VK_NULL_HANDLE;
+		}
+
+		if (registry.runtimeContent.empty())
+		{
+			Log::Print(
+				"Destroying global Vulkan because all contexts were destroyed.",
+				"KW_VULKAN",
+				LogType::LOG_INFO);
+
+#ifdef KDEBUG
+			auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
+				instance, "vkDestroyDebugUtilsMessengerEXT");
+
+			func(instance, debugMessenger, nullptr);
+#endif
+
+			vkDestroyInstance(instance, nullptr);
+
+			isInitialized = false;
 		}
 	}
 }

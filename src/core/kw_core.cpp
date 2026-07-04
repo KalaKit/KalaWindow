@@ -26,7 +26,7 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_menubar_windows.hpp"
-#include "vulkan/kw_vulkan.hpp"
+#include "graphics/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 
@@ -45,7 +45,7 @@ using KalaWindow::Graphics::X11GlobalData;
 #endif
 
 using KalaWindow::Graphics::ProcessWindow;
-using KalaWindow::Vulkan::Vulkan_Global;
+using KalaWindow::Graphics::VulkanContext;
 
 #ifdef __linux__
 using std::raise;
@@ -162,7 +162,7 @@ namespace KalaWindow::Core
 			}
 		}
 		
-		if (Vulkan_Global::IsInitialized()) Vulkan_Global::Shutdown();
+		VulkanContext::GetRegistry().RemoveAllContent();
 
 		Input::GetRegistry().RemoveAllContent();
 #ifdef _WIN32
