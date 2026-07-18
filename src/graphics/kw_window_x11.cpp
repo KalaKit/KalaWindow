@@ -21,7 +21,7 @@
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
-#include "vulkan/kw_vulkan.hpp"
+#include "graphics/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
@@ -32,7 +32,7 @@ using KalaHeaders::KalaLog::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
-using KalaWindow::Vulkan::VulkanContext;
+using KalaWindow::Graphics::VulkanContext;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::WindowMode;
@@ -266,7 +266,7 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::SetTitle(string_view newValue) const
     {
-		if (newTitle.empty())
+		if (newValue.empty())
 		{
 			Log::Print(
 				"Window title cannot be empty!",
@@ -277,7 +277,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (newTitle.length() > MAX_NAME_LENGTH)
+		if (newValue.length() > MAX_NAME_LENGTH)
 		{
 			Log::Print(
 				"Window title cannot be over '" + to_string(MAX_NAME_LENGTH) + "' characters long!",
@@ -790,10 +790,10 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		if (newValue.length() > MAX_TITLE_LENGTH)
+		if (newValue.length() > MAX_NAME_LENGTH)
 		{
 			Log::Print(
-				"Class value exceeded max allowed length of '" + to_string(MAX_TITLE_LENGTH) + "'! Title has been truncated.",
+				"Class value exceeded max allowed length of '" + to_string(MAX_NAME_LENGTH) + "'! Title has been truncated.",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
                 2);
@@ -1096,6 +1096,23 @@ namespace KalaWindow::Graphics
         }
     }
 
+	void ProcessWindow::SetResizeCallback(function<void()> newValue)
+	{
+		if (!newValue)
+		{
+			Log::Print(
+				"Cannot assign empty function to resize callback!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		resizeCallback = newValue;
+	}
+	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
+
 	void ProcessWindow::SetShutdownCallback(function<void()> newValue)
 	{
 		if (!newValue)
@@ -1109,7 +1126,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		resizeCallback = newValue;
+		shutdownCallback = newValue;
 	}
 
     void ProcessWindow::Destroy()
@@ -1148,7 +1165,15 @@ namespace KalaWindow::Graphics
             XDestroyIC(xic);
         }
 
-        if (registry.runtimeContent.empty()) KalaWindowCore::Shutdown();
+        if (registry.runtimeContent.empty())
+        {
+			Log::Print(
+				"Shutting down KalaWindow because all windows were destroyed.",
+				"KW_WINDOW",
+				LogType::LOG_INFO);
+
+            KalaWindowCore::Shutdown();
+        }
     }
 }
 

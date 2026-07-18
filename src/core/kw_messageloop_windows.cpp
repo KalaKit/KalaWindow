@@ -1295,12 +1295,7 @@ namespace KalaWindow::Core
 				case WM_CLOSE:
 				{
 					window->Destroy();
-
-					if (ProcessWindow::GetRegistry().runtimeContent.empty())
-					{
-						KalaWindowCore::Shutdown();
-					}
-
+					
 					return 0; //we handled it
 				}
 

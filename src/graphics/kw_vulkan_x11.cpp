@@ -150,25 +150,6 @@ namespace KalaWindow::Graphics
 
         u32 version{};
 
-#ifdef KDEBUG
-		char buffer[PATH_MAX];
-		ssize_t length = readlink("/proc/self/exe", buffer, PATH_MAX - 1);
-
-		if (length != -1)
-		{
-			buffer[length] = '\0';
-			path exeDir = path(buffer).parent_path();
-
-			setenv("VK_LAYER_PATH", exeDir.c_str(), 1);
-		}
-		else
-		{
-			KalaWindowCore::ForceClose(
-				"Vulkan context init error",
-				"Failed to get path to executable!");
-		}
-#endif
-
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
             || version < VK_API_VERSION_1_4)
         {
@@ -383,8 +364,6 @@ namespace KalaWindow::Graphics
 		contPtr->windowID = w->GetID();
         contPtr->surface = surface;
 
-		contPtr->isInitialized = true;
-
 		Log::Print(
 			"Created new Vulkan context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
 			"KW_VULKAN",
@@ -392,8 +371,6 @@ namespace KalaWindow::Graphics
 
 		return contPtr;
     }
-
-    bool VulkanContext::IsInitialized() const { return isInitialized; }
 
 	u32 VulkanContext::GetID() const { return ID; }
 	u32 VulkanContext::GetWindowID() const { return windowID; }
@@ -452,13 +429,6 @@ namespace KalaWindow::Graphics
 				"Destroying global Vulkan because all contexts were destroyed.",
 				"KW_VULKAN",
 				LogType::LOG_INFO);
-
-#ifdef KDEBUG
-			auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-				instance, "vkDestroyDebugUtilsMessengerEXT");
-
-			func(instance, debugMessenger, nullptr);
-#endif
 
 			vkDestroyInstance(instance, nullptr);
 

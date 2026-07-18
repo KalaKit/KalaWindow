@@ -133,7 +133,6 @@ namespace KalaWindow::Graphics
         return instance;
     }
 
-
 	void VulkanContext::InitializeGlobal(const vector<string>& extensions)
     {
 		if (isInitialized)
@@ -444,13 +443,6 @@ namespace KalaWindow::Graphics
 				"Destroying global Vulkan because all contexts were destroyed.",
 				"KW_VULKAN",
 				LogType::LOG_INFO);
-
-#if DEBUG
-			auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
-				instance, "vkDestroyDebugUtilsMessengerEXT");
-
-			func(instance, debugMessenger, nullptr);
-#endif
 
 			vkDestroyInstance(instance, nullptr);
 

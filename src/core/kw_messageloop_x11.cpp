@@ -338,15 +338,8 @@ namespace KalaWindow::Core
 
                 case ClientMessage:
                 {
-                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete)
-                    {
-                        w->Destroy();
+                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete) w->Destroy();
 
-                        if (ProcessWindow::GetRegistry().runtimeContent.empty())
-                        {
-                            KalaWindowCore::Shutdown();
-                        }
-                    }
                     break;
                 }
                 case DestroyNotify: break;
@@ -354,6 +347,7 @@ namespace KalaWindow::Core
                 case PropertyNotify:
                 {
                     if (event.xproperty.atom == atom_net_wm_state) w->UpdateFullscreenState();
+
                     break;
                 }
 
@@ -361,34 +355,40 @@ namespace KalaWindow::Core
                 {
                     w->isFocused = true;
                     if (xic) XSetICFocus(xic);
+
                     break;
                 }
                 case FocusOut:
                 {
                     w->isFocused = false;
                     if (xic) XUnsetICFocus(xic);
+
                     break;
                 }
 
                 case MapNotify:
                 {   
                     w->isVisible = true;
+
                     break;
                 }
                 case UnmapNotify:
                 {   
                     w->isVisible = false;
+
                     break;
                 }
 
                 case EnterNotify:
                 {
                     w->isWindowHovered = true;
+
                     break;
                 }
                 case LeaveNotify:
                 {
                     w->isWindowHovered = false;
+                    
                     break;
                 }
 

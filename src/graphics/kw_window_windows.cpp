@@ -2256,6 +2256,16 @@ namespace KalaWindow::Graphics
 			}
 			windowData.hInstance = NULL;
 		}
+
+		if (registry.runtimeContent.empty())
+		{
+			Log::Print(
+				"Shutting down KalaWindow because all windows were destroyed.",
+				"KW_WINDOW",
+				LogType::LOG_INFO);
+
+			KalaWindowCore::Shutdown();
+		}
 	}
 }
 
