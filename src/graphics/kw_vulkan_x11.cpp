@@ -37,6 +37,7 @@ using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 
 using std::string;
+using std::string_view;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
@@ -47,6 +48,39 @@ static bool isVerboseLoggingEnabled{};
 
 static VkInstance instance{};
 static VkDebugUtilsMessengerEXT debugMessenger{};
+
+static bool ContainsCrashWorthyError(string_view message)
+{
+	//required parameter was VK_NULL_HANDLE
+	if (message.find("parameter") != string::npos
+		&& message.find("VK_NULL_HANDLE") != string::npos
+		&& message.find("must be a valid") != string::npos)
+	{
+		return true;
+	}
+
+	//accessing destroyed/freed objects - guaranteed device loss soon
+	if (message.find("that has been destroyed") != string::npos
+		|| message.find("that has been freed") != string::npos)
+	{
+		return true;
+	}
+
+	//synchronization violations that corrupt GPU state
+	if (message.find("was submitted before") != string::npos
+		&& message.find("had been signaled") != string::npos)
+	{
+		return true;
+	}
+
+	//invalid image/buffer layout transitions - memory corruption
+	if (message.find("cannot transition layouts") != string::npos)
+	{
+		return true;
+	}
+
+	return false;
+}
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	VkDebugUtilsMessageSeverityFlagBitsEXT severity,
@@ -92,6 +126,14 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT)             logTarget += "VALIDATION";
 	if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)            logTarget += "PERFORMANCE";
 	if (type & VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT) logTarget += "DEVICE_ADDRESS";
+
+	if (severity == VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT
+		&& ContainsCrashWorthyError(data->pMessage))
+	{
+		KalaWindowCore::ForceClose(
+			"Vulkan validation error",
+			data->pMessage);
+	}
 
 	Log::Print(
 		data->pMessage,

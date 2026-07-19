@@ -48,7 +48,35 @@ static VkDebugUtilsMessengerEXT debugMessenger{};
 
 static bool ContainsCrashWorthyError(string_view message)
 {
-	return message.find("VK_NULL_HANDLE") != string::npos;
+	//required parameter was VK_NULL_HANDLE
+	if (message.find("parameter") != string::npos
+		&& message.find("VK_NULL_HANDLE") != string::npos
+		&& message.find("must be a valid") != string::npos)
+	{
+		return true;
+	}
+
+	//accessing destroyed/freed objects - guaranteed device loss soon
+	if (message.find("that has been destroyed") != string::npos
+		|| message.find("that has been freed") != string::npos)
+	{
+		return true;
+	}
+
+	//synchronization violations that corrupt GPU state
+	if (message.find("was submitted before") != string::npos
+		&& message.find("had been signaled") != string::npos)
+	{
+		return true;
+	}
+
+	//invalid image/buffer layout transitions - memory corruption
+	if (message.find("cannot transition layouts") != string::npos)
+	{
+		return true;
+	}
+
+	return false;
 }
 
 static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
