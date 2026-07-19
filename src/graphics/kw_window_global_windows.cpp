@@ -60,7 +60,7 @@ namespace KalaWindow::Graphics
 	void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
-	bool Window_Global::Initialize()
+	void Window_Global::Initialize()
 	{
 		if (isInitialized)
 		{
@@ -70,7 +70,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
-			return false;
+			return;
 		}
 
 		version = GetVersion();
@@ -87,8 +87,6 @@ namespace KalaWindow::Graphics
 			KalaWindowCore::ForceClose(
 				"Global window error",
 				oss.str());
-
-			return false;
 		}
 
 		if (isVerboseLoggingEnabled)
@@ -154,8 +152,6 @@ namespace KalaWindow::Graphics
 			KalaWindowCore::ForceClose(
 				"Global window error",
 				message);
-
-			return false;
 		}
 
 		isInitialized = true;
@@ -164,8 +160,6 @@ namespace KalaWindow::Graphics
 			"Initialized global window context!",
 			"KW_WINDOW_GLOBAL",
 			LogType::LOG_SUCCESS);
-
-		return true;
 	}
 
 	bool Window_Global::IsInitialized() { return isInitialized; }

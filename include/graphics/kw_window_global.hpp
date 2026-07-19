@@ -78,18 +78,28 @@ namespace KalaWindow::Graphics
 
 		uintptr_t xim{};
 
+		int xiErrorBase{};
 		int xiOpcode{};
 
 		uintptr_t atom_utf8{};
+
+		uintptr_t atom_cardinal{};
+
+		uintptr_t atom_net_active_window{};
+				
+		uintptr_t atom_net_wm_window_type{};
+		uintptr_t atom_net_wm_window_opacity{};
 
 		uintptr_t atom_net_wm_name{};
 		uintptr_t atom_net_wm_pid{};
 
 		uintptr_t atom_net_wm_state{};
+		uintptr_t atom_net_wm_state_hidden{};
 		uintptr_t atom_net_wm_state_fullscreen{};
 		uintptr_t atom_net_wm_state_vertical{};
 		uintptr_t atom_net_wm_state_horizontal{};
 		uintptr_t atom_net_wm_state_above{};
+		uintptr_t atom_net_wm_state_skip_taskbar{};
 
 		uintptr_t atom_wm_delete{};
 	};
@@ -103,7 +113,7 @@ namespace KalaWindow::Graphics
 		static void SetVerboseLoggingState(bool newState);
 		static bool IsVerboseLoggingEnabled();
 
-		static bool Initialize();
+		static void Initialize();
 		static bool IsInitialized();
 
 #ifdef __linux__

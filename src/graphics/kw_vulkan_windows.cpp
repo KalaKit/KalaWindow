@@ -454,17 +454,6 @@ namespace KalaWindow::Graphics
 			surface = VK_NULL_HANDLE;
 		}
 
-		//only destroy the instance if all windows are destroyed
-		if (ProcessWindow::GetRegistry().runtimeContent.empty()
-			&& instance != VK_NULL_HANDLE)
-		{
-			vkDestroyInstance(
-				instance,
-				nullptr);
-
-			instance = VK_NULL_HANDLE;
-		}
-
 		if (registry.runtimeContent.empty())
 		{
 			Log::Print(

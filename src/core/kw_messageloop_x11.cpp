@@ -257,10 +257,7 @@ namespace KalaWindow::Core
 
         for (const auto& w : activeWindows)
         {
-            if (!w)
-            {
-                continue;
-            }
+            if (!w) continue;
 
             const WindowData& wdata = w->GetWindowData();
 
@@ -346,7 +343,11 @@ namespace KalaWindow::Core
 
                 case PropertyNotify:
                 {
-                    if (event.xproperty.atom == atom_net_wm_state) w->UpdateFullscreenState();
+                    if (event.xproperty.atom == atom_net_wm_state
+                        && event.xproperty.state == PropertyNewValue)
+                    {
+                        w->UpdateFullscreenAndMinimizedState();
+                    }
 
                     break;
                 }

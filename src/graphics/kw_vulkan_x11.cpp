@@ -456,15 +456,6 @@ namespace KalaWindow::Graphics
 			surface = VK_NULL_HANDLE;
 		}
 
-		if (instance != VK_NULL_HANDLE)
-		{
-			vkDestroyInstance(
-				instance,
-				nullptr);
-
-			instance = VK_NULL_HANDLE;
-		}
-
 		if (registry.runtimeContent.empty())
 		{
 			Log::Print(

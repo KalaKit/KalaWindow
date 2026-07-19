@@ -174,7 +174,7 @@ namespace KalaWindow::Graphics
 
 #ifdef _WIN32
 		//Set Windows window rounding state. Has no effect in Linux.
-		void SetWindowRounding(WindowRounding roundState) const;
+		void SetWindowRoundingState(WindowRounding roundState) const;
 		WindowRounding GetWindowRoundingState() const;
 #endif
 
@@ -311,21 +311,22 @@ namespace KalaWindow::Graphics
 
 		~ProcessWindow();
 	private:
-		bool isWindowHovered = false;      //If true, then this window is currently being hovered by the cursor.
+		bool isWindowHovered{};            //If true, then this window is currently being hovered by the cursor.
 		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
-		bool isIdle = false;               //Toggled dynamically by isfocused, isminimized and isvisible checks.
-		bool isResizing = false;           //If true, then this window is currently being resized
-		bool shutdownBlockState = false;   //Prevents Windows from shutting off or logging off if this is true so you can save your data
+		bool isIdle{};                     //Toggled dynamically by isfocused, isminimized and isvisible checks.
+		bool isResizing{};                 //If true, then this window is currently being resized
+		bool shutdownBlockState{};         //Prevents Windows from shutting off or logging off if this is true so you can save your data
 
-#ifdef _WIN32
 		u32 parentID = UINT32_MAX;
 		vector<u32> childIDs{};
-#else
-		bool isFocused = false;
-		bool isVisible = false;
+
+#ifdef __linux__
+		bool isFocused{};
+		bool isVisible{};
+		bool isMinimized{};
 		
-		void UpdateFullscreenState();
-		bool isFullscreen = false;
+		void UpdateFullscreenAndMinimizedState();
+		bool isFullscreen{};
 
 		vec2 pos{};
 		vec2 size{};

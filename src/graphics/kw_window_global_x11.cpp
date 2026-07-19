@@ -25,6 +25,7 @@ using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Graphics::Window_Global;
 
 using std::string;
 using std::to_string;
@@ -36,7 +37,7 @@ static int ErrorHandler(
     if (!display)
     {
         KalaWindowCore::ForceClose(
-            "Window error",
+            "Global window error",
             "Failed to call X11 error handler because the attached display was invalid!");
     }
 
@@ -47,8 +48,17 @@ static int ErrorHandler(
         buffer,
         sizeof(buffer));
 
+    string source = "X11_CORE";
+    int decodedCode = error->error_code;
+
+    if (error->request_code == Window_Global::GetGlobalData().xiOpcode)
+    {
+        source = "XI2";
+        decodedCode = error->error_code - Window_Global::GetGlobalData().xiErrorBase;
+    }
+
     Log::Print(
-        "X11 Error: " + to_string(error->error_code) + "\n"
+        source + " Error: " + to_string(decodedCode) + "\n"
             + "request: " + to_string(error->request_code) + "\n"
             + "minor: " + to_string(error->minor_code) + "\n"
             + "reason: " + buffer,
@@ -61,18 +71,9 @@ static int ErrorHandler(
 
 static int IOErrorHandler(Display* display)
 {
-    if (!display)
-    {
-        KalaWindowCore::ForceClose(
-            "Window error",
-            "Failed to call X11 IO error handler because the attached display was invalid!");
-    }
-
-    Log::Print(
-        "Fatal X11 IO error!",
-        "KW_WINDOW_GLOBAL",
-        LogType::LOG_ERROR,
-        2);
+    KalaWindowCore::ForceClose(
+        "Global window error",
+        "Fatal X11 IO error was detected and the program must close!");
 
     return 0; //tells X to exit
 }
@@ -87,7 +88,7 @@ namespace KalaWindow::Graphics
     void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 
-    bool Window_Global::Initialize()
+    void Window_Global::Initialize()
     {
         if (isInitialized)
 		{
@@ -97,14 +98,14 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
-			return false;
+            return;
 		}
 
         Display* display = XOpenDisplay(nullptr);
         if (!display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Global window init error",
                 "Failed to initialize global window because the created display was invalid!");
         }
 
@@ -127,22 +128,23 @@ namespace KalaWindow::Graphics
             &error))
         {
             KalaWindowCore::ForceClose(
-                "X11 init error",
-                "XInput event is not available.");
-
-            return false;
+                "Global window init error",
+                "XInput event is not available!");
         }
 
         int major = 2;
         int minor{};
 
-        if (XIQueryVersion(display, &major, &minor) != Success)
+        Status status = XIQueryVersion(
+            display, 
+            &major, 
+            &minor);
+
+        if (status != 0)
         {
             KalaWindowCore::ForceClose(
-                "X11 init error",
-                "XInput2 is not available.");
-
-            return false;
+                "Global window init error",
+                "XInput2 is not available! Reason: " + to_string(status));
         }
 
         XIEventMask mask{};
@@ -153,15 +155,24 @@ namespace KalaWindow::Graphics
         mask.mask = maskData;
 
         XISetMask(mask.mask, XI_RawMotion);
+
         XISelectEvents(
             display, 
             root, 
             &mask, 
             1);
 
+        //flush now and detect errors via ErrorHandler
+        XSync(display, False);
+
         Atom utf8 = XInternAtom(
             display, 
             "UTF8_STRING", 
+            False);
+
+        Atom cardinal = XInternAtom(
+            display,
+            "CARDINAL",
             False);
 
         Atom net_wm_name = XInternAtom(
@@ -174,9 +185,27 @@ namespace KalaWindow::Graphics
             "_NET_WM_PID",
             False);
 
+        Atom atom_net_active_window = XInternAtom(
+            display,
+            "_NET_ACTIVE_WINDOW",
+            False);
+
+        Atom atom_net_wm_window_type = XInternAtom(
+            display,
+            "_NET_WM_WINDOW_TYPE",
+            False);
+        Atom atom_net_wm_window_opacity = XInternAtom(
+            display,
+            "_NET_WM_WINDOW_OPACITY",
+            False);
+
         Atom atom_net_wm_state = XInternAtom(
             display,
             "_NET_WM_STATE",
+            False);
+        Atom atom_net_wm_state_hidden = XInternAtom(
+            display,
+            "_NET_WM_STATE_HIDDEN",
             False);
         Atom atom_net_wm_state_fullscreen = XInternAtom(
             display,
@@ -194,6 +223,10 @@ namespace KalaWindow::Graphics
             display,
            "_NET_WM_STATE_ABOVE",
             False);
+        Atom atom_net_wm_state_skip_taskbar = XInternAtom(
+            display,
+           "_NET_WM_STATE_SKIP_TASKBAR",
+            False);
 
         Atom atom_wm_delete = XInternAtom(
             display,
@@ -205,18 +238,28 @@ namespace KalaWindow::Graphics
 
         globalData.xim = FromVar(xim);
 
+        globalData.xiErrorBase = error;
         globalData.xiOpcode = opCode;
 
-        globalData.atom_utf8        = FromVar(utf8);
+        globalData.atom_utf8 = FromVar(utf8);
+
+        globalData.atom_cardinal = FromVar(cardinal);
         
+        globalData.atom_net_active_window = FromVar(atom_net_active_window);
+
         globalData.atom_net_wm_name = FromVar(net_wm_name);
         globalData.atom_net_wm_pid  = FromVar(net_wm_pid);
 
-        globalData.atom_net_wm_state            = FromVar(atom_net_wm_state);
-        globalData.atom_net_wm_state_fullscreen = FromVar(atom_net_wm_state_fullscreen);
-        globalData.atom_net_wm_state_vertical   = FromVar(atom_net_wm_state_vertical);
-        globalData.atom_net_wm_state_horizontal = FromVar(atom_net_wm_state_horizontal);
-        globalData.atom_net_wm_state_above      = FromVar(atom_net_wm_state_above);
+        globalData.atom_net_wm_window_type    = FromVar(atom_net_wm_window_type);
+        globalData.atom_net_wm_window_opacity = FromVar(atom_net_wm_window_opacity);
+
+        globalData.atom_net_wm_state              = FromVar(atom_net_wm_state);
+        globalData.atom_net_wm_state_hidden       = FromVar(atom_net_wm_state_hidden);
+        globalData.atom_net_wm_state_fullscreen   = FromVar(atom_net_wm_state_fullscreen);
+        globalData.atom_net_wm_state_vertical     = FromVar(atom_net_wm_state_vertical);
+        globalData.atom_net_wm_state_horizontal   = FromVar(atom_net_wm_state_horizontal);
+        globalData.atom_net_wm_state_above        = FromVar(atom_net_wm_state_above);
+        globalData.atom_net_wm_state_skip_taskbar = FromVar(atom_net_wm_state_skip_taskbar);
 
         globalData.atom_wm_delete    = FromVar(atom_wm_delete);
 
@@ -226,8 +269,6 @@ namespace KalaWindow::Graphics
 			"Initialized global window context!",
 			"KW_WINDOW_GLOBAL",
 			LogType::LOG_SUCCESS);
-
-        return true;
     }
 
     bool Window_Global::IsInitialized() { return isInitialized; }

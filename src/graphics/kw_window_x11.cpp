@@ -67,9 +67,11 @@ namespace KalaWindow::Graphics
     {
 		if (!Window_Global::IsInitialized())
 		{
-			KalaWindowCore::ForceClose(
-				"Window error",
-				"Failed to create window '" + string(title) + "' because global window context has not been created!");
+			Log::Print(
+				"Cannot initialize window because global window has not been initialized!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
@@ -112,7 +114,7 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window init error",
                 "Failed to initialize window because the attached display was invalid!");
         }
 
@@ -125,15 +127,8 @@ namespace KalaWindow::Graphics
         Display* display = ToVar<Display*>(globalData.display);
 
         Window root = ToVar<Window>(globalData.window_root);
-        Window parent = parentWindow
-            ? ToVar<Window>(parentWindow->windowData.window)
-            : 0;
 
         XIM xim = ToVar<XIM>(globalData.xim);
-
-        bool isChild = parentWindow;
-
-        Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
 
         XSetWindowAttributes attrs{};
         attrs.background_pixmap = None;
@@ -153,13 +148,11 @@ namespace KalaWindow::Graphics
             CWBackPixmap | CWBorderPixel,
             &attrs);
 
-        if (isChild)
+        if (window == None)
         {
-            //assign parent window
-            XSetTransientForHint(
-                display,
-                window,
-                parent);
+            KalaWindowCore::ForceClose(
+                "Window init error",
+                "Failed to create window '" + string(title) + "' because XCreateWindow failed!");
         }
 
         XIC xic = XCreateIC(
@@ -173,29 +166,43 @@ namespace KalaWindow::Graphics
         if (!xic)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
-                "Failed to create XIC for window '" + string(title) + "'");
+                "Window init error",
+                "Failed to create window '" + string(title) + "' because XCreateIC failed!");
         }
 
-        Atom net_wm_pid = ToVar<Atom>(globalData.atom_net_wm_pid);
-
         //set task manager title via PID
-        pid_t pid = getpid();
-        XChangeProperty(
+        long pid = scast<long>(getpid());
+        Status status = XChangeProperty(
             display,
             window,
-            net_wm_pid,
-            XA_CARDINAL,
+            ToVar<Atom>(globalData.atom_net_wm_pid),
+            ToVar<Atom>(globalData.atom_cardinal),
             32,
             PropModeReplace,
             rcast<unsigned char*>(&pid),
             1);
 
-        XSetWMProtocols(
+        if (status == 0)
+        {
+            KalaWindowCore::ForceClose(
+                "Window init error",
+                "Failed to create window '" + string(title) + "' because first XChangeProperty failed!");
+        }
+
+        Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
+
+        status = XSetWMProtocols(
             display,
             window,
             &atom_wm_delete,
             1);
+
+        if (status == 0)
+        {
+            KalaWindowCore::ForceClose(
+                "Window init error",
+                "Failed to create window '" + string(title) + "' because XSetWMProtocols failed!");
+        }
 
         //allow events
         XSelectInput(
@@ -212,6 +219,9 @@ namespace KalaWindow::Graphics
             | ButtonPressMask
             | ButtonReleaseMask
             | PointerMotionMask);
+
+        //flush now and detect errors via ErrorHandler
+        XSync(display, False);
 
         WindowData newWindowStruct{};
 
@@ -233,13 +243,65 @@ namespace KalaWindow::Graphics
 		windowPtr->oldPos = pos;
 		windowPtr->oldSize = size;
 
+		//todo: add allow files to be dragged to this window
+		//DragAcceptFiles(newHwnd, TRUE);
+
+        if (parentWindow)
+        {
+			if (find(registry.runtimeContent.begin(),
+				registry.runtimeContent.end(),
+				parentWindow)
+				== registry.runtimeContent.end())
+			{
+				KalaWindowCore::ForceClose(
+					"Window init error",
+					"Failed to create child window '" + string(title) + "' because parent window pointer does not exist!");
+			}
+
+            Window parentWindowRef = ToVar<Window>(parentWindow->GetWindowData().window);
+
+            if (!parentWindowRef)
+            {
+				KalaWindowCore::ForceClose(
+					"Window init error",
+					"Failed to create child window '" + string(title) + "' because parent window handle is invalid!");
+            }
+
+			parentWindow->childIDs.push_back(newID);
+			windowPtr->parentID = parentWindow->ID;
+        }
+
+        //do not display child window in taskbar
+        if (windowPtr->parentID != UINT32_MAX)
+        {
+            Atom skipTaskbar = ToVar<Atom>(globalData.atom_net_wm_state_skip_taskbar);
+            status = XChangeProperty(
+                display,
+                window,
+                ToVar<Atom>(globalData.atom_net_wm_state),
+                XA_ATOM,
+                32,
+                PropModeAppend,
+                (unsigned char*)&skipTaskbar,
+                1);
+
+            if (status == 0)
+            {
+                KalaWindowCore::ForceClose(
+                    "Window init error",
+                    "Failed to create window '" + string(title) + "' because second XChangeProperty failed!");
+            }
+        }
+
         //show window
         XMapWindow(
             display,
             window);
 
-		//todo: add allow files to be dragged to this window
-		//DragAcceptFiles(newHwnd, TRUE);
+        //flush now and detect errors via ErrorHandler
+        XSync(display, False);
+
+        windowPtr->BringToFocus();
 
 		registry.AddContent(newID, std::move(newWindow));
 
@@ -293,13 +355,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window title error",
                 "Failed to set window title because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window title error",
                 "Failed to set window title because the attached window was invalid!");
         }
 
@@ -331,7 +393,7 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
 			KalaWindowCore::ForceClose(
-				"Window error",
+				"Window title error",
 				"Failed to get window title because the attached display was invalid!");
 
             return {};
@@ -339,7 +401,7 @@ namespace KalaWindow::Graphics
         if (!windowData.window)
         {
 			KalaWindowCore::ForceClose(
-				"Window error",
+				"Window title error",
 				"Failed to get window title because the attached window was invalid!");
 
             return {};
@@ -408,7 +470,32 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetTaskbarOverlayIcon() const { return overlayIconID; }
 	void ProcessWindow::ClearTaskbarOverlayIcon() const {}
 
-    void ProcessWindow::BringToFocus() {}
+    void ProcessWindow::BringToFocus()
+    {
+        Display* display = ToVar<Display*>(Window_Global::GetGlobalData().display);
+        Window window = ToVar<Window>(windowData.window);
+
+        Atom atom_net_active_window = ToVar<Atom>(Window_Global::GetGlobalData().atom_net_active_window);
+
+        XEvent xev{};
+        xev.type = ClientMessage;
+        xev.xclient.window = window;
+        xev.xclient.message_type = atom_net_active_window;
+        xev.xclient.format = 32;
+        xev.xclient.data.l[0] = 2;
+        xev.xclient.data.l[1] = CurrentTime;
+
+        XSendEvent(
+            display,
+            window,
+            False,
+            SubstructureRedirectMask
+            | SubstructureNotifyMask,
+            &xev);
+
+        XSetICFocus(ToVar<XIC>(windowData.xic));
+        XFlush(display);
+    }
 
     void ProcessWindow::SetSize(vec2 newSize)
     {
@@ -433,13 +520,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window size error",
                 "Failed to set window client rect size because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window size error",
                 "Failed to set window client rect size because the attached window was invalid!");
         }
 
@@ -468,13 +555,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window position error",
                 "Failed to set window position because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window position error",
                 "Failed to set window position because the attached window was invalid!");
         }
 
@@ -502,13 +589,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window max size error",
                 "Failed to set window max size because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window max size error",
                 "Failed to set window max size because the attached window was invalid!");
         }
 
@@ -516,21 +603,38 @@ namespace KalaWindow::Graphics
         Window window = ToVar<Window>(windowData.window);
 
         XSizeHints hints{};
-        hints.flags = PMinSize | PMaxSize;
+        long supplied{};
+        if (!XGetWMNormalHints(
+            display,
+            window,
+            &hints,
+            &supplied))
+        {
+            hints = {};
+        }
+
+        hints.flags |= PMinSize | PMaxSize;
         hints.min_width = (int)minSize.x;
         hints.min_height = (int)minSize.y;
         hints.max_width = (int)maxSize.x;
         hints.max_height = (int)maxSize.y;
 
-        ostringstream oss{};
-        oss << "min_x: " << hints.min_width 
-            << ", min_y: " << hints.min_height
-            << ", max_x: " << hints.max_width
-            << ", max_y: " << hints.max_height;
-        Log::Print(oss.str());
-
         XSetWMNormalHints(display, window, &hints);
         XFlush(display);
+
+        XSizeHints verify{};
+        if (!XGetWMNormalHints(
+            display,
+            window,
+            &verify,
+            &supplied))
+        {
+            Log::Print(
+                "Failed to set max size!",
+                "KW_WINDOW",
+                LogType::LOG_ERROR,
+                2);
+        }
     }
 	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
 
@@ -545,13 +649,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window min size error",
                 "Failed to set window min size because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window min size error",
                 "Failed to set window min size because the attached window was invalid!");
         }
 
@@ -559,14 +663,38 @@ namespace KalaWindow::Graphics
         Window window = ToVar<Window>(windowData.window);
 
         XSizeHints hints{};
-        hints.flags = PMinSize | PMaxSize;
+        long supplied{};
+        if (!XGetWMNormalHints(
+            display,
+            window,
+            &hints,
+            &supplied))
+        {
+            hints = {};
+        }
+
+        hints.flags |= PMinSize | PMaxSize;
         hints.min_width = (int)minSize.x;
         hints.min_height = (int)minSize.y;
         hints.max_width = (int)maxSize.x;
         hints.max_height = (int)maxSize.y;
 
-        XSetNormalHints(display, window, &hints);
+        XSetWMNormalHints(display, window, &hints);
         XFlush(display);
+
+        XSizeHints verify{};
+        if (!XGetWMNormalHints(
+            display,
+            window,
+            &verify,
+            &supplied))
+        {
+            Log::Print(
+                "Failed to set min size!",
+                "KW_WINDOW",
+                LogType::LOG_ERROR,
+                2);
+        }
     }
 	vec2 ProcessWindow::GetMinSize() const { return minSize; }
 
@@ -577,13 +705,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window always on top state error",
                 "Failed to set window always on top state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window always on top state error",
                 "Failed to set window always on top state because the attached window was invalid!");
         }
 
@@ -623,13 +751,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window always on top state error",
                 "Failed to get window always on top state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window always on top state error",
                 "Failed to get window always on top state because the attached window was invalid!");
         }
 
@@ -687,13 +815,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window resizable state error",
                 "Failed to set window resizable state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window resizable state error",
                 "Failed to set window resizable state because the attached window was invalid!");
         }
         
@@ -740,13 +868,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window resizable state error",
                 "Failed to get window resizable state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window resizable state error",
                 "Failed to get window resizable state because the attached window was invalid!");
         }
 
@@ -806,13 +934,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window class error",
                 "Failed to set window class because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window class error",
                 "Failed to set window class because the attached window was invalid!");
         }
         
@@ -834,7 +962,7 @@ namespace KalaWindow::Graphics
     bool ProcessWindow::IsForegroundWindow() const { return isFocused; }
     bool ProcessWindow::IsFocused() const { return isFocused; }
     bool ProcessWindow::IsFullscreen() { return isFullscreen; }
-    bool ProcessWindow::IsMinimized() const { return !isVisible; }
+    bool ProcessWindow::IsMinimized() const { return isMinimized; }
     bool ProcessWindow::IsVisible() const { return isVisible; }
 
     void ProcessWindow::SetResizingState(bool newState) { isResizing = newState; }
@@ -847,13 +975,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window mode error",
                 "Failed to set window mode because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window mode error",
                 "Failed to set window mode because the attached window was invalid!");
         }
 
@@ -917,13 +1045,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window state error",
                 "Failed to set window state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window state error",
                 "Failed to set window state because the attached window was invalid!");
         }
 
@@ -1035,7 +1163,7 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return 0; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) {}
 
-    void ProcessWindow::UpdateFullscreenState()
+    void ProcessWindow::UpdateFullscreenAndMinimizedState()
     {
         Atom actualType{};
         int actualFormat{};
@@ -1047,13 +1175,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window fullscreen and minimize state error",
                 "Failed to update window fullscreen state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "Window fullscreen and minimize state error",
                 "Failed to update window fullscreen state because the attached window was invalid!");
         }
 
@@ -1062,6 +1190,7 @@ namespace KalaWindow::Graphics
 
         Atom netWmState = ToVar<Atom>(globalData.atom_net_wm_state);
         Atom netWmStateFullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+        Atom netWmStateHidden = ToVar<Atom>(globalData.atom_net_wm_state_hidden);
 
         XGetWindowProperty(
             display,
@@ -1077,7 +1206,10 @@ namespace KalaWindow::Graphics
             &bytesAfter,
             &data);
 
+        bool wasMinimized = isMinimized;
+
         isFullscreen = false;
+        isMinimized = false;
 
         if (data)
         {
@@ -1085,14 +1217,48 @@ namespace KalaWindow::Graphics
 
             for (unsigned long i = 0; i < nItems; i++)
             {
-                if (atoms[i] == netWmStateFullscreen)
+                if (atoms[i] == netWmStateFullscreen) isFullscreen = true;
+                if (atoms[i] == netWmStateHidden) isMinimized = true;
+
+                if (isFullscreen
+                    && isMinimized)
                 {
-                    isFullscreen = true;
                     break;
                 }
             }
 
             XFree(data);
+        }
+
+        if (!wasMinimized
+            && isMinimized)
+        {
+            for (u32 childID : childIDs)
+            {
+                ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(childID);
+                if (pw)
+                {
+                    pw->SetWindowState(WindowState::WINDOW_MINIMIZE);
+                }
+            }
+        }
+        else if (wasMinimized
+                 && !isMinimized)
+        {
+            Window root = ToVar<Window>(globalData.window_root);
+
+            for (u32 childID : childIDs)
+            {
+                ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(childID);
+                if (pw)
+                {
+                    Window childWindow = ToVar<Window>(pw->GetWindowData().window);
+
+                    XMapWindow(display, childWindow);
+                    
+                    pw->BringToFocus();
+                }
+            }
         }
     }
 
@@ -1146,6 +1312,39 @@ namespace KalaWindow::Graphics
 		}
 
 		if (shutdownCallback) shutdownCallback();
+
+		vector<u32> children = std::move(childIDs);
+
+		for (const auto& w : children)
+		{
+			if (Window_Global::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Destroying child window '" + to_string(w) + "' of parent window '" + to_string(ID) + "'",
+					"KW_WINDOW",
+					LogType::LOG_VERBOSE);
+			}
+
+			ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(w);
+			if (pw) pw->Destroy();
+		}
+		if (parentID != UINT32_MAX)
+		{
+			if (Window_Global::IsVerboseLoggingEnabled())
+			{
+				Log::Print(
+					"Destroying child window '" + to_string(ID) + "' of parent window '" + to_string(parentID) + "'",
+					"KW_WINDOW",
+					LogType::LOG_VERBOSE);
+			}
+
+			ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(parentID);
+			if (pw)
+			{
+				auto it = find(pw->childIDs.begin(), pw->childIDs.end(), ID);
+				if (it != pw->childIDs.end()) pw->childIDs.erase(it);
+			}
+		}
 
         KalaWindowRegistry<VulkanContext>::RemoveAllWindowContent(ID);
 
