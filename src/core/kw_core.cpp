@@ -14,38 +14,16 @@
 #include <chrono>
 #include <algorithm>
 
-#include "core_utils.hpp"
 #include "log_utils.hpp"
-
-#ifdef __linux__
-#include "graphics/kw_window_global.hpp"
-#endif
 
 #include "core/kw_core.hpp"
 #include "core/kw_crash.hpp"
 #include "core/kw_input.hpp"
-#include "graphics/kw_window.hpp"
-#include "graphics/kw_menubar_windows.hpp"
-#include "graphics/kw_vulkan.hpp"
-
-using KalaHeaders::KalaCore::ToVar;
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 using KalaHeaders::KalaLog::DateFormat;
-
-#ifdef _WIN32
-using KalaWindow::Graphics::MenuBar;
-#endif
-
-#ifdef __linux__
-using KalaWindow::Graphics::Window_Global;
-using KalaWindow::Graphics::X11GlobalData;
-#endif
-
-using KalaWindow::Graphics::ProcessWindow;
-using KalaWindow::Graphics::VulkanContext;
 
 #ifdef __linux__
 using std::raise;
@@ -56,10 +34,6 @@ using std::chrono::steady_clock;
 using std::chrono::time_point;
 using std::chrono::duration;
 using std::clamp;
-using std::exception;
-
-//TODO: define somehow in log_utils.hpp
-//CrashHandler::AppendToCrashLog(msg);
 
 namespace KalaWindow::Core
 {
@@ -125,68 +99,5 @@ namespace KalaWindow::Core
 #else
 		raise(SIGTRAP);
 #endif
-	}
-
-	void KalaWindowCore::Shutdown()
-	{
-		Log::Print(
-			"\n======================================================================"
-			"\nSHUTTING DOWN"
-			"\n======================================================================\n",
-			true);
-		
-#ifdef _WIN32
-		timeEndPeriod(1);
-#endif //_WIN32
-
-		if (shutdownCallback)
-		{
-			try
-			{
-				Log::Print(
-					"Running user-provided shutdown callback.\n",
-					"KW_CORE",
-					LogType::LOG_INFO);
-
-				shutdownCallback();
-
-				Log::Print("\n====================\n");
-			}
-			catch (const exception& e)
-			{
-				Log::Print(
-					"User-provided shutdown callback failed! Reason: " + string(e.what()),
-					"KW_CORE",
-					LogType::LOG_ERROR,
-					2);
-			}
-		}
-		
-		VulkanContext::GetRegistry().RemoveAllContent();
-
-		Input::GetRegistry().RemoveAllContent();
-#ifdef _WIN32
-		MenuBar::GetRegistry().RemoveAllContent();
-#endif
-		ProcessWindow::GetRegistry().RemoveAllContent();
-
-#ifdef __linux__
-		const X11GlobalData& globalData = Window_Global::GetGlobalData();
-		if (globalData.display)
-		{
-			XIM xim = ToVar<XIM>(globalData.xim);
-			XCloseIM(xim);
-
-			Display* display = ToVar<Display*>(globalData.display);
-			if (display) XCloseDisplay(display);
-		}
-#endif
-
-		Log::Print(
-			"KalaWindow has been fully shut down!",
-			"KW_CORE",
-			LogType::LOG_SUCCESS);
-
-		exit(0);
 	}
 }

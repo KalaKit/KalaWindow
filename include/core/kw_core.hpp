@@ -40,8 +40,5 @@ namespace KalaWindow::Core
 		static void ForceClose(
 			string_view title,
 			string_view reason);
-
-		//Close KalaWindow and clean up resources.
-		static void Shutdown();
 	};
 }

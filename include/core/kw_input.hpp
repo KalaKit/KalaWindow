@@ -34,31 +34,8 @@ namespace KalaWindow::Core
 
 	struct InputCode
 	{
-		enum class Type : u8
-		{
-			Key,
-			Mouse
-		};
-
-		Type type{};
-		u32 code{}; //stores key or mouse button as u32
-
-		static inline constexpr InputCode FromKey(KeyboardButton k)
-		{ 
-			return 
-			{ 
-				Type::Key, 
-				scast<u32>(k) 
-			}; 
-		}
-		static inline constexpr InputCode FromMouse(MouseButton k)
-		{ 
-			return 
-			{ 
-				Type::Mouse, 
-				scast<u32>(k) 
-			}; 
-		}
+		KeyboardButton kb{};
+		MouseButton mb{};
 	};
 
 	class LIB_API Input

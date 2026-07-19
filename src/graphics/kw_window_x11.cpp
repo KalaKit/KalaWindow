@@ -1131,6 +1131,20 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::Destroy()
     {
+		if (registry.runtimeContent.size() == 1)
+		{
+			Log::Print(
+                "\n======================================================================"
+                "\nSHUTTING DOWN"
+                "\n======================================================================\n",
+                true);
+
+			Log::Print(
+				"Shutting down because the last process window is being destroyed.",
+				"KW_WINDOW",
+				LogType::LOG_INFO);
+		}
+
 		if (shutdownCallback) shutdownCallback();
 
         KalaWindowRegistry<VulkanContext>::RemoveAllWindowContent(ID);
@@ -1167,12 +1181,17 @@ namespace KalaWindow::Graphics
 
         if (registry.runtimeContent.empty())
         {
-			Log::Print(
-				"Shutting down KalaWindow because all windows were destroyed.",
-				"KW_WINDOW",
-				LogType::LOG_INFO);
+			const X11GlobalData& globalData = Window_Global::GetGlobalData();
+			if (globalData.display)
+			{
+				XIM xim = ToVar<XIM>(globalData.xim);
+				XCloseIM(xim);
 
-            KalaWindowCore::Shutdown();
+				Display* display = ToVar<Display*>(globalData.display);
+				if (display) XCloseDisplay(display);
+			}
+
+			exit(0);
         }
     }
 }

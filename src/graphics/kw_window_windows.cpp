@@ -2166,6 +2166,20 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::Destroy()
 	{
+		if (registry.runtimeContent.size() == 1)
+		{
+			Log::Print(
+                "\n======================================================================"
+                "\nSHUTTING DOWN"
+                "\n======================================================================\n",
+                true);
+
+			Log::Print(
+				"Shutting down because the last process window is being destroyed.",
+				"KW_WINDOW",
+				LogType::LOG_INFO);
+		}
+
 		if (shutdownCallback) shutdownCallback();
 
 		vector<u32> children = std::move(childIDs);
@@ -2258,13 +2272,10 @@ namespace KalaWindow::Graphics
 		}
 
 		if (registry.runtimeContent.empty())
-		{
-			Log::Print(
-				"Shutting down KalaWindow because all windows were destroyed.",
-				"KW_WINDOW",
-				LogType::LOG_INFO);
+		{			
+			timeEndPeriod(1);
 
-			KalaWindowCore::Shutdown();
+			exit(0);
 		}
 	}
 }

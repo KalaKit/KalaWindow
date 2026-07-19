@@ -255,14 +255,47 @@ namespace KalaWindow::Core
 
 	bool Input::IsComboDown(const span<const InputCode>& codes)
 	{
-		if (codes.size() == 0) return false;
+		if (codes.size() == 0)
+		{
+			Log::Print(
+				"Tried to check combo down with no passed input codes!",
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
 
 		for (const auto& c : codes)
 		{
-			if ((c.type == InputCode::Type::Key
-				&& !IsKeyHeld(scast<KeyboardButton>(c.code)))
-				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseButtonHeld(scast<MouseButton>(c.code))))
+			if (c.kb == KeyboardButton::K_INVALID
+				&& c.mb == MouseButton::M_INVALID)
+			{
+				Log::Print(
+					"One or more combo down InputCode values has no keyboard and mouse button assigned!",
+					"KW_INPUT",
+					LogType::LOG_ERROR,
+					2);
+
+				return false;
+			}
+
+			if (c.kb != KeyboardButton::K_INVALID
+				&& c.mb != MouseButton::M_INVALID)
+			{
+				Log::Print(
+					"One or more combo down InputCode values has both keyboard and mouse button assigned!",
+					"KW_INPUT",
+					LogType::LOG_ERROR,
+					2);
+
+				return false;
+			}
+
+			if ((c.kb != KeyboardButton::K_INVALID
+				&& !IsKeyHeld(c.kb))
+				|| (c.mb != MouseButton::M_INVALID
+				&& !IsMouseButtonHeld(c.mb)))
 			{
 				return false;
 			}
@@ -271,7 +304,43 @@ namespace KalaWindow::Core
 	}
 	bool Input::IsComboPressed(const span<const InputCode>& codes)
 	{
-		if (codes.size() == 0) return false;
+		if (codes.size() == 0)
+		{
+			Log::Print(
+				"Tried to check combo pressed with no passed input codes!",
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		for (const auto& c : codes)
+		{
+			if (c.kb == KeyboardButton::K_INVALID
+				&& c.mb == MouseButton::M_INVALID)
+			{
+				Log::Print(
+					"One or more combo pressed InputCode values has no keyboard and mouse button assigned!",
+					"KW_INPUT",
+					LogType::LOG_ERROR,
+					2);
+
+				return false;
+			}
+
+			if (c.kb != KeyboardButton::K_INVALID
+				&& c.mb != MouseButton::M_INVALID)
+			{
+				Log::Print(
+					"One or more combo pressed InputCode values has both keyboard and mouse button assigned!",
+					"KW_INPUT",
+					LogType::LOG_ERROR,
+					2);
+
+				return false;
+			}
+		}
 
 		auto it = codes.begin();
 		auto last = prev(codes.end());
@@ -280,10 +349,10 @@ namespace KalaWindow::Core
 		for (; it != last; ++it)
 		{
 			const auto& c = *it;
-			if ((c.type == InputCode::Type::Key
-				&& !IsKeyHeld(scast<KeyboardButton>(c.code)))
-				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseButtonHeld(scast<MouseButton>(c.code))))
+			if ((c.kb != KeyboardButton::K_INVALID
+				&& !IsKeyHeld(c.kb))
+				|| (c.mb != MouseButton::M_INVALID
+				&& !IsMouseButtonHeld(c.mb)))
 			{
 				return false;
 			}
@@ -291,10 +360,10 @@ namespace KalaWindow::Core
 
 		//last must be pressed
 		const auto& c = *last;
-		if ((c.type == InputCode::Type::Key
-			&& !IsKeyPressed(scast<KeyboardButton>(c.code)))
-			|| (c.type == InputCode::Type::Mouse
-			&& !IsMouseButtonPressed(scast<MouseButton>(c.code))))
+		if ((c.kb != KeyboardButton::K_INVALID
+			&& !IsKeyPressed(c.kb))
+			|| (c.mb != MouseButton::M_INVALID
+			&& !IsMouseButtonPressed(c.mb)))
 		{
 			return false;
 		}
@@ -303,7 +372,43 @@ namespace KalaWindow::Core
 	}
 	bool Input::IsComboReleased(const span<const InputCode>& codes)
 	{
-		if (codes.size() == 0) return false;
+		if (codes.size() == 0)
+		{
+			Log::Print(
+				"Tried to check combo released with no passed input codes!",
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
+
+			return false;
+		}
+
+		for (const auto& c : codes)
+		{
+			if (c.kb == KeyboardButton::K_INVALID
+				&& c.mb == MouseButton::M_INVALID)
+			{
+				Log::Print(
+					"One or more combo pressed InputCode values has no keyboard and mouse button assigned!",
+					"KW_INPUT",
+					LogType::LOG_ERROR,
+					2);
+
+				return false;
+			}
+
+			if (c.kb != KeyboardButton::K_INVALID
+				&& c.mb != MouseButton::M_INVALID)
+			{
+				Log::Print(
+					"One or more combo pressed InputCode values has both keyboard and mouse button assigned!",
+					"KW_INPUT",
+					LogType::LOG_ERROR,
+					2);
+
+				return false;
+			}
+		}
 
 		auto it = codes.begin();
 		auto last = prev(codes.end());
@@ -312,10 +417,10 @@ namespace KalaWindow::Core
 		for (; it != last; ++it)
 		{
 			const auto& c = *it;
-			if ((c.type == InputCode::Type::Key
-				&& !IsKeyHeld(scast<KeyboardButton>(c.code)))
-				|| (c.type == InputCode::Type::Mouse
-				&& !IsMouseButtonHeld(scast<MouseButton>(c.code))))
+			if ((c.kb != KeyboardButton::K_INVALID
+				&& !IsKeyHeld(c.kb))
+				|| (c.mb != MouseButton::M_INVALID
+				&& !IsMouseButtonHeld(c.mb)))
 			{
 				return false;
 			}
@@ -323,10 +428,10 @@ namespace KalaWindow::Core
 
 		//last must be released
 		const auto& c = *last;
-		if ((c.type == InputCode::Type::Key
-			&& !IsKeyReleased(scast<KeyboardButton>(c.code)))
-			|| (c.type == InputCode::Type::Mouse
-			&& !IsMouseButtonReleased(scast<MouseButton>(c.code))))
+		if ((c.kb != KeyboardButton::K_INVALID
+			&& !IsKeyReleased(c.kb))
+			|| (c.mb != MouseButton::M_INVALID
+			&& !IsMouseButtonReleased(c.mb)))
 		{
 			return false;
 		}

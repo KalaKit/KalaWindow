@@ -76,11 +76,6 @@ static string assignedProgramName;
 //Whether or not to create a dump file at crash
 static bool canCreateDump = true;
 
-//reserve (10 * MAX_MESSAGE_LENGTH) bytes for the last 10 log messages
-static char crashLogBuffer[10][MAX_MESSAGE_LENGTH];
-//Which slot are we currently on
-static auptr crashLogIndex{};
-
 static string GetExePath()
 {
 	char buffer[255]{};
@@ -207,56 +202,6 @@ namespace KalaWindow::Core
 
     bool CrashHandler::IsInitialized() { return isInitialized; }
 
-    void CrashHandler::AppendToCrashLog(string_view message)
-    {
-        static_assert(
-			MAX_MESSAGE_LENGTH > 1,
-			"Max message length is too small!");
-
-		auto trim = [](string_view s) -> string
-			{
-				size_t bytes = 0;
-				size_t chars = 0;
-
-				while (bytes < s.size()
-					&& chars < MAX_MESSAGE_LENGTH)
-				{
-					unsigned char c = scast<unsigned char>(s[bytes]);
-
-					size_t charLen =
-						(c < 0x80) ? 1
-						: (c < 0xE0) ? 2
-						: (c < 0xF0) ? 3
-						: 4;
-
-					if (bytes + charLen > s.size()) break; //incomplete char
-
-					bytes += charLen;
-					++chars;
-				}
-
-				string result(s.data(), bytes);
-
-				if (bytes < s.size()) result.append("\n[TRIMMED LONG MESSAGE]");
-
-				return result;
-			};
-
-		const string trimmed = trim(message);
-
-		const u32 index = crashLogIndex.fetch_add(1, memory_order_relaxed) % 10;
-
-		char* slot = crashLogBuffer[index];
-
-		//copy up to max allowed chars chars (reserve 1 for null terminator)
-		const size_t copyLength = trimmed.size() < MAX_MESSAGE_LENGTH - 1 ? trimmed.size() : MAX_MESSAGE_LENGTH - 1;
-
-		memcpy(slot, trimmed.data(), copyLength);
-
-		//explicit null-termination
-		slot[copyLength] = '\0';
-    }
-
     void CrashHandler::SetForceCloseContent(
         string_view title,
         string_view reason)
@@ -310,23 +255,6 @@ void GenerateFullCrashReport(
     siginfo_t* info,
     void* ucontext)
 {
-    auto get_crash_log_content = []()
-        {
-            array<string_view, 10> content{};
-
-            const u32 head = crashLogIndex.load(memory_order_relaxed);
-
-            for (u32 i = 0; i < 10; ++i)
-            {
-                const u32 index = (head + i) % 10;
-                const char* entry = crashLogBuffer[index];
-
-                if (entry[0] != '\0') content[i] = string_view(entry);
-            }
-
-            return content;
-        };
-
     //What the user sees
 	ostringstream userStream{};
 
@@ -424,20 +352,6 @@ void GenerateFullCrashReport(
     }
 
     AppendCallStackToStream(logStream);
-
-	//append crash log buffer
-
-	logStream << "\nRecent log activity before crash:\n\n";
-
-	array<string_view, 10> content = get_crash_log_content();
-	for (const auto& c : content)
-	{
-		if (!c.empty())
-		{
-			logStream << c;
-			if (c.back() != '\n') logStream << '\n';
-		}
-	}
 
 	logStream << "\n========================================\n";
 
