@@ -28,12 +28,6 @@ namespace KalaWindow::Core
 		static u32 GetGlobalID();
 		static void SetGlobalID(u32 newID);
 
-		static f64 GetDeltaTime();
-		static f64 GetFrameTime();
-
-		//Update deltatime and frametime
-		static void UpdateDeltaTime();
-
 		static void SetUserShutdownCallback(const function<void()>& shutdown);
 
 		//Use this when you absolutely need a hard crash at this very moment
