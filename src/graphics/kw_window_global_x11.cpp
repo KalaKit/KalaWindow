@@ -274,8 +274,8 @@ namespace KalaWindow::Graphics
     bool Window_Global::IsInitialized() { return isInitialized; }
 
     PopupResult Window_Global::CreatePopup(
-		string_view title,
-		string_view message,
+		string&& title,
+		string&& message,
 		PopupAction action,
 		PopupType type) 
     { 
@@ -291,8 +291,8 @@ namespace KalaWindow::Graphics
             case PopupType::POPUP_TYPE_QUESTION: args.emplace_back("--question"); break;
         }
 
-        args.emplace_back("--title=" + string(title));
-        args.emplace_back("--text=" + string(message));
+        args.emplace_back("--title=" + std::move(title));
+        args.emplace_back("--text=" + std::move(message));
 
         switch (action)
         {
@@ -365,8 +365,8 @@ namespace KalaWindow::Graphics
     }
 
     void Window_Global::CreateNotification(
-		string_view title,
-		string_view message)
+		string&& title,
+		string&& message)
     {
 
     }
@@ -376,7 +376,7 @@ namespace KalaWindow::Graphics
 
     }
 
-    void Window_Global::SetClipboardText(string_view text)
+    void Window_Global::SetClipboardText(string&& text)
     {
 
     }

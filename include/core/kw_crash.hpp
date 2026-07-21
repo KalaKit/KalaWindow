@@ -31,10 +31,12 @@ namespace KalaWindow::Core
 		//crash log file at exe root if program crashes.
 		//Assign the program name that will be displayed in the crash log,
 		//and define __NODUMP__ if you want to disable .dmp file creation
-		static void Initialize(string_view programName);
+		static void Initialize(string&& programName);
 
 		static bool IsInitialized();
 	private:
-		static void SetForceCloseContent(string_view title, string_view reason);
+		static void SetForceCloseContent(
+			string&& title, 
+			string&& reason);
 	};
 }

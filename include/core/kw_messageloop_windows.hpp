@@ -27,10 +27,10 @@ namespace KalaWindow::Core
 			WPARAM wParam,
 			LPARAM lParam);
 
-		static void SetAddCharCallback(const function<void(u32)>& newCallback);
-		static void SetRemoveFromBackCallback(const function<void()>& newCallback);
-		static void SetAddTabCallback(const function<void()>& newCallback);
-		static void SetAddNewLineCallback(const function<void()>& newCallback);
+        static void SetAddCharCallback(function<void(u32)>&& newCallback);
+		static void SetRemoveFromBackCallback(function<void()>&& newCallback);
+		static void SetAddTabCallback(function<void()>&& newCallback);
+		static void SetAddNewLineCallback(function<void()>&& newCallback);
 	};
 }
 

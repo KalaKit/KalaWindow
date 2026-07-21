@@ -85,7 +85,7 @@ namespace KalaWindow::Graphics
 	KalaWindowRegistry<ProcessWindow>& ProcessWindow::GetRegistry() { return registry; }
 
 	ProcessWindow* ProcessWindow::Initialize(
-		string_view title,
+		string&& title,
 		vec2 pos,
 		vec2 size,
 		ProcessWindow* parentWindow,
@@ -127,7 +127,7 @@ namespace KalaWindow::Graphics
 		if (size < 100.0f)
 		{
 			Log::Print(
-				"Cannot set window '" + string(title) + "' size less than 100x100!",
+				"Cannot set window '" + title + "' size less than 100x100!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -299,11 +299,11 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void ProcessWindow::SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
+	void ProcessWindow::SetLastDraggedFiles(vector<string>&& files) { lastDraggedFiles = std::move(files); };
 	const vector<string>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
 	void ProcessWindow::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
-	void ProcessWindow::SetTitle(string_view newTitle) const
+	void ProcessWindow::SetTitle(string&& newTitle) const
 	{
 		if (!windowData.window)
 		{
@@ -345,7 +345,7 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window title to '" + string(newTitle) + "'",
+				"Set window title to '" + newTitle + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
@@ -492,7 +492,7 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::SetTaskbarOverlayIcon(
 		u32 texture,
-		string_view tooltip) const
+		string&& tooltip) const
 	{
 		/*
 		TODO: add texture support back
@@ -2113,7 +2113,7 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void ProcessWindow::SetWindowData(const WindowData& newWindowStruct) { windowData = newWindowStruct; }
+	void ProcessWindow::SetWindowData(WindowData&& newWindowStruct) { windowData = std::move(newWindowStruct); }
 	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }
 
 	//
@@ -2129,7 +2129,7 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
 	void ProcessWindow::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
 
-	void ProcessWindow::SetResizeCallback(function<void()> newValue)
+	void ProcessWindow::SetResizeCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
@@ -2142,11 +2142,11 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		resizeCallback = newValue;
+		resizeCallback = std::move(newValue);
 	}
 	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
 
-	void ProcessWindow::SetShutdownCallback(function<void()> newValue)
+	void ProcessWindow::SetShutdownCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
@@ -2159,7 +2159,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		shutdownCallback = newValue;
+		shutdownCallback = std::move(newValue);
 	}
 
 	void ProcessWindow::Destroy()

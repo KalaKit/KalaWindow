@@ -28,11 +28,11 @@ namespace KalaWindow::Core
 		static u32 GetGlobalID();
 		static void SetGlobalID(u32 newID);
 
-		static void SetUserShutdownCallback(const function<void()>& shutdown);
+		static void SetUserShutdownCallback(function<void()>&& shutdown);
 
 		//Use this when you absolutely need a hard crash at this very moment
 		static void ForceClose(
-			string_view title,
-			string_view reason);
+			string&& title,
+			string&& reason);
 	};
 }

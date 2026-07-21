@@ -59,7 +59,7 @@ namespace KalaWindow::Graphics
 	KalaWindowRegistry<ProcessWindow>& ProcessWindow::GetRegistry() { return registry; }
 
     ProcessWindow* ProcessWindow::Initialize(
-		string_view title,
+		string&& title,
 		vec2 pos,
 		vec2 size,
 		ProcessWindow* parentWindow,
@@ -232,10 +232,10 @@ namespace KalaWindow::Graphics
 
         windowPtr->windowData = newWindowStruct;
 
-        windowPtr->SetTitle(title);
+        windowPtr->SetTitle(std::move(title));
 		windowPtr->ID = newID;
 
-        windowPtr->SetWindowClass(title);
+        windowPtr->SetWindowClass(windowPtr->GetTitle());
 
         windowPtr->pos = pos;
         windowPtr->size = size;
@@ -322,11 +322,11 @@ namespace KalaWindow::Graphics
 			isIdle);
     }
 
-	void ProcessWindow::SetLastDraggedFiles(const vector<string>& files) { lastDraggedFiles = files; };
+	void ProcessWindow::SetLastDraggedFiles(vector<string>&& files) { lastDraggedFiles = std::move(files); };
 	const vector<string>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
 	void ProcessWindow::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
-    void ProcessWindow::SetTitle(string_view newValue) const
+    void ProcessWindow::SetTitle(string&& newValue) const
     {
 		if (newValue.empty())
 		{
@@ -466,7 +466,7 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::SetTaskbarOverlayIcon(
 		u32 texture,
-		string_view tooltip) const {}
+		string&& tooltip) const {}
 	u32 ProcessWindow::GetTaskbarOverlayIcon() const { return overlayIconID; }
 	void ProcessWindow::ClearTaskbarOverlayIcon() const {}
 
@@ -1151,7 +1151,7 @@ namespace KalaWindow::Graphics
     }
     WindowState ProcessWindow::GetWindowState() const { return windowState; }
 
-    void ProcessWindow::SetWindowData(const WindowData& newWindowStruct) { windowData = newWindowStruct; }
+    void ProcessWindow::SetWindowData(WindowData&& newWindowStruct) { windowData = std::move(newWindowStruct); }
 	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }
 
     u32 ProcessWindow::GetInputID() const { return inputID; }
@@ -1262,7 +1262,7 @@ namespace KalaWindow::Graphics
         }
     }
 
-	void ProcessWindow::SetResizeCallback(function<void()> newValue)
+	void ProcessWindow::SetResizeCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
@@ -1275,11 +1275,11 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		resizeCallback = newValue;
+		resizeCallback = std::move(newValue);
 	}
 	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
 
-	void ProcessWindow::SetShutdownCallback(function<void()> newValue)
+	void ProcessWindow::SetShutdownCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
@@ -1292,7 +1292,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		shutdownCallback = newValue;
+		shutdownCallback = std::move(newValue);
 	}
 
     void ProcessWindow::Destroy()

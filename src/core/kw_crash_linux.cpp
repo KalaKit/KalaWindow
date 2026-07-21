@@ -137,7 +137,7 @@ static void WriteLog(
 
 namespace KalaWindow::Core
 {
-    void CrashHandler::Initialize(string_view programName)
+    void CrashHandler::Initialize(string&& programName)
     {
         if (isInitialized)
         {
@@ -186,7 +186,7 @@ namespace KalaWindow::Core
             &sa,
             nullptr);
 
-		assignedProgramName = programName;
+		assignedProgramName = std::move(programName);
 
 #ifdef __NODUMP__
 	    canCreateDump = false;
@@ -203,8 +203,8 @@ namespace KalaWindow::Core
     bool CrashHandler::IsInitialized() { return isInitialized; }
 
     void CrashHandler::SetForceCloseContent(
-        string_view title,
-        string_view reason)
+        string&& title,
+        string&& reason)
     {
         snprintf(
             fullZenityCommand,
@@ -382,7 +382,7 @@ void GenerateFullCrashReport(
 		timeStamp);
 
 	Window_Global::CreatePopup(
-		assignedProgramName,
+		std::move(assignedProgramName),
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
 		PopupType::POPUP_TYPE_ERROR);

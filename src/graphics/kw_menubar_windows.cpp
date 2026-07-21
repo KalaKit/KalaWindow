@@ -210,8 +210,8 @@ namespace KalaWindow::Graphics
 
 	void MenuBar::CreateLabel(
 		LabelType type,
-		string_view parentRef,
-		string_view labelRef,
+		string&& parentRef,
+		string&& labelRef,
 		const function<void()> func)
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
@@ -240,8 +240,7 @@ namespace KalaWindow::Graphics
 
 		string typeName = type == LabelType::LABEL_LEAF ? "leaf" : "branch";
 
-		string parentName = string(parentRef);
-		if (parentName.empty()) parentName = "root";
+		if (parentRef.empty()) parentRef = "root";
 
 		if (!isInitialized)
 		{
@@ -334,7 +333,7 @@ namespace KalaWindow::Graphics
 				&& labelRef == label)
 			{
 				Log::Print(
-					"Failed to add " + typeName + " '" + string(labelRef) + "' under parent '" + parentName
+					"Failed to add " + typeName + " '" + string(labelRef) + "' under parent '" + parentRef
 					+ "' in window '" + window->GetTitle() + "' because the " + typeName + " and its parent already exists!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
@@ -386,7 +385,7 @@ namespace KalaWindow::Graphics
 				{
 					Log::Print(
 						"Added " + typeName + " '" + string(labelRef) + "' '" + to_string(newID)
-						+ "' under parent '" + parentName
+						+ "' under parent '" + parentRef
 						+ "' in window '" + window->GetTitle() + "'!",
 						"KW_MENUBAR",
 						LogType::LOG_VERBOSE);
@@ -410,7 +409,7 @@ namespace KalaWindow::Graphics
 			if (!parentMenu)
 			{
 				Log::Print(
-					"Failed to create " + typeName + " '" + string(labelRef) + "' under parent '" + parentName
+					"Failed to create " + typeName + " '" + string(labelRef) + "' under parent '" + parentRef
 					+ "' in window '" + window->GetTitle() + "' because the parent does not exist!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
@@ -428,7 +427,7 @@ namespace KalaWindow::Graphics
 	}
 
 	void MenuBar::AddSeparator(
-		string_view parentRef,
+		string&& parentRef,
 		const string& labelRef) const
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);

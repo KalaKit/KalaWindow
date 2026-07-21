@@ -92,7 +92,7 @@ using u32 = uint32_t;
 
 namespace KalaWindow::Core
 {
-	void CrashHandler::Initialize(string_view programName)
+	void CrashHandler::Initialize(string&& programName)
 	{
 		//reserve emergency stack space (for stack overflow handling)
 
@@ -101,7 +101,7 @@ namespace KalaWindow::Core
 
 		SetUnhandledExceptionFilter(HandleCrash);
 
-		assignedProgramName = programName;
+		assignedProgramName = std::move(programName);
 
 #ifdef __NODUMP__
 		canCreateDump = false;
@@ -133,8 +133,8 @@ namespace KalaWindow::Core
 	}
 
 	void CrashHandler::SetForceCloseContent(
-        string_view title,
-        string_view reason)
+        string&& title,
+        string&& reason)
     {
 		forceCloseTitle  = title.substr(0, MAX_NAME_LENGTH);
 		forceCloseReason = reason.substr(0, MAX_REASON);
@@ -148,8 +148,8 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	if (code == EXCEPTION_BREAKPOINT)
 	{
 		if (Window_Global::CreatePopup(
-			forceCloseTitle,
-			forceCloseReason,
+			std::move(forceCloseTitle),
+			std::move(forceCloseReason),
 			PopupAction::POPUP_ACTION_OK,
 			PopupType::POPUP_TYPE_ERROR) ==
 			PopupResult::POPUP_RESULT_OK)
@@ -289,7 +289,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		timeStamp);
 
 	Window_Global::CreatePopup(
-		assignedProgramName,
+		std::move(assignedProgramName),
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
 		PopupType::POPUP_TYPE_ERROR);

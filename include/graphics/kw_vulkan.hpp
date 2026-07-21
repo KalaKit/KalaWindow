@@ -45,7 +45,7 @@ namespace KalaWindow::Graphics
         //- VK_KHR_surface
         //- VK_KHR_win32_surface (on windows)
         //- VK_KHR_xlib_surface (on linux)
-		static void InitializeGlobal(const vector<string>& extensions = {});
+		static void InitializeGlobal(vector<string>&& extensions = {});
 		static bool IsInitialized();
 
         //Initialize a per-window Vulkan context, creates a surface

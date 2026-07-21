@@ -38,14 +38,14 @@ namespace KalaWindow::Core
 	u32 KalaWindowCore::GetGlobalID() { return globalID; }
 	void KalaWindowCore::SetGlobalID(u32 newID) { globalID = newID; }
 
-	void KalaWindowCore::SetUserShutdownCallback(const function<void()>& shutdown)
+	void KalaWindowCore::SetUserShutdownCallback(function<void()>&& shutdown)
 	{
-		if (shutdown) shutdownCallback = shutdown;
+		if (shutdown) shutdownCallback = std::move(shutdown);
 	}
 
 	void KalaWindowCore::ForceClose(
-		string_view target,
-		string_view reason)
+		string&& target,
+		string&& reason)
 	{
 		Log::Print(
 			"\n================"
@@ -54,8 +54,8 @@ namespace KalaWindow::Core
 			true);
 
 		Log::Print(
-			string(reason),
-			string(target),
+			reason,
+			target,
 			LogType::LOG_ERROR,
 			2,
 			true,
@@ -63,8 +63,8 @@ namespace KalaWindow::Core
 			DateFormat::DATE_NONE);
 
 		CrashHandler::SetForceCloseContent(
-			string(target),
-			string(reason));
+			std::move(reason),
+			std::move(target));
 
 #ifdef _WIN32
 		__debugbreak();

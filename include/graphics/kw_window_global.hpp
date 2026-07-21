@@ -132,8 +132,8 @@ namespace KalaWindow::Graphics
 		//Display any kind of a popup on screen for info that should be shown immediately..
 		//Requires zenity on X11 and Wayland.
 		static PopupResult CreatePopup(
-			string_view title,
-			string_view message,
+			string&& title,
+			string&& message,
 			PopupAction action,
 			PopupType type);
 
@@ -146,15 +146,15 @@ namespace KalaWindow::Graphics
 
 		//Create a notification that shows up on the screen
 		static void CreateNotification(
-			string_view title,
-			string_view message);
+			string&& title,
+			string&& message);
 
 		//Play a system sound once of the chosen type.
 		//Requires libcanberra on X11 and Wayland
 		static void PlaySystemSound(SoundType type);
 
 		//Places selected string to clipboard
-		static void SetClipboardText(string_view text);
+		static void SetClipboardText(string&& text);
 		//Returns string from clipboard
 		static string GetClipboardText();
 	};

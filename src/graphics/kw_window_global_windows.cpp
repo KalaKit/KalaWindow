@@ -220,8 +220,8 @@ namespace KalaWindow::Graphics
 	const string& Window_Global::GetAppID() { return appID; }
 
 	PopupResult Window_Global::CreatePopup(
-		string_view title,
-		string_view message,
+		string&& title,
+		string&& message,
 		PopupAction action,
 		PopupType type)
 	{
@@ -246,8 +246,8 @@ namespace KalaWindow::Graphics
 		default:                             flags |= MB_ICONINFORMATION; break;
 		}
 
-		string finalTitle = title.empty() ? "NO TITLE" : string(title);
-		string finalMessage = message.empty() ? "NO MESSAGE" : string(message);
+		string finalTitle = title.empty() ? "NO TITLE" : std::move(title);
+		string finalMessage = message.empty() ? "NO MESSAGE" : std::move(message);
 
 		int result = MessageBoxW(
 			nullptr,
@@ -659,8 +659,8 @@ namespace KalaWindow::Graphics
 	}
 
 	void Window_Global::CreateNotification(
-		string_view title,
-		string_view message)
+		string&& title,
+		string&& message)
 	{
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(message);
@@ -679,7 +679,7 @@ namespace KalaWindow::Graphics
 		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
-				"Created notification '" + string(title) + "'!",
+				"Created notification '" + title + "'!",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_VERBOSE);
 		}

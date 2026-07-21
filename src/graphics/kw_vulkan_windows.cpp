@@ -161,7 +161,7 @@ namespace KalaWindow::Graphics
         return instance;
     }
 
-	void VulkanContext::InitializeGlobal(const vector<string>& extensions)
+	void VulkanContext::InitializeGlobal(vector<string>&& extensions)
     {
 		if (isInitialized)
 		{

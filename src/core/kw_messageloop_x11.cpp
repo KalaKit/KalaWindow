@@ -152,21 +152,21 @@ static KeyboardButton TranslateKeySym(KeySym keysym)
 
 namespace KalaWindow::Core
 {
-    void MessageLoop::SetAddCharCallback(const function<void(u32)>& newCallback)
+    void MessageLoop::SetAddCharCallback(function<void(u32)>&& newCallback)
 	{
-		addCharCallback = newCallback;
+		addCharCallback = std::move(newCallback);
 	}
-	void MessageLoop::SetRemoveFromBackCallback(const function<void()>& newCallback)
+	void MessageLoop::SetRemoveFromBackCallback(function<void()>&& newCallback)
 	{
-		removeFromBackCallback = newCallback;
+		removeFromBackCallback = std::move(newCallback);
 	}
-	void MessageLoop::SetAddTabCallback(const function<void()>& newCallback)
+	void MessageLoop::SetAddTabCallback(function<void()>&& newCallback)
 	{
-		addTabCallback = newCallback;
+		addTabCallback = std::move(newCallback);
 	}
-	void MessageLoop::SetAddNewLineCallback(const function<void()>& newCallback)
+	void MessageLoop::SetAddNewLineCallback(function<void()>&& newCallback)
 	{
-		addNewlineCallback = newCallback;
+		addNewlineCallback = std::move(newCallback);
 	}
 
     void MessageLoop::Update()

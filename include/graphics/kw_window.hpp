@@ -129,7 +129,7 @@ namespace KalaWindow::Graphics
 		//Set the context to your preferred dpi state to modify how
 		//window dpi state affects performance and quality of the framebuffer
 		static ProcessWindow* Initialize(
-			string_view title,
+			string&& title,
 			vec2 pos = 600,
 			vec2 size = { 800, 600 },
 			ProcessWindow* parentWindow = nullptr,
@@ -141,12 +141,12 @@ namespace KalaWindow::Graphics
 		void Update();
 
 		//Assigns paths of last dragged files. This is called through WM_DROPFILES on windows.
-		void SetLastDraggedFiles(const vector<string>& files);
+		void SetLastDraggedFiles(vector<string>&& files);
 		const vector<string>& GetLastDraggedFiles() const;
 		//Clears paths to last file paths that were dragged onto window
 		void ClearLastDraggedFiles();
 
-		void SetTitle(string_view newTitle) const;
+		void SetTitle(string&& newTitle) const;
 		string GetTitle() const;
 
 		//Set executable icon. Loaded via the texture framework.
@@ -164,7 +164,7 @@ namespace KalaWindow::Graphics
 		//The first parameter requires an ID to the texture.
 		void SetTaskbarOverlayIcon(
 			u32 texture,
-			string_view tooltip = "") const;
+			string&& tooltip = "") const;
 		u32 GetTaskbarOverlayIcon() const;
 		//Clears the current overlay icon and its tooltip
 		void ClearTaskbarOverlayIcon() const;
@@ -286,12 +286,12 @@ namespace KalaWindow::Graphics
 			u8 maxProgress) const;
 #endif
 
-		void SetResizeCallback(function<void()> newValue);
+		void SetResizeCallback(function<void()>&& newValue);
 		void ResizeCallback();
 
-		void SetShutdownCallback(function<void()> newValue);
+		void SetShutdownCallback(function<void()>&& newValue);
 
-		void SetWindowData(const WindowData& newWindowStruct);
+		void SetWindowData(WindowData&& newWindowStruct);
 		const WindowData& GetWindowData() const;
 
 		//
