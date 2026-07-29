@@ -65,7 +65,7 @@ namespace KalaWindow::Core
 		if (!w)
 		{
 			KalaWindowCore::ForceClose(
-				"Input error",
+				"KalaWindow input error",
 				"Failed to initialize input because its window was not found!");
 
 			return nullptr;
@@ -90,7 +90,7 @@ namespace KalaWindow::Core
 		if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window error",
+                "KalaWindow input error",
                 "Failed to initialize raw input device because the attached window was invalid!");
         }
 
@@ -551,13 +551,13 @@ namespace KalaWindow::Core
 		if (!globalData.display)
         {
 			KalaWindowCore::ForceClose(
-				"Window error",
+				"KalaWindow input error",
 				"Failed to set mouse visibility because the attached display was invalid!");
         }
         if (!windowData.window)
         {
 			KalaWindowCore::ForceClose(
-				"Window error",
+				"KalaWindow input error",
 				"Failed to set mouse visibility because the attached window was invalid!");
         }
 
@@ -628,7 +628,7 @@ namespace KalaWindow::Core
 			if (!windowData.window)
 			{
 				KalaWindowCore::ForceClose(
-					"Window error",
+					"KalaWindow input error",
 					"Failed to set mouse lock state because the attached window was invalid!");
 			}
 
@@ -651,13 +651,13 @@ namespace KalaWindow::Core
 		if (!globalData.display)
         {
 			KalaWindowCore::ForceClose(
-				"Window error",
+				"KalaWindow input error",
 				"Failed to set mouse lock state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
 			KalaWindowCore::ForceClose(
-				"Window error",
+				"KalaWindow input error",
 				"Failed to set mouse lock state because the attached window was invalid!");
         }
 
@@ -731,7 +731,7 @@ namespace KalaWindow::Core
 			if (!windowData.window)
 			{
 				KalaWindowCore::ForceClose(
-					"Window error",
+					"KalaWindow input error",
 					"Failed to end input frame update because the attached window was invalid!");
 			}
 
@@ -761,13 +761,13 @@ namespace KalaWindow::Core
 			if (!globalData.display)
 			{
 				KalaWindowCore::ForceClose(
-					"Window error",
+					"KalaWindow input error",
 					"Failed to end input frame update because the attached display was invalid!");
 			}
 			if (!windowData.window)
 			{
 				KalaWindowCore::ForceClose(
-					"Window error",
+					"KalaWindow input error",
 					"Failed to end input frame update because the attached window was invalid!");
 			}
 
@@ -798,7 +798,7 @@ namespace KalaWindow::Core
 		if (!w)
 		{
 			KalaWindowCore::ForceClose(
-				"Input destruction error",
+				"KalaWindow input error",
 				"Failed to destroy input context '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
 		}
 

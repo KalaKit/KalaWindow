@@ -100,7 +100,7 @@ static void SetUpAlternateStack()
     if (!altStack.ss_sp)
     {
         KalaWindowCore::ForceClose(
-            "Crash handler error",
+            "KalaWindow crash error",
             "Failed to allocate memory for alternate stack!");
     }
 

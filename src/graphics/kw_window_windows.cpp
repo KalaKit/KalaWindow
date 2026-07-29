@@ -183,7 +183,7 @@ namespace KalaWindow::Graphics
 			if (errorMsg) LocalFree(errorMsg);
 
 			KalaWindowCore::ForceClose(
-				"Window init error",
+				"KalaWindow window error",
 				msg.str());
 
 			return nullptr;
@@ -233,14 +233,16 @@ namespace KalaWindow::Graphics
 
 		if (parentWindow)
 		{
-			if (find(registry.runtimeContent.begin(),
-				registry.runtimeContent.end(),
+			const vector<ProcessWindow*>& content = registry.GetAllContent();
+
+			if (find(content.begin(),
+				content.end(),
 				parentWindow)
-				== registry.runtimeContent.end())
+				== content.end())
 			{
 				KalaWindowCore::ForceClose(
-					"Window init error",
-					"Failed to create child window '" + string(title) + "' because parent window pointer does not exist!");
+					"KalaWindow window error",
+					"Failed to create child window '" + string(title) + "' because parent window pointer was not found!");
 			}
 
 			HWND parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().window);
@@ -249,7 +251,7 @@ namespace KalaWindow::Graphics
 				|| !IsWindow(parentWindowRef))
 			{
 				KalaWindowCore::ForceClose(
-					"Window init error",
+					"KalaWindow window error",
 					"Failed to create child window '" + string(title) + "' because parent window handle is invalid!");
 			}
 
@@ -308,7 +310,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window title error",
+				"KalaWindow window error",
 				"Failed to set window title because the attached window was invalid!");
 		}
 
@@ -355,7 +357,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window title error",
+				"KalaWindow window error",
 				"Failed to get window title because the attached window was invalid!");
 		}
 
@@ -389,7 +391,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window icon error",
+				"KalaWindow window error",
 				"Failed to set icon because the attached window was invalid!");
 		}
 		
@@ -471,7 +473,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window icon error",
+				"KalaWindow window error",
 				"Failed to clear icon because the attached window was invalid!");
 		}
 
@@ -500,7 +502,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window taskbar overlay error",
+				"KalaWindow window error",
 				"Failed to set tarkbar overlay icon because the attached window was invalid!");
 		}
 
@@ -605,7 +607,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window taskbar overlay error",
+				"KalaWindow window error",
 				"Failed to clear taskbar overlay icon because the attached window was invalid!");
 		}
 
@@ -643,7 +645,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window focus error",
+				"KalaWindow window error",
 				"Failed to bring window to focus because the attached window was invalid!");
 		}
 
@@ -707,7 +709,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window rounding state error",
+				"KalaWindow window error",
 				"Failed to set window rounding because the attached window was invalid!");
 		}
 
@@ -765,7 +767,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window rounding state error",
+				"KalaWindow window error",
 				"Failed to get window rounding state because the attached window was invalid!");
 		}
 
@@ -806,7 +808,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window size error",
+				"KalaWindow window error",
 				"Failed to set client rect size because the attached window was invalid!");
 		}
 
@@ -869,7 +871,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window size error",
+				"KalaWindow window error",
 				"Failed to set client rect size because the attached window was invalid!");
 		}
 
@@ -890,7 +892,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window outer size error",
+				"KalaWindow window error",
 				"Failed to set outer window size because the attached window was invalid!");
 		}
 
@@ -937,7 +939,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window outer size error",
+				"KalaWindow window error",
 				"Failed to get outer window size because the attached window was invalid!");
 		}
 
@@ -958,7 +960,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window position error",
+				"KalaWindow window error",
 				"Failed to set window position because the attached window was invalid!");
 		}
 
@@ -989,7 +991,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window position error",
+				"KalaWindow window error",
 				"Failed to get window position because the attached window was invalid!");
 		}
 
@@ -1029,7 +1031,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window always on top state error",
+				"KalaWindow window error",
 				"Failed to set always on top state because the attached window was invalid!");
 		}
 
@@ -1060,7 +1062,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window always on top state error",
+				"KalaWindow window error",
 				"Failed to get always on top state because the attached window was invalid!");
 		}
 
@@ -1078,7 +1080,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window resizable state error",
+				"KalaWindow window error",
 				"Failed to set resizable state because the attached window was invalid!");
 		}
 
@@ -1131,7 +1133,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window resizable state error",
+				"KalaWindow window error",
 				"Failed to get resizable state because the attached window was invalid!");
 		}
 
@@ -1151,7 +1153,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window top bar state error",
+				"KalaWindow window error",
 				"Failed to set top bar state because the attached window was invalid!");
 		}
 
@@ -1194,7 +1196,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window top bar state error",
+				"KalaWindow window error",
 				"Failed to get window top bar state because the attached window was invalid!");
 		}
 
@@ -1212,7 +1214,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window minimize buttot state error",
+				"KalaWindow window error",
 				"Failed to set minimize button state because the attached window was invalid!");
 		}
 
@@ -1255,7 +1257,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window minimize button state error",
+				"KalaWindow window error",
 				"Failed to get minimize button state because the attached window was invalid!");
 		}
 
@@ -1273,7 +1275,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window maximize button state error",
+				"KalaWindow window error",
 				"Failed to set maximize button state because the attached window was invalid!");
 		}
 
@@ -1316,7 +1318,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window maximize button state error",
+				"KalaWindow window error",
 				"Failed to get maximize button state because the attached window was invalid!");
 		}
 
@@ -1334,7 +1336,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window close button state error",
+				"KalaWindow window error",
 				"Failed to set close button state because the attached window was invalid!");
 		}
 
@@ -1369,7 +1371,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window close button state error",
+				"KalaWindow window error",
 				"Failed to get close button state because the attached window was invalid!");
 		}
 
@@ -1389,7 +1391,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window system menu state error",
+				"KalaWindow window error",
 				"Failed to destroy menu because the attached window was invalid!");
 		}
 
@@ -1432,7 +1434,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window system menu state error",
+				"KalaWindow window error",
 				"Failed to get system menu state because the attached window was invalid!");
 		}
 
@@ -1450,7 +1452,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window opacity error",
+				"KalaWindow window error",
 				"Failed to set window opacity because the attached window was invalid!");
 		}
 		
@@ -1494,7 +1496,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window opacity error",
+				"KalaWindow window error",
 				"Failed to get window opacity because the attached window was invalid!");
 		}
 
@@ -1526,7 +1528,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window foreground state error",
+				"KalaWindow window error",
 				"Failed to get foreground window state because the attached window was invalid!");
 		}
 
@@ -1539,7 +1541,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window foreground state error",
+				"KalaWindow window error",
 				"Failed to get focused state because the attached window was invalid!");
 		}
 
@@ -1552,7 +1554,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window fullscreen state error",
+				"KalaWindow window error",
 				"Failed to get fullscreen state because the attached window was invalid!");
 		}
 
@@ -1593,7 +1595,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window minimized state error",
+				"KalaWindow window error",
 				"Failed to get minimized state because the attached window was invalid!");
 		}
 
@@ -1607,7 +1609,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window visible state error",
+				"KalaWindow window error",
 				"Failed to get visible state because the attached window was invalid!");
 		}
 
@@ -1624,7 +1626,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window mode error",
+				"KalaWindow window error",
 				"Failed to set window mode because the attached window was invalid!");
 		}
 
@@ -1768,7 +1770,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window mode error",
+				"KalaWindow window error",
 				"Failed to get window mode because the attached window was invalid!");
 		}
 
@@ -1811,7 +1813,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window state error",
+				"KalaWindow window error",
 				"Failed to set window state because the attached window was invalid!");
 		}
 
@@ -1862,7 +1864,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window state error",
+				"KalaWindow window error",
 				"Failed to get window state because the attached window was invalid!");
 		}
 
@@ -1903,7 +1905,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window shutdown block state error",
+				"KalaWindow window error",
 				"Failed to set shutdown block state because the attached window was invalid!");
 		}
 
@@ -1943,7 +1945,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window flash error",
+				"KalaWindow window error",
 				"Failed to call flash because the attached window was invalid!");
 		}
 
@@ -2030,7 +2032,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Window taskbar progress state error",
+				"KalaWindow window error",
 				"Failed to set tarkbar progress bar state because the attached window was invalid!");
 		}
 
@@ -2164,7 +2166,7 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::Destroy()
 	{
-		if (registry.runtimeContent.size() == 1)
+		if (registry.GetAllContent().size() == 1)
 		{
 			Log::Print(
                 "\n======================================================================"
@@ -2269,7 +2271,7 @@ namespace KalaWindow::Graphics
 			windowData.hInstance = NULL;
 		}
 
-		if (registry.runtimeContent.empty())
+		if (registry.GetAllContent().empty())
 		{			
 			timeEndPeriod(1);
 

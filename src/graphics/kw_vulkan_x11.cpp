@@ -131,7 +131,7 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 		&& ContainsCrashWorthyError(data->pMessage))
 	{
 		KalaWindowCore::ForceClose(
-			"Vulkan validation error",
+			"KalaWindow Vulkan error",
 			data->pMessage);
 	}
 
@@ -161,7 +161,7 @@ namespace KalaWindow::Graphics
         if (!isInitialized)
 		{
 			KalaWindowCore::ForceClose(
-				"Vulkan instance error",
+				"KalaWindow Vulkan error",
 				"Cannot get Vulkan instance because Global Vulkan has not been initialized!");
 		}
 
@@ -184,7 +184,7 @@ namespace KalaWindow::Graphics
 		if (!Window_Global::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
-				"Global Vulkan context init error",
+				"KalaWindow Vulkan error",
 				"Cannot initialize global Vulkan because global window manager has not been initialized!");
 
 			return;
@@ -196,7 +196,7 @@ namespace KalaWindow::Graphics
             || version < VK_API_VERSION_1_4)
         {
 			KalaWindowCore::ForceClose(
-				"Vulkan context init error",
+				"KalaWindow Vulkan error",
 				"Vulkan 1.4 is not supported on this system!");
 
 			return;
@@ -286,7 +286,7 @@ namespace KalaWindow::Graphics
             &instance) != VK_SUCCESS)
         {
 			KalaWindowCore::ForceClose(
-				"Vulkan context init error",
+				"KalaWindow Vulkan error",
 				"Failed to create Vulkan instance!");
 
 			return;
@@ -316,7 +316,7 @@ namespace KalaWindow::Graphics
 		if (!VulkanContext::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
-				"Vulkan context init error",
+				"KalaWindow Vulkan error",
 				"Cannot initialize Vulkan context because global Vulkan has not yet been initialized!");
 
 			return nullptr;
@@ -349,7 +349,7 @@ namespace KalaWindow::Graphics
 		if (!instance)
 		{
             KalaWindowCore::ForceClose(
-                "Vulkan context init error",
+                "KalaWindow Vulkan error",
                 "Failed to initialize Vulkan context because the passed Vulkan instance was invalid!");
 		}
 
@@ -367,13 +367,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Vulkan context init error",
+                "KalaWindow Vulkan error",
                 "Failed to initialize Vulkan context because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Vulkan context init error",
+                "KalaWindow Vulkan error",
                 "Failed to initialize Vulkan context because the attached window was invalid!");
         }
 
@@ -394,7 +394,7 @@ namespace KalaWindow::Graphics
             &surface) != VK_SUCCESS)
         {
 			KalaWindowCore::ForceClose(
-				"Vulkan context init error",
+				"KalaWindow Vulkan error",
 				"Failed to create Vulkan surface for window '" + w->GetTitle() + "'!");
 
 			return nullptr;
@@ -427,7 +427,7 @@ namespace KalaWindow::Graphics
 		if (!window)
 		{
 			KalaWindowCore::ForceClose(
-				"Vulkan context destruction error",
+				"KalaWindow Vulkan error",
 				"Failed to destroy Vulkan context '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
 		}
 
@@ -456,7 +456,7 @@ namespace KalaWindow::Graphics
 			surface = VK_NULL_HANDLE;
 		}
 
-		if (registry.runtimeContent.empty())
+		if (registry.GetAllContent().empty())
 		{
 			Log::Print(
 				"Destroying global Vulkan because all contexts were destroyed.",

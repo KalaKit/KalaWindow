@@ -85,7 +85,7 @@ namespace KalaWindow::Graphics
 				<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
 
 			KalaWindowCore::ForceClose(
-				"Global window error",
+				"KalaWindow global window error",
 				oss.str());
 		}
 
@@ -116,7 +116,7 @@ namespace KalaWindow::Graphics
 		else
 		{
 			KalaWindowCore::ForceClose(
-				"Global window error",
+				"KalaWindow global window error",
 				"Failed to get path to executable!");
 		}
 
@@ -150,7 +150,7 @@ namespace KalaWindow::Graphics
 			}
 
 			KalaWindowCore::ForceClose(
-				"Global window error",
+				"KalaWindow global window error",
 				message);
 		}
 
@@ -174,7 +174,7 @@ namespace KalaWindow::Graphics
 			if (!hMod)
 			{
 				KalaWindowCore::ForceClose(
-					"Global window error",
+					"KalaWindow global window error",
 					"Failed to get 'ntdll.dll'");
 
 				return 0;
@@ -184,7 +184,7 @@ namespace KalaWindow::Graphics
 			if (!pRtlGetVersion)
 			{
 				KalaWindowCore::ForceClose(
-					"Global window error",
+					"KalaWindow global window error",
 					"Failed to resolve address of 'RtlGetVersion'");
 
 				return 0;
@@ -194,7 +194,7 @@ namespace KalaWindow::Graphics
 			if (pRtlGetVersion(&rovi) != 0)
 			{
 				KalaWindowCore::ForceClose(
-					"Global window error",
+					"KalaWindow global window error",
 					"Call to 'RtlGetVersion' failed");
 
 				return 0;

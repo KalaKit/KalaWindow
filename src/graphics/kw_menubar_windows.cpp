@@ -72,7 +72,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Menu bar error",
+				"KalaWindow menu bar error",
 				"Failed to create menu bar because the attached window was invalid!");
 		}
 
@@ -142,7 +142,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Menu bar error",
+				"KalaWindow menu bar error",
 				"Failed to set menu bar state because the attached window was invalid!");
 		}
 
@@ -195,7 +195,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Menu bar error",
+				"KalaWindow menu bar error",
 				"Failed to check if menu bar is enabled because the attached window was invalid!");
 		}
 
@@ -232,7 +232,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Menu bar error",
+				"KalaWindow menu bar error",
 				"Failed to create menu bar label because the attached window was invalid!");
 		}
 
@@ -410,7 +410,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to create " + typeName + " '" + string(labelRef) + "' under parent '" + parentRef
-					+ "' in window '" + window->GetTitle() + "' because the parent does not exist!",
+					+ "' in window '" + window->GetTitle() + "' because the parent was not found!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
 					2);
@@ -448,7 +448,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Menu bar error",
+				"KalaWindow menu bar error",
 				"Failed to add menu bar separator because the attached window was invalid!");
 		}
 
@@ -489,7 +489,7 @@ namespace KalaWindow::Graphics
 					{
 						Log::Print(
 							"Failed to add separator at the end of parent '" + string(parentRef)
-							+ "' in window '" + window->GetTitle() + "' because the parent does not exist!",
+							+ "' in window '" + window->GetTitle() + "' because the parent was not found!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -536,7 +536,7 @@ namespace KalaWindow::Graphics
 					{
 						Log::Print(
 							"Failed to add separator under parent '" + string(parentRef) + "' after label '" + labelRef
-							+ "' in window '" + window->GetTitle() + "' because the label does not exist!",
+							+ "' in window '" + window->GetTitle() + "' because the label was not found!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -584,7 +584,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			"Failed to add separator at the end of parent '" + string(parentRef) + "' or after label '" + labelRef
-			+ "' in window '" + window->GetTitle() + "' because parent or label does not exist!",
+			+ "' in window '" + window->GetTitle() + "' because parent or label was not found!",
 			"KW_MENUBAR",
 			LogType::LOG_ERROR,
 			2);
@@ -600,7 +600,7 @@ namespace KalaWindow::Graphics
 		if (!window)
 		{
 			KalaWindowCore::ForceClose(
-				"Menubar destruction error",
+				"KalaWindow menu bar error",
 				"Cannot shut down menu bar '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
 		}
 
@@ -609,7 +609,7 @@ namespace KalaWindow::Graphics
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
-				"Menubar destruction error",
+				"KalaWindow menu bar error",
 				"Failed to destroy menu bar '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' had no valid HWND!");
 		}
 

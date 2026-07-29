@@ -37,7 +37,7 @@ static int ErrorHandler(
     if (!display)
     {
         KalaWindowCore::ForceClose(
-            "Global window error",
+            "KalaWindow global window error",
             "Failed to call X11 error handler because the attached display was invalid!");
     }
 
@@ -72,7 +72,7 @@ static int ErrorHandler(
 static int IOErrorHandler(Display* display)
 {
     KalaWindowCore::ForceClose(
-        "Global window error",
+        "KalaWindow global window error",
         "Fatal X11 IO error was detected and the program must close!");
 
     return 0; //tells X to exit
@@ -105,7 +105,7 @@ namespace KalaWindow::Graphics
         if (!display)
         {
             KalaWindowCore::ForceClose(
-                "Global window init error",
+                "KalaWindow global window error",
                 "Failed to initialize global window because the created display was invalid!");
         }
 
@@ -128,7 +128,7 @@ namespace KalaWindow::Graphics
             &error))
         {
             KalaWindowCore::ForceClose(
-                "Global window init error",
+                "KalaWindow global window error",
                 "XInput event is not available!");
         }
 
@@ -143,7 +143,7 @@ namespace KalaWindow::Graphics
         if (status != 0)
         {
             KalaWindowCore::ForceClose(
-                "Global window init error",
+                "KalaWindow global window error",
                 "XInput2 is not available! Reason: " + to_string(status));
         }
 

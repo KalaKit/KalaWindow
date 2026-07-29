@@ -114,7 +114,7 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window init error",
+                "KalaWindow window error",
                 "Failed to initialize window because the attached display was invalid!");
         }
 
@@ -151,7 +151,7 @@ namespace KalaWindow::Graphics
         if (window == None)
         {
             KalaWindowCore::ForceClose(
-                "Window init error",
+                "KalaWindow window error",
                 "Failed to create window '" + string(title) + "' because XCreateWindow failed!");
         }
 
@@ -166,7 +166,7 @@ namespace KalaWindow::Graphics
         if (!xic)
         {
             KalaWindowCore::ForceClose(
-                "Window init error",
+                "KalaWindow window error",
                 "Failed to create window '" + string(title) + "' because XCreateIC failed!");
         }
 
@@ -185,7 +185,7 @@ namespace KalaWindow::Graphics
         if (status == 0)
         {
             KalaWindowCore::ForceClose(
-                "Window init error",
+                "KalaWindow window error",
                 "Failed to create window '" + string(title) + "' because first XChangeProperty failed!");
         }
 
@@ -200,7 +200,7 @@ namespace KalaWindow::Graphics
         if (status == 0)
         {
             KalaWindowCore::ForceClose(
-                "Window init error",
+                "KalaWindow window error",
                 "Failed to create window '" + string(title) + "' because XSetWMProtocols failed!");
         }
 
@@ -248,14 +248,16 @@ namespace KalaWindow::Graphics
 
         if (parentWindow)
         {
-			if (find(registry.runtimeContent.begin(),
-				registry.runtimeContent.end(),
+            const vector<ProcessWindow*>& content = registry.GetAllContent();
+
+			if (find(content.begin(),
+				content.end(),
 				parentWindow)
-				== registry.runtimeContent.end())
+				== content.end())
 			{
 				KalaWindowCore::ForceClose(
-					"Window init error",
-					"Failed to create child window '" + string(title) + "' because parent window pointer does not exist!");
+					"KalaWindow window error",
+					"Failed to create child window '" + string(title) + "' because parent window pointer was not found!");
 			}
 
             Window parentWindowRef = ToVar<Window>(parentWindow->GetWindowData().window);
@@ -263,7 +265,7 @@ namespace KalaWindow::Graphics
             if (!parentWindowRef)
             {
 				KalaWindowCore::ForceClose(
-					"Window init error",
+					"KalaWindow window error",
 					"Failed to create child window '" + string(title) + "' because parent window handle is invalid!");
             }
 
@@ -288,7 +290,7 @@ namespace KalaWindow::Graphics
             if (status == 0)
             {
                 KalaWindowCore::ForceClose(
-                    "Window init error",
+                    "KalaWindow window error",
                     "Failed to create window '" + string(title) + "' because second XChangeProperty failed!");
             }
         }
@@ -355,13 +357,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window title error",
+                "KalaWindow window error",
                 "Failed to set window title because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window title error",
+                "KalaWindow window error",
                 "Failed to set window title because the attached window was invalid!");
         }
 
@@ -393,7 +395,7 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
 			KalaWindowCore::ForceClose(
-				"Window title error",
+				"KalaWindow window error",
 				"Failed to get window title because the attached display was invalid!");
 
             return {};
@@ -401,7 +403,7 @@ namespace KalaWindow::Graphics
         if (!windowData.window)
         {
 			KalaWindowCore::ForceClose(
-				"Window title error",
+				"KalaWindow window error",
 				"Failed to get window title because the attached window was invalid!");
 
             return {};
@@ -520,13 +522,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window size error",
+                "KalaWindow window error",
                 "Failed to set window client rect size because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window size error",
+                "KalaWindow window error",
                 "Failed to set window client rect size because the attached window was invalid!");
         }
 
@@ -555,13 +557,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window position error",
+                "KalaWindow window error",
                 "Failed to set window position because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window position error",
+                "KalaWindow window error",
                 "Failed to set window position because the attached window was invalid!");
         }
 
@@ -589,13 +591,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window max size error",
+                "KalaWindow window error",
                 "Failed to set window max size because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window max size error",
+                "KalaWindow window error",
                 "Failed to set window max size because the attached window was invalid!");
         }
 
@@ -649,13 +651,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window min size error",
+                "KalaWindow window error",
                 "Failed to set window min size because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window min size error",
+                "KalaWindow window error",
                 "Failed to set window min size because the attached window was invalid!");
         }
 
@@ -705,13 +707,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window always on top state error",
+                "KalaWindow window error",
                 "Failed to set window always on top state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window always on top state error",
+                "KalaWindow window error",
                 "Failed to set window always on top state because the attached window was invalid!");
         }
 
@@ -751,13 +753,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window always on top state error",
+                "KalaWindow window error",
                 "Failed to get window always on top state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window always on top state error",
+                "KalaWindow window error",
                 "Failed to get window always on top state because the attached window was invalid!");
         }
 
@@ -815,13 +817,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window resizable state error",
+                "KalaWindow window error",
                 "Failed to set window resizable state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window resizable state error",
+                "KalaWindow window error",
                 "Failed to set window resizable state because the attached window was invalid!");
         }
         
@@ -868,13 +870,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window resizable state error",
+                "KalaWindow window error",
                 "Failed to get window resizable state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window resizable state error",
+                "KalaWindow window error",
                 "Failed to get window resizable state because the attached window was invalid!");
         }
 
@@ -934,13 +936,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window class error",
+                "KalaWindow window error",
                 "Failed to set window class because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window class error",
+                "KalaWindow window error",
                 "Failed to set window class because the attached window was invalid!");
         }
         
@@ -975,13 +977,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window mode error",
+                "KalaWindow window error",
                 "Failed to set window mode because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window mode error",
+                "KalaWindow window error",
                 "Failed to set window mode because the attached window was invalid!");
         }
 
@@ -1045,13 +1047,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window state error",
+                "KalaWindow window error",
                 "Failed to set window state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window state error",
+                "KalaWindow window error",
                 "Failed to set window state because the attached window was invalid!");
         }
 
@@ -1175,13 +1177,13 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
-                "Window fullscreen and minimize state error",
+                "KalaWindow window error",
                 "Failed to update window fullscreen state because the attached display was invalid!");
         }
         if (!windowData.window)
         {
             KalaWindowCore::ForceClose(
-                "Window fullscreen and minimize state error",
+                "KalaWindow window error",
                 "Failed to update window fullscreen state because the attached window was invalid!");
         }
 
@@ -1297,7 +1299,7 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::Destroy()
     {
-		if (registry.runtimeContent.size() == 1)
+		if (registry.GetAllContent().size() == 1)
 		{
 			Log::Print(
                 "\n======================================================================"
@@ -1378,7 +1380,7 @@ namespace KalaWindow::Graphics
             XDestroyIC(xic);
         }
 
-        if (registry.runtimeContent.empty())
+        if (registry.GetAllContent().empty())
         {
 			const X11GlobalData& globalData = Window_Global::GetGlobalData();
 			if (globalData.display)

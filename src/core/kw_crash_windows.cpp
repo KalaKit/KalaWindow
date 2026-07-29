@@ -122,7 +122,7 @@ namespace KalaWindow::Core
 		else
 		{
 			KalaWindowCore::ForceClose(
-				"Crash handler init error",
+				"KalaWindow crash error",
 				"Failed to get path to executable!");
 		}
 
