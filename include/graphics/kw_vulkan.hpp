@@ -32,9 +32,9 @@ namespace KalaWindow::Graphics
 	public:
         static KalaWindowRegistry<VulkanContext>& GetRegistry();
 
+		static bool IsVerboseLoggingEnabled();
     	//Toggle verbose logging. If true and in Debug, then Vulkan will add its own debug messages to the console log messages.
 		static void SetVerboseLoggingState(bool newState);
-		static bool IsVerboseLoggingEnabled();
 
         static VkInstance GetInstance();
         
@@ -51,10 +51,10 @@ namespace KalaWindow::Graphics
         //Initialize a per-window Vulkan context, creates a surface
 		static VulkanContext* Initialize(u32 windowID);
 
-        VkSurfaceKHR GetSurface() const;
-
 		u32 GetID() const;
 		u32 GetWindowID() const;
+
+        VkSurfaceKHR GetSurface() const;
 
         void Destroy();
 

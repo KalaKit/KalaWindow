@@ -543,8 +543,8 @@ namespace KalaWindow::Core
 	}
 	void Input::SetRawMouseDelta(vec2 newRawMouseDelta) { rawMouseDelta = newRawMouseDelta; }
 
-	float Input::GetScrollwheelDelta() const { return mouseWheelDelta; }
-	void Input::SetScrollwheelDelta(float delta) { mouseWheelDelta = delta; }
+	f32 Input::GetScrollwheelDelta() const { return mouseWheelDelta; }
+	void Input::SetScrollwheelDelta(f32 delta) { mouseWheelDelta = delta; }
 
 	bool Input::IsMouseVisible() const { return isMouseVisible; }
 	void Input::SetMouseVisibility(

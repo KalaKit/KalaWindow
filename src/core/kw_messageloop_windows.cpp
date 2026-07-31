@@ -494,8 +494,8 @@ namespace KalaWindow::Core
 				{
 					vec2 newPos =
 					{
-						float(GET_X_LPARAM(msg.lParam)),
-						float(GET_Y_LPARAM(msg.lParam))
+						f32(GET_X_LPARAM(msg.lParam)),
+						f32(GET_Y_LPARAM(msg.lParam))
 					};
 
 					if (input)
@@ -554,7 +554,7 @@ namespace KalaWindow::Core
 					int delta = GET_WHEEL_DELTA_WPARAM(msg.wParam);
 
 					//convert to float steps (+1 or -1)
-					float scroll = 0.0f;
+					f32 scroll = 0.0f;
 					if (delta > 0) scroll = +1.0f;
 					else if (delta < 0) scroll = -1.0f;
 

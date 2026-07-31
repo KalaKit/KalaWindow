@@ -1530,6 +1530,8 @@ namespace KalaWindow::Graphics
 				if (display) XCloseDisplay(display);
 			}
 
+            Window_Global::Shutdown();
+
 			Log::Print(
                 "\n======================================================================"
                 "\nFINISHED SHUTDOWN"

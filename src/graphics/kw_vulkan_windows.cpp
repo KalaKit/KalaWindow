@@ -146,8 +146,8 @@ namespace KalaWindow::Graphics
 
 	KalaWindowRegistry<VulkanContext>& VulkanContext::GetRegistry() { return registry; }
 
-	void VulkanContext::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool VulkanContext::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+	void VulkanContext::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
     VkInstance VulkanContext::GetInstance()
     {
@@ -326,7 +326,6 @@ namespace KalaWindow::Graphics
 
 		isInitialized = true;
     }
-
     bool VulkanContext::IsInitialized() { return isInitialized; }
 
 	VulkanContext* VulkanContext::Initialize(u32 windowID)

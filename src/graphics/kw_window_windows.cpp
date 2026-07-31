@@ -570,8 +570,8 @@ namespace KalaWindow::Graphics
 
 		return vec2
 		{
-			scast<float>(rect.right - rect.left),
-			scast<float>(rect.bottom - rect.top)
+			scast<f32>(rect.right - rect.left),
+			scast<f32>(rect.bottom - rect.top)
 		};
 	}
 	void ProcessWindow::SetSize(vec2 newSize)
@@ -671,8 +671,8 @@ namespace KalaWindow::Graphics
 
 		return vec2
 		{
-			scast<float>(rect.right - rect.left),
-			scast<float>(rect.bottom - rect.top)
+			scast<f32>(rect.right - rect.left),
+			scast<f32>(rect.bottom - rect.top)
 		};
 	}
 	void ProcessWindow::SetOuterSize(vec2 newSize)
@@ -858,8 +858,8 @@ namespace KalaWindow::Graphics
 		{
 			return vec2
 			{ 
-				scast<float>(rect.left),
-				scast<float>(rect.top)
+				scast<f32>(rect.left),
+				scast<f32>(rect.top)
 			};
 		}
 
@@ -1318,7 +1318,7 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	float ProcessWindow::GetOpacity() const
+	f32 ProcessWindow::GetOpacity() const
 	{
 		if (!windowData.window)
 		{
@@ -1340,13 +1340,13 @@ namespace KalaWindow::Graphics
 			&flags)
 			&& (flags & LWA_ALPHA))
 		{
-			return scast<float>(bAlpha) / 255;
+			return scast<f32>(bAlpha) / 255;
 		}
 
 		//treat as fully opaque when not layered
 		return 1.0f;
 	}
-	void ProcessWindow::SetOpacity(float alpha) const
+	void ProcessWindow::SetOpacity(f32 alpha) const
 	{
 		if (!windowData.window)
 		{
@@ -1357,7 +1357,7 @@ namespace KalaWindow::Graphics
 		
 		HWND window = ToVar<HWND>(windowData.window);
 
-		float clamped = clamp(alpha, 0.0f, 1.0f);
+		f32 clamped = clamp(alpha, 0.0f, 1.0f);
 
 		BYTE bAlpha = scast<BYTE>(clamped * 255.0f);
 

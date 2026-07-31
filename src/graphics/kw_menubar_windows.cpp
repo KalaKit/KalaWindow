@@ -43,8 +43,8 @@ namespace KalaWindow::Graphics
 
 	KalaWindowRegistry<MenuBar>& MenuBar::GetRegistry() { return registry; }
 
-	void MenuBar::SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
 	bool MenuBar::IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
+	void MenuBar::SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
 
 	MenuBar* MenuBar::Initialize(u32 windowID)
 	{
@@ -135,6 +135,34 @@ namespace KalaWindow::Graphics
 	u32 MenuBar::GetID() const { return ID; }
 	u32 MenuBar::GetWindowID() const { return windowID; }
 
+	bool MenuBar::IsEnabled() const
+	{
+		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
+		if (!window)
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow menu bar error",
+				"Failed to check menu bar enabled state because its window '" + to_string(windowID) + "' is invalid!");
+
+			return;
+		}
+
+		const WindowData& windowData = window->GetWindowData();
+		if (!windowData.window)
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow menu bar error",
+				"Failed to check if menu bar is enabled because its window '" + to_string(windowID) + "' handle was invalid!");
+		}
+
+		HWND hwnd = ToVar<HWND>(windowData.window);
+		HMENU attached = GetMenu(hwnd);
+
+		return
+			attached != NULL
+			&& window->GetWindowData().hMenu != NULL
+			&& isEnabled;
+	}
 	void MenuBar::SetMenuBarState(bool state)
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
@@ -183,34 +211,6 @@ namespace KalaWindow::Graphics
 				"KW_MENUBAR",
 				LogType::LOG_VERBOSE);
 		}
-	}
-	bool MenuBar::IsEnabled() const
-	{
-		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow menu bar error",
-				"Failed to check menu bar enabled state because its window '" + to_string(windowID) + "' is invalid!");
-
-			return;
-		}
-
-		const WindowData& windowData = window->GetWindowData();
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow menu bar error",
-				"Failed to check if menu bar is enabled because its window '" + to_string(windowID) + "' handle was invalid!");
-		}
-
-		HWND hwnd = ToVar<HWND>(windowData.window);
-		HMENU attached = GetMenu(hwnd);
-
-		return
-			attached != NULL
-			&& window->GetWindowData().hMenu != NULL
-			&& isEnabled;
 	}
 
 	void MenuBar::CreateLabel(

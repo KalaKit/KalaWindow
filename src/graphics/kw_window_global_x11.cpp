@@ -10,6 +10,9 @@
 #include <X11/extensions/XInput2.h>
 #include <X11/Xatom.h>
 #include <sys/wait.h>
+#include <glib.h>
+#include <libnotify/notify.h>
+#include <canberra.h>
 
 #include <string>
 
@@ -29,6 +32,8 @@ using KalaWindow::Graphics::Window_Global;
 
 using std::string;
 using std::to_string;
+
+static ca_context* canberra{};
 
 static int ErrorHandler(
     Display* display,
@@ -85,8 +90,8 @@ namespace KalaWindow::Graphics
 
     static X11GlobalData globalData{};
 
-    void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+    void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
     void Window_Global::Initialize()
     {
@@ -263,6 +268,18 @@ namespace KalaWindow::Graphics
 
         globalData.atom_wm_delete    = FromVar(atom_wm_delete);
 
+        //initialize libnotify
+        notify_init("KalaWindow");
+
+        //initialize canberra
+        if (ca_context_create(&canberra) != CA_SUCCESS
+            || !canberra)
+        {
+            KalaWindowCore::ForceClose(
+                "KalaWindow global window error",
+                "Failed to initialize Canberra!");
+        }
+
         isInitialized = true;
 
 		Log::Print(
@@ -272,6 +289,8 @@ namespace KalaWindow::Graphics
     }
 
     bool Window_Global::IsInitialized() { return isInitialized; }
+
+    const X11GlobalData& Window_Global::GetGlobalData() { return globalData; }
 
     PopupResult Window_Global::CreatePopup(
 		string&& title,
@@ -368,17 +387,65 @@ namespace KalaWindow::Graphics
 		string&& title,
 		string&& message)
     {
+        NotifyNotification* notif = notify_notification_new(
+            title.data(),
+            message.data(),
+            "dialog-information");
 
+        if (!notif)
+        {
+            Log::Print(
+                "Failed to allocate notification!",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_ERROR,
+                2);
+
+            return;
+        }
+
+        GError *error = NULL;
+        if (!notify_notification_show(
+            notif,
+            &error))
+        {
+            string errorMessage = "Failed to show notification! Reason: ";
+            errorMessage += error 
+                ? error->message
+                : "Unknown error";
+
+            Log::Print(
+                errorMessage,
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_ERROR,
+                2);
+
+            g_error_free(error);
+        }
+
+        g_object_unref(G_OBJECT(notif));
     }
 
     void Window_Global::PlaySystemSound(SoundType type)
     {
+        const char* eventID{};
+        switch (type)
+        {
+        case SoundType::SOUND_OK:
+            eventID = "dialog-information";
+            break;
+        case SoundType::SOUND_ERROR:
+            eventID = "dialog-error";
+            break;
+        }
 
-    }
-
-    void Window_Global::SetClipboardText(string&& text)
-    {
-
+        ca_context_play(
+            canberra,
+            0,
+            CA_PROP_EVENT_ID,
+            eventID,
+            CA_PROP_CANBERRA_CACHE_CONTROL,
+            "permanent",
+            NULL);
     }
 
     string Window_Global::GetClipboardText()
@@ -386,8 +453,20 @@ namespace KalaWindow::Graphics
         string res{};
         return res;
     }
+    void Window_Global::SetClipboardText(string&& text)
+    {
 
-    const X11GlobalData& Window_Global::GetGlobalData() { return globalData; }
+    }
+
+    void Window_Global::Shutdown()
+    {
+        notify_uninit();
+        if (canberra)
+        {
+            ca_context_destroy(canberra);
+            canberra = nullptr;
+        }
+    }
 }
 
 #endif //__linux__

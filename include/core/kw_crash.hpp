@@ -5,34 +5,26 @@
 
 #pragma once
 
-#include <string_view>
-#include <array>
-#include <functional>
+#include <string>
 
 #include "core_utils.hpp"
-#include "core/kw_core.hpp"
 
 namespace KalaWindow::Core
 {
-	using std::string_view;
-	using std::array;
-	using std::function;
+	//Max allowed length of crash force close popup reason
+	constexpr size_t MAX_REASON_LENGTH = 256;
 
-	using u16 = uint16_t;
-
-	//Max allowed crash log buffer message length
-	constexpr u16 MAX_MESSAGE_LENGTH = 2000;
+	using std::string;
 
 	class LIB_API CrashHandler
 	{
-	friend KalaWindowCore;
+	friend class KalaWindowCore;
 	public:
 		//Initialize the crash handler. Always creates a timestamped
 		//crash log file at exe root if program crashes.
 		//Assign the program name that will be displayed in the crash log,
 		//and define __NODUMP__ if you want to disable .dmp file creation
 		static void Initialize(string&& programName);
-
 		static bool IsInitialized();
 	private:
 		static void SetForceCloseContent(

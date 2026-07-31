@@ -48,8 +48,6 @@ using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaKeyStandards::KeyboardButton;
 using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
-using KalaHeaders::KalaString::BoolValue;
-
 using std::vector;
 using std::unordered_map;
 using std::string;

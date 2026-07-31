@@ -54,10 +54,10 @@ namespace KalaWindow::Graphics
 	public:
 		static KalaWindowRegistry<MenuBar>& GetRegistry();
 
+		static bool IsVerboseLoggingEnabled();
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
 		//branch and leaf creation will dump their logs into the console.
 		static void SetVerboseLoggingState(bool newState);
-		static bool IsVerboseLoggingEnabled();
 
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window
@@ -69,9 +69,8 @@ namespace KalaWindow::Graphics
 		u32 GetWindowID() const;
 
 		//If true, then menu bar is shown
-		void SetMenuBarState(bool state);
-		//If true, then menu bar is shown
 		bool IsEnabled() const;
+		void SetMenuBarState(bool state);
 
 		//Create a menu bar label. Leaves must have functions, branches can't.
 		//Leave parentRef empty if you want this label to be root

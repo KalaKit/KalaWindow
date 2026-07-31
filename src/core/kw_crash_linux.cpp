@@ -20,13 +20,10 @@
 #include <cstring>
 #include <cstdio>
 #include <string>
-#include <functional>
-#include <array>
 #include <fstream>
 #include <filesystem>
 
 #include "log_utils.hpp"
-#include "thread_utils.hpp"
 
 #include "core/kw_crash.hpp"
 #include "core/kw_core.hpp"
@@ -36,31 +33,23 @@ using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 
-using KalaHeaders::KalaThread::auptr;
-using KalaHeaders::KalaThread::memory_order_relaxed;
-
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::CrashHandler;
-using KalaWindow::Core::MAX_MESSAGE_LENGTH;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::PopupResult;
 
-using u32 = uint32_t;
-using std::memcpy;
 using std::free;
 using std::string;
 using std::string_view;
 using std::to_string;
-using std::function;
 using std::ostringstream;
 using std::hex;
 using std::dec;
-using std::array;
 using std::ofstream;
 using std::filesystem::path;
-using std::memcpy;
+using std::min;
 
 static bool isInitialized{};
 
@@ -206,12 +195,15 @@ namespace KalaWindow::Core
         string&& title,
         string&& reason)
     {
+        size_t finalTitleLength = min(title.size(), scast<size_t>(MAX_NAME_LENGTH));
+        size_t finalReasonLength = min(reason.size(), MAX_REASON_LENGTH);
+
         snprintf(
             fullZenityCommand,
             MAX_MESSAGE_SIZE,
             "zenity --error --title=\"%.*s\" --text=\"%.*s\"",
-            (int)title.size(), title.data(),
-            (int)reason.size(), reason.data());
+            (int)finalTitleLength, title.data(),
+            (int)finalReasonLength, reason.data());
     }
 }
 

@@ -57,8 +57,8 @@ namespace KalaWindow::Graphics
 	static u32 version{};
 	static string appID{};
 
-	void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
+	void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
 	void Window_Global::Initialize()
 	{
@@ -713,70 +713,6 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void Window_Global::SetClipboardText(string_view text)
-	{
-		if (!OpenClipboard(nullptr))
-		{
-			Log::Print(
-				"Failed to open clipboard when writing text to clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		EmptyClipboard();
-
-		wstring wstr = ToWide(text);
-
-		HGLOBAL hGlob = GlobalAlloc(
-			GMEM_MOVEABLE,
-			(wstr.size() + 1) * sizeof(wchar_t));
-
-		if (!hGlob)
-		{
-			Log::Print(
-				"Failed to construct hGlobal when saving text to clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			CloseClipboard();
-			return;
-		}
-
-		void* pMem = GlobalLock(hGlob);
-		if (!pMem)
-		{
-			Log::Print(
-				"Failed to lock hGlobal when saving text to clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			GlobalFree(hGlob);
-			CloseClipboard();
-			return;
-		}
-
-		memcpy(pMem,
-			wstr.c_str(),
-			(wstr.size() + 1) * sizeof(wchar_t));
-		GlobalUnlock(hGlob);
-
-		SetClipboardData(CF_UNICODETEXT, hGlob);
-
-		CloseClipboard();
-
-		if (isVerboseLoggingEnabled)
-		{
-			Log::Print(
-				"Saved string to clipboard: '" + string(text) + "'!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
-		}
-	}
 	string Window_Global::GetClipboardText()
 	{
 		if (!OpenClipboard(nullptr))
@@ -848,6 +784,70 @@ namespace KalaWindow::Graphics
 		}
 
 		return shortVal;
+	}
+	void Window_Global::SetClipboardText(string_view text)
+	{
+		if (!OpenClipboard(nullptr))
+		{
+			Log::Print(
+				"Failed to open clipboard when writing text to clipboard!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		EmptyClipboard();
+
+		wstring wstr = ToWide(text);
+
+		HGLOBAL hGlob = GlobalAlloc(
+			GMEM_MOVEABLE,
+			(wstr.size() + 1) * sizeof(wchar_t));
+
+		if (!hGlob)
+		{
+			Log::Print(
+				"Failed to construct hGlobal when saving text to clipboard!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			CloseClipboard();
+			return;
+		}
+
+		void* pMem = GlobalLock(hGlob);
+		if (!pMem)
+		{
+			Log::Print(
+				"Failed to lock hGlobal when saving text to clipboard!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			GlobalFree(hGlob);
+			CloseClipboard();
+			return;
+		}
+
+		memcpy(pMem,
+			wstr.c_str(),
+			(wstr.size() + 1) * sizeof(wchar_t));
+		GlobalUnlock(hGlob);
+
+		SetClipboardData(CF_UNICODETEXT, hGlob);
+
+		CloseClipboard();
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Saved string to clipboard: '" + string(text) + "'!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_VERBOSE);
+		}
 	}
 }
 

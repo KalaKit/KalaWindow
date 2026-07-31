@@ -13,13 +13,11 @@
 
 #include <cstring>
 #include <string>
-#include <array>
 #include <fstream>
 #include <sstream>
 #include <filesystem>
 
 #include "log_utils.hpp"
-#include "thread_utils.hpp"
 #include "file_utils.hpp"
 
 #include "core/kw_crash.hpp"
@@ -30,13 +28,9 @@ using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 
-using KalaHeaders::KalaThread::auptr;
-using KalaHeaders::KalaThread::memory_order_relaxed;
-
 using KalaHeaders::KalaFile::WriteTextToFile;
 
 using KalaWindow::Core::MAX_NAME_LENGTH;
-using KalaWindow::Core::MAX_MESSAGE_LENGTH;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
@@ -46,17 +40,11 @@ using std::wstring;
 
 using std::string;
 using std::string_view;
-using std::array;
 using std::ofstream;
 using std::ostringstream;
 using std::filesystem::path;
 using std::hex;
 using std::dec;
-using std::atomic;
-using std::memory_order_relaxed;
-using std::memcpy;
-
-constexpr size_t MAX_REASON = 256;
 
 static path exeDir{};
 

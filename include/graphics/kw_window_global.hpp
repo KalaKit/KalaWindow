@@ -107,11 +107,12 @@ namespace KalaWindow::Graphics
 
 	class LIB_API Window_Global
 	{
+	friend class ProcessWindow;
 	public:
+		static bool IsVerboseLoggingEnabled();
 		//Toggle verbose logging. If true, then global window context 
 		//and all windows will dump their logs into the console.
 		static void SetVerboseLoggingState(bool newState);
-		static bool IsVerboseLoggingEnabled();
 
 		static void Initialize();
 		static bool IsInitialized();
@@ -153,9 +154,13 @@ namespace KalaWindow::Graphics
 		//Requires libcanberra on X11 and Wayland
 		static void PlaySystemSound(SoundType type);
 
-		//Places selected string to clipboard
-		static void SetClipboardText(string&& text);
 		//Returns string from clipboard
 		static string GetClipboardText();
+		//Places selected string to clipboard
+		static void SetClipboardText(string&& text);
+	private:
+#ifdef __linux__
+		static void Shutdown();
+#endif
 	};
 }

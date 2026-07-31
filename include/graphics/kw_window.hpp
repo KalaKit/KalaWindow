@@ -222,8 +222,8 @@ namespace KalaWindow::Graphics
 		bool IsSystemMenuEnabled() const;
 		void SetSystemMenuState(bool state) const;
 
-		float GetOpacity() const;
-		void SetOpacity(float alpha) const;
+		f32 GetOpacity() const;
+		void SetOpacity(f32 alpha) const;
 #else
 		pair<string, string> GetWindowClass() const;
 		void SetWindowClass(string&& newValue);

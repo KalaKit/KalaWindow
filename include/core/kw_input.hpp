@@ -123,8 +123,8 @@ namespace KalaWindow::Core
 		void SetRawMouseDelta(vec2 newRawMouseDelta);
 
 		//Get vertical scroll wheel delta (-1 to +1)
-		float GetScrollwheelDelta() const;
-		void SetScrollwheelDelta(float delta);
+		f32 GetScrollwheelDelta() const;
+		void SetScrollwheelDelta(f32 delta);
 
 		//Return true if cursor is not hidden.
 		bool IsMouseVisible() const;
@@ -201,6 +201,6 @@ namespace KalaWindow::Core
 		vec2 mouseDelta = vec2{ 0.0f, 0.0f };
 		vec2 rawMouseDelta = vec2{ 0.0f, 0.0f };
 
-		float mouseWheelDelta = 0.0f;
+		f32 mouseWheelDelta = 0.0f;
 	};
 }
