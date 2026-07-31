@@ -61,7 +61,7 @@ namespace KalaWindow::Graphics
 
 		//Create a new empty menu bar at the top of the window.
 		//Only one menu bar can be added to a window
-		static MenuBar* CreateMenuBar(u32 windowID);
+		static MenuBar* Initialize(u32 windowID);
 
 		bool IsInitialized() const;
 

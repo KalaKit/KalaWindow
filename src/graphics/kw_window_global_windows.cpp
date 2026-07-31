@@ -65,7 +65,7 @@ namespace KalaWindow::Graphics
 		if (isInitialized)
 		{
 			Log::Print(
-				"Cannot initialize global window context because it has already been initialized!",
+				"Failed to initialize global window context because it has already been initialized!",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
@@ -120,11 +120,14 @@ namespace KalaWindow::Graphics
 				"Failed to get path to executable!");
 		}
 
+		//TODO: figure out if this is even needed at all anywhere
+		/*
 		if (!enabledBeginPeriod)
 		{
 			timeBeginPeriod(1);
 			enabledBeginPeriod = true;
 		}
+		*/
 
 		wstring appIDWide = ToWide(appID);
 

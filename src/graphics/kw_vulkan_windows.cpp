@@ -153,9 +153,11 @@ namespace KalaWindow::Graphics
     {
         if (!isInitialized)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Cannot get Vulkan instance because Global Vulkan has not been initialized!");
+			Log::Print(
+				"Failed to get Vulkan instance because global Vulkan has not been initialized!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
 		}
 
         return instance;
@@ -166,7 +168,7 @@ namespace KalaWindow::Graphics
 		if (isInitialized)
 		{
 			Log::Print(
-				"Cannot initialize global Vulkan more than once!",
+				"Failed to initialize global Vulkan because it is already initialized!",
 				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
@@ -176,9 +178,11 @@ namespace KalaWindow::Graphics
 
 		if (!Window_Global::IsInitialized())
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Cannot initialize global Vulkan because global window manager has not been initialized!");
+			Log::Print(
+				"Failed to initialize global Vulkan because global window manager has not been initialized!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
 
 			return;
 		}
@@ -301,7 +305,7 @@ namespace KalaWindow::Graphics
         {
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
-				"Failed to create Vulkan instance!");
+				"Failed to create global Vulkan because vkCreateInstance failed!");
 
 			return;
         }
@@ -329,28 +333,8 @@ namespace KalaWindow::Graphics
 	{
 		if (!VulkanContext::IsInitialized())
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Cannot initialize Vulkan context because global Vulkan has not yet been initialized!");
-
-			return nullptr;
-		}
-
-		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-
-		if (!w)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Cannot initialize Vulkan context because it's window was not found!");
-
-			return nullptr;
-		}
-
-		if (w->GetGraphicsContextID() != 0)
-		{
 			Log::Print(
-				"Cannot add Vulkan context to window '" + w->GetTitle() + "' because it already has an existing context!",
+				"Failed to initialize Vulkan context because global Vulkan has not yet been initialized!",
 				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
@@ -358,21 +342,40 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-        u32 newID = KalaWindowCore::GetGlobalID() + 1;
-		KalaWindowCore::SetGlobalID(newID);
+		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
+		if (!w)
+		{
+			Log::Print(
+				"Failed to initialize Vulkan context because it's window '" + to_string(windowID) + "' was invalid!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
 
-		unique_ptr<VulkanContext> newCont = make_unique<VulkanContext>();
-		VulkanContext* contPtr = newCont.get();
+			return nullptr;
+		}
 
-		contPtr->ID = newID;
+		if (w->GetGraphicsContextID() != 0)
+		{
+			Log::Print(
+				"Failed to add Vulkan context to window '" + w->GetTitle() + "' because it already has an existing context!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
+		}
 
 		const WindowData& wData = w->GetWindowData();
-
 		if (!wData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Failed to initialize Vulkan context because the attached window was invalid!");
+			Log::Print(
+				"Failed to initialize Vulkan context because "
+				"the window handle for window '" + to_string(windowID) + "' was invalid!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
 		}
 
         HWND hwnd = ToVar<HWND>(wData.window);
@@ -384,7 +387,6 @@ namespace KalaWindow::Graphics
         info.hinstance = hInstance;
 
         VkSurfaceKHR surface{};
-
         if (vkCreateWin32SurfaceKHR(
             instance,
             &info,
@@ -393,16 +395,25 @@ namespace KalaWindow::Graphics
         {
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
-				"Failed to create Vulkan surface for window '" + w->GetTitle() + "'!");
+				"Failed to create Vulkan surface for window '" + to_string(windowID) + "'!");
 
 			return nullptr;
         }
 
-        registry.AddContent(newID, std::move(newCont));
-		w->SetGraphicsContextID(newID);
+        u32 newID = KalaWindowCore::GetGlobalID() + 1;
+		KalaWindowCore::SetGlobalID(newID);
+
+		unique_ptr<VulkanContext> newCont = make_unique<VulkanContext>();
+		VulkanContext* contPtr = newCont.get();
+
+		contPtr->ID = newID;
+
+		w->graphicsContextID = newID;
 
 		contPtr->windowID = w->GetID();
         contPtr->surface = surface;
+
+        registry.AddContent(newID, std::move(newCont));
 
 		Log::Print(
 			"Created new Vulkan context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
@@ -426,7 +437,8 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
-				"Failed to destroy Vulkan context '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
+				"Failed to destroy Vulkan context '" + to_string(ID) 
+				+ "' because its window '" + to_string(windowID) + "' was invalid!");
 		}
 
 		Log::Print(

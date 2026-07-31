@@ -347,13 +347,9 @@ namespace KalaWindow::Core
 			{
 				if (!window)
 				{
-					Log::Print(
-						"Cannot use 'ProcessMessage' because its window was not found!",
-						"KW_MESSAGE_LOOP",
-						LogType::LOG_ERROR,
-						2);
-
-					return 0;
+					KalaWindowCore::ForceClose(
+						"KalaWindow message loop error",
+						"Failed to call process_message because its window was invalid!");
 				}
 
 				u32 windowID = window->GetID();
@@ -1193,7 +1189,7 @@ namespace KalaWindow::Core
 					}
 					}
 
-					if (window->IsResizable()) window->SetResizingState(false);
+					if (window->IsResizable()) window->isResizing = false;
 
 					window->ResizeCallback();
 
@@ -1204,7 +1200,7 @@ namespace KalaWindow::Core
 					if (window->IsResizable()
 						&& !window->IsResizing())
 					{
-						window->SetResizingState(true);
+						window->isResizing = true;
 					}
 
 					return 0; //we handled it

@@ -61,23 +61,28 @@ namespace KalaWindow::Core
 	Input* Input::Initialize(u32 windowID)
 	{
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!w)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow input error",
-				"Failed to initialize input because its window was not found!");
+			Log::Print(
+				"Failed to initialize input "
+				"because its window '" + to_string(windowID) + "' was invalid!",
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
 
 			return nullptr;
 		}
 
-		u32 newID = KalaWindowCore::GetGlobalID() + 1;
-		KalaWindowCore::SetGlobalID(newID);
+		if (w->GetInputID() != 0)
+		{
+			Log::Print(
+				"Failed to initialize input because window '" + w->GetTitle() + "' already has an existing input!",
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
 
-		unique_ptr<Input> newInput = make_unique<Input>();
-		Input* inputPtr = newInput.get();
-
-		inputPtr->ID = newID;
+			return nullptr;
+		}
 
 		//
 		// MOUSE RAW INPUT
@@ -89,9 +94,11 @@ namespace KalaWindow::Core
 
 		if (!windowData.window)
         {
-            KalaWindowCore::ForceClose(
-                "KalaWindow input error",
-                "Failed to initialize raw input device because the attached window was invalid!");
+			Log::Print(
+				"Failed to initialize raw input for input "
+				"because the window handle for window '" + to_string(windowID) + "' was invalid");
+
+			return nullptr;
         }
 
 		HWND winRef = ToVar<HWND>(windowData.window);
@@ -105,10 +112,18 @@ namespace KalaWindow::Core
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 #endif
 
-		registry.AddContent(newID, std::move(newInput));
-		w->SetInputID(newID);
+		u32 newID = KalaWindowCore::GetGlobalID() + 1;
+		KalaWindowCore::SetGlobalID(newID);
 
-		inputPtr->windowID = w->GetID();
+		unique_ptr<Input> newInput = make_unique<Input>();
+		Input* inputPtr = newInput.get();
+
+		inputPtr->ID = newID;
+		inputPtr->windowID = windowID;
+
+		w->inputID = newID;
+
+		registry.AddContent(newID, std::move(newInput));
 
 		Log::Print(
 			"Created new input context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
@@ -548,17 +563,12 @@ namespace KalaWindow::Core
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		const WindowData& windowData = w->GetWindowData();
 
-		if (!globalData.display)
+		if (!globalData.display
+			|| !windowData.window)
         {
 			KalaWindowCore::ForceClose(
 				"KalaWindow input error",
-				"Failed to set mouse visibility because the attached display was invalid!");
-        }
-        if (!windowData.window)
-        {
-			KalaWindowCore::ForceClose(
-				"KalaWindow input error",
-				"Failed to set mouse visibility because the attached window was invalid!");
+				"Failed to set mouse visibility because the attached display or window was invalid!");
         }
 
 		Display* display = ToVar<Display*>(globalData.display);
@@ -648,17 +658,12 @@ namespace KalaWindow::Core
 #else
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		
-		if (!globalData.display)
+		if (!globalData.display
+			|| !windowData.window)
         {
 			KalaWindowCore::ForceClose(
 				"KalaWindow input error",
-				"Failed to set mouse lock state because the attached display was invalid!");
-        }
-        if (!windowData.window)
-        {
-			KalaWindowCore::ForceClose(
-				"KalaWindow input error",
-				"Failed to set mouse lock state because the attached window was invalid!");
+				"Failed to set mouse lock state because the attached display or window was invalid!");
         }
 
 		Display* display = ToVar<Display*>(globalData.display);
@@ -758,17 +763,12 @@ namespace KalaWindow::Core
 #else
 			const X11GlobalData& globalData = Window_Global::GetGlobalData();
 
-			if (!globalData.display)
+			if (!globalData.display
+				|| !windowData.window)
 			{
 				KalaWindowCore::ForceClose(
 					"KalaWindow input error",
-					"Failed to end input frame update because the attached display was invalid!");
-			}
-			if (!windowData.window)
-			{
-				KalaWindowCore::ForceClose(
-					"KalaWindow input error",
-					"Failed to end input frame update because the attached window was invalid!");
+					"Failed to end input frame update because the attached display or window was invalid!");
 			}
 
 			Display* display = ToVar<Display*>(globalData.display);
@@ -799,7 +799,8 @@ namespace KalaWindow::Core
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow input error",
-				"Failed to destroy input context '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
+				"Failed to destroy input context '" + to_string(ID) 
+				+ "' because its window '" + to_string(windowID) + "' was invalid!");
 		}
 
 		Log::Print(

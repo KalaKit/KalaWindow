@@ -66,14 +66,14 @@ static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
 		|| !window->IsVisible();
 }
 
-/*
-TODO: add texture support back
-
-static HICON SetUpIcon(OpenGL_Texture* texture);
-*/
-
-static HICON exeIcon{};
-static HICON overlayIcon{};
+static void ForceClose(
+    string&& action,
+    string&& reason)
+{
+    KalaWindowCore::ForceClose(
+        "KalaWindow window error",
+        "Failed to " + std::move(action) + " because " + std::move(reason) + "!");
+}
 
 static wstring ToWide(string_view str);
 static string ToShort(const wstring& str);
@@ -94,7 +94,7 @@ namespace KalaWindow::Graphics
 		if (!Window_Global::IsInitialized())
 		{
 			Log::Print(
-				"Cannot initialize window because global window has not been initialized!",
+				"Failed to create window because global window has not been initialized!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -102,10 +102,11 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		if (title.empty())
+		if (title.empty()
+            || title.size() > MAX_NAME_LENGTH)
 		{
 			Log::Print(
-				"Window title cannot be empty!",
+				"Failed to create window because its title is empty or too long!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -113,21 +114,20 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		if (title.length() > MAX_NAME_LENGTH)
+		if (size < MIN_WINDOW_SIZE)
 		{
 			Log::Print(
-				"Window title cannot be over '" + to_string(MAX_NAME_LENGTH) + "' characters long!",
+				"Failed to create window '" + title + "' because its size is too small!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
 
 			return nullptr;
 		}
-
-		if (size < 100.0f)
+		if (size > MAX_WINDOW_SIZE)
 		{
 			Log::Print(
-				"Cannot set window '" + title + "' size less than 100x100!",
+				"Failed to create window '" + title + "' because its size is too big!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -240,9 +240,9 @@ namespace KalaWindow::Graphics
 				parentWindow)
 				== content.end())
 			{
-				KalaWindowCore::ForceClose(
-					"KalaWindow window error",
-					"Failed to create child window '" + string(title) + "' because parent window pointer was not found!");
+				ForceClose(
+					"create child window '" + title + "'",
+                    "parent window was invalid!");
 			}
 
 			HWND parentWindowRef = ToVar<HWND>(parentWindow->GetWindowData().window);
@@ -250,9 +250,9 @@ namespace KalaWindow::Graphics
 			if (!parentWindowRef
 				|| !IsWindow(parentWindowRef))
 			{
-				KalaWindowCore::ForceClose(
-					"KalaWindow window error",
-					"Failed to create child window '" + string(title) + "' because parent window handle is invalid!");
+				ForceClose(
+					"create child window '" + title + "'",
+                    "parent window '" + to_string(parentWindow->GetID()) + "' handle is invalid!");
 			}
 
 			parentWindow->childIDs.push_back(newID);
@@ -264,7 +264,7 @@ namespace KalaWindow::Graphics
 		registry.AddContent(newID, std::move(newWindow));
 
 		Log::Print(
-			"Created new window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
+			"Created new window '" + title + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
 
@@ -272,6 +272,9 @@ namespace KalaWindow::Graphics
 	}
 
 	u32 ProcessWindow::GetID() const { return ID; }
+	u32 ProcessWindow::GetInputID() const { return inputID; }
+	u32 ProcessWindow::GetGraphicsContextID() const { return graphicsContextID; }
+	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
 
 	void ProcessWindow::Update()
 	{
@@ -301,64 +304,28 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void ProcessWindow::SetLastDraggedFiles(vector<string>&& files) { lastDraggedFiles = std::move(files); };
 	const vector<string>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
+	void ProcessWindow::SetLastDraggedFiles(vector<string>&& files)
+    {
+        if (files.empty())
+        {
+            Log::Print(
+                "Failed to set window '" + to_string(ID) + " dragged files because they were empty!",
+                "KW_WINDOW",
+                LogType::LOG_SUCCESS);
+        }
+        
+        lastDraggedFiles = std::move(files);
+    };
 	void ProcessWindow::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
-	void ProcessWindow::SetTitle(string&& newTitle) const
-	{
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set window title because the attached window was invalid!");
-		}
-
-		HWND window = ToVar<HWND>(windowData.window);
-
-		if (newTitle.empty())
-		{
-			Log::Print(
-				"Window title cannot be empty!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (newTitle.length() > MAX_NAME_LENGTH)
-		{
-			Log::Print(
-				"Window title cannot be over '" + to_string(MAX_NAME_LENGTH) + "' characters long!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		wstring wideTitle = ToWide(newTitle);
-
-		SetWindowTextW(
-			window, 
-			wideTitle.c_str());
-
-		if (Window_Global::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Set window title to '" + newTitle + "'",
-				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
-		}
-	}
 	string ProcessWindow::GetTitle() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get window title because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' title",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -382,272 +349,56 @@ namespace KalaWindow::Graphics
 
 		return result;
 	}
-
-	void ProcessWindow::SetIcon(u32 texture) const
+	void ProcessWindow::SetTitle(string&& newTitle) const
 	{
-		/*
-		TODO: add texture support back
-
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set icon because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' title",
+                "the window handle was invalid!");
 		}
-		
+
+		if (newTitle.empty()
+            || newTitle.length() > MAX_NAME_LENGTH)
+		{
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' title "
+                "because the new title is empty or too long!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
 		HWND window = ToVar<HWND>(windowData.window);
 
-		OpenGL_Texture* tex = OpenGL_Texture::registry.GetContent(texture);
+		wstring wideTitle = ToWide(newTitle);
 
-		if (!tex)
-		{
-			Log::Print(
-				"Cannot set window '" + GetTitle() + "' exe icon because the texture ID is invalid!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		TextureFormat format = tex->GetFormat();
-		if (format != TextureFormat::Format_RGBA8
-			&& format != TextureFormat::Format_SRGB8A8
-			&& format != TextureFormat::Format_RGBA16F
-			&& format != TextureFormat::Format_RGBA32F)
-		{
-			Log::Print(
-				"Cannot set window '" + GetTitle() + "' exe icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (exeIcon)
-		{
-			DestroyIcon(exeIcon);
-			exeIcon = nullptr;
-		}
-
-		exeIcon = SetUpIcon(tex);
-
-		if (!exeIcon)
-		{
-			Log::Print(
-				"Cannot set window '" + GetTitle() + "' icon because SetUpIcon failed!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		//apply to window
-
-		SendMessage(
-			window,
-			WM_SETICON,
-			ICON_BIG, //task bar + alt tab
-			(LPARAM)exeIcon);
-
-		SendMessage(
-			window,
-			WM_SETICON,
-			ICON_SMALL, //title bar + window border
-			(LPARAM)exeIcon);
+		SetWindowTextW(
+			window, 
+			wideTitle.c_str());
 
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' icon to '" + tex->GetName() + "'",
+				"Set window '" + to_string(ID) + "' title to '" + newTitle + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
-		*/
-	}
-	u32 ProcessWindow::GetIcon() const { return iconID; }
-	void ProcessWindow::ClearIcon() const
-	{
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to clear icon because the attached window was invalid!");
-		}
-
-		HWND window = ToVar<HWND>(windowData.window);
-
-		SendMessage(
-			window,
-			WM_SETICON,
-			ICON_BIG, //task bar + alt tab
-			(LPARAM)nullptr);
-
-		SendMessage(
-			window,
-			WM_SETICON,
-			ICON_SMALL, //title bar + window border
-			(LPARAM)nullptr);
-	}
-
-	void ProcessWindow::SetTaskbarOverlayIcon(
-		u32 texture,
-		string&& tooltip) const
-	{
-		/*
-		TODO: add texture support back
-
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set tarkbar overlay icon because the attached window was invalid!");
-		}
-
-		HWND window = ToVar<HWND>(windowData.window);
-
-		OpenGL_Texture* tex = OpenGL_Texture::registry.GetContent(texture);
-
-		if (!tex)
-		{
-			Log::Print(
-				"Cannot set window '" + GetTitle() + "' overlay icon because the texture ID is invalid!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		TextureFormat format = tex->GetFormat();
-		if (format != TextureFormat::Format_RGBA8
-			&& format != TextureFormat::Format_SRGB8A8
-			&& format != TextureFormat::Format_RGBA16F
-			&& format != TextureFormat::Format_RGBA32F)
-		{
-			Log::Print(
-				"Cannot set window '" + GetTitle() + "' overlay icon because unsupported texture was selected! Only 4-channel textures like 'Format_RGBA8' are allowed.",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (overlayIcon)
-		{
-			DestroyIcon(overlayIcon);
-			overlayIcon = nullptr;
-		}
-		
-		overlayIcon = SetUpIcon(tex);
-
-		if (!overlayIcon)
-		{
-			Log::Print(
-				"Cannot set window '" + GetTitle() + "' overlay icon because SetUpIcon failed!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		CComPtr<ITaskbarList3> taskbar{};
-		HRESULT hr = (CoCreateInstance(
-			CLSID_TaskbarList,
-			nullptr,
-			CLSCTX_INPROC_SERVER,
-			IID_PPV_ARGS(&taskbar)));
-
-		if (FAILED(hr)
-			|| !taskbar)
-		{
-			Log::Print(
-				"Failed to create ITaskbarList3 to set overlay icon!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		hr = taskbar->HrInit();
-
-		if (FAILED(hr))
-		{
-			Log::Print(
-				"Failed to init ITaskbarList3 to set overlay icon!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		taskbar->SetOverlayIcon(
-			window,
-			overlayIcon,
-			tooltip.empty() ? nullptr : ToWide(tooltip).c_str());
-
-		if (Window_Global::IsVerboseLoggingEnabled())
-		{
-			Log::Print(
-				"Set window '" + GetTitle() + "' overlay icon to '" + tex->GetName() + "'",
-				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
-		}
-		*/
-	}
-	u32 ProcessWindow::GetTaskbarOverlayIcon() const { return overlayIconID; }
-	void ProcessWindow::ClearTaskbarOverlayIcon() const
-	{
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to clear taskbar overlay icon because the attached window was invalid!");
-		}
-
-		HWND window = ToVar<HWND>(windowData.window);
-
-		//CComPtr<ITaskbarList3> taskbar{};
-		Microsoft::WRL::ComPtr<ITaskbarList3> taskbar{};
-		HRESULT hr = (CoCreateInstance(
-			CLSID_TaskbarList,
-			nullptr,
-			CLSCTX_INPROC_SERVER,
-			IID_PPV_ARGS(&taskbar)));
-
-		if (FAILED(hr))
-		{
-			Log::Print(
-				"Failed to get ITaskbarList3 to clear overlay icon!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		taskbar->SetOverlayIcon(
-			window,
-			nullptr,
-			nullptr);
 	}
 
 	void ProcessWindow::BringToFocus()
 	{
-		if (IsFocused()) return; //skip all logic if already focused
-
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to bring window to focus because the attached window was invalid!");
+			ForceClose(
+				"bring window '" + to_string(ID) + "' to focus",
+                "the window handle was invalid!");
 		}
+
+        //skip if already focused
+        if (IsFocused()) return;
 
 		HWND window = ToVar<HWND>(windowData.window);
 
@@ -694,7 +445,7 @@ namespace KalaWindow::Graphics
 			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Set window '" + GetTitle() + "' focus through the fallback method.'",
+					"Set window '" + to_string(ID) + "' focus through the fallback method.'",
 					"KW_WINDOW",
 					LogType::LOG_VERBOSE);
 			}
@@ -704,13 +455,53 @@ namespace KalaWindow::Graphics
 		SetFocus(window);
 	}
 
+	WindowRounding ProcessWindow::GetWindowRoundingState() const
+	{
+		if (!windowData.window)
+		{
+			ForceClose(
+				"get window '" + to_string(ID) + "' rounding state",
+                "the window handle was invalid!");
+		}
+
+		HWND window = ToVar<HWND>(windowData.window);
+
+		DWM_WINDOW_CORNER_PREFERENCE pref{};
+
+		HRESULT hr = DwmGetWindowAttribute(
+			window,
+			DWMWA_WINDOW_CORNER_PREFERENCE,
+			&pref,
+			sizeof(pref));
+
+		if (FAILED(hr))
+		{
+			Log::Print(
+				"Failed to get window rounding preference! This feature is not supported on Windows 10.",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return WindowRounding::ROUNDING_NONE;
+		}
+
+		switch (pref)
+		{
+		case DWMWCP_DEFAULT:    return WindowRounding::ROUNDING_DEFAULT;
+		case DWMWCP_DONOTROUND: return WindowRounding::ROUNDING_NONE;
+		case DWMWCP_ROUND:      return WindowRounding::ROUNDING_ROUND;
+		case DWMWCP_ROUNDSMALL: return WindowRounding::ROUNDING_ROUND_SMALL;
+		}
+
+		return WindowRounding::ROUNDING_NONE;
+	}
 	void ProcessWindow::SetWindowRoundingState(WindowRounding roundState) const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set window rounding because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' rounding state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -757,70 +548,67 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' rounding to '" + roundingVal + "'",
+				"Set window '" + to_string(ID) + "' rounding to '" + roundingVal + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	WindowRounding ProcessWindow::GetWindowRoundingState() const
+
+	vec2 ProcessWindow::GetSize() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get window rounding state because the attached window was invalid!");
+			ForceClose(
+				"get" + to_string(ID) + "' size",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		DWM_WINDOW_CORNER_PREFERENCE pref{};
+		RECT rect{};
+		GetClientRect(window, &rect);
 
-		HRESULT hr = DwmGetWindowAttribute(
-			window,
-			DWMWA_WINDOW_CORNER_PREFERENCE,
-			&pref,
-			sizeof(pref));
-
-		if (FAILED(hr))
+		return vec2
 		{
-			Log::Print(
-				"Failed to get window rounding preference! This feature is not supported on Windows 10.",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return WindowRounding::ROUNDING_NONE;
-		}
-
-		switch (pref)
-		{
-		case DWMWCP_DEFAULT:    return WindowRounding::ROUNDING_DEFAULT;
-		case DWMWCP_DONOTROUND: return WindowRounding::ROUNDING_NONE;
-		case DWMWCP_ROUND:      return WindowRounding::ROUNDING_ROUND;
-		case DWMWCP_ROUNDSMALL: return WindowRounding::ROUNDING_ROUND_SMALL;
-		}
-
-		return WindowRounding::ROUNDING_NONE;
+			scast<float>(rect.right - rect.left),
+			scast<float>(rect.bottom - rect.top)
+		};
 	}
-
 	void ProcessWindow::SetSize(vec2 newSize)
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set client rect size because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' size",
+                "the window handle was invalid!");
 		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
 		vec2 oldSize = GetSize();
-		if (isnear(oldSize, newSize)) return;
+		if (isnear(oldSize, newSize))
+        {
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' size because it is already the same size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
 
-		if (newSize < 100.0f)
+            return;
+        }
+
+        if (newSize > maxSize)
 		{
 			Log::Print(
-				"Cannot set window '" + GetTitle() + "' size less than 100x100!",
+				"Failed to set window '" + to_string(ID) + "' size because it cannot be bigger than window max size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+        if (newSize < minSize)
+		{
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' size because it cannot be smaller than window min size!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -828,7 +616,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-        newSize = kclamp(newSize, minSize, maxSize);
+		HWND window = ToVar<HWND>(windowData.window);
 
 		//desired client area
 		RECT rect
@@ -861,24 +649,25 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' client rect size to '" + val + "'",
+				"Set window '" + to_string(ID) + "' size to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	vec2 ProcessWindow::GetSize() const
+
+	vec2 ProcessWindow::GetOuterSize() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set client rect size because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' outer size",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
 		RECT rect{};
-		GetClientRect(window, &rect);
+		GetWindowRect(window, &rect);
 
 		return vec2
 		{
@@ -886,25 +675,41 @@ namespace KalaWindow::Graphics
 			scast<float>(rect.bottom - rect.top)
 		};
 	}
-
 	void ProcessWindow::SetOuterSize(vec2 newSize)
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set outer window size because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' outer size",
+                "the window handle was invalid!");
 		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
 		vec2 oldSize = GetOuterSize();
-		if (isnear(oldSize, newSize)) return;
+		if (isnear(oldSize, newSize))
+        {
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' outer size because it is already the same size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
 
-		if (newSize < 100.0f)
+            return;
+        }
+
+        if (newSize > maxSize)
 		{
 			Log::Print(
-				"Cannot set window '" + GetTitle() + "' outer size less than 100x100!",
+				"Failed to set window '" + to_string(ID) + "' size because it cannot be bigger than window max size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+        if (newSize < minSize)
+		{
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' size because it cannot be smaller than window min size!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -912,7 +717,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-        newSize = kclamp(newSize, minSize, maxSize);
+		HWND window = ToVar<HWND>(windowData.window);
 
 		SetWindowPos(
 			window,
@@ -929,39 +734,144 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' outer size to '" + val + "'",
+				"Set window '" + to_string(ID) + "' outer size to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	vec2 ProcessWindow::GetOuterSize() const
+
+	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
+    void ProcessWindow::SetMaxSize(vec2 newSize)
+    { 
+        if (isnear(maxSize, newSize))
+        {
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' max size because it is already the same size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+            return;
+        }
+
+        if (newSize > MAX_WINDOW_SIZE)
+		{
+			Log::Print(
+				"Failed to set window '" + to_string(ID)
+                + "' max size because it is too big!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+        if (newSize < minSize)
+		{
+			Log::Print(
+				"Failed to set window '" + to_string(ID)
+                + "' max size because it cannot be smaller than window min size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+		
+		maxSize = newSize;
+        if (GetSize() > newSize) SetSize(newSize);
+
+		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
+
+		if (Window_Global::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set window '" + to_string(ID) + "' max size to '" + val + "'",
+				"KW_WINDOW",
+				LogType::LOG_VERBOSE);
+		}
+    }
+
+	vec2 ProcessWindow::GetMinSize() const { return minSize; }
+	void ProcessWindow::SetMinSize(vec2 newMinSize)
+    { 
+		if (isnear(minSize, newSize))
+        {
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' min size because it is already the same size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+            return;
+        }
+
+        if (newSize > maxSize)
+		{
+			Log::Print(
+				"Failed to set window '" + to_string(ID) 
+                + "' min size because it cannot be bigger than window max size!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+        if (newSize < MIN_WINDOW_SIZE)
+		{
+			Log::Print(
+				"Failed to set window '" + to_string(ID) 
+                + "' min size because it is too small!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		minSize = newSize;
+        if (GetSize() < minSize) SetSize(minSize);
+
+		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
+
+		if (Window_Global::IsVerboseLoggingEnabled())
+		{
+			Log::Print(
+				"Set window '" + to_string(ID) + "' min size to '" + val + "'",
+				"KW_WINDOW",
+				LogType::LOG_VERBOSE);
+		}
+    }
+
+	vec2 ProcessWindow::GetPosition()
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get outer window size because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' position",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
 		RECT rect{};
-		GetWindowRect(window, &rect);
-
-		return vec2
+		if (GetWindowRect(window, &rect))
 		{
-			scast<float>(rect.right - rect.left),
-			scast<float>(rect.bottom - rect.top)
-		};
-	}
+			return vec2
+			{ 
+				scast<float>(rect.left),
+				scast<float>(rect.top)
+			};
+		}
 
+		return vec2{ 0, 0 };
+	}
 	void ProcessWindow::SetPosition(vec2 newPosition)
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set window position because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' position",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -981,58 +891,36 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' position to '" + val + "'",
+				"Set window '" + to_string(ID) + "' position to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	vec2 ProcessWindow::GetPosition()
+
+	bool ProcessWindow::IsAlwaysOnTop() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get window position because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' always on top state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		RECT rect{};
-		if (GetWindowRect(window, &rect))
-		{
-			return vec2
-			{ 
-				scast<float>(rect.left),
-				scast<float>(rect.top)
-			};
-		}
+		LONG exStyle = GetWindowLong(
+			window,
+			GWL_EXSTYLE);
 
-		return vec2{ 0, 0 };
+		return (exStyle & WS_EX_TOPMOST) != 0;
 	}
-
-    void ProcessWindow::SetMaxSize(vec2 newMaxSize)
-    { 
-        maxSize = kclamp(newMaxSize, minSize + 1.0f, MAX_WINDOW_SIZE);
-
-        if (GetSize() > maxSize) SetSize(maxSize);
-    }
-	vec2 ProcessWindow::GetMaxSize() const { return maxSize; }
-
-	void ProcessWindow::SetMinSize(vec2 newMinSize)
-    { 
-        minSize = kclamp(newMinSize, MIN_WINDOW_SIZE, maxSize - 1.0f);
-
-        if (GetSize() < minSize) SetSize(minSize);
-    }
-	vec2 ProcessWindow::GetMinSize() const { return minSize; }
-
 	void ProcessWindow::SetAlwaysOnTopState(bool state)
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set always on top state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' always on top state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1052,36 +940,38 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' always on state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' always on top state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IsAlwaysOnTop() const
+
+	bool ProcessWindow::IsResizable() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get always on top state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' resizable state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		LONG exStyle = GetWindowLong(
+		LONG style = GetWindowLong(
 			window,
-			GWL_EXSTYLE);
+			GWL_STYLE);
 
-		return (exStyle & WS_EX_TOPMOST) != 0;
+		return (style &
+			(WS_THICKFRAME
+			| WS_MAXIMIZEBOX)) != 0;
 	}
-
 	void ProcessWindow::SetResizableState(bool state)
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set resizable state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' resizable state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1123,18 +1013,19 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' resizable state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' resizable state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IsResizable() const
+
+	bool ProcessWindow::IsTopBarEnabled() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get resizable state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' top bar enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1143,18 +1034,15 @@ namespace KalaWindow::Graphics
 			window,
 			GWL_STYLE);
 
-		return (style &
-			(WS_THICKFRAME
-			| WS_MAXIMIZEBOX)) != 0;
+		return (style & WS_CAPTION) != 0;
 	}
-
 	void ProcessWindow::SetTopBarState(bool state) const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set top bar state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' top bar enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1186,18 +1074,19 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' top bar state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' top bar enabled state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IsTopBarEnabled() const
+
+	bool ProcessWindow::IsMinimizeButtonEnabled() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get window top bar state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' minimize button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1206,16 +1095,15 @@ namespace KalaWindow::Graphics
 			window,
 			GWL_STYLE);
 
-		return (style & WS_CAPTION) != 0;
+		return (style & WS_MINIMIZEBOX) != 0;
 	}
-
 	void ProcessWindow::SetMinimizeButtonState(bool state) const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set minimize button state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' minimize button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1247,18 +1135,19 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' minimize button state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' minimize button enabled state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IsMinimizeButtonEnabled() const
+
+	bool ProcessWindow::IsMaximizeButtonEnabled() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get minimize button state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' maximize button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1267,16 +1156,15 @@ namespace KalaWindow::Graphics
 			window,
 			GWL_STYLE);
 
-		return (style & WS_MINIMIZEBOX) != 0;
+		return (style & WS_MAXIMIZEBOX) != 0;
 	}
-
 	void ProcessWindow::SetMaximizeButtonState(bool state) const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set maximize button state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' maximize button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1308,36 +1196,38 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' maximize button state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' maximize button enabled state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IsMaximizeButtonEnabled() const
+
+	bool ProcessWindow::IsCloseButtonEnabled() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get maximize button state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' close button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		LONG style = GetWindowLong(
-			window,
-			GWL_STYLE);
+		HMENU hSysMenu = GetSystemMenu(window, FALSE);
+		if (!hSysMenu) return false; //no system menu
 
-		return (style & WS_MAXIMIZEBOX) != 0;
+		return (GetMenuState(
+			hSysMenu,
+			SC_CLOSE,
+			MF_BYCOMMAND) != (UINT)-1);
 	}
-
 	void ProcessWindow::SetCloseButtonState(bool state) const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set close button state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' close button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1361,38 +1251,36 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' close button state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' close button enabled state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IsCloseButtonEnabled() const
+
+	bool ProcessWindow::IsSystemMenuEnabled() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get close button state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' system menu button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		HMENU hSysMenu = GetSystemMenu(window, FALSE);
-		if (!hSysMenu) return false; //no system menu
+		LONG style = GetWindowLong(
+			window,
+			GWL_STYLE);
 
-		return (GetMenuState(
-			hSysMenu,
-			SC_CLOSE,
-			MF_BYCOMMAND) != (UINT)-1);
+		return (style & WS_SYSMENU) != 0;
 	}
-
 	void ProcessWindow::SetSystemMenuState(bool state) const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to destroy menu because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' system menu button enabled state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1424,36 +1312,47 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' system menu state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' system menu state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IsSystemMenuEnabled() const
+
+	float ProcessWindow::GetOpacity() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get system menu state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' opacity",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		LONG style = GetWindowLong(
+		BYTE bAlpha = 255;
+		DWORD flags = 0;
+		COLORREF crKey = 0;
+
+		if (GetLayeredWindowAttributes(
 			window,
-			GWL_STYLE);
+			&crKey,
+			&bAlpha,
+			&flags)
+			&& (flags & LWA_ALPHA))
+		{
+			return scast<float>(bAlpha) / 255;
+		}
 
-		return (style & WS_SYSMENU) != 0;
+		//treat as fully opaque when not layered
+		return 1.0f;
 	}
-
 	void ProcessWindow::SetOpacity(float alpha) const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set window opacity because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' opacity",
+                "the window handle was invalid!");
 		}
 		
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1486,38 +1385,10 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' opacity to '" + val + "'",
+				"Set window '" + to_string(ID) + "' opacity to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
-	}
-	float ProcessWindow::GetOpacity() const
-	{
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get window opacity because the attached window was invalid!");
-		}
-
-		HWND window = ToVar<HWND>(windowData.window);
-
-		BYTE bAlpha = 255;
-		DWORD flags = 0;
-		COLORREF crKey = 0;
-
-		if (GetLayeredWindowAttributes(
-			window,
-			&crKey,
-			&bAlpha,
-			&flags)
-			&& (flags & LWA_ALPHA))
-		{
-			return scast<float>(bAlpha) / 255;
-		}
-
-		//treat as fully opaque when not layered
-		return 1.0f;
 	}
 
 	bool ProcessWindow::IsIdle() const { return isIdle; }
@@ -1527,9 +1398,9 @@ namespace KalaWindow::Graphics
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get foreground window state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' foreground state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1540,9 +1411,9 @@ namespace KalaWindow::Graphics
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get focused state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' focused state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1553,9 +1424,9 @@ namespace KalaWindow::Graphics
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get fullscreen state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' fullscreen state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1594,9 +1465,9 @@ namespace KalaWindow::Graphics
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get minimized state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' minimized state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1608,35 +1479,78 @@ namespace KalaWindow::Graphics
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get visible state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' visible state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
 		return IsWindowVisible(window);
 	}
-
-	void ProcessWindow::SetResizingState(bool newState) { isResizing = newState; }
 	bool ProcessWindow::IsResizing() const { return isResizing; }
 
+	WindowMode ProcessWindow::GetWindowMode()
+	{
+		if (!windowData.window)
+		{
+			ForceClose(
+				"get window '" + to_string(ID) + "' mode",
+                "the window handle was invalid!");
+		}
+
+		auto IsExclusive = [&]() -> bool
+			{
+				DEVMODE current{};
+				current.dmSize = sizeof(current);
+
+				if (!EnumDisplaySettings(
+					nullptr,
+					ENUM_CURRENT_SETTINGS,
+					&current))
+				{
+					return false;
+				}
+
+				DEVMODE desktop{};
+				desktop.dmSize = sizeof(desktop);
+
+				if (!EnumDisplaySettings(
+					nullptr,
+					ENUM_REGISTRY_SETTINGS,
+					&desktop))
+				{
+					return false;
+				}
+
+				return current.dmPelsWidth != desktop.dmPelsWidth
+					|| current.dmPelsHeight != desktop.dmPelsHeight
+					|| current.dmDisplayFrequency != desktop.dmDisplayFrequency;
+			};
+
+		if (IsExclusive())       return WindowMode::WINDOWMODE_EXCLUSIVE;
+		else if (IsFullscreen()) return WindowMode::WINDOWMODE_BORDERLESS;
+		else                     return WindowMode::WINDOWMODE_WINDOWED;
+	}
 	void ProcessWindow::SetWindowMode(WindowMode mode)
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set window mode because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' mode",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
+		string windowModeVal{};
+
 		switch (mode)
 		{
-		default:
 		case WindowMode::WINDOWMODE_WINDOWED:
 		{
+			windowModeVal = "windowed";
+
 			ChangeDisplaySettingsEx(
 				nullptr,
 				nullptr,
@@ -1669,6 +1583,8 @@ namespace KalaWindow::Graphics
 		}
 		case WindowMode::WINDOWMODE_BORDERLESS:
 		{
+			windowModeVal = "borderless";
+
 			//save current pos and size
 
 			oldPos = GetPosition();
@@ -1707,6 +1623,8 @@ namespace KalaWindow::Graphics
 		}
 		case WindowMode::WINDOWMODE_EXCLUSIVE:
 		{
+			windowModeVal = "exclusive";
+
 			//get current monitor
 
 			HMONITOR hMonitor = MonitorFromWindow(window, MONITOR_DEFAULTTONEAREST);
@@ -1753,95 +1671,106 @@ namespace KalaWindow::Graphics
 			else
 			{
 				Log::Print(
-					"Failed to switch to exclusive mode for window '" + GetTitle() + "'!",
+					"Failed to switch to exclusive mode for window '" + to_string(ID) + "'!",
 					"KW_WINDOW",
 					LogType::LOG_ERROR,
 					2);
+
+				return;
 			}
 
 			break;
 		}
+		default: break;
 		}
 
 		ShowWindow(window, SW_SHOWNORMAL);
-	}
-	WindowMode ProcessWindow::GetWindowMode()
-	{
-		if (!windowData.window)
+
+		windowMode = mode;
+
+		if (Window_Global::IsVerboseLoggingEnabled())
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get window mode because the attached window was invalid!");
+			Log::Print(
+				"Set window '" + to_string(ID) + "' mode to '" + windowModeVal + "'",
+				"KW_WINDOW",
+				LogType::LOG_VERBOSE);
 		}
-
-		auto IsExclusive = [&]() -> bool
-			{
-				DEVMODE current{};
-				current.dmSize = sizeof(current);
-
-				if (!EnumDisplaySettings(
-					nullptr,
-					ENUM_CURRENT_SETTINGS,
-					&current))
-				{
-					return false;
-				}
-
-				DEVMODE desktop{};
-				desktop.dmSize = sizeof(desktop);
-
-				if (!EnumDisplaySettings(
-					nullptr,
-					ENUM_REGISTRY_SETTINGS,
-					&desktop))
-				{
-					return false;
-				}
-
-				return current.dmPelsWidth != desktop.dmPelsWidth
-					|| current.dmPelsHeight != desktop.dmPelsHeight
-					|| current.dmDisplayFrequency != desktop.dmDisplayFrequency;
-			};
-
-		if (IsExclusive())       return WindowMode::WINDOWMODE_EXCLUSIVE;
-		else if (IsFullscreen()) return WindowMode::WINDOWMODE_BORDERLESS;
-		else                     return WindowMode::WINDOWMODE_WINDOWED;
 	}
 
-	void ProcessWindow::SetWindowState(WindowState state)
+	WindowState ProcessWindow::GetWindowState() const
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set window state because the attached window was invalid!");
+			ForceClose(
+				"get window '" + to_string(ID) + "' state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		string val{};
+		WINDOWPLACEMENT placement{};
+		placement.length = sizeof(WINDOWPLACEMENT);
+
+		if (!GetWindowPlacement(window, &placement))
+		{
+			Log::Print(
+				"Failed to get window '" + to_string(ID) + "' state!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return WindowState::WINDOW_NORMAL;
+		}
+
+		switch (placement.showCmd)
+		{
+		default:
+		case SW_NORMAL:         return WindowState::WINDOW_NORMAL;
+		case SW_SHOWNOACTIVATE: return WindowState::WINDOW_SHOWNOACTIVATE;
+		case SW_SHOWMAXIMIZED:  return WindowState::WINDOW_MAXIMIZE;
+		case SW_SHOWMINIMIZED:  return WindowState::WINDOW_MINIMIZE;
+		case SW_HIDE:           return WindowState::WINDOW_HIDE;
+		}
+	}
+	void ProcessWindow::SetWindowState(WindowState state)
+	{
+		if (!windowData.window)
+		{
+			ForceClose(
+				"set window '" + to_string(ID) + "' state",
+                "the window handle was invalid!");
+		}
+
+		HWND window = ToVar<HWND>(windowData.window);
+
+		string windowModeVal{};
 
 		switch (state)
 		{
 		case WindowState::WINDOW_NORMAL:
+			windowModeVal = "normal";
+
 			ShowWindow(window, SW_SHOWNORMAL);
-			val = "normal";
-			break;
-		case WindowState::WINDOW_MAXIMIZE:
-			ShowWindow(window, SW_MAXIMIZE);
-			val = "maximized";
-			break;
-		case WindowState::WINDOW_MINIMIZE:
-			ShowWindow(window, SW_MINIMIZE);
-			val = "minimized";
-			break;
-		case WindowState::WINDOW_HIDE:
-			ShowWindow(window, SW_HIDE);
-			val = "hidden";
 			break;
 		case WindowState::WINDOW_SHOWNOACTIVATE:
+			windowModeVal = "unfocused visible";
+
 			ShowWindow(window, SW_SHOWNOACTIVATE);
-			val = "unfocused visible";
+			break;
+		case WindowState::WINDOW_MAXIMIZE:
+			windowModeVal = "maximize";
+
+			ShowWindow(window, SW_MAXIMIZE);
+			break;
+		case WindowState::WINDOW_MINIMIZE:
+			windowModeVal = "minimize";
+
+			ShowWindow(window, SW_MINIMIZE);
+			break;
+		case WindowState::WINDOW_HIDE:
+			windowModeVal = "hide";
+
+			ShowWindow(window, SW_HIDE);
 			break;
 		}
 
@@ -1854,59 +1783,20 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' state to '" + windowStateVal + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	WindowState ProcessWindow::GetWindowState() const
-	{
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to get window state because the attached window was invalid!");
-		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
-		WINDOWPLACEMENT placement{};
-		placement.length = sizeof(WINDOWPLACEMENT);
-
-		if (!GetWindowPlacement(window, &placement))
-		{
-			Log::Print(
-				"Failed to get window '" + GetTitle() + "' state!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return WindowState::WINDOW_NORMAL;
-		}
-
-		switch (placement.showCmd)
-		{
-		case SW_SHOWMINIMIZED:
-			return WindowState::WINDOW_MINIMIZE;
-		case SW_SHOWMAXIMIZED:
-			return WindowState::WINDOW_MAXIMIZE;
-		case SW_HIDE:
-			return WindowState::WINDOW_HIDE;
-		case SW_SHOWNOACTIVATE:
-			return WindowState::WINDOW_SHOWNOACTIVATE;
-		case SW_NORMAL: //also covers sw_restore
-		default:
-			return WindowState::WINDOW_NORMAL;
-		}
-	}
-
+	bool ProcessWindow::IShutdownBlockEnabled() const { return shutdownBlockState; }
 	void ProcessWindow::SetShutdownBlockState(bool state)
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set shutdown block state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' shutdown block state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1930,12 +1820,11 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + GetTitle() + "' shutdown block state to '" + val + "'",
+				"Set window '" + to_string(ID) + "' shutdown block state to '" + val + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
 	}
-	bool ProcessWindow::IShutdownBlockEnabled() const { return shutdownBlockState; }
 
 	void ProcessWindow::Flash(
 		FlashTarget target,
@@ -1944,9 +1833,9 @@ namespace KalaWindow::Graphics
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to call flash because the attached window was invalid!");
+			ForceClose(
+				"call window '" + to_string(ID) + "' flash",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -2014,8 +1903,8 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			string targetMsg = target == FlashTarget::TARGET_WINDOW
-				? "window '" + GetTitle() + "'"
-				: "taskbar for window '" + GetTitle() + "'";
+				? "window '" + to_string(ID) + "'"
+				: "taskbar for window '" + to_string(ID) + "'";
 
 			Log::Print(
 				"Flashed " + targetMsg + " with type '" + val + "' for '" + dur + "' times",
@@ -2031,9 +1920,9 @@ namespace KalaWindow::Graphics
 	{
 		if (!windowData.window)
 		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to set tarkbar progress bar state because the attached window was invalid!");
+			ForceClose(
+				"set window '" + to_string(ID) + "' taskbar progress state",
+                "the window handle was invalid!");
 		}
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -2104,7 +1993,7 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			ostringstream oss{};
-			oss << "Set window '" + GetTitle() + "' taskbar duration type to '"
+			oss << "Set window '" + to_string(ID) + "' taskbar duration type to '"
 				+ val + "', current value to '" + currVal
 				+ "' and max value to " + maxVal + "'";
 
@@ -2115,28 +2004,31 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	void ProcessWindow::SetWindowData(WindowData&& newWindowStruct) { windowData = std::move(newWindowStruct); }
 	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }
+	void ProcessWindow::SetWindowData(WindowData&& newWindowStruct)
+    {
+        if (!windowData.window)
+        {
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' data "
+                "because the window handle was invalid!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
 
-	//
-	// WINDOW CONTENT
-	//
+			return;
+        }
 
-	u32 ProcessWindow::GetInputID() const { return inputID; }
-	void ProcessWindow::SetInputID(u32 newValue) { inputID = newValue; }
+        windowData = std::move(newWindowStruct);
+    }
 
-	u32 ProcessWindow::GetGraphicsContextID() const { return graphicsContextID; }
-	void ProcessWindow::SetGraphicsContextID(u32 newValue) { graphicsContextID = newValue; }
-
-	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
-	void ProcessWindow::SetMenuBarID(u32 newValue) { menuBarID = newValue; }
-
+	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
 	void ProcessWindow::SetResizeCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
 			Log::Print(
-				"Cannot assign empty function to resize callback!",
+				"Failed to assign window '" + to_string(ID) + "' resize callback because it was empty!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -2146,14 +2038,13 @@ namespace KalaWindow::Graphics
 
 		resizeCallback = std::move(newValue);
 	}
-	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
 
 	void ProcessWindow::SetShutdownCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
 			Log::Print(
-				"Cannot assign empty function to shutdown callback!",
+				"Failed to assign window '" + to_string(ID) + "' shutdown callback because it was empty!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -2250,17 +2141,6 @@ namespace KalaWindow::Graphics
 					ToVar<HDC>(windowData.handle));
 			}
 
-			if (exeIcon)
-			{
-				DestroyIcon(exeIcon);
-				exeIcon = nullptr;
-			}
-			if (overlayIcon)
-			{
-				DestroyIcon(overlayIcon);
-				overlayIcon = nullptr;
-			}
-
 			if (shutdownBlockState) WTSUnRegisterSessionNotification(hwnd);
 
 			if (windowData.window)
@@ -2272,107 +2152,20 @@ namespace KalaWindow::Graphics
 		}
 
 		if (registry.GetAllContent().empty())
-		{			
-			timeEndPeriod(1);
+		{	
+			//TODO: figure out if this is even needed at all anywhere
+			//timeEndPeriod(1);
+
+			Log::Print(
+                "\n======================================================================"
+                "\nFINISHED SHUTDOWN"
+                "\n======================================================================\n",
+                true);
 
 			exit(0);
 		}
 	}
 }
-
-/*
-TODO: add texture support back
-
-HICON SetUpIcon(OpenGL_Texture* texture)
-{
-	string name = texture->GetName();
-	vec2 size = texture->GetSize();
-	string sizeX = to_string(scast<int>(size.x));
-	string sizeY = to_string(scast<int>(size.y));
-
-	if (texture->GetSize().x < 32)
-	{
-		Log::Print(
-			"Icon '" + name + "' size '" + sizeX + "x" + sizeY + "' is too small! Consider uploading a bigger icon.",
-			"KW_WINDOW",
-			LogType::LOG_WARNING);
-	}
-	if (size.x > 256)
-	{
-		Log::Print(
-			"Icon '" + name + "' size '" + sizeX + "x" + sizeY + "' is too big! Consider uploading a smaller icon.",
-			"KW_WINDOW",
-			LogType::LOG_WARNING);
-	}
-
-	//convert RGBA to BGRA
-
-	const vector<u8>& pixels = texture->GetPixels();
-	vector<u8> pixelsBGRA(pixels.size());
-
-	for (size_t i = 0; i < scast<size_t>(size.x) * size.y; i++)
-	{
-		size_t idx = i * 4;
-		pixelsBGRA[idx + 0] = pixels[idx + 2]; // B
-		pixelsBGRA[idx + 1] = pixels[idx + 1]; // G
-		pixelsBGRA[idx + 2] = pixels[idx + 0]; // R
-		pixelsBGRA[idx + 3] = pixels[idx + 3]; // A
-	}
-
-	//create DIB section (bitmap)
-	BITMAPV5HEADER bi{};
-	bi.bV5Size = sizeof(BITMAPV5HEADER);
-	bi.bV5Width = size.x;
-	bi.bV5Height = -size.y; //negative - top-down
-	bi.bV5Planes = 1;
-	bi.bV5BitCount = 32;
-	bi.bV5Compression = BI_BITFIELDS;
-	bi.bV5RedMask = 0x00FF0000;
-	bi.bV5GreenMask = 0x0000FF00;
-	bi.bV5BlueMask = 0x000000FF;
-	bi.bV5AlphaMask = 0xFF000000;
-
-	HDC handle = CreateCompatibleDC(nullptr);
-	void* pvBits = nullptr;
-	HBITMAP hBitMap = CreateDIBSection(
-		handle,
-		rcast<BITMAPINFO*>(&bi),
-		DIB_RGB_COLORS,
-		&pvBits,
-		nullptr,
-		0);
-	DeleteDC(handle);
-
-	if (!hBitMap)
-	{
-		Log::Print(
-			"Failed to create hBitMask for setting window '" + name + "' icon!",
-			"KW_WINDOW",
-			LogType::LOG_ERROR,
-			2);
-
-		return nullptr;
-	}
-
-	memcpy(
-		pvBits,
-		pixelsBGRA.data(),
-		pixelsBGRA.size());
-
-	//wrap into ICONINFO
-
-	ICONINFO ii{};
-	ii.fIcon = TRUE;
-	ii.hbmMask = hBitMap;
-	ii.hbmColor = hBitMap;
-
-	HICON hIcon = CreateIconIndirect(&ii);
-
-	DeleteObject(hBitMap);
-
-	return hIcon;
-}
-*/
 
 wstring ToWide(string_view input)
 {

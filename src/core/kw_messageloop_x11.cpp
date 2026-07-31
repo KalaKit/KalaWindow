@@ -177,7 +177,7 @@ namespace KalaWindow::Core
         {
             KalaWindowCore::ForceClose(
                 "KalaWindow message loop error",
-                "Failed to update message loop because the attached display was invalid!");
+                "Failed to update message loop because the display was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -257,7 +257,12 @@ namespace KalaWindow::Core
 
         for (const auto& w : activeWindows)
         {
-            if (!w) continue;
+            if (!w)
+            {
+				KalaWindowCore::ForceClose(
+					"KalaWindow message loop error",
+					"Failed to update message loop because a window was invalid!");
+            }
 
             const WindowData& wdata = w->GetWindowData();
 
@@ -265,7 +270,7 @@ namespace KalaWindow::Core
 			{
 				KalaWindowCore::ForceClose(
 					"KalaWindow message loop error",
-					"Failed to update message loop because the attached window was invalid!");
+					"Failed to update message loop because the window handle was invalid!");
 			}
 
             Window window = ToVar<Window>(wdata.window);

@@ -46,14 +46,36 @@ namespace KalaWindow::Graphics
 	void MenuBar::SetVerboseLoggingState(bool newState) { isMenuBarVerboseLoggingEnabled = newState; }
 	bool MenuBar::IsVerboseLoggingEnabled() { return isMenuBarVerboseLoggingEnabled; }
 
-	MenuBar* MenuBar::CreateMenuBar(u32 windowID)
+	MenuBar* MenuBar::Initialize(u32 windowID)
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!window)
 		{
 			Log::Print(
-				"Cannot create menu bar because its window reference is invalid!",
+				"Failed to create menu bar because the window '" + to_string(windowID) + "' is invalid!",
+				"KW_MENUBAR",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
+		}
+
+		if (window->GetMenuBarID() != 0)
+		{
+			Log::Print(
+				"Failed to initialize menu bar because its window '" + to_string(windowID) + "' already has an existing menu bar!",
+				"KW_MENUBAR",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
+		}
+
+		const WindowData& windowData = window->GetWindowData();
+		if (!windowData.window)
+		{
+			Log::Print(
+				"Failed to create menu bar because its window '" + to_string(windowID) + "' handle was invalid!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -66,15 +88,6 @@ namespace KalaWindow::Graphics
 
 		unique_ptr<MenuBar> newMenu = make_unique<MenuBar>();
 		MenuBar* menuPtr = newMenu.get();
-
-		const WindowData& windowData = window->GetWindowData();
-
-		if (!windowData.window)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow menu bar error",
-				"Failed to create menu bar because the attached window was invalid!");
-		}
 
 		HWND hwnd = ToVar<HWND>(windowData.window);
 
@@ -107,7 +120,7 @@ namespace KalaWindow::Graphics
 		if (!window)
 		{
 			Log::Print(
-				"Cannot check if menu bar is initialized because its window reference is invalid!",
+				"Failed to check if menu bar is initialized because its window reference is invalid!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -125,25 +138,21 @@ namespace KalaWindow::Graphics
 	void MenuBar::SetMenuBarState(bool state)
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!window)
 		{
-			Log::Print(
-				"Cannot set menu bar state because its window reference is invalid!",
-				"KW_MENUBAR",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"KalaWindow menu bar error",
+				"Failed to set menu bar state because its window '" + to_string(windowID) + "' is invalid!");
 
 			return;
 		}
 
 		const WindowData& windowData = window->GetWindowData();
-
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow menu bar error",
-				"Failed to set menu bar state because the attached window was invalid!");
+				"Failed to set menu bar state because the window handle was invalid!");
 		}
 
 		HWND hwnd = ToVar<HWND>(windowData.window);
@@ -178,25 +187,21 @@ namespace KalaWindow::Graphics
 	bool MenuBar::IsEnabled() const
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!window)
 		{
-			Log::Print(
-				"Cannot check if menu bar is enabled because its window reference is invalid!",
-				"KW_MENUBAR",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"KalaWindow menu bar error",
+				"Failed to check menu bar enabled state because its window '" + to_string(windowID) + "' is invalid!");
 
-			return false;
+			return;
 		}
 
 		const WindowData& windowData = window->GetWindowData();
-
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow menu bar error",
-				"Failed to check if menu bar is enabled because the attached window was invalid!");
+				"Failed to check if menu bar is enabled because its window '" + to_string(windowID) + "' handle was invalid!");
 		}
 
 		HWND hwnd = ToVar<HWND>(windowData.window);
@@ -215,14 +220,11 @@ namespace KalaWindow::Graphics
 		const function<void()> func)
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!window)
 		{
-			Log::Print(
-				"Cannot create label for menu bar because its window reference is invalid!",
-				"KW_MENUBAR",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"KalaWindow menu bar error",
+				"Failed to create label because its window '" + to_string(windowID) + "' was invalid!");
 
 			return;
 		}
@@ -233,7 +235,7 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow menu bar error",
-				"Failed to create menu bar label because the attached window was invalid!");
+				"Failed to create menu bar label because its window '" + to_string(windowID) + "' handle was invalid!");
 		}
 
 		HWND hwnd = ToVar<HWND>(windowData.window);
@@ -410,7 +412,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to create " + typeName + " '" + string(labelRef) + "' under parent '" + parentRef
-					+ "' in window '" + window->GetTitle() + "' because the parent was not found!",
+					+ "' in window '" + window->GetTitle() + "' because the parent was invalid!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
 					2);
@@ -431,25 +433,21 @@ namespace KalaWindow::Graphics
 		const string& labelRef) const
 	{
 		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!window)
 		{
-			Log::Print(
-				"Cannot add separator to menu bar because its window reference is invalid!",
-				"KW_MENUBAR",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"KalaWindow menu bar error",
+				"Failed to add separator because its window '" + to_string(windowID) + "' was invalid!");
 
 			return;
 		}
 
 		const WindowData& windowData = window->GetWindowData();
-
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow menu bar error",
-				"Failed to add menu bar separator because the attached window was invalid!");
+				"Failed to add menu bar separator because its window '" + to_string(windowID) + "' handle was invalid!");
 		}
 
 		HWND hwnd = ToVar<HWND>(windowData.window);
@@ -489,7 +487,7 @@ namespace KalaWindow::Graphics
 					{
 						Log::Print(
 							"Failed to add separator at the end of parent '" + string(parentRef)
-							+ "' in window '" + window->GetTitle() + "' because the parent was not found!",
+							+ "' in window '" + window->GetTitle() + "' because the parent was invalid!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -536,7 +534,7 @@ namespace KalaWindow::Graphics
 					{
 						Log::Print(
 							"Failed to add separator under parent '" + string(parentRef) + "' after label '" + labelRef
-							+ "' in window '" + window->GetTitle() + "' because the label was not found!",
+							+ "' in window '" + window->GetTitle() + "' because the label was invalid!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -584,7 +582,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			"Failed to add separator at the end of parent '" + string(parentRef) + "' or after label '" + labelRef
-			+ "' in window '" + window->GetTitle() + "' because parent or label was not found!",
+			+ "' in window '" + window->GetTitle() + "' because parent or label was invalid!",
 			"KW_MENUBAR",
 			LogType::LOG_ERROR,
 			2);
@@ -601,16 +599,17 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow menu bar error",
-				"Cannot shut down menu bar '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' was not found!");
+				"Failed to destroy menu bar '" + to_string(ID) 
+				+ "' because its window '" + to_string(windowID) + "' was invalid!");
 		}
 
 		const WindowData& windowData = window->GetWindowData();
-
 		if (!windowData.window)
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow menu bar error",
-				"Failed to destroy menu bar '" + to_string(ID) + "' because its window '" + to_string(windowID) + "' had no valid HWND!");
+				"Failed to destroy menu bar '" + to_string(ID) 
+				+ "' because its window '" + to_string(windowID) + "' handle was invalid!");
 		}
 
 		Log::Print(

@@ -93,7 +93,7 @@ namespace KalaWindow::Graphics
         if (isInitialized)
 		{
 			Log::Print(
-				"Cannot initialize global window context because it has already been initialized!",
+				"Failed to initialize global window context because it has already been initialized!",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
