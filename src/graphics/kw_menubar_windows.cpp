@@ -107,7 +107,7 @@ namespace KalaWindow::Graphics
 		menuPtr->isEnabled = true;
 
 		Log::Print(
-			"Created new menu bar '" + to_string(newID) + "' for window '" + window->GetTitle() + "''!",
+			"Created new menu bar '" + to_string(newID) + "' for window '" + to_string(window->GetID()) + "''!",
 			"KW_MENUBAR",
 			LogType::LOG_SUCCESS);
 
@@ -190,7 +190,7 @@ namespace KalaWindow::Graphics
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Failed to set menu bar state for window '" + window->GetTitle() + "' because it has not yet created a menu bar!",
+				"Failed to set menu bar state for window '" + to_string(window->GetID()) + "' because it has not yet created a menu bar!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -207,7 +207,7 @@ namespace KalaWindow::Graphics
 		if (MenuBar::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + window->GetTitle() + "' menu bar state to '" + val + "'",
+				"Set window '" + to_string(window->GetID()) + "' menu bar state to '" + val + "'",
 				"KW_MENUBAR",
 				LogType::LOG_VERBOSE);
 		}
@@ -247,7 +247,7 @@ namespace KalaWindow::Graphics
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Failed to add " + typeName + " to window '" + window->GetTitle() + "' because no menu bar was created!",
+				"Failed to add " + typeName + " to window '" + to_string(window->GetID()) + "' because no menu bar was created!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -258,7 +258,7 @@ namespace KalaWindow::Graphics
 		if (labelRef.empty())
 		{
 			Log::Print(
-				"Failed to add " + typeName + " to window '" + window->GetTitle() + "' because the label name is empty!",
+				"Failed to add " + typeName + " to window '" + to_string(window->GetID()) + "' because the label name is empty!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -269,7 +269,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to add " + typeName + " '" + string(labelRef)
-				+ "' to window '" + window->GetTitle() + "' because the label length '"
+				+ "' to window '" + to_string(window->GetID()) + "' because the label length '"
 				+ to_string(labelRef.length()) + "' is too long! You can only use label length up to '"
 				+ to_string(MAX_LABEL_LENGTH) + "' characters long.",
 				"KW_MENUBAR",
@@ -285,7 +285,7 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Failed to add leaf '" + string(labelRef) + "' under parent '" + string(parentRef)
-				+ "' in window '" + window->GetTitle() + "' because the leaf has an empty function!",
+				+ "' in window '" + to_string(window->GetID()) + "' because the leaf has an empty function!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
 				2);
@@ -304,7 +304,7 @@ namespace KalaWindow::Graphics
 				{
 					Log::Print(
 						"Failed to add leaf '" + string(labelRef) + "' under parent '" + string(parentRef)
-						+ "' in window '" + window->GetTitle() + "' because the parent is also a leaf!",
+						+ "' in window '" + to_string(window->GetID()) + "' because the parent is also a leaf!",
 						"KW_MENUBAR",
 						LogType::LOG_ERROR,
 						2);
@@ -323,7 +323,7 @@ namespace KalaWindow::Graphics
 				&& labelRef == label)
 			{
 				Log::Print(
-					"Failed to add " + typeName + " '" + string(labelRef) + "' to window '" + window->GetTitle()
+					"Failed to add " + typeName + " '" + string(labelRef) + "' to window '" + to_string(window->GetID())
 					+ "' because the " + typeName + " already exists!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
@@ -336,7 +336,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to add " + typeName + " '" + string(labelRef) + "' under parent '" + parentRef
-					+ "' in window '" + window->GetTitle() + "' because the " + typeName + " and its parent already exists!",
+					+ "' in window '" + to_string(window->GetID()) + "' because the " + typeName + " and its parent already exists!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
 					2);
@@ -388,7 +388,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Added " + typeName + " '" + string(labelRef) + "' '" + to_string(newID)
 						+ "' under parent '" + parentRef
-						+ "' in window '" + window->GetTitle() + "'!",
+						+ "' in window '" + to_string(window->GetID()) + "'!",
 						"KW_MENUBAR",
 						LogType::LOG_VERBOSE);
 				}
@@ -412,7 +412,7 @@ namespace KalaWindow::Graphics
 			{
 				Log::Print(
 					"Failed to create " + typeName + " '" + string(labelRef) + "' under parent '" + parentRef
-					+ "' in window '" + window->GetTitle() + "' because the parent was invalid!",
+					+ "' in window '" + to_string(window->GetID()) + "' because the parent was invalid!",
 					"KW_MENUBAR",
 					LogType::LOG_ERROR,
 					2);
@@ -455,7 +455,7 @@ namespace KalaWindow::Graphics
 		if (!isInitialized)
 		{
 			Log::Print(
-				"Failed to add separator to menu label '" + labelRef + "' in window '" + window->GetTitle()
+				"Failed to add separator to menu label '" + labelRef + "' in window '" + to_string(window->GetID())
 				+ "' because it has no menu bar!",
 				"KW_MENUBAR",
 				LogType::LOG_ERROR,
@@ -487,7 +487,7 @@ namespace KalaWindow::Graphics
 					{
 						Log::Print(
 							"Failed to add separator at the end of parent '" + string(parentRef)
-							+ "' in window '" + window->GetTitle() + "' because the parent was invalid!",
+							+ "' in window '" + to_string(window->GetID()) + "' because the parent was invalid!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -504,7 +504,7 @@ namespace KalaWindow::Graphics
 					if (MenuBar::IsVerboseLoggingEnabled())
 					{
 						Log::Print(
-							"Placed separator to the end of parent label '" + string(parentRef) + "' in window '" + window->GetTitle() + "'!",
+							"Placed separator to the end of parent label '" + string(parentRef) + "' in window '" + to_string(window->GetID()) + "'!",
 							"KW_MENUBAR",
 							LogType::LOG_VERBOSE);
 					}
@@ -534,7 +534,7 @@ namespace KalaWindow::Graphics
 					{
 						Log::Print(
 							"Failed to add separator under parent '" + string(parentRef) + "' after label '" + labelRef
-							+ "' in window '" + window->GetTitle() + "' because the label was invalid!",
+							+ "' in window '" + to_string(window->GetID()) + "' because the label was invalid!",
 							"KW_MENUBAR",
 							LogType::LOG_ERROR,
 							2);
@@ -566,7 +566,7 @@ namespace KalaWindow::Graphics
 							if (MenuBar::IsVerboseLoggingEnabled())
 							{
 								Log::Print(
-									"Placed separator after label '" + labelRef + "' in window '" + window->GetTitle() + "'!",
+									"Placed separator after label '" + labelRef + "' in window '" + to_string(window->GetID()) + "'!",
 									"KW_MENUBAR",
 									LogType::LOG_VERBOSE);
 							}
@@ -582,7 +582,7 @@ namespace KalaWindow::Graphics
 
 		Log::Print(
 			"Failed to add separator at the end of parent '" + string(parentRef) + "' or after label '" + labelRef
-			+ "' in window '" + window->GetTitle() + "' because parent or label was invalid!",
+			+ "' in window '" + to_string(window->GetID()) + "' because parent or label was invalid!",
 			"KW_MENUBAR",
 			LogType::LOG_ERROR,
 			2);

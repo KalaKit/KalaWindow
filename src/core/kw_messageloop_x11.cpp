@@ -17,12 +17,13 @@
 #include <unordered_map>
 #include <string>
 #include <functional>
+#include <climits>
+#include <sstream>
 
 #include "core_utils.hpp"
 #include "math_utils.hpp"
 #include "log_utils.hpp"
 #include "key_standards.hpp"
-#include "string_utils.hpp"
 
 #include "core/kw_messageloop_x11.hpp"
 #include "core/kw_registry.hpp"
@@ -39,6 +40,7 @@ using KalaWindow::Graphics::KalaWindowRegistry;
 using KalaWindow::Graphics::WindowData;
 
 using KalaHeaders::KalaCore::ToVar;
+using KalaHeaders::KalaCore::FromVar;
 
 using KalaHeaders::KalaMath::vec2;
 
@@ -53,6 +55,7 @@ using std::unordered_map;
 using std::string;
 using std::to_string;
 using std::function;
+using std::stringstream;
 
 static unordered_map<u32, bool> isPendingResize{};
 
@@ -170,7 +173,6 @@ namespace KalaWindow::Core
     void MessageLoop::Update()
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-
         if (!globalData.display)
         {
             KalaWindowCore::ForceClose(
@@ -248,7 +250,6 @@ namespace KalaWindow::Core
         }
 
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
-
         Atom atom_net_wm_state = ToVar<Atom>(globalData.atom_net_wm_state);
 
         Window target = event.xany.window;
@@ -301,7 +302,7 @@ namespace KalaWindow::Core
                         unsigned long nItems{}, bytesAfter{};
                         unsigned long* extents{};
 
-                        XGetWindowProperty(
+                        Status status = XGetWindowProperty(
                             display,
                             window,
                             netFrameExtents,
@@ -312,10 +313,19 @@ namespace KalaWindow::Core
                             &bytesAfter,
                             (unsigned char**)&extents);
 
+                        if (status != Success)
+                        {
+                            Log::Print(
+                                "Failed to uupdate window position and size because XGetWindowProperty failed! Error code: " + to_string(status),
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_ERROR,
+                                2);
+                        }
+
                         if (!extents)
                         {
                             Log::Print(
-                                "Failed to set window outer size because XGetWindowProperty failed!",
+                                "Failed to update window position and size because extents failed!",
                                 "KW_MESSAGE_LOOP",
                                 LogType::LOG_ERROR,
                                 2);
@@ -334,11 +344,353 @@ namespace KalaWindow::Core
                     break;
                 }
 
+                case SelectionNotify:
+                {
+                    Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
+                    Atom xDndFinished = ToVar<Atom>(globalData.atom_xDndFinished);
+                    Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
+
+                    if (event.xselection.property != None
+                        && event.xselection.selection == xDndSelection)
+                    {
+                        Atom actualType{};
+                        int format{};
+                        unsigned long nItems{}, bytesAfter{};
+                        unsigned char* data{};
+
+                        Status status = XGetWindowProperty(
+                            display,
+                            window,
+                            xDndSelection,
+                            0,
+                            LONG_MAX,
+                            True,
+                            AnyPropertyType,
+                            &actualType,
+                            &format,
+                            &nItems,
+                            &bytesAfter,
+                            &data);
+
+                        if (status != Success
+                            || !data
+                            || format != 8)
+                        {
+                            if (status != Success)
+                            {
+                                Log::Print(
+                                    "Failed to read dropped file paths because XGetWindowProperty failed! Error code: " + to_string(status),
+                                    "KW_MESSAGE_LOOP",
+                                    LogType::LOG_ERROR,
+                                    2);
+                            }
+                            else if (!data)
+                            {
+                                Log::Print(
+                                    "Failed to read dropped file paths because the received data was invalid!",
+                                    "KW_MESSAGE_LOOP",
+                                    LogType::LOG_ERROR,
+                                    2);
+                            }
+                            else
+                            {
+                                Log::Print(
+                                    "Failed to read dropped file paths because the format '" + to_string(format) + "' was invalid!",
+                                    "KW_MESSAGE_LOOP",
+                                    LogType::LOG_ERROR,
+                                    2);
+                            }
+                        }
+                        else
+                        {
+                            string uris(rcast<char*>(data), nItems);
+                            vector<path> filePaths{};
+
+                            stringstream ss(uris);
+                            string line{};
+                            while (getline(ss, line))
+                            {
+                                if (line.starts_with("file://"))
+                                {
+                                    string path = line.substr(7);
+                                    string decoded{};
+                                    for (size_t i = 0; i < path.size(); ++i)
+                                    {
+                                        if (path[i] == '%'
+                                            && i + 2 < path.size())
+                                        {
+                                            char hex[3] = { path[i + 1], path[i + 2], '\0' };
+                                            decoded += scast<char>(strtol(hex, nullptr, 16));
+                                            i += 2;
+                                        }
+                                        else decoded += path[i];
+                                    }
+                                    filePaths.push_back(decoded);
+                                }
+                            }
+
+                            w->lastDraggedFiles = std::move(filePaths);
+
+                            //reply to the source window where the file drag operation started from
+                            Window source = ToVar<Window>(w->currentDndSource);
+
+                            XEvent finished{};
+                            finished.xclient.type = ClientMessage;
+                            finished.xclient.display = display;
+                            finished.xclient.window = source;
+                            finished.xclient.message_type = xDndFinished;
+                            finished.xclient.format = 32;
+                            finished.xclient.data.l[0] = window;
+                            finished.xclient.data.l[1] = 1;
+                            finished.xclient.data.l[2] = xDndActionCopy;
+
+                            status = XSendEvent(
+                                display,
+                                source,
+                                False,
+                                NoEventMask,
+                                &finished);
+
+                            if (status == 0)
+                            {
+                                Log::Print(
+                                    "Failed to handle SelectionNotify and xDndSelection because XSendEvent failed!",
+                                    "KW_WINDOW_GLOBAL",
+                                    LogType::LOG_ERROR,
+                                    2);
+                            }
+
+                            if (Window_Global::IsVerboseLoggingEnabled())
+                            {
+                                for (const path& file : w->lastDraggedFiles)
+                                {
+                                    Log::Print(
+                                        "File '" + file.string() + "' was dragged to window '" + to_string(w->GetID()) + "'",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_VERBOSE);
+                                }
+                            }
+
+                            if (w->draggedFilesCallback)
+                            {
+                                w->draggedFilesCallback(w->lastDraggedFiles, w->draggedFilesPos);
+                            }
+
+                            XFlush(display);
+                        }
+
+                        if (data) XFree(data);
+                    }
+
+                    break;
+                }
+                case SelectionRequest: break;
                 case Expose: break;
 
                 case ClientMessage:
                 {
-                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete) w->Destroy();
+                    if (Window_Global::IsVerboseLoggingEnabled())
+                    {
+                        char* name = XGetAtomName(
+                            display,
+                            event.xclient.message_type);
+
+                        Log::Print(
+                            "Received client message '" + 
+                            to_string(event.xclient.message_type) + "' (" + (name ? name : "unknown") + ")'.", 
+                            "KW_MESSAGE_LOOP",
+                            LogType::LOG_VERBOSE);
+
+                        if (name) XFree(name);
+                    }
+
+                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete)
+                    {
+                        w->Destroy();
+                        continue;
+                    }
+
+                    Atom xDndEnter = ToVar<Atom>(globalData.atom_xDndEnter);
+                    Atom xDndPosition = ToVar<Atom>(globalData.atom_xDndPosition);
+                    Atom xDndDrop = ToVar<Atom>(globalData.atom_xDndDrop);
+
+                    if (event.xclient.message_type == xDndEnter)
+                    {
+                        //Atom xDndTypeList = ToVar<Atom>(globalData.atom_xDndTypeList);
+
+                        w->currentDndSource = FromVar(event.xclient.data.l[0]);
+                        /*
+                        bool moreThanThree = event.xclient.data.l[1] & 1;
+
+                        //three or more types are inline in the message itself
+                        if (!moreThanThree)
+                        {
+                            for (int i = 2; i <= 4; ++i)
+                            {
+                                Atom a = (Atom)event.xclient.data.l[i];
+                                if (a == None) continue;
+
+                                char* n = XGetAtomName(display, a);
+                                Log::Print("@@@@@ Offered type (inline): " + string(n ? n : "?"));
+
+                                if (n) XFree(n);
+                            }
+                        }
+                        //more than three types
+                        else
+                        {
+                            Atom actualType{};
+                            int format{};
+                            unsigned long nItems{}, bytesAfter{};
+                            unsigned char* propData{};
+
+                            Status status = XGetWindowProperty(
+                                display,
+                                ToVar<Window>(w->currentDndSource),
+                                xDndTypeList,
+                                0,
+                                64,
+                                False,
+                                XA_ATOM,
+                                &actualType,
+                                &format,
+                                &nItems,
+                                &bytesAfter,
+                                &propData);
+
+                            if (status != Success
+                                || !propData
+                                || format != 32)
+                            {
+                                if (status != Success)
+                                {
+                                    Log::Print(
+                                        "Failed to read xDndEnter because XGetWindowProperty failed! Error code: " + to_string(status),
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_ERROR,
+                                        2);
+                                }
+                                else if (!propData)
+                                {
+                                    Log::Print(
+                                        "Failed to read xDndEnter because the received data was invalid!",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_ERROR,
+                                        2);
+                                }
+                                else
+                                {
+                                    Log::Print(
+                                        "Failed to read xDndEnter because the format '" + to_string(format) + "' was invalid!",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_ERROR,
+                                        2);
+                                }
+                            }
+                            else
+                            {
+                                Atom* atoms = rcast<Atom*>(propData);
+                                for (unsigned long i = 0; i < nItems; ++i)
+                                {
+                                    char* n = XGetAtomName(display, atoms[i]);
+                                    Log::Print("@@@@@ Offered type (property): " + string(n ? n : "?"));
+
+                                    if (n) XFree(n);
+                                }
+                            }
+
+                            if (propData) XFree(propData);
+                        }
+                        */
+
+                        continue;
+                    }
+                    if (event.xclient.message_type == xDndPosition)
+                    {
+                        Atom xDndStatus = ToVar<Atom>(globalData.atom_xDndStatus);
+                        Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
+
+                        Window source = event.xclient.data.l[0];
+
+                        i32 rootX = (i32)(event.xclient.data.l[2] >> 16);
+                        i32 rootY = (i32)(event.xclient.data.l[2] & 0xFFFF);
+
+                        i32 winX{}, winY{};
+
+                        Window dummy{};
+                        XTranslateCoordinates(
+                            display,
+                            DefaultRootWindow(display),
+                            window,
+                            rootX,
+                            rootY,
+                            &winX,
+                            &winY,
+                            &dummy);
+
+                        w->draggedFilesPos = vec2(f32(winX), f32(winY));
+
+                        if (Window_Global::IsVerboseLoggingEnabled())
+                        {
+                            Log::Print(
+                                "XDndPosition at window coords: " 
+                                + to_string(w->draggedFilesPos.x) + ", " 
+                                + to_string(w->draggedFilesPos.y),
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_VERBOSE);
+                        }
+
+                        XEvent reply{};
+                        reply.xclient.type = ClientMessage;
+                        reply.xclient.display = display;
+                        reply.xclient.window = source;
+                        reply.xclient.message_type = xDndStatus;
+                        reply.xclient.format = 32;
+                        reply.xclient.data.l[0] = window;
+                        reply.xclient.data.l[1] = 1;              //accept flag
+                        reply.xclient.data.l[2] = 0;              //bounding box left (0 = no rect)
+                        reply.xclient.data.l[3] = 0;              //bounding box top (0 = no rect)
+                        reply.xclient.data.l[4] = xDndActionCopy; //preferred action
+
+                        Status status = XSendEvent(
+                            display,
+                            source,
+                            False,
+                            NoEventMask,
+                            &reply);
+
+                        if (status == 0)
+                        {
+                            Log::Print(
+                                "Failed to handle ClientMessage and xDndPosition because XSendEvent failed!",
+                                "KW_WINDOW_GLOBAL",
+                                LogType::LOG_ERROR,
+                                2);
+                        }
+
+                        XFlush(display);
+
+                        continue;
+                    }
+                    if (event.xclient.message_type == xDndDrop)
+                    {
+                        Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
+                        Atom textUri = ToVar<Atom>(globalData.atom_textUri);
+
+                        w->currentDndSource = FromVar(event.xclient.data.l[0]);
+
+                        XConvertSelection(
+                            display,
+                            xDndSelection,
+                            textUri,
+                            xDndSelection,
+                            window,
+                            CurrentTime);
+
+                        XFlush(display);
+
+                        continue;
+                    }
 
                     break;
                 }

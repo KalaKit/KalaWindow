@@ -65,23 +65,12 @@ static string assignedProgramName;
 //Whether or not to create a dump file at crash
 static bool canCreateDump = true;
 
-static string GetExePath()
-{
-	char buffer[255]{};
-	ssize_t len = readlink(
-		"/proc/self/exe", 
-		buffer,
-		sizeof(buffer) -1);
-
-	buffer[len] = '\0';
-
-	string fullPath(buffer);
-	size_t lastSlash = fullPath.find_last_of('/');
-	return fullPath.substr(0, lastSlash);
-}
+static path exeDir{};
 
 static void SetUpAlternateStack()
 {
+    exeDir = KalaWindowCore::GetExePath().parent_path();
+
     const size_t stackSize = 256 * 1024; //256KB
 
     altStack.ss_sp = malloc(stackSize);
@@ -352,7 +341,7 @@ void GenerateFullCrashReport(
     if (canCreateDump)
     {
         WriteMiniDump(
-			GetExePath(),
+			exeDir.string(),
 			timeStamp);
 
         logStream << "A dump file '" << timeStamp << ".dmp" << "' was created at exe root folder.";
@@ -464,7 +453,7 @@ void WriteLog(
 	string_view timeStamp)
 {
 	string fileName = string(timeStamp) + ".txt";
-	path fullPath = (path(GetExePath()) / fileName).string();
+	path fullPath = (exeDir / fileName).string();
 
 	ofstream logFile(fullPath);
 

@@ -7,6 +7,7 @@
 
 #include <string>
 #include <functional>
+#include <filesystem>
 
 #include "core_utils.hpp"
 
@@ -15,6 +16,7 @@ namespace KalaWindow::Core
 	using std::string;
 	using std::string_view;
 	using std::function;
+	using std::filesystem::path;
 
 	using u8 = uint8_t;
 	using u32 = uint32_t;
@@ -28,7 +30,7 @@ namespace KalaWindow::Core
 		static u32 GetGlobalID();
 		static void SetGlobalID(u32 newID);
 
-		static void SetUserShutdownCallback(function<void()>&& shutdown);
+		static path GetExePath();
 
 		//Use this when you absolutely need a hard crash at this very moment
 		static void ForceClose(

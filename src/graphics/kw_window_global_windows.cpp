@@ -97,28 +97,11 @@ namespace KalaWindow::Graphics
 				LogType::LOG_VERBOSE);
 		}
 
-		wchar_t buffer[MAX_PATH]{};
-		DWORD length = GetModuleFileNameW(
-			nullptr,
-			buffer,
-			MAX_PATH);
+		path exePath = KalaWindowCore::GetExePath();
+		appID = exePath.stem().string();
 
-		if (length > 0
-			&& length < MAX_PATH)
-		{
-			path exePath(buffer);
-
-			appID = exePath.stem().string();
-
-			//Treat this process as a real app with a stable identity
-			SetCurrentProcessExplicitAppUserModelID(ToWide(appID).c_str());
-		}
-		else
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow global window error",
-				"Failed to get path to executable!");
-		}
+		//Treat this process as a real app with a stable identity
+		SetCurrentProcessExplicitAppUserModelID(ToWide(appID).c_str());
 
 		//TODO: figure out if this is even needed at all anywhere
 		/*
@@ -220,7 +203,7 @@ namespace KalaWindow::Graphics
 		return version;
 	}
 
-	const string& Window_Global::GetAppID() { return appID; }
+	string_view Window_Global::GetAppID() { return appID; }
 
 	PopupResult Window_Global::CreatePopup(
 		string&& title,
@@ -269,9 +252,11 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	vector<string> Window_Global::GetFile(
-		FileType type,
-		bool multiple)
+	vector<path> Window_Global::GetFiles(
+        FileType type,
+        vector<string>&& customTypes,
+		path&& requiredRoot,
+        bool multiple)
 	{
 		HRESULT hr = CoInitializeEx(
 			nullptr,
@@ -332,7 +317,7 @@ namespace KalaWindow::Graphics
 				2);
 
 			UnInit();
-			return{};
+			return {};
 		}
 
 		DWORD options{};
@@ -356,7 +341,7 @@ namespace KalaWindow::Graphics
 		{
 			COMDLG_FILTERSPEC filter[] =
 			{
-				{ L"All Files (*.*)", L"*.*" }
+				{ L"All Files", L"*.*" }
 			};
 
 			hr = fileOpen->SetFileTypes(1, filter);
@@ -365,7 +350,7 @@ namespace KalaWindow::Graphics
 				PrintError("FILE_ANY", hr);
 
 				UnInit();
-				return{};
+				return {};
 			}
 
 			break;
@@ -380,7 +365,7 @@ namespace KalaWindow::Graphics
 		{
 			COMDLG_FILTERSPEC filter[] =
 			{
-				{ L"Executable Files (*.exe)", L"*.exe" }
+				{ L"Executables", L"*.exe" }
 			};
 
 			hr = fileOpen->SetFileTypes(1, filter);
@@ -389,173 +374,68 @@ namespace KalaWindow::Graphics
 				PrintError("FILE_EXE", hr);
 
 				UnInit();
-				return{};
+				return {};
 			}
 
 			break;
 		}
-		case FileType::FILE_TEXT:
+		case FileType::FILE_CUSTOM:
 		{
+            if (customTypes.empty())
+            {
+                Log::Print(
+                    "Failed to get files because FILE_CUSTOM was selected but no types were passed!",
+                    "KW_WINDOW_GLOBAL",
+                    LogType::LOG_ERROR,
+                    2);
+
+				UnInit();
+                return {};
+            }
+
+			string targetTypes{};
+            for (const auto& t : customTypes)
+            {
+                if (!t.starts_with("*.")) targetTypes += "*." + t + ";";
+                else targetTypes += t + ";";
+            }
+            targetTypes.pop_back();
+			wstring wTargetTypes = ToWide(targetTypes);
+
 			COMDLG_FILTERSPEC filter[] =
 			{
-				{ L"Text Files (*.txt;*.ini;*.rtf;*.md)", L"*.txt;*.ini;*.rtf;*.md" }
+				{ L"Target Files", wTargetTypes.c_str() }
 			};
 
 			hr = fileOpen->SetFileTypes(1, filter);
 			if (FAILED(hr))
 			{
-				PrintError("FILE_TEXT", hr);
+				PrintError("FILE_CUSTOM", hr);
 
 				UnInit();
-				return{};
+				return {};
 			}
 
 			break;
 		}
-		case FileType::FILE_STRUCTURED:
+		}
+
+		if (!requiredRoot.empty())
 		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Structured Files (*.json;*.xml;*.yaml;*.yml;*.toml)", L"*.json;*.xml;*.yaml;*.yml;*.toml" }
-			};
+			CComPtr<IShellItem> rootItem{};
+			hr = SHCreateItemFromParsingName(
+				requiredRoot.c_str(),
+				nullptr,
+				IID_PPV_ARGS(&rootItem));
 
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
+			if (SUCCEEDED(hr)) fileOpen->SetDefaultFolder(rootItem);
+			else
 			{
-				PrintError("FILE_STRUCTURED", hr);
-
-				UnInit();
-				return{};
+				Log::Print(
+					"Failed to set default folder to '" + requiredRoot.string() + "'! Reason: " + HResultToString(hr),
+					"KW_WINDOW_GLOBAL",
+					LogType::LOG_WARNING);
 			}
-
-			break;
-		}
-		case FileType::FILE_SCRIPT:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Script Files (*.lua;*.cpp;*.hpp;*.c;*.h)", L"*.lua;*.cpp;*.hpp;*.c;*.h" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_SCRIPT", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_ARCHIVE:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Archive Files (*.zip;*.7z;*.rar;*.kdat)", L"*.zip;*.7z;*.rar;*.kdat" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_ARCHIVE", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_VIDEO:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Video Files (*.mp4;*.mov;*.mkv)", L"*.mp4;*.mov;*.mkv" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_VIDEO", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_AUDIO:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Audio Files (*.wav;*.flac;*.mp3;*.ogg)", L"*.wav;*.flac;*.mp3;*.ogg" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_AUDIO", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_MODEL:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Model Files (*.fbx;*.obj;*.gltf)", L"*.fbx;*.obj;*.gltf" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_MODEL", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_SHADER:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Shader Files (*.vert;*.frag;*.geom)", L"*.vert;*.frag;*.geom" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_SHADER", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
-		case FileType::FILE_TEXTURE:
-		{
-			COMDLG_FILTERSPEC filter[] =
-			{
-				{ L"Image Files (*.png;*.jpg;*.jpeg)", L"*.png;*.jpg;*.jpeg" }
-			};
-
-			hr = fileOpen->SetFileTypes(1, filter);
-			if (FAILED(hr))
-			{
-				PrintError("FILE_TEXTURE", hr);
-
-				UnInit();
-				return{};
-			}
-
-			break;
-		}
 		}
 
 		if (multiple) options |= FOS_ALLOWMULTISELECT;
@@ -607,7 +487,7 @@ namespace KalaWindow::Graphics
 
 		DWORD count{};
 		items->GetCount(&count);
-		vector<string> result{};
+		vector<string> stringResult{};
 
 		for (DWORD i = 0; i < count; ++i)
 		{
@@ -644,21 +524,39 @@ namespace KalaWindow::Graphics
 			wstring wide(pszFilePath);
 			string path = ToShort(wide);
 
-			result.push_back(path);
+			stringResult.push_back(path);
 
 			CoTaskMemFree(pszFilePath);
-
-			if (isVerboseLoggingEnabled)
-			{
-				Log::Print(
-					"Selected file '" + path + "'",
-					"KW_WINDOW_GLOBAL",
-					LogType::LOG_VERBOSE);
-			}
 		}
 
 		UnInit();
-		return result;
+
+        vector<path> result{};
+        result.reserve(stringResult.size());
+        for (auto& s : stringResult)
+        {
+            if (!requiredRoot.empty())
+            {
+                error_code ec;
+                auto rel = relative(s, requiredRoot, ec);
+                if (ec 
+                    || rel.empty()
+                    || rel.native().starts_with(".."))
+                {
+                    Log::Print(
+                        "Discarded file or directory '" + s 
+                        + "' because it was not within the required root!",
+                        "KW_WINDOW_GLOBAL",
+                        LogType::LOG_WARNING);
+
+                    continue;
+                }
+            }
+
+            result.emplace_back(std::move(s));
+        }
+
+        return result;
 	}
 
 	void Window_Global::CreateNotification(
@@ -708,143 +606,6 @@ namespace KalaWindow::Graphics
 		{
 			Log::Print(
 				"Played sound type '" + soundType + "'!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
-		}
-	}
-
-	string Window_Global::GetClipboardText()
-	{
-		if (!OpenClipboard(nullptr))
-		{
-			Log::Print(
-				"Failed to open clipboard when reading text from clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			return{};
-		}
-
-		if (!IsClipboardFormatAvailable(CF_UNICODETEXT))
-		{
-			if (isVerboseLoggingEnabled)
-			{
-				Log::Print(
-					"Clipboard does not contain Unicode text.",
-					"KW_WINDOW_GLOBAL",
-					LogType::LOG_VERBOSE,
-					2);
-			}
-
-			CloseClipboard();
-			return{};
-		}
-
-		HANDLE hData = GetClipboardData(CF_UNICODETEXT);
-		if (!hData)
-		{
-			if (isVerboseLoggingEnabled)
-			{
-				Log::Print(
-					"Clipboard had no data to read from.",
-					"KW_WINDOW_GLOBAL",
-					LogType::LOG_VERBOSE);
-			}
-
-			CloseClipboard();
-			return{};
-		}
-
-		wchar_t* wstr = scast<wchar_t*>(GlobalLock(hData));
-		if (!wstr)
-		{
-			Log::Print(
-				"Failed to lock memory handle to get text from clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			CloseClipboard();
-			return{};
-		}
-
-		wstring wideVal(wstr);
-		string shortVal = ToShort(wideVal);
-
-		GlobalUnlock(hData);
-		CloseClipboard();
-
-		if (isVerboseLoggingEnabled)
-		{
-			Log::Print(
-				"Read string to clipboard: '" + shortVal + "'!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
-		}
-
-		return shortVal;
-	}
-	void Window_Global::SetClipboardText(string_view text)
-	{
-		if (!OpenClipboard(nullptr))
-		{
-			Log::Print(
-				"Failed to open clipboard when writing text to clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		EmptyClipboard();
-
-		wstring wstr = ToWide(text);
-
-		HGLOBAL hGlob = GlobalAlloc(
-			GMEM_MOVEABLE,
-			(wstr.size() + 1) * sizeof(wchar_t));
-
-		if (!hGlob)
-		{
-			Log::Print(
-				"Failed to construct hGlobal when saving text to clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			CloseClipboard();
-			return;
-		}
-
-		void* pMem = GlobalLock(hGlob);
-		if (!pMem)
-		{
-			Log::Print(
-				"Failed to lock hGlobal when saving text to clipboard!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			GlobalFree(hGlob);
-			CloseClipboard();
-			return;
-		}
-
-		memcpy(pMem,
-			wstr.c_str(),
-			(wstr.size() + 1) * sizeof(wchar_t));
-		GlobalUnlock(hGlob);
-
-		SetClipboardData(CF_UNICODETEXT, hGlob);
-
-		CloseClipboard();
-
-		if (isVerboseLoggingEnabled)
-		{
-			Log::Print(
-				"Saved string to clipboard: '" + string(text) + "'!",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_VERBOSE);
 		}

@@ -343,7 +343,7 @@ namespace KalaWindow::Graphics
 		if (w->GetGraphicsContextID() != 0)
 		{
 			Log::Print(
-				"Failed to add Vulkan context to window '" + w->GetTitle() + "' because it already has an existing context!",
+				"Failed to add Vulkan context to window '" + to_string(w->GetID()) + "' because it already has an existing context!",
 				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
@@ -385,7 +385,7 @@ namespace KalaWindow::Graphics
         {
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
-				"Failed to create Vulkan surface for window '" + w->GetTitle() + "'!");
+				"Failed to create Vulkan surface for window '" + to_string(w->GetID()) + "'!");
 
 			return nullptr;
         }
@@ -405,7 +405,7 @@ namespace KalaWindow::Graphics
         registry.AddContent(newID, std::move(newCont));
 
 		Log::Print(
-			"Created new Vulkan context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"Created new Vulkan context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",
 			"KW_VULKAN",
 			LogType::LOG_SUCCESS);
 

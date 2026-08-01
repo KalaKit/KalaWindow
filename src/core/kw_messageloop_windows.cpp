@@ -236,7 +236,7 @@ namespace KalaWindow::Core
 			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Clicked on window '" + window->GetTitle() + "' client area.",
+					"Clicked on window '" + to_string(window->GetID()) + "' client area.",
 					"KW_MESSAGE_LOOP",
 					LogType::LOG_VERBOSE);
 			}
@@ -249,7 +249,7 @@ namespace KalaWindow::Core
 			if (Window_Global::IsVerboseLoggingEnabled())
 			{
 				Log::Print(
-					"Clicked on window '" + window->GetTitle() + "' non-client area.",
+					"Clicked on window '" + to_string(window->GetID()) + "' non-client area.",
 					"KW_MESSAGE_LOOP",
 					LogType::LOG_VERBOSE);
 			}
@@ -998,6 +998,10 @@ namespace KalaWindow::Core
 				{
 					HDROP hDrop = (HDROP)msg.wParam;
 
+					POINT dropPoint{};
+					DragQueryPoint(hDrop, &dropPoint);
+					w->draggedFilesPos = vec2((f32)dropPoint.x, (f32)dropPoint.y);
+
 					//count how many files were dropped
 					UINT fileCount = DragQueryFileW(
 						hDrop,
@@ -1034,18 +1038,23 @@ namespace KalaWindow::Core
 
 					DragFinish(hDrop);
 
+					window->lastDraggedFiles = std::move(droppedFiles);
+
 					if (Window_Global::IsVerboseLoggingEnabled())
 					{
-						for (const auto& file : droppedFiles)
+						for (const path& file : window->lastDraggedFiles)
 						{
 							Log::Print(
-								"File '" + file + "' was dragged to window '" + window->GetTitle() + "'",
+								"File '" + file.string() + "' was dragged to window '" + to_string(window->GetID()) + "'",
 								"KW_MESSAGE_LOOP",
 								LogType::LOG_VERBOSE);
 						}
 					}
 
-					window->SetLastDraggedFiles(std::move(droppedFiles));
+					if (window->draggedFilesCallback)
+					{
+						window->draggedFilesCallback(window->lastDraggedFiles, window->draggedFilesPos);
+					}
 
 					return 0; //we handled it
 				}
@@ -1063,7 +1072,7 @@ namespace KalaWindow::Core
 						if (Window_Global::IsVerboseLoggingEnabled())
 						{
 							Log::Print(
-								"Window '" + window->GetTitle() + "' was deactivated.",
+								"Window '" + to_string(window->GetID()) + "' was deactivated.",
 								"KW_MESSAGE_LOOP",
 								LogType::LOG_VERBOSE);
 						}
@@ -1076,7 +1085,7 @@ namespace KalaWindow::Core
 						if (Window_Global::IsVerboseLoggingEnabled())
 						{
 							Log::Print(
-								"Window '" + window->GetTitle() + "' was activated.",
+								"Window '" + to_string(window->GetID()) + "' was activated.",
 								"KW_MESSAGE_LOOP",
 								LogType::LOG_VERBOSE);
 						}
@@ -1100,7 +1109,7 @@ namespace KalaWindow::Core
 						if (Window_Global::IsVerboseLoggingEnabled())
 						{
 							Log::Print(
-								"Returned focus to window '" + window->GetTitle() + "'!",
+								"Returned focus to window '" + to_string(window->GetID()) + "'!",
 								"KW_MESSAGE_LOOP",
 								LogType::LOG_VERBOSE);
 						}
@@ -1122,7 +1131,7 @@ namespace KalaWindow::Core
 						if (Window_Global::IsVerboseLoggingEnabled())
 						{
 							Log::Print(
-								"No longer focusing on window '" + window->GetTitle() + "'.",
+								"No longer focusing on window '" + to_string(window->GetID()) + "'.",
 								"KW_MESSAGE_LOOP",
 								LogType::LOG_VERBOSE);
 						}

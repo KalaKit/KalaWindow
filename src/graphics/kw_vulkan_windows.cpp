@@ -190,25 +190,9 @@ namespace KalaWindow::Graphics
         u32 version{};
 
 #ifdef KDEBUG
-		wchar_t buffer[MAX_PATH]{};
-		DWORD length = GetModuleFileNameW(
-			nullptr,
-			buffer,
-			MAX_PATH);
-
-		if (length > 0
-			&& length < MAX_PATH)
-		{	
-			path exeDir = path(buffer).parent_path();
-
-			_putenv_s("VK_LAYER_PATH", exeDir.string().c_str());
-		}
-		else
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Failed to get path to executable!");
-		}
+		_putenv_s(
+			"VK_LAYER_PATH", 
+			KalaWindowCore::GetExeDir().parent_path();.string().c_str());
 #endif
 
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
@@ -356,7 +340,7 @@ namespace KalaWindow::Graphics
 		if (w->GetGraphicsContextID() != 0)
 		{
 			Log::Print(
-				"Failed to add Vulkan context to window '" + w->GetTitle() + "' because it already has an existing context!",
+				"Failed to add Vulkan context to window '" + to_string(w->GetID()) + "' because it already has an existing context!",
 				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
@@ -415,7 +399,7 @@ namespace KalaWindow::Graphics
         registry.AddContent(newID, std::move(newCont));
 
 		Log::Print(
-			"Created new Vulkan context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"Created new Vulkan context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",
 			"KW_VULKAN",
 			LogType::LOG_SUCCESS);
 

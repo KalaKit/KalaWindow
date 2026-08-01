@@ -195,7 +195,7 @@ namespace KalaWindow::Graphics
         {
             ForceClose(
                 "create window '" + title + "'",
-                "first XChangeProperty failed!");
+                "XChangeProperty for atom_net_wm_pid and atom_cardinal failed!");
         }
 
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
@@ -252,9 +252,6 @@ namespace KalaWindow::Graphics
 		windowPtr->oldPos = pos;
 		windowPtr->oldSize = size;
 
-		//todo: add allow files to be dragged to this window
-		//DragAcceptFiles(newHwnd, TRUE);
-
         if (parentWindow)
         {
             const vector<ProcessWindow*>& content = registry.GetAllContent();
@@ -300,8 +297,71 @@ namespace KalaWindow::Graphics
             {
                 ForceClose(
                     "create window '" + title + "'",
-                    "second XChangeProperty failed!");
+                    "XChangeProperty for atom_net_wm_state and atom_net_wm_state_skip_taskbar failed!");
             }
+        }
+
+        Atom xDndAware = ToVar<Atom>(globalData.atom_xDndAware);
+        unsigned long version = 5; //XDND version
+
+        //declare as XDND drop target
+        status = XChangeProperty(
+            display,
+            window,
+            xDndAware,
+            XA_ATOM,
+            32,
+            PropModeReplace,
+            rcast<const unsigned char*>(&version),
+            1);
+
+        if (status == 0)
+        {
+            ForceClose(
+                "create window '" + title + "'",
+                "XChangeProperty for atom_xDndAware failed!");
+        }
+
+        Atom xDndTypeList = ToVar<Atom>(globalData.atom_xDndTypeList);
+        Atom textUri      = ToVar<Atom>(globalData.atom_textUri);
+
+        //advertise file-drop MIME type
+        status = XChangeProperty(
+            display,
+            window,
+            xDndTypeList,
+            XA_ATOM,
+            32,
+            PropModeReplace,
+            rcast<const unsigned char*>(&textUri),
+            1);
+
+        if (status == 0)
+        {
+            ForceClose(
+                "create window '" + title + "'",
+                "XChangeProperty for atom_xDndTypeList and atom_textUri failed!");
+        }
+
+        Atom netWmWindowType       = ToVar<Atom>(globalData.atom_net_wm_window_type);
+        Atom netWmWindowTypeNormal = ToVar<Atom>(globalData.atom_net_wm_window_type_normal);
+
+        //declare window type
+        status = XChangeProperty(
+            display,
+            window,
+            netWmWindowType,
+            XA_ATOM,
+            32,
+            PropModeReplace,
+            rcast<const unsigned char*>(&netWmWindowTypeNormal),
+            1);
+
+        if (status == 0)
+        {
+            ForceClose(
+                "create window '" + title + "'",
+                "XChangeProperty for atom_net_wm_window_type and atom_net_wm_window_type_normal failed!");
         }
 
         //show window
@@ -335,19 +395,22 @@ namespace KalaWindow::Graphics
 			isIdle);
     }
 
-	const vector<string>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
-	void ProcessWindow::SetLastDraggedFiles(vector<string>&& files)
+    void ProcessWindow::SetDraggedFilesCallback(function<void(const vector<path>&, vec2)>&& newValue)
     {
-        if (files.empty())
-        {
-            Log::Print(
-                "Failed to set window '" + to_string(ID) + " dragged files because they were empty!",
-                "KW_WINDOW",
-                LogType::LOG_SUCCESS);
-        }
-        
-        lastDraggedFiles = std::move(files);
-    };
+        if (!newValue)
+		{
+			Log::Print(
+				"Failed to assign window '" + to_string(ID) + "' dragged files callback because it was empty!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		draggedFilesCallback = std::move(newValue);
+    }
+	const vector<path>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
 	void ProcessWindow::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
     string ProcessWindow::GetTitle() const
@@ -375,7 +438,7 @@ namespace KalaWindow::Graphics
 
         string title{};
 
-        if (XGetWindowProperty(
+        Status status = XGetWindowProperty(
             display,
             window,
             atom_net_wm_name,
@@ -387,19 +450,29 @@ namespace KalaWindow::Graphics
             &actualFormat,
             &nItems,
             &bytesAfter,
-            &prop) == Success)
+            &prop);
+
+        if (status != Success)
         {
-            if (prop)
-            {
-                title.assign(rcast<char*>(prop), nItems);
-                XFree(prop);
-                
-                return title;
-            }
+			ForceClose(
+				"get window '" + to_string(ID) + " title",
+                "XGetWindowProperty failed! Error code: " + to_string(status));
         }
 
-        //fallback
+        if (!prop)
+        {
+            Log::Print(
+                "Failed to get window '" + to_string(ID) + "' title because prop was invalid!",
+                "KW_WINDOW",
+                LogType::LOG_ERROR,
+                2);
+        }
 
+        title.assign(rcast<char*>(prop), nItems);
+        XFree(prop);
+
+        //TODO: figure out if this fallback is even needed
+        /*
         char* name{};
         if (XFetchName(
             display,
@@ -410,6 +483,9 @@ namespace KalaWindow::Graphics
             title = name;
             XFree(name);
         }
+
+        return title;
+        */
 
         return title;
     }
@@ -494,13 +570,20 @@ namespace KalaWindow::Graphics
         xev.xclient.data.l[0] = 2;
         xev.xclient.data.l[1] = CurrentTime;
 
-        XSendEvent(
+        Status status = XSendEvent(
             display,
             window,
             False,
             SubstructureRedirectMask
             | SubstructureNotifyMask,
             &xev);
+
+        if (status == 0)
+        {
+            ForceClose(
+                "bring window '" + to_string(ID) + "' to focus",
+                "XSendEvent failed!");
+        }
 
         XSetICFocus(ToVar<XIC>(windowData.xic));
         XFlush(display);
@@ -816,7 +899,7 @@ namespace KalaWindow::Graphics
         unsigned long nItems{}, bytesAfter{};
         unsigned char* data{};
 
-        if (XGetWindowProperty(
+        Status status = XGetWindowProperty(
             display,
             window,
             atom_net_wm_state,
@@ -828,9 +911,13 @@ namespace KalaWindow::Graphics
             &actualFormat,
             &nItems,
             &bytesAfter,
-            &data) != Success)
+            &data);
+
+        if (status != Success)
         {
-            return false;
+			ForceClose(
+				"get window '" + to_string(ID) + " always on top state",
+                "XGetWindowProperty failed! Error code: " + to_string(status));
         }
 
         bool isAbove{};
@@ -878,13 +965,20 @@ namespace KalaWindow::Graphics
         event.xclient.data.l[3] = 0;
         event.xclient.data.l[4] = 0;
 
-        XSendEvent(
+        Status status = XSendEvent(
             display,
             DefaultRootWindow(display),
             False,
             SubstructureRedirectMask
             | SubstructureNotifyMask,
             &event);
+
+        if (status == 0)
+        {
+			ForceClose(
+				"set window '" + to_string(ID) + "' always on top state",
+                "XSendEvent failed!");
+        }
 
         XFlush(display);
 
@@ -1141,13 +1235,20 @@ namespace KalaWindow::Graphics
         event.xclient.data.l[3] = 0;
         event.xclient.data.l[4] = 0;
 
-        XSendEvent(
+        Status status = XSendEvent(
             display,
             DefaultRootWindow(display),
             False,
             SubstructureRedirectMask
             | SubstructureNotifyMask,
             &event);
+
+        if (status == 0)
+        {
+			ForceClose(
+				"set window '" + to_string(ID) + "' mode",
+                "XSendEvent failed!");
+        }
 
         if (mode == WindowMode::WINDOWMODE_WINDOWED)
         {
@@ -1208,13 +1309,20 @@ namespace KalaWindow::Graphics
             event.xclient.data.l[3] = atom_net_wm_state_fullscreen;
             event.xclient.data.l[4] = 0;
 
-            XSendEvent(
+            Status status = XSendEvent(
                 display,
                 DefaultRootWindow(display),
                 False,
                 SubstructureRedirectMask
                 | SubstructureNotifyMask,
                 &event);
+
+            if (status == 0)
+            {
+                ForceClose(
+                    "set window '" + to_string(ID) + "' state",
+                    "XSendEvent failed!");
+            }
 
             XMapWindow(display, window);
 
@@ -1245,13 +1353,20 @@ namespace KalaWindow::Graphics
             event.xclient.data.l[3] = 0;
             event.xclient.data.l[4] = 0;
 
-            XSendEvent(
+            Status status = XSendEvent(
                 display,
                 DefaultRootWindow(display),
                 False,
                 SubstructureRedirectMask
                 | SubstructureNotifyMask,
                 &event);
+
+            if (status == 0)
+            {
+                ForceClose(
+                    "set window '" + to_string(ID) + "' state",
+                    "XSendEvent failed!");
+            }
 
             XMapWindow(display, window);
             break;
@@ -1368,7 +1483,7 @@ namespace KalaWindow::Graphics
         Atom netWmStateFullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
         Atom netWmStateHidden = ToVar<Atom>(globalData.atom_net_wm_state_hidden);
 
-        XGetWindowProperty(
+        Status status = XGetWindowProperty(
             display,
             window,
             netWmState,
@@ -1381,6 +1496,13 @@ namespace KalaWindow::Graphics
             &nItems,
             &bytesAfter,
             &data);
+
+        if (status != Success)
+        {
+			ForceClose(
+				"update window '" + to_string(ID) + " fullscreen and minimized state",
+                "XGetWindowProperty failed! Error code: " + to_string(status));
+        }
 
         bool wasMinimized = isMinimized;
 

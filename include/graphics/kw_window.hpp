@@ -9,6 +9,7 @@
 #include <functional>
 #include <vector>
 #include <array>
+#include <filesystem>
 
 #include "core_utils.hpp"
 #include "math_utils.hpp"
@@ -37,6 +38,7 @@ namespace KalaWindow::Graphics
 	using std::vector;
 	using std::array;
 	using std::pair;
+	using std::filesystem::path;
 
 	using KalaHeaders::KalaMath::vec2;
 
@@ -156,10 +158,11 @@ namespace KalaWindow::Graphics
 		//you must call message loop update before calling per-window update on X11
 		void Update();
 
-		const vector<string>& GetLastDraggedFiles() const;
-		//Assigns paths of last dragged files. This is called through WM_DROPFILES on windows.
-		void SetLastDraggedFiles(vector<string>&& files);
-		//Clears paths to last file paths that were dragged onto window
+		//Do something whenever file drag onto window succeeds
+		void SetDraggedFilesCallback(function<void(const vector<path>&, vec2)>&& newValue);
+		//Returns last dragged files that were dragged onto window
+		const vector<path>& GetLastDraggedFiles() const;
+		//Clears last dragged files that were dragged onto window
 		void ClearLastDraggedFiles();
 
 		string GetTitle() const;
@@ -317,6 +320,8 @@ namespace KalaWindow::Graphics
 
 		WindowMode windowMode{};
 		WindowState windowState{};
+
+		uintptr_t currentDndSource{};
 #endif
 
 		vec2 maxSize = vec2{ 7680, 4320 }; //The maximum size this window can become
@@ -329,7 +334,10 @@ namespace KalaWindow::Graphics
 		u32 iconID{};        //ID for this window icon
 		u32 overlayIconID{}; //ID for this window toolbar overlay icon
 
-		vector<string> lastDraggedFiles{}; //The path of the last files which were dragged onto this window
+		//last files that were dragged onto screen
+		vector<path> lastDraggedFiles{};
+		vec2 draggedFilesPos{};
+		function<void(const vector<path>&, vec2)> draggedFilesCallback{};
 
 		u32 inputID{};
 		u32 graphicsContextID{};

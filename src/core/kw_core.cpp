@@ -9,6 +9,7 @@
 #else
 #include <csignal>
 #include <X11/Xlib.h>
+#include <linux/limits.h>
 #endif
 
 #include "log_utils.hpp"
@@ -33,14 +34,51 @@ namespace KalaWindow::Core
 	//The ID that is bumped by every object in KalaWindow when it needs a new ID
 	static u32 globalID{};
 
-	static function<void()> shutdownCallback{};
-
 	u32 KalaWindowCore::GetGlobalID() { return globalID; }
 	void KalaWindowCore::SetGlobalID(u32 newID) { globalID = newID; }
 
-	void KalaWindowCore::SetUserShutdownCallback(function<void()>&& shutdown)
+	path KalaWindowCore::GetExePath()
 	{
-		if (shutdown) shutdownCallback = std::move(shutdown);
+		path exePath{};
+
+#ifdef _WIN32
+		wchar_t buffer[MAX_PATH]{};
+		DWORD length = GetModuleFileNameW(
+			nullptr,
+			buffer,
+			MAX_PATH);
+
+		if (length > 0
+			&& length < MAX_PATH)
+		{	
+			exePath = path(buffer);
+		}
+		else
+		{
+			ForceClose(
+				"KalaWindow core error",
+				"Failed to get path to executable!");
+		}
+#else
+		char buffer[PATH_MAX]{};
+		ssize_t length = readlink(
+			"/proc/self/exe",
+			buffer,
+			sizeof(buffer) - 1);
+
+		if (length > 0)
+		{
+			buffer[length] = '\0';
+			exePath = path(buffer);
+		}
+		else
+		{
+			ForceClose(
+				"KalaWindow core error",
+				"Failed to get path to executable!");
+		}
+#endif
+		return exePath;
 	}
 
 	void KalaWindowCore::ForceClose(

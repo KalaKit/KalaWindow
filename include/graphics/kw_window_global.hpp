@@ -7,6 +7,7 @@
 
 #include <string>
 #include <vector>
+#include <filesystem>
 
 #include "core_utils.hpp"
 
@@ -15,6 +16,7 @@ namespace KalaWindow::Graphics
 	using std::string;
 	using std::string_view;
 	using std::vector;
+	using std::filesystem::path;
 
 	using u32 = uint32_t;
 
@@ -53,15 +55,7 @@ namespace KalaWindow::Graphics
 		FILE_ANY,        //Can select any files
 		FILE_FOLDER,     //Can select any folders
 		FILE_EXE,        //Can select any executables
-		FILE_TEXT,       //Can select .txt, .ini, .rtf and .md files
-		FILE_STRUCTURED, //Can select .json, .xml, .yaml, .yml and .toml files
-		FILE_SCRIPT,     //Can select .lua, .cpp, .hpp, .c and .h files
-		FILE_ARCHIVE,    //Can select .zip, .7z, .rar and .kdat files
-		FILE_VIDEO,      //Can select .mp4, .mov and .mkv files
-		FILE_AUDIO,      //Can select .wav, .flac, .mp3 and .ogg files
-		FILE_MODEL,      //Can select .fbx, .obj and .gltf files
-		FILE_SHADER,     //Can select .vert, .frag and .geom files
-		FILE_TEXTURE     //Can select .png, .jpg and .jpeg files
+		FILE_CUSTOM      //Can select a custom list of files, must pass vector
 	};
 
 	enum class SoundType
@@ -85,9 +79,21 @@ namespace KalaWindow::Graphics
 
 		uintptr_t atom_cardinal{};
 
+		uintptr_t atom_xDndAware{};
+		uintptr_t atom_xDndEnter{};
+		uintptr_t atom_xDndPosition{};
+		uintptr_t atom_xDndDrop{};
+		uintptr_t atom_xDndStatus{};
+		uintptr_t atom_xDndFinished{};
+		uintptr_t atom_xDndActionCopy{};
+		uintptr_t atom_xDndSelection{};
+		uintptr_t atom_xDndTypeList{};
+		uintptr_t atom_textUri{};
+
 		uintptr_t atom_net_active_window{};
 				
 		uintptr_t atom_net_wm_window_type{};
+		uintptr_t atom_net_wm_window_type_normal{};
 		uintptr_t atom_net_wm_window_opacity{};
 
 		uintptr_t atom_net_wm_name{};
@@ -127,7 +133,7 @@ namespace KalaWindow::Graphics
 		//Six digits are reserved for build numbers, so builds are 0yyyyy mostly
 		static u32 GetVersion();
 
-		static const string& GetAppID();
+		static string_view GetAppID();
 #endif
 
 		//Display any kind of a popup on screen for info that should be shown immediately..
@@ -139,10 +145,16 @@ namespace KalaWindow::Graphics
 			PopupType type);
 
 		//Uses the file explorer to get a path to selected files by chosen type.
-		//Set multiple to true to allow returning more than one item.
-		//Requires zenity on X11 and Wayland.
-		static vector<string> GetFile(
+		//RequiredRoot path enforces selected files to be within a specific directory,
+		//all files and folders selected outside of it will be discarded
+		//even if the file explorer allows to navigate outside that directory.
+		//Set multiple to true to allow selecting more than one item,
+		//does not work with directories on X11.
+		//Requires zenity on X11, FILE_CUSTOM requires to fill out customTypes vector.
+		static vector<path> GetFiles(
 			FileType type,
+			vector<string>&& customTypes = {},
+			path&& requiredRoot = {},
 			bool multiple = false);
 
 		//Create a notification that shows up on the screen
@@ -150,14 +162,8 @@ namespace KalaWindow::Graphics
 			string&& title,
 			string&& message);
 
-		//Play a system sound once of the chosen type.
-		//Requires libcanberra on X11 and Wayland
+		//Play a system sound once of the chosen type
 		static void PlaySystemSound(SoundType type);
-
-		//Returns string from clipboard
-		static string GetClipboardText();
-		//Places selected string to clipboard
-		static void SetClipboardText(string&& text);
 	private:
 #ifdef __linux__
 		static void Shutdown();

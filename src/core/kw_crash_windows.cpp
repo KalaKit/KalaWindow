@@ -82,6 +82,8 @@ namespace KalaWindow::Core
 {
 	void CrashHandler::Initialize(string&& programName)
 	{
+		exeDir = KalaWindowCore::GetExeDir();
+
 		//reserve emergency stack space (for stack overflow handling)
 
 		ULONG stackSize = 32768; //32KB
@@ -94,25 +96,6 @@ namespace KalaWindow::Core
 #ifdef __NODUMP__
 		canCreateDump = false;
 #endif
-
-		wchar_t buffer[MAX_PATH]{};
-		DWORD length = GetModuleFileNameW(
-			nullptr,
-			buffer,
-			MAX_PATH);
-
-		if (length > 0
-			&& length < MAX_PATH)
-		{	
-			path exePath(buffer);
-			exeDir = exePath.parent_path();
-		}
-		else
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow crash error",
-				"Failed to get path to executable!");
-		}
 
 		Log::Print(
 			"Initialized crash handler!",

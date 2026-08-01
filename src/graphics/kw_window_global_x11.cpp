@@ -15,23 +15,30 @@
 #include <canberra.h>
 
 #include <string>
+#include <array>
 
 #include "core_utils.hpp"
 #include "log_utils.hpp"
+#include "string_utils.hpp"
 
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
 
 using KalaHeaders::KalaCore::FromVar;
+using KalaHeaders::KalaCore::RemoveDuplicates;
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
+
+using KalaHeaders::KalaString::SplitString;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window_Global;
 
 using std::string;
 using std::to_string;
+using std::array;
+using std::error_code;
 
 static ca_context* canberra{};
 
@@ -180,6 +187,47 @@ namespace KalaWindow::Graphics
             "CARDINAL",
             False);
 
+        Atom xdndAware = XInternAtom(
+            display,
+            "XdndAware",
+            False);
+        Atom xdndEnter = XInternAtom(
+            display,
+            "XdndEnter",
+            False);
+        Atom xdndPosition = XInternAtom(
+            display,
+            "XdndPosition",
+            False);
+        Atom xdndDrop = XInternAtom(
+            display,
+            "XdndDrop",
+            False);
+        Atom xdndStatus = XInternAtom(
+            display,
+            "XdndStatus",
+            False);
+        Atom xdndFinished = XInternAtom(
+            display,
+            "XdndFinished",
+            False);
+        Atom xdndActionCopy = XInternAtom(
+            display,
+            "XdndActionCopy",
+            False);
+        Atom xdndSelection = XInternAtom(
+            display,
+            "XdndSelection",
+            False);
+        Atom xdndTypeList = XInternAtom(
+            display,
+            "XdndTypeList",
+            False);
+        Atom textUri = XInternAtom(
+            display,
+            "text/uri-list",
+            False);
+
         Atom net_wm_name = XInternAtom(
             display, 
             "_NET_WM_NAME", 
@@ -198,6 +246,10 @@ namespace KalaWindow::Graphics
         Atom atom_net_wm_window_type = XInternAtom(
             display,
             "_NET_WM_WINDOW_TYPE",
+            False);
+        Atom atom_net_wm_window_type_normal = XInternAtom(
+            display,
+            "_NET_WM_WINDOW_TYPE_NORMAL",
             False);
         Atom atom_net_wm_window_opacity = XInternAtom(
             display,
@@ -249,14 +301,26 @@ namespace KalaWindow::Graphics
         globalData.atom_utf8 = FromVar(utf8);
 
         globalData.atom_cardinal = FromVar(cardinal);
+
+        globalData.atom_xDndAware      = FromVar(xdndAware);
+        globalData.atom_xDndEnter      = FromVar(xdndEnter);
+        globalData.atom_xDndPosition   = FromVar(xdndPosition);
+        globalData.atom_xDndDrop       = FromVar(xdndDrop);
+        globalData.atom_xDndStatus     = FromVar(xdndStatus);
+        globalData.atom_xDndFinished   = FromVar(xdndFinished);
+        globalData.atom_xDndActionCopy = FromVar(xdndActionCopy);
+        globalData.atom_xDndSelection  = FromVar(xdndSelection);
+        globalData.atom_xDndTypeList   = FromVar(xdndTypeList);
+        globalData.atom_textUri        = FromVar(textUri);
         
         globalData.atom_net_active_window = FromVar(atom_net_active_window);
 
         globalData.atom_net_wm_name = FromVar(net_wm_name);
         globalData.atom_net_wm_pid  = FromVar(net_wm_pid);
 
-        globalData.atom_net_wm_window_type    = FromVar(atom_net_wm_window_type);
-        globalData.atom_net_wm_window_opacity = FromVar(atom_net_wm_window_opacity);
+        globalData.atom_net_wm_window_type        = FromVar(atom_net_wm_window_type);
+        globalData.atom_net_wm_window_type_normal = FromVar(atom_net_wm_window_type_normal);
+        globalData.atom_net_wm_window_opacity     = FromVar(atom_net_wm_window_opacity);
 
         globalData.atom_net_wm_state              = FromVar(atom_net_wm_state);
         globalData.atom_net_wm_state_hidden       = FromVar(atom_net_wm_state_hidden);
@@ -375,12 +439,134 @@ namespace KalaWindow::Graphics
         }
     }
 
-    vector<string> Window_Global::GetFile(
-		FileType type,
-		bool multiple)
+    vector<path> Window_Global::GetFiles(
+        FileType type,
+        vector<string>&& customTypes,
+        path&& requiredRoot,
+        bool multiple)
     {
-        vector<string> files{};
-        return files;
+        if (multiple
+            && type == FileType::FILE_FOLDER)
+        {
+            Log::Print(
+                "Multiple flag was used together with FILE_FOLDER! This will not work and will only select one folder.",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_WARNING);
+        }
+
+        string cmd = "zenity --file-selection";
+        if (multiple) cmd += " --multiple";
+        if (!requiredRoot.empty()) cmd += " --filename='" + requiredRoot.string() + "/'";
+
+        switch (type)
+		{
+		default:
+		case FileType::FILE_ANY:
+        case FileType::FILE_EXE:
+            cmd += " --separator='|' --file-filter='All Files | *'";
+            break;
+        case FileType::FILE_FOLDER:
+            cmd += " --directory";
+            break;
+        case FileType::FILE_CUSTOM:
+            RemoveDuplicates(customTypes);
+
+            if (customTypes.empty())
+            {
+                Log::Print(
+                    "Failed to get files because FILE_CUSTOM was selected but no types were passed!",
+                    "KW_WINDOW_GLOBAL",
+                    LogType::LOG_ERROR,
+                    2);
+
+                return {};
+            }
+
+            string targetTypes{};
+            for (const auto& t : customTypes)
+            {
+                if (!t.starts_with("*.")) targetTypes += "*." + t + " ";
+                else targetTypes += t + " ";
+            }
+            targetTypes.pop_back();
+
+            cmd += " --separator='|' --file-filter='Target Files | " + targetTypes + "'";
+            break;
+        }
+
+        array<char, 4096> buf{};
+        string raw{};
+
+        FILE* pipe = popen(cmd.c_str(), "r");
+        if (!pipe)
+        {
+            Log::Print(
+                "Failed to get files because pipe for command '" + cmd + "' couldn't be opened!",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_ERROR,
+                2);
+
+            return {};
+        }
+
+        while (fgets(buf.data(), scast<int>(buf.size()), pipe))
+        {
+            raw += buf.data();
+        }
+        int status = pclose(pipe);
+
+        if (raw.empty())
+        {
+            if (status == 1)
+            {
+                Log::Print(
+                    "File selection was cancelled by user.",
+                    "KW_WINDOW_GLOBAL",
+                    LogType::LOG_INFO);
+            }
+            else
+            {
+                Log::Print(
+                    "Failed to get files! Zenity command '" + cmd + "', error code '" + to_string(status) + "'",
+                    "KW_WINDOW_GLOBAL",
+                    LogType::LOG_ERROR,
+                    2);
+            }
+
+            return {};
+        }
+        if (raw.back() == '\n') raw.pop_back();
+
+        vector<string> stringResult = SplitString(
+            raw,
+            "|");
+
+        vector<path> result{};
+        result.reserve(stringResult.size());
+        for (auto& s : stringResult)
+        {
+            if (!requiredRoot.empty())
+            {
+                error_code ec;
+                auto rel = relative(s, requiredRoot, ec);
+                if (ec 
+                    || rel.empty()
+                    || rel.native().starts_with(".."))
+                {
+                    Log::Print(
+                        "Discarded file or directory '" + s 
+                        + "' because it was not within the required root!",
+                        "KW_WINDOW_GLOBAL",
+                        LogType::LOG_WARNING);
+
+                    continue;
+                }
+            }
+
+            result.emplace_back(std::move(s));
+        }
+
+        return result;
     }
 
     void Window_Global::CreateNotification(
@@ -446,16 +632,6 @@ namespace KalaWindow::Graphics
             CA_PROP_CANBERRA_CACHE_CONTROL,
             "permanent",
             NULL);
-    }
-
-    string Window_Global::GetClipboardText()
-    {
-        string res{};
-        return res;
-    }
-    void Window_Global::SetClipboardText(string&& text)
-    {
-
     }
 
     void Window_Global::Shutdown()

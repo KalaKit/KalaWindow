@@ -76,7 +76,7 @@ namespace KalaWindow::Core
 		if (w->GetInputID() != 0)
 		{
 			Log::Print(
-				"Failed to initialize input because window '" + w->GetTitle() + "' already has an existing input!",
+				"Failed to initialize input because window '" + to_string(w->GetID()) + "' already has an existing input!",
 				"KW_INPUT",
 				LogType::LOG_ERROR,
 				2);
@@ -126,7 +126,7 @@ namespace KalaWindow::Core
 		registry.AddContent(newID, std::move(newInput));
 
 		Log::Print(
-			"Created new input context '" + to_string(newID) + "' for window '" + w->GetTitle() + "'!",
+			"Created new input context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",
 			"KW_INPUT",
 			LogType::LOG_SUCCESS);
 
