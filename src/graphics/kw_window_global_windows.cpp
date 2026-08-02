@@ -7,16 +7,59 @@
 
 #include <windows.h>
 #include <objbase.h>
-#include <atlbase.h>
-#include <atlcom.h>
 #include <shobjidl.h>
-#include <winrt/windows.ui.notifications.h>
-#include <winrt/windows.data.xml.dom.h>
 #include <mmsystem.h>
+#include <shellapi.h>
+
+//CComPtr rewritten to work on both Windows and when compiling for Windows on Linux
+template<typename T>
+class CComPtr
+{
+	T* ptr = nullptr;
+public:
+	CComPtr() = default;
+	explicit CComPtr(T* p) noexcept : ptr(p) {}
+	~CComPtr() { if (ptr) ptr->Release(); }
+
+	CComPtr(const CComPtr&) = delete;
+	CComPtr& operator=(const CComPtr&) = delete;
+	CComPtr(CComPtr&& o) noexcept : ptr(o.ptr) { o.ptr = nullptr; }
+	CComPtr& operator=(CComPtr&& o) noexcept
+	{
+		if (this != &o)
+		{
+			if (ptr) ptr->Release();
+			ptr = o.ptr;
+			o.ptr = nullptr;
+		}
+		return *this;
+	}
+
+	void Reset(T* p = nullptr) noexcept
+	{
+		if (ptr) ptr->Release();
+		ptr = p;
+	}
+
+	T** operator&()
+	{
+		if (ptr)
+		{ 
+			ptr->Release();
+			ptr = nullptr;
+		}
+		return &ptr;
+	}
+	operator T*() const { return ptr; }
+	T* operator->() const { return ptr; }
+	T* Get() const { return ptr; }
+	explicit operator bool() const { return ptr != nullptr; }
+};
 
 #include <filesystem>
 #include <sstream>
 #include <string>
+#include <system_error>
 
 #include "log_utils.hpp"
 
@@ -32,14 +75,13 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MessageLoop;
 
 using std::wstring;
-using namespace winrt::Windows::UI::Notifications;
-using namespace winrt::Windows::Data::Xml::Dom;
 
 using std::filesystem::path;
 using std::ostringstream;
 using std::string;
 using std::string_view;
 using std::to_string;
+using std::error_code;
 
 static wstring ToWide(string_view str);
 static string ToShort(const wstring& str);
@@ -73,12 +115,37 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		version = GetVersion();
-		string versionStr = to_string(version);
+		typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+
+		RTL_OSVERSIONINFOW rovi{};
+		rovi.dwOSVersionInfoSize = sizeof(rovi);
+
+		HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
+		if (!hMod)
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow global window error",
+				"Failed to check OS version because hMod was invalid!");
+		}
+
+		auto pRtlGetVersion = rcast<RtlGetVersionPtr>(
+			GetProcAddress(hMod, "RtlGetVersion"));
+		
+		if (!pRtlGetVersion
+			|| pRtlGetVersion(&rovi) != 0)
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow global window error",
+				"Failed to check OS version because pRtlGetVersion was invalid or failed!");
+		}
+
+		u32 realVersion = rovi.dwMajorVersion * 1000000 + rovi.dwBuildNumber;
+
+		string versionStr = to_string(realVersion);
 		string osVersion = versionStr.substr(0, 2);
 		string buildVersion = to_string(stoi(versionStr.substr(2)));
 
-		if (version < MIN_OS_VERSION)
+		if (realVersion < MIN_OS_VERSION)
 		{
 			ostringstream oss{};
 			oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
@@ -137,7 +204,7 @@ namespace KalaWindow::Graphics
 
 			KalaWindowCore::ForceClose(
 				"KalaWindow global window error",
-				message);
+				string(message));
 		}
 
 		isInitialized = true;
@@ -541,7 +608,7 @@ namespace KalaWindow::Graphics
                 auto rel = relative(s, requiredRoot, ec);
                 if (ec 
                     || rel.empty()
-                    || rel.native().starts_with(".."))
+                    || rel.native().starts_with(L".."))
                 {
                     Log::Print(
                         "Discarded file or directory '" + s 
@@ -566,16 +633,30 @@ namespace KalaWindow::Graphics
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(message);
 
-		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
-			ToastTemplateType::ToastImageAndText02);
+		NOTIFYICONDATAW nid{};
+		nid.cbSize = sizeof(nid);
+		nid.hWnd = nullptr;
+		nid.uID = 1;
+		nid.uFlags = 
+			NIF_ICON
+			| NIF_TIP
+			| NIF_INFO;
+		nid.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
+		nid.dwInfoFlags = NIIF_INFO;
 
-		auto textNodes = toastXml.GetElementsByTagName(L"text");
-		textNodes.Item(0).AppendChild(toastXml.CreateTextNode(titleW));
-		textNodes.Item(1).AppendChild(toastXml.CreateTextNode(messageW));
+		wcsncpy(
+			nid.szInfoTitle,
+			titleW.c_str(),
+			_countof(nid.szInfoTitle) - 1);
+		nid.szInfoTitle[_countof(nid.szInfoTitle) - 1] = L'\0';
 
-		ToastNotification toast(toastXml);
+		wcsncpy(
+			nid.szInfo,
+			messageW.c_str(),
+			_countof(nid.szInfo) - 1);
+		nid.szInfo[_countof(nid.szInfo) - 1] = L'\0';
 
-		ToastNotificationManager::CreateToastNotifier(ToWide(appID)).Show(toast);
+		Shell_NotifyIconW(NIM_ADD, &nid);
 
 		if (isVerboseLoggingEnabled)
 		{

@@ -304,19 +304,22 @@ namespace KalaWindow::Graphics
 		}
 	}
 
-	const vector<string>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
-	void ProcessWindow::SetLastDraggedFiles(vector<string>&& files)
+    void ProcessWindow::SetDraggedFilesCallback(function<void(const vector<path>&, vec2)>&& newValue)
     {
-        if (files.empty())
-        {
-            Log::Print(
-                "Failed to set window '" + to_string(ID) + " dragged files because they were empty!",
-                "KW_WINDOW",
-                LogType::LOG_SUCCESS);
-        }
-        
-        lastDraggedFiles = std::move(files);
-    };
+        if (!newValue)
+		{
+			Log::Print(
+				"Failed to assign window '" + to_string(ID) + "' dragged files callback because it was empty!",
+				"KW_WINDOW",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		draggedFilesCallback = std::move(newValue);
+    }
+	const vector<path>& ProcessWindow::GetLastDraggedFiles() const { return lastDraggedFiles; };
 	void ProcessWindow::ClearLastDraggedFiles() { lastDraggedFiles.clear(); };
 
 	string ProcessWindow::GetTitle() const
@@ -792,7 +795,7 @@ namespace KalaWindow::Graphics
     }
 
 	vec2 ProcessWindow::GetMinSize() const { return minSize; }
-	void ProcessWindow::SetMinSize(vec2 newMinSize)
+	void ProcessWindow::SetMinSize(vec2 newSize)
     { 
 		if (isnear(minSize, newSize))
         {
@@ -1686,8 +1689,6 @@ namespace KalaWindow::Graphics
 
 		ShowWindow(window, SW_SHOWNORMAL);
 
-		windowMode = mode;
-
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
@@ -1743,32 +1744,32 @@ namespace KalaWindow::Graphics
 
 		HWND window = ToVar<HWND>(windowData.window);
 
-		string windowModeVal{};
+		string windowStateVal{};
 
 		switch (state)
 		{
 		case WindowState::WINDOW_NORMAL:
-			windowModeVal = "normal";
+			windowStateVal = "normal";
 
 			ShowWindow(window, SW_SHOWNORMAL);
 			break;
 		case WindowState::WINDOW_SHOWNOACTIVATE:
-			windowModeVal = "unfocused visible";
+			windowStateVal = "unfocused visible";
 
 			ShowWindow(window, SW_SHOWNOACTIVATE);
 			break;
 		case WindowState::WINDOW_MAXIMIZE:
-			windowModeVal = "maximize";
+			windowStateVal = "maximize";
 
 			ShowWindow(window, SW_MAXIMIZE);
 			break;
 		case WindowState::WINDOW_MINIMIZE:
-			windowModeVal = "minimize";
+			windowStateVal = "minimize";
 
 			ShowWindow(window, SW_MINIMIZE);
 			break;
 		case WindowState::WINDOW_HIDE:
-			windowModeVal = "hide";
+			windowStateVal = "hide";
 
 			ShowWindow(window, SW_HIDE);
 			break;

@@ -192,7 +192,7 @@ namespace KalaWindow::Graphics
 #ifdef KDEBUG
 		_putenv_s(
 			"VK_LAYER_PATH", 
-			KalaWindowCore::GetExeDir().parent_path();.string().c_str());
+			KalaWindowCore::GetExePath().parent_path().string().c_str());
 #endif
 
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
@@ -449,7 +449,7 @@ namespace KalaWindow::Graphics
 			surface = VK_NULL_HANDLE;
 		}
 
-		if (registry.runtimeContent.empty())
+		if (registry.GetAllContent().empty())
 		{
 			Log::Print(
 				"Destroying global Vulkan because all contexts were destroyed.",

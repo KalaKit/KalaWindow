@@ -131,6 +131,9 @@ namespace KalaWindow::Graphics
 	friend class KalaWindow::Core::MessageLoop;
 	friend class KalaWindow::Core::Input;
 	friend class VulkanContext;
+#ifdef _WIN32
+	friend class MenuBar;
+#endif
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 

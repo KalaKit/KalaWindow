@@ -223,7 +223,7 @@ namespace KalaWindow::Core
 				PopupType::POPUP_TYPE_WARNING)
 				== PopupResult::POPUP_RESULT_YES)
 			{
-				KalaWindowCore::Shutdown();
+				ProcessWindow::GetRegistry().RemoveAllContent();
 				return TRUE; //user clicked yes, continuing to logoff/shutdown
 			}
 			else return FALSE; //user clicked no, cancelling logoff/shutdown
@@ -1000,7 +1000,7 @@ namespace KalaWindow::Core
 
 					POINT dropPoint{};
 					DragQueryPoint(hDrop, &dropPoint);
-					w->draggedFilesPos = vec2((f32)dropPoint.x, (f32)dropPoint.y);
+					window->draggedFilesPos = vec2((f32)dropPoint.x, (f32)dropPoint.y);
 
 					//count how many files were dropped
 					UINT fileCount = DragQueryFileW(
@@ -1009,7 +1009,7 @@ namespace KalaWindow::Core
 						nullptr,
 						0);
 
-					vector<string> droppedFiles{};
+					vector<path> droppedFiles{};
 					droppedFiles.reserve(fileCount);
 
 					for (UINT i = 0; i < fileCount; i++)

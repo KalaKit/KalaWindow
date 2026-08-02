@@ -94,14 +94,13 @@ namespace KalaWindow::Graphics
 		WindowData wData = window->GetWindowData();
 
 		HMENU hMenu = CreateMenu();
-		wData.hMenu = FromVar(hMenu);
-		window->SetWindowData(wData);
+		window->windowData.hMenu = FromVar(hMenu);
 
 		SetMenu(hwnd, hMenu);
 		DrawMenuBar(hwnd);
 
 		registry.AddContent(newID, std::move(newMenu));
-		window->SetMenuBarID(newID);
+		window->menuBarID = newID;
 
 		menuPtr->isInitialized = true;
 		menuPtr->isEnabled = true;
@@ -143,8 +142,6 @@ namespace KalaWindow::Graphics
 			KalaWindowCore::ForceClose(
 				"KalaWindow menu bar error",
 				"Failed to check menu bar enabled state because its window '" + to_string(windowID) + "' is invalid!");
-
-			return;
 		}
 
 		const WindowData& windowData = window->GetWindowData();

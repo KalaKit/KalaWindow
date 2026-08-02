@@ -82,7 +82,7 @@ namespace KalaWindow::Core
 {
 	void CrashHandler::Initialize(string&& programName)
 	{
-		exeDir = KalaWindowCore::GetExeDir();
+		exeDir = KalaWindowCore::GetExePath().parent_path();
 
 		//reserve emergency stack space (for stack overflow handling)
 
@@ -108,7 +108,7 @@ namespace KalaWindow::Core
         string&& reason)
     {
 		forceCloseTitle  = title.substr(0, MAX_NAME_LENGTH);
-		forceCloseReason = reason.substr(0, MAX_REASON);
+		forceCloseReason = reason.substr(0, MAX_REASON_LENGTH);
     }
 }
 
