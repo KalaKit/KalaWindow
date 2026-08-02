@@ -28,7 +28,6 @@
 #include "core/kw_input.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_registry.hpp"
-#include "graphics/kw_menubar_windows.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 
@@ -48,8 +47,6 @@ using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupResult;
 using KalaWindow::Graphics::PopupType;
-using KalaWindow::Graphics::MenuBar;
-using KalaWindow::Graphics::MenuBarEvent;
 using KalaWindow::Graphics::WindowData;
 
 using std::string;
@@ -1248,48 +1245,6 @@ namespace KalaWindow::Core
 					mmi->ptMaxTrackSize.y = window->GetMaxSize().y;
 
 					return 0; //we handled it
-				}
-
-				//
-				// MENU BAR EVENTS
-				//
-
-				//leaf was clicked
-				case WM_COMMAND:
-				{
-					u32 IDRef = LOWORD(msg.wParam);
-
-					if (window)
-					{
-						vector<MenuBar*> menuBars = KalaWindowRegistry<MenuBar>::GetAllWindowContent(windowID);
-						MenuBar* menuBar = menuBars.empty() ? nullptr : menuBars.front();
-
-						if (menuBar)
-						{
-							const vector<MenuBarEvent> events = menuBar->GetEvents();
-							for (const auto& e : events)
-							{
-								u32 ID = e.labelID;
-								if (ID == IDRef)
-								{
-									e.function();
-
-									return 0; //we handled it
-								}
-							}
-						}
-
-						Log::Print(
-							"Did not find leaf event with ID '" + to_string(IDRef) + "'.",
-							"KW_MESSAGE_LOOP",
-							LogType::LOG_INFO);
-					}
-
-					return DefWindowProc(
-						msg.hwnd,
-						msg.message,
-						msg.wParam,
-						msg.lParam);
 				}
 
 				//

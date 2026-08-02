@@ -131,9 +131,6 @@ namespace KalaWindow::Graphics
 	friend class KalaWindow::Core::MessageLoop;
 	friend class KalaWindow::Core::Input;
 	friend class VulkanContext;
-#ifdef _WIN32
-	friend class MenuBar;
-#endif
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
@@ -151,10 +148,6 @@ namespace KalaWindow::Graphics
 		u32 GetID() const;
 		u32 GetInputID() const;
 		u32 GetGraphicsContextID() const;
-		
-#ifdef _WIN32
-		u32 GetMenuBarID() const;
-#endif
 
 		//Draws the window, handles messages for active frame,
 		//only handles idle state on X11,
@@ -344,9 +337,6 @@ namespace KalaWindow::Graphics
 
 		u32 inputID{};
 		u32 graphicsContextID{};
-#ifdef _WIN32
-		u32 menuBarID{};
-#endif
 		
 		WindowData windowData{};
 

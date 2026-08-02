@@ -30,7 +30,6 @@
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
-#include "graphics/kw_menubar_windows.hpp"
 #include "graphics/kw_vulkan.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
@@ -44,7 +43,6 @@ using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::ProcessWindow;
-using KalaWindow::Graphics::MenuBar;
 using KalaWindow::Graphics::VulkanContext;
 
 using std::make_unique;
@@ -274,7 +272,6 @@ namespace KalaWindow::Graphics
 	u32 ProcessWindow::GetID() const { return ID; }
 	u32 ProcessWindow::GetInputID() const { return inputID; }
 	u32 ProcessWindow::GetGraphicsContextID() const { return graphicsContextID; }
-	u32 ProcessWindow::GetMenuBarID() const { return menuBarID; }
 
 	void ProcessWindow::Update()
 	{
@@ -2108,9 +2105,7 @@ namespace KalaWindow::Graphics
 		}
 
         KalaWindowRegistry<VulkanContext>::RemoveAllWindowContent(ID);
-
 		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
-		KalaWindowRegistry<MenuBar>::RemoveAllWindowContent(ID);
 
 		registry.RemoveContent(ID);
 	}
@@ -2126,7 +2121,6 @@ namespace KalaWindow::Graphics
 
 		inputID = 0;
 		graphicsContextID = 0;
-		menuBarID = 0;
 
 		HWND hwnd = ToVar<HWND>(windowData.window);
 		if (hwnd)
