@@ -89,35 +89,6 @@ namespace KalaWindow::Graphics
 		uintptr_t hMenu{};
 		uintptr_t wndProc{};
 	};
-
-	enum class WindowRounding
-	{
-		ROUNDING_DEFAULT,    //system default (usually ROUNDING_ROUND in Win11)
-		ROUNDING_NONE,       //sharp corners
-		ROUNDING_ROUND,      //rounded regular radius
-		ROUNDING_ROUND_SMALL //rounded but smaller radius
-	};
-
-	enum class FlashTarget
-	{
-		TARGET_WINDOW, //flashes the window border and title
-		TARGET_TASKBAR //flashes the window button on the taskar
-	};
-	enum class FlashType
-	{
-		FLASH_ONCE,        //single flash
-		FLASH_UNTIL_FOCUS, //keep flashing until user focuses on window
-		FLASH_TIMED        //flash x times
-	};
-
-	enum class TaskbarProgressBarMode
-	{
-		PROGRESS_NONE,          //hide the bar
-		PROGRESS_INDETERMINATE, //pulse
-		PROGRESS_NORMAL,        //green bar
-		PROGRESS_PAUSED,        //yellow bar
-		PROGRESS_ERROR          //red bar
-	};
 #else
 	struct LIB_API WindowData
 	{
@@ -167,12 +138,6 @@ namespace KalaWindow::Graphics
 		//Bring this window to the foreground and make it focused
 		void BringToFocus();
 
-		//X11 does not have rounding state logic
-#ifdef _WIN32
-		WindowRounding GetWindowRoundingState() const;
-		void SetWindowRoundingState(WindowRounding roundState) const;
-#endif
-
 		vec2 GetSize() const;
 		void SetSize(vec2 newSize);
 
@@ -199,31 +164,7 @@ namespace KalaWindow::Graphics
 		bool IsResizable() const;		
 		void SetResizableState(bool state);
 
-#ifdef _WIN32
-		//If true, then this window shows its top bar
-		bool IsTopBarEnabled() const;		
-		void SetTopBarState(bool state) const;
-
-		//If true, then this window has a functional and visible minimize button
-		bool IsMinimizeButtonEnabled() const;
-		void SetMinimizeButtonState(bool state) const;
-
-		//If true, then this window has a functional and visible maximize button
-		bool IsMaximizeButtonEnabled() const;
-		void SetMaximizeButtonState(bool state) const;
-
-		//If true, then this window has a functional close button.
-		//Close button won't be grayed out or won't stop rendering due to Windows limits
-		bool IsCloseButtonEnabled() const;
-		void SetCloseButtonState(bool state) const;
-
-		//If false, then minimize, maximize, close buttons and the logo are hidden.
-		bool IsSystemMenuEnabled() const;
-		void SetSystemMenuState(bool state) const;
-
-		f32 GetOpacity() const;
-		void SetOpacity(f32 alpha) const;
-#else
+#ifdef __linux__
 		pair<string, string> GetWindowClass() const;
 		void SetWindowClass(string&& newValue);
 #endif
@@ -257,27 +198,6 @@ namespace KalaWindow::Graphics
 		WindowState GetWindowState() const;
 		void SetWindowState(WindowState state);
 
-#ifdef _WIN32
-		//If true, then Windows stops this app from closing
-		//when shutting down or logging off to enable you to close your work
-		bool IShutdownBlockEnabled() const;
-		void SetShutdownBlockState(bool state);
-
-		//Flash the window or taskbar to attract user attention
-		void Flash(
-			FlashTarget target,
-			FlashType type,
-			u32 count = 0) const;
-
-		//Set taskbar progress bar mode.
-		//Max is internally clamped from 0 to 100,
-		//current is internally clamped from 0 to max - 1
-		void SetTaskbarProgressBarState(
-			TaskbarProgressBarMode,
-			u8 currentProgress,
-			u8 maxProgress) const;
-#endif
-
 		void ResizeCallback();
 		void SetResizeCallback(function<void()>&& newValue);
 
@@ -286,17 +206,13 @@ namespace KalaWindow::Graphics
 		const WindowData& GetWindowData() const;
 		void SetWindowData(WindowData&& newWindowStruct);
 
-		void CheckWindowHandle(string&& errorMessage);
-
 		void Destroy();
 
 		~ProcessWindow();
 	private:
-		bool isWindowHovered{};            //If true, then this window is currently being hovered by the cursor.
-		bool isWindowFocusRequired = true; //If true, then this window will not update unless selected.
-		bool isIdle{};                     //Toggled dynamically by isfocused, isminimized and isvisible checks.
-		bool isResizing{};                 //If true, then this window is currently being resized
-		bool shutdownBlockState{};         //Prevents Windows from shutting off or logging off if this is true so you can save your data
+		bool isWindowHovered{}; //If true, then this window is currently being hovered by the cursor.
+		bool isIdle{};          //Toggled dynamically by isfocused, isminimized and isvisible checks.
+		bool isResizing{};      //If true, then this window is currently being resized
 
 		u32 parentID = UINT32_MAX;
 		vector<u32> childIDs{};

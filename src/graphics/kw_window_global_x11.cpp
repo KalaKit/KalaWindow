@@ -132,12 +132,14 @@ namespace KalaWindow::Graphics
         int error{};
         int opCode{};
 
-        if (!XQueryExtension(
+        Bool xQueryExtensionStatus = XQueryExtension(
             display,
             "XInputExtension",
             &opCode,
             &event,
-            &error))
+            &error);
+
+        if (!xQueryExtensionStatus)
         {
             KalaWindowCore::ForceClose(
                 "KalaWindow global window error",
@@ -152,7 +154,7 @@ namespace KalaWindow::Graphics
             &major, 
             &minor);
 
-        if (status != 0)
+        if (status != Success)
         {
             KalaWindowCore::ForceClose(
                 "KalaWindow global window error",
@@ -180,11 +182,6 @@ namespace KalaWindow::Graphics
         Atom utf8 = XInternAtom(
             display, 
             "UTF8_STRING", 
-            False);
-
-        Atom cardinal = XInternAtom(
-            display,
-            "CARDINAL",
             False);
 
         Atom xdndAware = XInternAtom(
@@ -238,54 +235,55 @@ namespace KalaWindow::Graphics
             "_NET_WM_PID",
             False);
 
-        Atom atom_net_active_window = XInternAtom(
+        Atom net_frame_extents = XInternAtom(
+            display,
+            "_NET_FRAME_EXTENTS",
+            False);
+
+        Atom net_active_window = XInternAtom(
             display,
             "_NET_ACTIVE_WINDOW",
             False);
 
-        Atom atom_net_wm_window_type = XInternAtom(
+        Atom net_wm_window_type = XInternAtom(
             display,
             "_NET_WM_WINDOW_TYPE",
             False);
-        Atom atom_net_wm_window_type_normal = XInternAtom(
+        Atom net_wm_window_type_normal = XInternAtom(
             display,
             "_NET_WM_WINDOW_TYPE_NORMAL",
             False);
-        Atom atom_net_wm_window_opacity = XInternAtom(
-            display,
-            "_NET_WM_WINDOW_OPACITY",
-            False);
 
-        Atom atom_net_wm_state = XInternAtom(
+        Atom net_wm_state = XInternAtom(
             display,
             "_NET_WM_STATE",
             False);
-        Atom atom_net_wm_state_hidden = XInternAtom(
+        Atom net_wm_state_hidden = XInternAtom(
             display,
             "_NET_WM_STATE_HIDDEN",
             False);
-        Atom atom_net_wm_state_fullscreen = XInternAtom(
+        Atom net_wm_state_fullscreen = XInternAtom(
             display,
            "_NET_WM_STATE_FULLSCREEN",
             False);
-        Atom atom_net_wm_state_vertical = XInternAtom(
+        Atom net_wm_state_vertical = XInternAtom(
             display,
            "_NET_WM_STATE_MAXIMIZED_VERT",
             False);
-        Atom atom_net_wm_state_horizontal = XInternAtom(
+        Atom net_wm_state_horizontal = XInternAtom(
             display,
            "_NET_WM_STATE_MAXIMIZED_HORZ",
             False);
-        Atom atom_net_wm_state_above = XInternAtom(
+        Atom net_wm_state_above = XInternAtom(
             display,
            "_NET_WM_STATE_ABOVE",
             False);
-        Atom atom_net_wm_state_skip_taskbar = XInternAtom(
+        Atom net_wm_state_skip_taskbar = XInternAtom(
             display,
            "_NET_WM_STATE_SKIP_TASKBAR",
             False);
 
-        Atom atom_wm_delete = XInternAtom(
+        Atom wm_delete = XInternAtom(
             display,
             "WM_DELETE_WINDOW",
             False);
@@ -300,8 +298,6 @@ namespace KalaWindow::Graphics
 
         globalData.atom_utf8 = FromVar(utf8);
 
-        globalData.atom_cardinal = FromVar(cardinal);
-
         globalData.atom_xDndAware      = FromVar(xdndAware);
         globalData.atom_xDndEnter      = FromVar(xdndEnter);
         globalData.atom_xDndPosition   = FromVar(xdndPosition);
@@ -313,24 +309,25 @@ namespace KalaWindow::Graphics
         globalData.atom_xDndTypeList   = FromVar(xdndTypeList);
         globalData.atom_textUri        = FromVar(textUri);
         
-        globalData.atom_net_active_window = FromVar(atom_net_active_window);
+        globalData.atom_net_active_window = FromVar(net_active_window);
+
+        globalData.atom_net_frame_extents = FromVar(net_frame_extents);
 
         globalData.atom_net_wm_name = FromVar(net_wm_name);
         globalData.atom_net_wm_pid  = FromVar(net_wm_pid);
 
-        globalData.atom_net_wm_window_type        = FromVar(atom_net_wm_window_type);
-        globalData.atom_net_wm_window_type_normal = FromVar(atom_net_wm_window_type_normal);
-        globalData.atom_net_wm_window_opacity     = FromVar(atom_net_wm_window_opacity);
+        globalData.atom_net_wm_window_type        = FromVar(net_wm_window_type);
+        globalData.atom_net_wm_window_type_normal = FromVar(net_wm_window_type_normal);
 
-        globalData.atom_net_wm_state              = FromVar(atom_net_wm_state);
-        globalData.atom_net_wm_state_hidden       = FromVar(atom_net_wm_state_hidden);
-        globalData.atom_net_wm_state_fullscreen   = FromVar(atom_net_wm_state_fullscreen);
-        globalData.atom_net_wm_state_vertical     = FromVar(atom_net_wm_state_vertical);
-        globalData.atom_net_wm_state_horizontal   = FromVar(atom_net_wm_state_horizontal);
-        globalData.atom_net_wm_state_above        = FromVar(atom_net_wm_state_above);
-        globalData.atom_net_wm_state_skip_taskbar = FromVar(atom_net_wm_state_skip_taskbar);
+        globalData.atom_net_wm_state              = FromVar(net_wm_state);
+        globalData.atom_net_wm_state_hidden       = FromVar(net_wm_state_hidden);
+        globalData.atom_net_wm_state_fullscreen   = FromVar(net_wm_state_fullscreen);
+        globalData.atom_net_wm_state_vertical     = FromVar(net_wm_state_vertical);
+        globalData.atom_net_wm_state_horizontal   = FromVar(net_wm_state_horizontal);
+        globalData.atom_net_wm_state_above        = FromVar(net_wm_state_above);
+        globalData.atom_net_wm_state_skip_taskbar = FromVar(net_wm_state_skip_taskbar);
 
-        globalData.atom_wm_delete    = FromVar(atom_wm_delete);
+        globalData.atom_wm_delete = FromVar(wm_delete);
 
         //initialize libnotify
         notify_init("KalaWindow");

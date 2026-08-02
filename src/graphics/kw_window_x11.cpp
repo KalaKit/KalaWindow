@@ -9,10 +9,12 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/X.h>
+#include <climits>
 
 #include <unistd.h>
 #include <memory>
 #include <sstream>
+#include <algorithm>
 
 #include "core_utils.hpp"
 #include "log_utils.hpp"
@@ -43,6 +45,9 @@ using std::unique_ptr;
 using std::to_string;
 using std::string;
 using std::ostringstream;
+using std::clamp;
+
+static int XRESULT{};
 
 //KalaWindow will dynamically update window idle state
 static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
@@ -59,7 +64,7 @@ static void ForceClose(
 {
     KalaWindowCore::ForceClose(
         "KalaWindow window error",
-        "Failed to " + std::move(action) + " because " + std::move(reason) + "!");
+        "Failed to " + std::move(action) + " because " + std::move(reason));
 }
 
 namespace KalaWindow::Graphics
@@ -157,12 +162,8 @@ namespace KalaWindow::Graphics
             CWBackPixmap | CWBorderPixel,
             &attrs);
 
-        if (window == None)
-        {
-            ForceClose(
-                "create window '" + title + "'",
-                "XCreateWindow failed!");
-        }
+        //flush now and detect errors via ErrorHandler
+        XSync(display, False);
 
         XIC xic = XCreateIC(
             xim,
@@ -180,38 +181,46 @@ namespace KalaWindow::Graphics
         }
 
         //set task manager title via PID
-        long pid = scast<long>(getpid());
-        Status status = XChangeProperty(
+        u32 pid = scast<u32>(getpid());
+        Atom pidAtom = ToVar<Atom>(globalData.atom_net_wm_pid);
+
+        if (pidAtom == None)
+        {
+            ForceClose(
+                "create window '" + title + "'",
+                "pidAtom was invalid!");
+        }
+
+        XChangeProperty(
             display,
             window,
-            ToVar<Atom>(globalData.atom_net_wm_pid),
-            ToVar<Atom>(globalData.atom_cardinal),
+            pidAtom,
+            XA_CARDINAL,
             32,
             PropModeReplace,
             rcast<unsigned char*>(&pid),
             1);
 
-        if (status == 0)
-        {
-            ForceClose(
-                "create window '" + title + "'",
-                "XChangeProperty for atom_net_wm_pid and atom_cardinal failed!");
-        }
-
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
 
-        status = XSetWMProtocols(
+        if (display == nullptr 
+            || window == None
+            || atom_wm_delete == None)
+        {
+            Log::Print(
+                "PRE-CHECK FAILED: display=" + to_string(display != nullptr)
+                + " window=" + to_string(window)
+                + " atom=" + to_string(atom_wm_delete),
+                "KW_WINDOW",
+                LogType::LOG_ERROR,
+                2);
+        }
+
+        XSetWMProtocols(
             display,
             window,
             &atom_wm_delete,
             1);
-
-        if (status == 0)
-        {
-            ForceClose(
-                "create window '" + title + "'",
-                "XSetWMProtocols failed!");
-        }
 
         //allow events
         XSelectInput(
@@ -228,9 +237,6 @@ namespace KalaWindow::Graphics
             | ButtonPressMask
             | ButtonReleaseMask
             | PointerMotionMask);
-
-        //flush now and detect errors via ErrorHandler
-        XSync(display, False);
 
         WindowData newWindowStruct{};
 
@@ -283,7 +289,8 @@ namespace KalaWindow::Graphics
         if (windowPtr->parentID != UINT32_MAX)
         {
             Atom skipTaskbar = ToVar<Atom>(globalData.atom_net_wm_state_skip_taskbar);
-            status = XChangeProperty(
+
+            XChangeProperty(
                 display,
                 window,
                 ToVar<Atom>(globalData.atom_net_wm_state),
@@ -292,20 +299,13 @@ namespace KalaWindow::Graphics
                 PropModeAppend,
                 (unsigned char*)&skipTaskbar,
                 1);
-
-            if (status == 0)
-            {
-                ForceClose(
-                    "create window '" + title + "'",
-                    "XChangeProperty for atom_net_wm_state and atom_net_wm_state_skip_taskbar failed!");
-            }
         }
 
         Atom xDndAware = ToVar<Atom>(globalData.atom_xDndAware);
         unsigned long version = 5; //XDND version
 
         //declare as XDND drop target
-        status = XChangeProperty(
+        XChangeProperty(
             display,
             window,
             xDndAware,
@@ -315,18 +315,11 @@ namespace KalaWindow::Graphics
             rcast<const unsigned char*>(&version),
             1);
 
-        if (status == 0)
-        {
-            ForceClose(
-                "create window '" + title + "'",
-                "XChangeProperty for atom_xDndAware failed!");
-        }
-
         Atom xDndTypeList = ToVar<Atom>(globalData.atom_xDndTypeList);
         Atom textUri      = ToVar<Atom>(globalData.atom_textUri);
 
         //advertise file-drop MIME type
-        status = XChangeProperty(
+        XChangeProperty(
             display,
             window,
             xDndTypeList,
@@ -336,18 +329,11 @@ namespace KalaWindow::Graphics
             rcast<const unsigned char*>(&textUri),
             1);
 
-        if (status == 0)
-        {
-            ForceClose(
-                "create window '" + title + "'",
-                "XChangeProperty for atom_xDndTypeList and atom_textUri failed!");
-        }
-
         Atom netWmWindowType       = ToVar<Atom>(globalData.atom_net_wm_window_type);
         Atom netWmWindowTypeNormal = ToVar<Atom>(globalData.atom_net_wm_window_type_normal);
 
         //declare window type
-        status = XChangeProperty(
+        XChangeProperty(
             display,
             window,
             netWmWindowType,
@@ -357,12 +343,6 @@ namespace KalaWindow::Graphics
             rcast<const unsigned char*>(&netWmWindowTypeNormal),
             1);
 
-        if (status == 0)
-        {
-            ForceClose(
-                "create window '" + title + "'",
-                "XChangeProperty for atom_net_wm_window_type and atom_net_wm_window_type_normal failed!");
-        }
 
         //show window
         XMapWindow(
@@ -438,7 +418,7 @@ namespace KalaWindow::Graphics
 
         string title{};
 
-        Status status = XGetWindowProperty(
+        XRESULT = XGetWindowProperty(
             display,
             window,
             atom_net_wm_name,
@@ -452,11 +432,11 @@ namespace KalaWindow::Graphics
             &bytesAfter,
             &prop);
 
-        if (status != Success)
+        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
         {
 			ForceClose(
 				"get window '" + to_string(ID) + " title",
-                "XGetWindowProperty failed! Error code: " + to_string(status));
+                "XGetWindowProperty failed! Result code: " + to_string(XRESULT));
         }
 
         if (!prop)
@@ -570,7 +550,7 @@ namespace KalaWindow::Graphics
         xev.xclient.data.l[0] = 2;
         xev.xclient.data.l[1] = CurrentTime;
 
-        Status status = XSendEvent(
+        XRESULT = XSendEvent(
             display,
             window,
             False,
@@ -578,11 +558,11 @@ namespace KalaWindow::Graphics
             | SubstructureNotifyMask,
             &xev);
 
-        if (status == 0)
+        if (XRESULT != SUCCESS_XSENDEVENT)
         {
             ForceClose(
                 "bring window '" + to_string(ID) + "' to focus",
-                "XSendEvent failed!");
+                "XSendEvent failed! Result code: " + to_string(XRESULT));
         }
 
         XSetICFocus(ToVar<XIC>(windowData.xic));
@@ -706,11 +686,13 @@ namespace KalaWindow::Graphics
 
         XSizeHints hints{};
         long supplied{};
-        if (!XGetWMNormalHints(
+        XRESULT = XGetWMNormalHints(
             display,
             window,
             &hints,
-            &supplied))
+            &supplied);
+
+        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
         {
             hints = {};
         }
@@ -725,14 +707,17 @@ namespace KalaWindow::Graphics
         XFlush(display);
 
         XSizeHints verify{};
-        if (!XGetWMNormalHints(
+        XRESULT = XGetWMNormalHints(
             display,
             window,
             &verify,
-            &supplied))
+            &supplied);
+
+        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
         {
             Log::Print(
-                "Failed to set window '" + to_string(ID) + "' max size because XGetWMNormalHints failed!",
+                "Failed to set window '" + to_string(ID) 
+                + "' max size because XGetWMNormalHints failed! Result code: " + to_string(XRESULT),
                 "KW_WINDOW",
                 LogType::LOG_ERROR,
                 2);
@@ -800,11 +785,13 @@ namespace KalaWindow::Graphics
 
         XSizeHints hints{};
         long supplied{};
-        if (!XGetWMNormalHints(
+        XRESULT = XGetWMNormalHints(
             display,
             window,
             &hints,
-            &supplied))
+            &supplied);
+
+        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
         {
             hints = {};
         }
@@ -819,14 +806,17 @@ namespace KalaWindow::Graphics
         XFlush(display);
 
         XSizeHints verify{};
-        if (!XGetWMNormalHints(
+        XRESULT = XGetWMNormalHints(
             display,
             window,
             &verify,
-            &supplied))
+            &supplied);
+
+        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
         {
             Log::Print(
-                "Failed to set window '" + to_string(ID) + "' min size because XGetWMNormalHints failed!",
+                "Failed to set window '" + to_string(ID) 
+                + "' min size because XGetWMNormalHints failed! Result code: " + to_string(XRESULT),
                 "KW_WINDOW",
                 LogType::LOG_ERROR,
                 2);
@@ -899,7 +889,7 @@ namespace KalaWindow::Graphics
         unsigned long nItems{}, bytesAfter{};
         unsigned char* data{};
 
-        Status status = XGetWindowProperty(
+        XRESULT = XGetWindowProperty(
             display,
             window,
             atom_net_wm_state,
@@ -913,11 +903,11 @@ namespace KalaWindow::Graphics
             &bytesAfter,
             &data);
 
-        if (status != Success)
+        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
         {
 			ForceClose(
 				"get window '" + to_string(ID) + " always on top state",
-                "XGetWindowProperty failed! Error code: " + to_string(status));
+                "XGetWindowProperty failed! Result code: " + to_string(XRESULT));
         }
 
         bool isAbove{};
@@ -965,7 +955,7 @@ namespace KalaWindow::Graphics
         event.xclient.data.l[3] = 0;
         event.xclient.data.l[4] = 0;
 
-        Status status = XSendEvent(
+        XRESULT = XSendEvent(
             display,
             DefaultRootWindow(display),
             False,
@@ -973,11 +963,11 @@ namespace KalaWindow::Graphics
             | SubstructureNotifyMask,
             &event);
 
-        if (status == 0)
+        if (XRESULT != SUCCESS_XSENDEVENT)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' always on top state",
-                "XSendEvent failed!");
+                "XSendEvent failed! Result code: " + to_string(XRESULT));
         }
 
         XFlush(display);
@@ -1010,11 +1000,13 @@ namespace KalaWindow::Graphics
         XSizeHints hints{};
         long supplied{};
 
-        if (!XGetWMNormalHints(
+        XRESULT = XGetWMNormalHints(
             display,
             window,
             &hints,
-            &supplied))
+            &supplied);
+
+        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
         {
             //assume resizable if hints are missing
             return true;
@@ -1047,11 +1039,13 @@ namespace KalaWindow::Graphics
         XSizeHints hints{};
         long supplied{};
 
-        if (!XGetWMNormalHints(
+        XRESULT = XGetWMNormalHints(
             display,
             window,
             &hints,
-            &supplied))
+            &supplied);
+
+        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
         {
             memset(&hints, 0, sizeof(hints));
         }
@@ -1100,18 +1094,18 @@ namespace KalaWindow::Graphics
         }
 
         XClassHint classHint{};
-        Status status = XGetClassHint(
+        XRESULT = XGetClassHint(
             ToVar<Display*>(globalData.display),
             ToVar<Window>(windowData.window),
             &classHint);
 
-        if (status == 0
+        if (XRESULT != SUCCESS_XGETCLASSHINT
             || !classHint.res_name
             || !classHint.res_class)
         {
 			Log::Print(
 				"Failed to get window '" + to_string(ID) + "' class value "
-                "because XClassHint failed or it had no name or class value!",
+                "because XClassHint failed or it had no name or class value! Result code: " + to_string(XRESULT),
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -1235,7 +1229,7 @@ namespace KalaWindow::Graphics
         event.xclient.data.l[3] = 0;
         event.xclient.data.l[4] = 0;
 
-        Status status = XSendEvent(
+        XRESULT = XSendEvent(
             display,
             DefaultRootWindow(display),
             False,
@@ -1243,11 +1237,11 @@ namespace KalaWindow::Graphics
             | SubstructureNotifyMask,
             &event);
 
-        if (status == 0)
+        if (XRESULT != SUCCESS_XSENDEVENT)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' mode",
-                "XSendEvent failed!");
+                "XSendEvent failed! Result code: " + to_string(XRESULT));
         }
 
         if (mode == WindowMode::WINDOWMODE_WINDOWED)
@@ -1309,7 +1303,7 @@ namespace KalaWindow::Graphics
             event.xclient.data.l[3] = atom_net_wm_state_fullscreen;
             event.xclient.data.l[4] = 0;
 
-            Status status = XSendEvent(
+            XRESULT = XSendEvent(
                 display,
                 DefaultRootWindow(display),
                 False,
@@ -1317,11 +1311,11 @@ namespace KalaWindow::Graphics
                 | SubstructureNotifyMask,
                 &event);
 
-            if (status == 0)
+            if (XRESULT != SUCCESS_XSENDEVENT)
             {
                 ForceClose(
                     "set window '" + to_string(ID) + "' state",
-                    "XSendEvent failed!");
+                    "XSendEvent failed! Result code: " + to_string(XRESULT));
             }
 
             XMapWindow(display, window);
@@ -1353,7 +1347,7 @@ namespace KalaWindow::Graphics
             event.xclient.data.l[3] = 0;
             event.xclient.data.l[4] = 0;
 
-            Status status = XSendEvent(
+            XRESULT = XSendEvent(
                 display,
                 DefaultRootWindow(display),
                 False,
@@ -1361,11 +1355,11 @@ namespace KalaWindow::Graphics
                 | SubstructureNotifyMask,
                 &event);
 
-            if (status == 0)
+            if (XRESULT != SUCCESS_XSENDEVENT)
             {
                 ForceClose(
                     "set window '" + to_string(ID) + "' state",
-                    "XSendEvent failed!");
+                    "XSendEvent failed! Result code: " + to_string(XRESULT));
             }
 
             XMapWindow(display, window);
@@ -1483,7 +1477,7 @@ namespace KalaWindow::Graphics
         Atom netWmStateFullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
         Atom netWmStateHidden = ToVar<Atom>(globalData.atom_net_wm_state_hidden);
 
-        Status status = XGetWindowProperty(
+        XRESULT = XGetWindowProperty(
             display,
             window,
             netWmState,
@@ -1497,11 +1491,11 @@ namespace KalaWindow::Graphics
             &bytesAfter,
             &data);
 
-        if (status != Success)
+        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
         {
 			ForceClose(
 				"update window '" + to_string(ID) + " fullscreen and minimized state",
-                "XGetWindowProperty failed! Error code: " + to_string(status));
+                "XGetWindowProperty failed! Result code: " + to_string(XRESULT));
         }
 
         bool wasMinimized = isMinimized;

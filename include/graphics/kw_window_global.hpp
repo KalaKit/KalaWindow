@@ -11,6 +11,14 @@
 
 #include "core_utils.hpp"
 
+#ifdef __linux__
+constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
+constexpr int SUCCESS_XGETWMNORMALHINTS = 0;
+constexpr int SUCCESS_XSENDEVENT = 1;
+constexpr int SUCCESS_XGETEVENTDATA = 1;
+constexpr int SUCCESS_XGETCLASSHINT = 1;
+#endif
+
 namespace KalaWindow::Graphics
 {
 	using std::string;
@@ -77,8 +85,6 @@ namespace KalaWindow::Graphics
 
 		uintptr_t atom_utf8{};
 
-		uintptr_t atom_cardinal{};
-
 		uintptr_t atom_xDndAware{};
 		uintptr_t atom_xDndEnter{};
 		uintptr_t atom_xDndPosition{};
@@ -90,11 +96,17 @@ namespace KalaWindow::Graphics
 		uintptr_t atom_xDndTypeList{};
 		uintptr_t atom_textUri{};
 
+		uintptr_t atom_propVisible{};
+		uintptr_t atom_propValue{};
+		uintptr_t atom_propPaused{};
+		uintptr_t atom_propError{};
+
+		uintptr_t atom_net_frame_extents{};
+
 		uintptr_t atom_net_active_window{};
 				
 		uintptr_t atom_net_wm_window_type{};
 		uintptr_t atom_net_wm_window_type_normal{};
-		uintptr_t atom_net_wm_window_opacity{};
 
 		uintptr_t atom_net_wm_name{};
 		uintptr_t atom_net_wm_pid{};

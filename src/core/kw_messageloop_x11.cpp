@@ -67,6 +67,8 @@ static function<void()> addNewlineCallback{};
 constexpr u32 DOUBLE_CLICK_TIME = 500;
 static u32 lastClickTime[8]{};
 
+static int XRESULT{};
+
 static const unordered_map<KeySym, KeyboardButton> XKeyToKeyMap = {
 	// Letters
 	{ XK_a, KeyboardButton::K_A }, { XK_b, KeyboardButton::K_B }, { XK_c, KeyboardButton::K_C }, { XK_d, KeyboardButton::K_D },
@@ -201,50 +203,56 @@ namespace KalaWindow::Core
 
         if (event.type == GenericEvent)
         {
-            if (event.xcookie.extension == globalData.xiOpcode
-                && XGetEventData(display, &event.xcookie))
+            XRESULT = XGetEventData(display, &event.xcookie);
+
+            if (event.xcookie.extension != globalData.xiOpcode
+                || XRESULT != SUCCESS_XGETEVENTDATA)
             {
-                if (event.xcookie.evtype == XI_RawMotion)
+                //TODO: do something here?
+
+                return;
+            }
+
+            if (event.xcookie.evtype == XI_RawMotion)
+            {
+                XIRawEvent* raw = rcast<XIRawEvent*>(event.xcookie.data);
+
+                f64* values = raw->raw_values;
+                int i = 0;
+
+                f64 dx{};
+                f64 dy{};
+
+                if (XIMaskIsSet(raw->valuators.mask, 0)) dx = values[i++];
+                if (XIMaskIsSet(raw->valuators.mask, 1)) dy = values[i++];
+
+                for (const auto& w : activeWindows)
                 {
-                    XIRawEvent* raw = rcast<XIRawEvent*>(event.xcookie.data);
+                    if (!w) continue;
 
-                    f64* values = raw->raw_values;
-                    int i = 0;
+                    u32 windowID = w->GetID();
 
-                    f64 dx{};
-                    f64 dy{};
+                    vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+                    Input* input = inputs.empty() ? nullptr : inputs.front();
 
-                    if (XIMaskIsSet(raw->valuators.mask, 0)) dx = values[i++];
-                    if (XIMaskIsSet(raw->valuators.mask, 1)) dy = values[i++];
+                    if (!input) continue;
 
-                    for (const auto& w : activeWindows)
+                    vec2 delta = input->GetRawMouseDelta();
+                    delta.x += (f32)dx;
+                    delta.y += (f32)dy;
+                    input->SetRawMouseDelta(delta);
+
+                    if (Input::IsVerboseLoggingEnabled())
                     {
-                        if (!w) continue;
-
-                        u32 windowID = w->GetID();
-
-                        vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
-                        Input* input = inputs.empty() ? nullptr : inputs.front();
-
-                        if (!input) continue;
-
-                        vec2 delta = input->GetRawMouseDelta();
-                        delta.x += (f32)dx;
-                        delta.y += (f32)dy;
-                        input->SetRawMouseDelta(delta);
-
-                        if (Input::IsVerboseLoggingEnabled())
-                        {
-                            Log::Print(
-                            "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_VERBOSE);
-                        }
+                        Log::Print(
+                        "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
+                        "KW_MESSAGE_LOOP",
+                        LogType::LOG_VERBOSE);
                     }
                 }
-
-                XFreeEventData(display, &event.xcookie);
             }
+
+            XFreeEventData(display, &event.xcookie);
 
             return;
         }
@@ -294,52 +302,52 @@ namespace KalaWindow::Core
                         w->minSize,
                         w->maxSize);
 
-                    Atom netFrameExtents = XInternAtom(display, "_NET_FRAME_EXTENTS", True);
-                    if (netFrameExtents)
+                    Atom netFrameExtents = ToVar<Atom>(globalData.atom_net_frame_extents);
+                    
+                    Atom actualType{};
+                    int actualFormat{};
+                    unsigned long nItems{}, bytesAfter{};
+                    unsigned long* extents{};
+
+                    XRESULT = XGetWindowProperty(
+                        display,
+                        window,
+                        netFrameExtents,
+                        0, 4, False,
+                        XA_CARDINAL,
+                        &actualType, &actualFormat,
+                        &nItems,
+                        &bytesAfter,
+                        (unsigned char**)&extents);
+
+                    if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
                     {
-                        Atom actualType{};
-                        int actualFormat{};
-                        unsigned long nItems{}, bytesAfter{};
-                        unsigned long* extents{};
-
-                        Status status = XGetWindowProperty(
-                            display,
-                            window,
-                            netFrameExtents,
-                            0, 4, False,
-                            XA_CARDINAL,
-                            &actualType, &actualFormat,
-                            &nItems,
-                            &bytesAfter,
-                            (unsigned char**)&extents);
-
-                        if (status != Success)
-                        {
-                            Log::Print(
-                                "Failed to uupdate window position and size because XGetWindowProperty failed! Error code: " + to_string(status),
-                                "KW_MESSAGE_LOOP",
-                                LogType::LOG_ERROR,
-                                2);
-                        }
-
-                        if (!extents)
-                        {
-                            Log::Print(
-                                "Failed to update window position and size because extents failed!",
-                                "KW_MESSAGE_LOOP",
-                                LogType::LOG_ERROR,
-                                2);
-                        }
-                        else
-                        {
-                            w->outerSize = vec2(
-                                w->size.x + extents[0] + extents[1],
-                                w->size.y + extents[2] + extents[3]);
-                            XFree(extents);
-                        }
-
-                        w->ResizeCallback();
+                        Log::Print(
+                            "Failed to update window '" + to_string(w->GetID()) 
+                            + "' position and size because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
+                            "KW_MESSAGE_LOOP",
+                            LogType::LOG_ERROR,
+                            2);
                     }
+
+                    if (!extents)
+                    {
+                        Log::Print(
+                            "Failed to update window '" + to_string(w->GetID()) 
+                            + "' position and size because extents failed!",
+                            "KW_MESSAGE_LOOP",
+                            LogType::LOG_ERROR,
+                            2);
+                    }
+                    else
+                    {
+                        w->outerSize = vec2(
+                            w->size.x + extents[0] + extents[1],
+                            w->size.y + extents[2] + extents[3]);
+                        XFree(extents);
+                    }
+
+                    w->ResizeCallback();
 
                     break;
                 }
@@ -358,7 +366,7 @@ namespace KalaWindow::Core
                         unsigned long nItems{}, bytesAfter{};
                         unsigned char* data{};
 
-                        Status status = XGetWindowProperty(
+                        XRESULT = XGetWindowProperty(
                             display,
                             window,
                             xDndSelection,
@@ -372,14 +380,14 @@ namespace KalaWindow::Core
                             &bytesAfter,
                             &data);
 
-                        if (status != Success
+                        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY
                             || !data
                             || format != 8)
                         {
-                            if (status != Success)
+                            if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
                             {
                                 Log::Print(
-                                    "Failed to read dropped file paths because XGetWindowProperty failed! Error code: " + to_string(status),
+                                    "Failed to read dropped file paths because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
                                     "KW_MESSAGE_LOOP",
                                     LogType::LOG_ERROR,
                                     2);
@@ -444,17 +452,18 @@ namespace KalaWindow::Core
                             finished.xclient.data.l[1] = 1;
                             finished.xclient.data.l[2] = xDndActionCopy;
 
-                            status = XSendEvent(
+                            XRESULT = XSendEvent(
                                 display,
                                 source,
                                 False,
                                 NoEventMask,
                                 &finished);
 
-                            if (status == 0)
+                            if (XRESULT != SUCCESS_XSENDEVENT)
                             {
                                 Log::Print(
-                                    "Failed to handle SelectionNotify and xDndSelection because XSendEvent failed!",
+                                    "Failed to handle SelectionNotify and xDndSelection because XSendEvent failed! "
+                                    "Result code: " + to_string(XRESULT),
                                     "KW_WINDOW_GLOBAL",
                                     LogType::LOG_ERROR,
                                     2);
@@ -516,92 +525,7 @@ namespace KalaWindow::Core
 
                     if (event.xclient.message_type == xDndEnter)
                     {
-                        //Atom xDndTypeList = ToVar<Atom>(globalData.atom_xDndTypeList);
-
                         w->currentDndSource = FromVar(event.xclient.data.l[0]);
-                        /*
-                        bool moreThanThree = event.xclient.data.l[1] & 1;
-
-                        //three or more types are inline in the message itself
-                        if (!moreThanThree)
-                        {
-                            for (int i = 2; i <= 4; ++i)
-                            {
-                                Atom a = (Atom)event.xclient.data.l[i];
-                                if (a == None) continue;
-
-                                char* n = XGetAtomName(display, a);
-                                Log::Print("@@@@@ Offered type (inline): " + string(n ? n : "?"));
-
-                                if (n) XFree(n);
-                            }
-                        }
-                        //more than three types
-                        else
-                        {
-                            Atom actualType{};
-                            int format{};
-                            unsigned long nItems{}, bytesAfter{};
-                            unsigned char* propData{};
-
-                            Status status = XGetWindowProperty(
-                                display,
-                                ToVar<Window>(w->currentDndSource),
-                                xDndTypeList,
-                                0,
-                                64,
-                                False,
-                                XA_ATOM,
-                                &actualType,
-                                &format,
-                                &nItems,
-                                &bytesAfter,
-                                &propData);
-
-                            if (status != Success
-                                || !propData
-                                || format != 32)
-                            {
-                                if (status != Success)
-                                {
-                                    Log::Print(
-                                        "Failed to read xDndEnter because XGetWindowProperty failed! Error code: " + to_string(status),
-                                        "KW_MESSAGE_LOOP",
-                                        LogType::LOG_ERROR,
-                                        2);
-                                }
-                                else if (!propData)
-                                {
-                                    Log::Print(
-                                        "Failed to read xDndEnter because the received data was invalid!",
-                                        "KW_MESSAGE_LOOP",
-                                        LogType::LOG_ERROR,
-                                        2);
-                                }
-                                else
-                                {
-                                    Log::Print(
-                                        "Failed to read xDndEnter because the format '" + to_string(format) + "' was invalid!",
-                                        "KW_MESSAGE_LOOP",
-                                        LogType::LOG_ERROR,
-                                        2);
-                                }
-                            }
-                            else
-                            {
-                                Atom* atoms = rcast<Atom*>(propData);
-                                for (unsigned long i = 0; i < nItems; ++i)
-                                {
-                                    char* n = XGetAtomName(display, atoms[i]);
-                                    Log::Print("@@@@@ Offered type (property): " + string(n ? n : "?"));
-
-                                    if (n) XFree(n);
-                                }
-                            }
-
-                            if (propData) XFree(propData);
-                        }
-                        */
 
                         continue;
                     }
@@ -652,17 +576,18 @@ namespace KalaWindow::Core
                         reply.xclient.data.l[3] = 0;              //bounding box top (0 = no rect)
                         reply.xclient.data.l[4] = xDndActionCopy; //preferred action
 
-                        Status status = XSendEvent(
+                        XRESULT = XSendEvent(
                             display,
                             source,
                             False,
                             NoEventMask,
                             &reply);
 
-                        if (status == 0)
+                        if (XRESULT != SUCCESS_XSENDEVENT)
                         {
                             Log::Print(
-                                "Failed to handle ClientMessage and xDndPosition because XSendEvent failed!",
+                                "Failed to handle ClientMessage and xDndPosition because XSendEvent failed! "
+                                "Result code: " + to_string(XRESULT),
                                 "KW_WINDOW_GLOBAL",
                                 LogType::LOG_ERROR,
                                 2);
@@ -752,7 +677,7 @@ namespace KalaWindow::Core
                 {
                     KeySym ks{};
                     char buffer[32]{};
-                    Status status{};
+                    int status{};
 
                     int len = Xutf8LookupString(
                         xic,
