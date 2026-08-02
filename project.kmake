@@ -8,13 +8,15 @@ dir_release: build/release-
 dir_debug: build/debug-
 def_win: WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
+lin-headers: "/usr/include/glib-2.0", "/usr/include/gdk-pixbuf-2.0", "/usr/lib/glib-2.0/include"
+
 #global
 compilerlauncher: ccache
 compiler: clang++
 standard: c++20
 binarytype: static
 sources: "src"
-headers: "include", "../external-shared/KalaHeaders", "../external-shared/Vulkan/Include", "/usr/include/glib-2.0", "/usr/include/gdk-pixbuf-2.0", "/usr/lib/glib-2.0/include"
+headers: "include", "../external-shared/KalaHeaders", "../external-shared/Vulkan/Include"
 defines: LIB_STATIC
 warninglevel: normal
 customflags: export-compile-commands, export-vscode-sln
@@ -31,13 +33,28 @@ buildtype: minsizerel
 buildpath: "${dir_release}windows"
 defines: ${def_win}
 
+#profile debug-win-on-linux
+targettype: windows-gnu
+binaryname: ${name_bin}-gnud
+buildtype: debug
+buildpath: "${dir_debug}win-on-linux"
+defines: ${def_win}
+
+#profile release-win-on-linux
+targettype: windows-gnu
+binaryname: ${name_bin}-gnu
+buildtype: minsizerel
+buildpath: "${dir_release}win-on-linux"
+defines: ${def_win}
+
 #profile debug-linux
 binaryname: lib${name_bin}d
 buildtype: debug
 buildpath: "${dir_debug}linux"
+headers: ${lin-headers}
 
 #profile release-linux
 binaryname: lib${name_bin}
 buildtype: minsizerel
 buildpath: "${dir_release}linux"
-postbuildaction: strip --strip-unneeded ${dir_release}linux/lib${name_bin}.a
+headers: ${lin-headers}
