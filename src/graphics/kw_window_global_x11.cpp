@@ -254,6 +254,15 @@ namespace KalaWindow::Graphics
             "_NET_WM_WINDOW_TYPE_NORMAL",
             False);
 
+        Atom net_wm_allowed_actions = XInternAtom(
+            display,
+            "_NET_WM_ALLOWED_ACTIONS",
+            False);
+        Atom net_wm_action_resize = XInternAtom(
+            display,
+            "_NET_WM_ACTION_RESIZE",
+            False);
+
         Atom net_wm_state = XInternAtom(
             display,
             "_NET_WM_STATE",
@@ -318,6 +327,9 @@ namespace KalaWindow::Graphics
 
         globalData.atom_net_wm_window_type        = FromVar(net_wm_window_type);
         globalData.atom_net_wm_window_type_normal = FromVar(net_wm_window_type_normal);
+
+        globalData.atom_net_wm_allowed_actions = FromVar(net_wm_allowed_actions);
+        globalData.atom_net_wm_action_resize   = FromVar(net_wm_action_resize);
 
         globalData.atom_net_wm_state              = FromVar(net_wm_state);
         globalData.atom_net_wm_state_hidden       = FromVar(net_wm_state_hidden);

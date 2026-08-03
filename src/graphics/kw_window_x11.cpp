@@ -997,30 +997,51 @@ namespace KalaWindow::Graphics
         Display* display = ToVar<Display*>(globalData.display);
         Window window = ToVar<Window>(windowData.window);
 
-        XSizeHints hints{};
-        long supplied{};
+        Atom netWmAllowedActions = ToVar<Atom>(globalData.atom_net_wm_allowed_actions);
+        Atom netWmActionResize = ToVar<Atom>(globalData.atom_net_wm_action_resize);
 
-        XRESULT = XGetWMNormalHints(
+        Atom actualType{};
+        int actualFormat{};
+        unsigned long nItems{}, bytesAfter{};
+        unsigned char* prop{};
+
+        XRESULT = XGetWindowProperty(
             display,
             window,
-            &hints,
-            &supplied);
+            netWmAllowedActions,
+            0L,
+            256L,
+            False,
+            XA_ATOM,
+            &actualType,
+            &actualFormat,
+            &nItems,
+            &bytesAfter,
+            &prop);
 
-        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
+        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY
+            || actualType != XA_ATOM
+            || actualFormat != 32)
         {
-            //assume resizable if hints are missing
-            return true;
+            if (prop) XFree(prop);
+
+            //WM doesnt support EWMH - not resizable as far as we can tell
+            return false;
         }
 
-        if ((hints.flags & PMinSize)
-            && (hints.flags & PMaxSize))
+        Atom* allowedActions = rcast<Atom*>(prop);
+        bool resizable{};
+        for (unsigned long i = 0; i < nItems; ++i)
         {
-            return !(
-                hints.min_width == hints.max_width
-                && hints.min_height == hints.max_height);
+            if (allowedActions[i] == netWmActionResize)
+            {
+                resizable = true;
+                break;
+            }
         }
 
-        return false;
+        XFree(prop);
+        return resizable;
     }
     void ProcessWindow::SetResizableState(bool state)
     {

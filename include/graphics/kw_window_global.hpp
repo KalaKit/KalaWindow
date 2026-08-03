@@ -106,6 +106,9 @@ namespace KalaWindow::Graphics
 		uintptr_t atom_net_wm_name{};
 		uintptr_t atom_net_wm_pid{};
 
+		uintptr_t atom_net_wm_allowed_actions{};
+		uintptr_t atom_net_wm_action_resize{};
+
 		uintptr_t atom_net_wm_state{};
 		uintptr_t atom_net_wm_state_hidden{};
 		uintptr_t atom_net_wm_state_fullscreen{};
