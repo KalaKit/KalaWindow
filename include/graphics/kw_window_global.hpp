@@ -96,11 +96,6 @@ namespace KalaWindow::Graphics
 		uintptr_t atom_xDndTypeList{};
 		uintptr_t atom_textUri{};
 
-		uintptr_t atom_propVisible{};
-		uintptr_t atom_propValue{};
-		uintptr_t atom_propPaused{};
-		uintptr_t atom_propError{};
-
 		uintptr_t atom_net_frame_extents{};
 
 		uintptr_t atom_net_active_window{};

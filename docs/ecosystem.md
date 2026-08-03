@@ -6,8 +6,6 @@ the header collection:
 the clis:
 - kalamake
 - kalamove
-- kalamodel
-- kalafont
 
 `All clis follow the same original cli template which means all clis follow the same cli command system.`
 
@@ -62,24 +60,6 @@ https://github.com/KalaKit/KalaMake
 C++20 CLI for mass file and folder IO operations with the .kmf format on Windows and Linux.
 
 https://github.com/KalaKit/KalaMove
-
----
-
-
-## KalaModel
-
-C++20 CLI for converting .obj, .gltf and .fbx files to the .kmd for runtime use on Windows and Linux.
-
-
-https://github.com/KalaKit/KalaModel
-
----
-
-## KalaFont
-
-C++20 CLI for converting .ttf and .otf files to the .kfd format for runtime use on Windows and Linux.
-
-https://github.com/KalaKit/KalaFont
 
 ---
 
