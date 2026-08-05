@@ -29,6 +29,7 @@ namespace KalaWindow::Graphics
 
     class LIB_API VulkanContext
 	{
+    friend class ProcessWindow;
 	public:
         static KalaWindowRegistry<VulkanContext>& GetRegistry();
 
@@ -45,11 +46,8 @@ namespace KalaWindow::Graphics
         //- VK_KHR_surface
         //- VK_KHR_win32_surface (on windows)
         //- VK_KHR_xlib_surface (on linux)
-		static void InitializeGlobal(vector<string>&& extensions = {});
+		static void Initialize(vector<string>&& extensions = {});
 		static bool IsInitialized();
-
-        //Initialize a per-window Vulkan context, creates a surface
-		static VulkanContext* Initialize(u32 windowID);
 
 		u32 GetID() const;
 		u32 GetWindowID() const;
@@ -60,6 +58,9 @@ namespace KalaWindow::Graphics
 
 		~VulkanContext();
 	private:
+        //Initialize a per-window Vulkan context, creates a surface
+		static VulkanContext* InitializeInstance(u32 windowID);
+
 		u32 ID{};
 		u32 windowID{};
 

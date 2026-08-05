@@ -198,7 +198,6 @@ namespace KalaWindow::Core
 		LPARAM lParam)
 	{
 		ProcessWindow* window = rcast<ProcessWindow*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
-
 		if (!window)
 		{
 			return DefWindowProc(
@@ -1197,7 +1196,7 @@ namespace KalaWindow::Core
 
 					if (window->IsResizable()) window->isResizing = false;
 
-					window->ResizeCallback();
+					if (window->resizeCallback) window->resizeCallback;
 
 					return 0; //we handled it
 				}

@@ -116,14 +116,18 @@ namespace KalaWindow::Graphics
 			ProcessWindow* parentWindow = nullptr,
 			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
 
+		//Global update call for process window and input.
+		//  - global early update: what happens BEFORE KalaWindow window logic and input logic
+		//  - global update: what happens IN BETWEEN KalaWindow window logic and input logic
+		//  - global late update: what happens AFTER KalaWindow window logic and input logic
+		static void Update(
+			const function<void()>& globalEarlyUpdate = {},
+			const function<void()>& globalUpdate = {},
+			const function<void()>& globalLateUpdate = {});
+
 		u32 GetID() const;
 		u32 GetInputID() const;
 		u32 GetGraphicsContextID() const;
-
-		//Draws the window, handles messages for active frame,
-		//only handles idle state on X11,
-		//you must call message loop update before calling per-window update on X11
-		void Update();
 
 		//Do something whenever file drag onto window succeeds
 		void SetDraggedFilesCallback(function<void(const vector<path>&, vec2)>&& newValue);
@@ -198,18 +202,28 @@ namespace KalaWindow::Graphics
 		WindowState GetWindowState() const;
 		void SetWindowState(WindowState state);
 
-		void ResizeCallback();
+		//What happens before per-window logic
+		//but after global early update
+		void SetEarlyUpdateCallback(function<void()>&& newValue);
+		//What happens after this window logic
+		//but before global update
+		void SetUpdateCallback(function<void()>&& newValue);
+		//What happens after global update and after this window input logic
+		//but before global late update
+		void SetLateUpdateCallback(function<void()>&& newValue);
+
 		void SetResizeCallback(function<void()>&& newValue);
 
 		void SetShutdownCallback(function<void()>&& newValue);
 
 		const WindowData& GetWindowData() const;
-		void SetWindowData(WindowData&& newWindowStruct);
 
 		void Destroy();
 
 		~ProcessWindow();
 	private:
+		void UpdateIdleState();
+
 		bool isWindowHovered{}; //If true, then this window is currently being hovered by the cursor.
 		bool isIdle{};          //Toggled dynamically by isfocused, isminimized and isvisible checks.
 		bool isResizing{};      //If true, then this window is currently being resized
@@ -255,6 +269,10 @@ namespace KalaWindow::Graphics
 		u32 graphicsContextID{};
 		
 		WindowData windowData{};
+
+		function<void()> earlyUpdateCallback{};
+		function<void()> updateCallback{};
+		function<void()> lateUpdateCallback{};
 
 		function<void()> resizeCallback{};
 		function<void()> shutdownCallback{};

@@ -130,9 +130,6 @@ namespace KalaWindow::Graphics
 		//and all windows will dump their logs into the console.
 		static void SetVerboseLoggingState(bool newState);
 
-		static void Initialize();
-		static bool IsInitialized();
-
 #ifdef __linux__
 		static const X11GlobalData& GetGlobalData();
 #endif
@@ -175,6 +172,8 @@ namespace KalaWindow::Graphics
 		//Play a system sound once of the chosen type
 		static void PlaySystemSound(SoundType type);
 	private:
+		static void Initialize();
+		static bool IsInitialized();
 #ifdef __linux__
 		static void Shutdown();
 #endif

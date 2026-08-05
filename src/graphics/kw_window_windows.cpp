@@ -55,15 +55,6 @@ using std::string;
 using std::string_view;
 using std::vector;
 
-//KalaWindow will dynamically update window idle state
-static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
-{
-	isIdle =
-		!window->IsForegroundWindow()
-		|| window->IsMinimized()
-		|| !window->IsVisible();
-}
-
 static void ForceClose(
     string&& action,
     string&& reason)
@@ -89,15 +80,12 @@ namespace KalaWindow::Graphics
 		ProcessWindow* parentWindow,
 		DpiContext context)
 	{
-		if (!Window_Global::IsInitialized())
+		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
+        if (!VulkanContext::IsInitialized())
 		{
-			Log::Print(
-				"Failed to create window because global window has not been initialized!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
+			KalaWindowCore::ForceClose(
+                "KalaWindow window error",
+				"Failed to create window because Vulkan has not been initialized!");
 		}
 
 		if (title.empty()
@@ -266,40 +254,78 @@ namespace KalaWindow::Graphics
 			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
 
+        Input::Initialize(windowPtr->ID);
+        VulkanContext::InitializeInstance(windowPtr->ID);
+
 		return windowPtr;
+	}
+
+    void ProcessWindow::Update(
+        const function<void()>& earlyGlobalUpdate,
+        const function<void()>& globalUpdate,
+        const function<void()>& lateGlobalUpdate)
+	{
+		if (earlyGlobalUpdate) earlyGlobalUpdate();
+
+        for (ProcessWindow* pw : registry.GetAllContent())
+        {
+            if (!pw)
+            {
+                KalaWindowCore::ForceClose(
+                    "KalaWindow window error",
+                    "Failed to update a window during window global update because it was invalid!");
+            }
+
+			if (pw->earlyUpdateCallback) pw->earlyUpdateCallback();
+
+			pw->UpdateIdleState();
+
+			MSG msg;
+
+			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			{
+				TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
+				DispatchMessage(&msg);  //send the message to the window procedure
+			}
+
+			if (pw->updateCallback) pw->updateCallback();
+        }
+
+        if (globalUpdate) globalUpdate();
+
+        for (ProcessWindow* pw : registry.GetAllContent())
+        {
+            //ensure each window is still valid after user callback
+            if (!pw)
+            {
+                KalaWindowCore::ForceClose(
+                    "KalaWindow window error",
+                    "Failed to update a window during window global update "
+                    "after user callback because the window was invalid!");
+            }
+
+            u32 inputID = pw->GetInputID();
+            Input* input = Input::GetRegistry().GetContent(inputID);
+            if (!input)
+            {
+                KalaWindowCore::ForceClose(
+                    "KalaWindow window error",
+                    "Failed to update input '" + to_string(inputID) 
+                    + "' under window '" + to_string(pw->GetID()) 
+                    + "' during window global update because the input was invalid!");
+            }
+
+            input->EndFrameUpdate();
+
+			if (pw->lateUpdateCallback) pw->lateUpdateCallback();
+        }
+
+		if (lateGlobalUpdate) lateGlobalUpdate();
 	}
 
 	u32 ProcessWindow::GetID() const { return ID; }
 	u32 ProcessWindow::GetInputID() const { return inputID; }
 	u32 ProcessWindow::GetGraphicsContextID() const { return graphicsContextID; }
-
-	void ProcessWindow::Update()
-	{
-		if (!windowData.window
-			|| !IsWindow(ToVar<HWND>(windowData.window)))
-		{
-			Log::Print(
-				"Destroying window '" + to_string(ID) + "' because its HWND was lost or became invalid!",
-				"KW_WINDOW",
-				LogType::LOG_WARNING);
-
-			Destroy();
-
-			return;
-		}
-
-		UpdateIdleState(
-			this,
-			isIdle);
-
-		MSG msg;
-
-		while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
-		{
-			TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
-			DispatchMessage(&msg);  //send the message to the window procedure
-		}
-	}
 
     void ProcessWindow::SetDraggedFilesCallback(function<void(const vector<path>&, vec2)>&& newValue)
     {
@@ -321,14 +347,13 @@ namespace KalaWindow::Graphics
 
 	string ProcessWindow::GetTitle() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' title",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		int length = GetWindowTextLengthW(window);
 		if (length == 0)
@@ -351,7 +376,8 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetTitle(string&& newTitle) const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' title",
@@ -371,8 +397,6 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
 		wstring wideTitle = ToWide(newTitle);
 
 		SetWindowTextW(
@@ -390,7 +414,8 @@ namespace KalaWindow::Graphics
 
 	void ProcessWindow::BringToFocus()
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"bring window '" + to_string(ID) + "' to focus",
@@ -399,8 +424,6 @@ namespace KalaWindow::Graphics
 
         //skip if already focused
         if (IsFocused()) return;
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		WindowState state = GetWindowState();
 		if (IsMinimized()
@@ -457,14 +480,13 @@ namespace KalaWindow::Graphics
 
 	vec2 ProcessWindow::GetSize() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get" + to_string(ID) + "' size",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		RECT rect{};
 		GetClientRect(window, &rect);
@@ -477,7 +499,8 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetSize(vec2 newSize)
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' size",
@@ -516,8 +539,6 @@ namespace KalaWindow::Graphics
 
 			return;
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		//desired client area
 		RECT rect
@@ -558,14 +579,13 @@ namespace KalaWindow::Graphics
 
 	vec2 ProcessWindow::GetOuterSize() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' outer size",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		RECT rect{};
 		GetWindowRect(window, &rect);
@@ -578,7 +598,8 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetOuterSize(vec2 newSize)
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' outer size",
@@ -617,8 +638,6 @@ namespace KalaWindow::Graphics
 
 			return;
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		SetWindowPos(
 			window,
@@ -745,14 +764,13 @@ namespace KalaWindow::Graphics
 
 	vec2 ProcessWindow::GetPosition()
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' position",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		RECT rect{};
 		if (GetWindowRect(window, &rect))
@@ -768,14 +786,13 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetPosition(vec2 newPosition)
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' position",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		SetWindowPos(
 			window,
@@ -800,14 +817,13 @@ namespace KalaWindow::Graphics
 
 	bool ProcessWindow::IsAlwaysOnTop() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' always on top state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		LONG exStyle = GetWindowLong(
 			window,
@@ -817,14 +833,13 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetAlwaysOnTopState(bool state)
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' always on top state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		SetWindowPos(
 			window,
@@ -849,14 +864,13 @@ namespace KalaWindow::Graphics
 
 	bool ProcessWindow::IsResizable() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' resizable state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		LONG style = GetWindowLong(
 			window,
@@ -868,14 +882,13 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetResizableState(bool state)
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' resizable state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		LONG style = GetWindowLong(window, GWL_STYLE);
 
@@ -925,40 +938,37 @@ namespace KalaWindow::Graphics
 	bool ProcessWindow::IsHovered() const { return isWindowHovered; }
 	bool ProcessWindow::IsForegroundWindow() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' foreground state",
                 "the window handle was invalid!");
 		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
 		return GetForegroundWindow() == window;
 	}
 	bool ProcessWindow::IsFocused() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' focused state",
                 "the window handle was invalid!");
 		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
 		return GetFocus() == window;
 	}
 	bool ProcessWindow::IsFullscreen()
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' fullscreen state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		vec2 pos = GetPosition();
 		vec2 size = GetOuterSize();
@@ -992,28 +1002,26 @@ namespace KalaWindow::Graphics
 	}
 	bool ProcessWindow::IsMinimized() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' minimized state",
                 "the window handle was invalid!");
 		}
 
-		HWND window = ToVar<HWND>(windowData.window);
-
 		//IsIconic returns TRUE if the window is minimized
 		return IsIconic(window);
 	}
 	bool ProcessWindow::IsVisible() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' visible state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		return IsWindowVisible(window);
 	}
@@ -1021,14 +1029,15 @@ namespace KalaWindow::Graphics
 
 	WindowMode ProcessWindow::GetWindowMode()
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' mode",
                 "the window handle was invalid!");
 		}
 
-		auto IsExclusive = [&]() -> bool
+		auto IsExclusive = []() -> bool
 			{
 				DEVMODE current{};
 				current.dmSize = sizeof(current);
@@ -1063,14 +1072,13 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetWindowMode(WindowMode mode)
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' mode",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		string windowModeVal{};
 
@@ -1226,14 +1234,13 @@ namespace KalaWindow::Graphics
 
 	WindowState ProcessWindow::GetWindowState() const
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"get window '" + to_string(ID) + "' state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		WINDOWPLACEMENT placement{};
 		placement.length = sizeof(WINDOWPLACEMENT);
@@ -1261,14 +1268,13 @@ namespace KalaWindow::Graphics
 	}
 	void ProcessWindow::SetWindowState(WindowState state)
 	{
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			ForceClose(
 				"set window '" + to_string(ID) + "' state",
                 "the window handle was invalid!");
 		}
-
-		HWND window = ToVar<HWND>(windowData.window);
 
 		string windowStateVal{};
 
@@ -1317,35 +1323,52 @@ namespace KalaWindow::Graphics
 	}
 
 	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }
-	void ProcessWindow::SetWindowData(WindowData&& newWindowStruct)
+
+    void ProcessWindow::SetEarlyUpdateCallback(function<void()>&& newValue)
     {
-        if (!windowData.window)
-        {
+		if (!newValue)
+		{
 			Log::Print(
-				"Failed to set window '" + to_string(ID) + "' data "
-                "because the window handle was invalid!",
+				"Assigned empty early update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
+		}
 
-			return;
-        }
+		earlyUpdateCallback = std::move(newValue);
+    }
+    void ProcessWindow::SetUpdateCallback(function<void()>&& newValue)
+    {
+		if (!newValue)
+		{
+			Log::Print(
+				"Assigned empty update callback to window '" + to_string(ID) + "'.",
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+		}
 
-        windowData = std::move(newWindowStruct);
+		updateCallback = std::move(newValue);
+    }
+    void ProcessWindow::SetLateUpdateCallback(function<void()>&& newValue)
+    {
+		if (!newValue)
+		{
+			Log::Print(
+				"Assigned late update callback to window '" + to_string(ID) + "'.",
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+		}
+
+		lateUpdateCallback = std::move(newValue);
     }
 
-	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
 	void ProcessWindow::SetResizeCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
 			Log::Print(
-				"Failed to assign window '" + to_string(ID) + "' resize callback because it was empty!",
+				"Assigned empty resize callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+				LogType::LOG_WARNING);
 		}
 
 		resizeCallback = std::move(newValue);
@@ -1356,16 +1379,21 @@ namespace KalaWindow::Graphics
 		if (!newValue)
 		{
 			Log::Print(
-				"Failed to assign window '" + to_string(ID) + "' shutdown callback because it was empty!",
+				"Assigned empty shutdown callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+				LogType::LOG_WARNING);
 		}
 
 		shutdownCallback = std::move(newValue);
 	}
+
+    void ProcessWindow::UpdateIdleState()
+    {
+        isIdle =
+            !IsForegroundWindow()
+            || IsMinimized()
+            || !IsVisible();
+    }
 
 	void ProcessWindow::Destroy()
 	{

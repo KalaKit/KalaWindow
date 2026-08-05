@@ -9,7 +9,6 @@
 #include <X11/Xatom.h>
 #include <X11/Xutil.h>
 #include <X11/X.h>
-#include <climits>
 
 #include <unistd.h>
 #include <memory>
@@ -24,6 +23,7 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_vulkan.hpp"
+#include "core/kw_messageloop_x11.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
@@ -39,6 +39,7 @@ using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::WindowMode;
 using KalaWindow::Graphics::WindowState;
+using KalaWindow::Core::MessageLoop;
 
 using std::make_unique;
 using std::unique_ptr;
@@ -48,15 +49,6 @@ using std::ostringstream;
 using std::clamp;
 
 static int XRESULT{};
-
-//KalaWindow will dynamically update window idle state
-static void UpdateIdleState(ProcessWindow* window, bool& isIdle)
-{
-	isIdle =
-		!window->IsForegroundWindow()
-		|| window->IsMinimized()
-		|| !window->IsVisible();
-}
 
 static void ForceClose(
     string&& action,
@@ -80,15 +72,12 @@ namespace KalaWindow::Graphics
 		ProcessWindow* parentWindow,
 		DpiContext context)
     {
-		if (!Window_Global::IsInitialized())
+		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
+        if (!VulkanContext::IsInitialized())
 		{
-			Log::Print(
-				"Failed to create window because global window has not been initialized!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
+			KalaWindowCore::ForceClose(
+                "KalaWindow window error",
+				"Failed to create window because Vulkan has not been initialized!");
 		}
 
 		if (title.empty()
@@ -361,19 +350,73 @@ namespace KalaWindow::Graphics
 			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
 
+        Input::Initialize(windowPtr->ID);
+        VulkanContext::InitializeInstance(windowPtr->ID);
+
 		return windowPtr;
+    }
+
+    void ProcessWindow::Update(
+        const function<void()>& earlyGlobalUpdate,
+        const function<void()>& globalUpdate,
+        const function<void()>& lateGlobalUpdate)
+	{
+        if (earlyGlobalUpdate) earlyGlobalUpdate();
+
+        //X11 requires a message loop update that is separate from each process window
+        MessageLoop::Update();
+
+        for (ProcessWindow* pw : registry.GetAllContent())
+        {
+            if (!pw)
+            {
+                KalaWindowCore::ForceClose(
+                    "KalaWindow window error",
+                    "Failed to update a window during window global update because it was invalid!");
+            }
+
+            if (pw->earlyUpdateCallback) pw->earlyUpdateCallback();
+
+            pw->UpdateIdleState();
+
+            if (pw->updateCallback) pw->updateCallback();
+        }
+
+        if (globalUpdate) globalUpdate();
+
+        for (ProcessWindow* pw : registry.GetAllContent())
+        {
+            //ensure each window is still valid after user callback
+            if (!pw)
+            {
+                KalaWindowCore::ForceClose(
+                    "KalaWindow window error",
+                    "Failed to update a window during window global update "
+                    "after user callback because the window was invalid!");
+            }
+
+            u32 inputID = pw->GetInputID();
+            Input* input = Input::GetRegistry().GetContent(inputID);
+            if (!input)
+            {
+                KalaWindowCore::ForceClose(
+                    "KalaWindow window error",
+                    "Failed to update input '" + to_string(inputID) 
+                    + "' under window '" + to_string(pw->GetID()) 
+                    + "' during window global update because the input was invalid!");
+            }
+
+            input->EndFrameUpdate();
+
+            if (pw->lateUpdateCallback) pw->lateUpdateCallback();
+        }
+
+        if (lateGlobalUpdate) lateGlobalUpdate();
     }
 
 	u32 ProcessWindow::GetID() const { return ID; }
     u32 ProcessWindow::GetInputID() const { return inputID; }
 	u32 ProcessWindow::GetGraphicsContextID() const { return graphicsContextID; }
-
-    void ProcessWindow::Update()
-	{
-        UpdateIdleState(
-			this,
-			isIdle);
-    }
 
     void ProcessWindow::SetDraggedFilesCallback(function<void(const vector<path>&, vec2)>&& newValue)
     {
@@ -396,12 +439,11 @@ namespace KalaWindow::Graphics
     string ProcessWindow::GetTitle() const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"get window '" + to_string(ID) + "' title",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -472,12 +514,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetTitle(string&& newValue) const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' title",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
 		if (newValue.empty()
@@ -526,12 +567,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::BringToFocus()
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"bring window '" + to_string(ID) + "' to focus",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         //skip if already focused
@@ -573,12 +613,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetSize(vec2 newSize)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' size",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
 		vec2 oldSize = size;
@@ -639,12 +678,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetMaxSize(vec2 newSize)
     { 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' max size",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
 		if (isnear(maxSize, newSize))
@@ -738,12 +776,11 @@ namespace KalaWindow::Graphics
 	void ProcessWindow::SetMinSize(vec2 newSize)
     { 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' min size",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
 		if (isnear(minSize, newSize))
@@ -837,12 +874,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetPosition(vec2 newPosition)
     { 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' pos",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -870,12 +906,11 @@ namespace KalaWindow::Graphics
     bool ProcessWindow::IsAlwaysOnTop() const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"get window '" + to_string(ID) + "' always on top state",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -930,12 +965,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetAlwaysOnTopState(bool state)
     { 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' always on top state",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -986,12 +1020,11 @@ namespace KalaWindow::Graphics
     bool ProcessWindow::IsResizable() const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"get window '" + to_string(ID) + "' resizable state",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -1046,12 +1079,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetResizableState(bool state)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' resizable state",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
         
         Display* display = ToVar<Display*>(globalData.display);
@@ -1106,12 +1138,11 @@ namespace KalaWindow::Graphics
     pair<string, string> ProcessWindow::GetWindowClass() const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"get window '" + to_string(ID) + "' class",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         XClassHint classHint{};
@@ -1148,12 +1179,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetWindowClass(string&& newValue)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' class",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
 		if (newValue.empty()
@@ -1203,12 +1233,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetWindowMode(WindowMode mode)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' mode",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -1288,12 +1317,11 @@ namespace KalaWindow::Graphics
     void ProcessWindow::SetWindowState(WindowState state)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
+        if (!globalData.display)
         {
 			ForceClose(
 				"set window '" + to_string(ID) + "' state",
-                "the display or window handle was invalid!");
+                "the display handle was invalid!");
         }
 
         Display* display = ToVar<Display*>(globalData.display);
@@ -1424,36 +1452,52 @@ namespace KalaWindow::Graphics
     }
 
 	const WindowData& ProcessWindow::GetWindowData() const { return windowData; }
-    void ProcessWindow::SetWindowData(WindowData&& newWindowStruct)
+
+    void ProcessWindow::SetEarlyUpdateCallback(function<void()>&& newValue)
     {
-        if (!windowData.window
-            || !windowData.xic)
-        {
+		if (!newValue)
+		{
 			Log::Print(
-				"Failed to set window '" + to_string(ID) + "' data "
-                "because the window handle or xic was invalid!",
+				"Assigned empty early update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
+		}
 
-			return;
-        }
+		earlyUpdateCallback = std::move(newValue);
+    }
+    void ProcessWindow::SetUpdateCallback(function<void()>&& newValue)
+    {
+		if (!newValue)
+		{
+			Log::Print(
+				"Assigned empty update callback to window '" + to_string(ID) + "'.",
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+		}
 
-        windowData = std::move(newWindowStruct);
+		updateCallback = std::move(newValue);
+    }
+    void ProcessWindow::SetLateUpdateCallback(function<void()>&& newValue)
+    {
+		if (!newValue)
+		{
+			Log::Print(
+				"Assigned late update callback to window '" + to_string(ID) + "'.",
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+		}
+
+		lateUpdateCallback = std::move(newValue);
     }
 
-	void ProcessWindow::ResizeCallback() { if (resizeCallback) resizeCallback(); }
 	void ProcessWindow::SetResizeCallback(function<void()>&& newValue)
 	{
 		if (!newValue)
 		{
 			Log::Print(
-				"Failed to assign window '" + to_string(ID) + "' resize callback because it was empty!",
+				"Assigned empty resize callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+				LogType::LOG_WARNING);
 		}
 
 		resizeCallback = std::move(newValue);
@@ -1464,16 +1508,21 @@ namespace KalaWindow::Graphics
 		if (!newValue)
 		{
 			Log::Print(
-				"Failed to assign window '" + to_string(ID) + "' shutdown callback because it was empty!",
+				"Assigned empty shutdown callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
+				LogType::LOG_WARNING);
 		}
 
 		shutdownCallback = std::move(newValue);
 	}
+
+    void ProcessWindow::UpdateIdleState()
+    {
+        isIdle =
+            !IsForegroundWindow()
+            || IsMinimized()
+            || !IsVisible();
+    }
     
     void ProcessWindow::UpdateFullscreenAndMinimizedState()
     {

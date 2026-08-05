@@ -73,17 +73,6 @@ namespace KalaWindow::Core
 			return nullptr;
 		}
 
-		if (w->GetInputID() != 0)
-		{
-			Log::Print(
-				"Failed to initialize input because window '" + to_string(w->GetID()) + "' already has an existing input!",
-				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
 		//
 		// MOUSE RAW INPUT
 		//
@@ -92,7 +81,8 @@ namespace KalaWindow::Core
 #ifdef _WIN32
 		const WindowData& windowData = w->GetWindowData();
 
-		if (!windowData.window)
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
         {
 			Log::Print(
 				"Failed to initialize raw input for input "
@@ -101,13 +91,11 @@ namespace KalaWindow::Core
 			return nullptr;
         }
 
-		HWND winRef = ToVar<HWND>(windowData.window);
-
 		RAWINPUTDEVICE rid{};
 		rid.usUsagePage = 0x01;
 		rid.usUsage = 0x02;
 		rid.dwFlags = RIDEV_INPUTSINK;
-		rid.hwndTarget = winRef;
+		rid.hwndTarget = window;
 
 		RegisterRawInputDevices(&rid, 1, sizeof(rid));
 #endif

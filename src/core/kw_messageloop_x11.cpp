@@ -189,798 +189,888 @@ namespace KalaWindow::Core
             XEvent event{};
             XNextEvent(display, &event);
 
-            DispatchEvents(event);
-        }
-    }
+            const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::GetAllContent();
 
-    void MessageLoop::DispatchEvents(XEvent& event)
-    {
-        const X11GlobalData& globalData = Window_Global::GetGlobalData();
+            Display* display = ToVar<Display*>(globalData.display);
 
-        const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::GetAllContent();
-
-        Display* display = ToVar<Display*>(globalData.display);
-
-        if (event.type == GenericEvent)
-        {
-            XRESULT = XGetEventData(display, &event.xcookie);
-
-            if (event.xcookie.extension != globalData.xiOpcode
-                || XRESULT != SUCCESS_XGETEVENTDATA)
+            if (event.type == GenericEvent)
             {
-                //TODO: do something here?
+                XRESULT = XGetEventData(display, &event.xcookie);
+
+                if (event.xcookie.extension != globalData.xiOpcode
+                    || XRESULT != SUCCESS_XGETEVENTDATA)
+                {
+                    //TODO: do something here?
+
+                    return;
+                }
+
+                if (event.xcookie.evtype == XI_RawMotion)
+                {
+                    XIRawEvent* raw = rcast<XIRawEvent*>(event.xcookie.data);
+
+                    f64* values = raw->raw_values;
+                    int i = 0;
+
+                    f64 dx{};
+                    f64 dy{};
+
+                    if (XIMaskIsSet(raw->valuators.mask, 0)) dx = values[i++];
+                    if (XIMaskIsSet(raw->valuators.mask, 1)) dy = values[i++];
+
+                    for (const auto& w : activeWindows)
+                    {
+                        if (!w) continue;
+
+                        u32 windowID = w->GetID();
+
+                        vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+                        Input* input = inputs.empty() ? nullptr : inputs.front();
+
+                        if (!input) continue;
+
+                        vec2 delta = input->GetRawMouseDelta();
+                        delta.x += (f32)dx;
+                        delta.y += (f32)dy;
+                        input->SetRawMouseDelta(delta);
+
+                        if (Input::IsVerboseLoggingEnabled())
+                        {
+                            Log::Print(
+                            "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
+                            "KW_MESSAGE_LOOP",
+                            LogType::LOG_VERBOSE);
+                        }
+                    }
+                }
+
+                XFreeEventData(display, &event.xcookie);
 
                 return;
             }
 
-            if (event.xcookie.evtype == XI_RawMotion)
+            Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
+            Atom atom_net_wm_state = ToVar<Atom>(globalData.atom_net_wm_state);
+
+            Window target = event.xany.window;
+
+            for (const auto& w : activeWindows)
             {
-                XIRawEvent* raw = rcast<XIRawEvent*>(event.xcookie.data);
-
-                f64* values = raw->raw_values;
-                int i = 0;
-
-                f64 dx{};
-                f64 dy{};
-
-                if (XIMaskIsSet(raw->valuators.mask, 0)) dx = values[i++];
-                if (XIMaskIsSet(raw->valuators.mask, 1)) dy = values[i++];
-
-                for (const auto& w : activeWindows)
+                if (!w)
                 {
-                    if (!w) continue;
-
-                    u32 windowID = w->GetID();
-
-                    vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
-                    Input* input = inputs.empty() ? nullptr : inputs.front();
-
-                    if (!input) continue;
-
-                    vec2 delta = input->GetRawMouseDelta();
-                    delta.x += (f32)dx;
-                    delta.y += (f32)dy;
-                    input->SetRawMouseDelta(delta);
-
-                    if (Input::IsVerboseLoggingEnabled())
-                    {
-                        Log::Print(
-                        "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
-                        "KW_MESSAGE_LOOP",
-                        LogType::LOG_VERBOSE);
-                    }
-                }
-            }
-
-            XFreeEventData(display, &event.xcookie);
-
-            return;
-        }
-
-        Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
-        Atom atom_net_wm_state = ToVar<Atom>(globalData.atom_net_wm_state);
-
-        Window target = event.xany.window;
-
-        for (const auto& w : activeWindows)
-        {
-            if (!w)
-            {
-				KalaWindowCore::ForceClose(
-					"KalaWindow message loop error",
-					"Failed to update message loop because a window was invalid!");
-            }
-
-            const WindowData& wdata = w->GetWindowData();
-
-			if (!wdata.window)
-			{
-				KalaWindowCore::ForceClose(
-					"KalaWindow message loop error",
-					"Failed to update message loop because the window handle was invalid!");
-			}
-
-            Window window = ToVar<Window>(wdata.window);
-
-            if (target != window) continue;
-
-            u32 windowID = w->GetID();
-            vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
-            Input* input = inputs.empty() ? nullptr : inputs.front();
-
-            if (!input) continue;
-
-            XIC xic = ToVar<XIC>(wdata.xic);
-
-            switch (event.type)
-            {
-                case ConfigureNotify:
-                {
-                    w->pos = vec2(event.xconfigure.x, event.xconfigure.y);
-                    w->size = kclamp(
-                        vec2(event.xconfigure.width, event.xconfigure.height),
-                        w->minSize,
-                        w->maxSize);
-
-                    Atom netFrameExtents = ToVar<Atom>(globalData.atom_net_frame_extents);
-                    
-                    Atom actualType{};
-                    int actualFormat{};
-                    unsigned long nItems{}, bytesAfter{};
-                    unsigned long* extents{};
-
-                    XRESULT = XGetWindowProperty(
-                        display,
-                        window,
-                        netFrameExtents,
-                        0, 4, False,
-                        XA_CARDINAL,
-                        &actualType, &actualFormat,
-                        &nItems,
-                        &bytesAfter,
-                        (unsigned char**)&extents);
-
-                    if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
-                    {
-                        Log::Print(
-                            "Failed to update window '" + to_string(w->GetID()) 
-                            + "' position and size because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_ERROR,
-                            2);
-                    }
-
-                    if (!extents)
-                    {
-                        Log::Print(
-                            "Failed to update window '" + to_string(w->GetID()) 
-                            + "' position and size because extents failed!",
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_ERROR,
-                            2);
-                    }
-                    else
-                    {
-                        w->outerSize = vec2(
-                            w->size.x + extents[0] + extents[1],
-                            w->size.y + extents[2] + extents[3]);
-                        XFree(extents);
-                    }
-
-                    w->ResizeCallback();
-
-                    break;
+                    KalaWindowCore::ForceClose(
+                        "KalaWindow message loop error",
+                        "Failed to update message loop because a window was invalid!");
                 }
 
-                case SelectionNotify:
-                {
-                    Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
-                    Atom xDndFinished = ToVar<Atom>(globalData.atom_xDndFinished);
-                    Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
+                const WindowData& wdata = w->GetWindowData();
 
-                    if (event.xselection.property != None
-                        && event.xselection.selection == xDndSelection)
+                if (!wdata.window)
+                {
+                    KalaWindowCore::ForceClose(
+                        "KalaWindow message loop error",
+                        "Failed to update message loop because the window handle was invalid!");
+                }
+
+                Window window = ToVar<Window>(wdata.window);
+
+                if (target != window) continue;
+
+                u32 windowID = w->GetID();
+                vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+                Input* input = inputs.empty() ? nullptr : inputs.front();
+
+                if (!input) continue;
+
+                XIC xic = ToVar<XIC>(wdata.xic);
+
+                switch (event.type)
+                {
+                    case ConfigureNotify:
                     {
+                        w->pos = vec2(event.xconfigure.x, event.xconfigure.y);
+                        w->size = kclamp(
+                            vec2(event.xconfigure.width, event.xconfigure.height),
+                            w->minSize,
+                            w->maxSize);
+
+                        Atom netFrameExtents = ToVar<Atom>(globalData.atom_net_frame_extents);
+                        
                         Atom actualType{};
-                        int format{};
+                        int actualFormat{};
                         unsigned long nItems{}, bytesAfter{};
-                        unsigned char* data{};
+                        unsigned long* extents{};
 
                         XRESULT = XGetWindowProperty(
                             display,
                             window,
-                            xDndSelection,
-                            0,
-                            LONG_MAX,
-                            True,
-                            AnyPropertyType,
-                            &actualType,
-                            &format,
+                            netFrameExtents,
+                            0, 4, False,
+                            XA_CARDINAL,
+                            &actualType, &actualFormat,
                             &nItems,
                             &bytesAfter,
-                            &data);
+                            (unsigned char**)&extents);
 
-                        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY
-                            || !data
-                            || format != 8)
+                        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
                         {
-                            if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
-                            {
-                                Log::Print(
-                                    "Failed to read dropped file paths because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_ERROR,
-                                    2);
-                            }
-                            else if (!data)
-                            {
-                                Log::Print(
-                                    "Failed to read dropped file paths because the received data was invalid!",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_ERROR,
-                                    2);
-                            }
-                            else
-                            {
-                                Log::Print(
-                                    "Failed to read dropped file paths because the format '" + to_string(format) + "' was invalid!",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_ERROR,
-                                    2);
-                            }
+                            Log::Print(
+                                "Failed to update window '" + to_string(w->GetID()) 
+                                + "' position and size because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_ERROR,
+                                2);
+                        }
+
+                        if (!extents)
+                        {
+                            Log::Print(
+                                "Failed to update window '" + to_string(w->GetID()) 
+                                + "' position and size because extents failed!",
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_ERROR,
+                                2);
                         }
                         else
                         {
-                            string uris(rcast<char*>(data), nItems);
-                            vector<path> filePaths{};
+                            w->outerSize = vec2(
+                                w->size.x + extents[0] + extents[1],
+                                w->size.y + extents[2] + extents[3]);
+                            XFree(extents);
+                        }
 
-                            stringstream ss(uris);
-                            string line{};
-                            while (getline(ss, line))
+                        if (w->resizeCallback) w->resizeCallback();
+
+                        break;
+                    }
+
+                    case SelectionNotify:
+                    {
+                        Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
+                        Atom xDndFinished = ToVar<Atom>(globalData.atom_xDndFinished);
+                        Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
+
+                        if (event.xselection.property != None
+                            && event.xselection.selection == xDndSelection)
+                        {
+                            Atom actualType{};
+                            int format{};
+                            unsigned long nItems{}, bytesAfter{};
+                            unsigned char* data{};
+
+                            XRESULT = XGetWindowProperty(
+                                display,
+                                window,
+                                xDndSelection,
+                                0,
+                                LONG_MAX,
+                                True,
+                                AnyPropertyType,
+                                &actualType,
+                                &format,
+                                &nItems,
+                                &bytesAfter,
+                                &data);
+
+                            if (XRESULT != SUCCESS_XGETWINDOWPROPERTY
+                                || !data
+                                || format != 8)
                             {
-                                if (line.starts_with("file://"))
+                                if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
                                 {
-                                    string path = line.substr(7);
-                                    string decoded{};
-                                    for (size_t i = 0; i < path.size(); ++i)
-                                    {
-                                        if (path[i] == '%'
-                                            && i + 2 < path.size())
-                                        {
-                                            char hex[3] = { path[i + 1], path[i + 2], '\0' };
-                                            decoded += scast<char>(strtol(hex, nullptr, 16));
-                                            i += 2;
-                                        }
-                                        else decoded += path[i];
-                                    }
-                                    filePaths.push_back(decoded);
+                                    Log::Print(
+                                        "Failed to read dropped file paths because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_ERROR,
+                                        2);
+                                }
+                                else if (!data)
+                                {
+                                    Log::Print(
+                                        "Failed to read dropped file paths because the received data was invalid!",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_ERROR,
+                                        2);
+                                }
+                                else
+                                {
+                                    Log::Print(
+                                        "Failed to read dropped file paths because the format '" + to_string(format) + "' was invalid!",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_ERROR,
+                                        2);
                                 }
                             }
+                            else
+                            {
+                                string uris(rcast<char*>(data), nItems);
+                                vector<path> filePaths{};
 
-                            w->lastDraggedFiles = std::move(filePaths);
+                                stringstream ss(uris);
+                                string line{};
+                                while (getline(ss, line))
+                                {
+                                    if (line.starts_with("file://"))
+                                    {
+                                        string path = line.substr(7);
+                                        string decoded{};
+                                        for (size_t i = 0; i < path.size(); ++i)
+                                        {
+                                            if (path[i] == '%'
+                                                && i + 2 < path.size())
+                                            {
+                                                char hex[3] = { path[i + 1], path[i + 2], '\0' };
+                                                decoded += scast<char>(strtol(hex, nullptr, 16));
+                                                i += 2;
+                                            }
+                                            else decoded += path[i];
+                                        }
+                                        filePaths.push_back(decoded);
+                                    }
+                                }
 
-                            //reply to the source window where the file drag operation started from
-                            Window source = ToVar<Window>(w->currentDndSource);
+                                w->lastDraggedFiles = std::move(filePaths);
 
-                            XEvent finished{};
-                            finished.xclient.type = ClientMessage;
-                            finished.xclient.display = display;
-                            finished.xclient.window = source;
-                            finished.xclient.message_type = xDndFinished;
-                            finished.xclient.format = 32;
-                            finished.xclient.data.l[0] = window;
-                            finished.xclient.data.l[1] = 1;
-                            finished.xclient.data.l[2] = xDndActionCopy;
+                                //reply to the source window where the file drag operation started from
+                                Window source = ToVar<Window>(w->currentDndSource);
+
+                                XEvent finished{};
+                                finished.xclient.type = ClientMessage;
+                                finished.xclient.display = display;
+                                finished.xclient.window = source;
+                                finished.xclient.message_type = xDndFinished;
+                                finished.xclient.format = 32;
+                                finished.xclient.data.l[0] = window;
+                                finished.xclient.data.l[1] = 1;
+                                finished.xclient.data.l[2] = xDndActionCopy;
+
+                                XRESULT = XSendEvent(
+                                    display,
+                                    source,
+                                    False,
+                                    NoEventMask,
+                                    &finished);
+
+                                if (XRESULT != SUCCESS_XSENDEVENT)
+                                {
+                                    Log::Print(
+                                        "Failed to handle SelectionNotify and xDndSelection because XSendEvent failed! "
+                                        "Result code: " + to_string(XRESULT),
+                                        "KW_WINDOW_GLOBAL",
+                                        LogType::LOG_ERROR,
+                                        2);
+                                }
+
+                                if (Window_Global::IsVerboseLoggingEnabled())
+                                {
+                                    for (const path& file : w->lastDraggedFiles)
+                                    {
+                                        Log::Print(
+                                            "File '" + file.string() + "' was dragged to window '" + to_string(w->GetID()) + "'",
+                                            "KW_MESSAGE_LOOP",
+                                            LogType::LOG_VERBOSE);
+                                    }
+                                }
+
+                                if (w->draggedFilesCallback)
+                                {
+                                    w->draggedFilesCallback(w->lastDraggedFiles, w->draggedFilesPos);
+                                }
+
+                                XFlush(display);
+                            }
+
+                            if (data) XFree(data);
+                        }
+
+                        break;
+                    }
+                    case SelectionRequest: break;
+                    case Expose: break;
+
+                    case ClientMessage:
+                    {
+                        if (Window_Global::IsVerboseLoggingEnabled())
+                        {
+                            char* name = XGetAtomName(
+                                display,
+                                event.xclient.message_type);
+
+                            Log::Print(
+                                "Received client message '" + 
+                                to_string(event.xclient.message_type) + "' (" + (name ? name : "unknown") + ")'.", 
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_VERBOSE);
+
+                            if (name) XFree(name);
+                        }
+
+                        if ((Atom)event.xclient.data.l[0] == atom_wm_delete)
+                        {
+                            w->Destroy();
+                            continue;
+                        }
+
+                        Atom xDndEnter = ToVar<Atom>(globalData.atom_xDndEnter);
+                        Atom xDndPosition = ToVar<Atom>(globalData.atom_xDndPosition);
+                        Atom xDndDrop = ToVar<Atom>(globalData.atom_xDndDrop);
+
+                        if (event.xclient.message_type == xDndEnter)
+                        {
+                            w->currentDndSource = FromVar(event.xclient.data.l[0]);
+
+                            continue;
+                        }
+                        if (event.xclient.message_type == xDndPosition)
+                        {
+                            Atom xDndStatus = ToVar<Atom>(globalData.atom_xDndStatus);
+                            Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
+
+                            Window source = event.xclient.data.l[0];
+
+                            i32 rootX = (i32)(event.xclient.data.l[2] >> 16);
+                            i32 rootY = (i32)(event.xclient.data.l[2] & 0xFFFF);
+
+                            i32 winX{}, winY{};
+
+                            Window dummy{};
+                            XTranslateCoordinates(
+                                display,
+                                DefaultRootWindow(display),
+                                window,
+                                rootX,
+                                rootY,
+                                &winX,
+                                &winY,
+                                &dummy);
+
+                            w->draggedFilesPos = vec2(f32(winX), f32(winY));
+
+                            if (Window_Global::IsVerboseLoggingEnabled())
+                            {
+                                Log::Print(
+                                    "XDndPosition at window coords: " 
+                                    + to_string(w->draggedFilesPos.x) + ", " 
+                                    + to_string(w->draggedFilesPos.y),
+                                    "KW_MESSAGE_LOOP",
+                                    LogType::LOG_VERBOSE);
+                            }
+
+                            XEvent reply{};
+                            reply.xclient.type = ClientMessage;
+                            reply.xclient.display = display;
+                            reply.xclient.window = source;
+                            reply.xclient.message_type = xDndStatus;
+                            reply.xclient.format = 32;
+                            reply.xclient.data.l[0] = window;
+                            reply.xclient.data.l[1] = 1;              //accept flag
+                            reply.xclient.data.l[2] = 0;              //bounding box left (0 = no rect)
+                            reply.xclient.data.l[3] = 0;              //bounding box top (0 = no rect)
+                            reply.xclient.data.l[4] = xDndActionCopy; //preferred action
 
                             XRESULT = XSendEvent(
                                 display,
                                 source,
                                 False,
                                 NoEventMask,
-                                &finished);
+                                &reply);
 
                             if (XRESULT != SUCCESS_XSENDEVENT)
                             {
                                 Log::Print(
-                                    "Failed to handle SelectionNotify and xDndSelection because XSendEvent failed! "
+                                    "Failed to handle ClientMessage and xDndPosition because XSendEvent failed! "
                                     "Result code: " + to_string(XRESULT),
                                     "KW_WINDOW_GLOBAL",
                                     LogType::LOG_ERROR,
                                     2);
                             }
 
-                            if (Window_Global::IsVerboseLoggingEnabled())
-                            {
-                                for (const path& file : w->lastDraggedFiles)
-                                {
-                                    Log::Print(
-                                        "File '" + file.string() + "' was dragged to window '" + to_string(w->GetID()) + "'",
-                                        "KW_MESSAGE_LOOP",
-                                        LogType::LOG_VERBOSE);
-                                }
-                            }
+                            XFlush(display);
 
-                            if (w->draggedFilesCallback)
-                            {
-                                w->draggedFilesCallback(w->lastDraggedFiles, w->draggedFilesPos);
-                            }
+                            continue;
+                        }
+                        if (event.xclient.message_type == xDndDrop)
+                        {
+                            Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
+                            Atom textUri = ToVar<Atom>(globalData.atom_textUri);
+
+                            w->currentDndSource = FromVar(event.xclient.data.l[0]);
+
+                            XConvertSelection(
+                                display,
+                                xDndSelection,
+                                textUri,
+                                xDndSelection,
+                                window,
+                                CurrentTime);
 
                             XFlush(display);
+
+                            continue;
                         }
 
-                        if (data) XFree(data);
+                        break;
+                    }
+                    case DestroyNotify: break;
+
+                    case PropertyNotify:
+                    {
+                        if (event.xproperty.atom == atom_net_wm_state
+                            && event.xproperty.state == PropertyNewValue)
+                        {
+                            w->UpdateFullscreenAndMinimizedState();
+                        }
+
+                        break;
                     }
 
-                    break;
-                }
-                case SelectionRequest: break;
-                case Expose: break;
-
-                case ClientMessage:
-                {
-                    if (Window_Global::IsVerboseLoggingEnabled())
+                    case FocusIn:
                     {
-                        char* name = XGetAtomName(
-                            display,
-                            event.xclient.message_type);
+                        w->isFocused = true;
+                        if (xic) XSetICFocus(xic);
 
-                        Log::Print(
-                            "Received client message '" + 
-                            to_string(event.xclient.message_type) + "' (" + (name ? name : "unknown") + ")'.", 
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_VERBOSE);
+                        break;
+                    }
+                    case FocusOut:
+                    {
+                        w->isFocused = false;
+                        if (xic) XUnsetICFocus(xic);
 
-                        if (name) XFree(name);
+                        break;
                     }
 
-                    if ((Atom)event.xclient.data.l[0] == atom_wm_delete)
-                    {
-                        w->Destroy();
-                        continue;
+                    case MapNotify:
+                    {   
+                        w->isVisible = true;
+
+                        break;
+                    }
+                    case UnmapNotify:
+                    {   
+                        w->isVisible = false;
+
+                        break;
                     }
 
-                    Atom xDndEnter = ToVar<Atom>(globalData.atom_xDndEnter);
-                    Atom xDndPosition = ToVar<Atom>(globalData.atom_xDndPosition);
-                    Atom xDndDrop = ToVar<Atom>(globalData.atom_xDndDrop);
-
-                    if (event.xclient.message_type == xDndEnter)
+                    case EnterNotify:
                     {
-                        w->currentDndSource = FromVar(event.xclient.data.l[0]);
+                        w->isWindowHovered = true;
 
-                        continue;
+                        break;
                     }
-                    if (event.xclient.message_type == xDndPosition)
+                    case LeaveNotify:
                     {
-                        Atom xDndStatus = ToVar<Atom>(globalData.atom_xDndStatus);
-                        Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
+                        w->isWindowHovered = false;
+                        
+                        break;
+                    }
 
-                        Window source = event.xclient.data.l[0];
+                    case KeyPress:
+                    {
+                        KeySym ks{};
+                        char buffer[32]{};
+                        int status{};
 
-                        i32 rootX = (i32)(event.xclient.data.l[2] >> 16);
-                        i32 rootY = (i32)(event.xclient.data.l[2] & 0xFFFF);
+                        int len = Xutf8LookupString(
+                            xic,
+                            &event.xkey,
+                            buffer,
+                            sizeof(buffer),
+                            &ks,
+                            &status);
 
-                        i32 winX{}, winY{};
+                        KeyboardButton key = TranslateKeySym(ks);
 
-                        Window dummy{};
-                        XTranslateCoordinates(
-                            display,
-                            DefaultRootWindow(display),
-                            window,
-                            rootX,
-                            rootY,
-                            &winX,
-                            &winY,
-                            &dummy);
-
-                        w->draggedFilesPos = vec2(f32(winX), f32(winY));
-
-                        if (Window_Global::IsVerboseLoggingEnabled())
+                        if (Input::IsVerboseLoggingEnabled())
                         {
                             Log::Print(
-                                "XDndPosition at window coords: " 
-                                + to_string(w->draggedFilesPos.x) + ", " 
-                                + to_string(w->draggedFilesPos.y),
+                                "Detected keyboard key '" + TranslateKeySymToString(ks) + "' down.",
                                 "KW_MESSAGE_LOOP",
                                 LogType::LOG_VERBOSE);
                         }
 
-                        XEvent reply{};
-                        reply.xclient.type = ClientMessage;
-                        reply.xclient.display = display;
-                        reply.xclient.window = source;
-                        reply.xclient.message_type = xDndStatus;
-                        reply.xclient.format = 32;
-                        reply.xclient.data.l[0] = window;
-                        reply.xclient.data.l[1] = 1;              //accept flag
-                        reply.xclient.data.l[2] = 0;              //bounding box left (0 = no rect)
-                        reply.xclient.data.l[3] = 0;              //bounding box top (0 = no rect)
-                        reply.xclient.data.l[4] = xDndActionCopy; //preferred action
-
-                        XRESULT = XSendEvent(
-                            display,
-                            source,
-                            False,
-                            NoEventMask,
-                            &reply);
-
-                        if (XRESULT != SUCCESS_XSENDEVENT)
+                        if (input)
                         {
-                            Log::Print(
-                                "Failed to handle ClientMessage and xDndPosition because XSendEvent failed! "
-                                "Result code: " + to_string(XRESULT),
-                                "KW_WINDOW_GLOBAL",
-                                LogType::LOG_ERROR,
-                                2);
-                        }
-
-                        XFlush(display);
-
-                        continue;
-                    }
-                    if (event.xclient.message_type == xDndDrop)
-                    {
-                        Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
-                        Atom textUri = ToVar<Atom>(globalData.atom_textUri);
-
-                        w->currentDndSource = FromVar(event.xclient.data.l[0]);
-
-                        XConvertSelection(
-                            display,
-                            xDndSelection,
-                            textUri,
-                            xDndSelection,
-                            window,
-                            CurrentTime);
-
-                        XFlush(display);
-
-                        continue;
-                    }
-
-                    break;
-                }
-                case DestroyNotify: break;
-
-                case PropertyNotify:
-                {
-                    if (event.xproperty.atom == atom_net_wm_state
-                        && event.xproperty.state == PropertyNewValue)
-                    {
-                        w->UpdateFullscreenAndMinimizedState();
-                    }
-
-                    break;
-                }
-
-                case FocusIn:
-                {
-                    w->isFocused = true;
-                    if (xic) XSetICFocus(xic);
-
-                    break;
-                }
-                case FocusOut:
-                {
-                    w->isFocused = false;
-                    if (xic) XUnsetICFocus(xic);
-
-                    break;
-                }
-
-                case MapNotify:
-                {   
-                    w->isVisible = true;
-
-                    break;
-                }
-                case UnmapNotify:
-                {   
-                    w->isVisible = false;
-
-                    break;
-                }
-
-                case EnterNotify:
-                {
-                    w->isWindowHovered = true;
-
-                    break;
-                }
-                case LeaveNotify:
-                {
-                    w->isWindowHovered = false;
-                    
-                    break;
-                }
-
-                case KeyPress:
-                {
-                    KeySym ks{};
-                    char buffer[32]{};
-                    int status{};
-
-                    int len = Xutf8LookupString(
-                        xic,
-                        &event.xkey,
-                        buffer,
-                        sizeof(buffer),
-                        &ks,
-                        &status);
-
-                    KeyboardButton key = TranslateKeySym(ks);
-
-                    if (Input::IsVerboseLoggingEnabled())
-                    {
-                        Log::Print(
-                            "Detected keyboard key '" + TranslateKeySymToString(ks) + "' down.",
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_VERBOSE);
-                    }
-
-                    if (input)
-                    {
-                        input->SetKeyState(
-                            key, 
-                            true);
-
-                        switch (ks)
-                        {
-                            case XK_BackSpace:
-                                if (removeFromBackCallback) removeFromBackCallback();
-                                break;
-                            case XK_Tab:
-                                if (addTabCallback) addTabCallback();
-                                break;
-                            case XK_Return:
-                                if (addNewlineCallback) addNewlineCallback();
-                                break;
-                        }
-                    }
-
-                    //utf16 text for typing
-                    if (len > 0
-                        && addCharCallback)
-                    {
-                        const unsigned char* ptr = (unsigned char*)buffer;
-
-                        while (ptr < (unsigned char*)buffer + len)
-                        {
-                            u32 codePoint{};
-
-                            if (*ptr < 0x80) codePoint = *ptr++;
-                            else if ((*ptr & 0xE0) == 0xC0)
-                            {
-                                codePoint = (*ptr++ & 0x1F) << 6;
-                                codePoint |= (*ptr++ & 0x3F);
-                            }
-                            else if ((*ptr & 0xF0) == 0xE0)
-                            {
-                                codePoint = (*ptr++ & 0x0F) << 12;
-                                codePoint |= (*ptr++ & 0x3F) << 6;
-                                codePoint |= (*ptr++ & 0x3F);
-                            }
-                            else if ((*ptr & 0xF8) == 0xF0)
-                            {
-                                codePoint = (*ptr++ & 0x07) << 18;
-                                codePoint |= (*ptr++ & 0x3F) << 12;
-                                codePoint |= (*ptr++ & 0x3F) << 6;
-                                codePoint |= (*ptr++ & 0x3F);
-                            }
-
-                            addCharCallback(codePoint);
-                        }
-                    }
-
-                    break;
-                }
-                case KeyRelease:
-                {
-                    //detect key auto-repeat
-                    if (XEventsQueued(display, QueuedAfterReading))
-                    {
-                        XEvent next{};
-                        XPeekEvent(display, &next);
-
-                        if (next.type == KeyPress
-                            && next.xkey.time == event.xkey.time
-                            && next.xkey.keycode == event.xkey.keycode)
-                        {
-                            break;
-                        }
-                    }
-
-                    KeySym ks{};
-                    char buffer[8];
-
-                    XLookupString(
-                        &event.xkey,
-                        buffer,
-                        sizeof(buffer),
-                        &ks,
-                        nullptr);
-
-                    KeyboardButton key = TranslateKeySym(ks);
-
-                    if (Input::IsVerboseLoggingEnabled())
-                    {
-                        Log::Print(
-                            "Detected keyboard key '" + TranslateKeySymToString(ks) + "' up.",
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_VERBOSE);
-                    }
-
-                    if (input)
-                    {
-                        input->SetKeyState(
-                            key, 
-                            false);
-                    }
-
-                    break;
-                }
-
-                case ButtonPress:
-                {
-                    if (!input) break;
-
-                    u32 btn = event.xbutton.button;
-                    u32 time = event.xbutton.time;
-
-                    bool doubleClick{};
-
-                    if (btn <= 7)
-                    {
-                        if (time - lastClickTime[btn] <= DOUBLE_CLICK_TIME) doubleClick = true;
-
-                        lastClickTime[btn] = time;
-                    }
-
-                    switch (btn)
-                    {
-                        case Button1:
-                        {
-                            input->SetMouseButtonState(
-                                MouseButton::M_LEFT, 
+                            input->SetKeyState(
+                                key, 
                                 true);
 
-                            if (Input::IsVerboseLoggingEnabled())
+                            switch (ks)
                             {
-                                Log::Print(
-                                    "Detected left mouse key down.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
+                                case XK_BackSpace:
+                                    if (removeFromBackCallback) removeFromBackCallback();
+                                    break;
+                                case XK_Tab:
+                                    if (addTabCallback) addTabCallback();
+                                    break;
+                                case XK_Return:
+                                    if (addNewlineCallback) addNewlineCallback();
+                                    break;
                             }
+                        }
 
-                            if (doubleClick)
+                        //utf16 text for typing
+                        if (len > 0
+                            && addCharCallback)
+                        {
+                            const unsigned char* ptr = (unsigned char*)buffer;
+
+                            while (ptr < (unsigned char*)buffer + len)
                             {
-                                input->SetMouseButtonDoubleClickState(
+                                u32 codePoint{};
+
+                                if (*ptr < 0x80) codePoint = *ptr++;
+                                else if ((*ptr & 0xE0) == 0xC0)
+                                {
+                                    codePoint = (*ptr++ & 0x1F) << 6;
+                                    codePoint |= (*ptr++ & 0x3F);
+                                }
+                                else if ((*ptr & 0xF0) == 0xE0)
+                                {
+                                    codePoint = (*ptr++ & 0x0F) << 12;
+                                    codePoint |= (*ptr++ & 0x3F) << 6;
+                                    codePoint |= (*ptr++ & 0x3F);
+                                }
+                                else if ((*ptr & 0xF8) == 0xF0)
+                                {
+                                    codePoint = (*ptr++ & 0x07) << 18;
+                                    codePoint |= (*ptr++ & 0x3F) << 12;
+                                    codePoint |= (*ptr++ & 0x3F) << 6;
+                                    codePoint |= (*ptr++ & 0x3F);
+                                }
+
+                                addCharCallback(codePoint);
+                            }
+                        }
+
+                        break;
+                    }
+                    case KeyRelease:
+                    {
+                        //detect key auto-repeat
+                        if (XEventsQueued(display, QueuedAfterReading))
+                        {
+                            XEvent next{};
+                            XPeekEvent(display, &next);
+
+                            if (next.type == KeyPress
+                                && next.xkey.time == event.xkey.time
+                                && next.xkey.keycode == event.xkey.keycode)
+                            {
+                                break;
+                            }
+                        }
+
+                        KeySym ks{};
+                        char buffer[8];
+
+                        XLookupString(
+                            &event.xkey,
+                            buffer,
+                            sizeof(buffer),
+                            &ks,
+                            nullptr);
+
+                        KeyboardButton key = TranslateKeySym(ks);
+
+                        if (Input::IsVerboseLoggingEnabled())
+                        {
+                            Log::Print(
+                                "Detected keyboard key '" + TranslateKeySymToString(ks) + "' up.",
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_VERBOSE);
+                        }
+
+                        if (input)
+                        {
+                            input->SetKeyState(
+                                key, 
+                                false);
+                        }
+
+                        break;
+                    }
+
+                    case ButtonPress:
+                    {
+                        if (!input) break;
+
+                        u32 btn = event.xbutton.button;
+                        u32 time = event.xbutton.time;
+
+                        bool doubleClick{};
+
+                        if (btn <= 7)
+                        {
+                            if (time - lastClickTime[btn] <= DOUBLE_CLICK_TIME) doubleClick = true;
+
+                            lastClickTime[btn] = time;
+                        }
+
+                        switch (btn)
+                        {
+                            case Button1:
+                            {
+                                input->SetMouseButtonState(
                                     MouseButton::M_LEFT, 
                                     true);
 
                                 if (Input::IsVerboseLoggingEnabled())
                                 {
                                     Log::Print(
-                                        "Detected left mouse key double click.",
+                                        "Detected left mouse key down.",
                                         "KW_MESSAGE_LOOP",
                                         LogType::LOG_VERBOSE);
                                 }
+
+                                if (doubleClick)
+                                {
+                                    input->SetMouseButtonDoubleClickState(
+                                        MouseButton::M_LEFT, 
+                                        true);
+
+                                    if (Input::IsVerboseLoggingEnabled())
+                                    {
+                                        Log::Print(
+                                            "Detected left mouse key double click.",
+                                            "KW_MESSAGE_LOOP",
+                                            LogType::LOG_VERBOSE);
+                                    }
+                                }
+
+                                break;
                             }
-
-                            break;
-                        }
-                        case Button3:
-                        {
-                            input->SetMouseButtonState(
-                                MouseButton::M_RIGHT, 
-                                true);
-
-                            if (Input::IsVerboseLoggingEnabled())
+                            case Button3:
                             {
-                                Log::Print(
-                                    "Detected right mouse key down.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
-                            }
-
-                            if (doubleClick)
-                            {
-                                input->SetMouseButtonDoubleClickState(
+                                input->SetMouseButtonState(
                                     MouseButton::M_RIGHT, 
                                     true);
 
                                 if (Input::IsVerboseLoggingEnabled())
                                 {
                                     Log::Print(
-                                        "Detected right mouse key double click.",
+                                        "Detected right mouse key down.",
                                         "KW_MESSAGE_LOOP",
                                         LogType::LOG_VERBOSE);
                                 }
+
+                                if (doubleClick)
+                                {
+                                    input->SetMouseButtonDoubleClickState(
+                                        MouseButton::M_RIGHT, 
+                                        true);
+
+                                    if (Input::IsVerboseLoggingEnabled())
+                                    {
+                                        Log::Print(
+                                            "Detected right mouse key double click.",
+                                            "KW_MESSAGE_LOOP",
+                                            LogType::LOG_VERBOSE);
+                                    }
+                                }
+
+                                break;
                             }
-
-                            break;
-                        }
-                        case Button2:
-                        {
-                            input->SetMouseButtonState(
-                                MouseButton::M_MIDDLE, 
-                                true);
-
-                            if (Input::IsVerboseLoggingEnabled())
+                            case Button2:
                             {
-                                Log::Print(
-                                    "Detected middle mouse key down.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
-                            }
-
-                            if (doubleClick)
-                            {
-                                input->SetMouseButtonDoubleClickState(
+                                input->SetMouseButtonState(
                                     MouseButton::M_MIDDLE, 
                                     true);
 
                                 if (Input::IsVerboseLoggingEnabled())
                                 {
                                     Log::Print(
-                                        "Detected middle mouse key double click.",
+                                        "Detected middle mouse key down.",
                                         "KW_MESSAGE_LOOP",
                                         LogType::LOG_VERBOSE);
                                 }
-                            }
 
-                            break;
-                        }
-
-                        case Button4:
-                        {
-                            input->SetScrollwheelDelta(+1.0f);
-                            break;
-                        }
-                        case Button5:
-                        {
-                            input->SetScrollwheelDelta(-1.0f);
-                            break;
-                        }
-
-                        default:
-                        {
-                            if (btn >= 8)
-                            {
-                                u32 extra = btn - 8;
-
-                                if (extra == 0)
+                                if (doubleClick)
                                 {
-                                    input->SetMouseButtonState(
-                                        MouseButton::M_X1, 
+                                    input->SetMouseButtonDoubleClickState(
+                                        MouseButton::M_MIDDLE, 
                                         true);
 
                                     if (Input::IsVerboseLoggingEnabled())
                                     {
                                         Log::Print(
-                                            "Detected x1 mouse key down.",
+                                            "Detected middle mouse key double click.",
                                             "KW_MESSAGE_LOOP",
                                             LogType::LOG_VERBOSE);
                                     }
+                                }
 
-                                    if (doubleClick)
+                                break;
+                            }
+
+                            case Button4:
+                            {
+                                input->SetScrollwheelDelta(+1.0f);
+                                break;
+                            }
+                            case Button5:
+                            {
+                                input->SetScrollwheelDelta(-1.0f);
+                                break;
+                            }
+
+                            default:
+                            {
+                                if (btn >= 8)
+                                {
+                                    u32 extra = btn - 8;
+
+                                    if (extra == 0)
                                     {
-                                        input->SetMouseButtonDoubleClickState(
+                                        input->SetMouseButtonState(
                                             MouseButton::M_X1, 
                                             true);
 
                                         if (Input::IsVerboseLoggingEnabled())
                                         {
                                             Log::Print(
-                                                "Detected x1 mouse key double click.",
+                                                "Detected x1 mouse key down.",
                                                 "KW_MESSAGE_LOOP",
                                                 LogType::LOG_VERBOSE);
                                         }
-                                    }
-                                }
-                                else if (extra == 1)
-                                {
-                                    input->SetMouseButtonState(
-                                        MouseButton::M_X2, 
-                                        true);
 
-                                    if (Input::IsVerboseLoggingEnabled())
-                                    {
-                                        Log::Print(
-                                            "Detected x2 mouse key down.",
-                                            "KW_MESSAGE_LOOP",
-                                            LogType::LOG_VERBOSE);
-                                    }
+                                        if (doubleClick)
+                                        {
+                                            input->SetMouseButtonDoubleClickState(
+                                                MouseButton::M_X1, 
+                                                true);
 
-                                    if (doubleClick)
+                                            if (Input::IsVerboseLoggingEnabled())
+                                            {
+                                                Log::Print(
+                                                    "Detected x1 mouse key double click.",
+                                                    "KW_MESSAGE_LOOP",
+                                                    LogType::LOG_VERBOSE);
+                                            }
+                                        }
+                                    }
+                                    else if (extra == 1)
                                     {
-                                        input->SetMouseButtonDoubleClickState(
+                                        input->SetMouseButtonState(
                                             MouseButton::M_X2, 
                                             true);
 
                                         if (Input::IsVerboseLoggingEnabled())
                                         {
                                             Log::Print(
-                                                "Detected x2 mouse key double click.",
+                                                "Detected x2 mouse key down.",
+                                                "KW_MESSAGE_LOOP",
+                                                LogType::LOG_VERBOSE);
+                                        }
+
+                                        if (doubleClick)
+                                        {
+                                            input->SetMouseButtonDoubleClickState(
+                                                MouseButton::M_X2, 
+                                                true);
+
+                                            if (Input::IsVerboseLoggingEnabled())
+                                            {
+                                                Log::Print(
+                                                    "Detected x2 mouse key double click.",
+                                                    "KW_MESSAGE_LOOP",
+                                                    LogType::LOG_VERBOSE);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        break;
+                    }
+                    case ButtonRelease:
+                    {
+                        if (!input) break;
+
+                        u32 btn = event.xbutton.button;
+
+                        switch (btn)
+                        {
+                            case Button1:
+                            {
+                                input->SetMouseButtonState(
+                                    MouseButton::M_LEFT, 
+                                    false);
+
+                                if (Input::IsVerboseLoggingEnabled())
+                                {
+                                    Log::Print(
+                                        "Detected left mouse key up.",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_VERBOSE);
+                                }
+
+                                break;
+                            }
+                            case Button3:
+                            {
+                                input->SetMouseButtonState(
+                                    MouseButton::M_RIGHT, 
+                                    false);
+
+                                if (Input::IsVerboseLoggingEnabled())
+                                {
+                                    Log::Print(
+                                        "Detected right mouse key up.",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_VERBOSE);
+                                }
+
+                                break;
+                            }
+                            case Button2:
+                            {
+                                input->SetMouseButtonState(
+                                    MouseButton::M_MIDDLE, 
+                                    false);
+
+                                if (Input::IsVerboseLoggingEnabled())
+                                {
+                                    Log::Print(
+                                        "Detected middle mouse key up.",
+                                        "KW_MESSAGE_LOOP",
+                                        LogType::LOG_VERBOSE);
+                                }
+
+                                break;
+                            }
+
+                            default:
+                            {
+                                if (btn >= 8)
+                                {
+                                    u32 extra = btn - 8;
+
+                                    if (extra == 0)
+                                    {
+                                        input->SetMouseButtonState(
+                                            MouseButton::M_X1, 
+                                            false);
+
+                                        if (Input::IsVerboseLoggingEnabled())
+                                        {
+                                            Log::Print(
+                                                "Detected x1 mouse key up.",
+                                                "KW_MESSAGE_LOOP",
+                                                LogType::LOG_VERBOSE);
+                                        }
+                                    }
+                                    else if (extra == 1)
+                                    {
+                                        input->SetMouseButtonState(
+                                            MouseButton::M_X2, 
+                                            false);
+
+                                        if (Input::IsVerboseLoggingEnabled())
+                                        {
+                                            Log::Print(
+                                                "Detected x2 mouse key up.",
                                                 "KW_MESSAGE_LOOP",
                                                 LogType::LOG_VERBOSE);
                                         }
@@ -988,144 +1078,47 @@ namespace KalaWindow::Core
                                 }
                             }
                         }
+
+                        break;
                     }
 
-                    break;
-                }
-                case ButtonRelease:
-                {
-                    if (!input) break;
-
-                    u32 btn = event.xbutton.button;
-
-                    switch (btn)
+                    case MotionNotify:
                     {
-                        case Button1:
+                        vec2 newPos =
                         {
-                            input->SetMouseButtonState(
-                                MouseButton::M_LEFT, 
-                                false);
-
-                            if (Input::IsVerboseLoggingEnabled())
-                            {
-                                Log::Print(
-                                    "Detected left mouse key up.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
-                            }
-
-                            break;
-                        }
-                        case Button3:
-                        {
-                            input->SetMouseButtonState(
-                                MouseButton::M_RIGHT, 
-                                false);
-
-                            if (Input::IsVerboseLoggingEnabled())
-                            {
-                                Log::Print(
-                                    "Detected right mouse key up.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
-                            }
-
-                            break;
-                        }
-                        case Button2:
-                        {
-                            input->SetMouseButtonState(
-                                MouseButton::M_MIDDLE, 
-                                false);
-
-                            if (Input::IsVerboseLoggingEnabled())
-                            {
-                                Log::Print(
-                                    "Detected middle mouse key up.",
-                                    "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
-                            }
-
-                            break;
-                        }
-
-                        default:
-                        {
-                            if (btn >= 8)
-                            {
-                                u32 extra = btn - 8;
-
-                                if (extra == 0)
-                                {
-                                    input->SetMouseButtonState(
-                                        MouseButton::M_X1, 
-                                        false);
-
-                                    if (Input::IsVerboseLoggingEnabled())
-                                    {
-                                        Log::Print(
-                                            "Detected x1 mouse key up.",
-                                            "KW_MESSAGE_LOOP",
-                                            LogType::LOG_VERBOSE);
-                                    }
-                                }
-                                else if (extra == 1)
-                                {
-                                    input->SetMouseButtonState(
-                                        MouseButton::M_X2, 
-                                        false);
-
-                                    if (Input::IsVerboseLoggingEnabled())
-                                    {
-                                        Log::Print(
-                                            "Detected x2 mouse key up.",
-                                            "KW_MESSAGE_LOOP",
-                                            LogType::LOG_VERBOSE);
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    break;
-                }
-
-                case MotionNotify:
-                {
-                    vec2 newPos =
-                    {
-                        f32(event.xmotion.x),
-                        f32(event.xmotion.y)
-                    };
-
-                    if (input)
-                    {
-                        //get the old position before updating
-                        vec2 oldPos = input->GetMousePosition();
-
-                        vec2 delta =
-                        {
-                            newPos.x - oldPos.x,
-                            newPos.y - oldPos.y
+                            f32(event.xmotion.x),
+                            f32(event.xmotion.y)
                         };
 
-                        input->SetMousePosition(newPos);
-                        input->SetMouseDelta(delta);
-
-                        if (Input::IsVerboseLoggingEnabled())
+                        if (input)
                         {
-                            Log::Print(
-                                "Mouse delta: " + to_string(delta.x) + ", " + to_string(delta.y),
-                                "KW_MESSAGE_LOOP",
-                                LogType::LOG_VERBOSE);
+                            //get the old position before updating
+                            vec2 oldPos = input->GetMousePosition();
+
+                            vec2 delta =
+                            {
+                                newPos.x - oldPos.x,
+                                newPos.y - oldPos.y
+                            };
+
+                            input->SetMousePosition(newPos);
+                            input->SetMouseDelta(delta);
+
+                            if (Input::IsVerboseLoggingEnabled())
+                            {
+                                Log::Print(
+                                    "Mouse delta: " + to_string(delta.x) + ", " + to_string(delta.y),
+                                    "KW_MESSAGE_LOOP",
+                                    LogType::LOG_VERBOSE);
+                            }
                         }
+
+                        break;
                     }
-
-                    break;
                 }
-            }
 
-            break;
+                break;
+            }
         }
     }
 }

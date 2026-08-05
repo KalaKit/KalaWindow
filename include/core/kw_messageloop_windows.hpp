@@ -12,6 +12,12 @@
 
 #include "core_utils.hpp"
 
+namespace KalaWindow::Graphics
+{
+	class ProcessWindow;
+	class Window_Global;
+}
+
 namespace KalaWindow::Core
 {
 	using std::function;
@@ -20,17 +26,19 @@ namespace KalaWindow::Core
 
 	class LIB_API MessageLoop
 	{
+	friend class KalaWindow::Graphics::ProcessWindow;
+	friend class KalaWindow::Graphics::Window_Global;
 	public:
+        static void SetAddCharCallback(function<void(u32)>&& newCallback);
+		static void SetRemoveFromBackCallback(function<void()>&& newCallback);
+		static void SetAddTabCallback(function<void()>&& newCallback);
+		static void SetAddNewLineCallback(function<void()>&& newCallback);
+	private:
 		static LRESULT CALLBACK WindowProcCallback(
 			HWND hwnd,
 			UINT msg,
 			WPARAM wParam,
 			LPARAM lParam);
-
-        static void SetAddCharCallback(function<void(u32)>&& newCallback);
-		static void SetRemoveFromBackCallback(function<void()>&& newCallback);
-		static void SetAddTabCallback(function<void()>&& newCallback);
-		static void SetAddNewLineCallback(function<void()>&& newCallback);
 	};
 }
 

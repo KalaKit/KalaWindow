@@ -163,30 +163,8 @@ namespace KalaWindow::Graphics
         return instance;
     }
 
-	void VulkanContext::InitializeGlobal(vector<string>&& extensions)
+	void VulkanContext::Initialize(vector<string>&& extensions)
     {
-		if (isInitialized)
-		{
-			Log::Print(
-				"Failed to initialize global Vulkan because it is already initialized!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (!Window_Global::IsInitialized())
-		{
-			Log::Print(
-				"Failed to initialize global Vulkan because global window manager has not been initialized!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
         u32 version{};
 
 #ifdef KDEBUG
@@ -312,19 +290,8 @@ namespace KalaWindow::Graphics
     }
     bool VulkanContext::IsInitialized() { return isInitialized; }
 
-	VulkanContext* VulkanContext::Initialize(u32 windowID)
+	VulkanContext* VulkanContext::InitializeInstance(u32 windowID)
 	{
-		if (!VulkanContext::IsInitialized())
-		{
-			Log::Print(
-				"Failed to initialize Vulkan context because global Vulkan has not yet been initialized!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
 		if (!w)
 		{
@@ -337,19 +304,9 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-		if (w->GetGraphicsContextID() != 0)
-		{
-			Log::Print(
-				"Failed to add Vulkan context to window '" + to_string(w->GetID()) + "' because it already has an existing context!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
-		const WindowData& wData = w->GetWindowData();
-		if (!wData.window)
+		const WindowData& windowData = w->GetWindowData();
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
 		{
 			Log::Print(
 				"Failed to initialize Vulkan context because "
@@ -361,12 +318,11 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-        HWND hwnd = ToVar<HWND>(wData.window);
-        HINSTANCE hInstance = ToVar<HINSTANCE>(wData.hInstance);
+        HINSTANCE hInstance = ToVar<HINSTANCE>(windowData.hInstance);
 
         VkWin32SurfaceCreateInfoKHR info{};
         info.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-        info.hwnd = hwnd;
+        info.hwnd = window;
         info.hinstance = hInstance;
 
         VkSurfaceKHR surface{};

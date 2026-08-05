@@ -13,6 +13,11 @@
 
 #include "core_utils.hpp"
 
+namespace KalaWindow::Graphics
+{
+    class ProcessWindow;
+}
+
 namespace KalaWindow::Core
 {
     using std::function;
@@ -21,16 +26,14 @@ namespace KalaWindow::Core
 
     class LIB_API MessageLoop
     {
+    friend class KalaWindow::Graphics::ProcessWindow;
     public:
-        //Updates the global X11 event loop once per call
-        static void Update();
-
         static void SetAddCharCallback(function<void(u32)>&& newCallback);
 		static void SetRemoveFromBackCallback(function<void()>&& newCallback);
 		static void SetAddTabCallback(function<void()>&& newCallback);
 		static void SetAddNewLineCallback(function<void()>&& newCallback);
     private:
-        static void DispatchEvents(XEvent& event);
+        static void Update();
     };
 }
 

@@ -170,30 +170,8 @@ namespace KalaWindow::Graphics
         return instance;
     }
 
-	void VulkanContext::InitializeGlobal(vector<string>&& extensions)
+	void VulkanContext::Initialize(vector<string>&& extensions)
     {
-		if (isInitialized)
-		{
-			Log::Print(
-				"Failed to initialize global Vulkan because it is already initialized!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
-		if (!Window_Global::IsInitialized())
-		{
-			Log::Print(
-				"Failed to initialize global Vulkan because global window manager has not been initialized!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-
         u32 version{};
 
         if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
@@ -314,36 +292,13 @@ namespace KalaWindow::Graphics
     }
     bool VulkanContext::IsInitialized() { return isInitialized; }
 
-	VulkanContext* VulkanContext::Initialize(u32 windowID)
+	VulkanContext* VulkanContext::InitializeInstance(u32 windowID)
 	{
-		if (!VulkanContext::IsInitialized())
-		{
-			Log::Print(
-				"Failed to initialize Vulkan context because global Vulkan has not yet been initialized!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
 		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-
 		if (!w)
 		{
 			Log::Print(
 				"Failed to initialize Vulkan context because it's window was invalid!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-
-		if (w->GetGraphicsContextID() != 0)
-		{
-			Log::Print(
-				"Failed to add Vulkan context to window '" + to_string(w->GetID()) + "' because it already has an existing context!",
 				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);

@@ -16,6 +16,11 @@
 
 #include "core/kw_registry.hpp"
 
+namespace KalaWindow::Graphics
+{
+	class ProcessWindow;
+}
+
 namespace KalaWindow::Core
 {
 	using std::array;
@@ -40,6 +45,7 @@ namespace KalaWindow::Core
 
 	class LIB_API Input
 	{
+	friend class KalaWindow::Graphics::ProcessWindow;
 	public:
 		static KalaWindowRegistry<Input>& GetRegistry();
 
@@ -47,8 +53,6 @@ namespace KalaWindow::Core
 		//key, mouse update messages will dump their logs into the console.
 		static bool IsVerboseLoggingEnabled();
 		static void SetVerboseLoggingState(bool newState);
-
-		static Input* Initialize(u32 windowID);
 
 		u32 GetID() const;
 		u32 GetWindowID() const;
@@ -151,13 +155,13 @@ namespace KalaWindow::Core
 		//used internally to "forget" any mouse and keyboard events if window is unfocused
 		void ClearInputEvents();
 
-		//Call at end of frame to reset pressed/released states
-		void EndFrameUpdate();
-
 		void Destroy();
 
 		~Input();
 	private:
+		static Input* Initialize(u32 windowID);
+		void EndFrameUpdate();
+
 		u32 ID{};
 		u32 windowID{};
 
