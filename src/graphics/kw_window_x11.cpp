@@ -403,7 +403,7 @@ namespace KalaWindow::Graphics
                     "KalaWindow window error",
                     "Failed to update input '" + to_string(inputID) 
                     + "' under window '" + to_string(pw->GetID()) 
-                    + "' during window global update because the input was invalid!");
+                    + "' during window global update because its input '" + to_string(inputID) + "' was invalid!");
             }
 
             input->EndFrameUpdate();
