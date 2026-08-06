@@ -33,18 +33,18 @@ buildtype: minsizerel
 buildpath: "${dir_release}windows"
 defines: ${def_win}
 
-#profile debug-win-on-linux
+#profile debug-windows-gnu
 targettype: windows-gnu
 binaryname: ${name_bin}-gnud
 buildtype: debug
-buildpath: "${dir_debug}win-on-linux"
+buildpath: "${dir_debug}windows-gnu"
 defines: ${def_win}
 
-#profile release-win-on-linux
+#profile release-windows-gnu
 targettype: windows-gnu
 binaryname: ${name_bin}-gnu
 buildtype: minsizerel
-buildpath: "${dir_release}win-on-linux"
+buildpath: "${dir_release}windows-gnu"
 defines: ${def_win}
 
 #profile debug-linux

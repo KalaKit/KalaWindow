@@ -14,10 +14,10 @@ case "$1" in
         LIB_EXT=a
         LIB_ORIGIN=linux
         ;;
-    --win-on-linux)
+    --windows-gnu)
         LIB_NAME=kalawindow-gnu
         LIB_EXT=lib
-        LIB_ORIGIN=win-on-linux
+        LIB_ORIGIN=windows-gnu
         ;;
     --windows)
         LIB_NAME=kalawindow
@@ -25,7 +25,7 @@ case "$1" in
         LIB_ORIGIN=windows
         ;;
     *)
-        echo "Error: Argument must be --linux, --win-on-linux or --windows" >&2
+        echo "Error: Argument must be --linux, --windows-gnu or --windows" >&2
         exit 1
         ;;
 esac
