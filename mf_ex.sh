@@ -66,7 +66,7 @@ mf --f "${DOCS}" --t "${OUT_DIR}"
 
 # The binary
 if [ ! -f "${LIB_ORIGIN}/${LIB_NAME}.${LIB_EXT}" ]; then
-    printf 'Error: KalaWindow binary %s not found\n' "${LIB_ORIGIN}/${LIB_NAME}.${LIB_EXT}" >&2
+    printf 'Error: Binary %s not found\n' "${LIB_ORIGIN}/${LIB_NAME}.${LIB_EXT}" >&2
     exit 1
 fi
 
