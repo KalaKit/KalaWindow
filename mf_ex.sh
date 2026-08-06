@@ -76,7 +76,4 @@ mf --f "${LIB_ORIGIN}/${LIB_NAME}.${LIB_EXT}" --t "${OUT_DIR}/${LIB_NAME}.${LIB_
 mf --f "${IN_KH}/${README}" --t "${OUT_DIR}/${OUT_KH_NAME}/${README}"
 mf --f "${IN_KH}/${LICENSE}" --t "${OUT_DIR}/${OUT_KH_NAME}/${LICENSE}"
 
-for file in "${IN_KH}/include"/*; do
-    name="${file##*/}"
-    mf --f "$file" --t "${OUT_DIR}/${OUT_KH_NAME}/$name"
-done
+mf --f "${IN_KH}/include" --t "${OUT_DIR}/${OUT_KH_NAME}"
