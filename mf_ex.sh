@@ -1,0 +1,82 @@
+#!/bin/sh
+
+# Move file for use with mf, read more at https://github.com/greeenlaser/personal-stash/tree/main/mf
+
+set -e
+
+#
+# References
+#
+
+case "$1" in
+    --linux)
+        OUT_NAME=KalaWindow-Linux
+
+        LIB_NAME=libkalawindow
+        LIB_EXT=a
+        LIB_ORIGIN=build/release-linux
+        ;;
+    --win-on-linux)
+        OUT_NAME=KalaWindow-Win-on-Linux
+
+        LIB_NAME=kalawindow-gnu
+        LIB_EXT=lib
+        LIB_ORIGIN=build/release-win-on-linux
+        ;;
+    --windows)
+        OUT_NAME=KalaWindow-Windows
+
+        LIB_NAME=kalawindow
+        LIB_EXT=
+        LIB_ORIGIN=build/release-windows
+        ;;
+    *)
+        echo "Error: Argument must be --linux, --win-on-linux or --windows" >&2
+        exit 1
+        ;;
+esac
+
+OUT_VER=1-1-0
+OUT_DIR=out/${OUT_NAME}-${OUT_VER}
+
+README=README.md
+LICENSE=LICENSE.md
+INCLUDE=include
+DOCS=docs
+
+DIR_ES=../external-shared
+IN_KH=${DIR_ES}/KalaHeaders
+OUT_KH_NAME=kalaheaders
+
+#
+# Core stuff
+#
+
+# Always a fresh start
+mkdir -p "out"
+rm -rf "${OUT_DIR}"
+mkdir "${OUT_DIR}"
+mkdir "${OUT_DIR}/${OUT_KH_NAME}"
+
+# The base files
+mf --f "${README}" --t "${OUT_DIR}/${README}"
+mf --f "${LICENSE}" --t "${OUT_DIR}/${LICENSE}"
+mf --f "${INCLUDE}" --t "${OUT_DIR}"
+mf --f "${DOCS}" --t "${OUT_DIR}"
+
+# The binary
+if [ ! -f "${LIB_ORIGIN}/${LIB_NAME}.${LIB_EXT}" ]; then
+    printf 'Error: KalaWindow binary %s not found\n' "${LIB_ORIGIN}/${LIB_NAME}.${LIB_EXT}" >&2
+    exit 1
+fi
+
+mf --f "${LIB_ORIGIN}/${LIB_NAME}.${LIB_EXT}" --t "${OUT_DIR}/${LIB_NAME}.${LIB_EXT}"
+
+# KalaHeaders
+mf --f "${IN_KH}/${README}" --t "${OUT_DIR}/${OUT_KH_NAME}/${README}"
+mf --f "${IN_KH}/${LICENSE}" --t "${OUT_DIR}/${OUT_KH_NAME}/${LICENSE}"
+
+for file in "${IN_KH}/include"/*; do
+    name="${file##*/}"
+    mf --f "$file" --t "${OUT_DIR}/${OUT_KH_NAME}/$name"
+done
