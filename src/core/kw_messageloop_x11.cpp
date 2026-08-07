@@ -229,10 +229,8 @@ namespace KalaWindow::Core
 
                         if (!input) continue;
 
-                        vec2 delta = input->GetRawMouseDelta();
-                        delta.x += (f32)dx;
-                        delta.y += (f32)dy;
-                        input->rawMouseDelta = delta;
+                        input->rawMouseDelta.x += (f32)dx;
+                        input->rawMouseDelta.y += (f32)dy;
 
                         if (Input::IsVerboseLoggingEnabled())
                         {
