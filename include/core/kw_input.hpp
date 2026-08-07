@@ -46,6 +46,7 @@ namespace KalaWindow::Core
 	class LIB_API Input
 	{
 	friend class KalaWindow::Graphics::ProcessWindow;
+	friend class MessageLoop;
 	public:
 		static KalaWindowRegistry<Input>& GetRegistry();
 
@@ -59,17 +60,6 @@ namespace KalaWindow::Core
 
 		//Get the letter that was typed this frame
 		const string& GetTypedLetter() const;
-		void SetTypedLetter(string_view letter);
-
-		void SetKeyState(
-			KeyboardButton key,
-			bool isDown);
-		void SetMouseButtonState(
-			MouseButton mouseButton,
-			bool isDown);
-		void SetMouseButtonDoubleClickState(
-			MouseButton mouseButton,
-			bool isDown);
 		
 		//Get the keys currently pressed this frame
 		vector<KeyboardButton> GetPressedKeys();
@@ -116,19 +106,12 @@ namespace KalaWindow::Core
 
 		//Get current mouse position in window coordinates
 		vec2 GetMousePosition() const;
-		void SetMousePosition(vec2 newMousePos);
-
 		//Get mouse delta movement since last frame
 		vec2 GetMouseDelta();
-		void SetMouseDelta(vec2 newMouseDelta);
-
 		//Get mouse raw delta movement since last frame
 		vec2 GetRawMouseDelta();
-		void SetRawMouseDelta(vec2 newRawMouseDelta);
-
 		//Get vertical scroll wheel delta (-1 to +1)
 		f32 GetScrollwheelDelta() const;
-		void SetScrollwheelDelta(f32 delta);
 
 		//Return true if cursor is not hidden.
 		bool IsMouseVisible() const;
@@ -160,6 +143,19 @@ namespace KalaWindow::Core
 		~Input();
 	private:
 		static Input* Initialize(u32 windowID);
+
+		void SetTypedLetter(string_view letter);
+
+		void SetKeyState(
+			KeyboardButton key,
+			bool isDown);
+		void SetMouseButtonState(
+			MouseButton mouseButton,
+			bool isDown);
+		void SetMouseButtonDoubleClickState(
+			MouseButton mouseButton,
+			bool isDown);
+
 		void EndFrameUpdate();
 
 		u32 ID{};

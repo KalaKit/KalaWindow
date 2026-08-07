@@ -505,8 +505,8 @@ namespace KalaWindow::Core
 							newPos.y - oldPos.y
 						};
 
-						input->SetMousePosition(newPos);
-						input->SetMouseDelta(delta);
+						input->mousePos = newPos;
+						input->mouseDelta = delta;
 
 						if (!window->isWindowHovered)
 						{
@@ -554,7 +554,7 @@ namespace KalaWindow::Core
 					if (delta > 0) scroll = +1.0f;
 					else if (delta < 0) scroll = -1.0f;
 
-					if (input) input->SetScrollwheelDelta(scroll);
+					if (input) input->mouseWheelDelta = scroll;
 
 					return DefWindowProc(
 						msg.hwnd,
@@ -950,12 +950,8 @@ namespace KalaWindow::Core
 					if (mouse.usFlags == MOUSE_MOVE_RELATIVE
 						&& input)
 					{
-						vec2 newMouseRawDelta = input->GetRawMouseDelta();
-
-						newMouseRawDelta.x += mouse.lLastX;
-						newMouseRawDelta.y += mouse.lLastY;
-
-						input->SetRawMouseDelta(newMouseRawDelta);
+						input->rawMouseDelta.x += (f32)mouse.lLastX;
+						input->rawMouseDelta.y += (f32)mouse.lLastY;
 					}
 
 					return DefWindowProc(

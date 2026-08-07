@@ -125,57 +125,6 @@ namespace KalaWindow::Core
 	u32 Input::GetWindowID() const { return windowID; }
 
 	const string& Input::GetTypedLetter() const { return lastLetter; }
-	void Input::SetTypedLetter(string_view letter) { lastLetter = letter; }
-
-	void Input::SetKeyState(
-		KeyboardButton key,
-		bool isDown)
-	{
-		size_t index = KeyToIndex(key);
-		if (index == MAXSIZE_T) return;
-
-		if (isDown
-			&& !keyDown[index])
-		{
-			keyPressed[index] = true;
-		}
-		if (!isDown
-			&& keyDown[index])
-		{
-			keyReleased[index] = true;
-		}
-
-		keyDown[index] = isDown;
-	}
-	void Input::SetMouseButtonState(
-		MouseButton mouseButton,
-		bool isDown)
-	{
-		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return;
-
-		if (isDown
-			&& !mouseDown[index])
-		{
-			mousePressed[index] = true;
-		}
-		if (!isDown
-			&& mouseDown[index])
-		{
-			mouseReleased[index] = true;
-		}
-
-		mouseDown[index] = isDown;
-	}
-	void Input::SetMouseButtonDoubleClickState(
-		MouseButton mouseButton,
-		bool isDown)
-	{
-		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return;
-
-		mouseDoubleClicked[index] = isDown;
-	}
 
 	vector<KeyboardButton> Input::GetPressedKeys()
 	{
@@ -507,8 +456,6 @@ namespace KalaWindow::Core
 	}
 
 	vec2 Input::GetMousePosition() const { return mousePos; }
-	void Input::SetMousePosition(vec2 newMousePos) { mousePos = newMousePos; }
-
 	vec2 Input::GetMouseDelta()
 	{
 		vec2 currMouseDelta = mouseDelta;
@@ -518,8 +465,6 @@ namespace KalaWindow::Core
 
 		return currMouseDelta;
 	}
-	void Input::SetMouseDelta(vec2 newMouseDelta) { mouseDelta = newMouseDelta; }
-
 	vec2 Input::GetRawMouseDelta()
 	{
 		vec2 currMouseDelta = rawMouseDelta;
@@ -529,10 +474,7 @@ namespace KalaWindow::Core
 
 		return currMouseDelta;
 	}
-	void Input::SetRawMouseDelta(vec2 newRawMouseDelta) { rawMouseDelta = newRawMouseDelta; }
-
 	f32 Input::GetScrollwheelDelta() const { return mouseWheelDelta; }
-	void Input::SetScrollwheelDelta(f32 delta) { mouseWheelDelta = delta; }
 
 	bool Input::IsMouseVisible() const { return isMouseVisible; }
 	void Input::SetMouseVisibility(
@@ -707,6 +649,58 @@ namespace KalaWindow::Core
 			mouseDelta = { 0, 0 };
 			rawMouseDelta = { 0, 0 };
 		}
+	}
+
+	void Input::SetTypedLetter(string_view letter) { lastLetter = letter; }
+
+	void Input::SetKeyState(
+		KeyboardButton key,
+		bool isDown)
+	{
+		size_t index = KeyToIndex(key);
+		if (index == MAXSIZE_T) return;
+
+		if (isDown
+			&& !keyDown[index])
+		{
+			keyPressed[index] = true;
+		}
+		if (!isDown
+			&& keyDown[index])
+		{
+			keyReleased[index] = true;
+		}
+
+		keyDown[index] = isDown;
+	}
+	void Input::SetMouseButtonState(
+		MouseButton mouseButton,
+		bool isDown)
+	{
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return;
+
+		if (isDown
+			&& !mouseDown[index])
+		{
+			mousePressed[index] = true;
+		}
+		if (!isDown
+			&& mouseDown[index])
+		{
+			mouseReleased[index] = true;
+		}
+
+		mouseDown[index] = isDown;
+	}
+	void Input::SetMouseButtonDoubleClickState(
+		MouseButton mouseButton,
+		bool isDown)
+	{
+		size_t index = MouseToIndex(mouseButton);
+		if (index == MAXSIZE_T) return;
+
+		mouseDoubleClicked[index] = isDown;
 	}
 
 	void Input::EndFrameUpdate()

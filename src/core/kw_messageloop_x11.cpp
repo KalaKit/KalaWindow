@@ -232,7 +232,7 @@ namespace KalaWindow::Core
                         vec2 delta = input->GetRawMouseDelta();
                         delta.x += (f32)dx;
                         delta.y += (f32)dy;
-                        input->SetRawMouseDelta(delta);
+                        input->rawMouseDelta = delta;
 
                         if (Input::IsVerboseLoggingEnabled())
                         {
@@ -905,12 +905,12 @@ namespace KalaWindow::Core
 
                             case Button4:
                             {
-                                input->SetScrollwheelDelta(+1.0f);
+                                input->mouseWheelDelta += 1.0f;
                                 break;
                             }
                             case Button5:
                             {
-                                input->SetScrollwheelDelta(-1.0f);
+                                input->mouseWheelDelta -= 1.0f;
                                 break;
                             }
 
@@ -1101,8 +1101,8 @@ namespace KalaWindow::Core
                                 newPos.y - oldPos.y
                             };
 
-                            input->SetMousePosition(newPos);
-                            input->SetMouseDelta(delta);
+                            input->mousePos = newPos;
+                            input->mouseDelta = delta;
 
                             if (Input::IsVerboseLoggingEnabled())
                             {
