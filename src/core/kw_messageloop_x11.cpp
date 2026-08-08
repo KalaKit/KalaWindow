@@ -320,16 +320,7 @@ namespace KalaWindow::Core
                                 2);
                         }
 
-                        if (!extents)
-                        {
-                            Log::Print(
-                                "Failed to update window '" + to_string(w->GetID()) 
-                                + "' position and size because extents failed!",
-                                "KW_MESSAGE_LOOP",
-                                LogType::LOG_ERROR,
-                                2);
-                        }
-                        else
+                        if (extents)
                         {
                             w->outerSize = vec2(
                                 w->size.x + extents[0] + extents[1],
