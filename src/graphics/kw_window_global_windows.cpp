@@ -396,8 +396,8 @@ namespace KalaWindow::Graphics
 
 		int result = MessageBoxW(
 			nullptr,
-			ToWide(finalMessage).c_str(),
 			ToWide(finalTitle).c_str(),
+			ToWide(finalMessage).c_str(),
 			flags);
 
 		switch (result)
