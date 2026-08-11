@@ -705,16 +705,12 @@ namespace KalaWindow::Graphics
 
         XSizeHints hints{};
         long supplied{};
-        XRESULT = XGetWMNormalHints(
+
+        XGetWMNormalHints(
             display,
             window,
             &hints,
             &supplied);
-
-        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
-        {
-            hints = {};
-        }
 
         hints.flags |= PMinSize | PMaxSize;
         hints.min_width = (int)minSize.x;
@@ -726,21 +722,11 @@ namespace KalaWindow::Graphics
         XFlush(display);
 
         XSizeHints verify{};
-        XRESULT = XGetWMNormalHints(
+        XGetWMNormalHints(
             display,
             window,
             &verify,
             &supplied);
-
-        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
-        {
-            Log::Print(
-                "Failed to set window '" + to_string(ID) 
-                + "' max size because XGetWMNormalHints failed! Result code: " + to_string(XRESULT),
-                "KW_WINDOW",
-                LogType::LOG_ERROR,
-                2);
-        }
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
@@ -803,16 +789,12 @@ namespace KalaWindow::Graphics
 
         XSizeHints hints{};
         long supplied{};
-        XRESULT = XGetWMNormalHints(
+
+        XGetWMNormalHints(
             display,
             window,
             &hints,
             &supplied);
-
-        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
-        {
-            hints = {};
-        }
 
         hints.flags |= PMinSize | PMaxSize;
         hints.min_width = (int)minSize.x;
@@ -824,21 +806,11 @@ namespace KalaWindow::Graphics
         XFlush(display);
 
         XSizeHints verify{};
-        XRESULT = XGetWMNormalHints(
+        XGetWMNormalHints(
             display,
             window,
             &verify,
             &supplied);
-
-        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
-        {
-            Log::Print(
-                "Failed to set window '" + to_string(ID) 
-                + "' min size because XGetWMNormalHints failed! Result code: " + to_string(XRESULT),
-                "KW_WINDOW",
-                LogType::LOG_ERROR,
-                2);
-        }
 
 		string val = to_string(newSize.x) + "x" + to_string(newSize.y);
 
@@ -1073,16 +1045,11 @@ namespace KalaWindow::Graphics
         XSizeHints hints{};
         long supplied{};
 
-        XRESULT = XGetWMNormalHints(
+        XGetWMNormalHints(
             display,
             window,
             &hints,
             &supplied);
-
-        if (XRESULT != SUCCESS_XGETWMNORMALHINTS)
-        {
-            memset(&hints, 0, sizeof(hints));
-        }
 
         if (state)
         {
@@ -1127,13 +1094,12 @@ namespace KalaWindow::Graphics
         }
 
         XClassHint classHint{};
-        XRESULT = XGetClassHint(
+        XGetClassHint(
             ToVar<Display*>(globalData.display),
             ToVar<Window>(windowData.window),
             &classHint);
 
-        if (XRESULT != SUCCESS_XGETCLASSHINT
-            || !classHint.res_name
+        if (!classHint.res_name
             || !classHint.res_class)
         {
 			Log::Print(
@@ -1697,6 +1663,7 @@ namespace KalaWindow::Graphics
 				if (display) XCloseDisplay(display);
 			}
 
+            //shuts down x11 libnotify and libcanberra
             Window_Global::Shutdown();
 
 			Log::Print(

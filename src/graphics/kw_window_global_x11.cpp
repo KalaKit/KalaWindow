@@ -40,7 +40,22 @@ using std::to_string;
 using std::array;
 using std::error_code;
 
+static bool foundCanberra{};
+static bool foundNotify{};
+
 static ca_context* canberra{};
+
+static bool CommandSucceeds(const string& cmd)
+{
+    string fullCommand = cmd + " > /dev/null 2>&1";
+
+    int status = system(fullCommand.c_str());
+
+    return 
+        status != -1
+        && WIFEXITED(status)
+        && WEXITSTATUS(status) == 0;
+}
 
 static int ErrorHandler(
     Display* display,
@@ -112,6 +127,31 @@ namespace KalaWindow::Graphics
 
             return;
 		}
+
+        if (!CommandSucceeds("zenity --version"))
+        {
+            KalaWindowCore::ForceClose(
+                "KalaWindow global window error",
+                "Failed to initialize global window because zenity is missing!");
+        }
+        if (!CommandSucceeds("notify-send --version"))
+        {
+            foundNotify = false;
+
+            Log::Print(
+                "Libnotify was not found! Notifications will not work.",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_WARNING);
+        }
+        if (!CommandSucceeds("canberra-gtk-play --version"))
+        {
+            foundCanberra = false;
+
+            Log::Print(
+                "Libcanberra was not found! System sounds will not work.",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_WARNING);
+        }
 
         Display* display = XOpenDisplay(nullptr);
         if (!display)
@@ -374,17 +414,37 @@ namespace KalaWindow::Graphics
         vector<string> args{};
         args.emplace_back("zenity");
 
+        string typeStr{};
+        string actionStr{};
+
         switch (type)
         {
             default:
-            case PopupType::POPUP_TYPE_INFO:     args.emplace_back("--info");     break;
-            case PopupType::POPUP_TYPE_WARNING:  args.emplace_back("--warning");  break;
-            case PopupType::POPUP_TYPE_ERROR:    args.emplace_back("--error");    break;
-            case PopupType::POPUP_TYPE_QUESTION: args.emplace_back("--question"); break;
+            case PopupType::POPUP_TYPE_INFO:
+            {
+                typeStr = "info";
+                args.emplace_back("--info");
+                break;
+            }
+            case PopupType::POPUP_TYPE_WARNING:
+            {
+                typeStr = "warning";
+                args.emplace_back("--warning");
+                break;
+            }
+            case PopupType::POPUP_TYPE_ERROR:
+            {
+                typeStr = "error";
+                args.emplace_back("--error");
+                break;
+            }
+            case PopupType::POPUP_TYPE_QUESTION:
+            {
+                typeStr = "question";
+                args.emplace_back("--question");
+                break;
+            }
         }
-
-        args.emplace_back("--title=" + std::move(title));
-        args.emplace_back("--text=" + std::move(message));
 
         switch (action)
         {
@@ -393,26 +453,43 @@ namespace KalaWindow::Graphics
 
             case PopupAction::POPUP_ACTION_OK_CANCEL:
             case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+                actionStr = "cancel";
                 args.emplace_back("--ok-cancel=OK");
                 args.emplace_back("--cancel-label=Cancel");
                 break;
 
             case PopupAction::POPUP_ACTION_YES_NO:
             case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+                actionStr = "yes-no";
                 args.emplace_back("--ok-cancel=Yes");
                 args.emplace_back("--cancel-label=No");
                 break;
         }
 
+		string finalTitle = title.empty() ? "NO TITLE" : std::move(title);
+		string finalMessage = message.empty() ? "NO MESSAGE" : std::move(message);
+
+        args.emplace_back("--title=" + finalTitle);
+        args.emplace_back("--text=" + finalMessage);
+
         vector<char*> execArgs{};
         for (auto& s : args) execArgs.push_back(s.data());
         execArgs.push_back(nullptr);
 
+        if (isVerboseLoggingEnabled)
+        {
+            Log::Print(
+                "Created popup '" + title + "' with type '" + typeStr + "' and action '" + actionStr + "'.",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_VERBOSE);
+        }
+
         pid_t pid = fork();
         if (pid == 0)
         {
-            execvp("zenity", execArgs.data());
-            _exit(1);
+            KalaWindowCore::ForceClose(
+                "KalaWindow global window error",
+                "Failed to fork zenity when creating a popup!");
         }
 
         int status{};
@@ -575,6 +652,23 @@ namespace KalaWindow::Graphics
             result.emplace_back(std::move(s));
         }
 
+        if (isVerboseLoggingEnabled)
+        {
+            string resultStr{};
+
+            for (const path& f : result)
+            {
+                resultStr += f.string() + ", ";
+            }
+            resultStr.pop_back();
+            resultStr.pop_back();
+
+            Log::Print(
+                "Retreived files from getfiles: " + resultStr,
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_VERBOSE);
+        }
+
         return result;
     }
 
@@ -582,6 +676,17 @@ namespace KalaWindow::Graphics
 		string&& title,
 		string&& message)
     {
+        if (!foundNotify)
+        {
+            Log::Print(
+                "Failed to create notification because libnotify was not found!",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_ERROR,
+                2);
+
+            return;
+        }
+
         NotifyNotification* notif = notify_notification_new(
             title.data(),
             message.data(),
@@ -618,18 +723,37 @@ namespace KalaWindow::Graphics
         }
 
         g_object_unref(G_OBJECT(notif));
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Created notification '" + string(title) + "'!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_VERBOSE);
+		}
     }
 
     void Window_Global::PlaySystemSound(SoundType type)
     {
-        const char* eventID{};
+        if (!foundCanberra)
+        {
+            Log::Print(
+                "Failed to create system sound because libcanberra was not found!",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_ERROR,
+                2);
+
+            return;
+        }
+
+        string soundType{};
         switch (type)
         {
         case SoundType::SOUND_OK:
-            eventID = "dialog-information";
+            soundType = "dialog-information";
             break;
         case SoundType::SOUND_ERROR:
-            eventID = "dialog-error";
+            soundType = "dialog-error";
             break;
         }
 
@@ -637,16 +761,25 @@ namespace KalaWindow::Graphics
             canberra,
             0,
             CA_PROP_EVENT_ID,
-            eventID,
+            soundType.c_str(),
             CA_PROP_CANBERRA_CACHE_CONTROL,
             "permanent",
             NULL);
+
+		if (isVerboseLoggingEnabled)
+		{
+			Log::Print(
+				"Played sound type '" + soundType + "'!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_VERBOSE);
+		}
     }
 
     void Window_Global::Shutdown()
     {
-        notify_uninit();
-        if (canberra)
+        if (foundNotify) notify_uninit();
+        if (foundCanberra
+            && canberra)
         {
             ca_context_destroy(canberra);
             canberra = nullptr;

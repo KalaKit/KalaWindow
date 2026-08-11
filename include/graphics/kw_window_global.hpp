@@ -13,10 +13,7 @@
 
 #ifdef __linux__
 constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
-constexpr int SUCCESS_XGETWMNORMALHINTS = 0;
 constexpr int SUCCESS_XSENDEVENT = 1;
-constexpr int SUCCESS_XGETEVENTDATA = 1;
-constexpr int SUCCESS_XGETCLASSHINT = 1;
 #endif
 
 namespace KalaWindow::Graphics

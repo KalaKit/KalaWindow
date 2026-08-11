@@ -316,27 +316,83 @@ namespace KalaWindow::Graphics
 	{
 		int flags = 0;
 
-		switch (action)
-		{
-		case PopupAction::POPUP_ACTION_OK:            flags |= MB_OK; break;
-		case PopupAction::POPUP_ACTION_OK_CANCEL:     flags |= MB_OKCANCEL; break;
-		case PopupAction::POPUP_ACTION_YES_NO:        flags |= MB_YESNO; break;
-		case PopupAction::POPUP_ACTION_YES_NO_CANCEL: flags |= MB_YESNOCANCEL; break;
-		case PopupAction::POPUP_ACTION_RETRY_CANCEL:  flags |= MB_RETRYCANCEL; break;
-		default:                                      flags |= MB_OK; break;
-		}
+		string typeStr{};
+		string actionStr{};
 
 		switch (type)
 		{
-		case PopupType::POPUP_TYPE_INFO:     flags |= MB_ICONINFORMATION; break;
-		case PopupType::POPUP_TYPE_WARNING:  flags |= MB_ICONWARNING; break;
-		case PopupType::POPUP_TYPE_ERROR:    flags |= MB_ICONERROR; break;
-		case PopupType::POPUP_TYPE_QUESTION: flags |= MB_ICONQUESTION; break;
-		default:                             flags |= MB_ICONINFORMATION; break;
+		default:
+		case PopupType::POPUP_TYPE_INFO:
+		{
+			typeStr = "info";
+			flags |= MB_ICONINFORMATION;
+			break;
+		}
+		case PopupType::POPUP_TYPE_WARNING:
+		{
+			typeStr = "warning";
+			flags |= MB_ICONWARNING;
+			break;
+		}
+		case PopupType::POPUP_TYPE_ERROR:
+		{
+			typeStr = "error";
+			flags |= MB_ICONERROR;
+			break;
+		}
+		case PopupType::POPUP_TYPE_QUESTION:
+		{
+			typeStr = "question";
+			flags |= MB_ICONQUESTION;
+			break;
+		}
+		}
+
+		switch (action)
+		{
+		default:
+		case PopupAction::POPUP_ACTION_OK:
+		{
+			actionStr = "ok";
+			flags |= MB_OK;
+			break;
+		}
+		case PopupAction::POPUP_ACTION_OK_CANCEL:
+		{
+			actionStr = "ok-cancel";
+			flags |= MB_OKCANCEL;
+			break;
+		}
+		case PopupAction::POPUP_ACTION_YES_NO:
+		{
+			actionStr = "yes-no";
+			flags |= MB_YESNO;
+			break;
+		}
+		case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+		{
+			actionStr = "yes-no-cancel";
+			flags |= MB_YESNOCANCEL;
+			break;
+		}
+		case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+		{
+			actionStr = "retry-cancel";
+			flags |= MB_RETRYCANCEL;
+			break;
+		}
 		}
 
 		string finalTitle = title.empty() ? "NO TITLE" : std::move(title);
 		string finalMessage = message.empty() ? "NO MESSAGE" : std::move(message);
+
+        if (isVerboseLoggingEnabled)
+        {
+            Log::Print(
+                "Created popup '" + finalTitle + "' with type '" + typeStr + "' and action '" + actionStr + "'.",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_VERBOSE);
+        }
 
 		int result = MessageBoxW(
 			nullptr,
@@ -657,6 +713,23 @@ namespace KalaWindow::Graphics
             }
 
             result.emplace_back(std::move(s));
+        }
+
+        if (isVerboseLoggingEnabled)
+        {
+            string resultStr{};
+
+            for (const path& f : result)
+            {
+                resultStr += f.string() + ", ";
+            }
+            resultStr.pop_back();
+            resultStr.pop_back();
+
+            Log::Print(
+                "Retreived files from getfiles: " + resultStr,
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_VERBOSE);
         }
 
         return result;
