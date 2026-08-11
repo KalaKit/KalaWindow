@@ -11,6 +11,7 @@
 #include <ucontext.h>
 #include <sys/ucontext.h>
 #include <sys/wait.h>
+#include <sys/prctl.h>
 #include <execinfo.h>
 #include <dlfcn.h>
 #include <cxxabi.h>
@@ -203,6 +204,14 @@ void HandleCrash(
 {
     if (inCrashHandler) _exit(2);
     inCrashHandler = 1;
+
+    //let any process attach a debugger
+    prctl(
+        PR_SET_PTRACER,
+        PR_SET_PTRACER_ANY,
+        0,
+        0,
+        0);
 
     pid_t pid = fork();
     if (pid == -1)

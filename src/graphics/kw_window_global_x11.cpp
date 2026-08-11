@@ -487,9 +487,10 @@ namespace KalaWindow::Graphics
         pid_t pid = fork();
         if (pid == 0)
         {
+            execvp("zenity", execArgs.data());
             KalaWindowCore::ForceClose(
                 "KalaWindow global window error",
-                "Failed to fork zenity when creating a popup!");
+                "Failed to run zenity because execvp failed!");
         }
 
         int status{};
