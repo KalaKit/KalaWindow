@@ -182,6 +182,8 @@ namespace KalaWindow::Core
                 "Failed to update message loop because the display was invalid!");
         }
 
+        const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::GetAllContent();
+
         Display* display = ToVar<Display*>(globalData.display);
 
         while (XPending(display))
@@ -189,62 +191,50 @@ namespace KalaWindow::Core
             XEvent event{};
             XNextEvent(display, &event);
 
-            const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::GetAllContent();
-
-            Display* display = ToVar<Display*>(globalData.display);
-
             if (event.type == GenericEvent)
             {
-                XRESULT = XGetEventData(display, &event.xcookie);
-
-                if (event.xcookie.extension != globalData.xiOpcode
-                    || XRESULT != SUCCESS_XGETEVENTDATA)
+                if (XGetEventData(display, &event.xcookie)
+                    && event.xcookie.extension == globalData.xiOpcode)
                 {
-                    //TODO: do something here?
-
-                    return;
-                }
-
-                if (event.xcookie.evtype == XI_RawMotion)
-                {
-                    XIRawEvent* raw = rcast<XIRawEvent*>(event.xcookie.data);
-
-                    f64* values = raw->raw_values;
-                    int i = 0;
-
-                    f64 dx{};
-                    f64 dy{};
-
-                    if (XIMaskIsSet(raw->valuators.mask, 0)) dx = values[i++];
-                    if (XIMaskIsSet(raw->valuators.mask, 1)) dy = values[i++];
-
-                    for (const auto& w : activeWindows)
+                    if (event.xcookie.evtype == XI_RawMotion)
                     {
-                        if (!w) continue;
+                        XIRawEvent* raw = rcast<XIRawEvent*>(event.xcookie.data);
 
-                        u32 windowID = w->GetID();
+                        f64* values = raw->raw_values;
+                        int i = 0;
 
-                        vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
-                        Input* input = inputs.empty() ? nullptr : inputs.front();
+                        f64 dx{};
+                        f64 dy{};
 
-                        if (!input) continue;
+                        if (XIMaskIsSet(raw->valuators.mask, 0)) dx = values[i++];
+                        if (XIMaskIsSet(raw->valuators.mask, 1)) dy = values[i++];
 
-                        input->rawMouseDelta.x += (f32)dx;
-                        input->rawMouseDelta.y += (f32)dy;
-
-                        if (Input::IsVerboseLoggingEnabled())
+                        for (const auto& w : activeWindows)
                         {
-                            Log::Print(
-                            "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
-                            "KW_MESSAGE_LOOP",
-                            LogType::LOG_VERBOSE);
+                            if (!w) continue;
+
+                            u32 windowID = w->GetID();
+
+                            vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+                            Input* input = inputs.empty() ? nullptr : inputs.front();
+
+                            if (!input) continue;
+
+                            input->rawMouseDelta.x += (f32)dx;
+                            input->rawMouseDelta.y += (f32)dy;
+
+                            if (Input::IsVerboseLoggingEnabled())
+                            {
+                                Log::Print(
+                                "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
+                                "KW_MESSAGE_LOOP",
+                                LogType::LOG_VERBOSE);
+                            }
                         }
                     }
+
+                    XFreeEventData(display, &event.xcookie);
                 }
-
-                XFreeEventData(display, &event.xcookie);
-
-                return;
             }
 
             Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);

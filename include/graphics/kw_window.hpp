@@ -68,18 +68,6 @@ namespace KalaWindow::Graphics
 		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it, uses WINDOW_NORMAL on x11
 	};
 
-	enum class DpiContext
-	{
-		//sharpest, ideal DPI scaling between monitors
-		DPI_PER_MONITOR,
-
-		//sharp on primary monitor, blurry if dragged to higher DPI monitor
-		DPI_SYSTEM_AWARE,
-
-		//blurry on high DPI screens, fastest performance
-		DPI_UNAWARE
-	};
-
 #ifdef _WIN32
 	struct LIB_API WindowData
 	{
@@ -106,15 +94,12 @@ namespace KalaWindow::Graphics
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
 		//Create a new window with a title and at the desired position and size.
-		//Assign a parent window to display this window as a child of that window.
-		//Set the context to your preferred dpi state to modify how
-		//window dpi state affects performance and quality of the framebuffer
+		//Assign a parent window to display this window as a child of that window
 		static ProcessWindow* Initialize(
 			string&& title,
 			vec2 pos = 600,
 			vec2 size = { 800, 600 },
-			ProcessWindow* parentWindow = nullptr,
-			DpiContext context = DpiContext::DPI_SYSTEM_AWARE);
+			ProcessWindow* parentWindow = nullptr);
 
 		//Global update call for process window and input.
 		//  - global early update: what happens BEFORE KalaWindow window logic and input logic

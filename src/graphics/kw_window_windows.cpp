@@ -77,8 +77,7 @@ namespace KalaWindow::Graphics
 		string&& title,
 		vec2 pos,
 		vec2 size,
-		ProcessWindow* parentWindow,
-		DpiContext context)
+		ProcessWindow* parentWindow)
 	{
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
         if (!VulkanContext::IsInitialized())
@@ -191,21 +190,7 @@ namespace KalaWindow::Graphics
 		};
 
 		//set window dpi aware state
-		switch (context)
-		{
-		case DpiContext::DPI_PER_MONITOR:
-			SetProcessDpiAwarenessContext(
-				DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
-			break;
-		case DpiContext::DPI_SYSTEM_AWARE:
-			SetProcessDpiAwarenessContext(
-				DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
-			break;
-		case DpiContext::DPI_UNAWARE:
-			SetProcessDpiAwarenessContext(
-				DPI_AWARENESS_CONTEXT_UNAWARE);
-			break;
-		}
+		SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
 		
 		windowPtr->windowData = newWindowStruct;
 
@@ -1487,10 +1472,7 @@ namespace KalaWindow::Graphics
 		}
 
 		if (registry.GetAllContent().empty())
-		{	
-			//TODO: figure out if this is even needed at all anywhere
-			//timeEndPeriod(1);
-
+		{
 			Log::Print(
                 "\n======================================================================"
                 "\nFINISHED SHUTDOWN"

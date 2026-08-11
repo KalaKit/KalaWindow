@@ -6,10 +6,50 @@
 #ifdef _WIN32
 
 #include <windows.h>
-#include <objbase.h>
+#include <roapi.h>
+#include <winstring.h>
+#include <windows.data.xml.dom.h>
+#include <windows.ui.notifications.h>
 #include <shobjidl.h>
-#include <mmsystem.h>
-#include <shellapi.h>
+
+#include <filesystem>
+#include <sstream>
+#include <string>
+#include <system_error>
+
+#include "log_utils.hpp"
+
+#include "graphics/kw_window_global.hpp"
+#include "graphics/kw_window.hpp"
+#include "core/kw_core.hpp"
+#include "core/kw_messageloop_windows.hpp"
+
+using KalaHeaders::KalaLog::Log;
+using KalaHeaders::KalaLog::LogType;
+
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::MessageLoop;
+
+using std::wstring;
+using ABI::Windows::Data::Xml::Dom::IXmlDocument;
+using ABI::Windows::Data::Xml::Dom::IXmlDocumentIO;
+using ABI::Windows::UI::Notifications::IToastNotificationFactory;
+using ABI::Windows::UI::Notifications::IToastNotification;
+using ABI::Windows::UI::Notifications::IToastNotificationManagerStatics;
+using ABI::Windows::UI::Notifications::IToastNotifier;
+
+using std::filesystem::path;
+using std::ostringstream;
+using std::string;
+using std::string_view;
+using std::to_string;
+using std::error_code;
+
+static wstring ToWide(string_view str);
+static string ToShort(const wstring& str);
+static string HResultToString(HRESULT hr);
+
+constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
 
 //CComPtr rewritten to work on both Windows and when compiling for Windows on Linux
 template<typename T>
@@ -56,40 +96,45 @@ public:
 	explicit operator bool() const { return ptr != nullptr; }
 };
 
-#include <filesystem>
-#include <sstream>
-#include <string>
-#include <system_error>
+class HStr
+{
+public:
+	HStr() = default;
+	explicit HStr(const wchar_t* s)
+	{
+		WindowsCreateString(
+			s,
+			(UINT32)wcslen(s),
+			&h_);
+	}
+	~HStr() { if (h_) WindowsDeleteString(h_); }
+	HStr(const HStr&) = delete;
+	HStr& operator=(const HStr&) = delete;
+	HSTRING* put() { return &h_; }
+	HSTRING get() const { return h_; }
+private:
+	HSTRING h_{};
+};
 
-#include "log_utils.hpp"
+wstring XmlEscape(const wstring& in)
+{
+	wstring out{};
+	out.reserve(in.size());
 
-#include "graphics/kw_window_global.hpp"
-#include "graphics/kw_window.hpp"
-#include "core/kw_core.hpp"
-#include "core/kw_messageloop_windows.hpp"
-
-using KalaHeaders::KalaLog::Log;
-using KalaHeaders::KalaLog::LogType;
-
-using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::MessageLoop;
-
-using std::wstring;
-
-using std::filesystem::path;
-using std::ostringstream;
-using std::string;
-using std::string_view;
-using std::to_string;
-using std::error_code;
-
-static wstring ToWide(string_view str);
-static string ToShort(const wstring& str);
-static string HResultToString(HRESULT hr);
-
-constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
-
-static bool enabledBeginPeriod = false;
+	for (wchar_t c : in)
+	{
+		switch (c)
+		{
+		case L'&':  out += L"&amp;";  break;
+		case L'<':  out += L"&lt;";   break;
+		case L'>':  out += L"&gt;";   break;
+		case L'"':  out += L"&quot;"; break;
+		case L'\'': out += L"&apos;"; break;
+		default:    out += c;         break;
+		}
+	}
+	return out;
+}
 
 namespace KalaWindow::Graphics
 {
@@ -169,15 +214,6 @@ namespace KalaWindow::Graphics
 
 		//Treat this process as a real app with a stable identity
 		SetCurrentProcessExplicitAppUserModelID(ToWide(appID).c_str());
-
-		//TODO: figure out if this is even needed at all anywhere
-		/*
-		if (!enabledBeginPeriod)
-		{
-			timeBeginPeriod(1);
-			enabledBeginPeriod = true;
-		}
-		*/
 
 		wstring appIDWide = ToWide(appID);
 
@@ -633,35 +669,350 @@ namespace KalaWindow::Graphics
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(message);
 
-		NOTIFYICONDATAW nid{};
-		nid.cbSize = sizeof(nid);
-		nid.hWnd = nullptr;
-		nid.uID = 1;
-		nid.uFlags = 
-			NIF_ICON
-			| NIF_TIP
-			| NIF_INFO;
-		nid.hIcon = LoadIconW(nullptr, IDI_APPLICATION);
-		nid.dwInfoFlags = NIIF_INFO;
+		wstring titleEsc = XmlEscape(titleW);
+		wstring msgEsc = XmlEscape(messageW);
 
-		wcsncpy(
-			nid.szInfoTitle,
-			titleW.c_str(),
-			_countof(nid.szInfoTitle) - 1);
-		nid.szInfoTitle[_countof(nid.szInfoTitle) - 1] = L'\0';
+		bool comInitializedHere{};
 
-		wcsncpy(
-			nid.szInfo,
-			messageW.c_str(),
-			_countof(nid.szInfo) - 1);
-		nid.szInfo[_countof(nid.szInfo) - 1] = L'\0';
+		HRESULT hr = RoInitialize(RO_INIT_MULTITHREADED);
+		if (hr == S_OK) comInitializedHere = true;
+		else if (hr != S_FALSE
+				 && hr != RPC_E_CHANGED_MODE)
+		{
+			Log::Print(
+				"Failed to create notification '" + title + " because RoInitialize failed!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
 
-		Shell_NotifyIconW(NIM_ADD, &nid);
+			return;
+		}
+
+		bool success{};
+
+		do
+		{
+			//build the toast XML document
+
+			HStr xmlClassID(RuntimeClass_Windows_Data_Xml_Dom_XmlDocument);
+			IInspectable* xmlDocInspectable{};
+			hr = RoActivateInstance(
+				xmlClassID.get(),
+				&xmlDocInspectable);
+
+			if (FAILED(hr)
+				|| !xmlDocInspectable)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating xmlDocInspectable! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because xmlDocInspectable failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				break;
+			}
+
+			IXmlDocument* xmlDoc{};
+			hr = xmlDocInspectable->QueryInterface(IID_PPV_ARGS(&xmlDoc));
+			xmlDocInspectable->Release();
+
+			if (FAILED(hr)
+				|| !xmlDoc)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating xmlDoc! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because xmlDoc failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				break;
+			}
+
+			IXmlDocumentIO* xmlDocIO{};
+			hr = xmlDoc->QueryInterface(IID_PPV_ARGS(&xmlDocIO));
+
+			if (FAILED(hr)
+				|| !xmlDocIO)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating xmlDocIO! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because xmlDocIO failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				xmlDoc->Release();
+
+				break;
+			}
+
+			wstring xml =
+				L"<toast><visual><binding template=\"ToastGeneric\">"
+				L"<text>" + titleEsc + L"</text>"
+				L"<text>" + msgEsc + L"</text>"
+				L"</binding></visual></toast>";
+
+			HStr xmlStr(xml.c_str());
+			hr = xmlDocIO->LoadXml(xmlStr.get());
+			xmlDocIO->Release();
+
+			if (FAILED(hr))
+			{
+				Log::Print(
+					"Failed to create notification '" + title + " while creating xmlStr! Reason: " + to_string(hr),
+					"KW_WINDOW_GLOBAL",
+					LogType::LOG_ERROR,
+					2);
+
+				xmlDoc->Release();
+
+				break;
+			}
+
+			//create the toast notification from the XML document
+
+			HStr toastClassID(RuntimeClass_Windows_UI_Notifications_ToastNotification);
+			IInspectable* factoryInspectable{};
+			hr = RoGetActivationFactory(
+				toastClassID.get(),
+				IID_PPV_ARGS(&factoryInspectable));
+
+			if (FAILED(hr)
+				|| !factoryInspectable)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating factoryInspectable! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because factoryInspectable failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				xmlDoc->Release();
+
+				break;
+			}
+
+			IToastNotificationFactory* toastFactory{};
+			hr = factoryInspectable->QueryInterface(IID_PPV_ARGS(&toastFactory));
+			factoryInspectable->Release();
+
+			if (FAILED(hr)
+				|| !toastFactory)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating toastFactory! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because toastFactory failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				xmlDoc->Release();
+
+				break;
+			}
+
+			IToastNotification* toast{};
+			hr = toastFactory->CreateToastNotification(
+				xmlDoc,
+				&toast);
+			toastFactory->Release();
+			xmlDoc->Release();
+
+			if (FAILED(hr)
+				|| !toast)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating toast! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because toast failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				break;
+			}
+
+			//get the toast notifier for app id and show it
+
+			HStr managerClassID(RuntimeClass_Windows_UI_Notifications_ToastNotificationManager);
+			IInspectable* managerStaticsInspectable{};
+			hr = RoGetActivationFactory(
+				managerClassID.get(),
+				IID_PPV_ARGS(&managerStaticsInspectable));
+
+			if (FAILED(hr)
+				|| !managerStaticsInspectable)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating managerStaticsInspectable! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because managerStaticsInspectable failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				toast->Release();
+
+				break;
+			}
+
+			IToastNotificationManagerStatics* managerStatics{};
+			hr = managerStaticsInspectable->QueryInterface(IID_PPV_ARGS(&managerStatics));
+			managerStaticsInspectable->Release();
+
+			if (FAILED(hr)
+				|| !managerStatics)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating managerStatics! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because managerStatics failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				toast->Release();
+
+				break;
+			}
+
+			wstring wAppID = ToWide(appID);
+			HStr appIDStr(wAppID.c_str());
+			IToastNotifier* notifier{};
+			hr = managerStatics->CreateToastNotifierWithId(
+				appIDStr.get(),
+				&notifier);
+			managerStatics->Release();
+
+			if (FAILED(hr)
+				|| !notifier)
+			{
+				if (FAILED(hr))
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " while creating notifier! Reason: " + to_string(hr),
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+				else
+				{
+					Log::Print(
+						"Failed to create notification '" + title + " because notifier failed to be created!",
+						"KW_WINDOW_GLOBAL",
+						LogType::LOG_ERROR,
+						2);
+				}
+
+				toast->Release();
+
+				break;
+			}
+
+			hr = notifier->Show(toast);
+			notifier->Release();
+			toast->Release();
+
+			success = SUCCEEDED(hr);
+		}
+		while (false);
+
+		if (comInitializedHere) RoUninitialize();
+
+		if (!success)
+		{
+			Log::Print(
+				"Failed to create notification '" + title + "! Reason: " + to_string(hr),
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
 
 		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
-				"Created notification '" + title + "'!",
+				"Created notification '" + string(title) + "'!",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_VERBOSE);
 		}

@@ -69,8 +69,7 @@ namespace KalaWindow::Graphics
 		string&& title,
 		vec2 pos,
 		vec2 size,
-		ProcessWindow* parentWindow,
-		DpiContext context)
+		ProcessWindow* parentWindow)
     {
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
         if (!VulkanContext::IsInitialized())
@@ -228,8 +227,6 @@ namespace KalaWindow::Graphics
             | PointerMotionMask);
 
         WindowData newWindowStruct{};
-
-        //set window dpi aware state here...
 
         newWindowStruct.window = FromVar(window);
         newWindowStruct.xic = FromVar(xic);
@@ -492,22 +489,6 @@ namespace KalaWindow::Graphics
 
         title.assign(rcast<char*>(prop), nItems);
         XFree(prop);
-
-        //TODO: figure out if this fallback is even needed
-        /*
-        char* name{};
-        if (XFetchName(
-            display,
-            window,
-            &name) > 0
-            && name)
-        {
-            title = name;
-            XFree(name);
-        }
-
-        return title;
-        */
 
         return title;
     }
