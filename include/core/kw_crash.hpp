@@ -23,7 +23,7 @@ namespace KalaWindow::Core
 		//Initialize the crash handler. Always creates a timestamped
 		//crash log file at exe root if program crashes.
 		//Assign the program name that will be displayed in the crash log,
-		//and define __NODUMP__ if you want to disable .dmp file creation
+		//and define KW_NO_DUMP if you want to disable .dmp file creation
 		static void Initialize(string&& programName);
 		static bool IsInitialized();
 	private:

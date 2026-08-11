@@ -10,8 +10,6 @@
 #include <mmsystem.h>
 #include <shobjidl.h>
 #include <dwmapi.h>
-//#include <atlbase.h>
-//#include <atlcomcli.h>
 #include <wrl/client.h>
 #include <shobjidl.h>
 #include <wtsapi32.h>

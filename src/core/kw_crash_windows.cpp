@@ -93,7 +93,7 @@ namespace KalaWindow::Core
 
 		assignedProgramName = std::move(programName);
 
-#ifdef __NODUMP__
+#ifdef KW_NO_DUMP
 		canCreateDump = false;
 #endif
 

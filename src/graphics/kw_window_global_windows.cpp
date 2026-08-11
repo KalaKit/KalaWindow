@@ -6,11 +6,14 @@
 #ifdef _WIN32
 
 #include <windows.h>
+#include <shobjidl.h>
+#include <propkey.h>
+#include <propvarutil.h>
 #include <roapi.h>
 #include <winstring.h>
 #include <windows.data.xml.dom.h>
 #include <windows.ui.notifications.h>
-#include <shobjidl.h>
+
 
 #include <filesystem>
 #include <sstream>
@@ -56,6 +59,7 @@ template<typename T>
 class CComPtr
 {
 	T* ptr = nullptr;
+
 public:
 	CComPtr() = default;
 	explicit CComPtr(T* p) noexcept : ptr(p) {}
@@ -134,6 +138,176 @@ wstring XmlEscape(const wstring& in)
 		}
 	}
 	return out;
+}
+
+void CreateStartShortcut(string_view appID)
+{
+	//ignore if on wine
+	HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
+	bool isWine = ntdll && GetProcAddress(ntdll, "wine_get_version");
+	if (isWine)
+	{
+		Log::Print(
+			"Skipping start shortcut creation because this program was ran on Wine! Notifications will also not work!",
+			"KW_WINDOW_GLOBAL",
+			LogType::LOG_WARNING);
+
+		return;
+	}
+
+	wchar_t appData[MAX_PATH]{};
+	if (!GetEnvironmentVariableW(
+		L"APPDATA",
+		appData,
+		MAX_PATH))
+	{
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because APPDATA couldn't be retreived!");
+	}
+
+	wstring shortcutPath = 
+		wstring(appData)
+		+ L"\\Microsoft\\Windows\\Start Menu\\Programs\\"
+		+ ToWide(appID) + L".lnk";
+
+	DWORD attr = GetFileAttributesW(shortcutPath.c_str());
+	if (attr != INVALID_FILE_ATTRIBUTES)
+	{
+		Log::Print(
+			"Skipping shortcut creation because it already exists at '" + ToShort(shortcutPath) + "'.",
+			"KW_WINDOW_GLOBAL",
+			LogType::LOG_INFO);
+
+		return;
+	}
+
+	HRESULT hr = CoInitializeEx(
+		nullptr,
+		COINIT_APARTMENTTHREADED);
+	bool comOwned = (hr == S_OK);
+
+	if (FAILED(hr)
+		&& hr != RPC_E_CHANGED_MODE
+		&& hr != S_FALSE)
+	{
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because CoInitializeEx failed!");
+	}
+
+	IShellLinkW* shellLink{};
+	hr = CoCreateInstance(
+		CLSID_ShellLink,
+		nullptr,
+		CLSCTX_INPROC_SERVER,
+		IID_PPV_ARGS(&shellLink));
+
+	if (FAILED(hr))
+	{
+		if (comOwned) CoUninitialize();
+
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because CoCreateInstance failed!");
+	}
+
+	wstring exePath = ToWide(KalaWindowCore::GetExePath().string());
+	shellLink->SetPath(exePath.c_str());
+
+	IPropertyStore* propStore{};
+	hr = shellLink->QueryInterface(IID_PPV_ARGS(&propStore));
+
+	if (FAILED(hr))
+	{
+		if (shellLink) shellLink->Release();
+		if (comOwned) CoUninitialize();
+
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because shellLink->QueryInterface failed!");
+	}
+
+	wstring wideAppID = ToWide(appID);
+	PROPVARIANT pv{};
+	hr = InitPropVariantFromString(
+		wideAppID.c_str(),
+		&pv);
+
+	if (FAILED(hr))
+	{
+		if (propStore) propStore->Release();
+		if (shellLink) shellLink->Release();
+		if (comOwned) CoUninitialize();
+
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because InitPropVariantFromString failed!");
+	}
+
+	hr = propStore->SetValue(
+		PKEY_AppUserModel_ID,
+		pv);
+	PropVariantClear(&pv);
+
+	if (FAILED(hr))
+	{
+		if (propStore) propStore->Release();
+		if (shellLink) shellLink->Release();
+		if (comOwned) CoUninitialize();
+
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because PKEY_AppUserModel_ID for SetValue failed!");
+	}
+
+	hr = propStore->Commit();
+	propStore->Release();
+
+	if (FAILED(hr))
+	{
+		if (shellLink) shellLink->Release();
+		if (comOwned) CoUninitialize();
+
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because propStore->Commit failed!");
+	}
+
+	IPersistFile* persistFile{};
+	hr = shellLink->QueryInterface(IID_PPV_ARGS(&persistFile));
+
+	if (FAILED(hr))
+	{
+		if (shellLink) shellLink->Release();
+		if (comOwned) CoUninitialize();
+
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because shellLink->QueryInterface failed!");
+	}
+
+	hr = persistFile->Save(
+		shortcutPath.c_str(),
+		TRUE);
+	persistFile->Release();
+
+	if (FAILED(hr))
+	{
+		if (shellLink) shellLink->Release();
+		if (comOwned) CoUninitialize();
+
+		KalaWindowCore::ForceClose(
+			"KalaWindow global window error",
+			"Failed to create start shortcut because persistFile->Save save failed!");
+	}
+
+	shellLink->Release();
+	if (comOwned) CoUninitialize();
+
+	Log::Print(
+		"Created new start menu shortcut for application.",
+		"KW_WINDOW_GLOBAL");
 }
 
 namespace KalaWindow::Graphics
@@ -242,6 +416,10 @@ namespace KalaWindow::Graphics
 				"KalaWindow global window error",
 				string(message));
 		}
+
+#ifndef KW_NO_SHORTCUT
+		CreateStartShortcut(appID);
+#endif
 
 		isInitialized = true;
 
@@ -748,9 +926,19 @@ namespace KalaWindow::Graphics
 		bool comInitializedHere{};
 
 		HRESULT hr = RoInitialize(RO_INIT_MULTITHREADED);
+
 		if (hr == S_OK) comInitializedHere = true;
-		else if (hr != S_FALSE
-				 && hr != RPC_E_CHANGED_MODE)
+		else if (hr == RPC_E_CHANGED_MODE)
+		{
+			Log::Print(
+				"Failed to create notification '" + title + " because COM was already initialized in STA mode!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+		else if (hr != S_FALSE)
 		{
 			Log::Print(
 				"Failed to create notification '" + title + " because RoInitialize failed!",
@@ -1062,6 +1250,7 @@ namespace KalaWindow::Graphics
 			}
 
 			hr = notifier->Show(toast);
+
 			notifier->Release();
 			toast->Release();
 
