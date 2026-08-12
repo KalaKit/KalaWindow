@@ -40,8 +40,8 @@ using std::to_string;
 using std::array;
 using std::error_code;
 
-static bool foundCanberra{};
-static bool foundNotify{};
+static bool foundCanberra = true;
+static bool foundNotify = true;
 
 static ca_context* canberra{};
 
