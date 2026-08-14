@@ -31,7 +31,7 @@ namespace KalaWindow::Graphics
     class LIB_API VulkanContext
 	{
     friend class ProcessWindow;
-	friend class default_delete<VulkanContext>;
+	friend struct default_delete<VulkanContext>;
 	public:
         static KalaWindowRegistry<VulkanContext>& GetRegistry();
 

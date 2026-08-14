@@ -48,7 +48,7 @@ namespace KalaWindow::Core
 	{
 	friend class KalaWindow::Graphics::ProcessWindow;
 	friend class MessageLoop;
-	friend class default_delete<Input>;
+	friend struct default_delete<Input>;
 	public:
 		static KalaWindowRegistry<Input>& GetRegistry();
 

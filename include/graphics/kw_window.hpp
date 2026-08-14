@@ -91,7 +91,7 @@ namespace KalaWindow::Graphics
 	friend class KalaWindow::Core::MessageLoop;
 	friend class KalaWindow::Core::Input;
 	friend class VulkanContext;
-	friend class default_delete<ProcessWindow>;
+	friend struct default_delete<ProcessWindow>;
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
