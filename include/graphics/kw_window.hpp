@@ -39,6 +39,7 @@ namespace KalaWindow::Graphics
 	using std::array;
 	using std::pair;
 	using std::filesystem::path;
+	using std::default_delete;
 
 	using KalaHeaders::KalaMath::vec2;
 
@@ -90,6 +91,7 @@ namespace KalaWindow::Graphics
 	friend class KalaWindow::Core::MessageLoop;
 	friend class KalaWindow::Core::Input;
 	friend class VulkanContext;
+	friend class default_delete<ProcessWindow>;
 	public:
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();
 
@@ -204,9 +206,9 @@ namespace KalaWindow::Graphics
 		const WindowData& GetWindowData() const;
 
 		void Destroy();
-
-		~ProcessWindow();
 	private:
+		~ProcessWindow();
+
 		void UpdateIdleState();
 
 		bool isWindowHovered{}; //If true, then this window is currently being hovered by the cursor.

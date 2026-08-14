@@ -22,6 +22,7 @@ namespace KalaWindow::Graphics
 {
     using std::string;
     using std::vector;
+    using std::default_delete;
 
     using u32 = uint32_t;
 
@@ -30,6 +31,7 @@ namespace KalaWindow::Graphics
     class LIB_API VulkanContext
 	{
     friend class ProcessWindow;
+	friend class default_delete<VulkanContext>;
 	public:
         static KalaWindowRegistry<VulkanContext>& GetRegistry();
 
@@ -55,9 +57,9 @@ namespace KalaWindow::Graphics
         VkSurfaceKHR GetSurface() const;
 
         void Destroy();
-
-		~VulkanContext();
 	private:
+        ~VulkanContext();
+
         //Initialize a per-window Vulkan context, creates a surface
 		static VulkanContext* InitializeInstance(u32 windowID);
 

@@ -30,6 +30,7 @@ namespace KalaWindow::Core
 	using std::span;
 	using std::string;
 	using std::string_view;
+	using std::default_delete;
 
 	using KalaHeaders::KalaMath::vec2;
 	using KalaHeaders::KalaKeyStandards::KeyboardButton;
@@ -47,6 +48,7 @@ namespace KalaWindow::Core
 	{
 	friend class KalaWindow::Graphics::ProcessWindow;
 	friend class MessageLoop;
+	friend class default_delete<Input>;
 	public:
 		static KalaWindowRegistry<Input>& GetRegistry();
 
@@ -139,9 +141,9 @@ namespace KalaWindow::Core
 		void ClearInputEvents();
 
 		void Destroy();
-
-		~Input();
 	private:
+		~Input();
+
 		static Input* Initialize(u32 windowID);
 
 		void SetTypedLetter(string_view letter);
