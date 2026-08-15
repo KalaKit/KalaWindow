@@ -101,8 +101,8 @@ namespace KalaWindow::Core
 			DateFormat::DATE_NONE);
 
 		CrashHandler::SetForceCloseContent(
-			std::move(reason),
-			std::move(target));
+			std::move(target),
+			std::move(reason));
 
 #ifdef _WIN32
 		__debugbreak();

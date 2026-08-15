@@ -39,7 +39,6 @@ using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupType;
-using KalaWindow::Graphics::PopupResult;
 
 using std::free;
 using std::string;
@@ -50,14 +49,10 @@ using std::hex;
 using std::dec;
 using std::ofstream;
 using std::filesystem::path;
-using std::min;
 
 static bool isInitialized{};
 
 static volatile sig_atomic_t inCrashHandler{};
-
-constexpr size_t MAX_MESSAGE_SIZE = 1024;
-static char fullZenityCommand[MAX_MESSAGE_SIZE]{};
 
 static stack_t altStack{};
 
@@ -67,6 +62,9 @@ static string assignedProgramName;
 static bool canCreateDump = true;
 
 static path exeDir{};
+
+static string forceCloseTitle{};
+static string forceCloseReason{};
 
 static void SetUpAlternateStack()
 {
@@ -185,15 +183,8 @@ namespace KalaWindow::Core
         string&& title,
         string&& reason)
     {
-        size_t finalTitleLength = min(title.size(), scast<size_t>(MAX_NAME_LENGTH));
-        size_t finalReasonLength = min(reason.size(), MAX_REASON_LENGTH);
-
-        snprintf(
-            fullZenityCommand,
-            MAX_MESSAGE_SIZE,
-            "zenity --error --title=\"%.*s\" --text=\"%.*s\"",
-            (int)finalTitleLength, title.data(),
-            (int)finalReasonLength, reason.data());
+        forceCloseTitle  = title.substr(0, MAX_NAME_LENGTH);
+		forceCloseReason = reason.substr(0, MAX_REASON_LENGTH);
     }
 }
 
@@ -224,20 +215,30 @@ void HandleCrash(
     {
         if (signal == SIGTRAP)
         {
-            if (fullZenityCommand[0] != '\0') system(fullZenityCommand);
-            else system("zenity --error --title='Fatal Error' --text='An unknown force-close occurred.'");
+            string title = !forceCloseTitle.empty()
+                ? forceCloseTitle
+                : "KalaWindow force close error";
+            string reason = !forceCloseTitle.empty()
+                ? forceCloseReason
+                : "An unknown force close occurred.";
+
+            Window_Global::CreatePopup(
+                std::move(title),
+                std::move(reason),
+                PopupAction::POPUP_ACTION_OK,
+                PopupType::POPUP_TYPE_ERROR);
 
             _exit(1);
         }
         else GenerateFullCrashReport(signal, info, ucontext);
 
-        _exit(0);
+        _exit(1);
     }
 
     int status{};
     waitpid(pid, &status, 0);
 
-    _exit(0);
+    _exit(1);
 }
 
 void GenerateFullCrashReport(
