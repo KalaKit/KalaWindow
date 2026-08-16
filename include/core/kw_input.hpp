@@ -137,8 +137,8 @@ namespace KalaWindow::Core
 		void SetKeepMouseDeltaState(bool newState);
 
 		//Clear all keyboard and mouse input events and mouse position values,
-		//used internally to "forget" any mouse and keyboard events if window is unfocused
-		void ClearInputEvents();
+		//set clearHeld to true to also clear all held keys
+		void ClearInputEvents(bool clearHeld = false);
 
 		void Destroy();
 	private:

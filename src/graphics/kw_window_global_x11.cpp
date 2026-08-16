@@ -23,6 +23,7 @@
 
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
+#include "core/kw_input.hpp"
 
 using KalaHeaders::KalaCore::FromVar;
 using KalaHeaders::KalaCore::RemoveDuplicates;
@@ -32,8 +33,9 @@ using KalaHeaders::KalaLog::LogType;
 
 using KalaHeaders::KalaString::SplitString;
 
-using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::Input;
 
 using std::string;
 using std::to_string;
@@ -532,6 +534,20 @@ namespace KalaWindow::Graphics
         path&& requiredRoot,
         bool multiple)
     {
+        auto clear_all_inputs = []() -> void
+            {
+                for (Input* i : Input::GetRegistry().GetAllContent())
+                {
+                    if (!i)
+                    {
+                        KalaWindowCore::ForceClose(
+                            "KalaWindow global window error",
+                            "Failed to get files because an input was invalid!");
+                    }
+                    i->ClearInputEvents(true);
+                }
+            };
+
         if (multiple
             && type == FileType::FILE_FOLDER)
         {
@@ -566,6 +582,7 @@ namespace KalaWindow::Graphics
                     LogType::LOG_ERROR,
                     2);
 
+                clear_all_inputs();
                 return {};
             }
 
@@ -593,6 +610,7 @@ namespace KalaWindow::Graphics
                 LogType::LOG_ERROR,
                 2);
 
+            clear_all_inputs();
             return {};
         }
 
@@ -620,9 +638,12 @@ namespace KalaWindow::Graphics
                     2);
             }
 
+            clear_all_inputs();
             return {};
         }
         if (raw.back() == '\n') raw.pop_back();
+
+        clear_all_inputs();
 
         vector<string> stringResult = SplitString(
             raw,

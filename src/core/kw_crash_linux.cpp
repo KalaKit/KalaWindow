@@ -415,7 +415,7 @@ void WriteMiniDump(
 
 void AppendCallStackToStream(ostringstream& logStream)
 {
-    constexpr int MAX_FRAMES = 32;
+    static constexpr int MAX_FRAMES = 32;
 
     void* frames[MAX_FRAMES]{};
     int frameCount = backtrace(frames, MAX_FRAMES);

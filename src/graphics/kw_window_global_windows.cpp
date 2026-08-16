@@ -14,7 +14,6 @@
 #include <windows.data.xml.dom.h>
 #include <windows.ui.notifications.h>
 
-
 #include <filesystem>
 #include <sstream>
 #include <string>
@@ -26,12 +25,14 @@
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_messageloop_windows.hpp"
+#include "core/kw_input.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MessageLoop;
+using KalaWindow::Core::Input;
 
 using std::wstring;
 using ABI::Windows::Data::Xml::Dom::IXmlDocument;
@@ -52,7 +53,7 @@ static wstring ToWide(string_view str);
 static string ToShort(const wstring& str);
 static string HResultToString(HRESULT hr);
 
-constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
+static constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
 
 //CComPtr rewritten to work on both Windows and when compiling for Windows on Linux
 template<typename T>
@@ -595,6 +596,20 @@ namespace KalaWindow::Graphics
 		path&& requiredRoot,
         bool multiple)
 	{
+        auto clear_all_inputs = []() -> void
+            {
+                for (Input* i : Input::GetRegistry().GetAllContent())
+                {
+                    if (!i)
+                    {
+                        KalaWindowCore::ForceClose(
+                            "KalaWindow global window error",
+                            "Failed to get files because an input was invalid!");
+                    }
+                    i->ClearInputEvents(true);
+                }
+            };
+
 		HRESULT hr = CoInitializeEx(
 			nullptr,
 			COINIT_APARTMENTTHREADED
@@ -609,6 +624,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			clear_all_inputs();
 			return {};
 		}
 
@@ -653,6 +669,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			clear_all_inputs();
 			UnInit();
 			return {};
 		}
@@ -686,6 +703,7 @@ namespace KalaWindow::Graphics
 			{
 				PrintError("FILE_ANY", hr);
 
+				clear_all_inputs();
 				UnInit();
 				return {};
 			}
@@ -710,6 +728,7 @@ namespace KalaWindow::Graphics
 			{
 				PrintError("FILE_EXE", hr);
 
+				clear_all_inputs();
 				UnInit();
 				return {};
 			}
@@ -726,6 +745,7 @@ namespace KalaWindow::Graphics
                     LogType::LOG_ERROR,
                     2);
 
+				clear_all_inputs();
 				UnInit();
                 return {};
             }
@@ -749,6 +769,7 @@ namespace KalaWindow::Graphics
 			{
 				PrintError("FILE_CUSTOM", hr);
 
+				clear_all_inputs();
 				UnInit();
 				return {};
 			}
@@ -791,6 +812,7 @@ namespace KalaWindow::Graphics
 					LogType::LOG_VERBOSE);
 			}
 
+			clear_all_inputs();
 			UnInit();
 			return{};
 		}
@@ -803,6 +825,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			clear_all_inputs();
 			UnInit();
 			return{};
 		}
@@ -818,6 +841,7 @@ namespace KalaWindow::Graphics
 				LogType::LOG_ERROR,
 				2);
 
+			clear_all_inputs();
 			UnInit();
 			return{};
 		}
@@ -866,6 +890,7 @@ namespace KalaWindow::Graphics
 			CoTaskMemFree(pszFilePath);
 		}
 
+		clear_all_inputs();
 		UnInit();
 
         vector<path> result{};

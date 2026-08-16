@@ -11,10 +11,10 @@
 
 namespace KalaWindow::Core
 {
-	//Max allowed length of crash force close popup reason
-	constexpr size_t MAX_REASON_LENGTH = 256;
-
 	using std::string;
+
+	//Max allowed length of crash force close popup reason
+	static constexpr size_t MAX_REASON_LENGTH = 256;
 
 	class LIB_API CrashHandler
 	{

@@ -631,7 +631,7 @@ namespace KalaWindow::Core
 	bool Input::GetKeepMouseDeltaState() const { return keepMouseDelta; }
 	void Input::SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
 
-	void Input::ClearInputEvents()
+	void Input::ClearInputEvents(bool clearHeld)
 	{
 		lastLetter.clear();
 
@@ -640,6 +640,12 @@ namespace KalaWindow::Core
 		fill(mousePressed.begin(), mousePressed.end(), false);
 		fill(mouseReleased.begin(), mouseReleased.end(), false);
 		fill(mouseDoubleClicked.begin(), mouseDoubleClicked.end(), false);
+
+		if (clearHeld)
+		{
+			fill(keyDown.begin(), keyDown.end(), false);
+			fill(mouseDown.begin(), mouseDown.end(), false);
+		}
 
 		//always reset mouse wheel delta
 		mouseWheelDelta = 0;

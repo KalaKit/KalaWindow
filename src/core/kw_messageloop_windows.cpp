@@ -281,7 +281,7 @@ namespace KalaWindow::Core
 					//if cursor isnt inside the window
 					if (!PtInRect(&rect, cursor)) return HTNOWHERE;
 
-					constexpr int border = 10;
+					static constexpr int border = 10;
 
 					bool onLeft = cursor.x >= rect.left && cursor.x < rect.left + border;
 					bool onRight = cursor.x < rect.right && cursor.x >= rect.right - border;

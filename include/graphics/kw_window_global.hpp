@@ -11,11 +11,6 @@
 
 #include "core_utils.hpp"
 
-#ifdef __linux__
-constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
-constexpr int SUCCESS_XSENDEVENT = 1;
-#endif
-
 namespace KalaWindow::Graphics
 {
 	using std::string;

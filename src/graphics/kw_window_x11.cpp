@@ -50,6 +50,9 @@ using std::clamp;
 
 static int XRESULT{};
 
+static constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
+static constexpr int SUCCESS_XSENDEVENT = 1;
+
 static void ForceClose(
     string&& action,
     string&& reason)

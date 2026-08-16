@@ -313,7 +313,7 @@ void WriteMiniDump(
 		dumpInfo.ExceptionPointers = info;
 		dumpInfo.ClientPointers = FALSE;
 
-		constexpr MINIDUMP_TYPE dumpType = scast<MINIDUMP_TYPE>(
+		static constexpr MINIDUMP_TYPE dumpType = scast<MINIDUMP_TYPE>(
 			MiniDumpWithIndirectlyReferencedMemory  //includes memory referenced by the stack
 			| MiniDumpScanMemory                    //helps resolve pointers for better stack analysis
 			| MiniDumpWithThreadInfo                //thread names and IDs

@@ -32,13 +32,6 @@
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_window.hpp"
 
-using KalaWindow::Core::Input;
-using KalaWindow::Graphics::Window_Global;
-using KalaWindow::Graphics::X11GlobalData;
-using KalaWindow::Graphics::ProcessWindow;
-using KalaWindow::Graphics::KalaWindowRegistry;
-using KalaWindow::Graphics::WindowData;
-
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;
 
@@ -49,6 +42,13 @@ using KalaHeaders::KalaLog::LogType;
 
 using KalaHeaders::KalaKeyStandards::KeyboardButton;
 using KalaHeaders::KalaKeyStandards::GetValueByKey;
+
+using KalaWindow::Core::Input;
+using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Graphics::X11GlobalData;
+using KalaWindow::Graphics::ProcessWindow;
+using KalaWindow::Graphics::KalaWindowRegistry;
+using KalaWindow::Graphics::WindowData;
 
 using std::vector;
 using std::unordered_map;
@@ -64,7 +64,10 @@ static function<void()> removeFromBackCallback{};
 static function<void()> addTabCallback{};
 static function<void()> addNewlineCallback{};
 
-constexpr u32 DOUBLE_CLICK_TIME = 500;
+static constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
+static constexpr int SUCCESS_XSENDEVENT = 1;
+
+static constexpr u32 DOUBLE_CLICK_TIME = 500;
 static u32 lastClickTime[8]{};
 
 static int XRESULT{};

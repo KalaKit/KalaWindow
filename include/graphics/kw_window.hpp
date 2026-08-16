@@ -29,9 +29,6 @@ namespace KalaWindow::Core
 
 namespace KalaWindow::Graphics
 {
-	constexpr f32 MIN_WINDOW_SIZE = 100.0f;
-	constexpr f32 MAX_WINDOW_SIZE = 10000.0f;
-
 	using std::string;
 	using std::string_view;
 	using std::function;
@@ -44,6 +41,9 @@ namespace KalaWindow::Graphics
 	using KalaHeaders::KalaMath::vec2;
 
 	using KalaWindow::Core::KalaWindowRegistry;
+
+	static constexpr f32 MIN_WINDOW_SIZE = 100.0f;
+	static constexpr f32 MAX_WINDOW_SIZE = 10000.0f;
 
 	//Display mode / monitor ownership state
 	enum class WindowMode
