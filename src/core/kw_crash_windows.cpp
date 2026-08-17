@@ -30,6 +30,7 @@ using KalaHeaders::KalaLog::TimeFormat;
 
 using KalaHeaders::KalaFile::WriteTextToFile;
 
+using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -138,6 +139,17 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	logStream << "\n========================================\n";
 
 	logStream << "\n[CRASH DETECTED]\n\n";
+
+    logStream 
+		<< "\nSystem info:\n\n" 
+        << KalaWindowCore::GetCPUInfoString()
+        << "\n"
+        << KalaWindowCore::GetGPUInfoString()
+        << "\n"
+        << KalaWindowCore::GetRAMInfoString(true)
+        << "\n"
+        << KalaWindowCore::GetOSInfoString()
+        << "\n";
 
 	logStream << "Exception code: " << hex << code << dec << "\n";
 	logStream << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << dec << "\n\n";

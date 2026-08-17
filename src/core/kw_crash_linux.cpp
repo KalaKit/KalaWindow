@@ -52,19 +52,19 @@ using std::filesystem::path;
 
 static bool isInitialized{};
 
-static volatile sig_atomic_t inCrashHandler{};
+static path exeDir{};
 
-static stack_t altStack{};
+static string forceCloseTitle{};
+static string forceCloseReason{};
 
 //The name of this program that is displayed in the title of the error popup
 static string assignedProgramName;
 //Whether or not to create a dump file at crash
 static bool canCreateDump = true;
 
-static path exeDir{};
+static volatile sig_atomic_t inCrashHandler{};
 
-static string forceCloseTitle{};
-static string forceCloseReason{};
+static stack_t altStack{};
 
 static void SetUpAlternateStack()
 {
@@ -254,6 +254,19 @@ void GenerateFullCrashReport(
 
     logStream << "\n========================================\n";
     logStream << "\n[CRASH DETECTED]\n\n";
+
+    logStream
+        << "\nSystem info:\n\n" 
+        << KalaWindowCore::GetCPUInfoString()
+        << "\n"
+        << KalaWindowCore::GetGPUInfoString()
+        << "\n"
+        << KalaWindowCore::GetRAMInfoString(true)
+        << "\n"
+        << KalaWindowCore::GetOSInfoString()
+        << "\n";
+
+    logStream << "\n========================================\n";
 
     logStream << "Exception code: " << hex << signal << dec << "\n";
 
