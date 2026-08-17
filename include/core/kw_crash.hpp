@@ -11,7 +11,7 @@
 
 namespace KalaWindow::Graphics
 {
-	class ProcessWindow;
+	class VulkanContext;
 }
 
 namespace KalaWindow::Core
@@ -24,7 +24,7 @@ namespace KalaWindow::Core
 	class LIB_API CrashHandler
 	{
 	friend class KalaWindowCore;
-	friend class KalaWindow::Graphics::ProcessWindow;
+	friend class KalaWindow::Graphics::VulkanContext;
 	public:
 	private:
 		static void Initialize(string&& programName);

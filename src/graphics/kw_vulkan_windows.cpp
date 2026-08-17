@@ -22,6 +22,7 @@
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
+#include "core/kw_crash.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -29,6 +30,7 @@ using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaCore::ToVar;
 
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::Window_Global;
@@ -163,8 +165,12 @@ namespace KalaWindow::Graphics
         return instance;
     }
 
-	void VulkanContext::Initialize(vector<string>&& extensions)
+	void VulkanContext::Initialize(
+		string&& appName,
+		vector<string>&& extensions)
     {
+		CrashHandler::Initialize(string(appName));
+
         u32 version{};
 
 #ifdef KDEBUG
@@ -186,10 +192,10 @@ namespace KalaWindow::Graphics
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 
-        appInfo.pApplicationName = "KalaWindow";
+        appInfo.pApplicationName = appName.c_str();
         appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 
-        appInfo.pEngineName = "KalaWindow";
+        appInfo.pEngineName = appName.c_str();
         appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
         appInfo.apiVersion = VK_API_VERSION_1_4;
 

@@ -41,12 +41,15 @@ namespace KalaWindow::Graphics
 
         //Global one-time Vulkan 1.4 instance init,
         //needs to be called before per-window Vulkan init.
+        //Add app name what to call this Vulkan global context and crash Handler.
         //Add optional features via extensions list.
         //Automatically added extensions required for core operation:
         //- VK_KHR_surface
         //- VK_KHR_win32_surface (on windows)
         //- VK_KHR_xlib_surface (on linux)
-		static void Initialize(vector<string>&& extensions = {});
+		static void Initialize(
+            string&& appName,
+            vector<string>&& extensions = {});
 		static bool IsInitialized();
 
         static VkInstance GetInstance();

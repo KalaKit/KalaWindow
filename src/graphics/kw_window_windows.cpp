@@ -27,7 +27,6 @@
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
-#include "core/kw_crash.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_vulkan.hpp"
 
@@ -41,7 +40,6 @@ using KalaHeaders::KalaLog::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
-using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::VulkanContext;
 
@@ -93,7 +91,6 @@ namespace KalaWindow::Graphics
 
 		string newTitle = std::move(title);
 
-        if (!CrashHandler::IsInitialized()) CrashHandler::Initialize(string(newTitle));
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
 
         if (!VulkanContext::IsInitialized())
