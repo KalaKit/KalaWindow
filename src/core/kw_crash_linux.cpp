@@ -255,19 +255,6 @@ void GenerateFullCrashReport(
     logStream << "\n========================================\n";
     logStream << "\n[CRASH DETECTED]\n\n";
 
-    logStream
-        << "\nSystem info:\n\n" 
-        << KalaWindowCore::GetCPUInfoString()
-        << "\n"
-        << KalaWindowCore::GetGPUInfoString()
-        << "\n"
-        << KalaWindowCore::GetRAMInfoString(true)
-        << "\n"
-        << KalaWindowCore::GetOSInfoString()
-        << "\n";
-
-    logStream << "\n========================================\n";
-
     logStream << "Exception code: " << hex << signal << dec << "\n";
 
     uintptr_t addr = (info && info->si_addr)
@@ -354,6 +341,21 @@ void GenerateFullCrashReport(
 
         logStream << "Instruction pointer: " << hex << rip << dec << "\n";
     }
+
+    logStream << "\n========================================\n\n";
+    logStream << "System info\n\n";
+
+    logStream
+        << KalaWindowCore::GetCPUInfoString()
+        << "\n\n"
+        << KalaWindowCore::GetGPUInfoString()
+        << "\n\n"
+        << KalaWindowCore::GetRAMInfoString(true)
+        << "\n\n"
+        << KalaWindowCore::GetOSInfoString()
+        << "\n\n";
+
+    logStream << "\n========================================\n";
 
     AppendCallStackToStream(logStream);
 
@@ -467,8 +469,6 @@ void AppendCallStackToStream(ostringstream& logStream)
 
         logStream << "[0x" << hex << rcast<uintptr_t>(addr) << dec << "]\n";
     }
-
-    logStream << "\n========================================\n";
 }
 
 void WriteLog(

@@ -140,17 +140,6 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	logStream << "\n[CRASH DETECTED]\n\n";
 
-    logStream 
-		<< "\nSystem info:\n\n" 
-        << KalaWindowCore::GetCPUInfoString()
-        << "\n"
-        << KalaWindowCore::GetGPUInfoString()
-        << "\n"
-        << KalaWindowCore::GetRAMInfoString(true)
-        << "\n"
-        << KalaWindowCore::GetOSInfoString()
-        << "\n";
-
 	logStream << "Exception code: " << hex << code << dec << "\n";
 	logStream << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << dec << "\n\n";
 
@@ -239,6 +228,21 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	userStream << "!\n\n"
         << "The application must close and cannot continue running.\n"
         << "A log file has been created in the folder of this application.";
+
+    logStream << "\n========================================\n\n";
+    logStream << "System info\n\n";
+
+    logStream
+        << KalaWindowCore::GetCPUInfoString()
+        << "\n\n"
+        << KalaWindowCore::GetGPUInfoString()
+        << "\n\n"
+        << KalaWindowCore::GetRAMInfoString(true)
+        << "\n\n"
+        << KalaWindowCore::GetOSInfoString()
+        << "\n\n";
+
+    logStream << "\n========================================\n";
 
 	AppendCallStackToStream(logStream, info->ContextRecord);
 
@@ -457,8 +461,6 @@ void AppendCallStackToStream(
 	}
 
 	SymCleanup(process);
-
-	logStream << "\n========================================\n";
 }
 
 void WriteLog(
