@@ -9,10 +9,16 @@
 #include <shobjidl.h>
 #include <propkey.h>
 #include <propvarutil.h>
+
+#ifdef _MSC_VER
+#include <winrt/Windows.UI.Notifications.h>
+#include <winrt/Windows.Data.Xml.Dom.h>
+#else
 #include <roapi.h>
 #include <winstring.h>
 #include <windows.data.xml.dom.h>
 #include <windows.ui.notifications.h>
+#endif
 
 #include <filesystem>
 #include <sstream>
@@ -35,12 +41,18 @@ using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
 
 using std::wstring;
+
+#ifdef _MSC_VER
+using namespace winrt::Windows::UI::Notifications;
+using namespace winrt::Windows::Data::Xml::Dom;
+#else
 using ABI::Windows::Data::Xml::Dom::IXmlDocument;
 using ABI::Windows::Data::Xml::Dom::IXmlDocumentIO;
 using ABI::Windows::UI::Notifications::IToastNotificationFactory;
 using ABI::Windows::UI::Notifications::IToastNotification;
 using ABI::Windows::UI::Notifications::IToastNotificationManagerStatics;
 using ABI::Windows::UI::Notifications::IToastNotifier;
+#endif
 
 using std::filesystem::path;
 using std::ostringstream;
@@ -101,6 +113,7 @@ public:
 	explicit operator bool() const { return ptr != nullptr; }
 };
 
+#ifndef _MSC_VER
 class HStr
 {
 public:
@@ -120,6 +133,7 @@ public:
 private:
 	HSTRING h_{};
 };
+#endif
 
 wstring XmlEscape(const wstring& in)
 {
@@ -458,7 +472,8 @@ namespace KalaWindow::Graphics
 				return 0;
 			}
 
-			RTL_OSVERSIONINFOW rovi = { sizeof(rovi) };
+			RTL_OSVERSIONINFOW rovi{};
+			rovi.dwOSVersionInfoSize = sizeof(rovi);
 			if (pRtlGetVersion(&rovi) != 0)
 			{
 				KalaWindowCore::ForceClose(
@@ -575,8 +590,8 @@ namespace KalaWindow::Graphics
 
 		int result = MessageBoxW(
 			nullptr,
-			ToWide(finalTitle).c_str(),
 			ToWide(finalMessage).c_str(),
+			ToWide(finalTitle).c_str(),
 			flags);
 
 		switch (result)
@@ -945,6 +960,18 @@ namespace KalaWindow::Graphics
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(message);
 
+#ifdef _MSC_VER
+		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
+		ToastTemplateType::ToastImageAndText02);
+
+		auto textNodes = toastXml.GetElementsByTagName(L"text");
+		textNodes.Item(0).AppendChild(toastXml.CreateTextNode(titleW));
+		textNodes.Item(1).AppendChild(toastXml.CreateTextNode(messageW));
+
+		ToastNotification toast(toastXml);
+
+		ToastNotificationManager::CreateToastNotifier(ToWide(appID)).Show(toast);
+#else
 		wstring titleEsc = XmlEscape(titleW);
 		wstring msgEsc = XmlEscape(messageW);
 
@@ -1295,6 +1322,7 @@ namespace KalaWindow::Graphics
 
 			return;
 		}
+#endif
 
 		if (isVerboseLoggingEnabled)
 		{
