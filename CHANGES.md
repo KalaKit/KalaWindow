@@ -4,11 +4,6 @@
 - fixed windows popup message order
 - no longer need to manually initialize crash handler
 
-# 1.2.5
-
-- fixed windows popup incorrect order
-- added cpu, gpu, ram and os system info to crash log
-
 # 1.2.4
 
 - fixed GetFiles not cleaning up held key data after file explorer UI is closed
