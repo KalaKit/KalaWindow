@@ -252,8 +252,7 @@ void GenerateFullCrashReport(
     //Whats written to the log file
     ostringstream logStream{};
 
-    logStream << "\n========================================\n";
-    logStream << "\n[CRASH DETECTED]\n\n";
+    logStream << "[CRASH DETECTED]\n\n";
 
     logStream << "Exception code: " << hex << signal << dec << "\n";
 
@@ -355,11 +354,11 @@ void GenerateFullCrashReport(
         << KalaWindowCore::GetOSInfoString()
         << "\n\n";
 
-    logStream << "\n========================================\n";
+    logStream << "\n========================================\n\n";
 
     AppendCallStackToStream(logStream);
 
-	logStream << "\n========================================\n";
+	logStream << "\n========================================\n\n";
 
 	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
@@ -435,8 +434,7 @@ void AppendCallStackToStream(ostringstream& logStream)
     void* frames[MAX_FRAMES]{};
     int frameCount = backtrace(frames, MAX_FRAMES);
 
-    logStream << "\n========================================\n";
-    logStream << "\nCall stack:\n\n";
+    logStream << "Call stack:\n\n";
 
     for (int i = 0; i < frameCount && i < 10; ++i)
     {

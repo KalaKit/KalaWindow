@@ -136,9 +136,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
     //Whats written to the log file
     ostringstream logStream{};
 
-	logStream << "\n========================================\n";
-
-	logStream << "\n[CRASH DETECTED]\n\n";
+	logStream << "[CRASH DETECTED]\n\n";
 
 	logStream << "Exception code: " << hex << code << dec << "\n";
 	logStream << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << dec << "\n\n";
@@ -230,7 +228,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
         << "A log file has been created in the folder of this application.";
 
     logStream << "\n========================================\n\n";
-    logStream << "System info\n\n";
+    logStream << "System info\n";
 
     logStream
         << KalaWindowCore::GetCPUInfoString()
@@ -240,13 +238,13 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
         << KalaWindowCore::GetRAMInfoString(true)
         << "\n\n"
         << KalaWindowCore::GetOSInfoString()
-        << "\n\n";
+        << "\n";
 
-    logStream << "\n========================================\n";
+    logStream << "\n========================================\n\n";
 
 	AppendCallStackToStream(logStream, info->ContextRecord);
 
-	logStream << "\n========================================\n";
+	logStream << "\n========================================\n\n";
 
 	string timeStamp = Log::GetTime(TimeFormat::TIME_FILENAME);
 
@@ -385,8 +383,7 @@ void AppendCallStackToStream(
 	stack.AddrFrame.Mode = AddrModeFlat;
 	stack.AddrStack.Mode = AddrModeFlat;
 
-	logStream << "\n========================================\n";
-	logStream << "\nCall stack:\n\n";
+	logStream << "Call stack:\n\n";
 
 	for (int i = 0; i < 10; ++i)
 	{
