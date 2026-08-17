@@ -91,20 +91,22 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-        if (!CrashHandler::IsInitialized()) CrashHandler::Initialize(std::move(title));
+		string newTitle = std::move(title);
+
+        if (!CrashHandler::IsInitialized()) CrashHandler::Initialize(string(newTitle));
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
 
         if (!VulkanContext::IsInitialized())
 		{
 			KalaWindowCore::ForceClose(
                 "KalaWindow window error",
-				"Failed to create window '" + title + "' because global Vulkan has not been initialized!");
+				"Failed to create window '" + newTitle + "' because global Vulkan has not been initialized!");
 		}
 
 		if (size < MIN_WINDOW_SIZE)
 		{
 			Log::Print(
-				"Failed to create window '" + title + "' because its size is too small!",
+				"Failed to create window '" + newTitle + "' because its size is too small!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -114,7 +116,7 @@ namespace KalaWindow::Graphics
 		if (size > MAX_WINDOW_SIZE)
 		{
 			Log::Print(
-				"Failed to create window '" + title + "' because its size is too big!",
+				"Failed to create window '" + newTitle + "' because its size is too big!",
 				"KW_WINDOW",
 				LogType::LOG_ERROR,
 				2);
@@ -133,7 +135,7 @@ namespace KalaWindow::Graphics
 		HWND newHwnd = CreateWindowExW(
 			WS_EX_ACCEPTFILES | WS_EX_APPWINDOW,
 			ToWide(Window_Global::GetAppID()).c_str(),
-			ToWide(title).c_str(),
+			ToWide(newTitle).c_str(),
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN,
 			pos.x,
 			pos.y,
@@ -214,7 +216,7 @@ namespace KalaWindow::Graphics
 				== content.end())
 			{
 				ForceClose(
-					"create child window '" + title + "'",
+					"create child window '" + newTitle + "'",
                     "parent window was invalid!");
 			}
 
@@ -224,7 +226,7 @@ namespace KalaWindow::Graphics
 				|| !IsWindow(parentWindowRef))
 			{
 				ForceClose(
-					"create child window '" + title + "'",
+					"create child window '" + newTitle + "'",
                     "parent window '" + to_string(parentWindow->GetID()) + "' handle is invalid!");
 			}
 
@@ -237,7 +239,7 @@ namespace KalaWindow::Graphics
 		registry.AddContent(newID, std::move(newWindow));
 
 		Log::Print(
-			"Created new window '" + title + "' with ID '" + to_string(newID) + "'!",
+			"Created new window '" + newTitle + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
 
