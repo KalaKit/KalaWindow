@@ -9,6 +9,11 @@
 
 #include "core_utils.hpp"
 
+namespace KalaWindow::Graphics
+{
+	class ProcessWindow;
+}
+
 namespace KalaWindow::Core
 {
 	using std::string;
@@ -19,14 +24,12 @@ namespace KalaWindow::Core
 	class LIB_API CrashHandler
 	{
 	friend class KalaWindowCore;
+	friend class KalaWindow::Graphics::ProcessWindow;
 	public:
-		//Initialize the crash handler. Always creates a timestamped
-		//crash log file at exe root if program crashes.
-		//Assign the program name that will be displayed in the crash log,
-		//and define KW_NO_DUMP if you want to disable .dmp file creation
+	private:
 		static void Initialize(string&& programName);
 		static bool IsInitialized();
-	private:
+
 		static void SetForceCloseContent(
 			string&& title, 
 			string&& reason);

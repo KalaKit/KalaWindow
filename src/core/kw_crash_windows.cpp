@@ -47,6 +47,8 @@ using std::filesystem::path;
 using std::hex;
 using std::dec;
 
+static bool isInitialized{};
+
 static path exeDir{};
 
 static string forceCloseTitle{};
@@ -103,6 +105,8 @@ namespace KalaWindow::Core
 			"KW_CRASH",
 			LogType::LOG_SUCCESS);
 	}
+
+	bool CrashHandler::IsInitialized() { return isInitialized; }
 
 	void CrashHandler::SetForceCloseContent(
         string&& title,

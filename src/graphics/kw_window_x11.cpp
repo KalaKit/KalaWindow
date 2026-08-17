@@ -21,6 +21,7 @@
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
+#include "core/kw_crash.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_vulkan.hpp"
 #include "core/kw_messageloop_x11.hpp"
@@ -34,6 +35,7 @@ using KalaHeaders::KalaLog::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
+using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::VulkanContext;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::X11GlobalData;
@@ -74,14 +76,6 @@ namespace KalaWindow::Graphics
 		vec2 size,
 		ProcessWindow* parentWindow)
     {
-		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
-        if (!VulkanContext::IsInitialized())
-		{
-			KalaWindowCore::ForceClose(
-                "KalaWindow window error",
-				"Failed to create window because Vulkan has not been initialized!");
-		}
-
 		if (title.empty()
             || title.size() > MAX_NAME_LENGTH)
 		{
@@ -93,6 +87,10 @@ namespace KalaWindow::Graphics
 
 			return nullptr;
 		}
+
+        if (!CrashHandler::IsInitialized()) CrashHandler::Initialize(std::move(title));
+		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
+        if (!VulkanContext::IsInitialized()) VulkanContext::Initialize();
 
 		if (size < MIN_WINDOW_SIZE)
 		{
