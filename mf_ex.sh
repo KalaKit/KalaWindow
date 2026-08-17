@@ -41,6 +41,7 @@ OUT_DIR=out/${OUT_NAME}-${OUT_VER}
 
 README=README.md
 LICENSE=LICENSE.md
+CHANGES=CHANGES.md
 INCLUDE=include
 DOCS=docs
 
@@ -61,6 +62,7 @@ mkdir "${OUT_DIR}/${OUT_KH_NAME}"
 # The base files
 mf --f "${README}" --t "${OUT_DIR}/${README}"
 mf --f "${LICENSE}" --t "${OUT_DIR}/${LICENSE}"
+mf --f "${CHANGES}" --t "${OUT_DIR}/${CHANGES}"
 mf --f "${INCLUDE}" --t "${OUT_DIR}"
 mf --f "${DOCS}" --t "${OUT_DIR}"
 
