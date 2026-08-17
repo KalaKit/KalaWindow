@@ -90,7 +90,13 @@ namespace KalaWindow::Graphics
 
         if (!CrashHandler::IsInitialized()) CrashHandler::Initialize(std::move(title));
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
-        if (!VulkanContext::IsInitialized()) VulkanContext::Initialize();
+
+        if (!VulkanContext::IsInitialized())
+		{
+			KalaWindowCore::ForceClose(
+                "KalaWindow window error",
+				"Failed to create window '" + title + "' because global Vulkan has not been initialized!");
+		}
 
 		if (size < MIN_WINDOW_SIZE)
 		{

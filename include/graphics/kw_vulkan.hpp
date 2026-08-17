@@ -39,6 +39,16 @@ namespace KalaWindow::Graphics
     	//Toggle verbose logging. If true and in Debug, then Vulkan will add its own debug messages to the console log messages.
 		static void SetVerboseLoggingState(bool newState);
 
+        //Global one-time Vulkan 1.4 instance init,
+        //needs to be called before per-window Vulkan init.
+        //Add optional features via extensions list.
+        //Automatically added extensions required for core operation:
+        //- VK_KHR_surface
+        //- VK_KHR_win32_surface (on windows)
+        //- VK_KHR_xlib_surface (on linux)
+		static void Initialize(vector<string>&& extensions = {});
+		static bool IsInitialized();
+
         static VkInstance GetInstance();
         
 		u32 GetID() const;
@@ -49,9 +59,6 @@ namespace KalaWindow::Graphics
         void Destroy();
 	private:
         ~VulkanContext();
-
-        static void Initialize(vector<string>&& extensions = {});
-        static bool IsInitialized();
 
         //Initialize a per-window Vulkan context, creates a surface
 		static VulkanContext* InitializeInstance(u32 windowID);

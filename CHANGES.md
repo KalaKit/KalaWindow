@@ -2,7 +2,7 @@
 
 - added cpu, gpu, ram and os system info to crash handler log
 - fixed windows popup message order
-- no longer need to manually initialize global vulkan and crash handler
+- no longer need to manually initialize crash handler
 
 # 1.2.5
 
