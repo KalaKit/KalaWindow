@@ -3,9 +3,16 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "core/kw_input.hpp"
+
+#if defined(KLIN_ANY)
+#include "core/kw_messageloop_x11.hpp"
+#include "graphics/kw_window_global.hpp"
+#endif
+
+#if defined(KWIN_ANY)
 #include <windows.h>
-#else
+#elif defined(KLIN_ANY)
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput2.h>
@@ -17,13 +24,7 @@
 #include "key_standards.hpp"
 
 #include "core/kw_core.hpp"
-#include "core/kw_input.hpp"
 #include "graphics/kw_window.hpp"
-
-#ifdef __linux__
-#include "core/kw_messageloop_x11.hpp"
-#include "graphics/kw_window_global.hpp"
-#endif
 
 using KalaHeaders::KalaCore::ToVar;
 
@@ -37,7 +38,7 @@ using KalaHeaders::KalaKeyStandards::IndexToMouse;
 
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
-#ifdef __linux__
+#if defined(KLIN_ANY)
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::Window_Global;
 #endif
@@ -78,7 +79,7 @@ namespace KalaWindow::Core
 		//
 
 		//x11 raw input is enabled globally in x11 global window init
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 		const WindowData& windowData = w->GetWindowData();
 
 		HWND window = ToVar<HWND>(windowData.window);
@@ -394,21 +395,21 @@ namespace KalaWindow::Core
 	bool Input::IsKeyHeld(KeyboardButton key)
 	{ 
 		size_t index = KeyToIndex(key);
-		if (index == MAXSIZE_T) return false;
+		if (index == SIZE_MAX) return false;
 
 		return keyDown[index];
 	}
 	bool Input::IsKeyPressed(KeyboardButton key)
 	{
 		size_t index = KeyToIndex(key);
-		if (index == MAXSIZE_T) return false;
+		if (index == SIZE_MAX) return false;
 
 		return keyPressed[index];
 	}
 	bool Input::IsKeyReleased(KeyboardButton key)
 	{
 		size_t index = KeyToIndex(key);
-		if (index == MAXSIZE_T) return false;
+		if (index == SIZE_MAX) return false;
 
 		return keyReleased[index];
 	}
@@ -416,21 +417,21 @@ namespace KalaWindow::Core
 	bool Input::IsMouseButtonHeld(MouseButton mouseButton)
 	{
 		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return false;
+		if (index == SIZE_MAX) return false;
 
 		return mouseDown[index];
 	}
 	bool Input::IsMouseButtonPressed(MouseButton mouseButton)
 	{
 		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return false;
+		if (index == SIZE_MAX) return false;
 
 		return mousePressed[index];
 	}
 	bool Input::IsMouseButtonReleased(MouseButton mouseButton)
 	{
 		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return false;
+		if (index == SIZE_MAX) return false;
 
 		return mouseReleased[index];
 	}
@@ -438,7 +439,7 @@ namespace KalaWindow::Core
 	bool Input::IsMouseButtonDoubleClicked(MouseButton mouseButton)
 	{
 		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return false;
+		if (index == SIZE_MAX) return false;
 
 		return mouseDoubleClicked[index];
 	}
@@ -486,10 +487,10 @@ namespace KalaWindow::Core
 
 		if (updateBetweenFocus) isMouseVisible = state;
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
 		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
-#else
+#elif defined(KLIN_ANY)
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		const WindowData& windowData = w->GetWindowData();
 
@@ -561,7 +562,7 @@ namespace KalaWindow::Core
 
 		const WindowData& windowData = w->GetWindowData();
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 		if (!state) ClipCursor(nullptr);
 		else
 		{
@@ -585,7 +586,7 @@ namespace KalaWindow::Core
 
 			ClipCursor(&rect);
 		}
-#else
+#elif defined(KLIN_ANY)
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		
 		if (!globalData.display
@@ -664,7 +665,7 @@ namespace KalaWindow::Core
 		bool isDown)
 	{
 		size_t index = KeyToIndex(key);
-		if (index == MAXSIZE_T) return;
+		if (index == SIZE_MAX) return;
 
 		if (isDown
 			&& !keyDown[index])
@@ -684,7 +685,7 @@ namespace KalaWindow::Core
 		bool isDown)
 	{
 		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return;
+		if (index == SIZE_MAX) return;
 
 		if (isDown
 			&& !mouseDown[index])
@@ -704,7 +705,7 @@ namespace KalaWindow::Core
 		bool isDown)
 	{
 		size_t index = MouseToIndex(mouseButton);
-		if (index == MAXSIZE_T) return;
+		if (index == SIZE_MAX) return;
 
 		mouseDoubleClicked[index] = isDown;
 	}
@@ -720,7 +721,7 @@ namespace KalaWindow::Core
 
 			const WindowData& windowData = w->GetWindowData();
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 			if (!windowData.window)
 			{
 				KalaWindowCore::ForceClose(
@@ -748,7 +749,7 @@ namespace KalaWindow::Core
 			{
 				SetCursorPos(center.x, center.y);
 			}
-#else
+#elif defined(KLIN_ANY)
 			const X11GlobalData& globalData = Window_Global::GetGlobalData();
 
 			if (!globalData.display

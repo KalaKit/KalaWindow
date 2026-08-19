@@ -24,9 +24,16 @@ namespace KalaWindow::Graphics
     using std::vector;
     using std::default_delete;
 
-    using u32 = uint32_t;
-
     using KalaWindow::Core::KalaWindowRegistry;
+
+    enum class LIB_API VulkanVersion : u8
+    {
+        V_1_0 = 0,
+        V_1_1 = 1,
+        V_1_2 = 2,
+        V_1_3 = 3,
+        V_1_4 = 4
+    };
 
     class LIB_API VulkanContext
 	{
@@ -39,18 +46,22 @@ namespace KalaWindow::Graphics
     	//Toggle verbose logging. If true and in Debug, then Vulkan will add its own debug messages to the console log messages.
 		static void SetVerboseLoggingState(bool newState);
 
-        //Global one-time Vulkan 1.4 instance init,
-        //needs to be called before per-window Vulkan init.
-        //Add app name what to call this Vulkan global context and crash Handler.
-        //Add optional features via extensions list.
+        //Get currently assigned Vulkan version
+        static VulkanVersion GetVulkanVersion();
+        //Assign a Vulkan version, defaults to 1.4,
+        //cannot be called after ProcessWindow has been initialized once or more
+        static void SetVulkanVersion(VulkanVersion newVersion);
+
+        //Get all user-provided and default Vulkan extensions
+        static const vector<string>& GetExtensions();
+        //Add optional features via extensions list,
+        //cannot be called after ProcessWindow has been initialized once or more.
         //Automatically added extensions required for core operation:
         //- VK_KHR_surface
         //- VK_KHR_win32_surface (on windows)
         //- VK_KHR_xlib_surface (on linux)
-		static void Initialize(
-            string&& appName,
-            vector<string>&& extensions = {});
-		static bool IsInitialized();
+        //- VK_EXT_debug_utils (in debug mode)
+        static void AddExtensions(vector<string>&& extensions);
 
         static VkInstance GetInstance();
         
@@ -62,6 +73,9 @@ namespace KalaWindow::Graphics
         void Destroy();
 	private:
         ~VulkanContext();
+
+        static void Initialize();
+		static bool IsInitialized();
 
         //Initialize a per-window Vulkan context, creates a surface
 		static VulkanContext* InitializeInstance(u32 windowID);

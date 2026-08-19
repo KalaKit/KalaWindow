@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef __linux__
+#include "core/kw_messageloop_x11.hpp"
+
+#if defined(KLIN_ANY)
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -25,7 +27,6 @@
 #include "log_utils.hpp"
 #include "key_standards.hpp"
 
-#include "core/kw_messageloop_x11.hpp"
 #include "core/kw_registry.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
@@ -1105,4 +1106,4 @@ namespace KalaWindow::Core
     }
 }
 
-#endif //__linux__
+#endif //KLIN_ANY

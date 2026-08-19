@@ -3,14 +3,14 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "core_utils.hpp"
+
+#if defined(KWIN_ANY)
 
 #pragma once
 
 #include <windows.h>
 #include <functional>
-
-#include "core_utils.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -21,8 +21,6 @@ namespace KalaWindow::Graphics
 namespace KalaWindow::Core
 {
 	using std::function;
-
-	using u32 = uint32_t;
 
 	class LIB_API MessageLoop
 	{
@@ -42,4 +40,4 @@ namespace KalaWindow::Core
 	};
 }
 
-#endif //_WIN32
+#endif //KWIN_ANY

@@ -18,8 +18,6 @@ namespace KalaWindow::Graphics
 	using std::vector;
 	using std::filesystem::path;
 
-	using u32 = uint32_t;
-
 	//Buttons shown on the popup
 	enum class PopupAction
 	{
@@ -64,7 +62,7 @@ namespace KalaWindow::Graphics
 		SOUND_ERROR
 	};
 
-#ifdef __linux__
+#if defined(KLIN_ANY)
 	struct X11GlobalData
 	{
 		uintptr_t display{};
@@ -122,15 +120,24 @@ namespace KalaWindow::Graphics
 		//and all windows will dump their logs into the console.
 		static void SetVerboseLoggingState(bool newState);
 
-#ifdef __linux__
+		static const string& GetAppName();
+		//Assign the global app name that is used in 
+		//Vulkan instance creation and for the crash handler
+		static void SetAppName(string&& appName);
+
+#if defined(KLIN_ANY)
 		static const X11GlobalData& GetGlobalData();
 #endif
 
-#ifdef _WIN32
-		//Returns Windows version as xxyyyyyy format,
+#if defined(KWIN_ANY)
+		//Returns full Windows version as xx.yyyyyy format,
 		//where XX is windows version and YYYYYY is build version.
 		//Six digits are reserved for build numbers, so builds are 0yyyyy mostly
 		static u32 GetVersion();
+		//Returns Windows build number as xxxx because the first digit is always 0 anyway
+		static u32 GetBuildNumber();
+		//Returns Windows build revision as xxxx
+		static u32 GetBuildRevision();
 
 		static string_view GetAppID();
 #endif
@@ -166,7 +173,7 @@ namespace KalaWindow::Graphics
 	private:
 		static void Initialize();
 		static bool IsInitialized();
-#ifdef __linux__
+#if defined(KLIN_ANY)
 		static void Shutdown();
 #endif
 	};

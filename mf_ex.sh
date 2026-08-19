@@ -36,7 +36,7 @@ case "$1" in
         ;;
 esac
 
-OUT_VER=1-3-0
+OUT_VER=1-4-0
 OUT_DIR=out/${OUT_NAME}-${OUT_VER}
 
 README=README.md

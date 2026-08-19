@@ -14,9 +14,9 @@
 #include "core_utils.hpp"
 #include "math_utils.hpp"
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 #include "core/kw_messageloop_windows.hpp"
-#else
+#elif defined(KLIN_ANY)
 #include "core/kw_messageloop_x11.hpp"
 #endif
 
@@ -69,7 +69,7 @@ namespace KalaWindow::Graphics
 		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it, uses WINDOW_NORMAL on x11
 	};
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 	struct LIB_API WindowData
 	{
 		uintptr_t window{};
@@ -78,7 +78,7 @@ namespace KalaWindow::Graphics
 		uintptr_t hMenu{};
 		uintptr_t wndProc{};
 	};
-#else
+#elif defined(KLIN_ANY)
 	struct LIB_API WindowData
 	{
 		uintptr_t window{};
@@ -133,7 +133,7 @@ namespace KalaWindow::Graphics
 		void SetSize(vec2 newSize);
 
 		//X11 does not expose outer size reliably
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 		vec2 GetOuterSize() const;
 		void SetOuterSize(vec2 newSize);
 #endif
@@ -155,7 +155,7 @@ namespace KalaWindow::Graphics
 		bool IsResizable() const;		
 		void SetResizableState(bool state);
 
-#ifdef __linux__
+#if defined(KLIN_ANY)
 		pair<string, string> GetWindowClass() const;
 		void SetWindowClass(string&& newValue);
 #endif
@@ -218,7 +218,7 @@ namespace KalaWindow::Graphics
 		u32 parentID = UINT32_MAX;
 		vector<u32> childIDs{};
 
-#ifdef __linux__
+#if defined(KLIN_ANY)
 		void UpdateFullscreenAndMinimizedState();
 
 		bool isFocused{};

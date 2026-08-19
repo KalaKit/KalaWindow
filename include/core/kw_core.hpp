@@ -22,12 +22,6 @@ namespace KalaWindow::Core
 	using std::array;
 	using std::vector;
 
-	using u8 = uint8_t;
-	using u16 = uint16_t;
-	using u32 = uint32_t;
-	using u64 = uint64_t;
-	using f64 = double;
-
 	enum class CPUFeatureFlag : u32
 	{
 		CPU_FEATURE_NONE    = 0,
@@ -76,9 +70,11 @@ namespace KalaWindow::Core
 	};
 	struct LIB_API OSInfo
 	{
-		string name{};         //OS name - Windows 10/11 or Linux
-		string version{};      //build number for Windows, kernel version for Linux
-		string architecture{}; //x64, x86, ARM64 etc
+		string name{};             //OS name - Windows 10/11 or Linux
+		string version{};          //build number for Windows, kernel version for Linux
+		string architecture{};     //x64, x86, ARM64 etc
+		bool isOnWine{};           //true if using Wine or Proton
+		bool isOnVirtualMachine{}; //true if using any virtual machine
 	};
 
 	static constexpr u8 MAX_NAME_LENGTH = 64;

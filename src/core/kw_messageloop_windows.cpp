@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "core/kw_messageloop_windows.hpp"
+
+#if defined(KWIN_ANY)
 
 #include <windows.h>
 #include <winuser.h>
@@ -24,7 +26,6 @@
 #include "math_utils.hpp"
 #include "key_standards.hpp"
 
-#include "core/kw_messageloop_windows.hpp"
 #include "core/kw_input.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_registry.hpp"
@@ -55,9 +56,9 @@ using std::to_string;
 using std::vector;
 using std::ostringstream;
 using std::function;
-using std::wstring;
-
 using std::unordered_map;
+
+using std::wstring;
 
 static const unordered_map<WPARAM, KeyboardButton> VKToKeyMap = {
 	// Letters
@@ -1315,4 +1316,4 @@ string ToShort(const wstring& str)
 	return result;
 }
 
-#endif //_WIN32
+#endif //KWIN_ANY

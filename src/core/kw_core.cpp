@@ -3,14 +3,16 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "core/kw_core.hpp"
+
+#if defined(KWIN_ANY)
 #include <windows.h>
 #include <mmsystem.h>
 #include <intrin.h>
 #include <powerbase.h>
 #include <winternl.h>
 #include <psapi.h>
-	#if !defined (_MSC_VER)
+	#if defined(KWIN_GNU)
 	typedef struct _PROCESSOR_POWER_INFORMATION
 	{
 		ULONG number{};
@@ -21,7 +23,7 @@
 		ULONG CurrentIdleState{};
 	} PROCESSOR_POWER_INFORMATION, *PPROCESSOR_POWER_INFORMATION;
 	#endif
-#else
+#elif defined(KLIN_ANY)
 #include <csignal>
 #include <X11/Xlib.h>
 #include <linux/limits.h>
@@ -30,18 +32,18 @@
 #include <sys/utsname.h>
 #endif
 
-#include "vulkan/vulkan_core.h"
-
 #include <fstream>
 #include <set>
+
+#include "vulkan/vulkan_core.h"
 
 #include "log_utils.hpp"
 #include "string_utils.hpp"
 
-#include "core/kw_core.hpp"
 #include "core/kw_crash.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_vulkan.hpp"
+#include "graphics/kw_window_global.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -51,8 +53,9 @@ using KalaHeaders::KalaLog::DateFormat;
 using KalaHeaders::KalaString::TrimString;
 
 using KalaWindow::Graphics::VulkanContext;
+using KalaWindow::Graphics::Window_Global;
 
-#ifdef __linux__
+#if defined(KLIN_ANY)
 using std::raise;
 #endif
 
@@ -62,13 +65,13 @@ using std::ifstream;
 using std::set;
 using std::pair;
 
-#if defined(__clang__) || defined(__GNUC__)
+#if defined(KWIN_GNU)
 __attribute__((target("xsave")))
 #endif
 
 static u64 ReadXRC0()
 {
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 	return _xgetbv(0);
 #else
 	u32 xcrLow{}, xcrHigh{};
@@ -89,7 +92,7 @@ namespace KalaWindow::Core
 	{
 		path exePath{};
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 		wchar_t buffer[MAX_PATH]{};
 		DWORD length = GetModuleFileNameW(
 			nullptr,
@@ -107,7 +110,7 @@ namespace KalaWindow::Core
 				"KalaWindow core error",
 				"Failed to get path to executable!");
 		}
-#else
+#elif defined(KLIN_ANY)
 		char buffer[PATH_MAX]{};
 		ssize_t length = readlink(
 			"/proc/self/exe",
@@ -139,7 +142,7 @@ namespace KalaWindow::Core
 				int regs[4]{};
 				char brand[49]{};
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				__cpuid(
 					regs,
 					0x80000002);
@@ -163,7 +166,7 @@ namespace KalaWindow::Core
 					brand + 32,
 					regs,
 					sizeof(regs));			
-#else
+#elif defined(KLIN_ANY)
 				__get_cpuid(
 					0x80000002, 
 					(u32*)&regs[0],
@@ -206,9 +209,9 @@ namespace KalaWindow::Core
 				int regs[4]{};
 				char vendor[13]{};
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				__cpuid(regs, 0);
-#else
+#elif defined(KLIN_ANY)
 				__get_cpuid(
 					0,
 					(u32*)&regs[0],
@@ -235,7 +238,7 @@ namespace KalaWindow::Core
 
 		auto get_physical_core_count = []() -> u16
 			{
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				DWORD bufferSize{};
 				GetLogicalProcessorInformationEx(
 					RelationProcessorCore,
@@ -272,7 +275,7 @@ namespace KalaWindow::Core
 				}
 
 				return physicalCores;
-#else
+#elif defined(KLIN_ANY)
 				ifstream file("/proc/cpuinfo");
 				if (!file.is_open())
 				{
@@ -310,16 +313,16 @@ namespace KalaWindow::Core
 
 		auto get_logical_thread_count = []() -> u16
 			{
-#if _WIN32
+#if defined(KWIN_ANY)
 				return scast<u16>(GetActiveProcessorCount(ALL_PROCESSOR_GROUPS));
-#else
+#elif defined(KLIN_ANY)
 				return scast<u16>(sysconf(_SC_NPROCESSORS_ONLN));
 #endif
 			};
 
 		auto get_base_clock_speed = []() -> u32
 			{
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				HKEY key{};
 				RegOpenKeyExA(
 					HKEY_LOCAL_MACHINE,
@@ -340,7 +343,7 @@ namespace KalaWindow::Core
 				RegCloseKey(key);
 
 				return scast<u32>(mhz);
-#else
+#elif defined(KLIN_ANY)
 				ifstream file("/sys/devices/system/cpu/cpu0/cpufreq/base_frequency");
 				if (!file.is_open())
 				{
@@ -371,9 +374,9 @@ namespace KalaWindow::Core
 					for (u32 i = 0; i < 4; i++)
 					{
 						int regs[4]{};
-	#ifdef _WIN32
+#if defined(KWIN_ANY)
 						__cpuidex(regs, 4, i);
-	#else
+#elif defined(KLIN_ANY)
 						__get_cpuid_count(
 							4,
 							i,
@@ -381,7 +384,7 @@ namespace KalaWindow::Core
 							(u32*)&regs[1],
 							(u32*)&regs[2],
 							(u32*)&regs[3]);
-	#endif
+#endif
 
 						u32 cacheType = regs[0] & 0x1F; //EAX bits 0-4
 						if (cacheType == 0) break; //no more cache levels
@@ -412,14 +415,14 @@ namespace KalaWindow::Core
 					int regsL1[4]{};
 					int regsL23[4]{};
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 					__cpuid(
 						regsL1, 
 						0x80000005);
 					__cpuid(
 						regsL23, 
 						0x80000006);
-#else
+#elif defined(KLIN_ANY)
 					__get_cpuid(
 						0x80000005,
 						(u32*)&regsL1[0],
@@ -457,14 +460,14 @@ namespace KalaWindow::Core
 				int regs0[4]{}; //leaf 0 - max supported leaf
 				int regs1[4]{}; //leaf 1
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				__cpuid(
 					regs0, 
 					0);
 				__cpuid(
 					regs1, 
 					1);
-#else
+#elif defined(KLIN_ANY)
 				__get_cpuid(
 					0,
 					(u32*)&regs0[0],
@@ -509,12 +512,12 @@ namespace KalaWindow::Core
 				{
 					int regs7[4]{};
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 					__cpuidex(
 						regs7,
 						7,
 						0);
-#else
+#elif defined(KLIN_ANY)
 					__get_cpuid_count(
 						7,
 						0,
@@ -715,7 +718,7 @@ namespace KalaWindow::Core
 
 		auto get_total_memory = []() -> u64
 			{
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				MEMORYSTATUSEX memStatus{};
 				memStatus.dwLength = sizeof(memStatus);
 
@@ -731,7 +734,7 @@ namespace KalaWindow::Core
 				}
 
 				return memStatus.ullTotalPhys;
-#else
+#elif defined(KLIN_ANY)
 				struct sysinfo info{};
 				if (sysinfo(&info) != 0)
 				{
@@ -750,7 +753,7 @@ namespace KalaWindow::Core
 
 		auto get_available_memory = []() -> u64
 			{
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				MEMORYSTATUSEX memStatus{};
 				memStatus.dwLength = sizeof(memStatus);
 
@@ -766,7 +769,7 @@ namespace KalaWindow::Core
 				}
 
 				return memStatus.ullAvailPhys;
-#else
+#elif defined(KLIN_ANY)
 				ifstream file("/proc/meminfo");
 				if (!file.is_open())
 				{
@@ -805,7 +808,7 @@ namespace KalaWindow::Core
 
 		auto get_used_memory = []() -> u64
 			{
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 				PROCESS_MEMORY_COUNTERS pmc{};
 				if (!GetProcessMemoryInfo(
 					GetCurrentProcess(), 
@@ -822,7 +825,7 @@ namespace KalaWindow::Core
 				}
 
 				return pmc.WorkingSetSize;
-#else
+#elif defined(KLIN_ANY)
 				ifstream file("/proc/self/status");
 				if (!file.is_open())
 				{
@@ -889,92 +892,29 @@ namespace KalaWindow::Core
 
 		if (!hasInfo)
 		{
-			auto get_os_name_and_version = []() -> pair<string, string>
+			auto get_os_name_and_version = [](
+				bool onWine, 
+				bool onVM) -> pair<string, string>
 				{
-#ifdef _WIN32
-					typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
-
-					RTL_OSVERSIONINFOW rovi{};
-					rovi.dwOSVersionInfoSize = sizeof(rovi);
-
-					HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
-					if (!hMod)
-					{
-						Log::Print(
-							"Failed to get OS info because ntdll.dll module handle was invalid!",
-							"KW_CORE",
-							LogType::LOG_ERROR,
-							2);
-
-						return { "Windows", "" };
-					}
-
-					bool isWine = GetProcAddress(hMod, "wine_get_version");
-
-					auto pRtlGetVersion = rcast<RtlGetVersionPtr>(
-						GetProcAddress(hMod, "RtlGetVersion"));
-
-					if (!pRtlGetVersion
-						|| pRtlGetVersion(&rovi) != 0)
-					{
-						Log::Print(
-							"Failed to get OS info because RtlGetVersion was invalid or failed!",
-							"KW_CORE",
-							LogType::LOG_ERROR,
-							2);
-
-						string finalName = isWine ? "Windows (Wine)" : "Windows";
-						return { finalName, "" };
-					}
+#if defined(KWIN_ANY)
+					u32 buildNumber = Window_Global::GetBuildNumber();
 
 					//Windows 11 still reports major version 10 internally,
 					//build number is the reliable way to distinguish 10 vs 11
-					string name = (rovi.dwBuildNumber >= 22000) ? "Windows 11" : "Windows 10";
-					name = isWine ? name + " (Wine)" : name;
+					string name = (buildNumber >= 22000) ? "Windows 11" : "Windows 10";
 
-					string build = to_string(rovi.dwBuildNumber);
+					name = onWine ? name + " (Wine)" : name;
+					name = onVM ? name + " (Virtual Machine)" : name;
 
-					//also append UBR (revision number) to build number
-					HKEY key{};
-					if (RegOpenKeyExA(
-						HKEY_LOCAL_MACHINE,
-						"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
-						0,
-						KEY_READ,
-						&key) != ERROR_SUCCESS)
-					{
-						Log::Print(
-							"Failed to get OS build revision because RegOpenKeyExA failed!",
-							"KW_CORE",
-							LogType::LOG_ERROR,
-							2);
-					}
-					else
-					{
-						DWORD ubr{};
-						DWORD size = sizeof(ubr);
+					string buildNumberStr = to_string(buildNumber);
+					u32 buildRevision = Window_Global::GetBuildRevision();
 
-						if (RegQueryValueExA(
-							key,
-							"UBR",
-							nullptr,
-							nullptr,
-							rcast<LPBYTE>(&ubr),
-							&size) != ERROR_SUCCESS)
-						{
-							Log::Print(
-								"Failed to get OS build revision because RegQueryValueExA failed!",
-								"KW_CORE",
-								LogType::LOG_ERROR,
-								2);
-						}
-						else build += "." + to_string(ubr);
-
-						RegCloseKey(key);
-					}
-
-					return { name, build };
-#else
+					string finalBuildStr = buildRevision != 0 
+						? buildNumberStr + "." + to_string(buildRevision)
+						: buildNumberStr;
+					
+					return { name, finalBuildStr };
+#elif defined(KLIN_ANY)
 					string name = "Linux";
 					string prettyName{};
 
@@ -1024,13 +964,15 @@ namespace KalaWindow::Core
 					}
 					else kernelVersion = string(uts.release);
 
+					name = onVM ? name + " (Virtual Machine)" : name;
+
 					return { name, kernelVersion };
 #endif
 				};
 
 			auto get_architecture = []() -> string
 				{
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 	#if defined(_M_ARM64)
 					return "ARM64";
 	#elif defined(_M_X64)
@@ -1040,7 +982,7 @@ namespace KalaWindow::Core
 	#else
 					return "Unknown";
 	#endif
-#else
+#elif defined(KLIN_ANY)
 					struct utsname uts{};
 					if (uname(&uts) != 0)
 					{
@@ -1057,11 +999,46 @@ namespace KalaWindow::Core
 #endif
 				};
 
-			pair<string, string> nv = get_os_name_and_version();
+			auto get_wine_status = []() -> bool
+				{
+#if defined(KWIN_ANY)
+					return GetProcAddress(
+						GetModuleHandleW(L"ntdll.dll"), 
+						"wine_get_version");
+#elif defined(KLIN_ANY)
+					return false;
+#endif
+				};
+
+			auto get_vm_status = []() -> bool
+				{
+					u32 regs[4]{};
+#if defined(KWIN_ANY)
+					__cpuid((int*)regs, 1);
+#elif defined(KLIN_ANY)
+					__get_cpuid(
+						1,
+						&regs[0],
+						&regs[1],
+						&regs[2],
+						&regs[3]);
+#endif
+					//ECX bit 31
+					return (regs[2] & (1u << 31)) != 0;
+				};
+
+			bool onWine = get_wine_status();
+			bool onVM = get_vm_status();
+
+			pair<string, string> nv = get_os_name_and_version(
+				onWine,
+				onVM);
 
 			osInfo.name = nv.first;
 			osInfo.version = nv.second;
 			osInfo.architecture = get_architecture();
+			osInfo.isOnWine = onWine;
+			osInfo.isOnVirtualMachine = onVM;
 
 			hasInfo = true;
 		}
@@ -1102,9 +1079,9 @@ namespace KalaWindow::Core
 			std::move(target),
 			std::move(reason));
 
-#ifdef _WIN32
+#if defined(KWIN_ANY)
 		__debugbreak();
-#else
+#elif defined(KLIN_ANY)
 		raise(SIGTRAP);
 #endif
 	}

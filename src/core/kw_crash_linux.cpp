@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef __linux__
+#include "core/kw_crash.hpp"
+
+#if defined(KLIN_ANY)
 
 #include <signal.h>
 #include <csignal>
@@ -26,7 +28,6 @@
 
 #include "log_utils.hpp"
 
-#include "core/kw_crash.hpp"
 #include "core/kw_core.hpp"
 #include "graphics/kw_window_global.hpp"
 
@@ -57,8 +58,6 @@ static path exeDir{};
 static string forceCloseTitle{};
 static string forceCloseReason{};
 
-//The name of this program that is displayed in the title of the error popup
-static string assignedProgramName;
 //Whether or not to create a dump file at crash
 static bool canCreateDump = true;
 
@@ -114,19 +113,8 @@ static void WriteLog(
 
 namespace KalaWindow::Core
 {
-    void CrashHandler::Initialize(string&& programName)
+    void CrashHandler::Initialize()
     {
-        if (isInitialized)
-        {
-            Log::Print(
-			    "Failed to initialize crash handler because it has already been initialized!",
-			    "KW_CRASH",
-			    LogType::LOG_ERROR,
-                2);
-
-            return;
-        }
-
         SetUpAlternateStack();
 
         struct sigaction sa{};
@@ -162,8 +150,6 @@ namespace KalaWindow::Core
             SIGTRAP,
             &sa,
             nullptr);
-
-		assignedProgramName = std::move(programName);
 
 #ifdef KW_NO_DUMP
 	    canCreateDump = false;
@@ -387,7 +373,7 @@ void GenerateFullCrashReport(
 		timeStamp);
 
 	Window_Global::CreatePopup(
-		std::move(assignedProgramName),
+		string(Window_Global::GetAppName()),
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
 		PopupType::POPUP_TYPE_ERROR);

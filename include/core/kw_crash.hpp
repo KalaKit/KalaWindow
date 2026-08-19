@@ -11,7 +11,7 @@
 
 namespace KalaWindow::Graphics
 {
-	class VulkanContext;
+	class Window_Global;
 }
 
 namespace KalaWindow::Core
@@ -24,10 +24,10 @@ namespace KalaWindow::Core
 	class LIB_API CrashHandler
 	{
 	friend class KalaWindowCore;
-	friend class KalaWindow::Graphics::VulkanContext;
+	friend class KalaWindow::Graphics::Window_Global;
 	public:
 	private:
-		static void Initialize(string&& programName);
+		static void Initialize();
 		static bool IsInitialized();
 
 		static void SetForceCloseContent(

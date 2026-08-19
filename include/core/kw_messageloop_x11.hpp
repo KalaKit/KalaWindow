@@ -3,15 +3,15 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef __linux__
+#include "core_utils.hpp"
+
+#if defined(KLIN_ANY)
 
 #pragma once
 
 #include <X11/Xlib.h>
 
 #include <functional>
-
-#include "core_utils.hpp"
 
 namespace KalaWindow::Graphics
 {
@@ -21,8 +21,6 @@ namespace KalaWindow::Graphics
 namespace KalaWindow::Core
 {
     using std::function;
-
-    using u32 = uint32_t;
 
     class LIB_API MessageLoop
     {
@@ -37,4 +35,4 @@ namespace KalaWindow::Core
     };
 }
 
-#endif //__linux__
+#endif //KLIN_ANY

@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef __linux__
+#include "graphics/kw_window_global.hpp"
+
+#if defined(KLIN_ANY)
 
 #include <X11/Xlib.h>
 #include <X11/extensions/XI2.h>
@@ -11,6 +13,7 @@
 #include <X11/Xatom.h>
 #include <sys/wait.h>
 #include <glib.h>
+#include <cpuid.h>
 #include <libnotify/notify.h>
 #include <canberra.h>
 
@@ -21,9 +24,9 @@
 #include "log_utils.hpp"
 #include "string_utils.hpp"
 
-#include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
+#include "core/kw_crash.hpp"
 
 using KalaHeaders::KalaCore::FromVar;
 using KalaHeaders::KalaCore::RemoveDuplicates;
@@ -36,6 +39,8 @@ using KalaHeaders::KalaString::SplitString;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::Input;
+using KalaWindow::Core::MAX_NAME_LENGTH;
+using KalaWindow::Core::CrashHandler;
 
 using std::string;
 using std::to_string;
@@ -44,6 +49,8 @@ using std::error_code;
 
 static bool foundCanberra = true;
 static bool foundNotify = true;
+
+static string appName = "KalaWindow app";
 
 static ca_context* canberra{};
 
@@ -117,18 +124,32 @@ namespace KalaWindow::Graphics
 	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
     void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
-    void Window_Global::Initialize()
+    const string& Window_Global::GetAppName() { return appName; }
+    void Window_Global::SetAppName(string&& newAppName)
     {
-        if (isInitialized)
-		{
-			Log::Print(
-				"Failed to initialize global window context because it has already been initialized!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
+        if (appName.size() > MAX_NAME_LENGTH
+            || appName.empty())
+        {
+            Log::Print(
+                "Failed to set app name because it was empty or too long!",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_ERROR,
+                2);
 
             return;
-		}
+        }
+
+        appName = std::move(newAppName);
+
+        Log::Print(
+            "Set app name to '" + appName + "'.",
+            "KW_WINDOW_GLOBAL",
+            LogType::LOG_SUCCESS);
+    }
+
+    void Window_Global::Initialize()
+    {
+		CrashHandler::Initialize();
 
         if (!CommandSucceeds("zenity --version"))
         {
@@ -809,4 +830,4 @@ namespace KalaWindow::Graphics
     }
 }
 
-#endif //__linux__
+#endif //KLIN_ANY

@@ -3,14 +3,17 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "graphics/kw_window_global.hpp"
+
+#if defined(KWIN_ANY)
 
 #include <windows.h>
 #include <shobjidl.h>
 #include <propkey.h>
 #include <propvarutil.h>
+#include <intrin.h>
 
-#ifdef _MSC_VER
+#if defined(KWIN_MSVC)
 #include <winrt/Windows.UI.Notifications.h>
 #include <winrt/Windows.Data.Xml.Dom.h>
 #else
@@ -27,22 +30,24 @@
 
 #include "log_utils.hpp"
 
-#include "graphics/kw_window_global.hpp"
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_messageloop_windows.hpp"
 #include "core/kw_input.hpp"
+#include "core/kw_crash.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
+using KalaWindow::Core::CrashHandler;
 
 using std::wstring;
 
-#ifdef _MSC_VER
+#if defined(KWIN_MSVC)
 using namespace winrt::Windows::UI::Notifications;
 using namespace winrt::Windows::Data::Xml::Dom;
 #else
@@ -61,13 +66,24 @@ using std::string_view;
 using std::to_string;
 using std::error_code;
 
+static constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 revision 1809
+
+static bool isInitialized{};
+static bool isVerboseLoggingEnabled{};
+
+static u32 version{};
+static u32 buildNumber{};
+static u32 buildRevision{};
+
+static string appID{};
+
+static string appName = "KalaWindow app";
+
 static wstring ToWide(string_view str);
 static string ToShort(const wstring& str);
 static string HResultToString(HRESULT hr);
 
-static constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 (1809)
-
-//CComPtr rewritten to work on both Windows and when compiling for Windows on Linux
+//CComPtr rewritten to work on Windows MSVC and Windows GNU (mingw/clang)
 template<typename T>
 class CComPtr
 {
@@ -113,7 +129,7 @@ public:
 	explicit operator bool() const { return ptr != nullptr; }
 };
 
-#ifndef _MSC_VER
+#if defined(KWIN_GNU)
 class HStr
 {
 public:
@@ -157,10 +173,7 @@ wstring XmlEscape(const wstring& in)
 
 void CreateStartShortcut(string_view appID)
 {
-	//ignore if on wine
-	HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
-	bool isWine = ntdll && GetProcAddress(ntdll, "wine_get_version");
-	if (isWine)
+	if (KalaWindowCore::GetOSInfo().isOnWine)
 	{
 		Log::Print(
 			"Skipping start shortcut creation because this program was ran on Wine! Notifications will also not work!",
@@ -327,62 +340,104 @@ void CreateStartShortcut(string_view appID)
 
 namespace KalaWindow::Graphics
 {
-	static bool isInitialized{};
-	static bool isVerboseLoggingEnabled{};
-
-	static u32 version{};
-	static string appID{};
-
 	bool Window_Global::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 	void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
+    const string& Window_Global::GetAppName() { return appName; }
+    void Window_Global::SetAppName(string&& newAppName)
+    {
+        if (appName.size() > MAX_NAME_LENGTH
+            || appName.empty())
+        {
+            Log::Print(
+                "Failed to set app name because it was empty or too long!",
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_ERROR,
+                2);
+
+            return;
+        }
+
+        appName = std::move(newAppName);
+
+        Log::Print(
+            "Set app name to '" + appName + "'.",
+            "KW_WINDOW_GLOBAL",
+            LogType::LOG_SUCCESS);
+    }
+
 	void Window_Global::Initialize()
 	{
-		if (isInitialized)
-		{
-			Log::Print(
-				"Failed to initialize global window context because it has already been initialized!",
-				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
+		CrashHandler::Initialize();
 
 		typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
 		RTL_OSVERSIONINFOW rovi{};
 		rovi.dwOSVersionInfoSize = sizeof(rovi);
 
-		HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
-		if (!hMod)
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow global window error",
-				"Failed to check OS version because hMod was invalid!");
-		}
+		auto pRtlGetVersion = rcast<RtlGetVersionPtr>(GetProcAddress(
+			GetModuleHandleW(L"ntdll.dll"), 
+			"RtlGetVersion"));
 
-		auto pRtlGetVersion = rcast<RtlGetVersionPtr>(
-			GetProcAddress(hMod, "RtlGetVersion"));
-		
 		if (!pRtlGetVersion
 			|| pRtlGetVersion(&rovi) != 0)
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow global window error",
-				"Failed to check OS version because pRtlGetVersion was invalid or failed!");
+				"Failed to check OS version bbecause RtlGetVersion was invalid or failed!");
 		}
 
-		u32 realVersion = rovi.dwMajorVersion * 1000000 + rovi.dwBuildNumber;
-
-		string versionStr = to_string(realVersion);
+		version = rovi.dwMajorVersion * 1000000 + rovi.dwBuildNumber;
+		
+		string versionStr = to_string(version);
 		string osVersion = versionStr.substr(0, 2);
-		string buildVersion = to_string(stoi(versionStr.substr(2)));
+		string buildnumberStr = to_string(stoi(versionStr.substr(2)));
 
-		if (realVersion < MIN_OS_VERSION)
+		buildNumber = stoul(buildnumberStr);
+
+		//get UBR (revision number) as well
+		HKEY key{};
+		if (RegOpenKeyExA(
+			HKEY_LOCAL_MACHINE,
+			"SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion",
+			0,
+			KEY_READ,
+			&key) != ERROR_SUCCESS)
+		{
+			Log::Print(
+				"Failed to get Windows build revision because RegOpenKeyExA failed!",
+				"KW_CORE",
+				LogType::LOG_ERROR,
+				2);
+		}
+		else
+		{
+			DWORD ubr{};
+			DWORD size = sizeof(ubr);
+
+			if (RegQueryValueExA(
+				key,
+				"UBR",
+				nullptr,
+				nullptr,
+				rcast<LPBYTE>(&ubr),
+				&size) != ERROR_SUCCESS)
+			{
+				Log::Print(
+					"Failed to get Windows build revision because RegQueryValueExA failed!",
+					"KW_CORE",
+					LogType::LOG_ERROR,
+					2);
+			}
+			else buildRevision = ubr;
+
+			RegCloseKey(key);
+		}
+
+		if (version < MIN_OS_VERSION)
 		{
 			ostringstream oss{};
-			oss << "Your version is Windows '" + osVersion + "' build '" << buildVersion
+			oss << "Your version is Windows '" + osVersion + "' build '" << buildnumberStr
 				<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
 
 			KalaWindowCore::ForceClose(
@@ -393,7 +448,7 @@ namespace KalaWindow::Graphics
 		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
-				"Windows version '" + osVersion + "' build '" + buildVersion + "'",
+				"Windows version '" + osVersion + "' build '" + buildnumberStr + "'",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_VERBOSE);
 		}
@@ -448,56 +503,48 @@ namespace KalaWindow::Graphics
 
 	u32 Window_Global::GetVersion()
 	{
-		if (version == 0)
+		if (isInitialized)
 		{
-			typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+			Log::Print(
+				"Failed to get Windows version because global window has has not yet been initialized!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
 
-			HMODULE hMod = GetModuleHandleW(L"ntdll.dll");
-			if (!hMod)
-			{
-				KalaWindowCore::ForceClose(
-					"KalaWindow global window error",
-					"Failed to get 'ntdll.dll'");
-
-				return 0;
-			}
-
-			auto pRtlGetVersion = (RtlGetVersionPtr)GetProcAddress(hMod, "RtlGetVersion");
-			if (!pRtlGetVersion)
-			{
-				KalaWindowCore::ForceClose(
-					"KalaWindow global window error",
-					"Failed to resolve address of 'RtlGetVersion'");
-
-				return 0;
-			}
-
-			RTL_OSVERSIONINFOW rovi{};
-			rovi.dwOSVersionInfoSize = sizeof(rovi);
-			if (pRtlGetVersion(&rovi) != 0)
-			{
-				KalaWindowCore::ForceClose(
-					"KalaWindow global window error",
-					"Call to 'RtlGetVersion' failed");
-
-				return 0;
-			}
-
-			u32 major = rovi.dwMajorVersion;
-			u32 build = rovi.dwBuildNumber;
-
-			//Windows 11 reports as 10.0  but build >= 22000
-			if (major == 10
-				&& build >= 22000)
-			{
-				major = 11;
-			}
-
-			version = major * 1000000 + build;
-			return version;
+			return 0;
 		}
-
+		
 		return version;
+	}
+	u32 Window_Global::GetBuildNumber()
+	{
+		if (isInitialized)
+		{
+			Log::Print(
+				"Failed to get Windows build number because global window has has not yet been initialized!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			return 0;
+		}
+		
+		return buildNumber;
+	}
+	u32 Window_Global::GetBuildRevision()
+	{
+		if (isInitialized)
+		{
+			Log::Print(
+				"Failed to get Windows build revision because global window has has not yet been initialized!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			return 0;
+		}
+		
+		return buildRevision;
 	}
 
 	string_view Window_Global::GetAppID() { return appID; }
@@ -957,10 +1004,21 @@ namespace KalaWindow::Graphics
 		string&& title,
 		string&& message)
 	{
+		if (KalaWindowCore::GetOSInfo().isOnWine)
+		{
+			Log::Print(
+				"Cannot create notifications because this program is ran on Wine!",
+				"KW_WINDOW_GLOBAL",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
 		wstring titleW = ToWide(title);
 		wstring messageW = ToWide(message);
 
-#ifdef _MSC_VER
+#if defined(KWIN_MSVC)
 		XmlDocument toastXml = ToastNotificationManager::GetTemplateContent(
 		ToastTemplateType::ToastImageAndText02);
 
@@ -1454,4 +1512,4 @@ string HResultToString(HRESULT hr)
 	return result;
 }
 
-#endif //_WIN32
+#endif //KWIN_ANY

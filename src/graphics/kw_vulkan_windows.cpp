@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "graphics/kw_vulkan.hpp"
+
+#if defined(KWIN_ANY)
 
 #include <windows.h>
 #include <minwindef.h>
@@ -18,11 +20,9 @@
 #include "log_utils.hpp"
 #include "core_utils.hpp"
 
-#include "graphics/kw_vulkan.hpp"
 #include "graphics/kw_window.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "core/kw_core.hpp"
-#include "core/kw_crash.hpp"
 
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
@@ -30,10 +30,10 @@ using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaCore::ToVar;
 
 using KalaWindow::Core::KalaWindowCore;
-using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
 using KalaWindow::Graphics::Window_Global;
+using KalaWindow::Graphics::VulkanVersion;
 
 using std::string;
 using std::string_view;
@@ -41,9 +41,15 @@ using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
 using std::filesystem::path;
+using std::vector;
 
 static bool isInitialized{};
 static bool isVerboseLoggingEnabled{};
+
+static string appName{};
+
+static VulkanVersion vulkanVersion = VulkanVersion::V_1_4;
+static vector<string> extensions{};
 
 static VkInstance instance{};
 static VkDebugUtilsMessengerEXT debugMessenger{};
@@ -151,6 +157,94 @@ namespace KalaWindow::Graphics
 	bool VulkanContext::IsVerboseLoggingEnabled() { return isVerboseLoggingEnabled; }
 	void VulkanContext::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
+	VulkanVersion VulkanContext::GetVulkanVersion() { return vulkanVersion; }
+	void VulkanContext::SetVulkanVersion(VulkanVersion newVersion)
+	{
+		if (isInitialized)
+		{
+			Log::Print(
+				"Failed to set Vulkan version because global Vulkan has already been initialized!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		vulkanVersion = newVersion;
+
+		string ver{};
+
+		switch (vulkanVersion)
+		{
+		default:
+		case VulkanVersion::V_1_0:
+			ver = "1.0";
+			break;
+		case VulkanVersion::V_1_1:
+			ver = "1.1";
+			break;
+		case VulkanVersion::V_1_2:
+			ver = "1.2";
+			break;
+		case VulkanVersion::V_1_3:
+			ver = "1.3";
+			break;
+		case VulkanVersion::V_1_4:
+			ver = "1.4";
+			break;
+		}
+
+		Log::Print(
+			"Set Vulkan version to '" + ver + "'.",
+			"KW_VULKAN",
+			LogType::LOG_SUCCESS);
+	}
+
+	const vector<string>& VulkanContext::GetExtensions() { return extensions; }
+	void VulkanContext::AddExtensions(vector<string>&& newExtensions)
+	{
+		if (isInitialized)
+		{
+			Log::Print(
+				"Failed to set Vulkan extensions because global Vulkan has already been initialized!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		if (newExtensions.empty())
+		{
+			Log::Print(
+				"Failed to set Vulkan extensions because nothing was passed!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
+
+		string ext{};
+		for (const auto& e : newExtensions)
+		{
+			ext += e + ", ";
+		}
+		ext.pop_back();
+		ext.pop_back();
+
+		extensions.insert(
+			extensions.end(),
+			make_move_iterator(newExtensions.begin()),
+			make_move_iterator(newExtensions.end()));
+
+		Log::Print(
+			"Added new Vulkan extensions '" + ext + "'.",
+			"KW_VULKAN",
+			LogType::LOG_SUCCESS);
+	}
+
     VkInstance VulkanContext::GetInstance()
     {
         if (!isInitialized)
@@ -160,17 +254,26 @@ namespace KalaWindow::Graphics
 				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
+
+			return nullptr;
+		}
+
+		if (instance == VK_NULL_HANDLE)
+		{
+			Log::Print(
+				"Failed to get Vulkan instance because it was invalid!",
+				"KW_VULKAN",
+				LogType::LOG_ERROR,
+				2);
+
+			return nullptr;
 		}
 
         return instance;
     }
 
-	void VulkanContext::Initialize(
-		string&& appName,
-		vector<string>&& extensions)
+	void VulkanContext::Initialize()
     {
-		CrashHandler::Initialize(string(appName));
-
         u32 version{};
 
 #ifdef KDEBUG
@@ -203,16 +306,15 @@ namespace KalaWindow::Graphics
         createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
         createInfo.pApplicationInfo = &appInfo;
 
-        vector<const char*> finalExtensions{};
-        finalExtensions.reserve(extensions.size() + 3);
-        for (const auto& e : extensions)
-        {
-            finalExtensions.push_back(e.c_str());
-        }
+        extensions.push_back("VK_KHR_surface");
+        extensions.push_back("VK_KHR_win32_surface");
+        extensions.push_back("VK_EXT_debug_utils");
 
-        finalExtensions.push_back("VK_KHR_surface");
-        finalExtensions.push_back("VK_KHR_win32_surface");
-        finalExtensions.push_back("VK_EXT_debug_utils");
+		vector<const char*> finalExtensions(extensions.size());
+		for (size_t i = 0; i < extensions.size(); ++i)
+        {
+            finalExtensions[i] = extensions[i].c_str();
+        }
 
         createInfo.enabledExtensionCount = scast<u32>(finalExtensions.size());
         createInfo.ppEnabledExtensionNames = finalExtensions.data();
@@ -425,4 +527,4 @@ namespace KalaWindow::Graphics
 	}
 }
 
-#endif //_WIN32
+#endif //KWIN_ANY

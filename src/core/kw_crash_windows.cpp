@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "core/kw_crash.hpp"
+
+#if defined(KWIN_ANY)
 
 #include <windows.h>
 #include <dbghelp.h>
@@ -20,7 +22,6 @@
 #include "log_utils.hpp"
 #include "file_utils.hpp"
 
-#include "core/kw_crash.hpp"
 #include "core/kw_core.hpp"
 #include "graphics/kw_window_global.hpp"
 
@@ -54,8 +55,6 @@ static path exeDir{};
 static string forceCloseTitle{};
 static string forceCloseReason{};
 
-//The name of this program that is displayed in the title of the error popup
-static string assignedProgramName;
 //Whether or not to create a dump file at crash
 static bool canCreateDump = true;
 
@@ -83,7 +82,7 @@ using u32 = uint32_t;
 
 namespace KalaWindow::Core
 {
-	void CrashHandler::Initialize(string&& programName)
+	void CrashHandler::Initialize()
 	{
 		exeDir = KalaWindowCore::GetExePath().parent_path();
 
@@ -94,11 +93,11 @@ namespace KalaWindow::Core
 
 		SetUnhandledExceptionFilter(HandleCrash);
 
-		assignedProgramName = std::move(programName);
-
 #ifdef KW_NO_DUMP
 		canCreateDump = false;
 #endif
+
+		isInitialized = true;
 
 		Log::Print(
 			"Initialized crash handler!",
@@ -278,7 +277,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		timeStamp);
 
 	Window_Global::CreatePopup(
-		std::move(assignedProgramName),
+		string(Window_Global::GetAppName()),
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
 		PopupType::POPUP_TYPE_ERROR);
@@ -485,4 +484,4 @@ void WriteLog(
 	}
 }
 
-#endif //_WIN32
+#endif //KWIN_ANY

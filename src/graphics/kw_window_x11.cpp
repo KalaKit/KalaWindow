@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef __linux__
+#include "graphics/kw_window.hpp"
+
+#if defined(KLIN_ANY)
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
@@ -18,7 +20,6 @@
 #include "core_utils.hpp"
 #include "log_utils.hpp"
 
-#include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
@@ -46,7 +47,6 @@ using std::unique_ptr;
 using std::to_string;
 using std::string;
 using std::ostringstream;
-using std::clamp;
 
 static int XRESULT{};
 
@@ -89,13 +89,7 @@ namespace KalaWindow::Graphics
         string newTitle = std::move(title);
 
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
-
-        if (!VulkanContext::IsInitialized())
-		{
-			KalaWindowCore::ForceClose(
-                "KalaWindow window error",
-				"Failed to create window '" + newTitle + "' because global Vulkan has not been initialized!");
-		}
+        if (!VulkanContext::IsInitialized()) VulkanContext::Initialize();
 
 		if (size < MIN_WINDOW_SIZE)
 		{
@@ -1682,4 +1676,4 @@ namespace KalaWindow::Graphics
     }
 }
 
-#endif //__linux__
+#endif //KLIN_ANY

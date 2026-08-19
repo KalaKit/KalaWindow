@@ -3,7 +3,9 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#ifdef _WIN32
+#include "graphics/kw_window.hpp"
+
+#if defined(KWIN_ANY)
 
 #include <windows.h>
 #include <winuser.h>
@@ -24,7 +26,6 @@
 #include "core_utils.hpp"
 #include "log_utils.hpp"
 
-#include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
@@ -48,10 +49,11 @@ using std::to_string;
 using std::unique_ptr;
 using std::clamp;
 using std::ostringstream;
-using std::wstring;
 using std::string;
 using std::string_view;
 using std::vector;
+
+using std::wstring;
 
 static void ForceClose(
     string&& action,
@@ -92,13 +94,7 @@ namespace KalaWindow::Graphics
 		string newTitle = std::move(title);
 
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
-
-        if (!VulkanContext::IsInitialized())
-		{
-			KalaWindowCore::ForceClose(
-                "KalaWindow window error",
-				"Failed to create window '" + newTitle + "' because global Vulkan has not been initialized!");
-		}
+        if (!VulkanContext::IsInitialized()) VulkanContext::Initialize();
 
 		if (size < MIN_WINDOW_SIZE)
 		{
@@ -1548,4 +1544,4 @@ string ToShort(const wstring& str)
 	return result;
 }
 
-#endif //_WIN32
+#endif //KWIN_ANY

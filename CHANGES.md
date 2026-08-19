@@ -1,3 +1,14 @@
+# 1.4.0
+
+- no longer need to manually initialize global vulkan
+- moved crash init to internal window_global init
+- can set app name and extentions with separate functions
+- exposed getters for detecting if on Windows MSVC or Windows GNU
+- exposed getters for detecting if on Wine or virtual machine
+- added vulkan version setter
+- displaying virtual machine status in os info
+- added windows build version and revision getters
+
 # 1.3.0
 
 - added cpu, gpu, ram and os system info to crash handler log
