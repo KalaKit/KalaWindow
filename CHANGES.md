@@ -21,23 +21,19 @@
 
 # 1.2.3
 
-Changes:
 - flipped incorrect SetForceCloseContent target and reason order
 - using CreatePopup in linux crash handler like in windows crash handler
 
 # 1.2.2
 
-Changes:
 - Made unsafe to call destructors private in `graphics/window.hpp`, `graphics/vulkan.hpp` and `core/input.hpp`
 
 # 1.2.1
 
-Changes:
 - Fixed libcanberra and libnotify never being set true on x11
 
 # 1.2.0
 
-Changes:
 - Removed dpi selection at window creation, Windows is locked to 'DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2'
 - Privated some potentially dangerous input header functions
 - Fixed some raw input issues on windows and linux
@@ -47,10 +43,8 @@ Changes:
 
 # 1.1.0
 
-Changes:
 - Simplified initialization and update logic
 
 # 1.0.0
 
-Changes:
 - None. This is the first release of KalaWindow in its stable state for Windows and Linux.
