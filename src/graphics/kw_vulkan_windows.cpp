@@ -274,23 +274,49 @@ namespace KalaWindow::Graphics
 
 	void VulkanContext::Initialize()
     {
-        u32 version{};
+        u32 currentVersion{};
+		if (vkEnumerateInstanceVersion(&currentVersion) != VK_SUCCESS)
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow Vulkan error",
+				"Failed to check Vulkan version! This system probably doesn't support Vulkan at all.");
+    	}
+
+		u32 requiredVersion{};
+		switch (vulkanVersion)
+		{
+		default:
+			requiredVersion = VK_API_VERSION_1_0;
+			break;
+		case VulkanVersion::V_1_1:
+			requiredVersion = VK_API_VERSION_1_1;
+			break;
+		case VulkanVersion::V_1_2:
+			requiredVersion = VK_API_VERSION_1_2;
+			break;
+		case VulkanVersion::V_1_3:
+			requiredVersion = VK_API_VERSION_1_3;
+			break;
+		case VulkanVersion::V_1_4:
+			requiredVersion = VK_API_VERSION_1_4;
+			break;
+		}
+
+		if (currentVersion < requiredVersion)
+		{
+			u32 major = VK_API_VERSION_MAJOR(requiredVersion);
+			u32 minor = VK_API_VERSION_MINOR(requiredVersion);
+
+			KalaWindowCore::ForceClose(
+				"KalaWindow Vulkan error",
+				"Vulkan " + to_string(major) + "." + to_string(minor) + " is not supported on this system!");
+		}
 
 #ifdef KDEBUG
 		_putenv_s(
 			"VK_LAYER_PATH", 
 			KalaWindowCore::GetExePath().parent_path().string().c_str());
 #endif
-
-        if (vkEnumerateInstanceVersion(&version) != VK_SUCCESS
-            || version < VK_API_VERSION_1_4)
-        {
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Vulkan 1.4 is not supported on this system!");
-
-			return;
-        }
 
         VkApplicationInfo appInfo{};
         appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
