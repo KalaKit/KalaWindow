@@ -201,7 +201,16 @@ namespace KalaWindow::Core
 					sizeof(regs));
 #endif
 
-				return TrimString(string(brand));
+				string outBrand{};
+				string err = TrimString(string(brand), outBrand);
+
+				if (!err.empty())
+				{
+					ForceClose(
+						"KalaWindow core error", 
+						"Failed to get cpu brand during GetOSInfo! Reason: " + err);
+				}
+				return outBrand;
 			};
 
 		auto get_cpu_vendor = []() -> string
@@ -915,6 +924,8 @@ namespace KalaWindow::Core
 					
 					return { name, finalBuildStr };
 #elif defined(KLIN_ANY)
+					(void)onWine; //discard unused variable
+
 					string name = "Linux";
 					string prettyName{};
 

@@ -1,3 +1,10 @@
+# 1.4.1 (in development)
+
+- crash log layout cleanup
+- cleaned up hex-dec inconsistencies in crash handler logic
+- cleaned up warnings
+- ...
+
 # 1.4.0
 
 - no longer need to manually initialize global vulkan

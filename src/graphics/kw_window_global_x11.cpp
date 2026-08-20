@@ -105,7 +105,7 @@ static int ErrorHandler(
     return 0; //tells X to continue
 }
 
-static int IOErrorHandler(Display* display)
+static int IOErrorHandler(Display*) //discard unused variable
 {
     KalaWindowCore::ForceClose(
         "KalaWindow global window error",
@@ -666,9 +666,18 @@ namespace KalaWindow::Graphics
 
         clear_all_inputs();
 
-        vector<string> stringResult = SplitString(
-            raw,
-            "|");
+        vector<string> stringResult{}; 
+        string err = SplitString(
+            raw, 
+            "|", 
+            stringResult);
+        
+        if (!err.empty())
+        {
+            KalaWindowCore::ForceClose(
+                "KalaWindow global window error",
+                "Failed to get paths for discard check during GetFiles! Reason: " + err);
+        }
 
         vector<path> result{};
         result.reserve(stringResult.size());

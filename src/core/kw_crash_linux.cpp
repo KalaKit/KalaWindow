@@ -27,6 +27,7 @@
 #include <filesystem>
 
 #include "log_utils.hpp"
+#include "string_utils.hpp"
 
 #include "core/kw_core.hpp"
 #include "graphics/kw_window_global.hpp"
@@ -34,6 +35,8 @@
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
+
+using KalaHeaders::KalaString::DecToHex;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::CrashHandler;
@@ -46,8 +49,6 @@ using std::string;
 using std::string_view;
 using std::to_string;
 using std::ostringstream;
-using std::hex;
-using std::dec;
 using std::ofstream;
 using std::filesystem::path;
 
@@ -240,12 +241,19 @@ void GenerateFullCrashReport(
 
     logStream << "[CRASH DETECTED]\n\n";
 
-    logStream << "Exception code: " << hex << signal << dec << "\n";
+    string hexSignal{};
+    DecToHex(signal, hexSignal);
+
+    logStream << "Exception code: " << hexSignal << "\n";
 
     uintptr_t addr = (info && info->si_addr)
         ? (uintptr_t)info->si_addr
         : 0;
-    logStream << "Address: 0x" << hex << addr << "\n\n";
+
+    string hexAddr{};
+    DecToHex(addr, hexAddr);    
+
+    logStream << "Address: 0x" << hexAddr << "\n\n";
 
     logStream << "Reason: ";
 
@@ -253,7 +261,7 @@ void GenerateFullCrashReport(
     {
         case SIGBUS:
         {
-            logStream << "Bus error - invalid physical memory access at address 0x" << hex << addr << dec << "\n";
+            logStream << "Bus error - invalid physical memory access at address 0x" << hexAddr << "\n";
             userStream << "A bus error (invalid physical memory access) was reached";
             break;
         }
@@ -281,7 +289,7 @@ void GenerateFullCrashReport(
             }
 
             //otherwise treat as normal access violation
-            logStream << "Access violation - attempted to access invalid memory at address 0x" << hex << addr << dec << "\n";
+            logStream << "Access violation - attempted to access invalid memory at address 0x" << hexAddr << "\n";
             userStream << "An attempt to access invalid memory was reached";
             break;
         }
@@ -324,14 +332,16 @@ void GenerateFullCrashReport(
         ucontext_t* ctx = (ucontext_t*)ucontext;
         uintptr_t rip = ctx->uc_mcontext.gregs[REG_RIP];
 
-        logStream << "Instruction pointer: " << hex << rip << dec << "\n";
+        string hexRip{};
+        DecToHex(rip, hexRip);
+
+        logStream << "\nInstruction pointer: " << hexRip << "\n";
     }
 
     logStream << "\n========================================\n\n";
-    logStream << "System info\n\n";
 
-    logStream
-        << KalaWindowCore::GetCPUInfoString()
+    logStream << "System info:\n"
+		<< KalaWindowCore::GetCPUInfoString()
         << "\n\n"
         << KalaWindowCore::GetGPUInfoString()
         << "\n\n"
@@ -340,7 +350,7 @@ void GenerateFullCrashReport(
         << KalaWindowCore::GetOSInfoString()
         << "\n\n";
 
-    logStream << "\n========================================\n\n";
+    logStream << "========================================\n\n";
 
     AppendCallStackToStream(logStream);
 
@@ -451,7 +461,10 @@ void AppendCallStackToStream(ostringstream& logStream)
         }
         else logStream << "(symbol not found)";
 
-        logStream << "[0x" << hex << rcast<uintptr_t>(addr) << dec << "]\n";
+        string hexDlAddr{};
+        DecToHex(rcast<uintptr_t>(addr), hexDlAddr);   
+
+        logStream << "[0x" << hexDlAddr << "]\n";
     }
 }
 

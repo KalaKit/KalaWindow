@@ -21,6 +21,7 @@
 
 #include "log_utils.hpp"
 #include "file_utils.hpp"
+#include "string_utils.hpp"
 
 #include "core/kw_core.hpp"
 #include "graphics/kw_window_global.hpp"
@@ -30,6 +31,8 @@ using KalaHeaders::KalaLog::LogType;
 using KalaHeaders::KalaLog::TimeFormat;
 
 using KalaHeaders::KalaFile::WriteTextToFile;
+
+using KalaHeaders::KalaString::DecToHex;
 
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
@@ -45,8 +48,6 @@ using std::string_view;
 using std::ofstream;
 using std::ostringstream;
 using std::filesystem::path;
-using std::hex;
-using std::dec;
 
 static bool isInitialized{};
 
@@ -141,8 +142,14 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 
 	logStream << "[CRASH DETECTED]\n\n";
 
-	logStream << "Exception code: " << hex << code << dec << "\n";
-	logStream << "Address: 0x" << hex << (uintptr_t)info->ExceptionRecord->ExceptionAddress << dec << "\n\n";
+    string hexCode{};
+    DecToHex(code, hexCode);
+
+	string hexAddr{};
+	DecToHex((uintptr_t)info->ExceptionRecord->ExceptionAddress, hexAddr);
+
+	logStream << "Exception code: " << hexCode << "\n";
+	logStream << "Address: 0x" << hexAddr << "\n\n";
 
 	switch (code)
 	{
@@ -162,8 +169,11 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		case 8: accessStr = "execute"; break;
 		}
 
+		string hexAccType{};
+		DecToHex(accessType[1], hexAccType);
+
 		logStream << "Reason: Access violation - attempted to " << accessStr
-			<< " invalid memory at address 0x" << hex << accessType[1] << dec;
+			<< " invalid memory at address 0x" << hexAccType;
 
 		if (accessType[0] == 8)
 		{
@@ -231,19 +241,18 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
         << "A log file has been created in the folder of this application.";
 
     logStream << "\n========================================\n\n";
-    logStream << "System info\n";
 
-    logStream
-        << KalaWindowCore::GetCPUInfoString()
+    logStream << "System info:\n"
+		<< KalaWindowCore::GetCPUInfoString()
         << "\n\n"
         << KalaWindowCore::GetGPUInfoString()
         << "\n\n"
         << KalaWindowCore::GetRAMInfoString(true)
         << "\n\n"
         << KalaWindowCore::GetOSInfoString()
-        << "\n";
+        << "\n\n";
 
-    logStream << "\n========================================\n\n";
+    logStream << "========================================\n\n";
 
 	AppendCallStackToStream(logStream, info->ContextRecord);
 
@@ -454,10 +463,13 @@ void AppendCallStackToStream(
 				: fullPath;
 
 			logStream << "\n        script: " << shortPath;
-			logStream << "\n        line: " << dec << lineInfo.LineNumber;
+			logStream << "\n        line: " << lineInfo.LineNumber;
 		}
 
-		logStream << " [0x" << hex << addr << "]\n" << dec;
+		string hexAddr{};
+		DecToHex(addr, hexAddr);
+
+		logStream << " [0x" << hexAddr << "]\n";
 	}
 
 	SymCleanup(process);

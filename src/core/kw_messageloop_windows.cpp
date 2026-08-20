@@ -1193,7 +1193,7 @@ namespace KalaWindow::Core
 
 					if (window->IsResizable()) window->isResizing = false;
 
-					if (window->resizeCallback) window->resizeCallback;
+					if (window->resizeCallback) window->resizeCallback();
 
 					return 0; //we handled it
 				}
