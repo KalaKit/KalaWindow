@@ -46,27 +46,27 @@ namespace KalaWindow::Graphics
 	static constexpr f32 MAX_WINDOW_SIZE = 10000.0f;
 
 	//Display mode / monitor ownership state
-	enum class WindowMode
+	enum class WindowMode : u8
 	{
 		//Window will float and can be resized and moved around
-		WINDOWMODE_WINDOWED,
+		WINDOWMODE_WINDOWED   = 0,
 		//Window will go fullscreen and will hide decorations and top bar,
 		//stays alt-tab friendly and uses the compositor, best for low-performance applications and games
-		WINDOWMODE_BORDERLESS,
+		WINDOWMODE_BORDERLESS = 1,
 		//Window will go fullscreen and will hide decorations and top bar,
 		//flashes when alt-tabbing and uses full gpu, best for high-performance applications and games,
 		//uses WINDOWMODE_BORDERLESS on x11
-		WINDOWMODE_EXCLUSIVE
+		WINDOWMODE_EXCLUSIVE  = 2
 	};
 
 	//Presentation/visibility state
-	enum class WindowState
+	enum class WindowState : u8
 	{
-		WINDOW_NORMAL,        //Show the window with default size and position
-		WINDOW_MAXIMIZE,      //Maximize window to full monitor size
-		WINDOW_MINIMIZE,      //Minimize window to taskbar
-		WINDOW_HIDE,          //Hide the window, including from taskbar
-		WINDOW_SHOWNOACTIVATE //Display the window without focusing to it, uses WINDOW_NORMAL on x11
+		WINDOW_NORMAL         = 0, //Show the window with default size and position
+		WINDOW_MAXIMIZE       = 1, //Maximize window to full monitor size
+		WINDOW_MINIMIZE       = 2, //Minimize window to taskbar
+		WINDOW_HIDE           = 3, //Hide the window, including from taskbar
+		WINDOW_SHOWNOACTIVATE = 4  //Display the window without focusing to it, uses WINDOW_NORMAL on x11
 	};
 
 #if defined(KWIN_ANY)

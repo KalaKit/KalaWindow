@@ -19,47 +19,47 @@ namespace KalaWindow::Graphics
 	using std::filesystem::path;
 
 	//Buttons shown on the popup
-	enum class PopupAction
+	enum class PopupAction : u8
 	{
-		POPUP_ACTION_OK,            //OK button only
-		POPUP_ACTION_OK_CANCEL,     //OK and Cancel buttons
-		POPUP_ACTION_YES_NO,        //Yes and No buttons
-		POPUP_ACTION_YES_NO_CANCEL, //Yes, No, and Cancel buttons
-		POPUP_ACTION_RETRY_CANCEL   //Retry and Cancel buttons
+		POPUP_ACTION_OK            = 0, //OK button only
+		POPUP_ACTION_OK_CANCEL     = 1, //OK and Cancel buttons (used as POPUP_ACTION_OK on Linux)
+		POPUP_ACTION_YES_NO        = 2, //Yes and No buttons
+		POPUP_ACTION_YES_NO_CANCEL = 3, //Yes, No, and Cancel buttons (used as POPUP_ACTION_YES_NO on Linux)
+		POPUP_ACTION_RETRY_CANCEL  = 4  //Retry and Cancel buttons (used as POPUP_ACTION_YES_NO on Linux)
 	};
 
 	//Icon shown on the popup
-	enum class PopupType
+	enum class PopupType : u8
 	{
-		POPUP_TYPE_INFO,    //Info icon (blue 'i')
-		POPUP_TYPE_WARNING, //Warning icon (yellow triangle)
-		POPUP_TYPE_ERROR,   //Error icon (red X)
-		POPUP_TYPE_QUESTION //Question icon (used for confirmations)
+		POPUP_TYPE_INFO     = 0, //Info icon (blue 'i')
+		POPUP_TYPE_WARNING  = 1, //Warning icon (yellow triangle)
+		POPUP_TYPE_ERROR    = 2, //Error icon (red X)
+		POPUP_TYPE_QUESTION = 3  //Question icon (used for confirmations)
 	};
 
 	//User response from the popup
-	enum class PopupResult
+	enum class PopupResult : u8
 	{
-		POPUP_RESULT_NONE,   //No response or unknown
-		POPUP_RESULT_OK,     //User clicked OK
-		POPUP_RESULT_CANCEL, //User clicked Cancel
-		POPUP_RESULT_YES,    //User clicked Yes
-		POPUP_RESULT_NO,     //User clicked No
-		POPUP_RESULT_RETRY   //User clicked Retry
+		POPUP_RESULT_NONE   = 0, //No response or unknown (unused in Linux)
+		POPUP_RESULT_OK     = 1, //User clicked OK
+		POPUP_RESULT_CANCEL = 2, //User clicked Cancel (unused in Linux)
+		POPUP_RESULT_YES    = 3, //User clicked Yes
+		POPUP_RESULT_NO     = 4, //User clicked No
+		POPUP_RESULT_RETRY  = 5  //User clicked Retry (unused in Linux)
 	};
 
-	enum class FileType
+	enum class FileType : u8
 	{
-		FILE_ANY,        //Can select any files
-		FILE_FOLDER,     //Can select any folders
-		FILE_EXE,        //Can select any executables
-		FILE_CUSTOM      //Can select a custom list of files, must pass vector
+		FILE_ANY    = 0, //Can select any files
+		FILE_FOLDER = 1, //Can select any folders
+		FILE_EXE    = 2, //Can select any executables
+		FILE_CUSTOM = 3  //Can select a custom list of files, must pass vector
 	};
 
-	enum class SoundType
+	enum class SoundType : u8
 	{
-		SOUND_OK,
-		SOUND_ERROR
+		SOUND_OK    = 0,
+		SOUND_ERROR = 1
 	};
 
 #if defined(KLIN_ANY)

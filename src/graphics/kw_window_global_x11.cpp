@@ -471,22 +471,22 @@ namespace KalaWindow::Graphics
 
         switch (action)
         {
-            default:
-            case PopupAction::POPUP_ACTION_OK: break;
+        default:
+        case PopupAction::POPUP_ACTION_OK: break;
 
-            case PopupAction::POPUP_ACTION_OK_CANCEL:
-            case PopupAction::POPUP_ACTION_RETRY_CANCEL:
-                actionStr = "cancel";
-                args.emplace_back("--ok-cancel=OK");
-                args.emplace_back("--cancel-label=Cancel");
-                break;
+        case PopupAction::POPUP_ACTION_OK_CANCEL:
+        case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+            actionStr = "cancel";
+            args.emplace_back("--ok-cancel=OK");
+            args.emplace_back("--cancel-label=Cancel");
+            break;
 
-            case PopupAction::POPUP_ACTION_YES_NO:
-            case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
-                actionStr = "yes-no";
-                args.emplace_back("--ok-cancel=Yes");
-                args.emplace_back("--cancel-label=No");
-                break;
+        case PopupAction::POPUP_ACTION_YES_NO:
+        case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+            actionStr = "yes-no";
+            args.emplace_back("--ok-cancel=Yes");
+            args.emplace_back("--cancel-label=No");
+            break;
         }
 
 		string finalTitle = title.empty() ? "NO TITLE" : std::move(title);
@@ -527,24 +527,23 @@ namespace KalaWindow::Graphics
         {
             switch (action)
             {
-                case PopupAction::POPUP_ACTION_YES_NO:
-                case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
-                    return PopupResult::POPUP_RESULT_YES;
-
-                default:
-                case PopupAction::POPUP_ACTION_RETRY_CANCEL:
-                    return PopupResult::POPUP_RESULT_OK;
+            default:
+            case PopupAction::POPUP_ACTION_OK:
+            case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+                return PopupResult::POPUP_RESULT_OK;
+            case PopupAction::POPUP_ACTION_YES_NO:
+            case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+                return PopupResult::POPUP_RESULT_YES;
             }
         }
         else
         {
             switch (action)
             {
-                case PopupAction::POPUP_ACTION_YES_NO:
-                case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
-                    return PopupResult::POPUP_RESULT_NO;
-
-                default: return PopupResult::POPUP_RESULT_CANCEL;
+            default: return PopupResult::POPUP_RESULT_CANCEL;
+            case PopupAction::POPUP_ACTION_YES_NO:
+            case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+                return PopupResult::POPUP_RESULT_NO;
             }
         }
     }

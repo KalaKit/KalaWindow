@@ -3,6 +3,7 @@
 - crash log layout cleanup
 - cleaned up hex-dec inconsistencies in crash handler logic
 - cleaned up warnings
+- added missing fixed underlying types to enums
 - ...
 
 # 1.4.0
