@@ -318,7 +318,7 @@ void GenerateFullCrashReport(
             break;
         
         default:
-            logStream << "Unknown exception\n";
+            logStream << "Unknown exception! Code: " + to_string(signal) + "\n";
             userStream << "An unknown exception was reached";
             break;
     }

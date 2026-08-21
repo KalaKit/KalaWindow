@@ -230,9 +230,11 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	case EXCEPTION_SINGLE_STEP: return EXCEPTION_CONTINUE_SEARCH;
 
 	default:
-		logStream << "Reason: Unknown exception\n";
-		userStream << "An unknown exception was reached";
+		string outValue{};
+		DecToHex(scast<u64>(code), outValue);
 
+		logStream << "Unknown exception! Code: " + outValue + "\n";
+		userStream << "An unknown exception was reached";
 		break;
 	}
 

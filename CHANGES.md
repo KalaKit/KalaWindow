@@ -4,6 +4,7 @@
 - cleaned up hex-dec inconsistencies in crash handler logic
 - cleaned up warnings
 - added missing fixed underlying types to enums
+- added missing unknown exception code/signal for windows and linux
 - ...
 
 # 1.4.0
