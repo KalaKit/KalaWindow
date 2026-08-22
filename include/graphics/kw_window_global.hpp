@@ -115,6 +115,7 @@ namespace KalaWindow::Graphics
 	{
 	friend class ProcessWindow;
 	public:
+		KNODISCARD
 		static bool IsVerboseLoggingEnabled();
 		//Toggle verbose logging. If true, then global window context 
 		//and all windows will dump their logs into the console.
@@ -126,6 +127,7 @@ namespace KalaWindow::Graphics
 		static void SetAppName(string&& appName);
 
 #if defined(KLIN_ANY)
+		KNODISCARD
 		static const X11GlobalData& GetGlobalData();
 #endif
 
@@ -133,17 +135,22 @@ namespace KalaWindow::Graphics
 		//Returns full Windows version as xx.yyyyyy format,
 		//where XX is windows version and YYYYYY is build version.
 		//Six digits are reserved for build numbers, so builds are 0yyyyy mostly
+		KNODISCARD
 		static u32 GetVersion();
 		//Returns Windows build number as xxxx because the first digit is always 0 anyway
+		KNODISCARD
 		static u32 GetBuildNumber();
 		//Returns Windows build revision as xxxx
+		KNODISCARD
 		static u32 GetBuildRevision();
 
+		KNODISCARD
 		static string_view GetAppID();
 #endif
 
 		//Display any kind of a popup on screen for info that should be shown immediately..
 		//Requires zenity on X11 and Wayland.
+		KNODISCARD
 		static PopupResult CreatePopup(
 			string&& title,
 			string&& message,
@@ -157,6 +164,7 @@ namespace KalaWindow::Graphics
 		//Set multiple to true to allow selecting more than one item,
 		//does not work with directories on X11.
 		//Requires zenity on X11, FILE_CUSTOM requires to fill out customTypes vector.
+		KNODISCARD
 		static vector<path> GetFiles(
 			FileType type,
 			vector<string>&& customTypes = {},
@@ -172,6 +180,7 @@ namespace KalaWindow::Graphics
 		static void PlaySystemSound(SoundType type);
 	private:
 		static void Initialize();
+		KNODISCARD
 		static bool IsInitialized();
 #if defined(KLIN_ANY)
 		static void Shutdown();

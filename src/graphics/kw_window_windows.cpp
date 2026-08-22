@@ -47,7 +47,6 @@ using KalaWindow::Graphics::VulkanContext;
 using std::make_unique;
 using std::to_string;
 using std::unique_ptr;
-using std::clamp;
 using std::ostringstream;
 using std::string;
 using std::string_view;
@@ -229,15 +228,31 @@ namespace KalaWindow::Graphics
 
 		windowPtr->BringToFocus();
 
-		registry.AddContent(newID, std::move(newWindow));
+		string err = registry.AddContent(newID, std::move(newWindow));
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow window error",
+				"Failed to initialize window! Reason: " + err);
+		}
+
+        if (!Input::Initialize(windowPtr->ID))
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow window error",
+				"Failed to initialize window because input initialization failed!");
+		}
+        if (!VulkanContext::InitializeInstance(windowPtr->ID))
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow window error",
+				"Failed to initialize window because Vulkan context initialization failed!");
+		}
 
 		Log::Print(
 			"Created new window '" + newTitle + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
-
-        Input::Initialize(windowPtr->ID);
-        VulkanContext::InitializeInstance(windowPtr->ID);
 
 		return windowPtr;
 	}
@@ -287,14 +302,15 @@ namespace KalaWindow::Graphics
             }
 
             u32 inputID = pw->GetInputID();
-            Input* input = Input::GetRegistry().GetContent(inputID);
-            if (!input)
+            Input* input{};
+			string err = Input::GetRegistry().GetContent(inputID, input);
+            if (!err.empty())
             {
                 KalaWindowCore::ForceClose(
                     "KalaWindow window error",
                     "Failed to update input '" + to_string(inputID) 
                     + "' under window '" + to_string(pw->GetID()) 
-                    + "' during window global update because the input was invalid!");
+                    + "' during window global update! Reason: " + err);
             }
 
             input->EndFrameUpdate();
@@ -1407,8 +1423,17 @@ namespace KalaWindow::Graphics
 					LogType::LOG_VERBOSE);
 			}
 
-			ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(w);
-			if (pw) pw->Destroy();
+			ProcessWindow* pw{};
+			string err = ProcessWindow::GetRegistry().GetContent(w, pw);
+			if (!err.empty())
+			{
+				KalaWindowCore::ForceClose(
+					"KalaWindow window error",
+					"Failed to destroy child window '" + to_string(w) 
+					+ "' under parent '" + to_string(ID) + "'! Reason: " + err);
+			}
+			
+			pw->Destroy();
 		}
 		if (parentID != UINT32_MAX)
 		{
@@ -1420,18 +1445,42 @@ namespace KalaWindow::Graphics
 					LogType::LOG_VERBOSE);
 			}
 
-			ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(parentID);
-			if (pw)
+			ProcessWindow* pw{};
+			string err = ProcessWindow::GetRegistry().GetContent(parentID, pw);
+			if (!err.empty())
 			{
-				auto it = find(pw->childIDs.begin(), pw->childIDs.end(), ID);
-				if (it != pw->childIDs.end()) pw->childIDs.erase(it);
+				KalaWindowCore::ForceClose(
+					"KalaWindow window error",
+					"Failed to destroy child window '" + to_string(ID) 
+					+ "' under parent '" + to_string(parentID) + "'! Reason: " + err);
 			}
+
+			auto it = find(pw->childIDs.begin(), pw->childIDs.end(), ID);
+			if (it != pw->childIDs.end()) pw->childIDs.erase(it);
 		}
 
-        KalaWindowRegistry<VulkanContext>::RemoveAllWindowContent(ID);
-		KalaWindowRegistry<Input>::RemoveAllWindowContent(ID);
+        string err = KalaWindowRegistry<VulkanContext>::DestroyAllWindowContent(ID);
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow window error",
+				"Failed to destroy window '" + to_string(ID) + "' content because DestroyAllWindowContent destroyed! Reason: " + err);
+		}
+		err = KalaWindowRegistry<Input>::DestroyAllWindowContent(ID);
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow window error",
+				"Failed to destroy window '" + to_string(ID) + "' content because DestroyAllWindowContent destroyed! Reason: " + err);
+		}
 
-		registry.RemoveContent(ID);
+		err = registry.DestroyContent(ID);
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow window error",
+				"Failed to destroy window '" + to_string(ID) + "'! Reason: " + err);
+		}
 	}
 
 	ProcessWindow::~ProcessWindow()

@@ -1095,5 +1095,7 @@ namespace KalaWindow::Core
 #elif defined(KLIN_ANY)
 		raise(SIGTRAP);
 #endif
+
+		abort();
 	}
 }

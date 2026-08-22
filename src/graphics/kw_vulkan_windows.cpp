@@ -32,7 +32,6 @@ using KalaHeaders::KalaCore::ToVar;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
-using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::VulkanVersion;
 
 using std::string;
@@ -40,7 +39,6 @@ using std::string_view;
 using std::to_string;
 using std::unique_ptr;
 using std::make_unique;
-using std::filesystem::path;
 using std::vector;
 
 static bool isInitialized{};
@@ -234,10 +232,11 @@ namespace KalaWindow::Graphics
 		ext.pop_back();
 		ext.pop_back();
 
-		extensions.insert(
-			extensions.end(),
-			make_move_iterator(newExtensions.begin()),
-			make_move_iterator(newExtensions.end()));
+		for (string& s : newExtensions)
+		{
+			extensions.push_back(std::move(s));
+		}
+		newExtensions.clear();
 
 		Log::Print(
 			"Added new Vulkan extensions '" + ext + "'.",
@@ -426,11 +425,12 @@ namespace KalaWindow::Graphics
 
 	VulkanContext* VulkanContext::InitializeInstance(u32 windowID)
 	{
-		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!w)
+		ProcessWindow* w{};
+		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
+		if (!err.empty())
 		{
 			Log::Print(
-				"Failed to initialize Vulkan context because it's window '" + to_string(windowID) + "' was invalid!",
+				"Failed to initialize Vulkan context! Reason: " + err,
 				"KW_VULKAN",
 				LogType::LOG_ERROR,
 				2);
@@ -486,7 +486,13 @@ namespace KalaWindow::Graphics
 		contPtr->windowID = w->GetID();
         contPtr->surface = surface;
 
-        registry.AddContent(newID, std::move(newCont));
+		err = registry.AddContent(newID, std::move(newCont));
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow Vulkan context error",
+				"Failed to initialize Vulkan context! Reason: " + err);
+		}
 
 		Log::Print(
 			"Created new Vulkan context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",
@@ -501,17 +507,26 @@ namespace KalaWindow::Graphics
 
     VkSurfaceKHR VulkanContext::GetSurface() const { return surface; }
 
-	void VulkanContext::Destroy() { registry.RemoveContent(ID); }
-
-    VulkanContext::~VulkanContext()
-	{
-		ProcessWindow* window = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!window)
+	void VulkanContext::Destroy()
+	{ 
+		string err = registry.DestroyContent(ID);
+		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
-				"Failed to destroy Vulkan context '" + to_string(ID) 
-				+ "' because its window '" + to_string(windowID) + "' was invalid!");
+				"Failed to destroy Vulkan instance '" + to_string(ID) + "'! Reason: " + err);
+		}
+	}
+
+    VulkanContext::~VulkanContext()
+	{
+		ProcessWindow* w{};
+		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow Vulkan error",
+				"Failed to destroy Vulkan context! Reason: " + err);
 		}
 
 		Log::Print(

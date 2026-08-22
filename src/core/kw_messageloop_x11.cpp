@@ -190,6 +190,20 @@ namespace KalaWindow::Core
 
         Display* display = ToVar<Display*>(globalData.display);
 
+        Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
+        Atom atom_net_wm_state = ToVar<Atom>(globalData.atom_net_wm_state);
+        Atom atom_net_frame_extents = ToVar<Atom>(globalData.atom_net_frame_extents);
+
+        Atom atom_textUri = ToVar<Atom>(globalData.atom_textUri);
+
+        Atom atom_xDndStatus = ToVar<Atom>(globalData.atom_xDndStatus);
+        Atom atom_xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
+        Atom atom_xDndFinished = ToVar<Atom>(globalData.atom_xDndFinished);
+        Atom atom_xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
+        Atom atom_xDndEnter = ToVar<Atom>(globalData.atom_xDndEnter);
+        Atom atom_xDndPosition = ToVar<Atom>(globalData.atom_xDndPosition);
+        Atom atom_xDndDrop = ToVar<Atom>(globalData.atom_xDndDrop);
+
         while (XPending(display))
         {
             XEvent event{};
@@ -213,13 +227,27 @@ namespace KalaWindow::Core
                         if (XIMaskIsSet(raw->valuators.mask, 0)) dx = values[i++];
                         if (XIMaskIsSet(raw->valuators.mask, 1)) dy = values[i++];
 
-                        for (const auto& w : activeWindows)
+                        for (size_t i = 0; i < activeWindows.size(); i++)
                         {
-                            if (!w) continue;
+                            ProcessWindow* w = activeWindows[i];
+                            if (!w)
+                            {
+                                KalaWindowCore::ForceClose(
+                                    "KalaWindow message loop error",
+                                    "Failed to call process_message because active window '" + to_string(i) + "' was invalid!");
+                            }
 
                             u32 windowID = w->GetID();
 
-                            vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+                            vector<Input*> inputs{};
+                            string err = KalaWindowRegistry<Input>::GetAllWindowContent(windowID, inputs);
+                            if (!err.empty())
+                            {
+                                KalaWindowCore::ForceClose(
+                                    "Kalawindow message loop error",
+                                    "Failed to process message for window '" + to_string(w->ID) + "'! Reason: " + err);
+                            }
+                            
                             Input* input = inputs.empty() ? nullptr : inputs.front();
 
                             if (!input) continue;
@@ -241,18 +269,16 @@ namespace KalaWindow::Core
                 }
             }
 
-            Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
-            Atom atom_net_wm_state = ToVar<Atom>(globalData.atom_net_wm_state);
-
             Window target = event.xany.window;
 
-            for (const auto& w : activeWindows)
+            for (size_t i = 0; i < activeWindows.size(); i++)
             {
+                ProcessWindow* w = activeWindows[i];
                 if (!w)
                 {
                     KalaWindowCore::ForceClose(
                         "KalaWindow message loop error",
-                        "Failed to update message loop because a window was invalid!");
+                        "Failed to call process_message because active window '" + to_string(i) + "' was invalid!");
                 }
 
                 const WindowData& wdata = w->GetWindowData();
@@ -269,7 +295,15 @@ namespace KalaWindow::Core
                 if (target != window) continue;
 
                 u32 windowID = w->GetID();
-                vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+                vector<Input*> inputs{};
+                string err = KalaWindowRegistry<Input>::GetAllWindowContent(windowID, inputs);
+                if (!err.empty())
+                {
+                    KalaWindowCore::ForceClose(
+                        "Kalawindow message loop error",
+                        "Failed to process message for window '" + to_string(w->ID) + "'! Reason: " + err);
+                }
+
                 Input* input = inputs.empty() ? nullptr : inputs.front();
 
                 if (!input) continue;
@@ -286,8 +320,6 @@ namespace KalaWindow::Core
                             w->minSize,
                             w->maxSize);
 
-                        Atom netFrameExtents = ToVar<Atom>(globalData.atom_net_frame_extents);
-                        
                         Atom actualType{};
                         int actualFormat{};
                         unsigned long nItems{}, bytesAfter{};
@@ -296,7 +328,7 @@ namespace KalaWindow::Core
                         XRESULT = XGetWindowProperty(
                             display,
                             window,
-                            netFrameExtents,
+                            atom_net_frame_extents,
                             0, 4, False,
                             XA_CARDINAL,
                             &actualType, &actualFormat,
@@ -329,12 +361,8 @@ namespace KalaWindow::Core
 
                     case SelectionNotify:
                     {
-                        Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
-                        Atom xDndFinished = ToVar<Atom>(globalData.atom_xDndFinished);
-                        Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
-
                         if (event.xselection.property != None
-                            && event.xselection.selection == xDndSelection)
+                            && event.xselection.selection == atom_xDndSelection)
                         {
                             Atom actualType{};
                             int format{};
@@ -344,7 +372,7 @@ namespace KalaWindow::Core
                             XRESULT = XGetWindowProperty(
                                 display,
                                 window,
-                                xDndSelection,
+                                atom_xDndSelection,
                                 0,
                                 LONG_MAX,
                                 True,
@@ -421,11 +449,11 @@ namespace KalaWindow::Core
                                 finished.xclient.type = ClientMessage;
                                 finished.xclient.display = display;
                                 finished.xclient.window = source;
-                                finished.xclient.message_type = xDndFinished;
+                                finished.xclient.message_type = atom_xDndFinished;
                                 finished.xclient.format = 32;
                                 finished.xclient.data.l[0] = window;
                                 finished.xclient.data.l[1] = 1;
-                                finished.xclient.data.l[2] = xDndActionCopy;
+                                finished.xclient.data.l[2] = atom_xDndActionCopy;
 
                                 XRESULT = XSendEvent(
                                     display,
@@ -494,21 +522,14 @@ namespace KalaWindow::Core
                             continue;
                         }
 
-                        Atom xDndEnter = ToVar<Atom>(globalData.atom_xDndEnter);
-                        Atom xDndPosition = ToVar<Atom>(globalData.atom_xDndPosition);
-                        Atom xDndDrop = ToVar<Atom>(globalData.atom_xDndDrop);
-
-                        if (event.xclient.message_type == xDndEnter)
+                        if (event.xclient.message_type == atom_xDndEnter)
                         {
                             w->currentDndSource = FromVar(event.xclient.data.l[0]);
 
                             continue;
                         }
-                        if (event.xclient.message_type == xDndPosition)
+                        if (event.xclient.message_type == atom_xDndPosition)
                         {
-                            Atom xDndStatus = ToVar<Atom>(globalData.atom_xDndStatus);
-                            Atom xDndActionCopy = ToVar<Atom>(globalData.atom_xDndActionCopy);
-
                             Window source = event.xclient.data.l[0];
 
                             i32 rootX = (i32)(event.xclient.data.l[2] >> 16);
@@ -543,13 +564,13 @@ namespace KalaWindow::Core
                             reply.xclient.type = ClientMessage;
                             reply.xclient.display = display;
                             reply.xclient.window = source;
-                            reply.xclient.message_type = xDndStatus;
+                            reply.xclient.message_type = atom_xDndStatus;
                             reply.xclient.format = 32;
                             reply.xclient.data.l[0] = window;
-                            reply.xclient.data.l[1] = 1;              //accept flag
-                            reply.xclient.data.l[2] = 0;              //bounding box left (0 = no rect)
-                            reply.xclient.data.l[3] = 0;              //bounding box top (0 = no rect)
-                            reply.xclient.data.l[4] = xDndActionCopy; //preferred action
+                            reply.xclient.data.l[1] = 1;                   //accept flag
+                            reply.xclient.data.l[2] = 0;                   //bounding box left (0 = no rect)
+                            reply.xclient.data.l[3] = 0;                   //bounding box top (0 = no rect)
+                            reply.xclient.data.l[4] = atom_xDndActionCopy; //preferred action
 
                             XRESULT = XSendEvent(
                                 display,
@@ -572,18 +593,15 @@ namespace KalaWindow::Core
 
                             continue;
                         }
-                        if (event.xclient.message_type == xDndDrop)
+                        if (event.xclient.message_type == atom_xDndDrop)
                         {
-                            Atom xDndSelection = ToVar<Atom>(globalData.atom_xDndSelection);
-                            Atom textUri = ToVar<Atom>(globalData.atom_textUri);
-
                             w->currentDndSource = FromVar(event.xclient.data.l[0]);
 
                             XConvertSelection(
                                 display,
-                                xDndSelection,
-                                textUri,
-                                xDndSelection,
+                                atom_xDndSelection,
+                                atom_textUri,
+                                atom_xDndSelection,
                                 window,
                                 CurrentTime);
 

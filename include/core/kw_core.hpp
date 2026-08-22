@@ -82,34 +82,45 @@ namespace KalaWindow::Core
 	class LIB_API KalaWindowCore
 	{
 	public:
+		KNODISCARD
 		static u32 GetGlobalID();
 		static void SetGlobalID(u32 newID);
 
+		KNODISCARD
 		static path GetExePath();
 
 		//Get CPU info as individual fields in a struct
+		KNODISCARD
 		static CPUInfo GetCPUInfo();
 		//Get all CPU info as a single string
+		KNODISCARD
 		static string GetCPUInfoString();
 
 		//Get GPU info per GPU as individual fields in a struct
+		KNODISCARD
 		static vector<GPUInfo> GetGPUInfo();
 		//Get all GPU info as a single string
+		KNODISCARD
 		static string GetGPUInfoString();
 
 		//Get RAM info as individual fields in a struct,
 		//set recheck to true if you want to get new current data
+		KNODISCARD
 		static RAMInfo GetRAMInfo(bool recheck = false);
 		//Get all RAM info as a single string,
 		//set recheck to true if you want to get new current data
+		KNODISCARD
 		static string GetRAMInfoString(bool recheck = false);
 
 		//Get OS info as individual fields in a struct
+		KNODISCARD
 		static OSInfo GetOSInfo();
 		//Get all OS info as a single string
+		KNODISCARD
 		static string GetOSInfoString();
 
 		//Use this when you absolutely need a hard crash at this very moment
+		KNORETURN
 		static void ForceClose(
 			string&& title,
 			string&& reason);

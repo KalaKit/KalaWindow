@@ -45,9 +45,6 @@ using KalaWindow::Core::Input;
 using KalaWindow::Graphics::WindowState;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::Window_Global;
-using KalaWindow::Graphics::PopupAction;
-using KalaWindow::Graphics::PopupResult;
-using KalaWindow::Graphics::PopupType;
 using KalaWindow::Graphics::WindowData;
 
 using std::string;
@@ -213,6 +210,9 @@ namespace KalaWindow::Core
 		//asks if user wants to log off or shut down (in case any data is unsaved)
 		case WM_QUERYENDSESSION:
 		{
+			//TODO: recreate identically for Linux
+
+			/*
 			if (Window_Global::CreatePopup(
 				"Quitting application",
 				"Are you sure you want to quit? Unclosed data may be lost!",
@@ -220,10 +220,13 @@ namespace KalaWindow::Core
 				PopupType::POPUP_TYPE_WARNING)
 				== PopupResult::POPUP_RESULT_YES)
 			{
-				ProcessWindow::GetRegistry().RemoveAllContent();
+				ProcessWindow::GetRegistry().DestroyAllContent();
 				return TRUE; //user clicked yes, continuing to logoff/shutdown
 			}
 			else return FALSE; //user clicked no, cancelling logoff/shutdown
+			*/
+
+			return TRUE;
 		}
 		//actually go through with logoff/shutdown
 		case WM_ENDSESSION: return 0;
@@ -350,7 +353,16 @@ namespace KalaWindow::Core
 				}
 
 				u32 windowID = window->GetID();
-				vector<Input*> inputs = KalaWindowRegistry<Input>::GetAllWindowContent(windowID);
+				vector<Input*> inputs{};
+
+				string err = KalaWindowRegistry<Input>::GetAllWindowContent(windowID, inputs);
+				if (!err.empty())
+				{
+					KalaWindowCore::ForceClose(
+						"Kalawindow message loop error",
+						"Failed to process message for window '" + to_string(window->ID) + "'! Reason: " + err);
+				}
+
 				Input* input = inputs.empty() ? nullptr : inputs.front();
 
 				/*
@@ -1165,11 +1177,17 @@ namespace KalaWindow::Core
 					{
 						for (u32 childID : window->childIDs)
 						{
-							ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(childID);
-							if (pw)
+							ProcessWindow* w{};
+							string err = ProcessWindow::GetRegistry().GetContent(childID, w);
+							if (!err.empty())
 							{
-								pw->SetWindowState(WindowState::WINDOW_MINIMIZE);
+								KalaWindowCore::ForceClose(
+									"KalaWindow message loop error",
+									"Failed to minimize child window '" + to_string(childID) 
+									+ "' under parent '" + to_string(window->ID) + "'! Reason: " + err);
 							}
+
+							w->SetWindowState(WindowState::WINDOW_MINIMIZE);
 						}
 
 						break;
@@ -1180,11 +1198,17 @@ namespace KalaWindow::Core
 					{
 						for (u32 childID : window->childIDs)
 						{
-							ProcessWindow* pw = ProcessWindow::GetRegistry().GetContent(childID);
-							if (pw)
+							ProcessWindow* w{};
+							string err = ProcessWindow::GetRegistry().GetContent(childID, w);
+							if (!err.empty())
 							{
-								pw->BringToFocus();
+								KalaWindowCore::ForceClose(
+									"KalaWindow message loop error",
+									"Failed to bring child window '" + to_string(childID) 
+									+ "' under parent '" + to_string(window->ID) + "' to focus! Reason: " + err);
 							}
+
+							w->BringToFocus();
 						}
 
 						break;

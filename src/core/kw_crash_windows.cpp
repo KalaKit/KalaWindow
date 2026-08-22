@@ -287,15 +287,16 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		logStream.str(),
 		timeStamp);
 
-	Window_Global::CreatePopup(
+	if (Window_Global::CreatePopup(
 		string(Window_Global::GetAppName()),
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR);
-
-	TerminateProcess(
-		GetCurrentProcess(),
-		scast<UINT>(code));
+		PopupType::POPUP_TYPE_ERROR) == PopupResult::POPUP_RESULT_OK)
+	{
+		TerminateProcess(
+			GetCurrentProcess(),
+			scast<UINT>(code));
+	}
 
 	return EXCEPTION_EXECUTE_HANDLER;
 }

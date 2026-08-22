@@ -25,6 +25,7 @@
 
 #include "core/kw_core.hpp"
 #include "graphics/kw_window.hpp"
+#include "core/kw_registry.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 
@@ -61,12 +62,12 @@ namespace KalaWindow::Core
 
 	Input* Input::Initialize(u32 windowID)
 	{
-		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!w)
+		ProcessWindow* w{};
+		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
+		if (!err.empty())
 		{
 			Log::Print(
-				"Failed to initialize input "
-				"because its window '" + to_string(windowID) + "' was invalid!",
+				"Failed to initialize input! Reason: " + err,
 				"KW_INPUT",
 				LogType::LOG_ERROR,
 				2);
@@ -112,7 +113,15 @@ namespace KalaWindow::Core
 
 		w->inputID = newID;
 
-		registry.AddContent(newID, std::move(newInput));
+		err = registry.AddContent(
+			newID, 
+			std::move(newInput));
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow Input error",
+				"Failed to initialize input! Reason: " + err);
+		}
 
 		Log::Print(
 			"Created new input context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",
@@ -482,8 +491,18 @@ namespace KalaWindow::Core
 		bool state,
 		bool updateBetweenFocus)
 	{
-		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!w) return;
+		ProcessWindow* w{}; 
+		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
+		if (!err.empty())
+		{
+			Log::Print(
+				"Failed to set mouse visibility for input '" + to_string(ID) + "'! Reason: " + err,
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
 
 		if (updateBetweenFocus) isMouseVisible = state;
 
@@ -555,8 +574,18 @@ namespace KalaWindow::Core
 		bool state,
 		bool updateBetweenFocus)
 	{
-		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!w) return;
+		ProcessWindow* w{};
+		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
+		if (!err.empty())
+		{
+			Log::Print(
+				"Failed to set mouse lock state for input '" + to_string(ID) + "'! Reason: " + err,
+				"KW_INPUT",
+				LogType::LOG_ERROR,
+				2);
+
+			return;
+		}
 
 		if (updateBetweenFocus) isMouseLocked = state;
 
@@ -716,8 +745,18 @@ namespace KalaWindow::Core
 
 		if (isMouseLocked)
 		{
-			ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-			if (!w) return;
+			ProcessWindow* w{};
+			string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
+			if (!err.empty())
+			{
+				Log::Print(
+					"Failed to call EndFrameUpdate for input '" + to_string(ID) + "'! Reason: " + err,
+					"KW_INPUT",
+					LogType::LOG_ERROR,
+					2);
+
+				return;
+			}
 
 			const WindowData& windowData = w->GetWindowData();
 
@@ -779,17 +818,26 @@ namespace KalaWindow::Core
 		}
 	}
 
-	void Input::Destroy() { registry.RemoveContent(ID); }
-
-	Input::~Input()
-	{
-		ProcessWindow* w = ProcessWindow::GetRegistry().GetContent(windowID);
-		if (!w)
+	void Input::Destroy()
+	{ 
+		string err = registry.DestroyContent(ID);
+		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow input error",
-				"Failed to destroy input context '" + to_string(ID) 
-				+ "' because its window '" + to_string(windowID) + "' was invalid!");
+				"Failed to destroy input '" + to_string(ID) + "'! Reason: " + err);
+		}
+	}
+
+	Input::~Input()
+	{
+		ProcessWindow* w{};
+		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow input error",
+				"Failed to destroy input context '" + to_string(ID) + "! Reason: " + err);
 		}
 
 		Log::Print(

@@ -40,20 +40,24 @@ namespace KalaWindow::Graphics
     friend class ProcessWindow;
 	friend struct default_delete<VulkanContext>;
 	public:
-        static KalaWindowRegistry<VulkanContext>& GetRegistry();
+        KNODISCARD
+		static KalaWindowRegistry<VulkanContext>& GetRegistry();
 
+		KNODISCARD
 		static bool IsVerboseLoggingEnabled();
     	//Toggle verbose logging. If true and in Debug, then Vulkan will add its own debug messages to the console log messages.
 		static void SetVerboseLoggingState(bool newState);
 
         //Get currently assigned Vulkan version
-        static VulkanVersion GetVulkanVersion();
+        KNODISCARD
+		static VulkanVersion GetVulkanVersion();
         //Assign a Vulkan version, defaults to 1.4,
         //cannot be called after ProcessWindow has been initialized once or more
         static void SetVulkanVersion(VulkanVersion newVersion);
 
         //Get all user-provided and default Vulkan extensions
-        static const vector<string>& GetExtensions();
+        KNODISCARD
+		static const vector<string>& GetExtensions();
         //Add optional features via extensions list,
         //cannot be called after ProcessWindow has been initialized once or more.
         //Automatically added extensions required for core operation:
@@ -63,21 +67,27 @@ namespace KalaWindow::Graphics
         //- VK_EXT_debug_utils (in debug mode)
         static void AddExtensions(vector<string>&& extensions);
 
-        static VkInstance GetInstance();
+        KNODISCARD
+		static VkInstance GetInstance();
         
+		KNODISCARD
 		u32 GetID() const;
+		KNODISCARD
 		u32 GetWindowID() const;
 
-        VkSurfaceKHR GetSurface() const;
+        KNODISCARD
+		VkSurfaceKHR GetSurface() const;
 
         void Destroy();
 	private:
         ~VulkanContext();
 
         static void Initialize();
+		KNODISCARD
 		static bool IsInitialized();
 
         //Initialize a per-window Vulkan context, creates a surface
+		KNODISCARD
 		static VulkanContext* InitializeInstance(u32 windowID);
 
 		u32 ID{};

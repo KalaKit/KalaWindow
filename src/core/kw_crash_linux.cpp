@@ -43,6 +43,7 @@ using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
 using KalaWindow::Graphics::PopupType;
+using KalaWindow::Graphics::PopupResult;
 
 using std::free;
 using std::string;
@@ -209,13 +210,14 @@ void HandleCrash(
                 ? forceCloseReason
                 : "An unknown force close occurred.";
 
-            Window_Global::CreatePopup(
+            if (Window_Global::CreatePopup(
                 std::move(title),
                 std::move(reason),
                 PopupAction::POPUP_ACTION_OK,
-                PopupType::POPUP_TYPE_ERROR);
-
-            _exit(1);
+                PopupType::POPUP_TYPE_ERROR) == PopupResult::POPUP_RESULT_OK)
+            {
+                _exit(1);
+            }
         }
         else GenerateFullCrashReport(signal, info, ucontext);
 
@@ -382,13 +384,14 @@ void GenerateFullCrashReport(
 		logStream.str(),
 		timeStamp);
 
-	Window_Global::CreatePopup(
+	if (Window_Global::CreatePopup(
 		string(Window_Global::GetAppName()),
 		userStream.str(),
 		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR);
-
-    _exit(1);
+		PopupType::POPUP_TYPE_ERROR) == PopupResult::POPUP_RESULT_OK)
+    {
+        _exit(1);
+    }
 }
 
 void WriteMiniDump(

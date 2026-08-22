@@ -1,11 +1,13 @@
-# 1.4.1 (in development)
+# 1.5.0
 
 - crash log layout cleanup
 - cleaned up hex-dec inconsistencies in crash handler logic
 - cleaned up warnings
 - added missing fixed underlying types to enums
 - added missing unknown exception code/signal for windows and linux
-- ...
+- added nodiscard where applicable
+- added additional error logging
+- registry overhaul
 
 # 1.4.0
 
