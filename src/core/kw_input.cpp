@@ -66,13 +66,9 @@ namespace KalaWindow::Core
 		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
 		if (!err.empty())
 		{
-			Log::Print(
-				"Failed to initialize input! Reason: " + err,
-				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
+			KalaWindowCore::ForceClose(
+				"KalaWindow input error",
+				"Failed to initialize input because of invalid window! Reason: " + err);
 		}
 
 		//

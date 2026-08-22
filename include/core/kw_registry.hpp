@@ -129,7 +129,7 @@ namespace KalaWindow::Core
 			{
 				return
 					"DestroyContent failed because target ID '" + to_string(targetID) + "' was not found "
-					"in runtime container ""and was moved to batch add/remove container!";
+					"in runtime container and was moved to batch add/remove container!";
 			}
 
 			runtimeContent.erase(vecit);
@@ -159,7 +159,7 @@ namespace KalaWindow::Core
 			{
 				return
 					"DestroyContent failed because target pointer ID '" + to_string(targetID) + "' was not found "
-					"in runtime container ""and was moved to batch add/remove container!";
+					"in runtime container and was moved to batch add/remove container!";
 			}
 
 			runtimeContent.erase(vecit);

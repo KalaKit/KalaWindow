@@ -429,27 +429,19 @@ namespace KalaWindow::Graphics
 		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
 		if (!err.empty())
 		{
-			Log::Print(
-				"Failed to initialize Vulkan context! Reason: " + err,
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
+			KalaWindowCore::ForceClose(
+				"KalaWindow Vulkan error",
+				"Failed to initialize Vulkan context! Reason: " + err);
 		}
 
 		const WindowData& windowData = w->GetWindowData();
 		HWND window = ToVar<HWND>(windowData.window);
 		if (!IsWindow(window))
 		{
-			Log::Print(
+			KalaWindowCore::ForceClose(
+				"KalaWindow Vulkan error",
 				"Failed to initialize Vulkan context because "
-				"the window handle for window '" + to_string(windowID) + "' was invalid!",
-				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
+				"the window handle for window '" + to_string(windowID) + "' was invalid!");
 		}
 
         HINSTANCE hInstance = ToVar<HINSTANCE>(windowData.hInstance);
@@ -490,7 +482,7 @@ namespace KalaWindow::Graphics
 		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan context error",
+				"KalaWindow Vulkan error",
 				"Failed to initialize Vulkan context! Reason: " + err);
 		}
 
