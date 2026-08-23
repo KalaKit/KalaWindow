@@ -40,7 +40,6 @@ using KalaHeaders::KalaKeyStandards::KeyboardButton;
 using KalaHeaders::KalaKeyStandards::MouseButton;
 using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
-using KalaWindow::Core::KalaWindowRegistry;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::WindowState;
 using KalaWindow::Graphics::ProcessWindow;
@@ -352,18 +351,14 @@ namespace KalaWindow::Core
 						"Failed to call process_message because its window was invalid!");
 				}
 
-				u32 windowID = window->GetID();
-				vector<Input*> inputs{};
-
-				string err = KalaWindowRegistry<Input>::GetAllWindowContent(windowID, inputs);
+				Input* input{};
+				string err = Input::GetRegistry().GetContent(window->GetInputID(), input);
 				if (!err.empty())
 				{
 					KalaWindowCore::ForceClose(
 						"Kalawindow message loop error",
-						"Failed to process message for window '" + to_string(window->ID) + "'! Reason: " + err);
+						"Failed to process message for window '" + to_string(window->ID) + "' because input was invalid! Reason: " + err);
 				}
-
-				Input* input = inputs.empty() ? nullptr : inputs.front();
 
 				/*
 				if (msg.message == 0)

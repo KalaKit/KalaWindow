@@ -48,7 +48,6 @@ using KalaWindow::Core::Input;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::ProcessWindow;
-using KalaWindow::Graphics::KalaWindowRegistry;
 using KalaWindow::Graphics::WindowData;
 
 using std::vector;
@@ -237,20 +236,14 @@ namespace KalaWindow::Core
                                     "Failed to call process_message because active window '" + to_string(i) + "' was invalid!");
                             }
 
-                            u32 windowID = w->GetID();
-
-                            vector<Input*> inputs{};
-                            string err = KalaWindowRegistry<Input>::GetAllWindowContent(windowID, inputs);
+                            Input* input{};
+                            string err = Input::GetRegistry().GetContent(w->inputID, input);
                             if (!err.empty())
                             {
                                 KalaWindowCore::ForceClose(
                                     "Kalawindow message loop error",
-                                    "Failed to process message for window '" + to_string(w->ID) + "'! Reason: " + err);
+                                    "Failed to process message for window '" + to_string(w->ID) + "' because input was invalid! Reason: " + err);
                             }
-                            
-                            Input* input = inputs.empty() ? nullptr : inputs.front();
-
-                            if (!input) continue;
 
                             input->rawMouseDelta.x += (f32)dx;
                             input->rawMouseDelta.y += (f32)dy;
@@ -294,19 +287,14 @@ namespace KalaWindow::Core
 
                 if (target != window) continue;
 
-                u32 windowID = w->GetID();
-                vector<Input*> inputs{};
-                string err = KalaWindowRegistry<Input>::GetAllWindowContent(windowID, inputs);
+                Input* input{};
+                string err = Input::GetRegistry().GetContent(w->GetInputID(), input);
                 if (!err.empty())
                 {
                     KalaWindowCore::ForceClose(
                         "Kalawindow message loop error",
-                        "Failed to process message for window '" + to_string(w->ID) + "'! Reason: " + err);
+                        "Failed to process message for window '" + to_string(w->ID) + "' because input was invalid! Reason: " + err);
                 }
-
-                Input* input = inputs.empty() ? nullptr : inputs.front();
-
-                if (!input) continue;
 
                 XIC xic = ToVar<XIC>(wdata.xic);
 
