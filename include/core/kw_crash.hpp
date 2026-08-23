@@ -28,6 +28,7 @@ namespace KalaWindow::Core
 	public:
 	private:
 		static void Initialize();
+		KNODISCARD
 		static bool IsInitialized();
 
 		static void SetForceCloseContent(

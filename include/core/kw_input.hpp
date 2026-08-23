@@ -50,6 +50,7 @@ namespace KalaWindow::Core
 	friend class MessageLoop;
 	friend struct default_delete<Input>;
 	public:
+		KNODISCARD
 		static KalaWindowRegistry<Input>& GetRegistry();
 
 		//Toggle verbose logging. If true, then usually frequently updated runtime values like
