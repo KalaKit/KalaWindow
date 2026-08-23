@@ -1096,6 +1096,6 @@ namespace KalaWindow::Core
 		raise(SIGTRAP);
 #endif
 
-		abort();
+		_Exit(1);
 	}
 }
