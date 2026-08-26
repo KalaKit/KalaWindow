@@ -362,6 +362,7 @@ namespace KalaWindow::Graphics
 			| VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT
 			| VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
 
+#if defined(KW_USE_GPU_AV)
 		static const vector<VkValidationFeatureEnableEXT> enabledFeatures =
 		{
 			VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,
@@ -369,6 +370,14 @@ namespace KalaWindow::Graphics
 			VK_VALIDATION_FEATURE_ENABLE_GPU_ASSISTED_EXT,
 			VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT
 		};
+#else
+		static const vector<VkValidationFeatureEnableEXT> enabledFeatures =
+		{
+			VK_VALIDATION_FEATURE_ENABLE_SYNCHRONIZATION_VALIDATION_EXT,
+			VK_VALIDATION_FEATURE_ENABLE_BEST_PRACTICES_EXT,
+			VK_VALIDATION_FEATURE_ENABLE_DEBUG_PRINTF_EXT
+		};
+#endif
 
 		VkValidationFeaturesEXT validationFeatures{};
 		validationFeatures.sType = VK_STRUCTURE_TYPE_VALIDATION_FEATURES_EXT;

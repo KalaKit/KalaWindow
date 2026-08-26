@@ -1459,19 +1459,19 @@ namespace KalaWindow::Graphics
 			if (it != pw->childIDs.end()) pw->childIDs.erase(it);
 		}
 
-        string err = KalaWindowRegistry<VulkanContext>::DestroyAllWindowContent(ID);
+        string err = VulkanContext::GetRegistry().DestroyContent(graphicsContextID);
 		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow window error",
-				"Failed to destroy window '" + to_string(ID) + "' content because DestroyAllWindowContent destroyed! Reason: " + err);
+				"Failed to destroy window '" + to_string(ID) + "' Vulkan content! Reason: " + err);
 		}
-		err = KalaWindowRegistry<Input>::DestroyAllWindowContent(ID);
+		err = Input::GetRegistry().DestroyContent(inputID);
 		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow window error",
-				"Failed to destroy window '" + to_string(ID) + "' content because DestroyAllWindowContent destroyed! Reason: " + err);
+				"Failed to destroy window '" + to_string(ID) + "' input content! Reason: " + err);
 		}
 
 		err = registry.DestroyContent(ID);
