@@ -1,12 +1,43 @@
 # Minimum requirements
 
-The following tables list the oldest known hardware that should, in theory, run this software at the API level. These configurations are not tested and may not offer usable performance. They represent the technical minimum for compatibility, not a performance recommendation.
+The following tables list the oldest known specifications that should, in theory, run this library or software at the API level. These configurations are not tested and may not offer usable performance. They represent the technical minimum for compatibility, not a performance recommendation.
 
-All targets assume **64-bit systems with Windows 10/11 or Linux distro from the same era**.
+## Platform support
 
-Minimum available disk space: 50MB
+| Platform  | Status        | Notes                                                |
+|-----------|---------------|------------------------------------------------------|
+| Windows   | Supported     | Requires Windows 10 (build 1809 / 17763) or newer   |
+| Linux     | Supported     | Requires glibc 2.38 (Ubuntu 24.04/Fedora 39/Debian 13 etc) or newer |
+| BSD       | Planned       | BSD support is planned for a future version          |
+| Mac       | Not Supported | No plans for Mac support                             |
+| WebGL     | Not Supported | No plans for web support                             |
+| Console   | Not Supported | No plans for console support                         |
+| Mobile    | Not Supported | No plans for mobile support                          |
 
-## Vulkan 1.4
+---
+
+## Architecture support
+
+| Architecture | Status        | Notes                                      |
+|--------------|---------------|--------------------------------------------|
+| x64          | Supported     | x64 is fully supported                     |
+| x86          | Not supported | No plans for x86 support                   |
+| Arm          | Planned       | Arm support is planned in a future release |
+
+---
+
+## Render pipeline support
+
+| Render Pipeline | Status        | Notes                                |
+|-----------------|---------------|--------------------------------------|
+| Vulkan          | Supported     | Internally locked to Vulkan 1.4      |
+| OpenGL          | Not supported | No plans for OpenGL support          |
+| DirectX         | Not Supported | No plans for DirectX support         |
+| MoltenVK        | Not Supported | No plans for MoltenVK support        |
+
+---
+
+## Hardware support
 
 | Type    | AMD CPU                 | Intel CPU               |
 |---------|-------------------------|-------------------------|
