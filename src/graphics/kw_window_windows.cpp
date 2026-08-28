@@ -270,7 +270,7 @@ namespace KalaWindow::Graphics
             {
                 KalaWindowCore::ForceClose(
                     "KalaWindow window error",
-                    "Failed to update a window during window global update because it was invalid!");
+                    "Failed to update a window during early global update because it was invalid!");
             }
 
 			if (pw->earlyUpdateCallback) pw->earlyUpdateCallback();
@@ -297,8 +297,7 @@ namespace KalaWindow::Graphics
             {
                 KalaWindowCore::ForceClose(
                     "KalaWindow window error",
-                    "Failed to update a window during window global update "
-                    "after user callback because the window was invalid!");
+                    "Failed to update a window during global update because it was invalid!");
             }
 
             u32 inputID = pw->GetInputID();

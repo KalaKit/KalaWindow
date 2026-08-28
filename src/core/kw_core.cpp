@@ -596,7 +596,7 @@ namespace KalaWindow::Core
 		if (featuresStr.empty()) featuresStr = "\n    None";
 
 		return 
-			"\nCPU data:\n"
+			"CPU data:\n"
 			"  Brand: " + cpu.brand + "\n"
 			+ "  Vendor: " + cpu.vendor + "\n"
 			+ "  Physical cores: " + to_string(cpu.physicalCores) + "\n"

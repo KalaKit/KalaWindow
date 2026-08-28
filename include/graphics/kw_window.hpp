@@ -105,7 +105,7 @@ namespace KalaWindow::Graphics
 			vec2 size = { 800, 600 },
 			ProcessWindow* parentWindow = nullptr);
 
-		//Global update call for process window and input.
+		//Global update call for all process windows, inputs and Vulkan contexts.
 		//  - global early update: what happens BEFORE KalaWindow window logic and input logic
 		//  - global update: what happens IN BETWEEN KalaWindow window logic and input logic
 		//  - global late update: what happens AFTER KalaWindow window logic and input logic
