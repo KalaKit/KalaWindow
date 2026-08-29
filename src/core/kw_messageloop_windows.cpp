@@ -204,6 +204,25 @@ namespace KalaWindow::Core
 				lParam);
 		}
 
+		Input* input{};
+		string err = Input::GetRegistry().GetContent(window->GetInputID(), input);
+		if (!err.empty())
+		{
+			if (KalaWindowCore::GetOSInfo().isOnWine)
+			{
+				Log::Print(
+					"Strange Wine error thinks input is gone, should be ignored in most cases.",
+					"KW_MESSAGE_LOOP",
+					LogType::LOG_WARNING);
+			}
+			else
+			{
+				KalaWindowCore::ForceClose(
+					"Kalawindow message loop error",
+					"Failed to process message for window '" + to_string(window->ID) + "' because input was invalid! Reason: " + err);
+			}
+		}
+
 		switch (msg)
 		{
 		//asks if user wants to log off or shut down (in case any data is unsaved)
@@ -342,24 +361,9 @@ namespace KalaWindow::Core
 
 		auto process_message = [](
 			const MSG& msg,
-			ProcessWindow* window) -> LRESULT
+			ProcessWindow* window,
+			Input* input) -> LRESULT
 			{
-				if (!window)
-				{
-					KalaWindowCore::ForceClose(
-						"KalaWindow message loop error",
-						"Failed to call process_message because its window was invalid!");
-				}
-
-				Input* input{};
-				string err = Input::GetRegistry().GetContent(window->GetInputID(), input);
-				if (!err.empty())
-				{
-					KalaWindowCore::ForceClose(
-						"Kalawindow message loop error",
-						"Failed to process message for window '" + to_string(window->ID) + "' because input was invalid! Reason: " + err);
-				}
-
 				/*
 				if (msg.message == 0)
 				{
@@ -424,24 +428,21 @@ namespace KalaWindow::Core
 							LogType::LOG_VERBOSE);
 					}
 
-					if (input)
+					input->SetKeyState(
+						key,
+						true);
+						
+					switch (msg.wParam)
 					{
-						input->SetKeyState(
-							key,
-							true);
-							
-						switch (msg.wParam)
-						{
-						case VK_BACK:
-							if (removeFromBackCallback) removeFromBackCallback();
-							break;
-						case VK_TAB:
-							if (addTabCallback) addTabCallback();
-							break;
-						case VK_RETURN:
-							if (addNewlineCallback) addNewlineCallback();
-							break;
-						}
+					case VK_BACK:
+						if (removeFromBackCallback) removeFromBackCallback();
+						break;
+					case VK_TAB:
+						if (addTabCallback) addTabCallback();
+						break;
+					case VK_RETURN:
+						if (addNewlineCallback) addNewlineCallback();
+						break;
 					}
 
 					return DefWindowProc(
@@ -476,12 +477,9 @@ namespace KalaWindow::Core
 							LogType::LOG_VERBOSE);
 					}
 
-					if (input)
-					{
-						input->SetKeyState(
-							key,
-							false);
-					}
+					input->SetKeyState(
+						key,
+						false);
 
 					return DefWindowProc(
 						msg.hwnd,
@@ -502,34 +500,31 @@ namespace KalaWindow::Core
 						f32(GET_Y_LPARAM(msg.lParam))
 					};
 
-					if (input)
+					//get the old position before updating
+					vec2 oldPos = input->GetMousePosition();
+
+					vec2 delta =
 					{
-						//get the old position before updating
-						vec2 oldPos = input->GetMousePosition();
+						newPos.x - oldPos.x,
+						newPos.y - oldPos.y
+					};
 
-						vec2 delta =
-						{
-							newPos.x - oldPos.x,
-							newPos.y - oldPos.y
-						};
+					input->mousePos = newPos;
+					input->mouseDelta = delta;
 
-						input->mousePos = newPos;
-						input->mouseDelta = delta;
+					if (!window->isWindowHovered)
+					{
+						window->isWindowHovered = true;
 
-						if (!window->isWindowHovered)
-						{
-							window->isWindowHovered = true;
+						const WindowData& win = window->GetWindowData();
+						HWND hwnd = ToVar<HWND>(win.window);
 
-							const WindowData& win = window->GetWindowData();
-							HWND hwnd = ToVar<HWND>(win.window);
+						TRACKMOUSEEVENT tme{};
+						tme.cbSize = sizeof(tme);
+						tme.dwFlags = TME_LEAVE;
+						tme.hwndTrack = hwnd;
 
-							TRACKMOUSEEVENT tme{};
-							tme.cbSize = sizeof(tme);
-							tme.dwFlags = TME_LEAVE;
-							tme.hwndTrack = hwnd;
-
-							TrackMouseEvent(&tme);
-						}
+						TrackMouseEvent(&tme);
 					}
 
 					return DefWindowProc(
@@ -562,7 +557,7 @@ namespace KalaWindow::Core
 					if (delta > 0) scroll = +1.0f;
 					else if (delta < 0) scroll = -1.0f;
 
-					if (input) input->mouseWheelDelta = scroll;
+					input->mouseWheelDelta = scroll;
 
 					return DefWindowProc(
 						msg.hwnd,
@@ -577,19 +572,16 @@ namespace KalaWindow::Core
 
 				case WM_LBUTTONDOWN:
 				{
-					if (input)
-					{
-						input->SetMouseButtonState(
-							MouseButton::M_LEFT,
-							true);
+					input->SetMouseButtonState(
+						MouseButton::M_LEFT,
+						true);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected left mouse key down.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected left mouse key down.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -600,19 +592,16 @@ namespace KalaWindow::Core
 				}
 				case WM_LBUTTONUP:
 				{
-					if (input)
-					{
-						input->SetMouseButtonState(
-							MouseButton::M_LEFT,
-							false);
+					input->SetMouseButtonState(
+						MouseButton::M_LEFT,
+						false);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected left mouse key up.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected left mouse key up.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -624,19 +613,16 @@ namespace KalaWindow::Core
 
 				case WM_RBUTTONDOWN:
 				{
-					if (input)
-					{
-						input->SetMouseButtonState(
-							MouseButton::M_RIGHT,
-							true);
+					input->SetMouseButtonState(
+						MouseButton::M_RIGHT,
+						true);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected right mouse key down.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected right mouse key down.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -647,19 +633,16 @@ namespace KalaWindow::Core
 				}
 				case WM_RBUTTONUP:
 				{
-					if (input)
-					{
-						input->SetMouseButtonState(
-							MouseButton::M_RIGHT,
-							false);
+					input->SetMouseButtonState(
+						MouseButton::M_RIGHT,
+						false);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected right mouse key up.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected right mouse key up.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -671,19 +654,16 @@ namespace KalaWindow::Core
 
 				case WM_MBUTTONDOWN:
 				{
-					if (input)
-					{
-						input->SetMouseButtonState(
-							MouseButton::M_MIDDLE,
-							true);
+					input->SetMouseButtonState(
+						MouseButton::M_MIDDLE,
+						true);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected middle mouse key down.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected middle mouse key down.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -694,19 +674,16 @@ namespace KalaWindow::Core
 				}
 				case WM_MBUTTONUP:
 				{
-					if (input)
-					{
-						input->SetMouseButtonState(
-							MouseButton::M_MIDDLE,
-							false);
+					input->SetMouseButtonState(
+						MouseButton::M_MIDDLE,
+						false);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected middle mouse key up.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected middle mouse key up.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -721,36 +698,30 @@ namespace KalaWindow::Core
 					WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 					if (button == XBUTTON1)
 					{
-						if (input)
-						{
-							input->SetMouseButtonState(
-								MouseButton::M_X1,
-								true);
+						input->SetMouseButtonState(
+							MouseButton::M_X1,
+							true);
 
-							if (Input::IsVerboseLoggingEnabled())
-							{
-								Log::Print(
-									"Detected x1 mouse key down.",
-									"INPUT",
-									LogType::LOG_VERBOSE);
-							}
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected x1 mouse key down.",
+								"INPUT",
+								LogType::LOG_VERBOSE);
 						}
 					}
 					if (button == XBUTTON2)
 					{
-						if (input)
-						{
-							input->SetMouseButtonState(
-								MouseButton::M_X2,
-								true);
+						input->SetMouseButtonState(
+							MouseButton::M_X2,
+							true);
 
-							if (Input::IsVerboseLoggingEnabled())
-							{
-								Log::Print(
-									"Detected x2 mouse key down.",
-									"INPUT",
-									LogType::LOG_VERBOSE);
-							}
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected x2 mouse key down.",
+								"INPUT",
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -765,36 +736,30 @@ namespace KalaWindow::Core
 					WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 					if (button == XBUTTON1)
 					{
-						if (input)
-						{
-							input->SetMouseButtonState(
-								MouseButton::M_X1,
-								false);
+						input->SetMouseButtonState(
+							MouseButton::M_X1,
+							false);
 
-							if (Input::IsVerboseLoggingEnabled())
-							{
-								Log::Print(
-									"Detected x1 mouse key up.",
-									"INPUT",
-									LogType::LOG_VERBOSE);
-							}
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected x1 mouse key up.",
+								"INPUT",
+								LogType::LOG_VERBOSE);
 						}
 					}
 					if (button == XBUTTON2)
 					{
-						if (input)
-						{
-							input->SetMouseButtonState(
-								MouseButton::M_X2,
-								false);
+						input->SetMouseButtonState(
+							MouseButton::M_X2,
+							false);
 
-							if (Input::IsVerboseLoggingEnabled())
-							{
-								Log::Print(
-									"Detected x2 mouse key up.",
-									"INPUT",
-									LogType::LOG_VERBOSE);
-							}
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected x2 mouse key up.",
+								"INPUT",
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -813,19 +778,16 @@ namespace KalaWindow::Core
 
 				case WM_LBUTTONDBLCLK:
 				{
-					if (input)
-					{
-						input->SetMouseButtonDoubleClickState(
-							MouseButton::M_LEFT,
-							true);
+					input->SetMouseButtonDoubleClickState(
+						MouseButton::M_LEFT,
+						true);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected left mouse key double click.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected left mouse key double click.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -836,19 +798,16 @@ namespace KalaWindow::Core
 				}
 				case WM_RBUTTONDBLCLK:
 				{
-					if (input)
-					{
-						input->SetMouseButtonDoubleClickState(
-							MouseButton::M_RIGHT,
-							true);
+					input->SetMouseButtonDoubleClickState(
+						MouseButton::M_RIGHT,
+						true);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected right mouse key double click.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected right mouse key double click.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -859,19 +818,16 @@ namespace KalaWindow::Core
 				}
 				case WM_MBUTTONDBLCLK:
 				{
-					if (input)
-					{
-						input->SetMouseButtonDoubleClickState(
-							MouseButton::M_MIDDLE,
-							true);
+					input->SetMouseButtonDoubleClickState(
+						MouseButton::M_MIDDLE,
+						true);
 
-						if (Input::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Detected middle mouse key double click.",
-								"INPUT",
-								LogType::LOG_VERBOSE);
-						}
+					if (Input::IsVerboseLoggingEnabled())
+					{
+						Log::Print(
+							"Detected middle mouse key double click.",
+							"INPUT",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -884,35 +840,32 @@ namespace KalaWindow::Core
 				{
 					WORD button = GET_XBUTTON_WPARAM(msg.wParam);
 
-					if (input)
+					if (button == XBUTTON1)
 					{
-						if (button == XBUTTON1)
-						{
-							input->SetMouseButtonDoubleClickState(
-								MouseButton::M_X1,
-								true);
+						input->SetMouseButtonDoubleClickState(
+							MouseButton::M_X1,
+							true);
 
-							if (Input::IsVerboseLoggingEnabled())
-							{
-								Log::Print(
-									"Detected x1 mouse key double click.",
-									"INPUT",
-									LogType::LOG_VERBOSE);
-							}
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected x1 mouse key double click.",
+								"INPUT",
+								LogType::LOG_VERBOSE);
 						}
-						if (button == XBUTTON2)
-						{
-							input->SetMouseButtonDoubleClickState(
-								MouseButton::M_X2,
-								true);
+					}
+					if (button == XBUTTON2)
+					{
+						input->SetMouseButtonDoubleClickState(
+							MouseButton::M_X2,
+							true);
 
-							if (Input::IsVerboseLoggingEnabled())
-							{
-								Log::Print(
-									"Detected x2 mouse key double click.",
-									"INPUT",
-									LogType::LOG_VERBOSE);
-							}
+						if (Input::IsVerboseLoggingEnabled())
+						{
+							Log::Print(
+								"Detected x2 mouse key double click.",
+								"INPUT",
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -955,8 +908,7 @@ namespace KalaWindow::Core
 					const RAWMOUSE& mouse = rcast<RAWINPUT*>(buffer.data())->data.mouse;
 
 					//sets raw mouse movement
-					if (mouse.usFlags == MOUSE_MOVE_RELATIVE
-						&& input)
+					if (mouse.usFlags == MOUSE_MOVE_RELATIVE)
 					{
 						input->rawMouseDelta.x += (f32)mouse.lLastX;
 						input->rawMouseDelta.y += (f32)mouse.lLastY;
@@ -1104,15 +1056,12 @@ namespace KalaWindow::Core
 				//window gains focus
 				case WM_SETFOCUS:
 				{
-					if (input)
+					if (Window_Global::IsVerboseLoggingEnabled())
 					{
-						if (Window_Global::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"Returned focus to window '" + to_string(window->GetID()) + "'!",
-								"KW_MESSAGE_LOOP",
-								LogType::LOG_VERBOSE);
-						}
+						Log::Print(
+							"Returned focus to window '" + to_string(window->GetID()) + "'!",
+							"KW_MESSAGE_LOOP",
+							LogType::LOG_VERBOSE);
 					}
 
 					if (!window->IsFocused()) window->BringToFocus();
@@ -1126,15 +1075,12 @@ namespace KalaWindow::Core
 				//window loses focus
 				case WM_KILLFOCUS:
 				{
-					if (input)
+					if (Window_Global::IsVerboseLoggingEnabled())
 					{
-						if (Window_Global::IsVerboseLoggingEnabled())
-						{
-							Log::Print(
-								"No longer focusing on window '" + to_string(window->GetID()) + "'.",
-								"KW_MESSAGE_LOOP",
-								LogType::LOG_VERBOSE);
-						}
+						Log::Print(
+							"No longer focusing on window '" + to_string(window->GetID()) + "'.",
+							"KW_MESSAGE_LOOP",
+							LogType::LOG_VERBOSE);
 					}
 
 					return DefWindowProc(
@@ -1285,7 +1231,10 @@ namespace KalaWindow::Core
 				}
 			};
 
-		return process_message(msgObj, window);
+		return process_message(
+			msgObj, 
+			window, 
+			input);
 	}
 
     void MessageLoop::SetAddCharCallback(function<void(u32)>&& newCallback)

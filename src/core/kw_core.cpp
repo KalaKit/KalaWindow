@@ -544,7 +544,7 @@ namespace KalaWindow::Core
 						if (regs7[1] & (1 << 16)) flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_AVX512F);
 					}
 
-					//BMI1/BMI2 dont depend on XGETBV
+					//BMI1/BMI2 don't depend on XGETBV
 					if (regs7[1] & (1 << 3))  flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_BMI1);
 					if (regs7[1] & (1 << 8))  flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_BMI2);
 				}
