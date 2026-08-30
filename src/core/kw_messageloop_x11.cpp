@@ -57,8 +57,6 @@ using std::to_string;
 using std::function;
 using std::stringstream;
 
-static unordered_map<u32, bool> isPendingResize{};
-
 static function<void(u32)> addCharCallback{};
 static function<void()> removeFromBackCallback{};
 static function<void()> addTabCallback{};
@@ -302,11 +300,15 @@ namespace KalaWindow::Core
                 {
                     case ConfigureNotify:
                     {
+                        const vec2 oldSize = w->size;
+
                         w->pos = vec2(event.xconfigure.x, event.xconfigure.y);
                         w->size = kclamp(
                             vec2(event.xconfigure.width, event.xconfigure.height),
                             w->minSize,
                             w->maxSize);
+
+                        const bool resized = w->size != oldSize;
 
                         Atom actualType{};
                         int actualFormat{};
@@ -342,7 +344,11 @@ namespace KalaWindow::Core
                             XFree(extents);
                         }
 
-                        if (w->resizeCallback) w->resizeCallback();
+                        if (resized
+                            && w->resizeCallback)
+                        {
+                            w->resizeCallback();
+                        }
 
                         break;
                     }

@@ -1022,7 +1022,6 @@ namespace KalaWindow::Graphics
 
 		return IsWindowVisible(window);
 	}
-	bool ProcessWindow::IsResizing() const { return isResizing; }
 
 	WindowMode ProcessWindow::GetWindowMode()
 	{

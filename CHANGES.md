@@ -8,6 +8,7 @@
 - added nodiscard where applicable
 - added additional error logging
 - registry overhaul
+- fixed inconsistent resize callback on windows and linux
 - added KW_USE_GPU_AV definition for advanced Vulkan debugging, only useful in debug mode when validation is already internally enabled
 
 # 1.4.0

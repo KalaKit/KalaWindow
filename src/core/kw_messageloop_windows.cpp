@@ -206,30 +206,6 @@ namespace KalaWindow::Core
 
 		switch (msg)
 		{
-		//asks if user wants to log off or shut down (in case any data is unsaved)
-		case WM_QUERYENDSESSION:
-		{
-			//TODO: recreate identically for Linux
-
-			/*
-			if (Window_Global::CreatePopup(
-				"Quitting application",
-				"Are you sure you want to quit? Unclosed data may be lost!",
-				PopupAction::POPUP_ACTION_YES_NO,
-				PopupType::POPUP_TYPE_WARNING)
-				== PopupResult::POPUP_RESULT_YES)
-			{
-				ProcessWindow::GetRegistry().DestroyAllContent();
-				return TRUE; //user clicked yes, continuing to logoff/shutdown
-			}
-			else return FALSE; //user clicked no, cancelling logoff/shutdown
-			*/
-
-			return TRUE;
-		}
-		//actually go through with logoff/shutdown
-		case WM_ENDSESSION: return 0;
-
 		case WM_MOUSEACTIVATE:
 		{
 			if (Window_Global::IsVerboseLoggingEnabled())
@@ -260,79 +236,6 @@ namespace KalaWindow::Core
 				lParam);
 		}
 		}
-
-		//
-		// ENSURE CURSOR ICON IS CORRECT WHEN INSIDE WINDOW
-		//
-
-		/*
-		if (msg == WM_NCHITTEST)
-		{
-			auto cursor_test = [](
-				HWND hwnd,
-				UINT msg,
-				WPARAM wParam,
-				LPARAM lParam) -> LRESULT
-				{
-					POINT cursor{};
-					cursor.x = GET_X_LPARAM(lParam);
-					cursor.y = GET_Y_LPARAM(lParam);
-
-					RECT rect{};
-					GetWindowRect(hwnd, &rect);
-
-					//if cursor isnt inside the window
-					if (!PtInRect(&rect, cursor)) return HTNOWHERE;
-
-					static constexpr int border = 10;
-
-					bool onLeft = cursor.x >= rect.left && cursor.x < rect.left + border;
-					bool onRight = cursor.x < rect.right && cursor.x >= rect.right - border;
-					bool onTop = cursor.y >= rect.top && cursor.y < rect.top + border;
-					bool onBottom = cursor.y < rect.bottom && cursor.y >= rect.bottom - border;
-
-					//corners
-					if (onLeft && onTop) return HTTOPLEFT;
-					if (onRight && onTop) return HTTOPRIGHT;
-					if (onLeft && onBottom) return HTBOTTOMLEFT;
-					if (onRight && onBottom) return HTBOTTOMRIGHT;
-
-					//edges
-					if (onLeft) return HTLEFT;
-					if (onRight) return HTRIGHT;
-					if (onTop) return HTTOP;
-					if (onBottom) return HTBOTTOM;
-
-					//not near border
-					return HTCLIENT;
-				};
-
-			auto result = cursor_test(hwnd, msg, wParam, lParam);
-
-			string resultValue{};
-
-			if (result == 1) resultValue = "center";
-			if (result == 10) resultValue = "left edge";
-			if (result == 11) resultValue = "right edge";
-			if (result == 12) resultValue = "top bar";
-			if (result == 13) resultValue = "top left corner";
-			if (result == 14) resultValue = "top right corner";
-			if (result == 15) resultValue = "bottom edge";
-			if (result == 16) resultValue = "bottom left corner";
-			if (result == 17) resultValue = "bottom right corner";
-
-			Log::Print(
-				"WM_NCHITTEST result: " + resultValue + " [" + to_string(result) + "]",
-				"KW_MESSAGE_LOOP",
-				LogType::LOG_INFO);
-
-			return result;
-		}
-		*/
-
-		//
-		// OTHER MESSAGES
-		//
 
 		MSG msgObj{};
 		msgObj.hwnd = hwnd;
@@ -1102,8 +1005,6 @@ namespace KalaWindow::Core
 						}
 					}
 
-					if (!window->IsFocused()) window->BringToFocus();
-
 					return DefWindowProc(
 						msg.hwnd,
 						msg.message,
@@ -1197,22 +1098,11 @@ namespace KalaWindow::Core
 					}
 					}
 
-					if (window->IsResizable()) window->isResizing = false;
-
 					if (window->resizeCallback) window->resizeCallback();
 
 					return 0; //we handled it
 				}
-				case WM_SIZING:
-				{
-					if (window->IsResizable()
-						&& !window->IsResizing())
-					{
-						window->isResizing = true;
-					}
 
-					return 0; //we handled it
-				}
 				//scale correctly when going to other monitor
 				case WM_DPICHANGED:
 				{

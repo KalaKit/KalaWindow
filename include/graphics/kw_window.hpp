@@ -200,9 +200,6 @@ namespace KalaWindow::Graphics
 		//Returns false if this window is not rendered but also not minimized
 		KNODISCARD
 		bool IsVisible() const;
-		//Returns true if this window is currently being resized
-		KNODISCARD
-		bool IsResizing() const;
 
 		//Can assign the window mode to one of the supported types
 		KNODISCARD
@@ -238,7 +235,6 @@ namespace KalaWindow::Graphics
 
 		bool isWindowHovered{}; //If true, then this window is currently being hovered by the cursor.
 		bool isIdle{};          //Toggled dynamically by isfocused, isminimized and isvisible checks.
-		bool isResizing{};      //If true, then this window is currently being resized
 
 		u32 parentID = UINT32_MAX;
 		vector<u32> childIDs{};

@@ -1189,7 +1189,6 @@ namespace KalaWindow::Graphics
     bool ProcessWindow::IsFullscreen() { return isFullscreen; }
     bool ProcessWindow::IsMinimized() const { return isMinimized; }
     bool ProcessWindow::IsVisible() const { return isVisible; }
-	bool ProcessWindow::IsResizing() const { return isResizing; }
 
     WindowMode ProcessWindow::GetWindowMode() { return windowMode; }
     void ProcessWindow::SetWindowMode(WindowMode mode)
