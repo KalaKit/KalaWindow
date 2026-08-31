@@ -1090,14 +1090,14 @@ namespace KalaWindow::Core
 						if (window->isResizing
 							&& window->resizeCallback)
 						{
-							//Log::Print("@@@@@ WM_TIMER via RESIZE_TIMER_ID called resize callback...");
+							//Log::Print("@@@@@ WM_TIMER via RESIZE_TIMER_ID triggered resize callback...");
 
 							window->resizeCallback(true);
 						}
 					}
 					else if (msg.wParam == MAXIMIZE_RESTORE_TIMER_ID)
 					{
-						//Log::Print("@@@@@ WM_TIMER via MAXIMIZE_RESTORE_TIMER_ID called resize callback...");
+						//Log::Print("@@@@@ WM_TIMER via MAXIMIZE_RESTORE_TIMER_ID triggered resize callback...");
 
 						const WindowData& win = window->GetWindowData();
 						HWND hwnd = ToVar<HWND>(win.window);

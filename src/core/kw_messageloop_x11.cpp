@@ -353,6 +353,8 @@ namespace KalaWindow::Core
                         if (resized
                             && w->resizeCallback)
                         {
+                            //Log::Print("@@@@@ ConfigureNotify requested resize callback...");
+
                             w->resizeCallback(false);
                             w->configureNotifyRequestedResizeCallback = true;
                         }
@@ -685,7 +687,8 @@ namespace KalaWindow::Core
 
                             if (resizeStateChanged)
                             {
-                                Log::Print("@@@@@ started resize callback delay...");
+                                //Log::Print("@@@@@ started resize callback delay...");
+
                                 w->delayedMaximizeRestoreCounterStart = true;
                                 w->delayedMaximizeRestoreCounter = 0;
                             }
@@ -1233,18 +1236,20 @@ namespace KalaWindow::Core
                 {
                     if (w->delayedMaximizeRestoreCounter == 0)
                     {
-                        Log::Print("@@@@@ delayed resize callback...");
+                        //Log::Print("@@@@@ delayed resize callback...");
+
                         w->delayedMaximizeRestoreCounter++;
                     }
                     else
                     {
-                        Log::Print("@@@@@ resize callback delay triggered resize callback...");
+                        //Log::Print("@@@@@ resize callback delay triggered resize callback...");
+
                         w->delayedMaximizeRestoreCounterStart = false;
                         if (w->resizeCallback) w->resizeCallback(true);
 
                         if (w->configureNotifyRequestedResizeCallback)
                         {
-                            Log::Print("@@@@@ ConfigureNotify triggered resize callback alongside delayed resize callback...");
+                            //Log::Print("@@@@@ ConfigureNotify triggered resize callback alongside delayed resize callback...");
 
                             if (w->resizeCallback) w->resizeCallback(true);
                             w->configureNotifyRequestedResizeCallback = false;
