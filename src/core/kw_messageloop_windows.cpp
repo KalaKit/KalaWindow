@@ -56,6 +56,9 @@ using std::unordered_map;
 
 using std::wstring;
 
+static constexpr UINT_PTR RESIZE_TIMER_ID = 1;
+static constexpr UINT_PTR MAXIMIZE_RESTORE_TIMER_ID = 2;
+
 static const unordered_map<WPARAM, KeyboardButton> VKToKeyMap = {
 	// Letters
 	{ 'A', KeyboardButton::K_A }, { 'B', KeyboardButton::K_B }, { 'C', KeyboardButton::K_C }, { 'D', KeyboardButton::K_D },
@@ -248,7 +251,7 @@ namespace KalaWindow::Core
 			ProcessWindow* window) -> LRESULT
 			{
 				Input* input{};
-				string _ = Input::GetRegistry().GetContent(window->GetInputID(), input);
+				(void)Input::GetRegistry().GetContent(window->GetInputID(), input);
 
 				/*
 				if (msg.message == 0)
@@ -1052,6 +1055,63 @@ namespace KalaWindow::Core
 				// WINDOW RESIZE
 				//
 
+				case WM_ENTERSIZEMOVE:
+				{
+					const WindowData& win = window->GetWindowData();
+					HWND hwnd = ToVar<HWND>(win.window);
+
+					window->isResizing = false;
+					
+					SetTimer(
+						hwnd,
+						RESIZE_TIMER_ID,
+						16,
+						nullptr);
+
+					return 0; //we handled it
+				}
+				case WM_EXITSIZEMOVE:
+				{
+					const WindowData& win = window->GetWindowData();
+					HWND hwnd = ToVar<HWND>(win.window);
+
+					window->isResizing = false;
+
+					KillTimer(
+						hwnd,
+						RESIZE_TIMER_ID);
+					
+					return 0; //we handled it
+				}
+				case WM_TIMER:
+				{
+					if (msg.wParam == RESIZE_TIMER_ID)
+					{
+						if (window->isResizing
+							&& window->resizeCallback)
+						{
+							//Log::Print("@@@@@ WM_TIMER via RESIZE_TIMER_ID called resize callback...");
+
+							window->resizeCallback();
+						}
+					}
+					else if (msg.wParam == MAXIMIZE_RESTORE_TIMER_ID)
+					{
+						//Log::Print("@@@@@ WM_TIMER via MAXIMIZE_RESTORE_TIMER_ID called resize callback...");
+
+						const WindowData& win = window->GetWindowData();
+						HWND hwnd = ToVar<HWND>(win.window);
+
+						KillTimer(
+							hwnd,
+							MAXIMIZE_RESTORE_TIMER_ID);
+
+						if (window->resizeCallback) window->resizeCallback();
+					}
+					
+					return 0; //we handled it
+				}
+
 				case WM_SIZE:
 				{
 					switch (msg.wParam)
@@ -1094,11 +1154,18 @@ namespace KalaWindow::Core
 							w->BringToFocus();
 						}
 
+						window->wasMaximizedOrRestored = true;
+
 						break;
 					}
 					}
 
-					if (window->resizeCallback) window->resizeCallback();
+					return 0; //we handled it
+				}
+
+				case WM_SIZING:
+				{
+					window->isResizing = true;
 
 					return 0; //we handled it
 				}

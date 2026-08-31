@@ -234,7 +234,10 @@ namespace KalaWindow::Graphics
 		u32 parentID = UINT32_MAX;
 		vector<u32> childIDs{};
 
-#if defined(KLIN_ANY)
+#if defined(KWIN_ANY)
+		bool wasMaximizedOrRestored{};
+		bool isResizing{};
+#else
 		void UpdateFullscreenAndMinimizedState();
 
 		bool isFocused{};

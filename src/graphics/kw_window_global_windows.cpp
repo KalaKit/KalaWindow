@@ -479,7 +479,7 @@ namespace KalaWindow::Graphics
 
 		if (KalaWindowCore::GetOSInfo().isOnWine)
 		{
-			PopupResult _ = CreatePopup(
+			(void)CreatePopup(
 				"Running on Wine",
 				"KalaWindow has not been fully tested on Wine/Proton, this program may encounter issues, "
 				"please report any bugs or issues to the KalaWindow repository at 'https://github.com/kalakit/kalawindow'.", 

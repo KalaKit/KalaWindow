@@ -249,6 +249,12 @@ namespace KalaWindow::Graphics
 				"Failed to initialize window because Vulkan context initialization failed!");
 		}
 
+		SetTimer(
+			newHwnd,
+			2, //MINIMIZE_MAXIMIZE_TIMER_ID
+			16,
+			nullptr);
+
 		Log::Print(
 			"Created new window '" + newTitle + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
@@ -275,17 +281,36 @@ namespace KalaWindow::Graphics
 
 			if (pw->earlyUpdateCallback) pw->earlyUpdateCallback();
 
-			pw->UpdateIdleState();
-
 			MSG msg;
 
-			while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
+			while (PeekMessage(
+				&msg, 
+				nullptr, 
+				0, 
+				0, 
+				PM_REMOVE))
 			{
 				TranslateMessage(&msg); //translate virtual-key messages (like WM_KEYDOWN) to character messages (WM_CHAR)
 				DispatchMessage(&msg);  //send the message to the window procedure
 			}
 
 			if (pw->updateCallback) pw->updateCallback();
+
+			if (pw->wasMaximizedOrRestored)
+			{
+				const WindowData& win = pw->GetWindowData();
+				HWND hwnd = ToVar<HWND>(win.window);
+
+				SetTimer(
+					hwnd,
+					2, //MINIMIZE_MAXIMIZE_TIMER_ID
+					16,
+					nullptr);
+
+				pw->wasMaximizedOrRestored = false;
+			}
+
+			pw->UpdateIdleState();
         }
 
         if (globalUpdate) globalUpdate();
