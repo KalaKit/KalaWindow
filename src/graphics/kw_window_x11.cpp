@@ -24,7 +24,7 @@
 #include "core/kw_input.hpp"
 #include "graphics/kw_window_global.hpp"
 #include "graphics/kw_vulkan.hpp"
-#include "core/kw_messageloop_x11.hpp"
+#include "core/kw_messageloop.hpp"
 
 using KalaHeaders::KalaCore::ToVar;
 using KalaHeaders::KalaCore::FromVar;

@@ -3,7 +3,7 @@
 //This is free software, and you are welcome to redistribute it under certain conditions.
 //Read LICENSE.md for more information.
 
-#include "core/kw_messageloop_x11.hpp"
+#include "core/kw_messageloop.hpp"
 
 #if defined(KLIN_ANY)
 

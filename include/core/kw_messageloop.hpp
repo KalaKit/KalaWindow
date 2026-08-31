@@ -5,11 +5,12 @@
 
 #include "core_utils.hpp"
 
-#if defined(KWIN_ANY)
-
 #pragma once
 
+#if defined(KWIN_ANY)
 #include <windows.h>
+#endif
+
 #include <functional>
 
 namespace KalaWindow::Graphics
@@ -32,12 +33,13 @@ namespace KalaWindow::Core
 		static void SetAddTabCallback(function<void()>&& newCallback);
 		static void SetAddNewLineCallback(function<void()>&& newCallback);
 	private:
+#if defined(KWIN_ANY)
 		static LRESULT CALLBACK WindowProcCallback(
 			HWND hwnd,
 			UINT msg,
 			WPARAM wParam,
 			LPARAM lParam);
+#endif
 	};
 }
 
-#endif //KWIN_ANY

@@ -6,7 +6,7 @@
 #include "core/kw_input.hpp"
 
 #if defined(KLIN_ANY)
-#include "core/kw_messageloop_x11.hpp"
+#include "core/kw_messageloop.hpp"
 #include "graphics/kw_window_global.hpp"
 #endif
 

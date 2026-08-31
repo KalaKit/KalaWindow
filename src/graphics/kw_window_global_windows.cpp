@@ -31,7 +31,7 @@
 
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
-#include "core/kw_messageloop_windows.hpp"
+#include "core/kw_messageloop.hpp"
 #include "core/kw_input.hpp"
 #include "core/kw_crash.hpp"
 
