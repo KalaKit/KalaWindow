@@ -370,6 +370,16 @@ namespace KalaWindow::Graphics
 	{
 		CrashHandler::Initialize();
 
+		if (KalaWindowCore::GetOSInfo().isOnWine)
+		{
+			PopupResult _ = CreatePopup(
+				"Running on Wine",
+				"KalaWindow has not been fully tested on Wine/Proton, this program may encounter issues, "
+				"please report any bugs or issues to the KalaWindow repository at 'https://github.com/kalakit/kalawindow'.", 
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_WARNING);
+		}
+
 		typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
 		RTL_OSVERSIONINFOW rovi{};
