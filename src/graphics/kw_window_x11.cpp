@@ -1187,6 +1187,7 @@ namespace KalaWindow::Graphics
     bool ProcessWindow::IsForegroundWindow() const { return isFocused; }
     bool ProcessWindow::IsFocused() const { return isFocused; }
     bool ProcessWindow::IsFullscreen() { return isFullscreen; }
+    bool ProcessWindow::IsMaximized() const { return isMaximized; }
     bool ProcessWindow::IsMinimized() const { return isMinimized; }
     bool ProcessWindow::IsVisible() const { return isVisible; }
 
@@ -1297,10 +1298,10 @@ namespace KalaWindow::Graphics
         {
             windowStateVal = "normal";
 
-            Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
-            Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
-            Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
-            Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
+            Atom atom_net_wm_state                      = ToVar<Atom>(globalData.atom_net_wm_state);
+            Atom atom_net_wm_state_fullscreen           = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+            Atom atom_net_wm_state_maximized_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_maximized_horizontal);
+            Atom atom_net_wm_state_maximized_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_maximized_vertical);
             
             XEvent event{};
             event.xclient.type = ClientMessage;
@@ -1308,8 +1309,8 @@ namespace KalaWindow::Graphics
             event.xclient.message_type = atom_net_wm_state;
             event.xclient.format = 32;
             event.xclient.data.l[0] = 0; //remove hints
-            event.xclient.data.l[1] = atom_net_wm_state_vertical;
-            event.xclient.data.l[2] = atom_net_wm_state_horizontal;
+            event.xclient.data.l[1] = atom_net_wm_state_maximized_vertical;
+            event.xclient.data.l[2] = atom_net_wm_state_maximized_horizontal;
             event.xclient.data.l[3] = atom_net_wm_state_fullscreen;
             event.xclient.data.l[4] = 0;
 
@@ -1342,9 +1343,9 @@ namespace KalaWindow::Graphics
             SetPosition(oldPos);
             SetSize(oldSize);
 
-            Atom atom_net_wm_state            = ToVar<Atom>(globalData.atom_net_wm_state);
-            Atom atom_net_wm_state_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_horizontal);
-            Atom atom_net_wm_state_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_vertical);
+            Atom atom_net_wm_state                      = ToVar<Atom>(globalData.atom_net_wm_state);
+            Atom atom_net_wm_state_maximized_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_maximized_horizontal);
+            Atom atom_net_wm_state_maximized_vertical   = ToVar<Atom>(globalData.atom_net_wm_state_maximized_vertical);
             
             XEvent event{};
             event.xclient.type = ClientMessage;
@@ -1352,8 +1353,8 @@ namespace KalaWindow::Graphics
             event.xclient.message_type = atom_net_wm_state;
             event.xclient.format = 32;
             event.xclient.data.l[0] = 1; //add hints
-            event.xclient.data.l[1] = atom_net_wm_state_vertical;
-            event.xclient.data.l[2] = atom_net_wm_state_horizontal;
+            event.xclient.data.l[1] = atom_net_wm_state_maximized_vertical;
+            event.xclient.data.l[2] = atom_net_wm_state_maximized_horizontal;
             event.xclient.data.l[3] = 0;
             event.xclient.data.l[4] = 0;
 
@@ -1451,7 +1452,7 @@ namespace KalaWindow::Graphics
 		lateUpdateCallback = std::move(newValue);
     }
 
-	void ProcessWindow::SetResizeCallback(function<void()>&& newValue)
+	void ProcessWindow::SetResizeCallback(function<void(bool)>&& newValue)
 	{
 		if (!newValue)
 		{
@@ -1483,116 +1484,6 @@ namespace KalaWindow::Graphics
             !IsForegroundWindow()
             || IsMinimized()
             || !IsVisible();
-    }
-    
-    void ProcessWindow::UpdateFullscreenAndMinimizedState()
-    {
-        const X11GlobalData& globalData = Window_Global::GetGlobalData();
-        if (!globalData.display
-            || !windowData.window)
-        {
-			ForceClose(
-				"update window '" + to_string(ID) + "' fullscreen and minimized state",
-                "the display or window handle was invalid!");
-        }
-
-        Atom actualType{};
-        int actualFormat{};
-        unsigned long nItems{}, bytesAfter{};
-        unsigned char* data{};
-
-        Display* display = ToVar<Display*>(globalData.display);
-        Window window = ToVar<Window>(windowData.window);
-
-        Atom netWmState = ToVar<Atom>(globalData.atom_net_wm_state);
-        Atom netWmStateFullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
-        Atom netWmStateHidden = ToVar<Atom>(globalData.atom_net_wm_state_hidden);
-
-        XRESULT = XGetWindowProperty(
-            display,
-            window,
-            netWmState,
-            0,
-            1024,
-            False,
-            XA_ATOM,
-            &actualType,
-            &actualFormat,
-            &nItems,
-            &bytesAfter,
-            &data);
-
-        if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
-        {
-			ForceClose(
-				"update window '" + to_string(ID) + " fullscreen and minimized state",
-                "XGetWindowProperty failed! Result code: " + to_string(XRESULT));
-        }
-
-        bool wasMinimized = isMinimized;
-
-        isFullscreen = false;
-        isMinimized = false;
-
-        if (data)
-        {
-            Atom* atoms = (Atom*)data;
-
-            for (unsigned long i = 0; i < nItems; i++)
-            {
-                if (atoms[i] == netWmStateFullscreen) isFullscreen = true;
-                if (atoms[i] == netWmStateHidden) isMinimized = true;
-
-                if (isFullscreen
-                    && isMinimized)
-                {
-                    break;
-                }
-            }
-
-            XFree(data);
-        }
-
-        if (!wasMinimized
-            && isMinimized)
-        {
-            for (u32 childID : childIDs)
-            {
-                ProcessWindow* w{};
-                string err = ProcessWindow::GetRegistry().GetContent(childID, w);
-                if (!err.empty())
-                {
-                    KalaWindowCore::ForceClose(
-                        "KalaWindow message loop error",
-                        "Failed to minimize child window '" + to_string(childID) 
-                        + "' under parent '" + to_string(w->ID) + "'! Reason: " + err);
-                }
-
-                w->SetWindowState(WindowState::WINDOW_MINIMIZE);
-            }
-        }
-        else if (wasMinimized
-                 && !isMinimized)
-        {
-            for (u32 childID : childIDs)
-            {
-                ProcessWindow* w{};
-                string err = ProcessWindow::GetRegistry().GetContent(childID, w);
-                if (!err.empty())
-                {
-                    KalaWindowCore::ForceClose(
-                        "KalaWindow message loop error",
-                        "Failed to bring child window '" + to_string(childID) 
-                        + "' under parent '" + to_string(w->ID) + "' to focus! Reason: " + err);
-                }
-
-                Window childWindow = ToVar<Window>(w->GetWindowData().window);
-
-                XMapWindow(display, childWindow);
-                
-                w->BringToFocus();
-            }
-        }
     }
 
     void ProcessWindow::Destroy()

@@ -1,3 +1,11 @@
+# 1.6.0
+
+- added missing private update function for x11 message loop header
+- added ismaximized getter
+- added bool requirement to resize callback setter, true means force rebuild
+- cleaned up x11 fullscreen, maximized and visible logic
+- fixed x11 broken resize callback logic
+
 # 1.5.0
 
 - crash log layout cleanup

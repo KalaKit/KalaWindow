@@ -45,6 +45,7 @@ using KalaHeaders::KalaKeyStandards::KeyboardButton;
 using KalaHeaders::KalaKeyStandards::GetValueByKey;
 
 using KalaWindow::Core::Input;
+using KalaWindow::Graphics::WindowState;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::X11GlobalData;
 using KalaWindow::Graphics::ProcessWindow;
@@ -186,6 +187,11 @@ namespace KalaWindow::Core
         const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::GetAllContent();
 
         Display* display = ToVar<Display*>(globalData.display);
+
+        Atom atom_net_wm_state_fullscreen = ToVar<Atom>(globalData.atom_net_wm_state_fullscreen);
+        Atom atom_net_wm_state_maximized_horizontal = ToVar<Atom>(globalData.atom_net_wm_state_maximized_horizontal);
+        Atom atom_net_wm_state_maximized_vertical = ToVar<Atom>(globalData.atom_net_wm_state_maximized_vertical);
+        Atom atom_net_wm_state_hidden = ToVar<Atom>(globalData.atom_net_wm_state_hidden);
 
         Atom atom_wm_delete = ToVar<Atom>(globalData.atom_wm_delete);
         Atom atom_net_wm_state = ToVar<Atom>(globalData.atom_net_wm_state);
@@ -347,7 +353,8 @@ namespace KalaWindow::Core
                         if (resized
                             && w->resizeCallback)
                         {
-                            w->resizeCallback();
+                            w->resizeCallback(false);
+                            w->configureNotifyRequestedResizeCallback = true;
                         }
 
                         break;
@@ -613,7 +620,116 @@ namespace KalaWindow::Core
                         if (event.xproperty.atom == atom_net_wm_state
                             && event.xproperty.state == PropertyNewValue)
                         {
-                            w->UpdateFullscreenAndMinimizedState();
+                            Atom actualType{};
+                            int actualFormat{};
+                            unsigned long nItems{}, bytesAfter{};
+                            Atom* states{};
+
+                            XRESULT = XGetWindowProperty(
+                                display,
+                                window,
+                                atom_net_wm_state,
+                                0,
+                                1024,
+                                False,
+                                XA_ATOM,
+                                &actualType,
+                                &actualFormat,
+                                &nItems,
+                                &bytesAfter,
+                                rcast<unsigned char**>(&states));
+
+                            if (XRESULT != SUCCESS_XGETWINDOWPROPERTY)
+                            {
+                                Log::Print(
+                                    "Failed to get window '" + to_string(w->GetID()) 
+                                    + "' state because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
+                                    "KW_MESSAGE_LOOP",
+                                    LogType::LOG_ERROR,
+                                    2);
+
+                                return;
+                            }
+
+                            bool fullScreen{};
+                            bool maximizedHorizontal{};
+                            bool maximizedVertical{};
+                            bool hidden{};
+
+                            if (states)
+                            {
+                                for (unsigned long i = 0; i < nItems; ++i)
+                                {
+                                    if (states[i] == atom_net_wm_state_fullscreen) fullScreen = true;
+                                    else if (states[i] == atom_net_wm_state_maximized_horizontal) maximizedHorizontal = true;
+                                    else if (states[i] == atom_net_wm_state_maximized_vertical) maximizedVertical = true;
+                                    else if (states[i] == atom_net_wm_state_hidden) hidden = true;
+                                }
+
+                                XFree(states);
+                            }
+
+                            const bool isMaximized = 
+                                maximizedHorizontal
+                                && maximizedVertical;
+
+                            const bool resizeStateChanged = 
+                                isMaximized != w->isMaximized
+                                || fullScreen != w->isFullscreen;
+
+                            const bool wasMinimized = !w->isVisible; 
+
+                            w->isFullscreen = fullScreen;
+                            w->isMaximized = isMaximized;
+                            w->isVisible = !hidden;
+
+                            if (resizeStateChanged)
+                            {
+                                Log::Print("@@@@@ started resize callback delay...");
+                                w->delayedMaximizeRestoreCounterStart = true;
+                                w->delayedMaximizeRestoreCounter = 0;
+                            }
+
+                            if (!wasMinimized
+                                && hidden)
+                            {
+                                for (u32 childID : w->childIDs)
+                                {
+                                    ProcessWindow* child{};
+                                    string err = ProcessWindow::GetRegistry().GetContent(childID, child);
+                                    if (!err.empty())
+                                    {
+                                        KalaWindowCore::ForceClose(
+                                            "KalaWindow message loop error",
+                                            "Failed to minimize child window '" + to_string(childID) 
+                                            + "' under parent '" + to_string(w->ID) + "'! Reason: " + err);
+                                    }
+
+                                    child->SetWindowState(WindowState::WINDOW_MINIMIZE);
+                                }
+                            }
+                            else if (wasMinimized
+                                     && !hidden)
+                            {
+                                for (u32 childID : w->childIDs)
+                                {
+                                    ProcessWindow* child{};
+                                    string err = ProcessWindow::GetRegistry().GetContent(childID, child);
+                                    if (!err.empty())
+                                    {
+                                        KalaWindowCore::ForceClose(
+                                            "KalaWindow message loop error",
+                                            "Failed to bring child window '" + to_string(childID) 
+                                            + "' under parent '" + to_string(w->ID) + "' to focus! Reason: " + err);
+                                    }
+
+                                    Window childWindow = ToVar<Window>(child->GetWindowData().window);
+
+                                    XMapWindow(display, childWindow);
+                                    
+                                    child->BringToFocus();
+                                }
+                            }
                         }
 
                         break;
@@ -1109,6 +1225,30 @@ namespace KalaWindow::Core
                         }
 
                         break;
+                    }
+                }
+
+                //bump this frame, resize next frame
+                if (w->delayedMaximizeRestoreCounterStart)
+                {
+                    if (w->delayedMaximizeRestoreCounter == 0)
+                    {
+                        Log::Print("@@@@@ delayed resize callback...");
+                        w->delayedMaximizeRestoreCounter++;
+                    }
+                    else
+                    {
+                        Log::Print("@@@@@ resize callback delay triggered resize callback...");
+                        w->delayedMaximizeRestoreCounterStart = false;
+                        if (w->resizeCallback) w->resizeCallback(true);
+
+                        if (w->configureNotifyRequestedResizeCallback)
+                        {
+                            Log::Print("@@@@@ ConfigureNotify triggered resize callback alongside delayed resize callback...");
+
+                            if (w->resizeCallback) w->resizeCallback(true);
+                            w->configureNotifyRequestedResizeCallback = false;
+                        }
                     }
                 }
 

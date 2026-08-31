@@ -338,13 +338,13 @@ namespace KalaWindow::Graphics
             display,
            "_NET_WM_STATE_FULLSCREEN",
             False);
-        Atom net_wm_state_vertical = XInternAtom(
-            display,
-           "_NET_WM_STATE_MAXIMIZED_VERT",
-            False);
-        Atom net_wm_state_horizontal = XInternAtom(
+        Atom net_wm_state_maximized_horizontal = XInternAtom(
             display,
            "_NET_WM_STATE_MAXIMIZED_HORZ",
+            False);
+        Atom net_wm_state_maximized_vertical = XInternAtom(
+            display,
+           "_NET_WM_STATE_MAXIMIZED_VERT",
             False);
         Atom net_wm_state_above = XInternAtom(
             display,
@@ -394,13 +394,13 @@ namespace KalaWindow::Graphics
         globalData.atom_net_wm_allowed_actions = FromVar(net_wm_allowed_actions);
         globalData.atom_net_wm_action_resize   = FromVar(net_wm_action_resize);
 
-        globalData.atom_net_wm_state              = FromVar(net_wm_state);
-        globalData.atom_net_wm_state_hidden       = FromVar(net_wm_state_hidden);
-        globalData.atom_net_wm_state_fullscreen   = FromVar(net_wm_state_fullscreen);
-        globalData.atom_net_wm_state_vertical     = FromVar(net_wm_state_vertical);
-        globalData.atom_net_wm_state_horizontal   = FromVar(net_wm_state_horizontal);
-        globalData.atom_net_wm_state_above        = FromVar(net_wm_state_above);
-        globalData.atom_net_wm_state_skip_taskbar = FromVar(net_wm_state_skip_taskbar);
+        globalData.atom_net_wm_state                      = FromVar(net_wm_state);
+        globalData.atom_net_wm_state_hidden               = FromVar(net_wm_state_hidden);
+        globalData.atom_net_wm_state_fullscreen           = FromVar(net_wm_state_fullscreen);
+        globalData.atom_net_wm_state_maximized_horizontal = FromVar(net_wm_state_maximized_horizontal);
+        globalData.atom_net_wm_state_maximized_vertical   = FromVar(net_wm_state_maximized_vertical);
+        globalData.atom_net_wm_state_above                = FromVar(net_wm_state_above);
+        globalData.atom_net_wm_state_skip_taskbar         = FromVar(net_wm_state_skip_taskbar);
 
         globalData.atom_wm_delete = FromVar(wm_delete);
 

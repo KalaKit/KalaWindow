@@ -1022,6 +1022,19 @@ namespace KalaWindow::Graphics
 
 		return rectMatches && undecorated;
 	}
+	bool ProcessWindow::IsMaximized() const
+	{
+		HWND window = ToVar<HWND>(windowData.window);
+		if (!IsWindow(window))
+		{
+			ForceClose(
+				"get window '" + to_string(ID) + "' maximized state",
+				"the window handle was invalid!");
+		}
+
+		//IsZoomed returns TRUE if the window is maximized
+		return IsZoomed(window);
+	}
 	bool ProcessWindow::IsMinimized() const
 	{
 		HWND window = ToVar<HWND>(windowData.window);
@@ -1382,7 +1395,7 @@ namespace KalaWindow::Graphics
 		lateUpdateCallback = std::move(newValue);
     }
 
-	void ProcessWindow::SetResizeCallback(function<void()>&& newValue)
+	void ProcessWindow::SetResizeCallback(function<void(bool)>&& newValue)
 	{
 		if (!newValue)
 		{

@@ -39,6 +39,8 @@ namespace KalaWindow::Core
 			UINT msg,
 			WPARAM wParam,
 			LPARAM lParam);
+#else
+		static void Update();
 #endif
 	};
 }

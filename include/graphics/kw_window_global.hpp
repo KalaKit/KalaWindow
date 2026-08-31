@@ -102,8 +102,8 @@ namespace KalaWindow::Graphics
 		uintptr_t atom_net_wm_state{};
 		uintptr_t atom_net_wm_state_hidden{};
 		uintptr_t atom_net_wm_state_fullscreen{};
-		uintptr_t atom_net_wm_state_vertical{};
-		uintptr_t atom_net_wm_state_horizontal{};
+		uintptr_t atom_net_wm_state_maximized_horizontal{};
+		uintptr_t atom_net_wm_state_maximized_vertical{};
 		uintptr_t atom_net_wm_state_above{};
 		uintptr_t atom_net_wm_state_skip_taskbar{};
 

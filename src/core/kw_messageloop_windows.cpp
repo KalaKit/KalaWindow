@@ -1092,7 +1092,7 @@ namespace KalaWindow::Core
 						{
 							//Log::Print("@@@@@ WM_TIMER via RESIZE_TIMER_ID called resize callback...");
 
-							window->resizeCallback();
+							window->resizeCallback(true);
 						}
 					}
 					else if (msg.wParam == MAXIMIZE_RESTORE_TIMER_ID)
@@ -1106,7 +1106,7 @@ namespace KalaWindow::Core
 							hwnd,
 							MAXIMIZE_RESTORE_TIMER_ID);
 
-						if (window->resizeCallback) window->resizeCallback();
+						if (window->resizeCallback) window->resizeCallback(true);
 					}
 					
 					return 0; //we handled it

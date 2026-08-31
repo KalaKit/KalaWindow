@@ -189,6 +189,9 @@ namespace KalaWindow::Graphics
 		//Returns true if this window is undecorated and its size matches the monitor size
 		KNODISCARD
 		bool IsFullscreen();
+		//Returns true if this window is maximized but not fullscreen
+		KNODISCARD
+		bool IsMaximized() const;
 		//Returns true if this window is not open, but exists, maps to opposite of IsVisible on X11
 		KNODISCARD
 		bool IsMinimized() const;
@@ -216,7 +219,9 @@ namespace KalaWindow::Graphics
 		//but before global late update
 		void SetLateUpdateCallback(function<void()>&& newValue);
 
-		void SetResizeCallback(function<void()>&& newValue);
+		//Set the resize callback, useful for graphics libraries like KalaGraphics
+		//to decide what to do when the window resized, bool true means force rebuild
+		void SetResizeCallback(function<void(bool)>&& newValue);
 
 		void SetShutdownCallback(function<void()>&& newValue);
 
@@ -235,13 +240,18 @@ namespace KalaWindow::Graphics
 		vector<u32> childIDs{};
 
 #if defined(KWIN_ANY)
-		bool wasMaximizedOrRestored{};
 		bool isResizing{};
+		bool wasMaximizedOrRestored{};
 #else
-		void UpdateFullscreenAndMinimizedState();
+		bool configureNotifyRequestedResizeCallback{};
+
+		//always recreate at start, so any upstream graphics are ready for use
+		bool delayedMaximizeRestoreCounterStart = true;
+		u8 delayedMaximizeRestoreCounter{};
 
 		bool isFocused{};
 		bool isVisible{};
+		bool isMaximized{};
 		bool isMinimized{};
 		
 		bool isFullscreen{};
@@ -280,7 +290,7 @@ namespace KalaWindow::Graphics
 		function<void()> updateCallback{};
 		function<void()> lateUpdateCallback{};
 
-		function<void()> resizeCallback{};
+		function<void(bool)> resizeCallback{};
 		function<void()> shutdownCallback{};
 	};
 }
