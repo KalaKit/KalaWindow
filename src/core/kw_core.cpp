@@ -1023,19 +1023,126 @@ namespace KalaWindow::Core
 
 			auto get_vm_status = []() -> bool
 				{
-					u32 regs[4]{};
 #if defined(KWIN_ANY)
-					__cpuid((int*)regs, 1);
+					const DWORD provider = 'BMSR';
+
+					UINT size = GetSystemFirmwareTable(
+						provider,
+						0,
+						nullptr,
+						0);
+
+					if (size == 0) return false;
+
+					vector<u8> data(size);
+
+					if (GetSystemFirmwareTable(
+						provider,
+						0,
+						data.data(),
+						size) != size)
+					{
+						return false;
+					}
+
+					//RawSMBIOSData header:
+					//4 bytes metadata + 4-byte table length
+					if (size < 8) return false;
+
+					u8* ptr = data.data() + 8;
+					u8* end = data.data() + size;
+
+					const char* vmSignatures[] = 
+					{
+						"virtual machine",
+						"vmware",
+						"virtualbox",
+						"qemu",
+						"kvm",
+						"xen",
+						"parallels"
+					};
+
+					while (ptr + 4 <= end)
+					{
+						u8 type = ptr[0];
+						u8 length = ptr[1];
+
+						if (length < 4
+							|| ptr + length > end)
+						{
+							break;
+						}
+
+						//SMBIOS system information
+						if (type == 1
+							&& length >= 6)
+						{
+							u8 manufacturerIndex = ptr[4];
+							u8 productIndex = ptr[5];
+
+							auto get_string = [&](u8 index) -> string
+								{
+									if (index == 0) return {};
+
+									char* str = rcast<char*>(ptr + length);
+									u8 current = 1;
+
+									while (rcast<u8*>(str) < end
+										&& *str)
+									{
+										if (current == index) return string(str);
+
+										str += strlen(str) + 1;
+										++current;
+									}
+
+									return {};
+								};
+
+							string info = 
+								get_string(manufacturerIndex) + " "
+								+ get_string(productIndex);
+
+							transform(
+								info.begin(),
+								info.end(),
+								info.begin(),
+								[](unsigned char c)
+								{
+									return scast<char>(tolower(c));
+								});
+
+							for (const char* signature : vmSignatures)
+							{
+								if (info.find(signature) != string::npos) return true;
+							}
+
+							return false;
+						}
+
+						//skip formatted structure
+						u8* next = ptr + length;
+
+						//SMBIOS structure ends with two consecutive NULL bytes
+						while (next + 1 < end
+							   && !(next[0] == 0
+							   && next[1] == 0))
+						{
+							++next;
+						}
+
+						if (next + 1 >= end) break;
+
+						ptr = next + 2;
+
+						if (type == 127) break;
+					}
+
+					return false;
 #elif defined(KLIN_ANY)
-					__get_cpuid(
-						1,
-						&regs[0],
-						&regs[1],
-						&regs[2],
-						&regs[3]);
+					return system("systemd-detect-virt --vm --quiet") == 0;
 #endif
-					//ECX bit 31
-					return (regs[2] & (1u << 31)) != 0;
 				};
 
 			bool onWine = get_wine_status();

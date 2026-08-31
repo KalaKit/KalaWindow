@@ -24,7 +24,6 @@
 #endif
 
 #include <filesystem>
-#include <sstream>
 #include <string>
 #include <system_error>
 
@@ -60,13 +59,12 @@ using ABI::Windows::UI::Notifications::IToastNotifier;
 #endif
 
 using std::filesystem::path;
-using std::ostringstream;
 using std::string;
 using std::string_view;
 using std::to_string;
 using std::error_code;
 
-static constexpr u32 MIN_OS_VERSION = 10017763; //Windows 10 build 17763 revision 1809
+static constexpr u32 MIN_OS_BUILD = 17763; //Windows 10 build 17763 revision 1809
 
 static bool isInitialized{};
 static bool isVerboseLoggingEnabled{};
@@ -370,16 +368,6 @@ namespace KalaWindow::Graphics
 	{
 		CrashHandler::Initialize();
 
-		if (KalaWindowCore::GetOSInfo().isOnWine)
-		{
-			PopupResult _ = CreatePopup(
-				"Running on Wine",
-				"KalaWindow has not been fully tested on Wine/Proton, this program may encounter issues, "
-				"please report any bugs or issues to the KalaWindow repository at 'https://github.com/kalakit/kalawindow'.", 
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_WARNING);
-		}
-
 		typedef LONG (WINAPI *RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
 
 		RTL_OSVERSIONINFOW rovi{};
@@ -397,13 +385,8 @@ namespace KalaWindow::Graphics
 				"Failed to check OS version bbecause RtlGetVersion was invalid or failed!");
 		}
 
-		version = rovi.dwMajorVersion * 1000000 + rovi.dwBuildNumber;
-		
-		string versionStr = to_string(version);
-		string osVersion = versionStr.substr(0, 2);
-		string buildnumberStr = to_string(stoi(versionStr.substr(2)));
-
-		buildNumber = stoul(buildnumberStr);
+		version = rovi.dwMajorVersion;
+		buildNumber = rovi.dwBuildNumber;
 
 		//get UBR (revision number) as well
 		HKEY key{};
@@ -444,21 +427,18 @@ namespace KalaWindow::Graphics
 			RegCloseKey(key);
 		}
 
-		if (version < MIN_OS_VERSION)
+		if (buildNumber < MIN_OS_BUILD)
 		{
-			ostringstream oss{};
-			oss << "Your version is Windows '" + osVersion + "' build '" << buildnumberStr
-				<< "' but KalaWindow requires Windows '10' (1809 build '17763') or higher!";
-
 			KalaWindowCore::ForceClose(
 				"KalaWindow global window error",
-				oss.str());
+				"Your version is Windows '" + to_string(version) + "' build '" + to_string(buildNumber) 
+				+ "' but KalaWindow requires Windows 10 (1809 build '17763') or higher!");
 		}
 
 		if (isVerboseLoggingEnabled)
 		{
 			Log::Print(
-				"Windows version '" + osVersion + "' build '" + buildnumberStr + "'",
+				"Windows version '" + to_string(version) + "' build '" + to_string(buildNumber) + "'",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_VERBOSE);
 		}
@@ -495,6 +475,16 @@ namespace KalaWindow::Graphics
 			KalaWindowCore::ForceClose(
 				"KalaWindow global window error",
 				string(message));
+		}
+
+		if (KalaWindowCore::GetOSInfo().isOnWine)
+		{
+			PopupResult _ = CreatePopup(
+				"Running on Wine",
+				"KalaWindow has not been fully tested on Wine/Proton, this program may encounter issues, "
+				"please report any bugs or issues to the KalaWindow repository at 'https://github.com/kalakit/kalawindow'.", 
+				PopupAction::POPUP_ACTION_OK,
+				PopupType::POPUP_TYPE_WARNING);
 		}
 
 #ifndef KW_NO_SHORTCUT
