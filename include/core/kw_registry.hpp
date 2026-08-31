@@ -171,77 +171,8 @@ namespace KalaWindow::Core
 			runtimeContent.clear();
 			createdContent.clear();
 		}
-
-		//Move this this content from live containers
-		//to batch add containers for batch removal,
-		//does not destroy moved content, must call DestroyBatchAddContent,
-		//use DestroyContent for destroying a single object
-		KNODISCARD
-		static inline string PushBatchAddContent()
-		{
-			return "";
-		}
-		//Return this batch add content back to live containers
-		KNODISCARD
-		static inline string PullBatchAddContent()
-		{
-			return "";
-		}
-
-		//Return all batch add content back to live containers
-		static inline void ClearBatchAddContent()
-		{
-			runtimeContent.insert(
-				runtimeContent.end(),
-				runtimeBatchAddContent.begin(),
-				runtimeBatchAddContent.end());
-				
-			runtimeBatchAddContent.clear();
-		}
-		//Remove all batched add content from this registry
-		static inline void DestroyBatchAddContent()
-		{
-			runtimeBatchAddContent.clear();
-			createdContent.clear();
-		}
-
-		//Move this this content from live containers
-		//to batch remove containers for batch removal,
-		//does not destroy moved content, must call DestroyBatchRemoveContent,
-		//use DestroyContent for destroying a single object
-		KNODISCARD
-		static inline string PushBatchRemoveContent()
-		{
-			return "";
-		}
-		//Return this batch remove content back to live containers
-		KNODISCARD
-		static inline string PullBatchRemoveContent()
-		{
-			return "";
-		}
-
-		//Return all batch remove content back to live containers
-		static inline void ClearBatchRemoveContent()
-		{
-			runtimeContent.insert(
-				runtimeContent.end(),
-				runtimeBatchRemoveContent.begin(),
-				runtimeBatchRemoveContent.end());
-
-			runtimeBatchRemoveContent.clear();
-		}
-		//Remove all batched remove content from this registry
-		static inline void DestroyBatchRemoveContent()
-		{
-			runtimeBatchRemoveContent.clear();
-			createdContent.clear();
-		}
 	private:
 		static inline unordered_map<u32, unique_ptr<T>> createdContent{};
-
 		static inline vector<T*> runtimeContent{};
-		static inline vector<T*> runtimeBatchAddContent{};
-		static inline vector<T*> runtimeBatchRemoveContent{};
 	};
 }
