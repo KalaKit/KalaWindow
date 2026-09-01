@@ -1,3 +1,7 @@
+# 1.6.1
+
+- replaced windows.h with forward declarations in message loop header
+
 # 1.6.0
 
 - added missing private update function for x11 message loop header
