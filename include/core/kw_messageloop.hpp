@@ -8,7 +8,17 @@
 #pragma once
 
 #if defined(KWIN_ANY)
-#include <windows.h>
+struct HWND__;
+using HWND = HWND__*;
+
+using UINT = unsigned int;
+using WPARAM = uintptr_t;
+using LPARAM = intptr_t;
+using LRESULT = intptr_t;
+
+#ifndef CALLBACK
+#define CALLBACK __stdcall
+#endif
 #endif
 
 #include <functional>
