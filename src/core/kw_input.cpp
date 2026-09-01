@@ -36,6 +36,7 @@ using KalaHeaders::KalaKeyStandards::KeyToIndex;
 using KalaHeaders::KalaKeyStandards::MouseToIndex;
 using KalaHeaders::KalaKeyStandards::IndexToKey;
 using KalaHeaders::KalaKeyStandards::IndexToMouse;
+using KalaHeaders::KalaKeyStandards::KeyValue;
 
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::WindowData;
@@ -206,6 +207,21 @@ namespace KalaWindow::Core
 		for (size_t i = 0; i < mouseDoubleClicked.size(); ++i)
 		{
 			if (mouseDoubleClicked[i]) result.push_back(IndexToMouse(i));
+		}
+
+		return result;
+	}
+	vector<MouseButton> Input::GetDraggingMouseButtons()
+	{
+		vector<MouseButton> result{};
+
+		for (KeyValue mb : mouseButtons)
+		{
+			MouseButton mbvalue = scast<MouseButton>(mb.key);
+			if (IsMouseButtonHeld(mbvalue))
+			{
+				result.push_back(mbvalue);
+			}
 		}
 
 		return result;
@@ -657,32 +673,6 @@ namespace KalaWindow::Core
 	bool Input::GetKeepMouseDeltaState() const { return keepMouseDelta; }
 	void Input::SetKeepMouseDeltaState(bool newState) { keepMouseDelta = newState; }
 
-	void Input::ClearInputEvents(bool clearHeld)
-	{
-		lastLetter.clear();
-
-		fill(keyPressed.begin(), keyPressed.end(), false);
-		fill(keyReleased.begin(), keyReleased.end(), false);
-		fill(mousePressed.begin(), mousePressed.end(), false);
-		fill(mouseReleased.begin(), mouseReleased.end(), false);
-		fill(mouseDoubleClicked.begin(), mouseDoubleClicked.end(), false);
-
-		if (clearHeld)
-		{
-			fill(keyDown.begin(), keyDown.end(), false);
-			fill(mouseDown.begin(), mouseDown.end(), false);
-		}
-
-		//always reset mouse wheel delta
-		mouseWheelDelta = 0;
-
-		if (!keepMouseDelta)
-		{
-			mouseDelta = { 0, 0 };
-			rawMouseDelta = { 0, 0 };
-		}
-	}
-
 	void Input::SetTypedLetter(string_view letter) { lastLetter = letter; }
 
 	void Input::SetKeyState(
@@ -733,6 +723,32 @@ namespace KalaWindow::Core
 		if (index == SIZE_MAX) return;
 
 		mouseDoubleClicked[index] = isDown;
+	}
+
+	void Input::ClearInputEvents(bool clearHeld)
+	{
+		lastLetter.clear();
+
+		fill(keyPressed.begin(), keyPressed.end(), false);
+		fill(keyReleased.begin(), keyReleased.end(), false);
+		fill(mousePressed.begin(), mousePressed.end(), false);
+		fill(mouseReleased.begin(), mouseReleased.end(), false);
+		fill(mouseDoubleClicked.begin(), mouseDoubleClicked.end(), false);
+
+		if (clearHeld)
+		{
+			fill(keyDown.begin(), keyDown.end(), false);
+			fill(mouseDown.begin(), mouseDown.end(), false);
+		}
+
+		//always reset mouse wheel delta
+		mouseWheelDelta = 0;
+
+		if (!keepMouseDelta)
+		{
+			mouseDelta = { 0, 0 };
+			rawMouseDelta = { 0, 0 };
+		}
 	}
 
 	void Input::EndFrameUpdate()

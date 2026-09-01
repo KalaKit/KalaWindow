@@ -19,6 +19,7 @@
 namespace KalaWindow::Graphics
 {
 	class ProcessWindow;
+	class Window_Global;
 }
 
 namespace KalaWindow::Core
@@ -47,6 +48,7 @@ namespace KalaWindow::Core
 	class LIB_API Input
 	{
 	friend class KalaWindow::Graphics::ProcessWindow;
+	friend class KalaWindow::Graphics::Window_Global;
 	friend class MessageLoop;
 	friend struct default_delete<Input>;
 	public:
@@ -90,6 +92,9 @@ namespace KalaWindow::Core
 		//Get the mouse buttons double-clicked this frame
 		KNODISCARD
 		vector<MouseButton> GetDoubleClickedMouseButtons();
+		//Get the mouse buttons dragged this frame
+		KNODISCARD
+		vector<MouseButton> GetDraggingMouseButtons();
 
 		//Detect if any combination of keys and mouse buttons are down
 		KNODISCARD
@@ -165,14 +170,10 @@ namespace KalaWindow::Core
 		KNODISCARD
 		bool GetKeepMouseDeltaState() const;
 		void SetKeepMouseDeltaState(bool newState);
-
-		//Clear all keyboard and mouse input events and mouse position values,
-		//set clearHeld to true to also clear all held keys
-		void ClearInputEvents(bool clearHeld = false);
-
-		void Destroy();
 	private:
 		~Input();
+
+		void Destroy();
 
 		KNODISCARD
 		static Input* Initialize(u32 windowID);
@@ -188,6 +189,8 @@ namespace KalaWindow::Core
 		void SetMouseButtonDoubleClickState(
 			MouseButton mouseButton,
 			bool isDown);
+
+		void ClearInputEvents(bool clearHeld = false);
 
 		void EndFrameUpdate();
 

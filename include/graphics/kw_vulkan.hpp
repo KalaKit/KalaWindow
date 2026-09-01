@@ -77,10 +77,10 @@ namespace KalaWindow::Graphics
 
         KNODISCARD
 		VkSurfaceKHR GetSurface() const;
-
-        void Destroy();
 	private:
         ~VulkanContext();
+
+        void Destroy();
 
         static void Initialize();
 		KNODISCARD

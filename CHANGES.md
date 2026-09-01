@@ -1,6 +1,9 @@
 # 1.6.1
 
 - replaced windows.h with forward declarations in message loop header
+- moved ClearInputEvents to private in input header
+- made input, per window vulkan context destroy functions private
+- added GetDraggingMouseButtons to input api
 
 # 1.6.0
 
