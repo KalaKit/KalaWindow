@@ -609,8 +609,9 @@ namespace KalaWindow::Graphics
             string targetTypes{};
             for (const auto& t : customTypes)
             {
-                if (!t.starts_with("*.")) targetTypes += "*." + t + " ";
-                else targetTypes += t + " ";
+                if (t.starts_with("."))        targetTypes += "*" + t + " ";  //add missing * in front of .extension
+                else if (!t.starts_with("*.")) targetTypes += "*." + t + " "; //add missing *. in front of extension
+                else                              targetTypes += t + " ";        //do nothing if its already *.extension
             }
             targetTypes.pop_back();
 

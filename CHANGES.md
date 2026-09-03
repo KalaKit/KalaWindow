@@ -4,6 +4,7 @@
 - moved ClearInputEvents to private in input header
 - made input, per window vulkan context destroy functions private
 - added GetDraggingMouseButtons to input api
+- fixed GetFiles FileType::FILE_CUSTOM extension cleanup logic
 
 # 1.6.0
 
