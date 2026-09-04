@@ -23,7 +23,7 @@
 		ULONG CurrentIdleState{};
 	} PROCESSOR_POWER_INFORMATION, *PPROCESSOR_POWER_INFORMATION;
 	#endif
-#elif defined(KLIN_ANY)
+#else
 #include <csignal>
 #include <X11/Xlib.h>
 #include <linux/limits.h>
@@ -64,6 +64,9 @@ using std::string_view;
 using std::ifstream;
 using std::set;
 using std::pair;
+using std::filesystem::path;
+
+static path exePath{};
 
 #if defined(KWIN_GNU)
 __attribute__((target("xsave")))
@@ -90,7 +93,7 @@ namespace KalaWindow::Core
 
 	path KalaWindowCore::GetExePath()
 	{
-		path exePath{};
+		if (!exePath.empty()) return exePath;
 
 #if defined(KWIN_ANY)
 		wchar_t buffer[MAX_PATH]{};
@@ -110,7 +113,7 @@ namespace KalaWindow::Core
 				"KalaWindow core error",
 				"Failed to get path to executable!");
 		}
-#elif defined(KLIN_ANY)
+#else
 		char buffer[PATH_MAX]{};
 		ssize_t length = readlink(
 			"/proc/self/exe",
@@ -166,7 +169,7 @@ namespace KalaWindow::Core
 					brand + 32,
 					regs,
 					sizeof(regs));			
-#elif defined(KLIN_ANY)
+#else
 				__get_cpuid(
 					0x80000002, 
 					(u32*)&regs[0],
@@ -220,7 +223,7 @@ namespace KalaWindow::Core
 
 #if defined(KWIN_ANY)
 				__cpuid(regs, 0);
-#elif defined(KLIN_ANY)
+#else
 				__get_cpuid(
 					0,
 					(u32*)&regs[0],
@@ -284,7 +287,7 @@ namespace KalaWindow::Core
 				}
 
 				return physicalCores;
-#elif defined(KLIN_ANY)
+#else
 				ifstream file("/proc/cpuinfo");
 				if (!file.is_open())
 				{
@@ -324,7 +327,7 @@ namespace KalaWindow::Core
 			{
 #if defined(KWIN_ANY)
 				return scast<u16>(GetActiveProcessorCount(ALL_PROCESSOR_GROUPS));
-#elif defined(KLIN_ANY)
+#else
 				return scast<u16>(sysconf(_SC_NPROCESSORS_ONLN));
 #endif
 			};
@@ -352,7 +355,7 @@ namespace KalaWindow::Core
 				RegCloseKey(key);
 
 				return scast<u32>(mhz);
-#elif defined(KLIN_ANY)
+#else
 				ifstream file("/sys/devices/system/cpu/cpu0/cpufreq/base_frequency");
 				if (!file.is_open())
 				{
@@ -385,7 +388,7 @@ namespace KalaWindow::Core
 						int regs[4]{};
 #if defined(KWIN_ANY)
 						__cpuidex(regs, 4, i);
-#elif defined(KLIN_ANY)
+#else
 						__get_cpuid_count(
 							4,
 							i,
@@ -431,7 +434,7 @@ namespace KalaWindow::Core
 					__cpuid(
 						regsL23, 
 						0x80000006);
-#elif defined(KLIN_ANY)
+#else
 					__get_cpuid(
 						0x80000005,
 						(u32*)&regsL1[0],
@@ -476,7 +479,7 @@ namespace KalaWindow::Core
 				__cpuid(
 					regs1, 
 					1);
-#elif defined(KLIN_ANY)
+#else
 				__get_cpuid(
 					0,
 					(u32*)&regs0[0],
@@ -526,7 +529,7 @@ namespace KalaWindow::Core
 						regs7,
 						7,
 						0);
-#elif defined(KLIN_ANY)
+#else
 					__get_cpuid_count(
 						7,
 						0,
@@ -743,7 +746,7 @@ namespace KalaWindow::Core
 				}
 
 				return memStatus.ullTotalPhys;
-#elif defined(KLIN_ANY)
+#else
 				struct sysinfo info{};
 				if (sysinfo(&info) != 0)
 				{
@@ -778,7 +781,7 @@ namespace KalaWindow::Core
 				}
 
 				return memStatus.ullAvailPhys;
-#elif defined(KLIN_ANY)
+#else
 				ifstream file("/proc/meminfo");
 				if (!file.is_open())
 				{
@@ -834,7 +837,7 @@ namespace KalaWindow::Core
 				}
 
 				return pmc.WorkingSetSize;
-#elif defined(KLIN_ANY)
+#else
 				ifstream file("/proc/self/status");
 				if (!file.is_open())
 				{
@@ -923,7 +926,7 @@ namespace KalaWindow::Core
 						: buildNumberStr;
 					
 					return { name, finalBuildStr };
-#elif defined(KLIN_ANY)
+#else
 					(void)onWine; //discard unused variable
 
 					string name = "Linux";
@@ -993,7 +996,7 @@ namespace KalaWindow::Core
 	#else
 					return "Unknown";
 	#endif
-#elif defined(KLIN_ANY)
+#else
 					struct utsname uts{};
 					if (uname(&uts) != 0)
 					{
@@ -1016,7 +1019,7 @@ namespace KalaWindow::Core
 					return GetProcAddress(
 						GetModuleHandleW(L"ntdll.dll"), 
 						"wine_get_version");
-#elif defined(KLIN_ANY)
+#else
 					return false;
 #endif
 				};
@@ -1140,7 +1143,7 @@ namespace KalaWindow::Core
 					}
 
 					return false;
-#elif defined(KLIN_ANY)
+#else
 					return system("systemd-detect-virt --vm --quiet") == 0;
 #endif
 				};
@@ -1199,7 +1202,7 @@ namespace KalaWindow::Core
 
 #if defined(KWIN_ANY)
 		__debugbreak();
-#elif defined(KLIN_ANY)
+#else
 		raise(SIGTRAP);
 #endif
 

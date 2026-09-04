@@ -12,7 +12,7 @@
 
 #if defined(KWIN_ANY)
 #include <windows.h>
-#elif defined(KLIN_ANY)
+#else
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/extensions/XInput2.h>
@@ -521,7 +521,7 @@ namespace KalaWindow::Core
 #if defined(KWIN_ANY)
 		if (state) while (ShowCursor(TRUE) < 0);   //increment until visible
 		else       while (ShowCursor(FALSE) >= 0); //decrement until hidden
-#elif defined(KLIN_ANY)
+#else
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		const WindowData& windowData = w->GetWindowData();
 
@@ -627,7 +627,7 @@ namespace KalaWindow::Core
 
 			ClipCursor(&rect);
 		}
-#elif defined(KLIN_ANY)
+#else
 		const X11GlobalData& globalData = Window_Global::GetGlobalData();
 		
 		if (!globalData.display
@@ -800,7 +800,7 @@ namespace KalaWindow::Core
 			{
 				SetCursorPos(center.x, center.y);
 			}
-#elif defined(KLIN_ANY)
+#else
 			const X11GlobalData& globalData = Window_Global::GetGlobalData();
 
 			if (!globalData.display

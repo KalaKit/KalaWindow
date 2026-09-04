@@ -73,7 +73,7 @@ namespace KalaWindow::Graphics
 		uintptr_t hMenu{};
 		uintptr_t wndProc{};
 	};
-#elif defined(KLIN_ANY)
+#else
 	struct LIB_API WindowData
 	{
 		uintptr_t window{};
