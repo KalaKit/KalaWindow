@@ -16,6 +16,12 @@
 #include <algorithm>
 #include <type_traits>
 
+namespace KalaWindow::Graphics
+{
+	class ProcessWindow;
+	class VulkanContext;
+}
+
 namespace KalaWindow::Core
 {
 	using std::unordered_map;
@@ -39,6 +45,10 @@ namespace KalaWindow::Core
 		requires is_class_v<T>
 	struct LIB_API KalaWindowRegistry
 	{
+	friend class Input;
+	friend class KalaWindow::Graphics::ProcessWindow;
+	friend class KalaWindow::Graphics::VulkanContext;
+	public:
 		//Get a runtime iteration safe list of all
 		//created object pointers of this registry
 		KNODISCARD
@@ -73,7 +83,7 @@ namespace KalaWindow::Core
 
 			return "";
 		}
-
+	private:
 		//Add a new unique ptr and its ID, returns error string on failure
 		KNODISCARD
 		static inline string AddContent(
@@ -171,7 +181,7 @@ namespace KalaWindow::Core
 			runtimeContent.clear();
 			createdContent.clear();
 		}
-	private:
+
 		static inline unordered_map<u32, unique_ptr<T>> createdContent{};
 		static inline vector<T*> runtimeContent{};
 	};
