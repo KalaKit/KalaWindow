@@ -350,8 +350,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to set app name because it was empty or too long!",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_ERROR,
-                2);
+                LogType::LOG_WARNING);
 
             return;
         }
@@ -508,8 +507,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Windows version because global window has has not yet been initialized!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return 0;
 		}
@@ -523,8 +521,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Windows build number because global window has has not yet been initialized!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return 0;
 		}
@@ -538,8 +535,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Windows build revision because global window has has not yet been initialized!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return 0;
 		}
@@ -804,8 +800,7 @@ namespace KalaWindow::Graphics
                 Log::Print(
                     "Failed to get files because FILE_CUSTOM was selected but no types were passed!",
                     "KW_WINDOW_GLOBAL",
-                    LogType::LOG_ERROR,
-                    2);
+                    LogType::LOG_WARNING);
 
 				clear_all_inputs();
 				UnInit();
@@ -1011,8 +1006,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot create notifications because this program is ran on Wine!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return;
 		}

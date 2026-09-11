@@ -1,10 +1,11 @@
-# 1.6.1
+# 1.7.0
 
 - replaced windows.h with forward declarations in message loop header
 - moved ClearInputEvents to private in input header
 - made input, per window vulkan context destroy functions private
 - added GetDraggingMouseButtons to input api
 - fixed GetFiles FileType::FILE_CUSTOM extension cleanup logic
+- demoted some errors to warnings
 
 # 1.6.0
 

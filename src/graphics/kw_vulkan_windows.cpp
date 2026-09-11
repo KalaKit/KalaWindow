@@ -163,8 +163,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set Vulkan version because global Vulkan has already been initialized!",
 				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -207,8 +206,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set Vulkan extensions because global Vulkan has already been initialized!",
 				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -218,8 +216,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set Vulkan extensions because nothing was passed!",
 				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -251,8 +248,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Vulkan instance because global Vulkan has not been initialized!",
 				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return nullptr;
 		}
@@ -262,8 +258,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Vulkan instance because it was invalid!",
 				"KW_VULKAN",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return nullptr;
 		}

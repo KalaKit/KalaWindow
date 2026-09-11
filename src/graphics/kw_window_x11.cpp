@@ -80,8 +80,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create window because its title is empty or too long!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return nullptr;
 		}
@@ -91,26 +90,7 @@ namespace KalaWindow::Graphics
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
         if (!VulkanContext::IsInitialized()) VulkanContext::Initialize();
 
-		if (size < MIN_WINDOW_SIZE)
-		{
-			Log::Print(
-				"Failed to create window '" + newTitle + "' because its size is too small!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
-		if (size > MAX_WINDOW_SIZE)
-		{
-			Log::Print(
-				"Failed to create window '" + newTitle + "' because its size is too big!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return nullptr;
-		}
+        size = kclamp(size, MIN_WINDOW_SIZE, MAX_WINDOW_SIZE);
 
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
         if (!globalData.display)
@@ -437,8 +417,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to assign window '" + to_string(ID) + "' dragged files callback because it was empty!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -524,8 +503,7 @@ namespace KalaWindow::Graphics
 				"Failed to set window '" + to_string(ID) + "' title "
                 "because the new title is empty or too long!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -622,32 +600,12 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' size because it is already the same size!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
             return;
         }
 
-        if (newSize > maxSize)
-		{
-			Log::Print(
-				"Failed to set window '" + to_string(ID) + "' size because it cannot be bigger than window max size!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-        if (newSize < minSize)
-		{
-			Log::Print(
-				"Failed to set window '" + to_string(ID) + "' size because it cannot be smaller than window min size!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
+        newSize = kclamp(newSize, minSize, maxSize);
 
         Display* display = ToVar<Display*>(globalData.display);
         Window window = ToVar<Window>(windowData.window);
@@ -686,34 +644,12 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' max size because it is already the same size!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
             return;
         }
 
-        if (newSize > MAX_WINDOW_SIZE)
-		{
-			Log::Print(
-				"Failed to set window '" + to_string(ID)
-                + "' max size because it is too big!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-        if (newSize < minSize)
-		{
-			Log::Print(
-				"Failed to set window '" + to_string(ID)
-                + "' max size because it cannot be smaller than window min size!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
+        newSize = kclamp(newSize, minSize, MAX_WINDOW_SIZE);
 
         Display* display = ToVar<Display*>(globalData.display);
         Window window = ToVar<Window>(windowData.window);
@@ -770,34 +706,12 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' min size because it is already the same size!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
             return;
         }
 
-        if (newSize > maxSize)
-		{
-			Log::Print(
-				"Failed to set window '" + to_string(ID) 
-                + "' min size because it cannot be bigger than window max size!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
-        if (newSize < MIN_WINDOW_SIZE)
-		{
-			Log::Print(
-				"Failed to set window '" + to_string(ID) 
-                + "' min size because it is too small!",
-				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
-
-			return;
-		}
+        newSize = kclamp(newSize, MIN_WINDOW_SIZE, maxSize);
 
         Display* display = ToVar<Display*>(globalData.display);
         Window window = ToVar<Window>(windowData.window);
@@ -1155,8 +1069,7 @@ namespace KalaWindow::Graphics
 				"Failed to set window '" + to_string(ID) + "' class value "
                 "because it was empty or too long!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return;
 		}

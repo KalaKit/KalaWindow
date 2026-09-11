@@ -234,8 +234,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Tried to check combo down with no passed input codes!",
 				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return false;
 		}
@@ -248,8 +247,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo down InputCode values has no keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_ERROR,
-					2);
+					LogType::LOG_WARNING);
 
 				return false;
 			}
@@ -260,8 +258,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo down InputCode values has both keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_ERROR,
-					2);
+					LogType::LOG_WARNING);
 
 				return false;
 			}
@@ -283,8 +280,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Tried to check combo pressed with no passed input codes!",
 				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return false;
 		}
@@ -297,8 +293,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has no keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_ERROR,
-					2);
+					LogType::LOG_WARNING);
 
 				return false;
 			}
@@ -309,8 +304,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has both keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_ERROR,
-					2);
+					LogType::LOG_WARNING);
 
 				return false;
 			}
@@ -351,8 +345,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Tried to check combo released with no passed input codes!",
 				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
+				LogType::LOG_WARNING);
 
 			return false;
 		}
@@ -365,8 +358,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has no keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_ERROR,
-					2);
+					LogType::LOG_WARNING);
 
 				return false;
 			}
@@ -377,8 +369,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has both keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_ERROR,
-					2);
+					LogType::LOG_WARNING);
 
 				return false;
 			}
@@ -507,11 +498,9 @@ namespace KalaWindow::Core
 		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
 		if (!err.empty())
 		{
-			Log::Print(
-				"Failed to set mouse visibility for input '" + to_string(ID) + "'! Reason: " + err,
-				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"KalaWindow input error",
+				"Failed to set mouse visibility for input '" + to_string(ID) + "'! Reason: " + err);
 
 			return;
 		}
@@ -590,11 +579,9 @@ namespace KalaWindow::Core
 		string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
 		if (!err.empty())
 		{
-			Log::Print(
-				"Failed to set mouse lock state for input '" + to_string(ID) + "'! Reason: " + err,
-				"KW_INPUT",
-				LogType::LOG_ERROR,
-				2);
+			KalaWindowCore::ForceClose(
+				"KalaWindow input error",
+				"Failed to set mouse lock state for input '" + to_string(ID) + "'! Reason: " + err);
 
 			return;
 		}
@@ -761,11 +748,9 @@ namespace KalaWindow::Core
 			string err = ProcessWindow::GetRegistry().GetContent(windowID, w);
 			if (!err.empty())
 			{
-				Log::Print(
-					"Failed to call EndFrameUpdate for input '" + to_string(ID) + "'! Reason: " + err,
-					"KW_INPUT",
-					LogType::LOG_ERROR,
-					2);
+				KalaWindowCore::ForceClose(
+					"KalaWindow input error",
+					"Failed to call EndFrameUpdate for input '" + to_string(ID) + "'! Reason: " + err);
 
 				return;
 			}
