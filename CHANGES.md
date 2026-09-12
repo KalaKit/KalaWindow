@@ -6,6 +6,7 @@
 - added GetDraggingMouseButtons to input api
 - fixed GetFiles FileType::FILE_CUSTOM extension cleanup logic
 - demoted some errors to warnings
+- simplified message loop input callbacks to getters
 
 # 1.6.0
 

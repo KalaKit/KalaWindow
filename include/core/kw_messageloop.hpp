@@ -20,9 +20,6 @@ using LRESULT = intptr_t;
 #define CALLBACK __stdcall
 #endif
 #endif
-
-#include <functional>
-
 namespace KalaWindow::Graphics
 {
 	class ProcessWindow;
@@ -31,17 +28,20 @@ namespace KalaWindow::Graphics
 
 namespace KalaWindow::Core
 {
-	using std::function;
-
 	class LIB_API MessageLoop
 	{
 	friend class KalaWindow::Graphics::ProcessWindow;
 	friend class KalaWindow::Graphics::Window_Global;
 	public:
-        static void SetAddCharCallback(function<void(u32)>&& newCallback);
-		static void SetRemoveFromBackCallback(function<void()>&& newCallback);
-		static void SetAddTabCallback(function<void()>&& newCallback);
-		static void SetAddNewLineCallback(function<void()>&& newCallback);
+		//Does not give Backspace, Tab, Return or NewLine,
+		//returns any other single key or shift/alt-affected key
+        static u32 GetPressedChar();
+		//Returns true if backspace key was pressed this frame
+		static bool GetBackspaceState();
+		//Returns true if tab key was pressed this frame
+		static bool GetTabState();
+		//Returns true if return key was pressed this frame
+		static bool GetReturnState();
 	private:
 #if defined(KWIN_ANY)
 		static LRESULT CALLBACK WindowProcCallback(

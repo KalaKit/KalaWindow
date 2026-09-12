@@ -184,10 +184,10 @@ static KeyboardButton TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 
 static string ToShort(const wstring& str);
 
-static function<void(u32)> addCharCallback{};
-static function<void()> removeFromBackCallback{};
-static function<void()> addTabCallback{};
-static function<void()> addNewlineCallback{};
+static u32 pressedChar{};
+static bool backspaceState{};
+static bool tabState{};
+static bool returnState{};
 
 namespace KalaWindow::Core
 {
@@ -206,6 +206,11 @@ namespace KalaWindow::Core
 				wParam, 
 				lParam);
 		}
+
+        pressedChar = 0;
+        backspaceState = false;
+        tabState = false;
+        returnState = false;
 
 		switch (msg)
 		{
@@ -288,9 +293,31 @@ namespace KalaWindow::Core
 
 				//typing text
 				case WM_UNICHAR:
+				{
+					//we support WM_UNICHAR
+					if (msg.wParam == UNICODE_NOCHAR)
+					{
+						return 1; //we handled it
+					}
+
+					pressedChar = scast<u32>(msg.wParam);
+
+					return 0; //we handled it
+				}
 				case WM_CHAR:
 				{
-					if (addCharCallback) addCharCallback(scast<u32>(msg.wParam));
+					u32 utf = scast<u32>(msg.wParam);
+
+					//ignore backspace, tab and return keys, they are handled separately
+					if (utf == 0x0A
+						|| utf == 0x0D
+						|| utf == 0x08
+						|| utf == 0x09)
+					{
+						return 0;
+					}
+
+					pressedChar = utf;
 
 					return 0; //we handled it
 				}
@@ -326,13 +353,13 @@ namespace KalaWindow::Core
 						switch (msg.wParam)
 						{
 						case VK_BACK:
-							if (removeFromBackCallback) removeFromBackCallback();
+							backspaceState = true;
 							break;
 						case VK_TAB:
-							if (addTabCallback) addTabCallback();
+							tabState = true;
 							break;
 						case VK_RETURN:
-							if (addNewlineCallback) addNewlineCallback();
+							returnState = true;
 							break;
 						}
 					}
@@ -873,7 +900,7 @@ namespace KalaWindow::Core
 					{
 						SetCursor(LoadCursor(nullptr, IDC_ARROW));
 
-						return 1;
+						return 1; //we handled it
 					}
 
 					return DefWindowProc(
@@ -1232,22 +1259,10 @@ namespace KalaWindow::Core
 		return process_message(msgObj, window);
 	}
 
-    void MessageLoop::SetAddCharCallback(function<void(u32)>&& newCallback)
-	{
-		addCharCallback = std::move(newCallback);
-	}
-	void MessageLoop::SetRemoveFromBackCallback(function<void()>&& newCallback)
-	{
-		removeFromBackCallback = std::move(newCallback);
-	}
-	void MessageLoop::SetAddTabCallback(function<void()>&& newCallback)
-	{
-		addTabCallback = std::move(newCallback);
-	}
-	void MessageLoop::SetAddNewLineCallback(function<void()>&& newCallback)
-	{
-		addNewlineCallback = std::move(newCallback);
-	}
+    u32 MessageLoop::GetPressedChar()     { return pressedChar; }
+	bool MessageLoop::GetBackspaceState() { return backspaceState; }
+	bool MessageLoop::GetTabState()       { return tabState; }
+	bool MessageLoop::GetReturnState()    { return returnState; }
 }
 
 string ToShort(const wstring& str)

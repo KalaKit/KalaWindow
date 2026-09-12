@@ -58,10 +58,10 @@ using std::to_string;
 using std::function;
 using std::stringstream;
 
-static function<void(u32)> addCharCallback{};
-static function<void()> removeFromBackCallback{};
-static function<void()> addTabCallback{};
-static function<void()> addNewlineCallback{};
+static u32 pressedChar{};
+static bool backspaceState{};
+static bool tabState{};
+static bool returnState{};
 
 static constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
 static constexpr int SUCCESS_XSENDEVENT = 1;
@@ -157,22 +157,10 @@ static KeyboardButton TranslateKeySym(KeySym keysym)
 
 namespace KalaWindow::Core
 {
-    void MessageLoop::SetAddCharCallback(function<void(u32)>&& newCallback)
-	{
-		addCharCallback = std::move(newCallback);
-	}
-	void MessageLoop::SetRemoveFromBackCallback(function<void()>&& newCallback)
-	{
-		removeFromBackCallback = std::move(newCallback);
-	}
-	void MessageLoop::SetAddTabCallback(function<void()>&& newCallback)
-	{
-		addTabCallback = std::move(newCallback);
-	}
-	void MessageLoop::SetAddNewLineCallback(function<void()>&& newCallback)
-	{
-		addNewlineCallback = std::move(newCallback);
-	}
+    u32 MessageLoop::GetPressedChar()     { return pressedChar; }
+	bool MessageLoop::GetBackspaceState() { return backspaceState; }
+	bool MessageLoop::GetTabState()       { return tabState; }
+	bool MessageLoop::GetReturnState()    { return returnState; }
 
     void MessageLoop::Update()
     {
@@ -183,6 +171,11 @@ namespace KalaWindow::Core
                 "KalaWindow message loop error",
                 "Failed to update message loop because the display was invalid!");
         }
+
+        pressedChar = 0;
+        backspaceState = false;
+        tabState = false;
+        returnState = false;
 
         const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::GetAllContent();
 
@@ -812,20 +805,19 @@ namespace KalaWindow::Core
                             switch (ks)
                             {
                                 case XK_BackSpace:
-                                    if (removeFromBackCallback) removeFromBackCallback();
+                                    backspaceState = true;
                                     break;
                                 case XK_Tab:
-                                    if (addTabCallback) addTabCallback();
+                                    tabState = true;
                                     break;
                                 case XK_Return:
-                                    if (addNewlineCallback) addNewlineCallback();
+                                    returnState = true;
                                     break;
                             }
                         }
 
-                        //utf16 text for typing
-                        if (len > 0
-                            && addCharCallback)
+                        //utf text for typing
+                        if (len > 0)
                         {
                             const unsigned char* ptr = (unsigned char*)buffer;
 
@@ -853,7 +845,16 @@ namespace KalaWindow::Core
                                     codePoint |= (*ptr++ & 0x3F);
                                 }
 
-                                addCharCallback(codePoint);
+                                //ignore backspace, tab and return keys, they are handled separately
+                                if (codePoint == 0x08
+                                    || codePoint == 0x09
+                                    || codePoint == 0x0A
+                                    || codePoint == 0x0D)
+                                {
+                                    continue;
+                                }
+
+                                pressedChar = codePoint;
                             }
                         }
 
