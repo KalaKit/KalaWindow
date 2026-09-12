@@ -55,12 +55,12 @@ using std::vector;
 using std::wstring;
 
 static void ForceClose(
-    string&& action,
-    string&& reason)
+    string_view action,
+    string_view reason)
 {
     KalaWindowCore::ForceClose(
         "KalaWindow window error",
-        "Failed to " + std::move(action) + " because " + std::move(reason) + "!");
+        "Failed to " + string(action) + " because " + string(reason) + "!");
 }
 
 static wstring ToWide(string_view str);
@@ -73,7 +73,7 @@ namespace KalaWindow::Graphics
 	KalaWindowRegistry<ProcessWindow>& ProcessWindow::GetRegistry() { return registry; }
 
 	ProcessWindow* ProcessWindow::Initialize(
-		string&& title,
+		string_view title,
 		vec2 pos,
 		vec2 size,
 		ProcessWindow* parentWindow)
@@ -88,8 +88,6 @@ namespace KalaWindow::Graphics
 
 			return nullptr;
 		}
-
-		string newTitle = std::move(title);
 
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
         if (!VulkanContext::IsInitialized()) VulkanContext::Initialize();
@@ -107,7 +105,7 @@ namespace KalaWindow::Graphics
 		HWND newHwnd = CreateWindowExW(
 			WS_EX_ACCEPTFILES | WS_EX_APPWINDOW,
 			ToWide(Window_Global::GetAppID()).c_str(),
-			ToWide(newTitle).c_str(),
+			ToWide(string(title)).c_str(),
 			WS_OVERLAPPEDWINDOW | WS_VISIBLE | WS_CLIPCHILDREN,
 			pos.x,
 			pos.y,
@@ -188,7 +186,7 @@ namespace KalaWindow::Graphics
 				== content.end())
 			{
 				ForceClose(
-					"create child window '" + newTitle + "'",
+					"create child window '" + string(title) + "'",
                     "parent window was invalid!");
 			}
 
@@ -198,7 +196,7 @@ namespace KalaWindow::Graphics
 				|| !IsWindow(parentWindowRef))
 			{
 				ForceClose(
-					"create child window '" + newTitle + "'",
+					"create child window '" + string(title) + "'",
                     "parent window '" + to_string(parentWindow->GetID()) + "' handle is invalid!");
 			}
 
@@ -236,7 +234,7 @@ namespace KalaWindow::Graphics
 			nullptr);
 
 		Log::Print(
-			"Created new window '" + newTitle + "' with ID '" + to_string(newID) + "'!",
+			"Created new window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
 
@@ -375,7 +373,7 @@ namespace KalaWindow::Graphics
 
 		return result;
 	}
-	void ProcessWindow::SetTitle(string&& newTitle) const
+	void ProcessWindow::SetTitle(string_view newTitle) const
 	{
 		HWND window = ToVar<HWND>(windowData.window);
 		if (!IsWindow(window))
@@ -397,7 +395,7 @@ namespace KalaWindow::Graphics
 			return;
 		}
 
-		wstring wideTitle = ToWide(newTitle);
+		wstring wideTitle = ToWide(string(newTitle));
 
 		SetWindowTextW(
 			window, 
@@ -406,7 +404,7 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + to_string(ID) + "' title to '" + newTitle + "'",
+				"Set window '" + to_string(ID) + "' title to '" + string(newTitle) + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}

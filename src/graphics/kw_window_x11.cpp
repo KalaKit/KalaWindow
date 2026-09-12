@@ -46,6 +46,7 @@ using std::make_unique;
 using std::unique_ptr;
 using std::to_string;
 using std::string;
+using std::string_view;
 using std::ostringstream;
 
 static int XRESULT{};
@@ -54,12 +55,12 @@ static constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
 static constexpr int SUCCESS_XSENDEVENT = 1;
 
 static void ForceClose(
-    string&& action,
-    string&& reason)
+    string_view action,
+    string_view reason)
 {
     KalaWindowCore::ForceClose(
         "KalaWindow window error",
-        "Failed to " + std::move(action) + " because " + std::move(reason));
+        "Failed to " + string(action) + " because " + string(reason));
 }
 
 namespace KalaWindow::Graphics
@@ -69,7 +70,7 @@ namespace KalaWindow::Graphics
 	KalaWindowRegistry<ProcessWindow>& ProcessWindow::GetRegistry() { return registry; }
 
     ProcessWindow* ProcessWindow::Initialize(
-		string&& title,
+		string_view title,
 		vec2 pos,
 		vec2 size,
 		ProcessWindow* parentWindow)
@@ -85,8 +86,6 @@ namespace KalaWindow::Graphics
 			return nullptr;
 		}
 
-        string newTitle = std::move(title);
-
 		if (!Window_Global::IsInitialized()) Window_Global::Initialize();
         if (!VulkanContext::IsInitialized()) VulkanContext::Initialize();
 
@@ -96,7 +95,7 @@ namespace KalaWindow::Graphics
         if (!globalData.display)
         {
             ForceClose(
-                "create window '" + newTitle + "'",
+                "create window '" + string(title) + "'",
                 "the attached display was invalid!");
         }
 
@@ -144,7 +143,7 @@ namespace KalaWindow::Graphics
         if (!xic)
         {
             ForceClose(
-                "create window '" + newTitle + "'",
+                "create window '" + string(title) + "'",
                 "XCreateIC failed!");
         }
 
@@ -155,7 +154,7 @@ namespace KalaWindow::Graphics
         if (pidAtom == None)
         {
             ForceClose(
-                "create window '" + newTitle + "'",
+                "create window '" + string(title) + "'",
                 "pidAtom was invalid!");
         }
 
@@ -213,10 +212,10 @@ namespace KalaWindow::Graphics
 
         windowPtr->windowData = newWindowStruct;
 
-        windowPtr->SetTitle(string(newTitle));
+        windowPtr->SetTitle(string(title));
 		windowPtr->ID = newID;
 
-        windowPtr->SetWindowClass(string(newTitle));
+        windowPtr->SetWindowClass(string(title));
 
         windowPtr->pos = pos;
         windowPtr->size = size;
@@ -234,7 +233,7 @@ namespace KalaWindow::Graphics
 				== content.end())
 			{
 				ForceClose(
-					"create child window '" + newTitle + "'",
+					"create child window '" + string(title) + "'",
                     "parent window was invalid!");
 			}
 
@@ -243,7 +242,7 @@ namespace KalaWindow::Graphics
             if (!parentWindowRef)
             {
 				ForceClose(
-					"create child window '" + newTitle + "'",
+					"create child window '" + string(title) + "'",
                     "parent window '" + to_string(parentWindow->GetID()) + "' handle is invalid!");
             }
 
@@ -341,7 +340,7 @@ namespace KalaWindow::Graphics
 		}
 
 		Log::Print(
-			"Created new window '" + newTitle + "' with ID '" + to_string(newID) + "'!",
+			"Created new window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
 			LogType::LOG_SUCCESS);
 
@@ -486,7 +485,7 @@ namespace KalaWindow::Graphics
 
         return title;
     }
-    void ProcessWindow::SetTitle(string&& newValue) const
+    void ProcessWindow::SetTitle(string_view newValue) const
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
         if (!globalData.display)
@@ -532,7 +531,7 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + to_string(ID) + "' title to '" + newValue + "'",
+				"Set window '" + to_string(ID) + "' title to '" + string(newValue) + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}
@@ -1052,7 +1051,7 @@ namespace KalaWindow::Graphics
 
         return result;
     }
-    void ProcessWindow::SetWindowClass(string&& newValue)
+    void ProcessWindow::SetWindowClass(string_view newValue)
     {
         const X11GlobalData& globalData = Window_Global::GetGlobalData();
         if (!globalData.display)
@@ -1088,7 +1087,7 @@ namespace KalaWindow::Graphics
 		if (Window_Global::IsVerboseLoggingEnabled())
 		{
 			Log::Print(
-				"Set window '" + to_string(ID) + "' class to '" + newValue + "'",
+				"Set window '" + to_string(ID) + "' class to '" + string(newValue) + "'",
 				"KW_WINDOW",
 				LogType::LOG_VERBOSE);
 		}

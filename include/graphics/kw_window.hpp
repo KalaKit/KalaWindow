@@ -95,7 +95,7 @@ namespace KalaWindow::Graphics
 		//Assign a parent window to display this window as a child of that window
 		KNODISCARD
 		static ProcessWindow* Initialize(
-			string&& title,
+			string_view title,
 			vec2 pos = 600,
 			vec2 size = { 800, 600 },
 			ProcessWindow* parentWindow = nullptr);
@@ -126,7 +126,7 @@ namespace KalaWindow::Graphics
 
 		KNODISCARD
 		string GetTitle() const;
-		void SetTitle(string&& newTitle) const;
+		void SetTitle(string_view newTitle) const;
 
 		//Bring this window to the foreground and make it focused
 		void BringToFocus();
@@ -167,7 +167,7 @@ namespace KalaWindow::Graphics
 #if defined(KLIN_ANY)
 		KNODISCARD
 		pair<string, string> GetWindowClass() const;
-		void SetWindowClass(string&& newValue);
+		void SetWindowClass(string_view newValue);
 #endif
 
 		//Returns true if one of these is true:

@@ -124,7 +124,7 @@ namespace KalaWindow::Graphics
 		static const string& GetAppName();
 		//Assign the global app name that is used in 
 		//Vulkan instance creation and for the crash handler
-		static void SetAppName(string&& appName);
+		static void SetAppName(string_view appName);
 
 #if defined(KLIN_ANY)
 		KNODISCARD
@@ -152,8 +152,8 @@ namespace KalaWindow::Graphics
 		//Requires zenity on X11 and Wayland.
 		KNODISCARD
 		static PopupResult CreatePopup(
-			string&& title,
-			string&& message,
+			string_view title,
+			string_view message,
 			PopupAction action,
 			PopupType type);
 
@@ -173,8 +173,8 @@ namespace KalaWindow::Graphics
 
 		//Create a notification that shows up on the screen
 		static void CreateNotification(
-			string&& title,
-			string&& message);
+			string_view title,
+			string_view message);
 
 		//Play a system sound once of the chosen type
 		static void PlaySystemSound(SoundType type);

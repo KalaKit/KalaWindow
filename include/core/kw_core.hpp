@@ -122,7 +122,7 @@ namespace KalaWindow::Core
 		//Use this when you absolutely need a hard crash at this very moment
 		KNORETURN
 		static void ForceClose(
-			string&& title,
-			string&& reason);
+			string_view title,
+			string_view reason);
 	};
 }

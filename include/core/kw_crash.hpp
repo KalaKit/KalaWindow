@@ -16,7 +16,7 @@ namespace KalaWindow::Graphics
 
 namespace KalaWindow::Core
 {
-	using std::string;
+	using std::string_view;
 
 	//Max allowed length of crash force close popup reason
 	static constexpr size_t MAX_REASON_LENGTH = 256;
@@ -32,7 +32,7 @@ namespace KalaWindow::Core
 		static bool IsInitialized();
 
 		static void SetForceCloseContent(
-			string&& title, 
-			string&& reason);
+			string_view title, 
+			string_view reason);
 	};
 }

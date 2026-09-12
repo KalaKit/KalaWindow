@@ -125,10 +125,10 @@ namespace KalaWindow::Graphics
     void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
     const string& Window_Global::GetAppName() { return appName; }
-    void Window_Global::SetAppName(string&& newAppName)
+    void Window_Global::SetAppName(string_view newAppName)
     {
-        if (appName.size() > MAX_NAME_LENGTH
-            || appName.empty())
+        if (newAppName.size() > MAX_NAME_LENGTH
+            || newAppName.empty())
         {
             Log::Print(
                 "Failed to set app name because it was empty or too long!",
@@ -138,7 +138,7 @@ namespace KalaWindow::Graphics
             return;
         }
 
-        appName = std::move(newAppName);
+        appName = newAppName;
 
         Log::Print(
             "Set app name to '" + appName + "'.",
@@ -428,8 +428,8 @@ namespace KalaWindow::Graphics
     const X11GlobalData& Window_Global::GetGlobalData() { return globalData; }
 
     PopupResult Window_Global::CreatePopup(
-		string&& title,
-		string&& message,
+		string_view title,
+		string_view message,
 		PopupAction action,
 		PopupType type) 
     { 
@@ -488,8 +488,8 @@ namespace KalaWindow::Graphics
             break;
         }
 
-		string finalTitle = title.empty() ? "NO TITLE" : std::move(title);
-		string finalMessage = message.empty() ? "NO MESSAGE" : std::move(message);
+		string finalTitle = title.empty() ? "NO TITLE" : string(title);
+		string finalMessage = message.empty() ? "NO MESSAGE" : string(message);
 
         args.emplace_back("--title=" + finalTitle);
         args.emplace_back("--text=" + finalMessage);
@@ -501,7 +501,7 @@ namespace KalaWindow::Graphics
         if (isVerboseLoggingEnabled)
         {
             Log::Print(
-                "Created popup '" + title + "' with type '" + typeStr + "' and action '" + actionStr + "'.",
+                "Created popup '" + string(title) + "' with type '" + typeStr + "' and action '" + actionStr + "'.",
                 "KW_WINDOW_GLOBAL",
                 LogType::LOG_VERBOSE);
         }
@@ -723,8 +723,8 @@ namespace KalaWindow::Graphics
     }
 
     void Window_Global::CreateNotification(
-		string&& title,
-		string&& message)
+		string_view title,
+		string_view message)
     {
         if (!foundNotify)
         {

@@ -48,7 +48,6 @@ using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::WindowData;
 
 using std::string;
-using std::string_view;
 using std::to_string;
 using std::vector;
 using std::ostringstream;

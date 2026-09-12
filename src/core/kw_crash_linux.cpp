@@ -168,8 +168,8 @@ namespace KalaWindow::Core
     bool CrashHandler::IsInitialized() { return isInitialized; }
 
     void CrashHandler::SetForceCloseContent(
-        string&& title,
-        string&& reason)
+        string_view title,
+        string_view reason)
     {
         forceCloseTitle  = title.substr(0, MAX_NAME_LENGTH);
 		forceCloseReason = reason.substr(0, MAX_REASON_LENGTH);
@@ -211,8 +211,8 @@ void HandleCrash(
                 : "An unknown force close occurred.";
 
             if (Window_Global::CreatePopup(
-                std::move(title),
-                std::move(reason),
+                title,
+                reason,
                 PopupAction::POPUP_ACTION_OK,
                 PopupType::POPUP_TYPE_ERROR) == PopupResult::POPUP_RESULT_OK)
             {

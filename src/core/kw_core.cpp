@@ -1178,8 +1178,8 @@ namespace KalaWindow::Core
 	}
 
 	void KalaWindowCore::ForceClose(
-		string&& target,
-		string&& reason)
+		string_view target,
+		string_view reason)
 	{
 		Log::Print(
 			"\n================"
@@ -1197,8 +1197,8 @@ namespace KalaWindow::Core
 			DateFormat::DATE_NONE);
 
 		CrashHandler::SetForceCloseContent(
-			std::move(target),
-			std::move(reason));
+			target,
+			reason);
 
 #if defined(KWIN_ANY)
 		__debugbreak();

@@ -342,10 +342,10 @@ namespace KalaWindow::Graphics
 	void Window_Global::SetVerboseLoggingState(bool newState) { isVerboseLoggingEnabled = newState; }
 
     const string& Window_Global::GetAppName() { return appName; }
-    void Window_Global::SetAppName(string&& newAppName)
+    void Window_Global::SetAppName(string_view newAppName)
     {
-        if (appName.size() > MAX_NAME_LENGTH
-            || appName.empty())
+        if (newAppName.size() > MAX_NAME_LENGTH
+            || newAppName.empty())
         {
             Log::Print(
                 "Failed to set app name because it was empty or too long!",
@@ -355,7 +355,7 @@ namespace KalaWindow::Graphics
             return;
         }
 
-        appName = std::move(newAppName);
+        appName = newAppName;
 
         Log::Print(
             "Set app name to '" + appName + "'.",
@@ -546,8 +546,8 @@ namespace KalaWindow::Graphics
 	string_view Window_Global::GetAppID() { return appID; }
 
 	PopupResult Window_Global::CreatePopup(
-		string&& title,
-		string&& message,
+		string_view title,
+		string_view message,
 		PopupAction action,
 		PopupType type)
 	{
@@ -620,8 +620,8 @@ namespace KalaWindow::Graphics
 		}
 		}
 
-		string finalTitle = title.empty() ? "NO TITLE" : std::move(title);
-		string finalMessage = message.empty() ? "NO MESSAGE" : std::move(message);
+		string finalTitle = title.empty() ? "NO TITLE" : string(title);
+		string finalMessage = message.empty() ? "NO MESSAGE" : string(message);
 
         if (isVerboseLoggingEnabled)
         {
@@ -998,8 +998,8 @@ namespace KalaWindow::Graphics
 	}
 
 	void Window_Global::CreateNotification(
-		string&& title,
-		string&& message)
+		string_view title,
+		string_view message)
 	{
 		if (KalaWindowCore::GetOSInfo().isOnWine)
 		{
@@ -1037,7 +1037,7 @@ namespace KalaWindow::Graphics
 		else if (hr == RPC_E_CHANGED_MODE)
 		{
 			Log::Print(
-				"Failed to create notification '" + title + " because COM was already initialized in STA mode!",
+				"Failed to create notification '" + string(title) + " because COM was already initialized in STA mode!",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
@@ -1047,7 +1047,7 @@ namespace KalaWindow::Graphics
 		else if (hr != S_FALSE)
 		{
 			Log::Print(
-				"Failed to create notification '" + title + " because RoInitialize failed!",
+				"Failed to create notification '" + string(title) + " because RoInitialize failed!",
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);
@@ -1073,7 +1073,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating xmlDocInspectable! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating xmlDocInspectable! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1081,7 +1081,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because xmlDocInspectable failed to be created!",
+						"Failed to create notification '" + string(title) + " because xmlDocInspectable failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1100,7 +1100,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating xmlDoc! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating xmlDoc! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1108,7 +1108,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because xmlDoc failed to be created!",
+						"Failed to create notification '" + string(title) + " because xmlDoc failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1126,7 +1126,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating xmlDocIO! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating xmlDocIO! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1134,7 +1134,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because xmlDocIO failed to be created!",
+						"Failed to create notification '" + string(title) + " because xmlDocIO failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1158,7 +1158,7 @@ namespace KalaWindow::Graphics
 			if (FAILED(hr))
 			{
 				Log::Print(
-					"Failed to create notification '" + title + " while creating xmlStr! Reason: " + to_string(hr),
+					"Failed to create notification '" + string(title) + " while creating xmlStr! Reason: " + to_string(hr),
 					"KW_WINDOW_GLOBAL",
 					LogType::LOG_ERROR,
 					2);
@@ -1182,7 +1182,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating factoryInspectable! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating factoryInspectable! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1190,7 +1190,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because factoryInspectable failed to be created!",
+						"Failed to create notification '" + string(title) + " because factoryInspectable failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1211,7 +1211,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating toastFactory! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating toastFactory! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1219,7 +1219,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because toastFactory failed to be created!",
+						"Failed to create notification '" + string(title) + " because toastFactory failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1243,7 +1243,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating toast! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating toast! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1251,7 +1251,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because toast failed to be created!",
+						"Failed to create notification '" + string(title) + " because toast failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1274,7 +1274,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating managerStaticsInspectable! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating managerStaticsInspectable! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1282,7 +1282,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because managerStaticsInspectable failed to be created!",
+						"Failed to create notification '" + string(title) + " because managerStaticsInspectable failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1303,7 +1303,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating managerStatics! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating managerStatics! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1311,7 +1311,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because managerStatics failed to be created!",
+						"Failed to create notification '" + string(title) + " because managerStatics failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1336,7 +1336,7 @@ namespace KalaWindow::Graphics
 				if (FAILED(hr))
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " while creating notifier! Reason: " + to_string(hr),
+						"Failed to create notification '" + string(title) + " while creating notifier! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1344,7 +1344,7 @@ namespace KalaWindow::Graphics
 				else
 				{
 					Log::Print(
-						"Failed to create notification '" + title + " because notifier failed to be created!",
+						"Failed to create notification '" + string(title) + " because notifier failed to be created!",
 						"KW_WINDOW_GLOBAL",
 						LogType::LOG_ERROR,
 						2);
@@ -1369,7 +1369,7 @@ namespace KalaWindow::Graphics
 		if (!success)
 		{
 			Log::Print(
-				"Failed to create notification '" + title + "! Reason: " + to_string(hr),
+				"Failed to create notification '" + string(title) + "! Reason: " + to_string(hr),
 				"KW_WINDOW_GLOBAL",
 				LogType::LOG_ERROR,
 				2);

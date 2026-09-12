@@ -109,8 +109,8 @@ namespace KalaWindow::Core
 	bool CrashHandler::IsInitialized() { return isInitialized; }
 
 	void CrashHandler::SetForceCloseContent(
-        string&& title,
-        string&& reason)
+        string_view title,
+        string_view reason)
     {
 		forceCloseTitle  = title.substr(0, MAX_NAME_LENGTH);
 		forceCloseReason = reason.substr(0, MAX_REASON_LENGTH);
@@ -124,8 +124,8 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	if (code == EXCEPTION_BREAKPOINT)
 	{
 		if (Window_Global::CreatePopup(
-			std::move(forceCloseTitle),
-			std::move(forceCloseReason),
+			forceCloseTitle,
+			forceCloseReason,
 			PopupAction::POPUP_ACTION_OK,
 			PopupType::POPUP_TYPE_ERROR) ==
 			PopupResult::POPUP_RESULT_OK)
