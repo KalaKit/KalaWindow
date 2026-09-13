@@ -41,6 +41,7 @@ using KalaHeaders::KalaLog::LogType;
 using KalaWindow::Core::KalaWindowCore;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
+using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::VulkanContext;
 
@@ -247,6 +248,8 @@ namespace KalaWindow::Graphics
         const function<void()>& lateGlobalUpdate)
 	{
 		if (earlyGlobalUpdate) earlyGlobalUpdate();
+
+		MessageLoop::ClearKeys();
 
         for (ProcessWindow* pw : registry.GetAllContent())
         {

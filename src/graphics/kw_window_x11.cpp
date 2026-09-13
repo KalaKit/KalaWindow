@@ -354,6 +354,8 @@ namespace KalaWindow::Graphics
 	{
         if (earlyGlobalUpdate) earlyGlobalUpdate();
 
+        MessageLoop::ClearKeys();
+
         //X11 requires a message loop update that is separate from each process window
         MessageLoop::Update();
 

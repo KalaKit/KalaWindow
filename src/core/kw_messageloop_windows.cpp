@@ -184,13 +184,29 @@ static KeyboardButton TranslateVirtualKey(WPARAM vk, LPARAM lParam)
 
 static string ToShort(const wstring& str);
 
-static u32 pressedChar{};
+static u32 modifierChar{};
 static bool backspaceState{};
 static bool tabState{};
-static bool returnState{};
+static bool leftArrowState{};
+static bool rightArrowState{};
+static bool upArrowState{};
+static bool downArrowState{};
 
 namespace KalaWindow::Core
 {
+	void MessageLoop::ClearKeys()
+	{
+        modifierChar = 0;
+
+        backspaceState = false;
+        tabState = false;
+		
+        leftArrowState = false;
+		rightArrowState = false;
+		upArrowState = false;
+		downArrowState = false;
+	}
+
 	LRESULT CALLBACK MessageLoop::WindowProcCallback(
 		HWND hwnd,
 		UINT msg,
@@ -206,11 +222,6 @@ namespace KalaWindow::Core
 				wParam, 
 				lParam);
 		}
-
-        pressedChar = 0;
-        backspaceState = false;
-        tabState = false;
-        returnState = false;
 
 		switch (msg)
 		{
@@ -300,7 +311,7 @@ namespace KalaWindow::Core
 						return 1; //we handled it
 					}
 
-					pressedChar = scast<u32>(msg.wParam);
+					modifierChar = scast<u32>(msg.wParam);
 
 					return 0; //we handled it
 				}
@@ -317,7 +328,7 @@ namespace KalaWindow::Core
 						return 0;
 					}
 
-					pressedChar = utf;
+					modifierChar = utf;
 
 					return 0; //we handled it
 				}
@@ -352,15 +363,25 @@ namespace KalaWindow::Core
 							
 						switch (msg.wParam)
 						{
-						case VK_BACK:
-							backspaceState = true;
-							break;
-						case VK_TAB:
-							tabState = true;
-							break;
-						case VK_RETURN:
-							returnState = true;
-							break;
+							case VK_BACK:
+								backspaceState = true;
+								break;
+							case VK_TAB:
+								tabState = true;
+								break;
+
+							case VK_LEFT:
+								leftArrowState = true;
+								break;
+							case VK_RIGHT:
+								rightArrowState = true;
+								break;
+							case VK_UP:
+								upArrowState = true;
+								break;
+							case VK_DOWN:
+								downArrowState = true;
+								break;
 						}
 					}
 
@@ -1259,10 +1280,13 @@ namespace KalaWindow::Core
 		return process_message(msgObj, window);
 	}
 
-    u32 MessageLoop::GetPressedChar()     { return pressedChar; }
-	bool MessageLoop::GetBackspaceState() { return backspaceState; }
-	bool MessageLoop::GetTabState()       { return tabState; }
-	bool MessageLoop::GetReturnState()    { return returnState; }
+    u32 MessageLoop::GetModifierChar()     { return modifierChar; }
+	bool MessageLoop::GetBackspaceState()  { return backspaceState; }
+	bool MessageLoop::GetTabState()        { return tabState; }
+	bool MessageLoop::GetLeftArrowState()  { return leftArrowState; }
+	bool MessageLoop::GetRightArrowState() { return rightArrowState; }
+	bool MessageLoop::GetUpArrowState()    { return upArrowState; }
+	bool MessageLoop::GetDownArrowState()  { return downArrowState; }
 }
 
 string ToShort(const wstring& str)

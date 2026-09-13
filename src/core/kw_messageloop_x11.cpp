@@ -58,10 +58,13 @@ using std::to_string;
 using std::function;
 using std::stringstream;
 
-static u32 pressedChar{};
+static u32 modifierChar{};
 static bool backspaceState{};
 static bool tabState{};
-static bool returnState{};
+static bool leftArrowState{};
+static bool rightArrowState{};
+static bool upArrowState{};
+static bool downArrowState{};
 
 static constexpr int SUCCESS_XGETWINDOWPROPERTY = 0;
 static constexpr int SUCCESS_XSENDEVENT = 1;
@@ -157,10 +160,26 @@ static KeyboardButton TranslateKeySym(KeySym keysym)
 
 namespace KalaWindow::Core
 {
-    u32 MessageLoop::GetPressedChar()     { return pressedChar; }
-	bool MessageLoop::GetBackspaceState() { return backspaceState; }
-	bool MessageLoop::GetTabState()       { return tabState; }
-	bool MessageLoop::GetReturnState()    { return returnState; }
+    u32 MessageLoop::GetModifierChar()     { return modifierChar; }
+	bool MessageLoop::GetBackspaceState()  { return backspaceState; }
+	bool MessageLoop::GetTabState()        { return tabState; }
+	bool MessageLoop::GetLeftArrowState()  { return leftArrowState; }
+	bool MessageLoop::GetRightArrowState() { return rightArrowState; }
+	bool MessageLoop::GetUpArrowState()    { return upArrowState; }
+	bool MessageLoop::GetDownArrowState()  { return downArrowState; }
+
+	void MessageLoop::ClearKeys()
+	{
+        modifierChar = 0;
+
+        backspaceState = false;
+        tabState = false;
+        
+        leftArrowState = false;
+		rightArrowState = false;
+		upArrowState = false;
+		downArrowState = false;
+	}
 
     void MessageLoop::Update()
     {
@@ -171,11 +190,6 @@ namespace KalaWindow::Core
                 "KalaWindow message loop error",
                 "Failed to update message loop because the display was invalid!");
         }
-
-        pressedChar = 0;
-        backspaceState = false;
-        tabState = false;
-        returnState = false;
 
         const vector<ProcessWindow*>& activeWindows = KalaWindowRegistry<ProcessWindow>::GetAllContent();
 
@@ -810,8 +824,17 @@ namespace KalaWindow::Core
                                 case XK_Tab:
                                     tabState = true;
                                     break;
-                                case XK_Return:
-                                    returnState = true;
+                                case XK_Left:
+                                    leftArrowState = true;
+                                    break;
+                                case XK_Right:
+                                    rightArrowState = true;
+                                    break;
+                                case XK_Up:
+                                    upArrowState = true;
+                                    break;
+                                case XK_Down:
+                                    downArrowState = true;
                                     break;
                             }
                         }
@@ -854,7 +877,7 @@ namespace KalaWindow::Core
                                     continue;
                                 }
 
-                                pressedChar = codePoint;
+                                modifierChar = codePoint;
                             }
                         }
 

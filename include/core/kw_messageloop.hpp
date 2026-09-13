@@ -33,16 +33,20 @@ namespace KalaWindow::Core
 	friend class KalaWindow::Graphics::ProcessWindow;
 	friend class KalaWindow::Graphics::Window_Global;
 	public:
-		//Does not give Backspace, Tab, Return or NewLine,
-		//returns any other single key or shift/alt-affected key
-        static u32 GetPressedChar();
-		//Returns true if backspace key was pressed this frame
+		//Returns key after being altered by modifier keys like shift or alt,
+		//does not return backspace, tab or arrow keys, use their getters instead
+        static u32 GetModifierChar();
+
 		static bool GetBackspaceState();
-		//Returns true if tab key was pressed this frame
 		static bool GetTabState();
-		//Returns true if return key was pressed this frame
-		static bool GetReturnState();
+
+		static bool GetLeftArrowState();
+		static bool GetRightArrowState();
+		static bool GetUpArrowState();
+		static bool GetDownArrowState();
 	private:
+		static void ClearKeys();
+
 #if defined(KWIN_ANY)
 		static LRESULT CALLBACK WindowProcCallback(
 			HWND hwnd,
