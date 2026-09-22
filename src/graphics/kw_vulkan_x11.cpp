@@ -515,7 +515,7 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
-				"Failed to destroy Vulkan context '" + to_string(ID) + "'! Reason: " + err);
+				"Failed to destroy Vulkan context! Reason: " + err);
 		}
 	}
 
@@ -527,7 +527,8 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
-				"Failed to destroy Vulkan context '" + to_string(ID) + "'! Reason: " + err);
+				"Failed to destroy Vulkan context '" + to_string(ID) 
+				+ "' because its process window was invalid! Reason: " + err);
 		}
 
 		Log::Print(

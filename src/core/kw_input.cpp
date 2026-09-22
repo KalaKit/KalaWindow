@@ -822,7 +822,7 @@ namespace KalaWindow::Core
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow input error",
-				"Failed to destroy input '" + to_string(ID) + "'! Reason: " + err);
+				"Failed to destroy input! Reason: " + err);
 		}
 	}
 
@@ -834,7 +834,8 @@ namespace KalaWindow::Core
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow input error",
-				"Failed to destroy input context '" + to_string(ID) + "! Reason: " + err);
+				"Failed to destroy input '" + to_string(ID) 
+				+ " because its process window was invalid! Reason: " + err);
 		}
 
 		Log::Print(

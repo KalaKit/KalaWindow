@@ -1395,14 +1395,14 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow window error",
-				"Failed to destroy window '" + to_string(ID) + "' Vulkan content! Reason: " + err);
+				"Failed to destroy window '" + to_string(ID) + "' Vulkan context! Reason: " + err);
 		}
 		err = Input::GetRegistry().DestroyContent(inputID);
 		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow window error",
-				"Failed to destroy window '" + to_string(ID) + "' input content! Reason: " + err);
+				"Failed to destroy window '" + to_string(ID) + "' input context! Reason: " + err);
 		}
 
 		err = registry.DestroyContent(ID);
@@ -1410,7 +1410,7 @@ namespace KalaWindow::Graphics
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow window error",
-				"Failed to destroy window '" + to_string(ID) + "'! Reason: " + err);
+				"Failed to destroy window! Reason: " + err);
 		}
 	}
 
