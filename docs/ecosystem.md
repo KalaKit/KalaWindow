@@ -12,6 +12,7 @@ the libraries (rely on clis or headers in some way):
 - kalawindow
 - kalagraphics
 - kalaserver
+- kaladatabase
 - kalaphysics
 - kalaaudio
 - kalalua
@@ -76,6 +77,14 @@ https://github.com/KalaKit/KalaGraphics
 C++20 library for hosting web and media servers on Windows and Linux.
 
 https://github.com/KalaKit/KalaServer
+
+---
+
+## KalaDatabase
+
+C++20 database with group, user, table and field management on Windows and Linux. 
+
+https://github.com/KalaKit/KalaDatabase
 
 ---
 
