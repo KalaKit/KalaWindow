@@ -17,8 +17,8 @@
 #include <sstream>
 #include <algorithm>
 
-#include "core_utils.hpp"
 #include "log_utils.hpp"
+#include "string_utils.hpp"
 
 #include "core/kw_core.hpp"
 #include "core/kw_input.hpp"
@@ -32,7 +32,10 @@ using KalaHeaders::KalaCore::FromVar;
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
+using KalaHeaders::KalaString::IsStringInRange;
+
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::MIN_NAME_LENGTH;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::Input;
 using KalaWindow::Graphics::VulkanContext;
@@ -75,11 +78,10 @@ namespace KalaWindow::Graphics
 		vec2 size,
 		ProcessWindow* parentWindow)
     {
-		if (title.empty()
-            || title.size() > MAX_NAME_LENGTH)
+		if (!IsStringInRange(title, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
 		{
 			Log::Print(
-				"Failed to create window because its title is empty or too long!",
+				"Failed to create window because its title length was out of range!",
 				"KW_WINDOW",
 				LogType::LOG_WARNING);
 
@@ -497,12 +499,11 @@ namespace KalaWindow::Graphics
                 "the display handle was invalid!");
         }
 
-		if (newValue.empty()
-            || newValue.length() > MAX_NAME_LENGTH)
+		if (!IsStringInRange(newValue, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
 		{
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' title "
-                "because the new title is empty or too long!",
+                "because the new title was out of range!",
 				"KW_WINDOW",
 				LogType::LOG_WARNING);
 
@@ -1063,12 +1064,11 @@ namespace KalaWindow::Graphics
                 "the display handle was invalid!");
         }
 
-		if (newValue.empty()
-            || newValue.length() > MAX_NAME_LENGTH)
+		if (!IsStringInRange(newValue, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
 		{
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' class value "
-                "because it was empty or too long!",
+                "because its length was out of range!",
 				"KW_WINDOW",
 				LogType::LOG_WARNING);
 

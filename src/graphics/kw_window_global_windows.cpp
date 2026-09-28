@@ -28,6 +28,7 @@
 #include <system_error>
 
 #include "log_utils.hpp"
+#include "string_utils.hpp"
 
 #include "graphics/kw_window.hpp"
 #include "core/kw_core.hpp"
@@ -38,7 +39,10 @@
 using KalaHeaders::KalaLog::Log;
 using KalaHeaders::KalaLog::LogType;
 
+using KalaHeaders::KalaString::IsStringInRange;
+
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::MIN_NAME_LENGTH;
 using KalaWindow::Core::MAX_NAME_LENGTH;
 using KalaWindow::Core::MessageLoop;
 using KalaWindow::Core::Input;
@@ -344,11 +348,10 @@ namespace KalaWindow::Graphics
     const string& Window_Global::GetAppName() { return appName; }
     void Window_Global::SetAppName(string_view newAppName)
     {
-        if (newAppName.size() > MAX_NAME_LENGTH
-            || newAppName.empty())
+        if (!IsStringInRange(newAppName, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
         {
             Log::Print(
-                "Failed to set app name because it was empty or too long!",
+                "Failed to set app name because it was out of range!",
                 "KW_WINDOW_GLOBAL",
                 LogType::LOG_WARNING);
 

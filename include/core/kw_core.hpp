@@ -22,6 +22,9 @@ namespace KalaWindow::Core
 	using std::array;
 	using std::vector;
 
+	static constexpr u8 MIN_NAME_LENGTH = 4;
+	static constexpr u8 MAX_NAME_LENGTH = 64;
+
 	enum class CPUFeatureFlag : u32
 	{
 		CPU_FEATURE_NONE    = 0,
@@ -76,8 +79,6 @@ namespace KalaWindow::Core
 		bool isOnWine{};           //true if using Wine or Proton
 		bool isOnVirtualMachine{}; //true if using any virtual machine
 	};
-
-	static constexpr u8 MAX_NAME_LENGTH = 64;
 
 	class LIB_API KalaWindowCore
 	{
