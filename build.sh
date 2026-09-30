@@ -24,7 +24,7 @@ case "$1" in
     --linux)
         BIN_NAME_FRONT=lib
         BIN_NAME_BACK=
-        BIN_EXT=a
+        BIN_EXT=.a
 
         BUILD_RELEASE="--compile ${KMAKE_ORIGIN} release-linux"
         BUILD_DEBUG="--compile ${KMAKE_ORIGIN} debug-linux"
@@ -32,7 +32,7 @@ case "$1" in
     --windows-gnu)
         BIN_NAME_FRONT=
         BIN_NAME_BACK=-gnu
-        BIN_EXT=lib
+        BIN_EXT=.lib
 
         BUILD_RELEASE="--compile ${KMAKE_ORIGIN} release-windows-gnu"
         BUILD_DEBUG="--compile ${KMAKE_ORIGIN} debug-windows-gnu"
@@ -40,7 +40,7 @@ case "$1" in
     --windows)
         BIN_NAME_FRONT=
         BIN_NAME_BACK=
-        BIN_EXT=lib
+        BIN_EXT=.lib
 
         BUILD_RELEASE="--compile ${KMAKE_ORIGIN} release-windows"
         BUILD_DEBUG="--compile ${KMAKE_ORIGIN} debug-windows"
@@ -135,7 +135,7 @@ esac
 
 # Release
 
-BIN_REL=${BIN_NAME_FRONT}${BIN_NAME}${BIN_NAME_BACK}.${BIN_EXT}
+BIN_REL=${BIN_NAME_FRONT}${BIN_NAME}${BIN_NAME_BACK}${BIN_EXT}
 
 if [ ! -d "${TARGET_REL_DIR}" ]; then
     mkdir "${TARGET_REL_DIR}"
@@ -157,7 +157,7 @@ fi
 
 # Debug
 
-BIN_DEB=${BIN_NAME_FRONT}${BIN_NAME}${BIN_NAME_BACK}d.${BIN_EXT}
+BIN_DEB=${BIN_NAME_FRONT}${BIN_NAME}${BIN_NAME_BACK}d${BIN_EXT}
 
 if [ "$2" = "--export" ]; then
     if [ -d "${TARGET_DEB_DIR}" ]; then
