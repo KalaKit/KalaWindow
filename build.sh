@@ -109,6 +109,8 @@ if [ "$2" = "" ]; then
     kalamake ${BUILD_DEBUG} || exit 1
 fi
 
+mf --o --f "include" --t "${BUILD_DIR}/${VERSION}/include"
+
 # Release
 
 BIN_REL=${BIN_NAME_FRONT}${BIN_NAME}${BIN_NAME_BACK}${BIN_EXT}
