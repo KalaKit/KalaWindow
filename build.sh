@@ -20,6 +20,11 @@ KMAKE_ORIGIN=project.kmake
 KH_DIR=${EXTERNAL_DIR}/kalaheaders
 VK_DIR=${EXTERNAL_DIR}/vulkan
 
+if [ ! -d "${EXTERNAL_DIR}" ]; then
+    echo "[ERROR] Failed to compile ${BIN_NAME} because '/external' was not found!"
+    exit 1
+fi
+
 case "$1" in
     --linux)
         BIN_NAME_FRONT=lib
@@ -28,6 +33,12 @@ case "$1" in
 
         BUILD_RELEASE="--compile ${KMAKE_ORIGIN} release-linux"
         BUILD_DEBUG="--compile ${KMAKE_ORIGIN} debug-linux"
+
+        TEMP_REL_DIR=${TEMP_DIR}/release-linux
+        TEMP_DEB_DIR=${TEMP_DIR}/debug-linux
+
+        TARGET_REL_DIR=${BUILD_DIR}/${VERSION}/release-linux
+        TARGET_DEB_DIR=${BUILD_DIR}/${VERSION}/debug-linux
         ;;
     --windows-gnu)
         BIN_NAME_FRONT=
@@ -36,6 +47,12 @@ case "$1" in
 
         BUILD_RELEASE="--compile ${KMAKE_ORIGIN} release-windows-gnu"
         BUILD_DEBUG="--compile ${KMAKE_ORIGIN} debug-windows-gnu"
+
+        TEMP_REL_DIR=${TEMP_DIR}/release-windows-gnu
+        TEMP_DEB_DIR=${TEMP_DIR}/debug-windows-gnu
+
+        TARGET_REL_DIR=${BUILD_DIR}/${VERSION}/release-windows-gnu
+        TARGET_DEB_DIR=${BUILD_DIR}/${VERSION}/debug-windows-gnu
         ;;
     --windows)
         BIN_NAME_FRONT=
@@ -44,6 +61,12 @@ case "$1" in
 
         BUILD_RELEASE="--compile ${KMAKE_ORIGIN} release-windows"
         BUILD_DEBUG="--compile ${KMAKE_ORIGIN} debug-windows"
+
+        TEMP_REL_DIR=${TEMP_DIR}/release-windows
+        TEMP_DEB_DIR=${TEMP_DIR}/debug-windows
+
+        TARGET_REL_DIR=${BUILD_DIR}/${VERSION}/release-windows
+        TARGET_DEB_DIR=${BUILD_DIR}/${VERSION}/debug-windows
         ;;
     *)
         echo "Error: Argument must be --linux, --windows-gnu or --windows" >&2
@@ -61,25 +84,6 @@ case "$2" in
         exit 1
         ;;
 esac
-
-#
-# Verify
-#
-
-if [ ! -d "${EXTERNAL_DIR}" ]; then
-    echo "[ERROR] Failed to compile KalaWindow because '/external' was not found!"
-    exit 1
-fi
-
-if [ ! -d "${KH_DIR}" ]; then
-    echo "[ERROR] Failed to compile KalaWindow because '/external/kalaheaders' was not found!"
-    exit 1
-fi
-
-if [ ! -d "${VK_DIR}" ]; then
-    echo "[ERROR] Failed to compile KalaWindow because '/external/vulkan' was not found!"
-    exit 1
-fi
 
 #
 # Compile
@@ -104,34 +108,6 @@ kalamake ${BUILD_RELEASE} || exit
 if [ "$2" = "" ]; then
     kalamake ${BUILD_DEBUG} || exit 1
 fi
-
-#
-# Copy docs and dependencies
-#
-
-case "$1" in
-    --linux)
-        TEMP_REL_DIR=${TEMP_DIR}/release-linux
-        TEMP_DEB_DIR=${TEMP_DIR}/debug-linux
-
-        TARGET_REL_DIR=${BUILD_DIR}/${VERSION}/release-linux
-        TARGET_DEB_DIR=${BUILD_DIR}/${VERSION}/debug-linux
-        ;;
-    --windows-gnu)
-        TEMP_REL_DIR=${TEMP_DIR}/release-windows-gnu
-        TEMP_DEB_DIR=${TEMP_DIR}/debug-windows-gnu
-
-        TARGET_REL_DIR=${BUILD_DIR}/${VERSION}/release-windows-gnu
-        TARGET_DEB_DIR=${BUILD_DIR}/${VERSION}/debug-windows-gnu
-        ;;
-    --windows)
-        TEMP_REL_DIR=${TEMP_DIR}/release-windows
-        TEMP_DEB_DIR=${TEMP_DIR}/debug-windows
-
-        TARGET_REL_DIR=${BUILD_DIR}/${VERSION}/release-windows
-        TARGET_DEB_DIR=${BUILD_DIR}/${VERSION}/debug-windows
-        ;;
-esac
 
 # Release
 
