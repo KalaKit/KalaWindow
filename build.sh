@@ -135,41 +135,21 @@ esac
 
 BIN_REL=${BIN_NAME_FRONT}${BIN_NAME}${BIN_NAME_BACK}.${BIN_EXT}
 
-if [ "$2" = "--export" ]; then
-    if [ -d "${TARGET_REL_DIR}" ]; then
-        rm -rf "${TARGET_REL_DIR}"
-    fi
+if [ ! -d "${TARGET_REL_DIR}" ]; then
     mkdir "${TARGET_REL_DIR}"
+fi
 
-    mf --o --f "${TEMP_REL_DIR}/${BIN_REL}" --t "${TARGET_REL_DIR}/${BIN_REL}"
+mf --o --f "${TEMP_REL_DIR}/${BIN_REL}" --t "${TARGET_REL_DIR}/${BIN_REL}"
 
-    mf --o --f "README.md" --t "${TARGET_REL_DIR}/README.md"
-    mf --o --f "LICENSE.md" --t "${TARGET_REL_DIR}/LICENSE.md"
+mf --o --f "README.md" --t "${TARGET_REL_DIR}/README.md"
+mf --o --f "LICENSE.md" --t "${TARGET_REL_DIR}/LICENSE.md"
 
-    mf --o --f "docs" --t "${TARGET_REL_DIR}"
+mf --o --f "docs" --t "${TARGET_REL_DIR}"
 
-    mf --o --f "${KH_DIR}" --t "${TARGET_REL_DIR}"
+mf --o --f "${KH_DIR}" --t "${TARGET_REL_DIR}"
 
-    if [ "$1" = "--windows-gnu" ]; then
-        mf --o --f "${VK_DIR}" --t "${TARGET_REL_DIR}"
-    fi
-else
-    if [ ! -d "${TARGET_REL_DIR}" ]; then
-        mkdir "${TARGET_REL_DIR}"
-    fi
-
-    mf --o --f "${TEMP_REL_DIR}/${BIN_REL}" --t "${TARGET_REL_DIR}/${BIN_REL}"
-
-    mf --f "README.md" --t "${TARGET_REL_DIR}/README.md"
-    mf --f "LICENSE.md" --t "${TARGET_REL_DIR}/LICENSE.md"
-
-    mf --f "docs" --t "${TARGET_REL_DIR}"
-
-    mf --f "${KH_DIR}" --t "${TARGET_REL_DIR}"
-
-    if [ "$1" = "--windows-gnu" ]; then
-        mf --f "${VK_DIR}" --t "${TARGET_REL_DIR}"
-    fi
+if [ "$1" = "--windows-gnu" ]; then
+    mf --o --f "${VK_DIR}" --t "${TARGET_REL_DIR}"
 fi
 
 # Debug
