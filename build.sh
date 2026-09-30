@@ -89,8 +89,10 @@ if [ ! -d "${BUILD_DIR}" ]; then
     mkdir "${BUILD_DIR}"
 fi
 
-if [ -d "${TEMP_DIR}" ]; then
-    rm -rf "${TEMP_DIR}"
+if [ "$2" = "--export" ]; then
+    if [ -d "${TEMP_DIR}" ]; then
+        rm -rf "${TEMP_DIR}"
+    fi
 fi
 
 if [ ! -d "${BUILD_DIR}/${VERSION}" ]; then
@@ -192,8 +194,8 @@ if [ "$2" = "--export" ]; then
     if [ -d "${TARGET_DEB_DIR}/obj" ]; then
         rm -rf "${TARGET_DEB_DIR}/obj"
     fi
-fi
 
-if [ -d "${TEMP_DIR}" ]; then
-    rm -rf "${TEMP_DIR}"
+    if [ -d "${TEMP_DIR}" ]; then
+        rm -rf "${TEMP_DIR}"
+    fi
 fi
