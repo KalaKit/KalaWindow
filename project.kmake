@@ -4,11 +4,12 @@
 
 #references
 name_bin: kalawindow
-dir_release: build/release-
-dir_debug: build/debug-
+dir_release: build/temp/release-
+dir_debug: build/temp/debug-
 def_win: WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
 
 lin-headers: "/usr/include/glib-2.0", "/usr/include/gdk-pixbuf-2.0", "/usr/lib/glib-2.0/include"
+win-gnu-headers: "external/vulkan/Include"
 
 #global
 compilerlauncher: ccache
@@ -16,7 +17,7 @@ compiler: clang++
 standard: c++20
 binarytype: static
 sources: "src"
-headers: "include", "../external-shared/KalaHeaders/include", "../external-shared/Vulkan/Include"
+headers: "include", "external/kalaheaders/include"
 defines: LIB_STATIC
 warninglevel: normal
 customflags: export-compile-commands, export-vscode-sln
@@ -38,6 +39,7 @@ targettype: windows-gnu
 binaryname: ${name_bin}-gnud
 buildtype: debug
 buildpath: "${dir_debug}windows-gnu"
+headers: ${win-gnu-headers}
 defines: ${def_win}
 
 #profile release-windows-gnu
@@ -45,6 +47,7 @@ targettype: windows-gnu
 binaryname: ${name_bin}-gnu
 buildtype: minsizerel
 buildpath: "${dir_release}windows-gnu"
+headers: ${win-gnu-headers}
 defines: ${def_win}
 
 #profile debug-linux

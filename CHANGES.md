@@ -7,6 +7,7 @@
 - fixed GetFiles FileType::FILE_CUSTOM extension cleanup logic
 - demoted some errors to warnings
 - simplified message loop input callbacks to getters
+- simplified build and dependency system
 
 # 1.6.0
 

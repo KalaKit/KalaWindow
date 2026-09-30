@@ -14,8 +14,13 @@
 #include <filesystem>
 
 #define VK_USE_PLATFORM_WIN32_KHR
+#if defined(KWIN_GNU)
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_win32.h"
+#else
+#include <vulkan/vulkan_core.h>
+#include <vulkan/vulkan_win32.h>
+#endif
 
 #include "log_utils.hpp"
 #include "core_utils.hpp"
