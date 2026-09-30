@@ -35,11 +35,7 @@
 #include <fstream>
 #include <set>
 
-#if defined(KWIN_GNU)
 #include "vulkan/vulkan_core.h"
-#else
-#include <vulkan/vulkan_core.h>
-#endif
 
 #include "log_utils.hpp"
 #include "string_utils.hpp"
