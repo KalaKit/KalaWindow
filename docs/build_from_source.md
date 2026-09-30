@@ -1,31 +1,20 @@
-# Prerequisites for building from source
+# Build from source
 
-This document is only applicable if you are building this repository from source, if you see this document in a shared release package then you can ignore it.
+This document is only applicable if you are building this repository from source, if you see this document in a release package then you can ignore it.
 
-## Windows only
+## Prerequisites
 
-Download Visual Studio or Visual Studio Build Tools:
-https://visualstudio.microsoft.com/vs/
+- [Download KalaMake (1.4.0 or newer)](https://github.com/KalaKit/KalaMake/releases).
+- [Download mf](https://github.com/greeenlaser/personal-stash/tree/main/mf).
+- [Clang (this or newer version, older versions should work fine too)](https://github.com/llvm/llvm-project/releases/tag/llvmorg-23.1.2)
+- [Powershell 7 or newer (if building on Windows, required to use shell scripts)](https://learn.microsoft.com/en-us/powershell/scripting/install/install-powershell?view=powershell-7.6)
+- [Build tools for Visual Studio 2026 (if building on Windows, 2022 should work too)](https://visualstudio.microsoft.com/downloads/)
 
-once its installed run the visual studio installer exe and enable this checkbox:
-- desktop development with c++
+## How to build from source
 
-and make sure these are toggled on at the right side panel:
-- msvc build tools
-- windows 11 sdk
-- c++ atl
-- c++ mfc
-- c++ clang
+1) open your console in the folder where `project.kmake` is at.
+2) type `build.sh --yourpresetname --export`
 
-## Windows and Linux
+yourpresetname name can be windows, windows-gnu or linux.
 
-[Download KalaMake](https://github.com/KalaKit/KalaMake/releases) and get the latest Windows or Linux build.
-
-# How to build from source
-
-1) open your console in the folder where project.kmake is at.
-2) type kalamake --compile presetname
-
-Presetname can be release-windows, debug-windows, release-linux or debug-linux.
-
-The compiled executable/binary/cli and its files will be placed to `build/` inside the folder with the name of the preset you chose.
+The compiled executable/binary and its files will be placed to `build/` inside the version folder with the name of the preset you chose.
