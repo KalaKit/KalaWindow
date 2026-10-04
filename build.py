@@ -278,17 +278,10 @@ def action_sync_target(info: ProjectInfo):
 
     logging.info(f"Project '{info.project_table.name}' copy succeeded!")
 
-def action_build(info: ProjectInfo, target="all"):
+def action_build(info: ProjectInfo, target: str):
     def action_build_target(info: ProjectInfo, target: str):
         subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"release-{target}" ], check=True)
         subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"debug-{target}" ], check=True)
-
-        if target == "windows":
-            action_sync_target_table(info.windows_post_build_table)
-        elif target == "windows-gnu":
-            action_sync_target_table(info.windows_gnu_post_build_table)
-        else:
-            action_sync_target_table(info.linux_post_build_table)
 
     print("----------------------------------------")
     print(f"[ BUILDING TARGET(S) '{target}' ]")
@@ -296,12 +289,19 @@ def action_build(info: ProjectInfo, target="all"):
     if target == "all":
         if PLATFORM == "windows":
             action_build_target(info, "windows")
+
+            action_sync_target_table(info.windows_post_build_table)
         else:
             action_build_target(info, "linux")
             action_build_target(info, "windows-gnu")
+
+            action_sync_target_table(info.windows_gnu_post_build_table)
+            action_sync_target_table(info.linux_post_build_table)
     elif target == "windows":
         if PLATFORM == "windows":
             action_build_target(info, "windows")
+
+            action_sync_target_table(info.windows_post_build_table)
         else:
             logging.error(f"Failed to build because build target '{target}' cannot be used for platform '{PLATFORM}'!")
             sys.exit(1)
@@ -311,12 +311,16 @@ def action_build(info: ProjectInfo, target="all"):
             sys.exit(1)
         else:
             action_build_target(info, "windows-gnu")
+
+            action_sync_target_table(info.windows_gnu_post_build_table)
     else:
         if PLATFORM == "windows":
             logging.error(f"Failed to build because build target '{target}' cannot be used for platform '{PLATFORM}'!")
             sys.exit(1)
         else:
             action_build_target(info, "linux")
+
+            action_sync_target_table(info.linux_post_build_table)
 
     logging.info(f"Project '{info.project_table.name}' target '{target}' build succeeded!")
 
@@ -336,7 +340,7 @@ def main():
 
     p.add_argument(
         "action", 
-        choices=["sync", "build", "all"])
+        choices=["sync", "build"])
     p.add_argument(
         "target",
         nargs="?",
@@ -352,12 +356,7 @@ def main():
         action_sync_target(info)
     else: 
         target = args.target or "all"
-    
-        if args.action == "build":
-            action_build(info, target)
-        else:
-            action_sync_target(info)
-            action_build(info, target)
+        action_build(info, target)
 
 if __name__ == "__main__":
     main()
