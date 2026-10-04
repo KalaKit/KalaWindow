@@ -17,12 +17,12 @@ TOML_PATH = SCRIPT_DIR / "build.toml"
 PLATFORM: str = ""
 
 REQUIRED_SECTIONS = [
-    "windows-copy",
-    "windows-post-build-copy",
-    "windows-gnu-copy",
-    "windows-gnu-post-build-copy",
-    "linux-copy",
-    "linux-post-build-copy",
+    "windows-sync",
+    "windows-post-build-sync",
+    "windows-gnu-sync",
+    "windows-gnu-post-build-sync",
+    "linux-sync",
+    "linux-post-build-sync",
 ]
 
 logging.basicConfig(
@@ -37,24 +37,25 @@ class ProjectTable:
     kmake: str
 
 @dataclass
-class CopyEntry:
+class TargetEntry:
     id: str
     origin: str
     target: str
+    action: str
 
 @dataclass
-class CopyTable:
-    entries: List[CopyEntry]
+class TargetTable:
+    entries: List[TargetEntry]
 
 @dataclass
 class ProjectInfo:
-    project: ProjectTable
-    windows_copy: CopyTable
-    windows_post_build_copy: CopyTable
-    windows_gnu_copy: CopyTable
-    windows_gnu_post_build_copy: CopyTable
-    linux_copy: CopyTable
-    linux_post_build_copy: CopyTable
+    project_table: ProjectTable
+    windows_table: TargetTable
+    windows_post_build_table: TargetTable
+    windows_gnu_table: TargetTable
+    windows_gnu_post_build_table: TargetTable
+    linux_table: TargetTable
+    linux_post_build_table: TargetTable
 
 def action_verify() -> ProjectInfo:
     print("----------------------------------------")
@@ -91,19 +92,19 @@ def action_verify() -> ProjectInfo:
             logging.error(f"Field '{field}' in section 'project' must be a single non-empty value!")
             sys.exit(1)
 
-    # Targets section must exist
-    if "targets" not in data or not isinstance(data["targets"], dict):
-        logging.error(f"Section 'targets' is missing or not a table!")
+    # References section must exist
+    if "references" not in data or not isinstance(data["references"], dict):
+        logging.error(f"Section 'references' is missing or not a table!")
         sys.exit(1)
 
-    targets_sec = data["targets"]
-    for k, v in targets_sec.items():
+    ref_sec = data["references"]
+    for k, v in ref_sec.items():
         if isinstance(v, (list, dict)) or v is None or (isinstance(v, str) and not v.strip()):
-            logging.error(f"Field '{k}' in section 'targets' must be a single non-empty value!")
+            logging.error(f"Field '{k}' in section 'references' must be a single non-empty value!")
             sys.exit(1)
 
     # Reference lookup
-    lookup = {k: str(v).strip() for k, v in targets_sec.items()}
+    lookup = {k: str(v).strip() for k, v in ref_sec.items()}
     lookup["version"] = proj["version"].strip()
     lookup["name"] = proj["name"].strip()
 
@@ -118,7 +119,7 @@ def action_verify() -> ProjectInfo:
             return lookup[key]
         return pattern.sub(repl, s)
 
-    def parse_table(name: str) -> CopyTable:
+    def parse_table(name: str) -> TargetTable:
         if name not in data:
             logging.error(f"Section '{name}' is missing!")
             sys.exit(1)
@@ -127,106 +128,138 @@ def action_verify() -> ProjectInfo:
             logging.error(f"Section '{name}' must be a table!")
             sys.exit(1)
         
-        entries: List[CopyEntry] = []
+        entries: List[TargetEntry] = []
         for entry_id, val in sec.items():
-            if not isinstance(val, list) or len(val) != 2:
-                logging.error(f"Field '{entry_id}' in '{name}' must be [origin, target]!")
+            if not isinstance(val, list) or len(val) != 3:
+                logging.error(f"Field '{entry_id}' in '{name}' must be [origin, target, action]!")
                 sys.exit(1)
-            o, t = val
+
+            o, t, a = val
+
             if not isinstance(o, str) or not o.strip():
                 logging.error(f"Origin in '{name}.{entry_id}' was empty!")
                 sys.exit(1)
-            if not isinstance(t, str) or not t.strip():
-                logging.error(f"Target in '{name}.{entry_id}' was empty!")
+            if not isinstance(t, str):
+                logging.error(f"Target in '{name}.{entry_id}' must be a string!")
+                sys.exit(1)
+            if not isinstance(a, str) or not a.strip():
+                logging.error(f"Action in '{name}.{entry_id}' was empty!")
+                sys.exit(1)
+                
+            a = a.strip().lower()
+            if a not in ("copy", "move", "delete"):
+                logging.error(f"Action '{a}' in '{name}.{entry_id}' must be 'copy', 'move' or 'delete'!")
                 sys.exit(1)
 
-            o = resolve(o.strip(), name, entry_id)
-            t = resolve(t.strip(), name, entry_id)
-            entries.append(CopyEntry(id=entry_id, origin=o, target=t))
+            o_resolved = resolve(o.strip(), name, entry_id)
+
+            # Delete target must always be empty
+            if a == "delete":
+                if t.strip() != "":
+                    logging.error(f"Target in '{name}.{entry_id}' must be empty!")
+                    sys.exit(1)
+                entries.append(TargetEntry(id=entry_id, origin=o_resolved, target="", action=a))
+            else:
+                if not t.strip():
+                    logging.error(f"Target in '{name}.{entry_id}' was empty for action '{a}'!")
+                    sys.exit(1)
+                t_resolved = resolve(t.strip(), name, entry_id)
+                entries.append(TargetEntry(id=entry_id, origin=o_resolved, target=t_resolved, action=a))
 
         if not entries:
             logging.error(f"Section '{name}' must have atleast one entry!")
             sys.exit(1)
 
-        return CopyTable(entries=entries)
+        return TargetTable(entries=entries)
 
     logging.info(f"Project '{data['project']['name']}' toml file '{toml_path.name}' verification succeeded!")
 
     return ProjectInfo(
-        project=ProjectTable(
+        project_table=ProjectTable(
             name=proj["name"].strip(),
             version=proj["version"].strip(),
             kmake=proj["kmake"].strip()),
-        windows_copy=parse_table("windows-copy"),
-        windows_post_build_copy=parse_table("windows-post-build-copy"),
-        windows_gnu_copy=parse_table("windows-gnu-copy"),
-        windows_gnu_post_build_copy=parse_table("windows-gnu-post-build-copy"),
-        linux_copy=parse_table("linux-copy"),
-        linux_post_build_copy=parse_table("linux-post-build-copy"))
+        windows_table=parse_table("windows-sync"),
+        windows_post_build_table=parse_table("windows-post-build-sync"),
+        windows_gnu_table=parse_table("windows-gnu-sync"),
+        windows_gnu_post_build_table=parse_table("windows-gnu-post-build-sync"),
+        linux_table=parse_table("linux-sync"),
+        linux_post_build_table=parse_table("linux-post-build-sync"))
 
-def action_copy_target(table: CopyTable):
+def action_sync_target_table(table: TargetTable):
     for e in table.entries:
         origin = Path(e.origin) if Path(e.origin).is_absolute() else SCRIPT_DIR / e.origin
-        target = Path(e.target) if Path(e.target).is_absolute() else SCRIPT_DIR / e.target
-
         origin = origin.resolve()
-        target = (SCRIPT_DIR / target).resolve() if not target.is_absolute() else target.resolve()
 
-        if not origin.exists():
-            logging.error(f"Origin '{e.origin}' (id '{e.id}') does not exist!")
-            sys.exit(1)
+        if e.action == "copy":
+            target = Path(e.target) if Path(e.target).is_absolute() else SCRIPT_DIR / e.target
+            target = target.resolve()
 
-        if origin.is_dir():
-            # If target exists as a file, remove it - we need a dir
-            if target.is_file():
-                target.unlink()
+            if origin.is_dir():
+                if target.is_file():
+                    target.unlink()
 
-            # Create target dir and all parents
-            target.mkdir(parents=True, exist_ok=True)
+                target.mkdir(parents=True, exist_ok=True)
 
-            # Copy contents of origin inside target, override existing
-            for item in origin.iterdir():
-                dst = target / item.name
-                if item.is_dir():
-                    shutil.copytree(item, dst, dirs_exist_ok=True)
-                else:
-                    # File - ensure parent exists (target already does) and override
-                    if dst.exists():
-                        if dst.is_dir():
-                            shutil.rmtree(dst)
-                        else:
-                            dst.unlink()
-                    shutil.copy2(item, dst)
-        else:
-            # If target is an existing directory, copy file into that directory
-            if target.exists() and target.is_dir():
-                dst = target / origin.name
-            else:
-                # Target is a file path - ensure its parent dir exists
-                dst = target
-                dst.parent.mkdir(parents=True, exist_ok=True)
-
-                # Override if dst exists
-                if dst.exists():
-                    if dst.is_dir():
-                        shutil.rmtree(dst)
+                for item in origin.iterdir():
+                    dst = target / item.name
+                    if item.is_dir():
+                        shutil.copytree(item, dst, dirs_exist_ok=True)
                     else:
-                        dst.unlink()
+                        if dst.exists():
+                            shutil.rmtree(dst) if dst.is_dir() else dst.unlink()
 
-            shutil.copy2(origin, dst)
+                        shutil.copy2(item, dst)
+            else:
+                dst = target / origin.name if (target.exists() and target.is_dir()) else target
 
-def action_build_target(info: ProjectInfo, target: str):
-    subprocess.run(["kalamake", "--compile", f"{info.project.kmake}", f"release-{target}" ], check=True)
-    subprocess.run(["kalamake", "--compile", f"{info.project.kmake}", f"debug-{target}" ], check=True)
+                if dst != target or not target.is_dir():
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    if dst.exists():
+                        shutil.rmtree(dst) if dst.is_dir() else dst.unlink()
 
-    if target == "windows":
-        action_copy_target(info.windows_post_build_copy)
-    elif target == "windows-gnu":
-        action_copy_target(info.windows_gnu_post_build_copy)
-    else:
-        action_copy_target(info.linux_post_build_copy)
+                shutil.copy2(origin, dst)
 
-def action_copy(info: ProjectInfo):
+        elif e.action == "move":
+            target = Path(e.target) if Path(e.target).is_absolute() else SCRIPT_DIR / e.target
+            target = target.resolve()
+
+            if origin.is_dir():
+                if target.is_file():
+                    target.unlink()
+
+                target.mkdir(parents=True, exist_ok=True)
+
+                for item in origin.iterdir():
+                    dst = target / item.name
+                    if dst.exists():
+                        shutil.rmtree(dst) if dst.is_dir() else dst.unlink()
+
+                    shutil.move(str(item), str(dst))
+
+                try:
+                    origin.rmdir()
+                except OSError:
+                    pass
+            else:
+                dst = target / origin.name if (target.exists() and target.is_dir()) else target
+
+                if dst != target or not target.is_dir():
+                    dst.parent.mkdir(parents=True, exist_ok=True)
+                    if dst.exists():
+                        shutil.rmtree(dst) if dst.is_dir() else dst.unlink()
+
+                shutil.move(str(origin), str(dst))
+
+        elif e.action == "delete":
+            if not origin.exists():
+                continue
+            if origin.is_dir():
+                shutil.rmtree(origin)
+            else:
+                origin.unlink()
+
+def action_sync_target(info: ProjectInfo):
     def create_ext():
         target = Path(SCRIPT_DIR / "external")
 
@@ -239,27 +272,47 @@ def action_copy(info: ProjectInfo):
         create_ext()
 
         print("----------------------------------------")
-        print("[ COPYING WINDOWS FILES ]")
+        print("[ SYNCING WINDOWS FILES ]")
 
-        action_copy_target(info.windows_copy)
+        action_sync_target_table(info.windows_table)
     else:
         create_ext()
 
         print("----------------------------------------")
-        print("[ COPYING WINDOWS-GNU FILES ]")
+        print("[ SYNCING WINDOWS-GNU FILES ]")
 
-        action_copy_target(info.windows_gnu_copy)
+        action_sync_target_table(info.windows_gnu_table)
 
         print("----------------------------------------")
-        print("[ COPYING LINUX FILES ]")
+        print("[ SYNCING LINUX FILES ]")
 
-        action_copy_target(info.linux_copy)
+        action_sync_target_table(info.linux_table)
 
-    logging.info(f"Project '{info.project.name}' copy succeeded!")
+    logging.info(f"Project '{info.project_table.name}' copy succeeded!")
 
 def action_build(info: ProjectInfo, target="all"):
+    def check_ext():
+        ext_dir = Path(SCRIPT_DIR / "external")
+
+        if not ext_dir.exists():
+            logging.error("Failed to find 'external' directory! Call copy at least once first before building.")
+            sys.exit(1)
+
+    def action_build_target(info: ProjectInfo, target: str):
+        subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"release-{target}" ], check=True)
+        subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"debug-{target}" ], check=True)
+
+        if target == "windows":
+            action_sync_target_table(info.windows_post_build_table)
+        elif target == "windows-gnu":
+            action_sync_target_table(info.windows_gnu_post_build_table)
+        else:
+            action_sync_target_table(info.linux_post_build_table)
+
     print("----------------------------------------")
     print(f"[ BUILDING TARGET(S) '{target}' ]")
+
+    check_ext()
 
     if target == "all":
         if PLATFORM == "windows":
@@ -286,7 +339,7 @@ def action_build(info: ProjectInfo, target="all"):
         else:
             action_build_target(info, "linux")
 
-    logging.info(f"Project '{info.project.name}' target '{target}' build succeeded!")
+    logging.info(f"Project '{info.project_table.name}' target '{target}' build succeeded!")
 
 def main():
     global PLATFORM
@@ -304,7 +357,7 @@ def main():
 
     p.add_argument(
         "action", 
-        choices=["copy", "build", "all"])
+        choices=["sync", "build", "all"])
     p.add_argument(
         "target",
         nargs="?",
@@ -314,17 +367,21 @@ def main():
 
     info = action_verify()
 
-    if args.action == "copy":
+    if args.action == "sync":
         if args.target:
-            p.error("Action 'copy' does not allow to use target!")
-        action_copy(info)
+            p.error("Action 'sync' does not allow to use target!")
+        action_sync_target(info)
     else: 
         target = args.target or "all"
     
         if args.action == "build":
             action_build(info, target)
-        else: 
-            action_copy(info)
+        else:
+            ext_dir = Path(SCRIPT_DIR / "external")
+
+            if not ext_dir.exists():
+                action_sync_target(info)
+
             action_build(info, target)
 
 if __name__ == "__main__":
