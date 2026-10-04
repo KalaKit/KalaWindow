@@ -260,24 +260,12 @@ def action_sync_target_table(table: TargetTable):
                 origin.unlink()
 
 def action_sync_target(info: ProjectInfo):
-    def create_ext():
-        target = Path(SCRIPT_DIR / "external")
-
-        if target.exists():
-            shutil.rmtree(target)
-
-        target.mkdir(parents=True, exist_ok=True)
-
     if PLATFORM == "windows":
-        create_ext()
-
         print("----------------------------------------")
         print("[ SYNCING WINDOWS FILES ]")
 
         action_sync_target_table(info.windows_table)
     else:
-        create_ext()
-
         print("----------------------------------------")
         print("[ SYNCING WINDOWS-GNU FILES ]")
 
@@ -291,13 +279,6 @@ def action_sync_target(info: ProjectInfo):
     logging.info(f"Project '{info.project_table.name}' copy succeeded!")
 
 def action_build(info: ProjectInfo, target="all"):
-    def check_ext():
-        ext_dir = Path(SCRIPT_DIR / "external")
-
-        if not ext_dir.exists():
-            logging.error("Failed to find 'external' directory! Call copy at least once first before building.")
-            sys.exit(1)
-
     def action_build_target(info: ProjectInfo, target: str):
         subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"release-{target}" ], check=True)
         subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"debug-{target}" ], check=True)
@@ -311,8 +292,6 @@ def action_build(info: ProjectInfo, target="all"):
 
     print("----------------------------------------")
     print(f"[ BUILDING TARGET(S) '{target}' ]")
-
-    check_ext()
 
     if target == "all":
         if PLATFORM == "windows":
@@ -377,11 +356,7 @@ def main():
         if args.action == "build":
             action_build(info, target)
         else:
-            ext_dir = Path(SCRIPT_DIR / "external")
-
-            if not ext_dir.exists():
-                action_sync_target(info)
-
+            action_sync_target(info)
             action_build(info, target)
 
 if __name__ == "__main__":
