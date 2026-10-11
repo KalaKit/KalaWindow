@@ -58,8 +58,8 @@ class ProjectInfo:
     linux_post_build_table: TargetTable
 
 def action_verify() -> ProjectInfo:
-    print("----------------------------------------")
-    print(f"[ VERIFYING TOML FILE '{TOML_PATH.name}' ]")
+    print("----------------------------------------", flush=True)
+    print(f"[ VERIFYING TOML FILE '{TOML_PATH.name}' ]", flush=True)
 
     toml_path = Path(TOML_PATH)
 
@@ -261,18 +261,18 @@ def action_sync_target_table(table: TargetTable):
 
 def action_sync_target(info: ProjectInfo):
     if PLATFORM == "windows":
-        print("----------------------------------------")
-        print("[ SYNCING WINDOWS FILES ]")
+        print("----------------------------------------", flush=True)
+        print("[ SYNCING WINDOWS FILES ]", flush=True)
 
         action_sync_target_table(info.windows_table)
     else:
-        print("----------------------------------------")
-        print("[ SYNCING WINDOWS-GNU FILES ]")
+        print("----------------------------------------", flush=True)
+        print("[ SYNCING WINDOWS-GNU FILES ]", flush=True)
 
         action_sync_target_table(info.windows_gnu_table)
 
-        print("----------------------------------------")
-        print("[ SYNCING LINUX FILES ]")
+        print("----------------------------------------", flush=True)
+        print("[ SYNCING LINUX FILES ]", flush=True)
 
         action_sync_target_table(info.linux_table)
 
@@ -283,8 +283,8 @@ def action_build(info: ProjectInfo, target: str):
         subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"release-{target}" ], check=True)
         subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"debug-{target}" ], check=True)
 
-    print("----------------------------------------")
-    print(f"[ BUILDING TARGET(S) '{target}' ]")
+    print("----------------------------------------", flush=True)
+    print(f"[ BUILDING TARGET(S) '{target}' ]", flush=True)
 
     if target == "all":
         if PLATFORM == "windows":
