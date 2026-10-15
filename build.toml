@@ -6,16 +6,13 @@ kmake="project.kmake"
 [references]
 dir_kh="../kalaheaders"
 dir_vk_spv="../../_forks/spirv-reflect/_build/build/1-4-363"
-dir_vk_win="../../_forks/spirv-reflect/_vk"
 ext_kh="external/kalaheaders"
-ext_vk="external/vulkan"
 ext_spv="external/spirv-reflect"
 
 [windows-sync]
 kh_license=[ "${dir_kh}/LICENSE.md", "${ext_kh}/LICENSE.md", "copy" ]
 kh_readme=[ "${dir_kh}/README.md", "${ext_kh}/README.md", "copy" ]
 kh_include=[ "${dir_kh}/include", "${ext_kh}/include", "copy" ]
-vk_win_stuff=[ "${dir_vk_win}", "${ext_vk}", "copy" ]
 vk_spv_stuff=[ "${dir_vk_spv}", "${ext_spv}", "copy" ]
 
 [windows-post-build-sync]
@@ -28,29 +25,10 @@ kw_changes=[ "CHANGES.md", "build/${version}/CHANGES.md", "copy" ]
 kh_stuff=[ "${ext_kh}", "build/${version}/kalaheaders", "copy" ]
 vk_spv_stuff=[ "${ext_spv}", "build/${version}/spirv-reflect", "copy" ]
 
-[windows-gnu-sync]
-kh_license=[ "${dir_kh}/LICENSE.md", "${ext_kh}/LICENSE.md", "copy" ]
-kh_readme=[ "${dir_kh}/README.md", "${ext_kh}/README.md", "copy" ]
-kh_include=[ "${dir_kh}/include", "${ext_kh}/include", "copy" ]
-vk_win_stuff=[ "${dir_vk_win}", "${ext_vk}", "copy" ]
-vk_spv_stuff=[ "${dir_vk_spv}", "${ext_spv}", "copy" ]
-
-[windows-gnu-post-build-sync]
-kw_bin_rel=[ "build/temp/release-windows-gnu/kalawindow-gnu.lib", "build/${version}/kalawindow-gnu.lib", "copy" ]
-kw_bin_deb=[ "build/temp/debug-windows-gnu/kalawindow-gnud.lib", "build/${version}/kalawindow-gnud.lib", "copy" ]
-kw_include=[ "include", "build/${version}/include", "copy" ]
-kw_license=[ "LICENSE.md", "build/${version}/LICENSE.md", "copy" ]
-kw_readme=[ "README.md", "build/${version}/README.md", "copy" ]
-kw_changes=[ "CHANGES.md", "build/${version}/CHANGES.md", "copy" ]
-kh_stuff=[ "${ext_kh}", "build/${version}/kalaheaders", "copy" ]
-vk_spv_stuff=[ "${ext_spv}", "build/${version}/spirv-reflect", "copy" ]
-vk_win_stuff=[ "${ext_vk}", "build/${version}/vulkan", "copy" ] # Only windows-gnu needs vk stuff
-
 [linux-sync]
 kh_license=[ "${dir_kh}/LICENSE.md", "${ext_kh}/LICENSE.md", "copy" ]
 kh_readme=[ "${dir_kh}/README.md", "${ext_kh}/README.md", "copy" ]
 kh_include=[ "${dir_kh}/include", "${ext_kh}/include", "copy" ]
-vk_win_stuff=[ "${dir_vk_win}", "${ext_vk}", "copy" ]
 vk_spv_stuff=[ "${dir_vk_spv}", "${ext_spv}", "copy" ]
 
 [linux-post-build-sync]

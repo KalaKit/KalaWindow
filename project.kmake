@@ -1,63 +1,47 @@
 //Build script for use with kalamake. Read more at https://github.com/kalakit/kalamake
 
-#version 1.0
+#version 2.0
 
 #references
-name_bin: kalawindow
-dir_release: build/temp/release-
-dir_debug: build/temp/debug-
-def_win: WIN32_LEAN_AND_MEAN, NOMINMAX, UNICODE, _UNICODE
+name_bin: "kalawindow"
+dir_release: "build/temp/release-"
+dir_debug: "build/temp/debug-"
+def_win: "WIN32_LEAN_AND_MEAN", "NOMINMAX", "UNICODE", "_UNICODE"
 
 lin-headers: "/usr/include/glib-2.0", "/usr/include/gdk-pixbuf-2.0", "/usr/lib/glib-2.0/include"
 win-gnu-headers: "external/vulkan/Include"
 
 #global
-compilerlauncher: ccache
-compiler: clang++
-standard: c++20
-binarytype: static
+compilerlauncher: "ccache"
+compiler: "clang++"
+standard: "c++20"
+binarytype: "static"
 sources: "src"
 headers: "include", "external/kalaheaders/include"
-defines: LIB_STATIC
-warninglevel: normal
-customflags: export-compile-commands, export-vscode-sln
+defines: "LIB_STATIC"
+warninglevel: "normal"
+customflags: "export-compile-commands", "export-vscode-sln"
 
 #profile debug-windows
-binaryname: ${name_bin}d
-buildtype: debug
+binaryname: "${name_bin}d"
+buildtype: "debug"
 buildpath: "${dir_debug}windows"
-defines: ${def_win}
+defines: "${def_win}"
 
 #profile release-windows
-binaryname: ${name_bin}
-buildtype: minsizerel
+binaryname: "${name_bin}"
+buildtype: "minsizerel"
 buildpath: "${dir_release}windows"
-defines: ${def_win}
-
-#profile debug-windows-gnu
-targettype: windows-gnu
-binaryname: ${name_bin}-gnud
-buildtype: debug
-buildpath: "${dir_debug}windows-gnu"
-headers: ${win-gnu-headers}
-defines: ${def_win}
-
-#profile release-windows-gnu
-targettype: windows-gnu
-binaryname: ${name_bin}-gnu
-buildtype: minsizerel
-buildpath: "${dir_release}windows-gnu"
-headers: ${win-gnu-headers}
-defines: ${def_win}
+defines: "${def_win}"
 
 #profile debug-linux
-binaryname: lib${name_bin}d
-buildtype: debug
+binaryname: "lib${name_bin}d"
+buildtype: "debug"
 buildpath: "${dir_debug}linux"
-headers: ${lin-headers}
+headers: "${lin-headers}"
 
 #profile release-linux
-binaryname: lib${name_bin}
-buildtype: minsizerel
+binaryname: "lib${name_bin}"
+buildtype: "minsizerel"
 buildpath: "${dir_release}linux"
-headers: ${lin-headers}
+headers: "${lin-headers}"

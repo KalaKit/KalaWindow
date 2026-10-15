@@ -19,10 +19,8 @@ PLATFORM: str = ""
 REQUIRED_SECTIONS = [
     "windows-sync",
     "windows-post-build-sync",
-    "windows-gnu-sync",
-    "windows-gnu-post-build-sync",
     "linux-sync",
-    "linux-post-build-sync",
+    "linux-post-build-sync"
 ]
 
 logging.basicConfig(
@@ -52,8 +50,6 @@ class ProjectInfo:
     project_table: ProjectTable
     windows_table: TargetTable
     windows_post_build_table: TargetTable
-    windows_gnu_table: TargetTable
-    windows_gnu_post_build_table: TargetTable
     linux_table: TargetTable
     linux_post_build_table: TargetTable
 
@@ -181,8 +177,6 @@ def action_verify() -> ProjectInfo:
             kmake=proj["kmake"].strip()),
         windows_table=parse_table("windows-sync"),
         windows_post_build_table=parse_table("windows-post-build-sync"),
-        windows_gnu_table=parse_table("windows-gnu-sync"),
-        windows_gnu_post_build_table=parse_table("windows-gnu-post-build-sync"),
         linux_table=parse_table("linux-sync"),
         linux_post_build_table=parse_table("linux-post-build-sync"))
 
@@ -267,62 +261,27 @@ def action_sync_target(info: ProjectInfo):
         action_sync_target_table(info.windows_table)
     else:
         print("----------------------------------------", flush=True)
-        print("[ SYNCING WINDOWS-GNU FILES ]", flush=True)
-
-        action_sync_target_table(info.windows_gnu_table)
-
-        print("----------------------------------------", flush=True)
         print("[ SYNCING LINUX FILES ]", flush=True)
 
         action_sync_target_table(info.linux_table)
 
     logging.info(f"Project '{info.project_table.name}' copy succeeded!")
 
-def action_build(info: ProjectInfo, target: str):
-    def action_build_target(info: ProjectInfo, target: str):
-        subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"release-{target}" ], check=True)
-        subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"debug-{target}" ], check=True)
+def action_build(info: ProjectInfo):
+    def action_build_target(info: ProjectInfo):
+        subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"release-{PLATFORM}" ], check=True)
+        subprocess.run(["kalamake", "--compile", f"{info.project_table.kmake}", f"debug-{PLATFORM}" ], check=True)
 
     print("----------------------------------------", flush=True)
-    print(f"[ BUILDING TARGET(S) '{target}' ]", flush=True)
+    print(f"[ BUILDING TARGET '{PLATFORM}' ]", flush=True)
 
-    if target == "all":
-        if PLATFORM == "windows":
-            action_build_target(info, "windows")
-
-            action_sync_target_table(info.windows_post_build_table)
-        else:
-            action_build_target(info, "linux")
-            action_build_target(info, "windows-gnu")
-
-            action_sync_target_table(info.windows_gnu_post_build_table)
-            action_sync_target_table(info.linux_post_build_table)
-    elif target == "windows":
-        if PLATFORM == "windows":
-            action_build_target(info, "windows")
-
-            action_sync_target_table(info.windows_post_build_table)
-        else:
-            logging.error(f"Failed to build because build target '{target}' cannot be used for platform '{PLATFORM}'!")
-            sys.exit(1)
-    elif target == "windows-gnu":
-        if PLATFORM == "windows":
-            logging.error(f"Failed to build because build target '{target}' cannot be used for platform '{PLATFORM}'!")
-            sys.exit(1)
-        else:
-            action_build_target(info, "windows-gnu")
-
-            action_sync_target_table(info.windows_gnu_post_build_table)
+    action_build_target(info)
+    if PLATFORM == "windows":
+        action_sync_target_table(info.windows_post_build_table)
     else:
-        if PLATFORM == "windows":
-            logging.error(f"Failed to build because build target '{target}' cannot be used for platform '{PLATFORM}'!")
-            sys.exit(1)
-        else:
-            action_build_target(info, "linux")
+        action_sync_target_table(info.linux_post_build_table)
 
-            action_sync_target_table(info.linux_post_build_table)
-
-    logging.info(f"Project '{info.project_table.name}' target '{target}' build succeeded!")
+    logging.info(f"Project '{info.project_table.name}' target '{PLATFORM}' build succeeded!")
 
 def main():
     global PLATFORM
@@ -339,24 +298,21 @@ def main():
     p = argparse.ArgumentParser()
 
     p.add_argument(
-        "action", 
-        choices=["sync", "build"])
-    p.add_argument(
-        "target",
+        "action",
         nargs="?",
-        choices=["windows", "windows-gnu", "linux"])
+        choices=["sync", "build"])
 
     args = p.parse_args()
 
     info = action_verify()
 
     if args.action == "sync":
-        if args.target:
-            p.error("Action 'sync' does not allow to use target!")
         action_sync_target(info)
-    else: 
-        target = args.target or "all"
-        action_build(info, target)
+    elif args.action == "build":
+        action_build(info)
+    else:
+        action_sync_target(info)
+        action_build(info)
 
 if __name__ == "__main__":
     main()

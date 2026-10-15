@@ -305,8 +305,30 @@ namespace KalaHeaders::KalaPasswordHasher
 		return "";
 	}
 
+	//Generates a random 128-bit salt
+	KNODISCARD
+	inline array<u8, SALT_SIZE_BYTES> GenerateSalt()
+	{
+		random_device rd{};
+
+		array<u8, SALT_SIZE_BYTES> generatedSalt{};
+
+		for (size_t i = 0; i < generatedSalt.size();)
+		{
+			u32 value = rd();
+
+			for (size_t j = 0; j < sizeof(value) && i < generatedSalt.size(); j++, i++)
+			{
+				generatedSalt[i] = scast<u8>(value & 0xFF);
+				value >>= 8;
+			}
+		}
+
+		return generatedSalt;
+	}
+
 	//Takes in a raw password string and optional Argon2id config,
-	//returns a string for error, hash password and salt
+	//returns a string for error, 256-bit hash password and 128-bit salt
 	KNODISCARD
 	inline string HashPassword(
 		string_view rawPassword,
@@ -319,27 +341,7 @@ namespace KalaHeaders::KalaPasswordHasher
 		err = _VerifyArgon2idConfig(config);
 		if (!err.empty()) return err;
 
-		auto generate_salt = []() -> array<u8, SALT_SIZE_BYTES>
-			{
-				random_device rd{};
-
-				array<u8, SALT_SIZE_BYTES> generatedSalt{};
-
-				for (size_t i = 0; i < generatedSalt.size();)
-				{
-					u32 value = rd();
-
-					for (size_t j = 0; j < sizeof(value) && i < generatedSalt.size(); j++, i++)
-					{
-						generatedSalt[i] = scast<u8>(value & 0xFF);
-						value >>= 8;
-					}
-				}
-
-				return generatedSalt;
-			};
-
-		pair<array<u8, HASH_SIZE_BYTES>, array<u8, SALT_SIZE_BYTES>> result = { {}, generate_salt() };
+		pair<array<u8, HASH_SIZE_BYTES>, array<u8, SALT_SIZE_BYTES>> result = { {}, GenerateSalt() };
 
 		err = _GenerateHash(
 			rawPassword,
