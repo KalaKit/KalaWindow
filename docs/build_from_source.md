@@ -15,7 +15,6 @@ This document is only applicable if you are building this repository from source
 
 1) open your console in the folder where `project.kmake` is at.
 2) type `python build.py sync` to sync dependencies, this needs to be done only once unless build.toml or project.kmake changes
-3) type `python build.py build` to build all applicable targets for your OS (windows on windows, or windows-gnu and linux on linux),
-add `windows`, `windows-gnu` or `linux` to target a specific build type
+3) type `python build.py build` to build automatically for your target platform (Windows or Linux)
 
-The compiled executable/binary and its files will be placed to `build/` inside the version folder with the name of the target you chose.
+The compiled binary and its documentation and files used for its distribution will be placed to `build/` inside the folder named as the current version of this binary.
