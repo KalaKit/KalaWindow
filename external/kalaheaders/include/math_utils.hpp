@@ -235,7 +235,7 @@ namespace KalaHeaders::KalaMath
 
 	//Used for arithmetic division and prevents division by 0, returns result instead of mutating origin
 	KNODISCARD
-	inline f32 safediv_a(
+	inline constexpr f32 safediv_a(
 		f32 origin,
 		f32 divisor)
 	{
@@ -243,7 +243,7 @@ namespace KalaHeaders::KalaMath
 		return origin / safeDivisor;
 	}
 	//Used for compound division and prevents division by 0, mutates origin instead of returning result
-	inline void safediv_c(
+	inline constexpr void safediv_c(
 		f32& origin,
 		f32 divisor)
 	{
@@ -1700,7 +1700,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Computes vec2 magnitude (distance from a)
 	KNODISCARD
-	inline f32 length(const vec2 v)
+	inline constexpr f32 length(const vec2 v)
 	{
 		return sqrtf(
 			v.x * v.x
@@ -1708,7 +1708,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Computes vec3 magnitude (distance from a)
 	KNODISCARD
-	inline f32 length(const vec3& v)
+	inline constexpr f32 length(const vec3& v)
 	{
 		return sqrtf(
 			v.x * v.x
@@ -1717,7 +1717,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Computes vec4 magnitude (distance from a)
 	KNODISCARD
-	inline f32 length(const vec4& v)
+	inline constexpr f32 length(const vec4& v)
 	{
 		return sqrtf(
 			v.x * v.x
@@ -1728,7 +1728,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Computes quat magnitude (distance from a)
 	KNODISCARD
-	inline f32 length(const quat& q)
+	inline constexpr f32 length(const quat& q)
 	{
 		return sqrtf(
 			q.w * q.w
@@ -1744,35 +1744,35 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns true if f32 a is close to f32 b within epsilon range
 	KNODISCARD
-	inline bool isnear(const f32 a, const f32 b = {})
+	inline constexpr bool isnear(const f32 a, const f32 b = {})
 	{
 		return fabsf(a - b) <= epsilon;
 	}
 	
 	//Returns true if vec2 a is close to vec2 b within epsilon range
 	KNODISCARD
-	inline bool isnear(const vec2 a, const vec2 b = {})
+	inline constexpr bool isnear(const vec2 a, const vec2 b = {})
 	{
 		return length(a - b) <= epsilon;
 	}
 	
 	//Returns true if vec3 a is close to vec3 b within epsilon range
 	KNODISCARD
-	inline bool isnear(const vec3& a, const vec3& b = {})
+	inline constexpr bool isnear(const vec3& a, const vec3& b = {})
 	{
 		return length(a - b) <= epsilon;
 	}
 	
 	//Returns true if vec4 a is close to vec4 b within epsilon range
 	KNODISCARD
-	inline bool isnear(const vec4& a, const vec4& b = {})
+	inline constexpr bool isnear(const vec4& a, const vec4& b = {})
 	{
 		return length(a - b) <= epsilon;
 	}
 	
 	//Returns true if quat a is close to quat b within epsilon range
 	KNODISCARD
-	inline bool isnear_q(const quat& a, const quat& b = {})
+	inline constexpr bool isnear_q(const quat& a, const quat& b = {})
 	{
 		return (isnear(a.w, b.w)
 			&& isnear(a.x, b.x)
@@ -1786,7 +1786,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns true if mat2 a is close to mat2 b within epsilon range
 	KNODISCARD
-	inline bool isnear(const mat2& a, const mat2& b = {})
+	inline constexpr bool isnear(const mat2& a, const mat2& b = {})
 	{
 		return isnear(a.m00, b.m00)
 			&& isnear(a.m01, b.m01)
@@ -1796,7 +1796,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns true if mat3 a is close to mat3 b within epsilon range
 	KNODISCARD
-	inline bool isnear(const mat3& a, const mat3& b = {})
+	inline constexpr bool isnear(const mat3& a, const mat3& b = {})
 	{
 		return isnear(a.m00, b.m00)
 			&& isnear(a.m01, b.m01)
@@ -1813,7 +1813,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns true if mat4 a is close to mat4 b within epsilon range
 	KNODISCARD
-	inline bool isnear(const mat4& a, const mat4& b = {})
+	inline constexpr bool isnear(const mat4& a, const mat4& b = {})
 	{
 		return isnear(a.m00, b.m00)
 			&& isnear(a.m01, b.m01)
@@ -1953,21 +1953,21 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns true if vec2 is unit-length normalized
 	KNODISCARD
-	inline bool isnormalized(vec2 v)
+	inline constexpr bool isnormalized(vec2 v)
 	{
 		f32 len2 = dot(v, v);
 		return fabsf(len2 - 1.0f) <= epsilon;
 	}
 	//Returns true if vec3 is unit-length normalized
 	KNODISCARD
-	inline bool isnormalized(const vec3& v)
+	inline constexpr bool isnormalized(const vec3& v)
 	{
 		f32 len2 = dot(v, v);
 		return fabsf(len2 - 1.0f) <= epsilon;
 	}
 	//Returns true if vec4 is unit-length normalized
 	KNODISCARD
-	inline bool isnormalized(const vec4& v)
+	inline constexpr bool isnormalized(const vec4& v)
 	{
 		f32 len2 = dot(v, v);
 		return fabsf(len2 - 1.0f) <= epsilon;
@@ -1975,7 +1975,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns true if quat is unit-length normalized
 	KNODISCARD
-	inline bool isnormalized(const quat& q)
+	inline constexpr bool isnormalized(const quat& q)
 	{
 		f32 len2 = dot(q, q);
 		return fabsf(len2 - 1.0f) <= epsilon;
@@ -1983,7 +1983,7 @@ namespace KalaHeaders::KalaMath
 
 	//Returns unit-length normalized vec2
 	KNODISCARD
-	inline vec2 normalize(const vec2 v)
+	inline constexpr vec2 normalize(const vec2 v)
 	{
 		//skip normalize if already normalized
 		if (isnormalized(v)) return v;
@@ -1995,7 +1995,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Returns unit-length normalized vec3
 	KNODISCARD
-	inline vec3 normalize(const vec3& v)
+	inline constexpr vec3 normalize(const vec3& v)
 	{
 		//skip normalize if already normalized
 		if (isnormalized(v)) return v;
@@ -2007,7 +2007,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Returns unit-length normalized vec4
 	KNODISCARD
-	inline vec4 normalize(const vec4& v)
+	inline constexpr vec4 normalize(const vec4& v)
 	{
 		//skip normalize if already normalized
 		if (isnormalized(v)) return v;
@@ -2020,7 +2020,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Returns unit-length normalized quat
 	KNODISCARD
-	inline quat normalize_q(const quat& q)
+	inline constexpr quat normalize_q(const quat& q)
 	{
 		//skip normalize if already normalized
 		if (isnormalized(q)) return q;
@@ -2033,7 +2033,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Wraps a rotation axis between 0 to 360 degrees
 	KNODISCARD
-	inline f32 wrap(f32 deg)
+	inline constexpr f32 wrap(f32 deg)
 	{
 		deg = fmodf(deg, 360.0f);
 		if (deg < 0.0f) deg += 360.0f;
@@ -2090,7 +2090,7 @@ namespace KalaHeaders::KalaMath
 	//pitch, yaw and roll are clamped -360 to 360,
 	//you are supposed to wrap or clamp pitch and roll as you prefer after this function
 	KNODISCARD
-	inline vec3 toeuler3(const quat& q)
+	inline constexpr vec3 toeuler3(const quat& q)
 	{
 		quat nq = normalize_q(q);
 	
@@ -2150,7 +2150,7 @@ namespace KalaHeaders::KalaMath
 	//pitch, yaw and roll are clamped -360 to 360,
 	//you are supposed to wrap or clamp pitch and roll as you prefer before this function
 	KNODISCARD
-	inline quat toquat(const vec3& euler)
+	inline constexpr quat toquat(const vec3& euler)
 	{
 		//returns quat as identity if euler input is near 0
 		if (isnear(euler)) return {};
@@ -2240,7 +2240,7 @@ namespace KalaHeaders::KalaMath
 
 	//Converts mat4 to vec3 size
 	KNODISCARD
-	inline vec3 tosize(const mat4& m)
+	inline constexpr vec3 tosize(const mat4& m)
 	{
 		return
 		{
@@ -2295,7 +2295,7 @@ namespace KalaHeaders::KalaMath
 
 	//Converts quat to mat3
 	KNODISCARD
-	inline mat3 tomat3(const quat& q)
+	inline constexpr mat3 tomat3(const quat& q)
 	{
 		quat nq = normalize_q(q);
 		
@@ -2318,7 +2318,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Converts quat to mat4
 	KNODISCARD
-	inline mat4 tomat4(const quat& q)
+	inline constexpr mat4 tomat4(const quat& q)
 	{
 		quat nq = normalize_q(q);
 		
@@ -2356,7 +2356,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Vector pointing from one position to another
 	KNODISCARD
-	inline vec2 direction(
+	inline constexpr vec2 direction(
 		const vec2 a, 
 		const vec2 b)
 	{
@@ -2364,7 +2364,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Vector pointing from one position to another
 	KNODISCARD
-	inline vec3 direction(
+	inline constexpr vec3 direction(
 		const vec3& a, 
 		const vec3& b)
 	{
@@ -2441,7 +2441,7 @@ namespace KalaHeaders::KalaMath
 	//Turns position/orientation into a view transform,
 	//use DIR_UP for fps style camera, or if youre using the camera from KalaGraphics
 	KNODISCARD
-	inline mat4 view(
+	inline constexpr mat4 view(
 		const vec3& origin, 
 		const vec3& target, 
 		const vec3& up)
@@ -2519,7 +2519,7 @@ namespace KalaHeaders::KalaMath
 	//        You MUST set VK_FRONT_FACE_CLOCKWISE.
 	//Fov clamped to [1, 360]. Near/far clamped to [epsilon, 1000000.0].
 	KNODISCARD
-	inline mat4 perspective(
+	inline constexpr mat4 perspective(
 		bool useVulkan,
 		const vec2 viewport,
 		f32 fovDeg = 90.0f,
@@ -2566,7 +2566,7 @@ namespace KalaHeaders::KalaMath
 
 	//Returns a valid 2D model matrix for vertex shaders
 	KNODISCARD
-	inline mat4 createmodelmatrix(
+	inline constexpr mat4 createmodelmatrix(
 		const vec2 pos,
 		const f32 rotDeg,
 		const vec2 size)
@@ -2587,7 +2587,7 @@ namespace KalaHeaders::KalaMath
 
 	//Returns a valid 3D model matrix for vertex shaders
 	KNODISCARD
-	inline mat4 createmodelmatrix3d(
+	inline constexpr mat4 createmodelmatrix3d(
 		const vec3& pos, 
 		const quat& rot, 
 		const vec3& size)
@@ -2683,7 +2683,7 @@ namespace KalaHeaders::KalaMath
 	
 	//Linear interpolation between two quats by t
 	KNODISCARD
-	inline quat lerp(
+	inline constexpr quat lerp(
 		const quat& a,
 		const quat& b,
 		f32 t)
@@ -2699,7 +2699,7 @@ namespace KalaHeaders::KalaMath
 
 	//Spherical linear interpolation between two non-normalized vec4s by t
 	KNODISCARD
-	inline quat slerp(
+	inline constexpr quat slerp(
 		const quat& a,
 		const quat& b,
 		f32 t)
@@ -2790,7 +2790,7 @@ namespace KalaHeaders::KalaMath
 
 	//Uses std::sqrtf and returns unit-accurate distance between two vec2s
 	KNODISCARD
-	inline f32 distancesqrt(
+	inline constexpr f32 distancesqrt(
 		const vec2 a, 
 		const vec2 b)
 	{
@@ -2801,7 +2801,7 @@ namespace KalaHeaders::KalaMath
 	}
 	//Uses std::sqrtf and returns unit-accurate distance between two vec3s
 	KNODISCARD
-	inline f32 distancesqrt(
+	inline constexpr f32 distancesqrt(
 		const vec3& a, 
 		const vec3& b)
 	{
@@ -2837,7 +2837,7 @@ namespace KalaHeaders::KalaMath
 	}
 
 	KNODISCARD
-	inline vec3 reflect(
+	inline constexpr vec3 reflect(
 		const vec3& I, 
 		const vec3& N)
 	{
@@ -2850,7 +2850,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in non-normalized positions and returns angle in degrees (0..180),
 	//uses vec2 a as the reference direction
 	KNODISCARD
-	inline f32 angle(
+	inline constexpr f32 angle(
 		const vec2 a,
 		const vec2 b)
 	{
@@ -2863,7 +2863,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in non-normalized positions and returns angle in degrees (0..180),
 	//uses vec3 a as the reference direction
 	KNODISCARD
-	inline f32 angle(
+	inline constexpr f32 angle(
 		const vec3& a,
 		const vec3& b,
 		const vec3& axis)
@@ -2886,7 +2886,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in non-normalized positions and returns signed angle in degrees (-180..180),
 	//uses vec2 a as the reference direction
 	KNODISCARD
-	inline f32 angle_s(
+	inline constexpr f32 angle_s(
 		const vec2 a,
 		const vec2 b)
 	{
@@ -2904,7 +2904,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in non-normalized positions and returns signed angle in degrees (-180..180),
 	//uses vec3 a as the reference direction
 	KNODISCARD
-	inline f32 angle_s(
+	inline constexpr f32 angle_s(
 		const vec3& a,
 		const vec3& b,
 		const vec3& axis)
@@ -2927,7 +2927,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in non-normalized positions and returns full angle in degrees (0..360),
 	//uses vec2 a as the reference direction
 	KNODISCARD
-	inline f32 angle_f(
+	inline constexpr f32 angle_f(
 		const vec2 a,
 		const vec2 b)
 	{
@@ -2944,7 +2944,7 @@ namespace KalaHeaders::KalaMath
 	//Takes in non-normalized positions and returns full angle in degrees (0..360),
 	//uses vec3 a as the reference direction
 	KNODISCARD
-	inline f32 angle_f(
+	inline constexpr f32 angle_f(
 		const vec3& a,
 		const vec3& b,
 		const vec3& axis)
@@ -2956,7 +2956,7 @@ namespace KalaHeaders::KalaMath
 
 	//Takes in a non-normalized axis and returns a quaternion that rotates around angle and axis
 	KNODISCARD
-	inline quat angleaxis(
+	inline constexpr quat angleaxis(
 		f32 angle, 
 		const vec3& axis)
 	{
@@ -3170,128 +3170,107 @@ namespace KalaHeaders::KalaMath
 	
 	struct Transform2D
 	{
-		inline constexpr Transform2D* getparent() { return parent; }
-		//Assign a new parent or clear existing one
-		inline constexpr void setparent(Transform2D* newParent)
-		{
-			//ignore already added parent
-			if (parent == newParent) return;
-
-			parent = newParent;
-
-			combine();
-		}
-
-		//Returns true local right direction of this transform
+		//Returns true world/local right direction of this transform
 		KNODISCARD
-		inline constexpr vec2 getdirright() const
+		inline constexpr vec2 getdirright(RotTarget rotType = RotTarget::ROT_WORLD) const
 		{
-			float r = radians(rot_world);
+			f32 r = radians(rotType == RotTarget::ROT_LOCAL
+				? rot_local
+				: rot_world);
 			return vec2(cosf(r), sinf(r));
 		}
-		//Returns true local up direction of this transform
+		//Returns true world/local up direction of this transform
 		KNODISCARD
-		inline constexpr vec2 getdirup() const
+		inline constexpr vec2 getdirup(RotTarget rotType = RotTarget::ROT_WORLD) const
 		{
-			float r = radians(rot_world);
+			f32 r = radians(rotType == RotTarget::ROT_LOCAL
+				? rot_local
+				: rot_world);
 			return vec2(-sinf(r), cosf(r));
 		}
 
 		KNODISCARD
-		inline constexpr vec2 getpos(PosTarget type) const
+		inline constexpr vec2 getpos(PosTarget posType) const
 		{
-			return type == PosTarget::POS_LOCAL
+			return posType == PosTarget::POS_LOCAL
 				? pos_local
 				: pos_world;
 		}
 		//Incrementally moves over time
-		inline constexpr void addpos(const vec2 pos_delta)
+		inline constexpr void addpos(const vec2 posDelta)
 		{
 			vec2 pos_clamped = kclamp(
-				pos_local + pos_delta,
+				pos_local + posDelta,
 				MIN_POS2,
 				MAX_POS2);
 				
 			pos_local = pos_clamped;
-			
-			combine();
 		}
 		//Snaps to given position
-		inline constexpr void setpos(const vec2 pos_new)
+		inline constexpr void setpos(const vec2 posValue)
 		{
 			vec2 pos_clamped = kclamp(
-				pos_new, 
+				posValue, 
 				MIN_POS2, 
 				MAX_POS2);
 
 			pos_local = pos_clamped;
-
-			combine();
 		}
 		
 		//Returns rotation in euler (degrees)
 		KNODISCARD
-		inline constexpr f32 getrot(RotTarget type) const
+		inline constexpr f32 getrot(RotTarget rotType) const
 		{
-			return type == RotTarget::ROT_LOCAL
+			return rotType == RotTarget::ROT_LOCAL
 				? rot_local
 				: rot_world;
 		}
 		//Takes in rotation in euler (degrees) and incrementally rotates over time
-		inline constexpr void addrot(f32 rot_delta)
+		inline constexpr void addrot(f32 rotDelta)
 		{
-			f32 clamped = rot_local + rot_delta;
+			f32 clamped = rot_local + rotDelta;
 			clamped = clamp(clamped, -360.0f, 360.0f);
 
 			rot_local = clamped;
-
-			combine();
 		}
 		//Takes in rotation in euler (degrees) and snaps to given rotation
-		inline constexpr void setrot(const f32 rot_new)
+		inline constexpr void setrot(const f32 rotValue)
 		{
-			f32 clamped = clamp(rot_new, -360.0f, 360.0f);
+			f32 clamped = clamp(rotValue, -360.0f, 360.0f);
 
 			rot_local = clamped;
-
-			combine();
 		}
 		
 		KNODISCARD
-		inline constexpr vec2 getsize(SizeTarget type) const
+		inline constexpr vec2 getsize(SizeTarget sizeType) const
 		{
-			return type == SizeTarget::SIZE_LOCAL
+			return sizeType == SizeTarget::SIZE_LOCAL
 				? size_local
 				: size_world;
 		}
 		//Incrementally scales over time
-		inline constexpr void addsize(const vec2 size_delta)
+		inline constexpr void addsize(const vec2 sizeDelta)
 		{
 			vec2 size_clamped = kclamp(
-				size_local + size_delta,
+				size_local + sizeDelta,
 				MIN_SIZE2,
 				MAX_SIZE2);
 
 			size_local = size_clamped;
-
-			combine();
 		}
 		//Snaps to given size
-		inline constexpr void setsize(const vec2 size_new)
+		inline constexpr void setsize(const vec2 sizeValue)
 		{
 			vec2 size_clamped = kclamp(
-				size_new, 
+				sizeValue, 
 				MIN_SIZE2, 
 				MAX_SIZE2);
 
 			size_local = size_clamped;
-
-			combine();
 		}
 
-	private:
 		//Updates target world pos, rot and size relative to target local and parent world values
-		inline void combine()
+		inline constexpr void update(const Transform2D* parent = {})
 		{
 			if (parent)
 			{
@@ -3301,12 +3280,13 @@ namespace KalaHeaders::KalaMath
 				f32 rads = radians(parent->rot_world);
 				mat3 rot_mat =
 				{
-					cosf(rads), -sinf(rads), 0.0f,
-					sinf(rads),  cosf(rads), 0.0f,
-					0.0f,        0.0f,       1.0f
+					 cosf(rads), sinf(rads), 0.0f,
+					-sinf(rads), cosf(rads), 0.0f,
+					 0.0f,          0.0f,         1.0f
 				};
 
-				vec3 rot_offset = vec3(rot_mat * vec3(pos_local, 1.0f));
+				vec2 scaled_offset = pos_local * parent->size_world;
+				vec3 rot_offset = vec3(rot_mat * vec3(scaled_offset, 1.0f));
 				pos_world =
 					parent->pos_world
 					+ vec2(rot_offset.x, rot_offset.y);
@@ -3318,9 +3298,7 @@ namespace KalaHeaders::KalaMath
 				size_world = size_local;
 			}
 		}
-
-		Transform2D* parent{};
-
+	private:
 		//position of this transform
 		vec2 pos_local{};
 		//final position after combining local position with parent position
@@ -3349,65 +3327,59 @@ namespace KalaHeaders::KalaMath
 	
 	struct Transform3D
 	{
-		inline constexpr Transform3D* getparent() { return parent; }
-		//Assign a new parent or clear existing one
-		inline constexpr void setparent(Transform3D* newParent)
+		//Returns true world/local front direction of this transform
+		KNODISCARD
+		inline constexpr vec3 getdirfront(RotTarget rotType = RotTarget::ROT_WORLD) const
 		{
-			//ignore already added parent
-			if (parent == newParent) return;
-
-			parent = newParent;
-
-			combine();
+			return (rotType == RotTarget::ROT_LOCAL
+				? rot_local
+				: rot_world) * DIR_FRONT;
+		}
+		//Returns true world/local right direction of this transform
+		KNODISCARD
+		inline constexpr vec3 getdirright(RotTarget rotType = RotTarget::ROT_WORLD) const
+		{
+			return (rotType == RotTarget::ROT_LOCAL
+				? rot_local
+				: rot_world) * DIR_RIGHT;
+		}
+		//Returns true world/local up direction of this transform
+		KNODISCARD
+		inline constexpr vec3 getdirup(RotTarget rotType = RotTarget::ROT_WORLD) const
+		{
+			return (rotType == RotTarget::ROT_LOCAL
+				? rot_local
+				: rot_world) * DIR_UP;
 		}
 
-		//Returns true local front direction of this transform
 		KNODISCARD
-		inline constexpr vec3 getdirfront() const { return rot_world * DIR_FRONT; }
-		//Returns true local right direction of this transform
-		KNODISCARD
-		inline constexpr vec3 getdirright() const { return rot_world * DIR_RIGHT; }
-		//Returns true local up direction of this transform
-		KNODISCARD
-		inline constexpr vec3 getdirup() const { return rot_world * DIR_UP; }
-
-		KNODISCARD
-		inline constexpr vec3 getpos(PosTarget type) const
+		inline constexpr vec3 getpos(PosTarget posType) const
 		{
-			return type == PosTarget::POS_LOCAL
+			return posType == PosTarget::POS_LOCAL
 				? pos_local
 				: pos_world;
 		}
 
 		//Incrementally moves over time
-		inline constexpr void addpos(const vec3& pos_delta)
+		inline constexpr void addpos(const vec3& posDelta)
 		{
-			vec3 pos_clamped = kclamp(
-				pos_local + pos_delta,
-				MIN_POS3,
-				MAX_POS3);
-
-			pos_local = pos_clamped;
-
-			combine();
+			setpos(pos_local + posDelta);
 		}
 		//Snaps to given position
-		inline constexpr void setpos(const vec3& pos_new)
+		inline constexpr void setpos(const vec3& posValue)
 		{
 			vec3 pos_clamped = kclamp(
-				pos_new,
+				posValue,
 				MIN_POS3,
 				MAX_POS3);
 
 			pos_local = pos_clamped;
-
-			combine();
 		}
 		
-		//Rotate towards target position
-		inline constexpr void lookat(const vec3& targetPos)
+		//Rotate in local rotation towards target local position
+		inline constexpr void lookat(const vec3& posValue)
 		{
-			vec3 diff = targetPos - pos_world;
+			vec3 diff = posValue - getpos(PosTarget::POS_LOCAL);
 			
 			//cannot look at itself or targets too close to compute a direction
 			if (isnear(diff)) return;
@@ -3416,15 +3388,15 @@ namespace KalaHeaders::KalaMath
 			
 			//compute right and up
 			
-			vec3 right = cross(DIR_UP, forward);
+			vec3 right = cross(forward, DIR_UP);
 			
 			//ensures right axis is always valid by being perpendicular to forward
 			//and never parallel to up vector if cross fails
-			if (isnear(right)) right = cross(DIR_FRONT, forward);
+			if (isnear(right)) right = cross(forward, DIR_FRONT);
 			
 			right = normalize(right);
 			
-			vec3 up = cross(forward, right);
+			vec3 up = cross(right, forward);
 			
 			//build a quat from a rotation matrix
 			
@@ -3436,99 +3408,91 @@ namespace KalaHeaders::KalaMath
 			}));
 			
 			rot_local = q;
-			
-			combine();
 		}
 		
 		//Returns rotation in euler (degrees)
 		KNODISCARD
-		inline constexpr vec3 getroteuler(RotTarget type) const
+		inline constexpr vec3 getroteuler(RotTarget rotType) const
 		{
-			return type == RotTarget::ROT_LOCAL
+			return rotType == RotTarget::ROT_LOCAL
 				? toeuler3(rot_local)
 				: toeuler3(rot_world);
 		}
 		//Returns quaternion rotation
 		KNODISCARD
-		inline constexpr quat getrotquat(RotTarget type) const
+		inline constexpr quat getrotquat(RotTarget rotType) const
 		{
-			return type == RotTarget::ROT_LOCAL
+			return rotType == RotTarget::ROT_LOCAL
 				? rot_local
 				: rot_world;
 		}
 
 		//Takes in rotation in euler (degrees) and incrementally rotates over time
-		inline void addrot(const vec3& rot_delta)
+		inline constexpr void addrot(const vec3& rotDelta)
 		{
 			vec3 current = toeuler3(rot_local);
 				
-			current = current + rot_delta;
+			current = current + rotDelta;
 			//clamp to prevent absurd rotation jumps when looking up/down
 			current.x = clamp(current.x, -PITCH_LIMIT, PITCH_LIMIT);
 
 			rot_local = toquat(current);
-
-			combine();
 		}
 		//Takes in rotation in euler (degrees) and snaps to given rotation
-		inline constexpr void setroteuler(const vec3& rot_new)
+		inline constexpr void setroteuler(const vec3& rotValue)
 		{
-			rot_local = toquat(rot_new);
-
-			combine();
+			rot_local = toquat(rotValue);
 		}
 		//Takes in rotation in quaternion and snaps to given rotation
-		inline constexpr void setrotquat(const quat& rot_new)
+		inline constexpr void setrotquat(const quat& rotValue)
 		{
-			quat rot_clamped = normalize_q(rot_new);
+			quat rot_clamped = normalize_q(rotValue);
 
 			rot_local = rot_clamped;
-				
-			combine();
 		}
 
 		//Returns pitch as degrees for current transform
 		KNODISCARD
-		inline constexpr f32 getpitch(RotTarget type) const { return getroteuler(type).x; }
+		inline constexpr f32 getpitch(RotTarget rotType) const { return getroteuler(rotType).x; }
 		//Returns yaw as degrees for current transform
 		KNODISCARD
-		inline constexpr f32 getyaw(RotTarget type) const { return getroteuler(type).y; }
+		inline constexpr f32 getyaw(RotTarget rotType) const { return getroteuler(rotType).y; }
 		//Returns roll as degrees for current transform
 		KNODISCARD
-		inline constexpr f32 getroll(RotTarget type) const { return getroteuler(type).z; }
+		inline constexpr f32 getroll(RotTarget rotType) const { return getroteuler(rotType).z; }
 		
 		//Increments pitch over time with degrees
-		inline constexpr void addpitch(float degrees)
+		inline constexpr void addpitch(f32 degrees)
 		{
 			addrot({degrees, 0, 0});
 		}
 		//Increments yaw over time with degrees
-		inline constexpr void addyaw(float degrees)
+		inline constexpr void addyaw(f32 degrees)
 		{
 			addrot({0, degrees, 0});
 		}
 		//Increments roll over time with degrees
-		inline constexpr void addroll(float degrees)
+		inline constexpr void addroll(f32 degrees)
 		{
 			addrot({0, 0, degrees});
 		}
 		
 		//Snaps pitch to given degrees
-		inline constexpr void setpitch(float degrees)
+		inline constexpr void setpitch(f32 degrees)
 		{
 			vec3 e = getroteuler(RotTarget::ROT_LOCAL);
 			e.x = degrees;
 			setroteuler(e);
 		}
 		//Snaps yaw to given degrees
-		inline constexpr void setyaw(float degrees)
+		inline constexpr void setyaw(f32 degrees)
 		{
 			vec3 e = getroteuler(RotTarget::ROT_LOCAL);
 			e.y = degrees;
 			setroteuler(e);
 		}
 		//Snaps roll to given degrees
-		inline constexpr void setroll(float degrees)
+		inline constexpr void setroll(f32 degrees)
 		{
 			vec3 e = getroteuler(RotTarget::ROT_LOCAL);
 			e.z = degrees;
@@ -3536,39 +3500,35 @@ namespace KalaHeaders::KalaMath
 		}
 		
 		KNODISCARD
-		inline constexpr vec3 getsize(SizeTarget type) const
+		inline constexpr vec3 getsize(SizeTarget sizeType) const
 		{
-			return type == SizeTarget::SIZE_LOCAL
+			return sizeType == SizeTarget::SIZE_LOCAL
 				? size_local
 				: size_world;
 		};
 		//Incrementally scales over time
-		inline constexpr void addsize(const vec3& size_delta)
+		inline constexpr void addsize(const vec3& sizeDelta)
 		{
 			vec3 size_clamped = kclamp(
-				size_local + size_delta,
+				size_local + sizeDelta,
 				MIN_SIZE3,
 				MAX_SIZE3);
 
 			size_local = size_clamped;
-
-			combine();
 		}
 		//Snaps to given size
-		inline constexpr void setsize(const vec3& size_new)
+		inline constexpr void setsize(const vec3& sizeValue)
 		{
 			vec3 size_clamped = kclamp(
-				size_new,
+				sizeValue,
 				MIN_SIZE3,
 				MAX_SIZE3);
 
 			size_local = size_clamped;
-
-			combine();
 		}
-	private:
+
 		//Updates target world pos, rot and size relative to target local and parent world values
-		inline void combine()
+		inline constexpr void update(const Transform3D* parent = {})
 		{
 			if (parent)
 			{
@@ -3600,24 +3560,23 @@ namespace KalaHeaders::KalaMath
 
 				mat4 rot_mat = rotate(mat4(1.0f), parent->rot_world);
 
-				vec4 rot_offset = rot_mat * vec4(pos_local, 1.0f);
+				vec3 scaled_offset = pos_local * parent->size_world;
+				vec4 rot_offset = rot_mat * vec4(scaled_offset, 1.0f);
 				pos_world =
 					parent->pos_world
 					+ vec3(
 						rot_offset.x,
 						rot_offset.y,
 						rot_offset.z);
+
+				return;
 			}
-			else
-			{
-				pos_world = pos_local;
-				rot_world = rot_local;
-				size_world = size_local;
-			}
+
+			pos_world = pos_local;
+			rot_world = rot_local;
+			size_world = size_local;
 		}
-
-		Transform3D* parent{};
-
+	private:
 		//position of this transform
 		vec3 pos_local{};
 		//final position after combining local position with parent position
