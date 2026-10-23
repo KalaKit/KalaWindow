@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <array>
 #include <vector>
+#include <source_location>
 
 #include "core_utils.hpp"
 
@@ -21,6 +22,7 @@ namespace KalaWindow::Core
 	using std::filesystem::path;
 	using std::array;
 	using std::vector;
+	using std::source_location;
 
 	static constexpr u8 MIN_NAME_LENGTH = 4;
 	static constexpr u8 MAX_NAME_LENGTH = 64;
@@ -124,6 +126,7 @@ namespace KalaWindow::Core
 		KNORETURN
 		static void ForceClose(
 			string_view title,
-			string_view reason);
+			string_view reason,
+			const source_location& location = source_location::current());
 	};
 }

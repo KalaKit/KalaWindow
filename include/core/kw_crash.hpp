@@ -16,10 +16,19 @@ namespace KalaWindow::Graphics
 
 namespace KalaWindow::Core
 {
+	using std::string;
 	using std::string_view;
 
 	//Max allowed length of crash force close popup reason
 	static constexpr size_t MAX_REASON_LENGTH = 256;
+
+	struct LIB_API CrashInfo
+	{
+		string fileName{};
+		string functionName{};
+		u32 line{};
+		u32 column{};
+	};
 
 	class LIB_API CrashHandler
 	{
@@ -33,6 +42,7 @@ namespace KalaWindow::Core
 
 		static void SetForceCloseContent(
 			string_view title, 
-			string_view reason);
+			string_view reason,
+			const CrashInfo crashInfo);
 	};
 }

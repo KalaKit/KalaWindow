@@ -1179,7 +1179,8 @@ namespace KalaWindow::Core
 
 	void KalaWindowCore::ForceClose(
 		string_view target,
-		string_view reason)
+		string_view reason,
+		const source_location& location)
 	{
 		Log::Print(
 			"\n================"
@@ -1198,7 +1199,13 @@ namespace KalaWindow::Core
 
 		CrashHandler::SetForceCloseContent(
 			target,
-			reason);
+			reason,
+			{
+				.fileName = location.file_name(),
+				.functionName = location.function_name(),
+				.line = location.line(),
+				.column = location.column()
+			});
 
 #if defined(KWIN_ANY)
 		__debugbreak();

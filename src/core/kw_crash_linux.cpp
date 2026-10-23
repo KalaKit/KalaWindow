@@ -39,6 +39,7 @@ using KalaHeaders::KalaLog::TimeFormat;
 using KalaHeaders::KalaString::DecToHex;
 
 using KalaWindow::Core::KalaWindowCore;
+using KalaWindow::Core::CrashInfo;
 using KalaWindow::Core::CrashHandler;
 using KalaWindow::Graphics::Window_Global;
 using KalaWindow::Graphics::PopupAction;
@@ -59,6 +60,7 @@ static path exeDir{};
 
 static string forceCloseTitle{};
 static string forceCloseReason{};
+static CrashInfo crashInfo{};
 
 //Whether or not to create a dump file at crash
 static bool canCreateDump = true;
@@ -169,10 +171,12 @@ namespace KalaWindow::Core
 
     void CrashHandler::SetForceCloseContent(
         string_view title,
-        string_view reason)
+        string_view reason,
+        const CrashInfo newCrashInfo)
     {
         forceCloseTitle  = title.substr(0, MAX_NAME_LENGTH);
 		forceCloseReason = reason.substr(0, MAX_REASON_LENGTH);
+        crashInfo = newCrashInfo;
     }
 }
 
@@ -210,11 +214,20 @@ void HandleCrash(
                 ? forceCloseReason
                 : "An unknown force close occurred.";
 
+            if (!crashInfo.fileName.empty())
+            {
+                reason += "\n\nFile: " + crashInfo.fileName + "\n"
+                "Function: " + crashInfo.functionName + "\n"
+                "Line: " + to_string(crashInfo.line) + "\n"
+                "Column: " + to_string(crashInfo.column);
+            }
+
             if (Window_Global::CreatePopup(
                 title,
                 reason,
                 PopupAction::POPUP_ACTION_OK,
-                PopupType::POPUP_TYPE_ERROR) == PopupResult::POPUP_RESULT_OK)
+                PopupType::POPUP_TYPE_ERROR)
+                == PopupResult::POPUP_RESULT_OK)
             {
                 _exit(1);
             }

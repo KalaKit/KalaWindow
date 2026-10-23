@@ -8,6 +8,7 @@
 - demoted some errors to warnings
 - simplified message loop input callbacks to getters
 - simplified build and dependency system
+- display file, function, line and column if program force close is called
 
 # 1.6.0
 
