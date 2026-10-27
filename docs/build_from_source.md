@@ -4,7 +4,7 @@ This document is only applicable if you are building this repository from source
 
 ## Prerequisites
 
-- [Download KalaMake (1.4.0 or newer)](https://github.com/KalaKit/KalaMake/releases).
+- [Download KalaMake (2.0.0 or newer)](https://github.com/KalaKit/KalaMake/releases).
 - [Download Python (3.11 or newer)](https://www.python.org/downloads/).
 - [Clang (this or other versions, older versions should work too)](https://github.com/llvm/llvm-project/releases/tag/llvmorg-23.1.2)
 - [Visual Studio or Build tools 2022/2026 (untested on older versions)](https://visualstudio.microsoft.com/downloads/)
