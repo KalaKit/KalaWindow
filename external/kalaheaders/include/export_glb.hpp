@@ -1241,7 +1241,7 @@ R"(
 			return "Failed to export GLB to export path '" + exportPath.string() + "' because it already exists!";
 		}
 
-        auto fileStatus = status(absolute(exportPath).parent_path());
+        auto fileStatus = status(absolute(exportPath).lexically_normal().parent_path());
         auto filePerms = fileStatus.permissions();
 
         bool canWrite = (filePerms & (
@@ -1287,7 +1287,7 @@ R"(
 		// WRITE TO .GLB FILE
 		//
 
-		ofstream file(absolute(exportPath), ios::binary);
+		ofstream file(absolute(exportPath).lexically_normal(), ios::binary);
 		if (!file.is_open()) return "Failed to open export path '" + exportPath.string() + "' for writing!";
 
 		file.write(
