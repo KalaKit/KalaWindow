@@ -380,6 +380,10 @@ namespace KalaHeaders::KalaFile
 	template<typename X, typename Y>
 	concept IsConstrutible = constructible_from<X, Y>;
 
+	inline path GetCleanPath(const path& original) { return absolute(original).lexically_normal(); }
+
+	
+
 	//
 	// WILDCARDS
 	//
