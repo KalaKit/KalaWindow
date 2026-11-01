@@ -363,10 +363,13 @@ namespace KalaHeaders::KalaString
 	}
 
 	//Casts a base-10 unsigned decimal number to a base-16 hexadecimal string,
-	//something a human can read, can never realistically fail so there is no error string
+	//something a human can read, can never realistically fail so there is no error string,
+	//set padLeadingZero to true to pad odd-length hexadecimal strings
+	//to an even number of digits which is useful for byte-oriented output
 	inline void DecToHex(
 		u64 inNumber,
-		string& outValue)
+		string& outValue,
+		bool padLeadingZero = false)
 	{
 		char buf[16]{};
 
@@ -377,6 +380,12 @@ namespace KalaHeaders::KalaString
 			16);
 
 		outValue = string(buf, error.ptr);
+
+		if (padLeadingZero
+			&& outValue.size() % 2 != 0)
+		{
+			outValue.insert(outValue.begin(), '0');
+		}
 	}
 	
 	//Copies the value of the origin string_view within the bounds of the target char array,
