@@ -348,7 +348,23 @@ namespace KalaWindow::Graphics
     const string& Window_Global::GetAppName() { return appName; }
     void Window_Global::SetAppName(string_view newAppName)
     {
-        if (!IsStringInRange(newAppName, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
+		bool outResult{};
+		string err = IsStringInRange(
+			newAppName, 
+			MIN_NAME_LENGTH, 
+			MAX_NAME_LENGTH,
+			outResult);
+
+		if (!err.empty())
+		{
+            Log::Print(
+                "Failed to set app name! Reason: " + err,
+                "KW_WINDOW_GLOBAL",
+                LogType::LOG_WARNING);
+
+            return;
+		}
+        if (!outResult)
         {
             Log::Print(
                 "Failed to set app name because it was out of range!",

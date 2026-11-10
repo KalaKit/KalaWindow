@@ -8,6 +8,7 @@ dir_release: "build/temp/release-"
 dir_debug: "build/temp/debug-"
 def_win: "WIN32_LEAN_AND_MEAN", "NOMINMAX", "UNICODE", "_UNICODE"
 
+win-headers: "${VULKAN_SDK}/Include"
 lin-headers: "/usr/include/glib-2.0", "/usr/include/gdk-pixbuf-2.0", "/usr/lib/glib-2.0/include"
 
 #global
@@ -26,12 +27,14 @@ binaryname: "${name_bin}d"
 buildtype: "debug"
 buildpath: "${dir_debug}windows"
 defines: "${def_win}"
+headers: "${win-headers}"
 
 #profile release-windows
 binaryname: "${name_bin}"
 buildtype: "minsizerel"
 buildpath: "${dir_release}windows"
 defines: "${def_win}"
+headers: "${win-headers}"
 
 #profile debug-linux
 binaryname: "lib${name_bin}d"

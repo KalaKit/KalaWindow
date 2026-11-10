@@ -81,7 +81,7 @@ static void WriteLog(
 	string_view message,
 	string_view timeStamp);
 
-using u32 = uint32_t;
+using std::to_string;
 
 namespace KalaWindow::Core
 {
