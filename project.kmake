@@ -9,7 +9,6 @@ dir_debug: "build/temp/debug-"
 def_win: "WIN32_LEAN_AND_MEAN", "NOMINMAX", "UNICODE", "_UNICODE"
 
 lin-headers: "/usr/include/glib-2.0", "/usr/include/gdk-pixbuf-2.0", "/usr/lib/glib-2.0/include"
-win-gnu-headers: "external/vulkan/Include"
 
 #global
 compilerlauncher: "ccache"
