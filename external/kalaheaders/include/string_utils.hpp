@@ -135,36 +135,98 @@ namespace KalaHeaders::KalaString
 			});
 	}
 
-	//Returns true if the given string is within min and max range
+	//Returns true if string is valid UTF8
 	KNODISCARD
-	inline bool IsStringInRange(
-		string_view value,
-		size_t minLength,
-		size_t maxLength)
+	inline bool IsValidUTF8(string_view value)
 	{
 		size_t bytes{};
-		size_t chars{};
 
 		while (bytes < value.size())
 		{
-			unsigned char c = scast<unsigned char>(value[bytes]);
+			const u8 c = scast<u8>(value[bytes]);
 
-			size_t charLen = 
-				(c < 0x80) ? 1 
-				: (c < 0xE0) ? 2 
-				: (c < 0xF0) ? 3 
-				: 4;
+			size_t charLen{};
+
+			if (c <= 0x7F) charLen = 1;
+			else if (c >= 0xC2 && c <= 0xDF) charLen = 2;
+			else if (c >= 0xE0 && c <= 0xEF) charLen = 3;
+			else if (c >= 0xF0 && c <= 0xF4) charLen = 4;
+			else return false;
 				
 			//incomplete char
-			if (bytes + charLen > value.size()) return false;
+			if (charLen > value.size() - bytes) return false;
+
+			//validate continuation bytes
+			for (size_t i = 1; i < charLen; ++i)
+			{
+				const u8 next = scast<u8>(value[bytes + i]);
+
+				if ((next & 0xC0) != 0x80) return false;
+			}
+
+			//reject overlong encodings, surrogates and values above U+10FFFF
+			if (charLen >= 3)
+			{
+				const u8 next = scast<u8>(value[bytes + 1]);
+
+				if ((c == 0xE0 && next < 0xA0)
+					|| (c == 0xED && next > 0x9F)
+					|| (c == 0xF0 && next < 0x90)
+					|| (c == 0xF4 && next > 0x8F))
+				{
+					return false;
+				}
+			}
 			
 			bytes += charLen;
-			++chars;
-
-			if (chars > maxLength) return false;
 		}
 
-		return chars >= minLength;
+		return true;
+	}
+
+	//Get the UTF8-safe size of any string, returns error on failure
+	KNODISCARD
+	inline string GetLength(string_view value, size_t& size)
+	{
+		if (!IsValidUTF8(value))
+		{
+			return "Failed to get string length because it is not valid UTF8!";
+		}
+
+		size_t length{};
+
+		for (const char c : value)
+		{
+			const u8 byte = scast<u8>(c);
+
+			//continuation bytes start with binary 10xxxxxx
+			if ((byte & 0xC0) != 0x80)
+			{
+				++length;
+			}
+		}
+
+		size = length;
+		return {};
+	}
+
+	//Check if the given string is within min and max range,
+	//returns error on failure
+	KNODISCARD
+	inline string IsStringInRange(
+		string_view value,
+		size_t minLength,
+		size_t maxLength,
+		bool& outResult)
+	{
+		size_t length{};
+		string err = GetLength(value, length);
+
+		if (!err.empty()) return err;
+
+		outResult = length >= minLength && length <= maxLength;
+
+		return {};
 	}
 
 	//Casts a base-16 hexadecimal string to a base-10 unsigned decimal number,
@@ -187,8 +249,8 @@ namespace KalaHeaders::KalaString
 		if (error.ec != errc{})
 		{
 			return error.ec == errc::invalid_argument
-				? "HexToDec failed because inString is not a valid hex string!"
-				: "HexToDec failed because inString is too large for u64!";
+				? "Failed to convert hex to dec because inString is not a valid hex string!"
+				: "Failed to convert hex to dec because inString is too large for u64!";
 		}
 
 		outValue = result;
@@ -231,7 +293,7 @@ namespace KalaHeaders::KalaString
 		char (&outValue)[N])
 	{
 		//skip if there is no input data
-		if (inValue.empty()) return "StringToCharArray failed because inValue was empty!";
+		if (inValue.empty()) return "Failed to convert string to char array because input was empty!";
 		
 		size_t len = inValue.size();
 		if (len >= N) len = N - 1;
@@ -257,10 +319,12 @@ namespace KalaHeaders::KalaString
 		}
 		
 		//skip if no null terminator was found
-		if (i == N) return "ZeroPadCharArray failed because there was no null terminator!";
+		if (i == N) return "Failed to zero pad char array because there was no null terminator!";
 		
 		//zero-pad everything after the null-terminator
 		memset(&outValue[i + 1], 0, N - (i + 1));
+
+		return "";
 	}
 
 	//Check if origin is the same as target, with optional case sensitivity flag,
@@ -272,15 +336,42 @@ namespace KalaHeaders::KalaString
 		bool& outResult,
 		bool ignoreCase = true)
 	{
-		//return false if origin or target is empty
+		outResult = false;
+
 		if (origin.empty()
 			|| target.empty())
 		{
-			return "StringsMatch failed because origin or target was empty!";
+			return "Failed to compare strings because origin or target was empty!";
+		}
+
+		if (!IsValidUTF8(origin)
+			|| !IsValidUTF8(target))
+		{
+			return "Failed to compare strings because origin or target was not valid UTF8!";
 		}
 
 		//case-sensitive compare
-		if (!ignoreCase) outResult = origin == target;
+		if (!ignoreCase)
+		{
+			outResult = origin == target;
+			return "";
+		}
+
+		for (const char c : origin)
+		{
+			if (scast<unsigned char>(c) > 0x7F)
+			{
+				return "Failed to compare strings because non-ascii case-insensitive comparison is not supported!";
+			}
+		}
+
+		for (const char c : target)
+		{
+			if (scast<unsigned char>(c) > 0x7F)
+			{
+				return "Failed to compare strings because non-ascii case-insensitive comparison is not supported!";
+			}
+		}
 
 		//case-insensitive compare
 		if (origin.size() != target.size()) return "";
@@ -308,7 +399,7 @@ namespace KalaHeaders::KalaString
 		string_view splitter,
 		vector<string>& outValue)
 	{
-		if (origin.empty()) return "TokenizeString failed because origin was empty!";
+		if (origin.empty()) return "Failed to tokenize string because origin was empty!";
 		
 		vector<string> result{};
 		string current{};
@@ -360,7 +451,7 @@ namespace KalaHeaders::KalaString
 		vector<string>& outResult)
 	{
 		//return nothing if origin is empty
-		if (origin.empty()) return "SplitString failed because origin was empty!";
+		if (origin.empty()) return "Failed to split string because origin was empty!";
 
 		vector<string> result{};
 		size_t start{};
@@ -389,7 +480,7 @@ namespace KalaHeaders::KalaString
 		string& outResult)
 	{
 		//return nothing if parts vector is empty
-		if (parts.empty()) return "JoinString failed because there were no parts to join!";
+		if (parts.empty()) return "Failed to join string because there were no parts to join!";
 
 		size_t totalSize{};
 
@@ -417,12 +508,12 @@ namespace KalaHeaders::KalaString
 		string_view origin,
 		string& outResult)
 	{
-		if (origin.empty()) return "TrimString failed because origin was empty!";
+		if (origin.empty()) return "Failed to trim string because origin was empty!";
 
 		const char* whitespace = " \t\n\r\f\v";
 		size_t start = origin.find_first_not_of(whitespace);
 
-		if (start == string::npos) return "TrimString failed because origin was all whitespace";
+		if (start == string::npos) return "Failed to trim string because origin was all whitespace";
 
 		size_t end = origin.find_last_not_of(whitespace);
 
@@ -441,7 +532,7 @@ namespace KalaHeaders::KalaString
 		bool removeAll = false)
 	{
 		//return origin if target is empty
-		if (target.empty()) return "RemoveFromString failed because target was empty!";
+		if (target.empty()) return "Failed to remove from string because target was empty!";
 
 		string result(origin);
 		size_t pos = result.find(target);
@@ -481,7 +572,7 @@ namespace KalaHeaders::KalaString
 		bool replaceAll = false)
 	{
 		//return origin if target is empty
-		if (target.empty()) return "ReplaceFromString failed because target was empty!";
+		if (target.empty()) return "Failed to replace from string because target was empty!";
 
 		string result(origin);
 		size_t pos = result.find(target);
@@ -521,8 +612,8 @@ namespace KalaHeaders::KalaString
 		string& outResult,
 		string_view replacer = {})
 	{
-		if (origin.empty()) return "ReplaceBefore failed because origin was empty!";
-		if (target.empty()) return "ReplaceBefore failed because target was empty!";
+		if (origin.empty()) return "Failed to replace before string because origin was empty!";
+		if (target.empty()) return "Failed to replace before string because target was empty!";
 
 		string result(origin);
 		size_t pos = origin.find(target);
@@ -552,8 +643,8 @@ namespace KalaHeaders::KalaString
 		string& outResult,
 		string_view replacer = {})
 	{
-		if (origin.empty()) return "ReplaceAfter failed because origin was empty!";
-		if (target.empty()) return "ReplaceAfter failed because target was empty!";
+		if (origin.empty()) return "Failed to replace after string because origin was empty!";
+		if (target.empty()) return "Failed to replace after string because target was empty!";
 
 		string result(origin);
 		size_t pos = origin.find(target);
@@ -581,8 +672,8 @@ namespace KalaHeaders::KalaString
 		string_view target,
 		string& outValue)
 	{
-		if (origin.empty()) return "GetBefore failed because origin was empty!";
-		if (target.empty()) return "GetBefore failed because target was empty!";
+		if (origin.empty()) return "Failed to get before string because origin was empty!";
+		if (target.empty()) return "Failed to get before string because target was empty!";
 
 		string result(origin);
 		size_t pos = origin.find(target);
@@ -604,8 +695,8 @@ namespace KalaHeaders::KalaString
 		string_view target,
 		string& outValue)
 	{
-		if (origin.empty()) return "GetAfter failed because origin was empty!";
-		if (target.empty()) return "GetAfter failed because target was empty!";
+		if (origin.empty()) return "Failed to get after string because origin was empty!";
+		if (target.empty()) return "Failed to get after string because target was empty!";
 
 		string result(origin);
 		size_t pos = origin.find(target);
@@ -626,7 +717,20 @@ namespace KalaHeaders::KalaString
 		string_view origin,
 		string& outValue)
 	{
-		if (origin.empty()) return "ToUpperString failed because origin was empty!";
+		if (origin.empty()) return "Failed to uppercase string because origin was empty!";
+
+		if (!IsValidUTF8(origin))
+		{
+			return "Failed to uppercase string because origin was not valid UTF8!";
+		}
+
+		for (const char c : origin)
+		{
+			if (scast<unsigned char>(c) > 0x7F)
+			{
+				return "Failed to uppercase string because non-ascii uppercasing is not supported!";
+			}
+		}
 
 		string result = string(origin);
 
@@ -647,7 +751,20 @@ namespace KalaHeaders::KalaString
 		string_view origin,
 		string& outValue)
 	{
-		if (origin.empty()) return "ToUpperString failed because origin was empty!";
+		if (origin.empty()) return "Failed to lowercase string because origin was empty!";
+
+		if (!IsValidUTF8(origin))
+		{
+			return "Failed to lowercase string because origin was not valid UTF8!";
+		}
+
+		for (const char c : origin)
+		{
+			if (scast<unsigned char>(c) > 0x7F)
+			{
+				return "Failed to lowercase string because non-ascii lowercasing is not supported!";
+			}
+		}
 
 		string result = string(origin);
 

@@ -78,7 +78,23 @@ namespace KalaWindow::Graphics
 		vec2 size,
 		ProcessWindow* parentWindow)
     {
-		if (!IsStringInRange(title, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
+        bool outResult{};
+        string err = IsStringInRange(
+            title, 
+            MIN_NAME_LENGTH, 
+            MAX_NAME_LENGTH,
+            outResult);
+
+        if (!err.empty())
+        {
+			Log::Print(
+				"Failed to create window! Reason: " + err,
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+
+			return nullptr;
+        }
+		if (!outResult)
 		{
 			Log::Print(
 				"Failed to create window because its title length was out of range!",
@@ -320,7 +336,7 @@ namespace KalaWindow::Graphics
 
         windowPtr->BringToFocus();
 
-		string err = registry.AddContent(newID, std::move(newWindow));
+		err = registry.AddContent(newID, std::move(newWindow));
 		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
@@ -499,7 +515,23 @@ namespace KalaWindow::Graphics
                 "the display handle was invalid!");
         }
 
-		if (!IsStringInRange(newValue, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
+        bool outResult{};
+        string err = IsStringInRange(
+            newValue, 
+            MIN_NAME_LENGTH, 
+            MAX_NAME_LENGTH,
+            outResult);
+
+        if (!err.empty())
+        {
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' title! Reason: " + err,
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+
+			return;
+        }
+		if (!outResult)
 		{
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' title "
@@ -1064,7 +1096,23 @@ namespace KalaWindow::Graphics
                 "the display handle was invalid!");
         }
 
-		if (!IsStringInRange(newValue, MIN_NAME_LENGTH, MAX_NAME_LENGTH))
+        bool outResult{};
+        string err = IsStringInRange(
+            newValue, 
+            MIN_NAME_LENGTH, 
+            MAX_NAME_LENGTH,
+            outResult);
+
+        if (!err.empty())
+        {
+			Log::Print(
+				"Failed to set window '" + to_string(ID) + "' class value! Reason: " + err,
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+
+			return;
+        }
+		if (!outResult)
 		{
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' class value "
