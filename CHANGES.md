@@ -10,6 +10,7 @@
 - simplified build and dependency system
 - display file, function, line and column if program force close is called
 - added canCloseCallback to prevent per-window shutdown if app developer wants to keep app active
+- fixed createpopup issues for createpopup on x11 and added correct handling for yes-no-cancelPopupResult
 
 # 1.6.0
 

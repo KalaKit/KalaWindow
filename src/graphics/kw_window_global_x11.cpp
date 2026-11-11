@@ -450,6 +450,85 @@ namespace KalaWindow::Graphics
 		PopupAction action,
 		PopupType type) 
     { 
+        auto get_result = [action](const vector<char*>& execArgs) -> PopupResult
+            {
+                int pipefd[2]{};
+                if (pipe(pipefd) == -1) return PopupResult::POPUP_RESULT_NONE;
+
+                pid_t pid = fork();
+
+                if (pid == -1)
+                {
+                    close(pipefd[0]);
+                    close(pipefd[1]);
+                    return PopupResult::POPUP_RESULT_NONE;
+                }
+
+                if (pid == 0)
+                {
+                    close(pipefd[0]);
+
+                    dup2(pipefd[1], STDOUT_FILENO);
+                    close(pipefd[1]);
+
+                    execvp("zenity", execArgs.data());
+                    _exit(127);
+                }
+
+                close(pipefd[1]);
+
+                string output{};
+                char buffer[256]{};
+
+                ssize_t bytes{};
+                while ((bytes = read(pipefd[0], buffer, sizeof(buffer))) > 0)
+                {
+                    output.append(buffer, bytes);
+                }
+
+                close(pipefd[0]);
+
+                int status{};
+                if (waitpid(pid, &status, 0) == -1
+                    || !WIFEXITED(status))
+                {
+                    return PopupResult::POPUP_RESULT_NONE;
+                }
+
+                int code = WEXITSTATUS(status);
+
+                if (code == 127) return PopupResult::POPUP_RESULT_NONE;
+
+                if (code == 0)
+                {
+                    switch (action)
+                    {
+                    default:
+                    case PopupAction::POPUP_ACTION_OK:
+                    case PopupAction::POPUP_ACTION_OK_CANCEL:
+                        return PopupResult::POPUP_RESULT_OK;
+                    case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+                        return PopupResult::POPUP_RESULT_RETRY;
+                    case PopupAction::POPUP_ACTION_YES_NO:
+                    case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+                        return PopupResult::POPUP_RESULT_YES;
+                    }
+                }
+                else
+                {
+                    switch (action)
+                    {
+                    default: return PopupResult::POPUP_RESULT_CANCEL;
+                    case PopupAction::POPUP_ACTION_YES_NO:
+                        return PopupResult::POPUP_RESULT_NO;
+                    case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+                        return output == "No\n" || output == "No"
+                            ? PopupResult::POPUP_RESULT_NO
+                            : PopupResult::POPUP_RESULT_CANCEL;
+                    }
+                }
+            };
+
         vector<string> args{};
         args.emplace_back("zenity");
 
@@ -462,25 +541,25 @@ namespace KalaWindow::Graphics
             case PopupType::POPUP_TYPE_INFO:
             {
                 typeStr = "info";
-                args.emplace_back("--info");
+                args.emplace_back("--icon=dialog-information");
                 break;
             }
             case PopupType::POPUP_TYPE_WARNING:
             {
                 typeStr = "warning";
-                args.emplace_back("--warning");
+                args.emplace_back("--icon=dialog-warning");
                 break;
             }
             case PopupType::POPUP_TYPE_ERROR:
             {
                 typeStr = "error";
-                args.emplace_back("--error");
+                args.emplace_back("--icon=dialog-error");
                 break;
             }
             case PopupType::POPUP_TYPE_QUESTION:
             {
                 typeStr = "question";
-                args.emplace_back("--question");
+                args.emplace_back("--icon=dialog-question");
                 break;
             }
         }
@@ -488,20 +567,36 @@ namespace KalaWindow::Graphics
         switch (action)
         {
         default:
-        case PopupAction::POPUP_ACTION_OK: break;
+        case PopupAction::POPUP_ACTION_OK:
+            actionStr = "ok";
+            args.emplace_back("--info");
+            break;
 
         case PopupAction::POPUP_ACTION_OK_CANCEL:
+            actionStr = "ok_cancel";
+            args.emplace_back("--question");
+            args.emplace_back("--ok-label=OK");
+            args.emplace_back("--cancel-label=Cancel");
+            break;
         case PopupAction::POPUP_ACTION_RETRY_CANCEL:
-            actionStr = "cancel";
-            args.emplace_back("--ok-cancel=OK");
+            actionStr = "retry_cancel";
+            args.emplace_back("--question");
+            args.emplace_back("--ok-label=Retry");
             args.emplace_back("--cancel-label=Cancel");
             break;
 
         case PopupAction::POPUP_ACTION_YES_NO:
-        case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
-            actionStr = "yes-no";
-            args.emplace_back("--ok-cancel=Yes");
+            actionStr = "yes_no";
+            args.emplace_back("--question");
+            args.emplace_back("--ok-label=Yes");
             args.emplace_back("--cancel-label=No");
+            break;
+        case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+            actionStr = "yes_no_cancel";
+            args.emplace_back("--question");
+            args.emplace_back("--ok-label=Yes");
+            args.emplace_back("--cancel-label=Cancel");
+            args.emplace_back("--extra-button=No");
             break;
         }
 
@@ -523,45 +618,7 @@ namespace KalaWindow::Graphics
                 LogType::LOG_VERBOSE);
         }
 
-        pid_t pid = fork();
-        if (pid == 0)
-        {
-            execvp("zenity", execArgs.data());
-            KalaWindowCore::ForceClose(
-                "KalaWindow global window error",
-                "Failed to run zenity because execvp failed!");
-        }
-
-        int status{};
-        waitpid(pid, &status, 0);
-
-        if (!WIFEXITED(status)) return PopupResult::POPUP_RESULT_NONE;
-
-        int code = WEXITSTATUS(status);
-
-        if (code == 0)
-        {
-            switch (action)
-            {
-            default:
-            case PopupAction::POPUP_ACTION_OK:
-            case PopupAction::POPUP_ACTION_RETRY_CANCEL:
-                return PopupResult::POPUP_RESULT_OK;
-            case PopupAction::POPUP_ACTION_YES_NO:
-            case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
-                return PopupResult::POPUP_RESULT_YES;
-            }
-        }
-        else
-        {
-            switch (action)
-            {
-            default: return PopupResult::POPUP_RESULT_CANCEL;
-            case PopupAction::POPUP_ACTION_YES_NO:
-            case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
-                return PopupResult::POPUP_RESULT_NO;
-            }
-        }
+        return get_result(execArgs);
     }
 
     vector<path> Window_Global::GetFiles(
