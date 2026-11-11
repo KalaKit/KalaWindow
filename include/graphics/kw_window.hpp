@@ -220,10 +220,16 @@ namespace KalaWindow::Graphics
 		void SetLateUpdateCallback(function<void()>&& newValue);
 
 		//Set the resize callback, useful for graphics libraries like KalaGraphics
-		//to decide what to do when the window resized, bool true means force rebuild
+		//to decide what to do when the window resized, bool true means force rebuild,
+		//do not modify if using Elypso Engine, this callback is critical for proper resizing in Elypso Engine
 		void SetResizeCallback(function<void(bool)>&& newValue);
 
+		//Do not modify if using Elypso Engine, this callback is critical for proper shutdown in Elypso Engine
 		void SetShutdownCallback(function<void()>&& newValue);
+
+		//Assign a callback that gets triggered to check if this window is allowed to close,
+		//your callback should return false if you dont want to allow this window to close
+		void SetCanCloseCallback(function<bool()> newValue);
 
 		const WindowData& GetWindowData() const;
 
@@ -292,5 +298,7 @@ namespace KalaWindow::Graphics
 
 		function<void(bool)> resizeCallback{};
 		function<void()> shutdownCallback{};
+
+		function<bool()> canCloseCallback{};
 	};
 }

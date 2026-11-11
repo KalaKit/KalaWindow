@@ -1440,6 +1440,19 @@ namespace KalaWindow::Graphics
 		shutdownCallback = std::move(newValue);
 	}
 
+    void ProcessWindow::SetCanCloseCallback(function<bool()> newValue)
+    {
+		if (!newValue)
+		{
+			Log::Print(
+				"Assigned empty can close callback callback to window '" + to_string(ID) + "'.",
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+		}
+
+		canCloseCallback = std::move(newValue);
+    }
+
     void ProcessWindow::UpdateIdleState()
     {
         isIdle =
@@ -1450,6 +1463,17 @@ namespace KalaWindow::Graphics
 
     void ProcessWindow::Destroy()
     {
+        if (canCloseCallback
+            && !canCloseCallback())
+        {
+			Log::Print(
+				"Skipping window '" + to_string(ID) + "' shutdown because shutdown was denied!",
+				"KW_WINDOW",
+				LogType::LOG_WARNING);
+
+            return;
+        }
+
 		if (registry.GetAllContent().size() == 1)
 		{
 			Log::Print(
