@@ -64,8 +64,11 @@ namespace KalaHeaders::KalaFile
 	using std::filesystem::perms;
 	using std::error_code;
 	using std::generic_category;
+	using std::is_same_v;
+	using std::is_integral_v;
 	using std::is_pointer_v;
 	using std::is_array_v;
+	using std::make_unsigned_t;
 	using std::same_as;
 	using std::equality_comparable_with;
 	using std::assignable_from;
@@ -2612,194 +2615,78 @@ namespace KalaHeaders::KalaFile
 		return result;
 	}
 	
-	inline constexpr void WriteU8(
+	//Write any little endian signed or unsigned integer to a binary vector, returns false on failure
+	template<typename T>
+		requires(is_integral_v<T> && !is_same_v<T, bool>)
+	KNODISCARD
+	inline constexpr bool WriteInt(
 		vector<u8>& data,
 		size_t offset,
-		u8 value)
+		T value)
 	{
-		//append data to the end of the file
+		using U = make_unsigned_t<T>;
+
+		constexpr size_t byteCount = sizeof(T);
+		const U bits = scast<U>(value);
+
 		if (offset == scast<size_t>(-1))
 		{
-			data.push_back(value);
-			return;
+			for (size_t i = 0; i < byteCount; i++)
+			{
+				data.push_back(scast<u8>(bits >> (i * 8)));
+			}
+			return true;
 		}
-		
-		//write at target offset, auto-resize if needed
-		if (offset >= data.size()) data.resize(offset + 1);
-		
-		data[offset] = value;
+
+		if (offset > data.max_size()
+			|| byteCount > data.max_size() - offset)
+		{
+			return false;
+		}
+
+		if (offset > data.size()
+			|| byteCount > data.size() - offset)
+		{
+			data.resize(offset + byteCount);
+		}
+
+		for (size_t i = 0; i < byteCount; i++)
+		{
+			data[offset + i] = scast<u8>(bits >> (i * 8));
+		}
+
+		return true;
 	}
-	inline constexpr void WriteU16(
-		vector<u8>& data,
+
+	//Read any little endian signed or unsigned integer from a binary vector, returns false on failure
+	template<typename T>
+		requires (is_integral_v<T> && !is_same_v<T, bool>)
+	KNODISCARD
+	inline constexpr bool ReadInt(
+		const vector<u8>& data,
 		size_t offset,
-		u16 value)
+		T& outValue)
 	{
-		//append data to the end of the file
-		if (offset == scast<size_t>(-1))
+		using U = make_unsigned_t<T>;
+
+		constexpr size_t byteCount = sizeof(T);
+
+		if (offset > data.size()
+			|| byteCount > data.size() - offset)
 		{
-			data.push_back(scast<u8>(value & 0xFF));
-			data.push_back(scast<u8>((value >> 8) & 0xFF));
-			return;
+			return false;
 		}
-		
-		//write at target offset, auto-resize if needed
-		if (offset + 1 >= data.size()) data.resize(offset + 2);
-		
-		data[offset]     = scast<u8>(value & 0xFF);
-		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
-	}
-	inline constexpr void WriteU32(
-		vector<u8>& data,
-		size_t offset,
-		u32 value)
-	{
-		//append data to the end of the file
-		if (offset == scast<size_t>(-1))
+
+		U bits{};
+
+		for (size_t i = 0; i < byteCount; i++)
 		{
-			data.push_back(scast<u8>(value & 0xFF));
-			data.push_back(scast<u8>((value >> 8) & 0xFF));
-			data.push_back(scast<u8>((value >> 16) & 0xFF));
-			data.push_back(scast<u8>((value >> 24) & 0xFF));
-			return;
+			bits |= scast<U>(data[offset + i]) << (i * 8);
 		}
-		
-		//write at target offset, auto-resize if needed
-		if (offset + 3 >= data.size()) data.resize(offset + 4);
-		
-		data[offset]     = scast<u8>(value & 0xFF);
-		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
-		data[offset + 2] = scast<u8>((value >> 16) & 0xFF);
-		data[offset + 3] = scast<u8>((value >> 24) & 0xFF);
-	}
-	
-	KNODISCARD
-	inline constexpr u8 ReadU8(
-		const vector<u8>& data,
-		size_t offset)
-	{
-		return (offset >= data.size())
-			? 0x00
-			: scast<u8>(data[offset]);
-	}
-	KNODISCARD
-	inline constexpr u16 ReadU16(
-		const vector<u8>& data,
-		size_t offset)
-	{
-		return (offset + 1 >= data.size())
-			? 0x0000
-			: scast<u16>(data[offset])
-			| scast<u16>(data[offset + 1]) << 8;
-	}
-	KNODISCARD
-	inline constexpr u32 ReadU32(
-		const vector<u8>& data,
-		size_t offset)
-	{
-		return (offset + 3 >= data.size())
-			? 0x00000000
-			: scast<u32>(data[offset])
-			| scast<u32>(data[offset + 1]) << 8
-			| scast<u32>(data[offset + 2]) << 16
-			| scast<u32>(data[offset + 3]) << 24;
-	}
-	
-	inline constexpr void WriteI8(
-		vector<u8>& data,
-		size_t offset,
-		i8 value)
-	{
-		//append data to the end of the file
-		if (offset == scast<size_t>(-1))
-		{
-			data.push_back(scast<u8>(value));
-			return;
-		}
-		
-		//writes at target offset, auto-resizes if needed
-		if (offset >= data.size()) data.resize(offset + 1);
-		
-		data[offset] = value;
-	}
-	inline constexpr void WriteI16(
-		vector<u8>& data,
-		size_t offset,
-		i16 value)
-	{
-		//append data to the end of the file
-		if (offset == scast<size_t>(-1))
-		{
-			data.push_back(scast<u8>(value & 0xFF));
-			data.push_back(scast<u8>((value >> 8) & 0xFF));
-			return;
-		}
-		
-		//writes at target offset, auto-resizes if needed
-		if (offset + 1 >= data.size()) data.resize(offset + 2);
-		
-		data[offset]     = scast<u8>(value & 0xFF);
-		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
-	}
-	inline constexpr void WriteI32(
-		vector<u8>& data,
-		size_t offset,
-		i32 value)
-	{
-		//append data to the end of the file
-		if (offset == scast<size_t>(-1))
-		{
-			data.push_back(scast<u8>(value & 0xFF));
-			data.push_back(scast<u8>((value >> 8) & 0xFF));
-			data.push_back(scast<u8>((value >> 16) & 0xFF));
-			data.push_back(scast<u8>((value >> 24) & 0xFF));
-			return;
-		}
-		
-		//writes at target offset, auto-resizes if needed
-		if (offset + 3 >= data.size()) data.resize(offset + 4);
-		
-		data[offset]     = scast<u8>(value & 0xFF);
-		data[offset + 1] = scast<u8>((value >> 8) & 0xFF);
-		data[offset + 2] = scast<u8>((value >> 16) & 0xFF);
-		data[offset + 3] = scast<u8>((value >> 24) & 0xFF);
-	}
-	
-	KNODISCARD
-	inline constexpr i8 ReadI8(
-		const vector<u8>& data,
-		size_t offset)
-	{
-		return (offset >= data.size())
-			? 0
-			: scast<i8>(data[offset]);
-	}
-	KNODISCARD
-	inline constexpr i16 ReadI16(
-		const vector<u8>& data,
-		size_t offset)
-	{
-		if (offset + 1 >= data.size()) return 0;
-		
-		u16 value =
-			scast<u16>(data[offset])
-			| scast<u16>(data[offset + 1]) << 8;
-			
-		return scast<i16>(value);
-	}
-	KNODISCARD
-	inline constexpr i32 ReadI32(
-		const vector<u8>& data,
-		size_t offset)
-	{
-		if (offset + 3 >= data.size()) return 0;
-		
-		u32 value =
-			scast<u32>(data[offset])
-			| scast<u32>(data[offset + 1]) << 8
-			| scast<u32>(data[offset + 2]) << 16
-			| scast<u32>(data[offset + 3]) << 24;
-			
-		return scast<i32>(value);
+
+		outValue = scast<T>(bits);
+
+		return true;
 	}
 	
 	//Return all start and end of defined string in a binary
