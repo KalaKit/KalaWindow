@@ -23,6 +23,7 @@
 	#define GET_Y_LPARAM(lp) ((int)(short)HIWORD(lp))
 #endif
 
+#include "core_utils.hpp"
 #include "log_utils.hpp"
 #include "math_utils.hpp"
 #include "key_standards.hpp"
