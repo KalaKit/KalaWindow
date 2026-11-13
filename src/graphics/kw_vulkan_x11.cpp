@@ -19,6 +19,7 @@
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xlib.h"
 
+#include "core_utils.hpp"
 #include "log_utils.hpp"
 
 #include "graphics/kw_window.hpp"

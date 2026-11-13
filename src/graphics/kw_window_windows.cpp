@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "core_utils.hpp"
 #include "log_utils.hpp"
 #include "string_utils.hpp"
 

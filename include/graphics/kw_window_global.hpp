@@ -9,7 +9,7 @@
 #include <vector>
 #include <filesystem>
 
-#include "core_utils.hpp"
+#include "macros.hpp"
 
 namespace KalaWindow::Graphics
 {

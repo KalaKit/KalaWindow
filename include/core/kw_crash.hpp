@@ -7,7 +7,7 @@
 
 #include <string>
 
-#include "core_utils.hpp"
+#include "macros.hpp"
 
 namespace KalaWindow::Graphics
 {

@@ -17,6 +17,7 @@
 #include <sstream>
 #include <algorithm>
 
+#include "core_utils.hpp"
 #include "log_utils.hpp"
 #include "string_utils.hpp"
 

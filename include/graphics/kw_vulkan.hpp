@@ -8,8 +8,6 @@
 #include <string>
 #include <vector>
 
-#include "core_utils.hpp"
-
 #include "core/kw_registry.hpp"
 
 struct VkInstance_T;

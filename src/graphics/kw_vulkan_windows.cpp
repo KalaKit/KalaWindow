@@ -17,6 +17,7 @@
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_win32.h"
 
+#include "core_utils.hpp"
 #include "log_utils.hpp"
 #include "core_utils.hpp"
 

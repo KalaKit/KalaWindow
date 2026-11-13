@@ -11,7 +11,6 @@
 #include <array>
 #include <filesystem>
 
-#include "core_utils.hpp"
 #include "math_utils.hpp"
 
 #include "core/kw_messageloop.hpp"
