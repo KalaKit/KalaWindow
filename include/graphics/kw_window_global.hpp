@@ -19,47 +19,66 @@ namespace KalaWindow::Graphics
 	using std::filesystem::path;
 
 	//Buttons shown on the popup
-	enum class PopupAction : u8
+	enum class PopupAction
 	{
-		POPUP_ACTION_OK            = 0, //OK button only
-		POPUP_ACTION_OK_CANCEL     = 1, //OK and Cancel buttons (used as POPUP_ACTION_OK on Linux)
-		POPUP_ACTION_YES_NO        = 2, //Yes and No buttons
-		POPUP_ACTION_YES_NO_CANCEL = 3, //Yes, No, and Cancel buttons (used as POPUP_ACTION_YES_NO on Linux)
-		POPUP_ACTION_RETRY_CANCEL  = 4  //Retry and Cancel buttons (used as POPUP_ACTION_YES_NO on Linux)
+		//OK button only
+		OK,
+		//OK and Cancel buttons
+		OK_CANCEL,
+		//Yes and No buttons
+		YES_NO,
+		//Yes, No, and Cancel buttons
+		YES_NO_CANCEL,
+		//Retry and Cancel buttons
+		RETRY_CANCEL
 	};
 
 	//Icon shown on the popup
-	enum class PopupType : u8
+	enum class PopupType
 	{
-		POPUP_TYPE_INFO     = 0, //Info icon (blue 'i')
-		POPUP_TYPE_WARNING  = 1, //Warning icon (yellow triangle)
-		POPUP_TYPE_ERROR    = 2, //Error icon (red X)
-		POPUP_TYPE_QUESTION = 3  //Question icon (used for confirmations)
+		//Info icon (blue 'i')
+		INFO,
+		//Warning icon (yellow triangle)
+		WARNING,
+		//Error icon (red X)
+		ERROR,
+		//Question icon (used for confirmations)
+		QUESTION
 	};
 
 	//User response from the popup
-	enum class PopupResult : u8
+	enum class PopupResult
 	{
-		POPUP_RESULT_NONE   = 0, //No response or unknown (unused in Linux)
-		POPUP_RESULT_OK     = 1, //User clicked OK
-		POPUP_RESULT_CANCEL = 2, //User clicked Cancel (unused in Linux)
-		POPUP_RESULT_YES    = 3, //User clicked Yes
-		POPUP_RESULT_NO     = 4, //User clicked No
-		POPUP_RESULT_RETRY  = 5  //User clicked Retry (unused in Linux)
+		//No response or unknown (counts as bad input parameters or something did not work right)
+		NONE,
+		//User clicked OK
+		OK,
+		//User clicked Cancel
+		CANCEL,
+		//User clicked Yes
+		YES,
+		//User clicked No
+		NO,
+		//User clicked Retry
+		RETRY
 	};
 
-	enum class FileType : u8
+	enum class FileType
 	{
-		FILE_ANY    = 0, //Can select any files
-		FILE_FOLDER = 1, //Can select any folders
-		FILE_EXE    = 2, //Can select any executables
-		FILE_CUSTOM = 3  //Can select a custom list of files, must pass vector
+		//Can select any files
+		ANY,
+		//Can select any folders
+		FOLDER,
+		//Can select any executables
+		EXE,
+		//Can select a custom list of files, must pass vector
+		CUSTOM
 	};
 
-	enum class SoundType : u8
+	enum class SoundType
 	{
-		SOUND_OK    = 0,
-		SOUND_ERROR = 1
+		OK,
+		ERROR
 	};
 
 #if defined(KLIN_ANY)
@@ -163,7 +182,7 @@ namespace KalaWindow::Graphics
 		//even if the file explorer allows to navigate outside that directory.
 		//Set multiple to true to allow selecting more than one item,
 		//does not work with directories on X11.
-		//Requires zenity on X11, FILE_CUSTOM requires to fill out customTypes vector.
+		//Requires zenity on X11, CUSTOM requires to fill out customTypes vector.
 		KNODISCARD
 		static vector<path> GetFiles(
 			FileType type,

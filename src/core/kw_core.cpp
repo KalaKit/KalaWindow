@@ -268,7 +268,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get physical core count because GetLogicalProcessorInformationEx failed!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -294,7 +294,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get physical core count because '/ptoc/cpuinfo' couldn't be opened!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -362,7 +362,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get base clock speed because '/sys/devices/system/cpu/cpu0/cpufreq/base_frequency' couldn't be opened!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -467,7 +467,7 @@ namespace KalaWindow::Core
 
 		auto get_cpu_feature_flags = []() -> u32
 			{
-				u32 flags = scast<u32>(CPUFeatureFlag::CPU_FEATURE_NONE);
+				u32 flags = scast<u32>(CPUFeatureFlag::NONE);
 
 				int regs0[4]{}; //leaf 0 - max supported leaf
 				int regs1[4]{}; //leaf 1
@@ -496,18 +496,18 @@ namespace KalaWindow::Core
 				u32 maxLeaf = (u32)regs0[0];
 
 				//leaf 1, EDX
-				if (regs1[3] & (1 << 25)) flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE);
-				if (regs1[3] & (1 << 26)) flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE2);
+				if (regs1[3] & (1 << 25)) flags |= scast<u32>(CPUFeatureFlag::SSE);
+				if (regs1[3] & (1 << 26)) flags |= scast<u32>(CPUFeatureFlag::SSE2);
 
 				//leaf 1, ECX
 				bool osxSaveSupported = (regs1[2] & (1 << 27)) != 0; //OSXSAVE bit
 				bool avxSupportedByCPU = (regs1[2] & (1 << 28)) != 0; //AVX bit
 
-				if (regs1[2] & (1 << 0))  flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE3);
-				if (regs1[2] & (1 << 9))  flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSSE3);
-				if (regs1[2] & (1 << 19)) flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE4_1);
-				if (regs1[2] & (1 << 20)) flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE4_2);
-				if (regs1[2] & (1 << 12)) flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_FMA3);
+				if (regs1[2] & (1 << 0))  flags |= scast<u32>(CPUFeatureFlag::SSE3);
+				if (regs1[2] & (1 << 9))  flags |= scast<u32>(CPUFeatureFlag::SSSE3);
+				if (regs1[2] & (1 << 19)) flags |= scast<u32>(CPUFeatureFlag::SSE4_1);
+				if (regs1[2] & (1 << 20)) flags |= scast<u32>(CPUFeatureFlag::SSE4_2);
+				if (regs1[2] & (1 << 12)) flags |= scast<u32>(CPUFeatureFlag::FMA3);
 
 				//confirm OS has actually enabled AVX state saving via XGETBV before trusting AVX/AVX2/AVX512
 				bool osSupportsAVX{};
@@ -516,7 +516,7 @@ namespace KalaWindow::Core
 				if (avxSupportedByCPU
 					&& osSupportsAVX)
 				{
-					flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_AVX);
+					flags |= scast<u32>(CPUFeatureFlag::AVX);
 				}
 
 				//leaf 7 subleaf 0
@@ -543,13 +543,13 @@ namespace KalaWindow::Core
 					if (avxSupportedByCPU
 						&& osSupportsAVX)
 					{
-						if (regs7[1] & (1 << 5))  flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_AVX2);
-						if (regs7[1] & (1 << 16)) flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_AVX512F);
+						if (regs7[1] & (1 << 5))  flags |= scast<u32>(CPUFeatureFlag::AVX2);
+						if (regs7[1] & (1 << 16)) flags |= scast<u32>(CPUFeatureFlag::AVX512F);
 					}
 
 					//BMI1/BMI2 don't depend on XGETBV
-					if (regs7[1] & (1 << 3))  flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_BMI1);
-					if (regs7[1] & (1 << 8))  flags |= scast<u32>(CPUFeatureFlag::CPU_FEATURE_BMI2);
+					if (regs7[1] & (1 << 3))  flags |= scast<u32>(CPUFeatureFlag::BMI1);
+					if (regs7[1] & (1 << 8))  flags |= scast<u32>(CPUFeatureFlag::BMI2);
 				}
 
 				return flags;
@@ -580,21 +580,21 @@ namespace KalaWindow::Core
 			"    L3: " + to_string(cpu.cacheSizes[2] / 1024 / 1024) + " MB";
 
 		string featuresStr{};
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE))     featuresStr += "    SSE";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE2))    featuresStr += "\n    SSE2";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE3))    featuresStr += "\n    SSE3";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSSE3))   featuresStr += "\n    SSSE3";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE4_1))  featuresStr += "\n    SSE4_1";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_SSE4_2))  featuresStr += "\n    SSE4_2";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::SSE))     featuresStr += "    SSE";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::SSE2))    featuresStr += "\n    SSE2";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::SSE3))    featuresStr += "\n    SSE3";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::SSSE3))   featuresStr += "\n    SSSE3";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::SSE4_1))  featuresStr += "\n    SSE4_1";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::SSE4_2))  featuresStr += "\n    SSE4_2";
 
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_AVX))     featuresStr += "\n    AVX";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_AVX2))    featuresStr += "\n    AVX2";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_AVX512F)) featuresStr += "\n    AVX512";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::AVX))     featuresStr += "\n    AVX";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::AVX2))    featuresStr += "\n    AVX2";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::AVX512F)) featuresStr += "\n    AVX512";
 
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_FMA3))    featuresStr += "\n    FMA3";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::FMA3))    featuresStr += "\n    FMA3";
 
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_BMI1))    featuresStr += "\n    BMI1";
-		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::CPU_FEATURE_BMI2))    featuresStr += "\n    BMI2";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::BMI1))    featuresStr += "\n    BMI1";
+		if (cpu.featureFlags & scast<u32>(CPUFeatureFlag::BMI2))    featuresStr += "\n    BMI2";
 
 		if (featuresStr.empty()) featuresStr = "\n    None";
 
@@ -622,7 +622,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Failed to get GPU info because global Vulkan has not been initialized!",
 					"KW_CORE",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 
 				return {};
@@ -696,7 +696,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Failed to get GPU info as string because global Vulkan has not been initialized!",
 				"KW_CORE",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			return {};
@@ -739,7 +739,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get total memory because GetProcessMemoryInfo failed!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -753,7 +753,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get total memory because sysinfo() failed!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -774,7 +774,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get available memory because GetProcessMemoryInfo failed!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -788,7 +788,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get available memory because '/proc/meminfo' couldn't be opened!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -811,7 +811,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Failed to get available memory because 'MemAvailable' was not found in '/proc/meminfo'!",
 					"KW_CORE",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 
 				return 0;
@@ -830,7 +830,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get used memory because GetProcessMemoryInfo failed!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -844,7 +844,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get used memory because '/proc/self/status' couldn't be opened!",
 						"KW_CORE",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 
 					return 0;
@@ -867,7 +867,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Failed to get available memory because 'VmRSS' was not found in '/proc/self/status'!",
 					"KW_CORE",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 
 				return 0;
@@ -938,7 +938,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Failed to get OS name because '/etc/os-release' couldn't be opened!",
 							"KW_CORE",
-							LogType::LOG_ERROR,
+							LogType::ERROR,
 							2);
 					}
 					else
@@ -973,7 +973,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Failed to get kernel version because uname() failed!",
 							"KW_CORE",
-							LogType::LOG_ERROR,
+							LogType::ERROR,
 							2);
 					}
 					else kernelVersion = string(uts.release);
@@ -1003,7 +1003,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Failed to get architecture because uname() failed!",
 							"KW_CORE",
-							LogType::LOG_ERROR,
+							LogType::ERROR,
 							2);
 
 						return "Unknown";
@@ -1191,7 +1191,7 @@ namespace KalaWindow::Core
 		Log::Print(
 			reason,
 			target,
-			LogType::LOG_ERROR,
+			LogType::ERROR,
 			2,
 			true,
 			TimeFormat::TIME_NONE,

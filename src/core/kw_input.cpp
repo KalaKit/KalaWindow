@@ -124,7 +124,7 @@ namespace KalaWindow::Core
 		Log::Print(
 			"Created new input context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",
 			"KW_INPUT",
-			LogType::LOG_SUCCESS);
+			LogType::SUCCESS);
 
 		return inputPtr;
 	}
@@ -235,7 +235,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Tried to check combo down with no passed input codes!",
 				"KW_INPUT",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return false;
 		}
@@ -248,7 +248,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo down InputCode values has no keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_WARNING);
+					LogType::WARNING);
 
 				return false;
 			}
@@ -259,7 +259,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo down InputCode values has both keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_WARNING);
+					LogType::WARNING);
 
 				return false;
 			}
@@ -281,7 +281,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Tried to check combo pressed with no passed input codes!",
 				"KW_INPUT",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return false;
 		}
@@ -294,7 +294,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has no keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_WARNING);
+					LogType::WARNING);
 
 				return false;
 			}
@@ -305,7 +305,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has both keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_WARNING);
+					LogType::WARNING);
 
 				return false;
 			}
@@ -346,7 +346,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Tried to check combo released with no passed input codes!",
 				"KW_INPUT",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return false;
 		}
@@ -359,7 +359,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has no keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_WARNING);
+					LogType::WARNING);
 
 				return false;
 			}
@@ -370,7 +370,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"One or more combo pressed InputCode values has both keyboard and mouse button assigned!",
 					"KW_INPUT",
-					LogType::LOG_WARNING);
+					LogType::WARNING);
 
 				return false;
 			}
@@ -567,7 +567,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Set mouse visibility state to " + val,
 				"KW_INPUT",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -654,7 +654,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Set mouse lock state to " + val,
 				"KW_INPUT",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -842,7 +842,7 @@ namespace KalaWindow::Core
 		Log::Print(
 			"Destroying input context '" + to_string(ID) + "' for window '" + to_string(windowID) + "'.",
 			"KW_INPUT",
-			LogType::LOG_INFO);
+			LogType::INFO);
 
 		EndFrameUpdate();
 	}

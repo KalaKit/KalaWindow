@@ -101,7 +101,7 @@ static int ErrorHandler(
             + "minor: " + to_string(error->minor_code) + "\n"
             + "reason: " + buffer,
         "KW_WINDOW_GLOBAL",
-        LogType::LOG_ERROR,
+        LogType::ERROR,
         2);
 
     return 0; //tells X to continue
@@ -141,7 +141,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to set app name! Reason: " + err,
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_WARNING);
+                LogType::WARNING);
 
             return;
         }
@@ -150,7 +150,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to set app name because it was out of range!",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_WARNING);
+                LogType::WARNING);
 
             return;
         }
@@ -160,7 +160,7 @@ namespace KalaWindow::Graphics
         Log::Print(
             "Set app name to '" + appName + "'.",
             "KW_WINDOW_GLOBAL",
-            LogType::LOG_SUCCESS);
+            LogType::SUCCESS);
     }
 
     void Window_Global::Initialize()
@@ -180,7 +180,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Libnotify was not found! Notifications will not work.",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_WARNING);
+                LogType::WARNING);
         }
         if (!CommandSucceeds("canberra-gtk-play --version"))
         {
@@ -189,7 +189,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Libcanberra was not found! System sounds will not work.",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_WARNING);
+                LogType::WARNING);
         }
 
         Display* display = XOpenDisplay(nullptr);
@@ -437,7 +437,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Initialized global window context!",
 			"KW_WINDOW_GLOBAL",
-			LogType::LOG_SUCCESS);
+			LogType::SUCCESS);
     }
 
     bool Window_Global::IsInitialized() { return isInitialized; }
@@ -453,7 +453,7 @@ namespace KalaWindow::Graphics
         auto get_result = [action](const vector<char*>& execArgs) -> PopupResult
             {
                 int pipefd[2]{};
-                if (pipe(pipefd) == -1) return PopupResult::POPUP_RESULT_NONE;
+                if (pipe(pipefd) == -1) return PopupResult::NONE;
 
                 pid_t pid = fork();
 
@@ -461,7 +461,7 @@ namespace KalaWindow::Graphics
                 {
                     close(pipefd[0]);
                     close(pipefd[1]);
-                    return PopupResult::POPUP_RESULT_NONE;
+                    return PopupResult::NONE;
                 }
 
                 if (pid == 0)
@@ -492,39 +492,39 @@ namespace KalaWindow::Graphics
                 if (waitpid(pid, &status, 0) == -1
                     || !WIFEXITED(status))
                 {
-                    return PopupResult::POPUP_RESULT_NONE;
+                    return PopupResult::NONE;
                 }
 
                 int code = WEXITSTATUS(status);
 
-                if (code == 127) return PopupResult::POPUP_RESULT_NONE;
+                if (code == 127) return PopupResult::NONE;
 
                 if (code == 0)
                 {
                     switch (action)
                     {
                     default:
-                    case PopupAction::POPUP_ACTION_OK:
-                    case PopupAction::POPUP_ACTION_OK_CANCEL:
-                        return PopupResult::POPUP_RESULT_OK;
-                    case PopupAction::POPUP_ACTION_RETRY_CANCEL:
-                        return PopupResult::POPUP_RESULT_RETRY;
-                    case PopupAction::POPUP_ACTION_YES_NO:
-                    case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
-                        return PopupResult::POPUP_RESULT_YES;
+                    case PopupAction::OK:
+                    case PopupAction::OK_CANCEL:
+                        return PopupResult::OK;
+                    case PopupAction::RETRY_CANCEL:
+                        return PopupResult::RETRY;
+                    case PopupAction::YES_NO:
+                    case PopupAction::YES_NO_CANCEL:
+                        return PopupResult::YES;
                     }
                 }
                 else
                 {
                     switch (action)
                     {
-                    default: return PopupResult::POPUP_RESULT_CANCEL;
-                    case PopupAction::POPUP_ACTION_YES_NO:
-                        return PopupResult::POPUP_RESULT_NO;
-                    case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+                    default: return PopupResult::CANCEL;
+                    case PopupAction::YES_NO:
+                        return PopupResult::NO;
+                    case PopupAction::YES_NO_CANCEL:
                         return output == "No\n" || output == "No"
-                            ? PopupResult::POPUP_RESULT_NO
-                            : PopupResult::POPUP_RESULT_CANCEL;
+                            ? PopupResult::NO
+                            : PopupResult::CANCEL;
                     }
                 }
             };
@@ -538,25 +538,25 @@ namespace KalaWindow::Graphics
         switch (type)
         {
             default:
-            case PopupType::POPUP_TYPE_INFO:
+            case PopupType::INFO:
             {
                 typeStr = "info";
                 args.emplace_back("--icon=dialog-information");
                 break;
             }
-            case PopupType::POPUP_TYPE_WARNING:
+            case PopupType::WARNING:
             {
                 typeStr = "warning";
                 args.emplace_back("--icon=dialog-warning");
                 break;
             }
-            case PopupType::POPUP_TYPE_ERROR:
+            case PopupType::ERROR:
             {
                 typeStr = "error";
                 args.emplace_back("--icon=dialog-error");
                 break;
             }
-            case PopupType::POPUP_TYPE_QUESTION:
+            case PopupType::QUESTION:
             {
                 typeStr = "question";
                 args.emplace_back("--icon=dialog-question");
@@ -567,31 +567,31 @@ namespace KalaWindow::Graphics
         switch (action)
         {
         default:
-        case PopupAction::POPUP_ACTION_OK:
+        case PopupAction::OK:
             actionStr = "ok";
             args.emplace_back("--info");
             break;
 
-        case PopupAction::POPUP_ACTION_OK_CANCEL:
+        case PopupAction::OK_CANCEL:
             actionStr = "ok_cancel";
             args.emplace_back("--question");
             args.emplace_back("--ok-label=OK");
             args.emplace_back("--cancel-label=Cancel");
             break;
-        case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+        case PopupAction::RETRY_CANCEL:
             actionStr = "retry_cancel";
             args.emplace_back("--question");
             args.emplace_back("--ok-label=Retry");
             args.emplace_back("--cancel-label=Cancel");
             break;
 
-        case PopupAction::POPUP_ACTION_YES_NO:
+        case PopupAction::YES_NO:
             actionStr = "yes_no";
             args.emplace_back("--question");
             args.emplace_back("--ok-label=Yes");
             args.emplace_back("--cancel-label=No");
             break;
-        case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+        case PopupAction::YES_NO_CANCEL:
             actionStr = "yes_no_cancel";
             args.emplace_back("--question");
             args.emplace_back("--ok-label=Yes");
@@ -615,7 +615,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Created popup '" + string(title) + "' with type '" + typeStr + "' and action '" + actionStr + "'.",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_VERBOSE);
+                LogType::VERBOSE);
         }
 
         return get_result(execArgs);
@@ -642,12 +642,12 @@ namespace KalaWindow::Graphics
             };
 
         if (multiple
-            && type == FileType::FILE_FOLDER)
+            && type == FileType::FOLDER)
         {
             Log::Print(
                 "Multiple flag was used together with FILE_FOLDER! This will not work and will only select one folder.",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_WARNING);
+                LogType::WARNING);
         }
 
         string cmd = "zenity --file-selection";
@@ -657,14 +657,14 @@ namespace KalaWindow::Graphics
         switch (type)
 		{
 		default:
-		case FileType::FILE_ANY:
-        case FileType::FILE_EXE:
+		case FileType::ANY:
+        case FileType::EXE:
             cmd += " --separator='|' --file-filter='All Files | *'";
             break;
-        case FileType::FILE_FOLDER:
+        case FileType::FOLDER:
             cmd += " --directory";
             break;
-        case FileType::FILE_CUSTOM:
+        case FileType::CUSTOM:
             RemoveDuplicates(customTypes);
 
             if (customTypes.empty())
@@ -672,7 +672,7 @@ namespace KalaWindow::Graphics
                 Log::Print(
                     "Failed to get files because FILE_CUSTOM was selected but no types were passed!",
                     "KW_WINDOW_GLOBAL",
-                    LogType::LOG_WARNING);
+                    LogType::WARNING);
 
                 clear_all_inputs();
                 return {};
@@ -700,7 +700,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to get files because pipe for command '" + cmd + "' couldn't be opened!",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_ERROR,
+                LogType::ERROR,
                 2);
 
             clear_all_inputs();
@@ -720,14 +720,14 @@ namespace KalaWindow::Graphics
                 Log::Print(
                     "File selection was cancelled by user.",
                     "KW_WINDOW_GLOBAL",
-                    LogType::LOG_INFO);
+                    LogType::INFO);
             }
             else
             {
                 Log::Print(
                     "Failed to get files! Zenity command '" + cmd + "', error code '" + to_string(status) + "'",
                     "KW_WINDOW_GLOBAL",
-                    LogType::LOG_ERROR,
+                    LogType::ERROR,
                     2);
             }
 
@@ -767,7 +767,7 @@ namespace KalaWindow::Graphics
                         "Discarded file or directory '" + s 
                         + "' because it was not within the required root!",
                         "KW_WINDOW_GLOBAL",
-                        LogType::LOG_WARNING);
+                        LogType::WARNING);
 
                     continue;
                 }
@@ -790,7 +790,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Retreived files from getfiles: " + resultStr,
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_VERBOSE);
+                LogType::VERBOSE);
         }
 
         return result;
@@ -805,7 +805,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to create notification because libnotify was not found!",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_ERROR,
+                LogType::ERROR,
                 2);
 
             return;
@@ -821,7 +821,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to allocate notification!",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_ERROR,
+                LogType::ERROR,
                 2);
 
             return;
@@ -840,7 +840,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 errorMessage,
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_ERROR,
+                LogType::ERROR,
                 2);
 
             g_error_free(error);
@@ -853,7 +853,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Created notification '" + string(title) + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
     }
 
@@ -864,7 +864,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to create system sound because libcanberra was not found!",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_ERROR,
+                LogType::ERROR,
                 2);
 
             return;
@@ -873,10 +873,10 @@ namespace KalaWindow::Graphics
         string soundType{};
         switch (type)
         {
-        case SoundType::SOUND_OK:
+        case SoundType::OK:
             soundType = "dialog-information";
             break;
-        case SoundType::SOUND_ERROR:
+        case SoundType::ERROR:
             soundType = "dialog-error";
             break;
         }
@@ -895,7 +895,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Played sound type '" + soundType + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
     }
 

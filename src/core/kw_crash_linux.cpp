@@ -164,7 +164,7 @@ namespace KalaWindow::Core
 		Log::Print(
 			"Initialized crash handler!",
 			"KW_CRASH",
-			LogType::LOG_SUCCESS);
+			LogType::SUCCESS);
     }
 
     bool CrashHandler::IsInitialized() { return isInitialized; }
@@ -225,9 +225,9 @@ void HandleCrash(
             if (Window_Global::CreatePopup(
                 title,
                 reason,
-                PopupAction::POPUP_ACTION_OK,
-                PopupType::POPUP_TYPE_ERROR)
-                == PopupResult::POPUP_RESULT_OK)
+                PopupAction::OK,
+                PopupType::ERROR)
+                == PopupResult::OK)
             {
                 _exit(1);
             }
@@ -386,7 +386,7 @@ void GenerateFullCrashReport(
         Log::Print(
 			"Dump file creation disabled by user.",
 			"KW_CRASH",
-			LogType::LOG_DEBUG,
+			LogType::DEBUG,
 			0,
 			true);
     }
@@ -400,8 +400,8 @@ void GenerateFullCrashReport(
 	if (Window_Global::CreatePopup(
 		string(Window_Global::GetAppName()),
 		userStream.str(),
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR) == PopupResult::POPUP_RESULT_OK)
+		PopupAction::OK,
+		PopupType::ERROR) == PopupResult::OK)
     {
         _exit(1);
     }
@@ -498,7 +498,7 @@ void WriteLog(
 		Log::Print(
 			"Failed to open log file to write into it!",
 			"KW_CRASH",
-			LogType::LOG_ERROR,
+			LogType::ERROR,
             2);
 
 		return;

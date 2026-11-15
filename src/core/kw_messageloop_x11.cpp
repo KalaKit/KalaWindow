@@ -264,7 +264,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                 "Raw mouse delta: " + to_string(dx) + ", " + to_string(dy),
                                 "KW_MESSAGE_LOOP",
-                                LogType::LOG_VERBOSE);
+                                LogType::VERBOSE);
                             }
                         }
                     }
@@ -345,7 +345,7 @@ namespace KalaWindow::Core
                                 "Failed to update window '" + to_string(w->GetID()) 
                                 + "' position and size because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
                                 "KW_MESSAGE_LOOP",
-                                LogType::LOG_ERROR,
+                                LogType::ERROR,
                                 2);
                         }
 
@@ -402,7 +402,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Failed to read dropped file paths because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_ERROR,
+                                        LogType::ERROR,
                                         2);
                                 }
                                 else if (!data)
@@ -410,7 +410,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Failed to read dropped file paths because the received data was invalid!",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_ERROR,
+                                        LogType::ERROR,
                                         2);
                                 }
                                 else
@@ -418,7 +418,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Failed to read dropped file paths because the format '" + to_string(format) + "' was invalid!",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_ERROR,
+                                        LogType::ERROR,
                                         2);
                                 }
                             }
@@ -478,7 +478,7 @@ namespace KalaWindow::Core
                                         "Failed to handle SelectionNotify and xDndSelection because XSendEvent failed! "
                                         "Result code: " + to_string(XRESULT),
                                         "KW_WINDOW_GLOBAL",
-                                        LogType::LOG_ERROR,
+                                        LogType::ERROR,
                                         2);
                                 }
 
@@ -489,7 +489,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "File '" + file.string() + "' was dragged to window '" + to_string(w->GetID()) + "'",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_VERBOSE);
+                                            LogType::VERBOSE);
                                     }
                                 }
 
@@ -521,7 +521,7 @@ namespace KalaWindow::Core
                                 "Received client message '" + 
                                 to_string(event.xclient.message_type) + "' (" + (name ? name : "unknown") + ")'.", 
                                 "KW_MESSAGE_LOOP",
-                                LogType::LOG_VERBOSE);
+                                LogType::VERBOSE);
 
                             if (name) XFree(name);
                         }
@@ -567,7 +567,7 @@ namespace KalaWindow::Core
                                     + to_string(w->draggedFilesPos.x) + ", " 
                                     + to_string(w->draggedFilesPos.y),
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
+                                    LogType::VERBOSE);
                             }
 
                             XEvent reply{};
@@ -595,7 +595,7 @@ namespace KalaWindow::Core
                                     "Failed to handle ClientMessage and xDndPosition because XSendEvent failed! "
                                     "Result code: " + to_string(XRESULT),
                                     "KW_WINDOW_GLOBAL",
-                                    LogType::LOG_ERROR,
+                                    LogType::ERROR,
                                     2);
                             }
 
@@ -654,7 +654,7 @@ namespace KalaWindow::Core
                                     "Failed to get window '" + to_string(w->GetID()) 
                                     + "' state because XGetWindowProperty failed! Result code: " + to_string(XRESULT),
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_ERROR,
+                                    LogType::ERROR,
                                     2);
 
                                 return;
@@ -715,7 +715,7 @@ namespace KalaWindow::Core
                                             + "' under parent '" + to_string(w->ID) + "'! Reason: " + err);
                                     }
 
-                                    child->SetWindowState(WindowState::WINDOW_MINIMIZE);
+                                    child->SetWindowState(WindowState::MINIMIZE);
                                 }
                             }
                             else if (wasMinimized
@@ -807,7 +807,7 @@ namespace KalaWindow::Core
                             Log::Print(
                                 "Detected keyboard key '" + TranslateKeySymToString(ks) + "' down.",
                                 "KW_MESSAGE_LOOP",
-                                LogType::LOG_VERBOSE);
+                                LogType::VERBOSE);
                         }
 
                         if (input)
@@ -916,7 +916,7 @@ namespace KalaWindow::Core
                             Log::Print(
                                 "Detected keyboard key '" + TranslateKeySymToString(ks) + "' up.",
                                 "KW_MESSAGE_LOOP",
-                                LogType::LOG_VERBOSE);
+                                LogType::VERBOSE);
                         }
 
                         if (input)
@@ -958,7 +958,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Detected left mouse key down.",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_VERBOSE);
+                                        LogType::VERBOSE);
                                 }
 
                                 if (doubleClick)
@@ -972,7 +972,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "Detected left mouse key double click.",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_VERBOSE);
+                                            LogType::VERBOSE);
                                     }
                                 }
 
@@ -989,7 +989,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Detected right mouse key down.",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_VERBOSE);
+                                        LogType::VERBOSE);
                                 }
 
                                 if (doubleClick)
@@ -1003,7 +1003,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "Detected right mouse key double click.",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_VERBOSE);
+                                            LogType::VERBOSE);
                                     }
                                 }
 
@@ -1020,7 +1020,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Detected middle mouse key down.",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_VERBOSE);
+                                        LogType::VERBOSE);
                                 }
 
                                 if (doubleClick)
@@ -1034,7 +1034,7 @@ namespace KalaWindow::Core
                                         Log::Print(
                                             "Detected middle mouse key double click.",
                                             "KW_MESSAGE_LOOP",
-                                            LogType::LOG_VERBOSE);
+                                            LogType::VERBOSE);
                                     }
                                 }
 
@@ -1069,7 +1069,7 @@ namespace KalaWindow::Core
                                             Log::Print(
                                                 "Detected x1 mouse key down.",
                                                 "KW_MESSAGE_LOOP",
-                                                LogType::LOG_VERBOSE);
+                                                LogType::VERBOSE);
                                         }
 
                                         if (doubleClick)
@@ -1083,7 +1083,7 @@ namespace KalaWindow::Core
                                                 Log::Print(
                                                     "Detected x1 mouse key double click.",
                                                     "KW_MESSAGE_LOOP",
-                                                    LogType::LOG_VERBOSE);
+                                                    LogType::VERBOSE);
                                             }
                                         }
                                     }
@@ -1098,7 +1098,7 @@ namespace KalaWindow::Core
                                             Log::Print(
                                                 "Detected x2 mouse key down.",
                                                 "KW_MESSAGE_LOOP",
-                                                LogType::LOG_VERBOSE);
+                                                LogType::VERBOSE);
                                         }
 
                                         if (doubleClick)
@@ -1112,7 +1112,7 @@ namespace KalaWindow::Core
                                                 Log::Print(
                                                     "Detected x2 mouse key double click.",
                                                     "KW_MESSAGE_LOOP",
-                                                    LogType::LOG_VERBOSE);
+                                                    LogType::VERBOSE);
                                             }
                                         }
                                     }
@@ -1141,7 +1141,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Detected left mouse key up.",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_VERBOSE);
+                                        LogType::VERBOSE);
                                 }
 
                                 break;
@@ -1157,7 +1157,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Detected right mouse key up.",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_VERBOSE);
+                                        LogType::VERBOSE);
                                 }
 
                                 break;
@@ -1173,7 +1173,7 @@ namespace KalaWindow::Core
                                     Log::Print(
                                         "Detected middle mouse key up.",
                                         "KW_MESSAGE_LOOP",
-                                        LogType::LOG_VERBOSE);
+                                        LogType::VERBOSE);
                                 }
 
                                 break;
@@ -1196,7 +1196,7 @@ namespace KalaWindow::Core
                                             Log::Print(
                                                 "Detected x1 mouse key up.",
                                                 "KW_MESSAGE_LOOP",
-                                                LogType::LOG_VERBOSE);
+                                                LogType::VERBOSE);
                                         }
                                     }
                                     else if (extra == 1)
@@ -1210,7 +1210,7 @@ namespace KalaWindow::Core
                                             Log::Print(
                                                 "Detected x2 mouse key up.",
                                                 "KW_MESSAGE_LOOP",
-                                                LogType::LOG_VERBOSE);
+                                                LogType::VERBOSE);
                                         }
                                     }
                                 }
@@ -1247,7 +1247,7 @@ namespace KalaWindow::Core
                                 Log::Print(
                                     "Mouse delta: " + to_string(delta.x) + ", " + to_string(delta.y),
                                     "KW_MESSAGE_LOOP",
-                                    LogType::LOG_VERBOSE);
+                                    LogType::VERBOSE);
                             }
                         }
 

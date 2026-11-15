@@ -97,7 +97,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create window! Reason: " + err,
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return nullptr;
 		}
@@ -106,7 +106,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create window because its title length was out of range!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return nullptr;
 		}
@@ -258,7 +258,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Created new window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
-			LogType::LOG_SUCCESS);
+			LogType::SUCCESS);
 
 		return windowPtr;
 	}
@@ -358,7 +358,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to assign window '" + to_string(ID) + "' dragged files callback because it was empty!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return;
 		}
@@ -384,7 +384,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Window title was empty!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return {};
 		}
@@ -419,7 +419,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' title! Reason: " + err,
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return;
 		}
@@ -429,7 +429,7 @@ namespace KalaWindow::Graphics
 				"Failed to set window '" + to_string(ID) + "' title "
                 "because the new title length was out of range!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return;
 		}
@@ -445,7 +445,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' title to '" + string(newTitle) + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -465,10 +465,10 @@ namespace KalaWindow::Graphics
 		WindowState state = GetWindowState();
 		if (IsMinimized()
 			|| !IsVisible()
-			|| state == WindowState::WINDOW_MINIMIZE
-			|| state == WindowState::WINDOW_HIDE)
+			|| state == WindowState::MINIMIZE
+			|| state == WindowState::HIDE)
 		{
-			SetWindowState(WindowState::WINDOW_NORMAL);
+			SetWindowState(WindowState::NORMAL);
 		}
 
 		//ask Windows nicely to foreground this window
@@ -507,7 +507,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Set window '" + to_string(ID) + "' focus through the fallback method.'",
 					"KW_WINDOW",
-					LogType::LOG_VERBOSE);
+					LogType::VERBOSE);
 			}
 		}
 
@@ -550,7 +550,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' size because it is already the same!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
             return;
         }
@@ -590,7 +590,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -629,7 +629,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' outer size because it is already the same!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
             return;
         }
@@ -653,7 +653,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' outer size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -665,7 +665,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' max size because it is already the same!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
             return;
         }
@@ -682,7 +682,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' max size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
     }
 
@@ -694,7 +694,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' min size because it is already the same!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
             return;
         }
@@ -711,7 +711,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' min size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
     }
 
@@ -764,7 +764,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' position to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -811,7 +811,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' always on top state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -882,7 +882,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' resizable state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -1031,9 +1031,9 @@ namespace KalaWindow::Graphics
 					|| current.dmDisplayFrequency != desktop.dmDisplayFrequency;
 			};
 
-		if (IsExclusive())       return WindowMode::WINDOWMODE_EXCLUSIVE;
-		else if (IsFullscreen()) return WindowMode::WINDOWMODE_BORDERLESS;
-		else                     return WindowMode::WINDOWMODE_WINDOWED;
+		if (IsExclusive())       return WindowMode::EXCLUSIVE;
+		else if (IsFullscreen()) return WindowMode::BORDERLESS;
+		else                     return WindowMode::WINDOWED;
 	}
 	void ProcessWindow::SetWindowMode(WindowMode mode)
 	{
@@ -1049,7 +1049,7 @@ namespace KalaWindow::Graphics
 
 		switch (mode)
 		{
-		case WindowMode::WINDOWMODE_WINDOWED:
+		case WindowMode::WINDOWED:
 		{
 			windowModeVal = "windowed";
 
@@ -1083,7 +1083,7 @@ namespace KalaWindow::Graphics
 
 			break;
 		}
-		case WindowMode::WINDOWMODE_BORDERLESS:
+		case WindowMode::BORDERLESS:
 		{
 			windowModeVal = "borderless";
 
@@ -1123,7 +1123,7 @@ namespace KalaWindow::Graphics
 
 			break;
 		}
-		case WindowMode::WINDOWMODE_EXCLUSIVE:
+		case WindowMode::EXCLUSIVE:
 		{
 			windowModeVal = "exclusive";
 
@@ -1175,7 +1175,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Failed to switch to exclusive mode for window '" + to_string(ID) + "'!",
 					"KW_WINDOW",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 
 				return;
@@ -1193,7 +1193,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' mode to '" + windowModeVal + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -1215,20 +1215,20 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get window '" + to_string(ID) + "' state!",
 				"KW_WINDOW",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
-			return WindowState::WINDOW_NORMAL;
+			return WindowState::NORMAL;
 		}
 
 		switch (placement.showCmd)
 		{
 		default:
-		case SW_NORMAL:         return WindowState::WINDOW_NORMAL;
-		case SW_SHOWNOACTIVATE: return WindowState::WINDOW_SHOWNOACTIVATE;
-		case SW_SHOWMAXIMIZED:  return WindowState::WINDOW_MAXIMIZE;
-		case SW_SHOWMINIMIZED:  return WindowState::WINDOW_MINIMIZE;
-		case SW_HIDE:           return WindowState::WINDOW_HIDE;
+		case SW_NORMAL:         return WindowState::NORMAL;
+		case SW_SHOWNOACTIVATE: return WindowState::SHOWNOACTIVATE;
+		case SW_SHOWMAXIMIZED:  return WindowState::MAXIMIZE;
+		case SW_SHOWMINIMIZED:  return WindowState::MINIMIZE;
+		case SW_HIDE:           return WindowState::HIDE;
 		}
 	}
 	void ProcessWindow::SetWindowState(WindowState state)
@@ -1245,35 +1245,35 @@ namespace KalaWindow::Graphics
 
 		switch (state)
 		{
-		case WindowState::WINDOW_NORMAL:
+		case WindowState::NORMAL:
 			windowStateVal = "normal";
 
 			ShowWindow(window, SW_SHOWNORMAL);
 			break;
-		case WindowState::WINDOW_SHOWNOACTIVATE:
+		case WindowState::SHOWNOACTIVATE:
 			windowStateVal = "unfocused visible";
 
 			ShowWindow(window, SW_SHOWNOACTIVATE);
 			break;
-		case WindowState::WINDOW_MAXIMIZE:
+		case WindowState::MAXIMIZE:
 			windowStateVal = "maximize";
 
 			ShowWindow(window, SW_MAXIMIZE);
 			break;
-		case WindowState::WINDOW_MINIMIZE:
+		case WindowState::MINIMIZE:
 			windowStateVal = "minimize";
 
 			ShowWindow(window, SW_MINIMIZE);
 			break;
-		case WindowState::WINDOW_HIDE:
+		case WindowState::HIDE:
 			windowStateVal = "hide";
 
 			ShowWindow(window, SW_HIDE);
 			break;
 		}
 
-		if (state != WindowState::WINDOW_HIDE
-			&& state != WindowState::WINDOW_MINIMIZE)
+		if (state != WindowState::HIDE
+			&& state != WindowState::MINIMIZE)
 		{
 			UpdateWindow(window);
 		}
@@ -1283,7 +1283,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' state to '" + windowStateVal + "'",
 				"KW_WINDOW",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -1296,7 +1296,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty early update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 		}
 
 		earlyUpdateCallback = std::move(newValue);
@@ -1308,7 +1308,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 		}
 
 		updateCallback = std::move(newValue);
@@ -1320,7 +1320,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned late update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 		}
 
 		lateUpdateCallback = std::move(newValue);
@@ -1333,7 +1333,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty resize callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 		}
 
 		resizeCallback = std::move(newValue);
@@ -1346,7 +1346,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty can close callback callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 		}
 
 		canCloseCallback = std::move(newValue);
@@ -1359,7 +1359,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty shutdown callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 		}
 
 		shutdownCallback = std::move(newValue);
@@ -1381,7 +1381,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Skipping window '" + to_string(ID) + "' shutdown because shutdown was denied!",
 				"KW_WINDOW",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
             return;
         }
@@ -1397,7 +1397,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Shutting down because the last process window is being destroyed.",
 				"KW_WINDOW",
-				LogType::LOG_INFO);
+				LogType::INFO);
 		}
 
 		if (shutdownCallback) shutdownCallback();
@@ -1411,7 +1411,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Destroying child window '" + to_string(w) + "' of parent window '" + to_string(ID) + "'",
 					"KW_WINDOW",
-					LogType::LOG_VERBOSE);
+					LogType::VERBOSE);
 			}
 
 			ProcessWindow* pw{};
@@ -1433,7 +1433,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Destroying child window '" + to_string(ID) + "' of parent window '" + to_string(parentID) + "'",
 					"KW_WINDOW",
-					LogType::LOG_VERBOSE);
+					LogType::VERBOSE);
 			}
 
 			ProcessWindow* pw{};
@@ -1481,7 +1481,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
 			"KW_WINDOW",
-			LogType::LOG_INFO);
+			LogType::INFO);
 
 		inputID = 0;
 		graphicsContextID = 0;
@@ -1489,7 +1489,7 @@ namespace KalaWindow::Graphics
 		HWND hwnd = ToVar<HWND>(windowData.window);
 		if (hwnd)
 		{
-			SetWindowState(WindowState::WINDOW_HIDE);
+			SetWindowState(WindowState::HIDE);
 
 			if (windowData.wndProc) windowData.wndProc = NULL;
 

@@ -24,13 +24,13 @@ namespace KalaWindow::Graphics
 
     using KalaWindow::Core::KalaWindowRegistry;
 
-    enum class LIB_API VulkanVersion : u8
+    enum class LIB_API VulkanVersion
     {
-        V_1_0 = 0,
-        V_1_1 = 1,
-        V_1_2 = 2,
-        V_1_3 = 3,
-        V_1_4 = 4
+        V_1_0,
+        V_1_1,
+        V_1_2,
+        V_1_3,
+        V_1_4
     };
 
     class LIB_API VulkanContext

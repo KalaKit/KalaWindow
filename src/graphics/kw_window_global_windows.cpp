@@ -180,7 +180,7 @@ void CreateStartShortcut(string_view appID)
 		Log::Print(
 			"Skipping start shortcut creation because this program was ran on Wine! Notifications will also not work!",
 			"KW_WINDOW_GLOBAL",
-			LogType::LOG_WARNING);
+			LogType::WARNING);
 
 		return;
 	}
@@ -207,7 +207,7 @@ void CreateStartShortcut(string_view appID)
 		Log::Print(
 			"Skipping shortcut creation because it already exists at '" + ToShort(shortcutPath) + "'.",
 			"KW_WINDOW_GLOBAL",
-			LogType::LOG_INFO);
+			LogType::INFO);
 
 		return;
 	}
@@ -360,7 +360,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to set app name! Reason: " + err,
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_WARNING);
+                LogType::WARNING);
 
             return;
 		}
@@ -369,7 +369,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to set app name because it was out of range!",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_WARNING);
+                LogType::WARNING);
 
             return;
         }
@@ -379,7 +379,7 @@ namespace KalaWindow::Graphics
         Log::Print(
             "Set app name to '" + appName + "'.",
             "KW_WINDOW_GLOBAL",
-            LogType::LOG_SUCCESS);
+            LogType::SUCCESS);
     }
 
 	void Window_Global::Initialize()
@@ -418,7 +418,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Windows build revision because RegOpenKeyExA failed!",
 				"KW_CORE",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 		}
 		else
@@ -437,7 +437,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Failed to get Windows build revision because RegQueryValueExA failed!",
 					"KW_CORE",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 			}
 			else buildRevision = ubr;
@@ -458,7 +458,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Windows version '" + to_string(version) + "' build '" + to_string(buildNumber) + "'",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 
 		path exePath = KalaWindowCore::GetExePath();
@@ -501,8 +501,8 @@ namespace KalaWindow::Graphics
 				"Running on Wine",
 				"KalaWindow has not been fully tested on Wine/Proton, this program may encounter issues, "
 				"please report any bugs or issues to the KalaWindow repository at 'https://github.com/kalakit/kalawindow'.", 
-				PopupAction::POPUP_ACTION_OK,
-				PopupType::POPUP_TYPE_WARNING);
+				PopupAction::OK,
+				PopupType::WARNING);
 		}
 
 #ifndef KW_NO_SHORTCUT
@@ -514,7 +514,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Initialized global window context!",
 			"KW_WINDOW_GLOBAL",
-			LogType::LOG_SUCCESS);
+			LogType::SUCCESS);
 	}
 
 	bool Window_Global::IsInitialized() { return isInitialized; }
@@ -526,7 +526,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Windows version because global window has has not yet been initialized!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return 0;
 		}
@@ -540,7 +540,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Windows build number because global window has has not yet been initialized!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return 0;
 		}
@@ -554,7 +554,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Windows build revision because global window has has not yet been initialized!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return 0;
 		}
@@ -578,25 +578,25 @@ namespace KalaWindow::Graphics
 		switch (type)
 		{
 		default:
-		case PopupType::POPUP_TYPE_INFO:
+		case PopupType::INFO:
 		{
 			typeStr = "info";
 			flags |= MB_ICONINFORMATION;
 			break;
 		}
-		case PopupType::POPUP_TYPE_WARNING:
+		case PopupType::WARNING:
 		{
 			typeStr = "warning";
 			flags |= MB_ICONWARNING;
 			break;
 		}
-		case PopupType::POPUP_TYPE_ERROR:
+		case PopupType::ERROR:
 		{
 			typeStr = "error";
 			flags |= MB_ICONERROR;
 			break;
 		}
-		case PopupType::POPUP_TYPE_QUESTION:
+		case PopupType::QUESTION:
 		{
 			typeStr = "question";
 			flags |= MB_ICONQUESTION;
@@ -607,31 +607,31 @@ namespace KalaWindow::Graphics
 		switch (action)
 		{
 		default:
-		case PopupAction::POPUP_ACTION_OK:
+		case PopupAction::OK:
 		{
 			actionStr = "ok";
 			flags |= MB_OK;
 			break;
 		}
-		case PopupAction::POPUP_ACTION_OK_CANCEL:
+		case PopupAction::OK_CANCEL:
 		{
 			actionStr = "ok-cancel";
 			flags |= MB_OKCANCEL;
 			break;
 		}
-		case PopupAction::POPUP_ACTION_YES_NO:
+		case PopupAction::YES_NO:
 		{
 			actionStr = "yes-no";
 			flags |= MB_YESNO;
 			break;
 		}
-		case PopupAction::POPUP_ACTION_YES_NO_CANCEL:
+		case PopupAction::YES_NO_CANCEL:
 		{
 			actionStr = "yes-no-cancel";
 			flags |= MB_YESNOCANCEL;
 			break;
 		}
-		case PopupAction::POPUP_ACTION_RETRY_CANCEL:
+		case PopupAction::RETRY_CANCEL:
 		{
 			actionStr = "retry-cancel";
 			flags |= MB_RETRYCANCEL;
@@ -647,7 +647,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Created popup '" + finalTitle + "' with type '" + typeStr + "' and action '" + actionStr + "'.",
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_VERBOSE);
+                LogType::VERBOSE);
         }
 
 		int result = MessageBoxW(
@@ -658,12 +658,12 @@ namespace KalaWindow::Graphics
 
 		switch (result)
 		{
-		case IDOK:     return PopupResult::POPUP_RESULT_OK;
-		case IDCANCEL: return PopupResult::POPUP_RESULT_CANCEL;
-		case IDYES:    return PopupResult::POPUP_RESULT_YES;
-		case IDNO:     return PopupResult::POPUP_RESULT_NO;
-		case IDRETRY:  return PopupResult::POPUP_RESULT_RETRY;
-		default:       return PopupResult::POPUP_RESULT_NONE;
+		case IDOK:     return PopupResult::OK;
+		case IDCANCEL: return PopupResult::CANCEL;
+		case IDYES:    return PopupResult::YES;
+		case IDNO:     return PopupResult::NO;
+		case IDRETRY:  return PopupResult::RETRY;
+		default:       return PopupResult::NONE;
 		}
 	}
 
@@ -698,7 +698,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to initialize COM! Reason: " + HResultToString(hr),
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			clear_all_inputs();
@@ -715,7 +715,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Calling CoUninitialize",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_DEBUG);
+						LogType::DEBUG);
 					*/
 
 					CoUninitialize();
@@ -726,7 +726,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Skipping CoUninitialize()",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_DEBUG);
+						LogType::DEBUG);
 					*/
 				}
 			};
@@ -743,7 +743,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create file open dialog! Reason: " + HResultToString(hr),
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			clear_all_inputs();
@@ -761,14 +761,14 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Failed to set file filter to '" + typeVal + "' for dialog! Reason: " + HResultToString(hr),
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 			};
 
 		switch (type)
 		{
 		default:
-		case FileType::FILE_ANY:
+		case FileType::ANY:
 		{
 			COMDLG_FILTERSPEC filter[] =
 			{
@@ -787,13 +787,13 @@ namespace KalaWindow::Graphics
 
 			break;
 		}
-		case FileType::FILE_FOLDER:
+		case FileType::FOLDER:
 		{
 			options |= FOS_PICKFOLDERS;
 
 			break;
 		}
-		case FileType::FILE_EXE:
+		case FileType::EXE:
 		{
 			COMDLG_FILTERSPEC filter[] =
 			{
@@ -812,14 +812,14 @@ namespace KalaWindow::Graphics
 
 			break;
 		}
-		case FileType::FILE_CUSTOM:
+		case FileType::CUSTOM:
 		{
             if (customTypes.empty())
             {
                 Log::Print(
                     "Failed to get files because FILE_CUSTOM was selected but no types were passed!",
                     "KW_WINDOW_GLOBAL",
-                    LogType::LOG_WARNING);
+                    LogType::WARNING);
 
 				clear_all_inputs();
 				UnInit();
@@ -870,7 +870,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Failed to set default folder to '" + requiredRoot.string() + "'! Reason: " + HResultToString(hr),
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_WARNING);
+					LogType::WARNING);
 			}
 		}
 
@@ -887,7 +887,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"User cancelled file selection.",
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_VERBOSE);
+					LogType::VERBOSE);
 			}
 
 			clear_all_inputs();
@@ -900,7 +900,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to show file open dialog! Reason: " + HResultToString(hr),
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			clear_all_inputs();
@@ -916,7 +916,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to retrieve selected items from file dialog! Reason: " + HResultToString(hr),
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			clear_all_inputs();
@@ -938,7 +938,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Failed to get item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 
 				continue;
@@ -954,7 +954,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Failed to get file path for item at index '" + to_string(i) + "' from file dialog! Reason: " + HResultToString(hr),
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 
 				continue;
@@ -987,7 +987,7 @@ namespace KalaWindow::Graphics
                         "Discarded file or directory '" + s 
                         + "' because it was not within the required root!",
                         "KW_WINDOW_GLOBAL",
-                        LogType::LOG_WARNING);
+                        LogType::WARNING);
 
                     continue;
                 }
@@ -1010,7 +1010,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Retreived files from getfiles: " + resultStr,
                 "KW_WINDOW_GLOBAL",
-                LogType::LOG_VERBOSE);
+                LogType::VERBOSE);
         }
 
         return result;
@@ -1025,7 +1025,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Cannot create notifications because this program is ran on Wine!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_WARNING);
+				LogType::WARNING);
 
 			return;
 		}
@@ -1058,7 +1058,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create notification '" + string(title) + " because COM was already initialized in STA mode!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			return;
@@ -1068,7 +1068,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create notification '" + string(title) + " because RoInitialize failed!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			return;
@@ -1094,7 +1094,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating xmlDocInspectable! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1102,7 +1102,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because xmlDocInspectable failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1121,7 +1121,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating xmlDoc! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1129,7 +1129,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because xmlDoc failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1147,7 +1147,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating xmlDocIO! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1155,7 +1155,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because xmlDocIO failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1179,7 +1179,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Failed to create notification '" + string(title) + " while creating xmlStr! Reason: " + to_string(hr),
 					"KW_WINDOW_GLOBAL",
-					LogType::LOG_ERROR,
+					LogType::ERROR,
 					2);
 
 				xmlDoc->Release();
@@ -1203,7 +1203,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating factoryInspectable! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1211,7 +1211,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because factoryInspectable failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1232,7 +1232,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating toastFactory! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1240,7 +1240,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because toastFactory failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1264,7 +1264,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating toast! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1272,7 +1272,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because toast failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1295,7 +1295,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating managerStaticsInspectable! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1303,7 +1303,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because managerStaticsInspectable failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1324,7 +1324,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating managerStatics! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1332,7 +1332,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because managerStatics failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1357,7 +1357,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " while creating notifier! Reason: " + to_string(hr),
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 				else
@@ -1365,7 +1365,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Failed to create notification '" + string(title) + " because notifier failed to be created!",
 						"KW_WINDOW_GLOBAL",
-						LogType::LOG_ERROR,
+						LogType::ERROR,
 						2);
 				}
 
@@ -1390,7 +1390,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create notification '" + string(title) + "! Reason: " + to_string(hr),
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_ERROR,
+				LogType::ERROR,
 				2);
 
 			return;
@@ -1402,7 +1402,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Created notification '" + string(title) + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 
@@ -1412,11 +1412,11 @@ namespace KalaWindow::Graphics
 
 		switch (type)
 		{
-		case SoundType::SOUND_OK:
+		case SoundType::OK:
 			MessageBeep(MB_OK);
 			soundType = "ok";
 			break;
-		case SoundType::SOUND_ERROR:
+		case SoundType::ERROR:
 			MessageBeep(MB_ICONHAND);
 			soundType = "error";
 			break;
@@ -1427,7 +1427,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Played sound type '" + soundType + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::LOG_VERBOSE);
+				LogType::VERBOSE);
 		}
 	}
 }

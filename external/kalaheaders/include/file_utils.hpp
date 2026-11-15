@@ -96,8 +96,8 @@ namespace KalaHeaders::KalaFile
 
 	enum class FileType
 	{
-		FILE_TEXT,
-		FILE_BINARY
+		TEXT,
+		BINARY
 	};
 
 	//Data struct that is used for creating a new file.
@@ -218,17 +218,15 @@ namespace KalaHeaders::KalaFile
 
 	inline path GetCleanPath(const path& original) { return absolute(original).lexically_normal(); }
 
-	
-
 	//
 	// WILDCARDS
 	//
 
-	enum class PathTarget : u8
+	enum class PathTarget
 	{
-		P_ANY = 0,
-		P_FILE_ONLY = 1,
-		P_DIR_ONLY = 2
+		ANY,
+		FILE_ONLY,
+		DIR_ONLY
 	};
 
 	//Resolve any path-like field into a vector of paths (wildcards may return multiple values),
@@ -238,7 +236,7 @@ namespace KalaHeaders::KalaFile
 		string_view input,
 		string_view relativeDir,
 		vector<path>& out,
-		PathTarget target = PathTarget::P_ANY)
+		PathTarget target = PathTarget::ANY)
 	{
 		if (input.empty()) return "Failed to resolve empty path!";
 		if (input.ends_with("*.")
@@ -376,10 +374,10 @@ namespace KalaHeaders::KalaFile
 				{
 					for (const auto& t : directory_iterator(baseDir))
 					{
-						if (target == PathTarget::P_ANY
-							|| (target == PathTarget::P_FILE_ONLY
+						if (target == PathTarget::ANY
+							|| (target == PathTarget::FILE_ONLY
 							&& is_regular_file(t))
-							|| (target == PathTarget::P_DIR_ONLY
+							|| (target == PathTarget::DIR_ONLY
 							&& is_directory(t)))
 						{
 							tempOutTargetPaths.push_back(path(t));
@@ -390,10 +388,10 @@ namespace KalaHeaders::KalaFile
 				{
 					for (const auto& t : recursive_directory_iterator(baseDir))
 					{
-						if (target == PathTarget::P_ANY
-							|| (target == PathTarget::P_FILE_ONLY
+						if (target == PathTarget::ANY
+							|| (target == PathTarget::FILE_ONLY
 							&& is_regular_file(t))
-							|| (target == PathTarget::P_DIR_ONLY
+							|| (target == PathTarget::DIR_ONLY
 							&& is_directory(t)))
 						{
 							tempOutTargetPaths.push_back(path(t));
@@ -586,7 +584,7 @@ namespace KalaHeaders::KalaFile
 		//File is recursive
 		else if (contains_string(input, "**."))
 		{
-			if (target == PathTarget::P_DIR_ONLY) return {};
+			if (target == PathTarget::DIR_ONLY) return {};
 
 			string result = get_file_wildcards(
 				p, 
@@ -616,7 +614,7 @@ namespace KalaHeaders::KalaFile
 		//File is not recursive
 		else if (contains_string(input, "*."))
 		{
-			if (target == PathTarget::P_DIR_ONLY) return {};
+			if (target == PathTarget::DIR_ONLY) return {};
 
 			string result = get_file_wildcards(
 				p, 
@@ -739,7 +737,7 @@ namespace KalaHeaders::KalaFile
 	KNODISCARD
 	inline string CreateNewFile(
 		const path& target,
-		FileType targetFileType = FileType::FILE_BINARY,
+		FileType targetFileType = FileType::BINARY,
 		const FileData& fileData = FileData{})
 	{
 		ostringstream oss{};
@@ -780,12 +778,12 @@ namespace KalaHeaders::KalaFile
 
 		switch (targetFileType)
 		{
-		case FileType::FILE_TEXT:
+		case FileType::TEXT:
 		{
 			if (!fileData.inData.empty())
 			{
 				oss << "Failed to create new file at path '" << target
-					<< "' because its type was set to 'FILE_TEXT' and binary data was passed to it!";
+					<< "' because its type was set to 'TEXT' and binary data was passed to it!";
 
 				return oss.str();
 			}
@@ -825,13 +823,13 @@ namespace KalaHeaders::KalaFile
 			}
 			break;
 		}
-		case FileType::FILE_BINARY:
+		case FileType::BINARY:
 		{
 			if (!fileData.inLines.empty()
 				|| !fileData.inText.empty())
 			{
 				oss << "Failed to create new file at path '" << target
-					<< "' because its type was set to 'FILE_BINARY' and string data was passed to it!";
+					<< "' because its type was set to 'BINARY' and string data was passed to it!";
 
 				return oss.str();
 			}

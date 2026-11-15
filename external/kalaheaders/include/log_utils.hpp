@@ -57,37 +57,62 @@ namespace KalaHeaders::KalaLog
 
 	enum class LogType
 	{
-		LOG_VERBOSE, //Spammy, frequent log message for detailed logs, sent to stdout
-		LOG_INFO,    //General-purpose log message, sent to stdout
-		LOG_DEBUG,   //Debugging message, only appears in debug builds, sent to stdout
-		LOG_SUCCESS, //Confirmation that an operation succeeded, sent to stdout
-		LOG_WARNING, //User error, invalid request, usually not harmful
-		LOG_ERROR    //Application error, request failed to be handled, sent to stderr, always flushes
+		//Spammy, frequent log message for detailed logs, sent to stdout
+		VERBOSE,
+		//General-purpose log message, sent to stdout
+		INFO,
+		//Debugging message, only appears in debug builds, sent to stdout
+		DEBUG,
+		//Confirmation that an operation succeeded, sent to stdout
+		SUCCESS,
+		//User error, invalid request, usually not harmful
+		WARNING,
+		//Application error, request failed to be handled, sent to stderr, always flushes
+		ERROR
 	};
-	enum class TimeFormat : u8
+	enum class TimeFormat
 	{
-		TIME_NONE           = 0, //No time stamp
-		TIME_DEFAULT        = 1, //Uses TIME_HMS_MS_US
-		TIME_HMS            = 2, //23:59:59
-		TIME_HMS_MS         = 3, //23:59:59:123
-		TIME_HMS_MS_US      = 4, //23:59:59:123:456
-		TIME_12H            = 5, //11:59:59 PM
-		TIME_ISO_8601       = 6, //23:59:59Z
-		TIME_FILENAME       = 7, //23-59-59
-		TIME_FILENAME_MS    = 8, //23-59-59-123
-		TIME_FILENAME_MS_US = 9  //23-59-59-123-456
+		//No time stamp
+		TIME_NONE,
+		//Uses TIME_HMS_MS_US
+		TIME_DEFAULT,
+		//23:59:59
+		TIME_HMS,
+		//23:59:59:123
+		TIME_HMS_MS,
+		//23:59:59:123:456
+		TIME_HMS_MS_US,
+		//11:59:59 PM
+		TIME_12H,
+		//23:59:59Z
+		TIME_ISO_8601,
+		//23-59-59
+		TIME_FILENAME,
+		//23-59-59-123
+		TIME_FILENAME_MS,
+		//23-59-59-123-456
+		TIME_FILENAME_MS_US
 	};
-	enum class DateFormat : u8
+	enum class DateFormat
 	{
-		DATE_NONE         = 0, //No date stamp
-		DATE_DEFAULT      = 1, //Uses DATE_NONE
-		DATE_DMY          = 2, //31/12/2026
-		DATE_MDY          = 3, //12/31/2026
-		DATE_ISO_8601     = 4, //2026-12-31
-		DATE_TEXT_DMY     = 5, //31 December, 2026
-		DATE_TEXT_MDY     = 6, //December 31, 2026
-		DATE_FILENAME_DMY = 7, //31-12-2026
-		DATE_FILENAME_MDY = 8  //12-31-2026
+		//No date stamp
+		DATE_NONE,
+		//Uses DATE_NONE
+		DATE_DEFAULT,
+		//31/12/2026
+		DATE_DMY,
+		//12/31/2026
+		DATE_MDY,
+		//2026-12-31
+		DATE_ISO_8601,
+		//31 December, 2026
+		DATE_TEXT_DMY,
+		//December 31, 2026
+		DATE_TEXT_MDY,
+		//31-12-2026
+		DATE_FILENAME_DMY,
+		//12-31-2026
+		DATE_FILENAME_MDY
 	};
 
 	struct CachedPrefix
@@ -289,7 +314,7 @@ namespace KalaHeaders::KalaLog
 		//A newline is added automatically so std::endline or \n is not needed.
 		//  - message: the actual message of this log, clamped up to 2000 characters
 		//  - target: name of the namespace, class, function or variable of this log, clamped up to 50 characters
-		//  - type: sets the tag type, LOG_INFO has no tag, error always flushes
+		//  - type: sets the tag type, INFO has no tag, error always flushes
 		//  - indentation: optional leading space count in after time and date stamp, clamped up to 20
 		//  - flush: set to true for crash logs, diagnostics, assertion failures
 		//  - timeFormat: optional time stamp
@@ -304,7 +329,7 @@ namespace KalaHeaders::KalaLog
 			DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
 #ifndef KDEBUG
-			if (type == LogType::LOG_DEBUG) return;
+			if (type == LogType::DEBUG) return;
 #endif
 
 			thread_local const string empty{};
@@ -371,7 +396,7 @@ namespace KalaHeaders::KalaLog
 			//newline
 			*p++ = '\n';
 
-			FILE* out = (type == LogType::LOG_ERROR)
+			FILE* out = (type == LogType::ERROR)
 				? stderr
 				: stdout;
 
@@ -383,7 +408,7 @@ namespace KalaHeaders::KalaLog
 			fwrite(buffer.data(), 1, length, out);
 
 			if (flush
-				|| type == LogType::LOG_ERROR)
+				|| type == LogType::ERROR)
 			{
 				fflush(out);
 			}
@@ -448,7 +473,7 @@ namespace KalaHeaders::KalaLog
 		static constexpr const char* LogTypeTag[] =
 		{
 			"VERBOSE | ",
-			"",           //LOG_INFO
+			"",           //INFO
 			"DEBUG | ",
 			"SUCCESS | ",
 			"WARNING | ",

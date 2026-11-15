@@ -45,17 +45,17 @@ namespace KalaHeaders::KalaExportPNG
 	//should not be set below 1 or above 32768
 	static constexpr size_t LZ77_CHAIN_DEPTH = 128;
 
-    enum class TexturePixelFormat : u8
+    enum class TexturePixelFormat
     {
 		//1 channel, 8-bit UNORM, color type 0
-        FORMAT_BASIC_R8       = 0,
+        BASIC_R8,
 		//2 channels, 8-bit UNORM, color type 4 
-        FORMAT_BASIC_R8G8     = 1,
+        BASIC_R8G8,
 		//4 channels, 8-bit UNORM, color type 6
-        FORMAT_BASIC_R8G8B8A8 = 2,
+        BASIC_R8G8B8A8,
 
 		//4 channels, 8-bit sRGB-encoded, color type 6
-        FORMAT_SRGB_R8G8B8A8  = 3
+        SRGB_R8G8B8A8
     };
 
 	struct ExportPNGTextureData
@@ -336,16 +336,16 @@ namespace KalaHeaders::KalaExportPNG
 		switch (textureData.format)
 		{
 		default:
-		case TexturePixelFormat::FORMAT_BASIC_R8:
+		case TexturePixelFormat::BASIC_R8:
 			ihdr.colorType = 0;
 			channelCount = 1;
 			break;
-		case TexturePixelFormat::FORMAT_BASIC_R8G8:
+		case TexturePixelFormat::BASIC_R8G8:
 			ihdr.colorType = 4;
 			channelCount = 2;
 			break;
-		case TexturePixelFormat::FORMAT_BASIC_R8G8B8A8:
-		case TexturePixelFormat::FORMAT_SRGB_R8G8B8A8:
+		case TexturePixelFormat::BASIC_R8G8B8A8:
+		case TexturePixelFormat::SRGB_R8G8B8A8:
 			ihdr.colorType = 6;
 			channelCount = 4;
 			break;
@@ -403,7 +403,7 @@ namespace KalaHeaders::KalaExportPNG
 			outPngData,
 			crc);
 
-		if (textureData.format == TexturePixelFormat::FORMAT_SRGB_R8G8B8A8)
+		if (textureData.format == TexturePixelFormat::SRGB_R8G8B8A8)
 		{
 			static constexpr u8 SRGB_CHUNK_TYPE[4]
 			{

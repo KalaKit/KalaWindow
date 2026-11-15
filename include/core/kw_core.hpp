@@ -29,23 +29,23 @@ namespace KalaWindow::Core
 
 	enum class CPUFeatureFlag : u32
 	{
-		CPU_FEATURE_NONE    = 0,
+		NONE = 0,
 
-		CPU_FEATURE_SSE     = 1 << 0,
-		CPU_FEATURE_SSE2    = 1 << 1,
-		CPU_FEATURE_SSE3    = 1 << 2,
-		CPU_FEATURE_SSSE3   = 1 << 3,
-		CPU_FEATURE_SSE4_1  = 1 << 4,
-		CPU_FEATURE_SSE4_2  = 1 << 5,
+		SSE    = 1u << 0,
+		SSE2   = 1u << 1,
+		SSE3   = 1u << 2,
+		SSSE3  = 1u << 3,
+		SSE4_1 = 1u << 4,
+		SSE4_2 = 1u << 5,
 
-		CPU_FEATURE_AVX     = 1 << 6,
-		CPU_FEATURE_AVX2    = 1 << 7,
-		CPU_FEATURE_AVX512F = 1 << 8,
+		AVX     = 1u << 6,
+		AVX2    = 1u << 7,
+		AVX512F = 1u << 8,
 
-		CPU_FEATURE_FMA3    = 1 << 9,
+		FMA3 = 1u << 9,
 
-		CPU_FEATURE_BMI1    = 1 << 10,
-		CPU_FEATURE_BMI2    = 1 << 11
+		BMI1 = 1u << 10,
+		BMI2 = 1u << 11
 	};
 
 	struct LIB_API CPUInfo

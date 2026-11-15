@@ -52,11 +52,11 @@ namespace KalaHeaders::KalaExportGLB
 		f32 color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	};
 
-	enum class AlphaMode : u8
+	enum class AlphaMode
 	{
-		A_OPAQUE = 0,
-		A_BLEND = 1,
-		A_MASK = 2
+		OPAQUE,
+		BLEND,
+		MASK
 	};
 
 	struct ExportMeshData
@@ -448,13 +448,13 @@ R"(
 			switch (matData.alphaMode)
 			{
 			default:
-			case AlphaMode::A_OPAQUE:
+			case AlphaMode::OPAQUE:
 				alphaModeString = "OPAQUE";
 				break;
-			case AlphaMode::A_BLEND:
+			case AlphaMode::BLEND:
 				alphaModeString = "BLEND";
 				break;
-			case AlphaMode::A_MASK:
+			case AlphaMode::MASK:
 				alphaModeString = "MASK";
 				break;
 			}
