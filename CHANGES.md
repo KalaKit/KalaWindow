@@ -1,3 +1,7 @@
+# 1.7.1
+
+- fix issue where Zenity can parse popup messages as markdown on Linux
+
 # 1.7.0
 
 - replaced windows.h with forward declarations in message loop header

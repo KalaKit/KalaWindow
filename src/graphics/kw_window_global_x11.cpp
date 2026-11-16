@@ -601,7 +601,12 @@ namespace KalaWindow::Graphics
         }
 
 		string finalTitle = title.empty() ? "NO TITLE" : string(title);
+
 		string finalMessage = message.empty() ? "NO MESSAGE" : string(message);
+        //do not parse message as markdown
+        gchar* escapedMessage = g_markup_escape_text(finalMessage.c_str(), -1);
+        finalMessage = escapedMessage;
+        g_free(escapedMessage);
 
         args.emplace_back("--title=" + finalTitle);
         args.emplace_back("--text=" + finalMessage);
