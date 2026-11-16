@@ -52,11 +52,13 @@ namespace KalaHeaders::KalaExportGLB
 		f32 color[4] = { 1.0f, 1.0f, 1.0f, 1.0f };
 	};
 
+    //What is the alpha mode type,
+	//requires 'TYPE_' prefix because Windows defines OPAQUE
 	enum class AlphaMode
 	{
-		OPAQUE,
-		BLEND,
-		MASK
+		TYPE_OPAQUE,
+		TYPE_BLEND,
+		TYPE_MASK
 	};
 
 	struct ExportMeshData
@@ -448,13 +450,13 @@ R"(
 			switch (matData.alphaMode)
 			{
 			default:
-			case AlphaMode::OPAQUE:
+			case AlphaMode::TYPE_OPAQUE:
 				alphaModeString = "OPAQUE";
 				break;
-			case AlphaMode::BLEND:
+			case AlphaMode::TYPE_BLEND:
 				alphaModeString = "BLEND";
 				break;
-			case AlphaMode::MASK:
+			case AlphaMode::TYPE_MASK:
 				alphaModeString = "MASK";
 				break;
 			}
