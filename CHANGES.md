@@ -1,6 +1,7 @@
 # 1.7.1
 
 - fix issue where Zenity can parse popup messages as markdown on Linux
+- reverted LOG_ prefix removal, added TYPE_ prefix to PopupType and SoundType because Windows defines ERROR
 
 # 1.7.0
 

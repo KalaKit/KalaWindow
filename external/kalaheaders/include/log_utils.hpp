@@ -41,10 +41,6 @@ namespace KalaHeaders::KalaLog
 	using std::memcpy;
 	using std::strftime;
 	using std::snprintf;
-	
-	using u8 = uint8_t;
-	using u16 = uint16_t;
-	using u32 = uint32_t;
 
 	//Max allowed print message length
 	constexpr u16 MAX_MESSAGE_LENGTH = 10000;
@@ -58,17 +54,17 @@ namespace KalaHeaders::KalaLog
 	enum class LogType
 	{
 		//Spammy, frequent log message for detailed logs, sent to stdout
-		VERBOSE,
+		LOG_VERBOSE,
 		//General-purpose log message, sent to stdout
-		INFO,
+		LOG_INFO,
 		//Debugging message, only appears in debug builds, sent to stdout
-		DEBUG,
+		LOG_DEBUG,
 		//Confirmation that an operation succeeded, sent to stdout
-		SUCCESS,
+		LOG_SUCCESS,
 		//User error, invalid request, usually not harmful
-		WARNING,
+		LOG_WARNING,
 		//Application error, request failed to be handled, sent to stderr, always flushes
-		ERROR
+		LOG_ERROR
 	};
 	enum class TimeFormat
 	{
@@ -329,7 +325,7 @@ namespace KalaHeaders::KalaLog
 			DateFormat dateFormat = DateFormat::DATE_DEFAULT)
 		{
 #ifndef KDEBUG
-			if (type == LogType::DEBUG) return;
+			if (type == LogType::LOG_DEBUG) return;
 #endif
 
 			thread_local const string empty{};
@@ -396,7 +392,7 @@ namespace KalaHeaders::KalaLog
 			//newline
 			*p++ = '\n';
 
-			FILE* out = (type == LogType::ERROR)
+			FILE* out = (type == LogType::LOG_ERROR)
 				? stderr
 				: stdout;
 
@@ -408,7 +404,7 @@ namespace KalaHeaders::KalaLog
 			fwrite(buffer.data(), 1, length, out);
 
 			if (flush
-				|| type == LogType::ERROR)
+				|| type == LogType::LOG_ERROR)
 			{
 				fflush(out);
 			}

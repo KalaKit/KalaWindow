@@ -9,7 +9,7 @@
 
 #include <windows.h>
 #include <winuser.h>
-#include <shellapi.h> 
+#include <shellapi.h>
 
 #include <string>
 #include <vector>
@@ -233,7 +233,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Clicked on window '" + to_string(window->GetID()) + "' client area.",
 					"KW_MESSAGE_LOOP",
-					LogType::VERBOSE);
+					LogType::LOG_VERBOSE);
 			}
 
 			return MA_ACTIVATE;
@@ -246,7 +246,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Clicked on window '" + to_string(window->GetID()) + "' non-client area.",
 					"KW_MESSAGE_LOOP",
-					LogType::VERBOSE);
+					LogType::LOG_VERBOSE);
 			}
 
 			return DefWindowProc(
@@ -276,7 +276,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Received empty or WM_NULL message.",
 						"KW_MESSAGE_LOOP",
-						LogType::INFO);
+						LogType::LOG_INFO);
 				}
 				else
 				{
@@ -293,7 +293,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Got message: " + ss.str(),
 						"KW_MESSAGE_LOOP",
-						LogType::INFO);
+						LogType::LOG_INFO);
 				}
 				*/
 
@@ -353,7 +353,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' down.",
 							"INPUT",
-							LogType::VERBOSE);
+							LogType::LOG_VERBOSE);
 					}
 
 					if (input)
@@ -415,7 +415,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Detected keyboard key '" + TranslateVirtualKeyToString(msg.wParam, msg.lParam) + "' up.",
 							"INPUT",
-							LogType::VERBOSE);
+							LogType::LOG_VERBOSE);
 					}
 
 					if (input)
@@ -530,7 +530,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected left mouse key down.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -553,7 +553,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected left mouse key up.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -577,7 +577,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected right mouse key down.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -600,7 +600,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected right mouse key up.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -624,7 +624,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected middle mouse key down.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -647,7 +647,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected middle mouse key up.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -674,7 +674,7 @@ namespace KalaWindow::Core
 								Log::Print(
 									"Detected x1 mouse key down.",
 									"INPUT",
-									LogType::VERBOSE);
+									LogType::LOG_VERBOSE);
 							}
 						}
 					}
@@ -691,7 +691,7 @@ namespace KalaWindow::Core
 								Log::Print(
 									"Detected x2 mouse key down.",
 									"INPUT",
-									LogType::VERBOSE);
+									LogType::LOG_VERBOSE);
 							}
 						}
 					}
@@ -718,7 +718,7 @@ namespace KalaWindow::Core
 								Log::Print(
 									"Detected x1 mouse key up.",
 									"INPUT",
-									LogType::VERBOSE);
+									LogType::LOG_VERBOSE);
 							}
 						}
 					}
@@ -735,7 +735,7 @@ namespace KalaWindow::Core
 								Log::Print(
 									"Detected x2 mouse key up.",
 									"INPUT",
-									LogType::VERBOSE);
+									LogType::LOG_VERBOSE);
 							}
 						}
 					}
@@ -766,7 +766,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected left mouse key double click.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -789,7 +789,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected right mouse key double click.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -812,7 +812,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Detected middle mouse key double click.",
 								"INPUT",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -839,7 +839,7 @@ namespace KalaWindow::Core
 								Log::Print(
 									"Detected x1 mouse key double click.",
 									"INPUT",
-									LogType::VERBOSE);
+									LogType::LOG_VERBOSE);
 							}
 						}
 						if (button == XBUTTON2)
@@ -853,7 +853,7 @@ namespace KalaWindow::Core
 								Log::Print(
 									"Detected x2 mouse key double click.",
 									"INPUT",
-									LogType::VERBOSE);
+									LogType::LOG_VERBOSE);
 							}
 						}
 					}
@@ -989,7 +989,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"File '" + file.string() + "' was dragged to window '" + to_string(window->GetID()) + "'",
 								"KW_MESSAGE_LOOP",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -1016,7 +1016,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Window '" + to_string(window->GetID()) + "' was deactivated.",
 								"KW_MESSAGE_LOOP",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 
 						break;
@@ -1029,7 +1029,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Window '" + to_string(window->GetID()) + "' was activated.",
 								"KW_MESSAGE_LOOP",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 
 						break;
@@ -1053,7 +1053,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"Returned focus to window '" + to_string(window->GetID()) + "'!",
 								"KW_MESSAGE_LOOP",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 
@@ -1073,7 +1073,7 @@ namespace KalaWindow::Core
 							Log::Print(
 								"No longer focusing on window '" + to_string(window->GetID()) + "'.",
 								"KW_MESSAGE_LOOP",
-								LogType::VERBOSE);
+								LogType::LOG_VERBOSE);
 						}
 					}
 

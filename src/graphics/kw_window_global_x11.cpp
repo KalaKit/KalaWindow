@@ -101,7 +101,7 @@ static int ErrorHandler(
             + "minor: " + to_string(error->minor_code) + "\n"
             + "reason: " + buffer,
         "KW_WINDOW_GLOBAL",
-        LogType::ERROR,
+        LogType::LOG_ERROR,
         2);
 
     return 0; //tells X to continue
@@ -141,7 +141,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to set app name! Reason: " + err,
                 "KW_WINDOW_GLOBAL",
-                LogType::WARNING);
+                LogType::LOG_WARNING);
 
             return;
         }
@@ -150,7 +150,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to set app name because it was out of range!",
                 "KW_WINDOW_GLOBAL",
-                LogType::WARNING);
+                LogType::LOG_WARNING);
 
             return;
         }
@@ -160,7 +160,7 @@ namespace KalaWindow::Graphics
         Log::Print(
             "Set app name to '" + appName + "'.",
             "KW_WINDOW_GLOBAL",
-            LogType::SUCCESS);
+            LogType::LOG_SUCCESS);
     }
 
     void Window_Global::Initialize()
@@ -180,7 +180,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Libnotify was not found! Notifications will not work.",
                 "KW_WINDOW_GLOBAL",
-                LogType::WARNING);
+                LogType::LOG_WARNING);
         }
         if (!CommandSucceeds("canberra-gtk-play --version"))
         {
@@ -189,7 +189,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Libcanberra was not found! System sounds will not work.",
                 "KW_WINDOW_GLOBAL",
-                LogType::WARNING);
+                LogType::LOG_WARNING);
         }
 
         Display* display = XOpenDisplay(nullptr);
@@ -437,7 +437,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Initialized global window context!",
 			"KW_WINDOW_GLOBAL",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
     }
 
     bool Window_Global::IsInitialized() { return isInitialized; }
@@ -538,25 +538,25 @@ namespace KalaWindow::Graphics
         switch (type)
         {
             default:
-            case PopupType::INFO:
+            case PopupType::TYPE_INFO:
             {
                 typeStr = "info";
                 args.emplace_back("--icon=dialog-information");
                 break;
             }
-            case PopupType::WARNING:
+            case PopupType::TYPE_WARNING:
             {
                 typeStr = "warning";
                 args.emplace_back("--icon=dialog-warning");
                 break;
             }
-            case PopupType::ERROR:
+            case PopupType::TYPE_ERROR:
             {
                 typeStr = "error";
                 args.emplace_back("--icon=dialog-error");
                 break;
             }
-            case PopupType::QUESTION:
+            case PopupType::TYPE_QUESTION:
             {
                 typeStr = "question";
                 args.emplace_back("--icon=dialog-question");
@@ -620,7 +620,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Created popup '" + string(title) + "' with type '" + typeStr + "' and action '" + actionStr + "'.",
                 "KW_WINDOW_GLOBAL",
-                LogType::VERBOSE);
+                LogType::LOG_VERBOSE);
         }
 
         return get_result(execArgs);
@@ -652,7 +652,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Multiple flag was used together with FILE_FOLDER! This will not work and will only select one folder.",
                 "KW_WINDOW_GLOBAL",
-                LogType::WARNING);
+                LogType::LOG_WARNING);
         }
 
         string cmd = "zenity --file-selection";
@@ -677,7 +677,7 @@ namespace KalaWindow::Graphics
                 Log::Print(
                     "Failed to get files because FILE_CUSTOM was selected but no types were passed!",
                     "KW_WINDOW_GLOBAL",
-                    LogType::WARNING);
+                    LogType::LOG_WARNING);
 
                 clear_all_inputs();
                 return {};
@@ -705,7 +705,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to get files because pipe for command '" + cmd + "' couldn't be opened!",
                 "KW_WINDOW_GLOBAL",
-                LogType::ERROR,
+                LogType::LOG_ERROR,
                 2);
 
             clear_all_inputs();
@@ -725,14 +725,14 @@ namespace KalaWindow::Graphics
                 Log::Print(
                     "File selection was cancelled by user.",
                     "KW_WINDOW_GLOBAL",
-                    LogType::INFO);
+                    LogType::LOG_INFO);
             }
             else
             {
                 Log::Print(
                     "Failed to get files! Zenity command '" + cmd + "', error code '" + to_string(status) + "'",
                     "KW_WINDOW_GLOBAL",
-                    LogType::ERROR,
+                    LogType::LOG_ERROR,
                     2);
             }
 
@@ -772,7 +772,7 @@ namespace KalaWindow::Graphics
                         "Discarded file or directory '" + s 
                         + "' because it was not within the required root!",
                         "KW_WINDOW_GLOBAL",
-                        LogType::WARNING);
+                        LogType::LOG_WARNING);
 
                     continue;
                 }
@@ -795,7 +795,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Retreived files from getfiles: " + resultStr,
                 "KW_WINDOW_GLOBAL",
-                LogType::VERBOSE);
+                LogType::LOG_VERBOSE);
         }
 
         return result;
@@ -810,7 +810,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to create notification because libnotify was not found!",
                 "KW_WINDOW_GLOBAL",
-                LogType::ERROR,
+                LogType::LOG_ERROR,
                 2);
 
             return;
@@ -826,7 +826,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to allocate notification!",
                 "KW_WINDOW_GLOBAL",
-                LogType::ERROR,
+                LogType::LOG_ERROR,
                 2);
 
             return;
@@ -845,7 +845,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 errorMessage,
                 "KW_WINDOW_GLOBAL",
-                LogType::ERROR,
+                LogType::LOG_ERROR,
                 2);
 
             g_error_free(error);
@@ -858,7 +858,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Created notification '" + string(title) + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -869,7 +869,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to create system sound because libcanberra was not found!",
                 "KW_WINDOW_GLOBAL",
-                LogType::ERROR,
+                LogType::LOG_ERROR,
                 2);
 
             return;
@@ -878,10 +878,10 @@ namespace KalaWindow::Graphics
         string soundType{};
         switch (type)
         {
-        case SoundType::OK:
+        case SoundType::TYPE_OK:
             soundType = "dialog-information";
             break;
-        case SoundType::ERROR:
+        case SoundType::TYPE_ERROR:
             soundType = "dialog-error";
             break;
         }
@@ -900,7 +900,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Played sound type '" + soundType + "'!",
 				"KW_WINDOW_GLOBAL",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 

@@ -81,13 +81,6 @@ namespace KalaHeaders::KalaFile
 	using std::filesystem::filesystem_error;
 	using std::filesystem::file_time_type;
 	using std::chrono::system_clock;
-	
-	using u8 = uint8_t;
-	using u16 = uint16_t;
-	using u32 = uint32_t;
-	using i8 = int8_t;
-	using i16 = int16_t;
-	using i32 = int32_t;
 
 	inline constexpr size_t TEN_MB = 10ULL * 1024 * 1024;
 	inline constexpr size_t ONE_GB = 1ULL * 1024 * 1024 * 1024;

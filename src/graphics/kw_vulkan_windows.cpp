@@ -104,22 +104,22 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL DebugCallback(
 	{
 	case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT:
 	{
-		logType = LogType::VERBOSE;
+		logType = LogType::LOG_VERBOSE;
 		break;
 	}
 	case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT:
 	{
-		logType = LogType::INFO;
+		logType = LogType::LOG_INFO;
 		break;
 	}
 	case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT:
 	{
-		logType = LogType::WARNING;
+		logType = LogType::LOG_WARNING;
 		break;
 	}
 	case VkDebugUtilsMessageSeverityFlagBitsEXT::VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT:
 	{
-		logType = LogType::ERROR;
+		logType = LogType::LOG_ERROR;
 		break;
 	}
 	default: break;
@@ -164,7 +164,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set Vulkan version because global Vulkan has already been initialized!",
 				"KW_VULKAN",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -196,7 +196,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Set Vulkan version to '" + ver + "'.",
 			"KW_VULKAN",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
 	}
 
 	const vector<string>& VulkanContext::GetExtensions() { return extensions; }
@@ -207,7 +207,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set Vulkan extensions because global Vulkan has already been initialized!",
 				"KW_VULKAN",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -217,7 +217,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set Vulkan extensions because nothing was passed!",
 				"KW_VULKAN",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -239,7 +239,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Added new Vulkan extensions '" + ext + "'.",
 			"KW_VULKAN",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
 	}
 
     VkInstance VulkanContext::GetInstance()
@@ -249,7 +249,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Vulkan instance because global Vulkan has not been initialized!",
 				"KW_VULKAN",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return nullptr;
 		}
@@ -259,7 +259,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to get Vulkan instance because it was invalid!",
 				"KW_VULKAN",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return nullptr;
 		}
@@ -422,7 +422,7 @@ namespace KalaWindow::Graphics
         Log::Print(
 			"Initialized global Vulkan context!",
 			"KW_VULKAN",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
 
 		isInitialized = true;
     }
@@ -494,7 +494,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Created new Vulkan context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",
 			"KW_VULKAN",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
 
 		return contPtr;
     }
@@ -530,7 +530,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Destroying Vulkan context '" + to_string(ID) + "' for window '" + to_string(windowID) + "'.",
 			"KW_VULKAN",
-			LogType::INFO);
+			LogType::LOG_INFO);
 
 		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
 			instance, "vkDestroyDebugUtilsMessengerEXT");
@@ -557,7 +557,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Destroying global Vulkan because all contexts were destroyed.",
 				"KW_VULKAN",
-				LogType::INFO);
+				LogType::LOG_INFO);
 
 			vkDestroyInstance(instance, nullptr);
 

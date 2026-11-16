@@ -105,7 +105,7 @@ namespace KalaWindow::Core
 		Log::Print(
 			"Initialized crash handler!",
 			"KW_CRASH",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
 	}
 
 	bool CrashHandler::IsInitialized() { return isInitialized; }
@@ -145,9 +145,9 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		if (Window_Global::CreatePopup(
 			title,
 			reason,
-			PopupAction::POPUP_ACTION_OK,
-			PopupType::POPUP_TYPE_ERROR)
-			== PopupResult::POPUP_RESULT_OK)
+			PopupAction::OK,
+			PopupType::TYPE_ERROR)
+			== PopupResult::OK)
 		{
 			return EXCEPTION_EXECUTE_HANDLER;
 		}
@@ -295,7 +295,7 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 		Log::Print(
 			"Dump file creation disabled by user.",
 			"KW_CRASH",
-			LogType::INFO,
+			LogType::LOG_INFO,
 			0,
 			true);
 	}
@@ -309,8 +309,8 @@ LONG WINAPI HandleCrash(EXCEPTION_POINTERS* info)
 	if (Window_Global::CreatePopup(
 		string(Window_Global::GetAppName()),
 		userStream.str(),
-		PopupAction::POPUP_ACTION_OK,
-		PopupType::POPUP_TYPE_ERROR) == PopupResult::POPUP_RESULT_OK)
+		PopupAction::OK,
+		PopupType::TYPE_ERROR) == PopupResult::OK)
 	{
 		TerminateProcess(
 			GetCurrentProcess(),
@@ -356,7 +356,7 @@ void WriteMiniDump(
 		Log::Print(
 			debugMsg.str(),
 			"KW_CRASH",
-			LogType::INFO);
+			LogType::LOG_INFO);
 
 		dumpInfo.ExceptionPointers = info;
 		dumpInfo.ClientPointers = FALSE;
@@ -395,7 +395,7 @@ void AppendCallStackToStream(
 	Log::Print(
 		debugMsg.str(),
 		"KW_CRASH",
-		LogType::INFO);
+		LogType::LOG_INFO);
 
 	SymSetOptions(
 		SYMOPT_LOAD_LINES         //file/line info
@@ -513,7 +513,7 @@ void WriteLog(
 		Log::Print(
 			"Failed to write to log file '" + fullPath.string() + "'! Reason: " + err,
 			"KW_CRASH",
-			LogType::ERROR,
+			LogType::LOG_ERROR,
 			2);
 	}
 }

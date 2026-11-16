@@ -32,8 +32,6 @@ namespace KalaHeaders::KalaKeyStandards
 	using std::lower_bound;
 	using std::find_if;
 	
-	using u32 = uint32_t;
-	
 	struct KeyValue
 	{
 		u32 key{};

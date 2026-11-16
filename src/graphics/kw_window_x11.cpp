@@ -91,7 +91,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create window! Reason: " + err,
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return nullptr;
         }
@@ -100,7 +100,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to create window because its title length was out of range!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return nullptr;
 		}
@@ -198,7 +198,7 @@ namespace KalaWindow::Graphics
                 + " window=" + to_string(window)
                 + " atom=" + to_string(atom_wm_delete),
                 "KW_WINDOW",
-                LogType::ERROR,
+                LogType::LOG_ERROR,
                 2);
         }
 
@@ -361,7 +361,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Created new window '" + string(title) + "' with ID '" + to_string(newID) + "'!",
 			"KW_WINDOW",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
 
 		return windowPtr;
     }
@@ -437,7 +437,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to assign window '" + to_string(ID) + "' dragged files callback because it was empty!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -497,7 +497,7 @@ namespace KalaWindow::Graphics
             Log::Print(
                 "Failed to get window '" + to_string(ID) + "' title because prop was invalid!",
                 "KW_WINDOW",
-                LogType::ERROR,
+                LogType::LOG_ERROR,
                 2);
         }
 
@@ -528,7 +528,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' title! Reason: " + err,
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
         }
@@ -538,7 +538,7 @@ namespace KalaWindow::Graphics
 				"Failed to set window '" + to_string(ID) + "' title "
                 "because the new title was out of range!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -569,7 +569,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' title to '" + string(newValue) + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -635,7 +635,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' size because it is already the same size!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
             return;
         }
@@ -659,7 +659,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -679,7 +679,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' max size because it is already the same size!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
             return;
         }
@@ -721,7 +721,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' max size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -741,7 +741,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' min size because it is already the same size!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
             return;
         }
@@ -783,7 +783,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' min size to '" + val + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -816,7 +816,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' position to '" + val + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -930,7 +930,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' always on top state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -1043,7 +1043,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' resizable state to '" + val + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -1070,7 +1070,7 @@ namespace KalaWindow::Graphics
 				"Failed to get window '" + to_string(ID) + "' class value "
                 "because XClassHint failed or it had no name or class value! Result code: " + to_string(XRESULT),
 				"KW_WINDOW",
-				LogType::ERROR,
+				LogType::LOG_ERROR,
 				2);
 
             return { "", "" };
@@ -1109,7 +1109,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Failed to set window '" + to_string(ID) + "' class value! Reason: " + err,
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
         }
@@ -1119,7 +1119,7 @@ namespace KalaWindow::Graphics
 				"Failed to set window '" + to_string(ID) + "' class value "
                 "because its length was out of range!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
 			return;
 		}
@@ -1140,7 +1140,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' class to '" + string(newValue) + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -1234,7 +1234,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' mode to '" + windowModeVal + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -1372,7 +1372,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Set window '" + to_string(ID) + "' state to '" + windowStateVal + "'",
 				"KW_WINDOW",
-				LogType::VERBOSE);
+				LogType::LOG_VERBOSE);
 		}
     }
 
@@ -1385,7 +1385,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty early update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 		}
 
 		earlyUpdateCallback = std::move(newValue);
@@ -1397,7 +1397,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 		}
 
 		updateCallback = std::move(newValue);
@@ -1409,7 +1409,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned late update callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 		}
 
 		lateUpdateCallback = std::move(newValue);
@@ -1422,7 +1422,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty resize callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 		}
 
 		resizeCallback = std::move(newValue);
@@ -1435,7 +1435,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty shutdown callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 		}
 
 		shutdownCallback = std::move(newValue);
@@ -1448,7 +1448,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Assigned empty can close callback callback to window '" + to_string(ID) + "'.",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 		}
 
 		canCloseCallback = std::move(newValue);
@@ -1470,7 +1470,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Skipping window '" + to_string(ID) + "' shutdown because shutdown was denied!",
 				"KW_WINDOW",
-				LogType::WARNING);
+				LogType::LOG_WARNING);
 
             return;
         }
@@ -1486,7 +1486,7 @@ namespace KalaWindow::Graphics
 			Log::Print(
 				"Shutting down because the last process window is being destroyed.",
 				"KW_WINDOW",
-				LogType::INFO);
+				LogType::LOG_INFO);
 		}
 
 		if (shutdownCallback) shutdownCallback();
@@ -1500,7 +1500,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Destroying child window '" + to_string(w) + "' of parent window '" + to_string(ID) + "'",
 					"KW_WINDOW",
-					LogType::VERBOSE);
+					LogType::LOG_VERBOSE);
 			}
 
 			ProcessWindow* pw{};
@@ -1522,7 +1522,7 @@ namespace KalaWindow::Graphics
 				Log::Print(
 					"Destroying child window '" + to_string(ID) + "' of parent window '" + to_string(parentID) + "'",
 					"KW_WINDOW",
-					LogType::VERBOSE);
+					LogType::LOG_VERBOSE);
 			}
 
 			ProcessWindow* pw{};
@@ -1570,7 +1570,7 @@ namespace KalaWindow::Graphics
 		Log::Print(
 			"Destroying window '" + title + "' with ID '" + to_string(ID) + "'.",
 			"KW_WINDOW",
-			LogType::INFO);
+			LogType::LOG_INFO);
 
 		inputID = 0;
 		graphicsContextID = 0;

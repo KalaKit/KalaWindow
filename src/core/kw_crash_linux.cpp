@@ -164,7 +164,7 @@ namespace KalaWindow::Core
 		Log::Print(
 			"Initialized crash handler!",
 			"KW_CRASH",
-			LogType::SUCCESS);
+			LogType::LOG_SUCCESS);
     }
 
     bool CrashHandler::IsInitialized() { return isInitialized; }
@@ -226,7 +226,7 @@ void HandleCrash(
                 title,
                 reason,
                 PopupAction::OK,
-                PopupType::ERROR)
+                PopupType::TYPE_ERROR)
                 == PopupResult::OK)
             {
                 _exit(1);
@@ -498,7 +498,7 @@ void WriteLog(
 		Log::Print(
 			"Failed to open log file to write into it!",
 			"KW_CRASH",
-			LogType::ERROR,
+			LogType::LOG_ERROR,
             2);
 
 		return;

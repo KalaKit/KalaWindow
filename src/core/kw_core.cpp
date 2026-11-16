@@ -268,7 +268,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get physical core count because GetLogicalProcessorInformationEx failed!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -294,7 +294,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get physical core count because '/ptoc/cpuinfo' couldn't be opened!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -362,7 +362,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get base clock speed because '/sys/devices/system/cpu/cpu0/cpufreq/base_frequency' couldn't be opened!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -622,7 +622,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Failed to get GPU info because global Vulkan has not been initialized!",
 					"KW_CORE",
-					LogType::ERROR,
+					LogType::LOG_ERROR,
 					2);
 
 				return {};
@@ -696,7 +696,7 @@ namespace KalaWindow::Core
 			Log::Print(
 				"Failed to get GPU info as string because global Vulkan has not been initialized!",
 				"KW_CORE",
-				LogType::ERROR,
+				LogType::LOG_ERROR,
 				2);
 
 			return {};
@@ -739,7 +739,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get total memory because GetProcessMemoryInfo failed!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -753,7 +753,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get total memory because sysinfo() failed!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -774,7 +774,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get available memory because GetProcessMemoryInfo failed!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -788,7 +788,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get available memory because '/proc/meminfo' couldn't be opened!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -811,7 +811,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Failed to get available memory because 'MemAvailable' was not found in '/proc/meminfo'!",
 					"KW_CORE",
-					LogType::ERROR,
+					LogType::LOG_ERROR,
 					2);
 
 				return 0;
@@ -830,7 +830,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get used memory because GetProcessMemoryInfo failed!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -844,7 +844,7 @@ namespace KalaWindow::Core
 					Log::Print(
 						"Failed to get used memory because '/proc/self/status' couldn't be opened!",
 						"KW_CORE",
-						LogType::ERROR,
+						LogType::LOG_ERROR,
 						2);
 
 					return 0;
@@ -867,7 +867,7 @@ namespace KalaWindow::Core
 				Log::Print(
 					"Failed to get available memory because 'VmRSS' was not found in '/proc/self/status'!",
 					"KW_CORE",
-					LogType::ERROR,
+					LogType::LOG_ERROR,
 					2);
 
 				return 0;
@@ -938,7 +938,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Failed to get OS name because '/etc/os-release' couldn't be opened!",
 							"KW_CORE",
-							LogType::ERROR,
+							LogType::LOG_ERROR,
 							2);
 					}
 					else
@@ -973,7 +973,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Failed to get kernel version because uname() failed!",
 							"KW_CORE",
-							LogType::ERROR,
+							LogType::LOG_ERROR,
 							2);
 					}
 					else kernelVersion = string(uts.release);
@@ -1003,7 +1003,7 @@ namespace KalaWindow::Core
 						Log::Print(
 							"Failed to get architecture because uname() failed!",
 							"KW_CORE",
-							LogType::ERROR,
+							LogType::LOG_ERROR,
 							2);
 
 						return "Unknown";
@@ -1191,7 +1191,7 @@ namespace KalaWindow::Core
 		Log::Print(
 			reason,
 			target,
-			LogType::ERROR,
+			LogType::LOG_ERROR,
 			2,
 			true,
 			TimeFormat::TIME_NONE,
