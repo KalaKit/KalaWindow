@@ -386,7 +386,7 @@ void GenerateFullCrashReport(
         Log::Print(
 			"Dump file creation disabled by user.",
 			"KW_CRASH",
-			LogType::DEBUG,
+			LogType::LOG_DEBUG,
 			0,
 			true);
     }
@@ -401,7 +401,7 @@ void GenerateFullCrashReport(
 		string(Window_Global::GetAppName()),
 		userStream.str(),
 		PopupAction::OK,
-		PopupType::ERROR) == PopupResult::OK)
+		PopupType::TYPE_ERROR) == PopupResult::OK)
     {
         _exit(1);
     }

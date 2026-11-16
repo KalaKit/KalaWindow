@@ -715,7 +715,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Calling CoUninitialize",
 						"KW_WINDOW_GLOBAL",
-						LogType::DEBUG);
+						LogType::LOG_DEBUG);
 					*/
 
 					CoUninitialize();
@@ -726,7 +726,7 @@ namespace KalaWindow::Graphics
 					Log::Print(
 						"Skipping CoUninitialize()",
 						"KW_WINDOW_GLOBAL",
-						LogType::DEBUG);
+						LogType::LOG_DEBUG);
 					*/
 				}
 			};
