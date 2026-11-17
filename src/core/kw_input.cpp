@@ -18,7 +18,6 @@
 #include <X11/extensions/XInput2.h>
 #endif
 #include <string>
-#include <memory>
 
 #include "core_utils.hpp"
 #include "log_utils.hpp"
@@ -48,8 +47,6 @@ using KalaWindow::Graphics::Window_Global;
 
 using std::string;
 using std::to_string;
-using std::unique_ptr;
-using std::make_unique;
 
 namespace KalaWindow::Core
 {
@@ -103,23 +100,19 @@ namespace KalaWindow::Core
 		u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
-		unique_ptr<Input> newInput = make_unique<Input>();
-		Input* inputPtr = newInput.get();
-
-		inputPtr->ID = newID;
-		inputPtr->windowID = windowID;
-
-		w->inputID = newID;
-
-		err = registry.AddContent(
-			newID, 
-			std::move(newInput));
+		Input* inputPtr{};
+		err = registry.AddContent(newID, inputPtr);
 		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow Input error",
 				"Failed to initialize input! Reason: " + err);
 		}
+
+		inputPtr->ID = newID;
+		inputPtr->windowID = windowID;
+
+		w->inputID = newID;
 
 		Log::Print(
 			"Created new input context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",

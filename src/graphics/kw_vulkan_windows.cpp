@@ -10,7 +10,6 @@
 #include <windows.h>
 #include <minwindef.h>
 
-#include <memory>
 #include <filesystem>
 
 #define VK_USE_PLATFORM_WIN32_KHR
@@ -38,8 +37,6 @@ using KalaWindow::Graphics::VulkanVersion;
 using std::string;
 using std::string_view;
 using std::to_string;
-using std::unique_ptr;
-using std::make_unique;
 using std::vector;
 
 static bool isInitialized{};
@@ -473,8 +470,14 @@ namespace KalaWindow::Graphics
         u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
-		unique_ptr<VulkanContext> newCont = make_unique<VulkanContext>();
-		VulkanContext* contPtr = newCont.get();
+		VulkanContext* contPtr{};
+		err = registry.AddContent(newID, contPtr);
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow Vulkan error",
+				"Failed to initialize Vulkan context! Reason: " + err);
+		}
 
 		contPtr->ID = newID;
 
@@ -482,14 +485,6 @@ namespace KalaWindow::Graphics
 
 		contPtr->windowID = w->GetID();
         contPtr->surface = surface;
-
-		err = registry.AddContent(newID, std::move(newCont));
-		if (!err.empty())
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow Vulkan error",
-				"Failed to initialize Vulkan context! Reason: " + err);
-		}
 
 		Log::Print(
 			"Created new Vulkan context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",

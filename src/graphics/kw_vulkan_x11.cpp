@@ -13,8 +13,6 @@
 #include <limits.h>
 #include <stdlib.h>
 
-#include <memory>
-
 #define VK_USE_PLATFORM_XLIB_KHR
 #include "vulkan/vulkan_core.h"
 #include "vulkan/vulkan_xlib.h"
@@ -41,8 +39,6 @@ using KalaWindow::Graphics::VulkanVersion;
 using std::string;
 using std::string_view;
 using std::to_string;
-using std::unique_ptr;
-using std::make_unique;
 using std::vector;
 
 static bool isInitialized{};
@@ -479,22 +475,20 @@ namespace KalaWindow::Graphics
         u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
-		unique_ptr<VulkanContext> newCont = make_unique<VulkanContext>();
-		VulkanContext* contPtr = newCont.get();
-
-		contPtr->ID = newID;
-		contPtr->windowID = windowID;
-
-		w->graphicsContextID = newID;
-        contPtr->surface = surface;
-
-		err = registry.AddContent(newID, std::move(newCont));
+		VulkanContext* contPtr{};
+		err = registry.AddContent(newID, contPtr);
 		if (!err.empty())
 		{
 			KalaWindowCore::ForceClose(
 				"KalaWindow Vulkan error",
 				"Failed to initialize Vulkan context! Reason: " + err);
 		}
+
+		contPtr->ID = newID;
+		contPtr->windowID = windowID;
+
+		w->graphicsContextID = newID;
+        contPtr->surface = surface;
 
 		Log::Print(
 			"Created new Vulkan context '" + to_string(newID) + "' for window '" + to_string(w->GetID()) + "'!",

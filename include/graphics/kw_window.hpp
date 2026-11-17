@@ -30,7 +30,6 @@ namespace KalaWindow::Graphics
 	using std::array;
 	using std::pair;
 	using std::filesystem::path;
-	using std::default_delete;
 
 	using KalaHeaders::KalaMath::vec2;
 
@@ -90,7 +89,7 @@ namespace KalaWindow::Graphics
 	friend class KalaWindow::Core::MessageLoop;
 	friend class KalaWindow::Core::Input;
 	friend class VulkanContext;
-	friend struct default_delete<ProcessWindow>;
+	friend struct KalaWindow::Core::KalaWindowRegistry<ProcessWindow>;
 	public:
 		KNODISCARD
 		static KalaWindowRegistry<ProcessWindow>& GetRegistry();

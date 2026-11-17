@@ -30,7 +30,6 @@ namespace KalaWindow::Core
 	using std::span;
 	using std::string;
 	using std::string_view;
-	using std::default_delete;
 
 	using KalaHeaders::KalaMath::vec2;
 	using KalaHeaders::KalaKeyStandards::KeyboardButton;
@@ -49,7 +48,7 @@ namespace KalaWindow::Core
 	friend class KalaWindow::Graphics::ProcessWindow;
 	friend class KalaWindow::Graphics::Window_Global;
 	friend class MessageLoop;
-	friend struct default_delete<Input>;
+	friend struct KalaWindowRegistry<Input>;
 	public:
 		KNODISCARD
 		static KalaWindowRegistry<Input>& GetRegistry();

@@ -20,7 +20,6 @@ namespace KalaWindow::Graphics
 {
     using std::string;
     using std::vector;
-    using std::default_delete;
 
     using KalaWindow::Core::KalaWindowRegistry;
 
@@ -36,7 +35,7 @@ namespace KalaWindow::Graphics
     class LIB_API VulkanContext
 	{
     friend class ProcessWindow;
-	friend struct default_delete<VulkanContext>;
+	friend struct KalaWindow::Core::KalaWindowRegistry<VulkanContext>;
 	public:
         KNODISCARD
 		static KalaWindowRegistry<VulkanContext>& GetRegistry();

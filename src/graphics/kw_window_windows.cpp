@@ -18,7 +18,6 @@
 #include <shellapi.h>
 
 #include <algorithm>
-#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -51,9 +50,7 @@ using KalaWindow::Core::MessageLoop;
 using KalaWindow::Graphics::ProcessWindow;
 using KalaWindow::Graphics::VulkanContext;
 
-using std::make_unique;
 using std::to_string;
-using std::unique_ptr;
 using std::ostringstream;
 using std::string;
 using std::string_view;
@@ -119,8 +116,14 @@ namespace KalaWindow::Graphics
 		u32 newID = KalaWindowCore::GetGlobalID() + 1;
 		KalaWindowCore::SetGlobalID(newID);
 
-		unique_ptr<ProcessWindow> newWindow = make_unique<ProcessWindow>();
-		ProcessWindow* windowPtr = newWindow.get();
+		ProcessWindow* windowPtr{};
+        err = registry.AddContent(newID, windowPtr);
+		if (!err.empty())
+		{
+			KalaWindowCore::ForceClose(
+				"KalaWindow window error",
+				"Failed to initialize window! Reason: " + err);
+		}
 
 		HINSTANCE newHInstance = GetModuleHandle(nullptr);
 
@@ -227,14 +230,6 @@ namespace KalaWindow::Graphics
 		}
 
 		windowPtr->BringToFocus();
-
-		err = registry.AddContent(newID, std::move(newWindow));
-		if (!err.empty())
-		{
-			KalaWindowCore::ForceClose(
-				"KalaWindow window error",
-				"Failed to initialize window! Reason: " + err);
-		}
 
         if (!Input::Initialize(windowPtr->ID))
 		{
